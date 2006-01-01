@@ -29,7 +29,7 @@
 """ Common definitions
 """
 from VERSION import SCOVERSION
-
+import os
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
 # (attention: lié au codage Zope et aussi à celui de postgresql)
@@ -82,3 +82,10 @@ def sendPDFFile(REQUEST, data, filename):
     REQUEST.RESPONSE.setHeader('Content-type', PDF_MIMETYPE)
     REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data
+
+# Get SVN version
+def get_svn_version(path):
+    if os.path.exists('/usr/bin/svnversion'):
+        return os.popen('svnversion ' + path).read().strip()
+    else:
+        return 'non disponible'

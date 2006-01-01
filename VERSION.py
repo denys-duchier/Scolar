@@ -2,10 +2,16 @@ SCOVERSION = "4.1.4"
 
 SCONEWS = """
 
+<h4>1er janvier 2006</h4>
+<ul>
+<li>Import du projet dans Subversion / LIPN.</li>
+<li>Lecture des feuilles de notes Excel.</li>
+</ul>
+
 <h4>31 décembre 2005</h4>
 <ul>
-<li>Listes générées au format Excel au lieu de CSV.
-<li>Bug fix (création/saisie evals).
+<li>Listes générées au format Excel au lieu de CSV.</li>
+<li>Bug fix (création/saisie evals).</li>
 </ul>
 
 <h4>29 décembre 2005</h4>
