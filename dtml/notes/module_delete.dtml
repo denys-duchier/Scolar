@@ -1,0 +1,29 @@
+<dtml-var sco_header>
+
+<dtml-call "REQUEST.set( 'F', do_module_list(args={ 'module_id' : module_id } )[0])">
+
+<h2>Suppression du module <dtml-var "F['titre']"> (<dtml-var "F['code']">)</h2>
+
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('module_id', { 'input_type' : 'hidden' }),
+   ),
+   initvalues = F,
+   submitlabel = 'Confirmer la suppression',
+   cancelbutton = 'Annuler'
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-if "tf[0] == -1">
+    <dtml-call "RESPONSE.redirect( URL1 )">
+ <dtml-else>
+    <dtml-call "do_module_delete( F['module_id'] )">
+    
+   <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(F['formation_id']) )"> 
+    
+ </dtml-if>
+</dtml-if>
+
+<dtml-var sco_footer>

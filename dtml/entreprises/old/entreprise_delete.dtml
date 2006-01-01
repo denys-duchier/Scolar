@@ -1,0 +1,60 @@
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+
+<dtml-call "REQUEST.set( 'F', do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0])">
+
+
+<h2>Suppression de l'entreprise <dtml-var "F['nom']"> </h2>
+
+<p class="entreprise_warning">Attention: supression définitive de l'entreprise, de ses correspondants et contacts.
+</p>
+
+<dtml-call "REQUEST.set( 'Cl', do_entreprise_correspondant_list( args={ 'entreprise_id' : entreprise_id }))">
+
+<dtml-if "len(Cl)">
+<h3>Correspondants dans l'entreprise <dtml-var "F['nom']"> (seront <em>supprimés</em>):</h3>
+<ul>
+<dtml-in Cl>
+ <dtml-let c="_['sequence-item']">
+ <li><dtml-if "c['nom']"><dtml-var "c['nom'].lower().capitalize()"></dtml-if>
+   <dtml-if "c['prenom']"> <dtml-var "c['prenom'].lower().capitalize()"></dtml-if>
+   (<dtml-var "c['fonction']">)
+  </li>
+ </dtml-let c>
+</dtml-in Cl>
+</ul>
+</dtml-if Cl>
+
+<dtml-call "REQUEST.set( 'Cts', do_entreprise_contact_list( args={ 'entreprise_id' : entreprise_id }))">
+<dtml-if "len(Cts)">
+<h3>Contacts avec l'entreprise <dtml-var "F['nom']"> (seront <em>supprimés</em>):</h3>
+<ul>
+<dtml-in Cts>
+ <dtml-let c="_['sequence-item']">
+ <li><dtml-if "c['date']"><dtml-var "c['date']"></dtml-if>
+      <dtml-if "c['description']">(<dtml-var "c['description']">)</dtml-if>
+  </li>
+ </dtml-let c>
+</dtml-in Cts>
+</ul>
+</dtml-if Cts>
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('entreprise_id', { 'input_type' : 'hidden' }),
+   ),
+   initvalues = F,
+   submitlabel = 'Confirmer la suppression',
+   cancelbutton = 'Annuler', readonly = REQUEST['_read_only']
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-if "tf[0] == -1">
+    <dtml-call "RESPONSE.redirect( URL1 )">
+ <dtml-else>
+    <dtml-call "do_entreprise_delete( F['entreprise_id'] )">
+    <dtml-call "RESPONSE.redirect(URL1)">
+ </dtml-if>
+</dtml-if>
+
+<dtml-var entreprise_footer>

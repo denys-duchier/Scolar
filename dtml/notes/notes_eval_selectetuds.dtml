@@ -1,0 +1,42 @@
+<dtml-var "sco_header(page_title='Saisie des notes',REQUEST=REQUEST,client=this())">
+<h2>Saisie des notes</h2>
+<p>
+<dtml-var "do_evaluation_selectetuds(REQUEST )">
+</p>
+
+
+<div style="border: 1px solid blue;">
+<h3>Chargement d'un fichier de notes</h3>
+<p>Le fichier doit être un fichier tableur obtenu via le formulaire ci-dessus, puis complété et enregistré au format Excel.
+</p>
+
+<dtml-call "REQUEST.set('nf', TrivialFormulator( URL0, REQUEST.form, 
+  ( 
+    ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
+    ('notefile',  { 'input_type' : 'file', 'title' : 'Fichier de note (.xls)', 'size' : 44 }),
+    ('comment', { 'size' : 44, 'title' : 'Commentaire',
+	'explanation':'(note: la colonne remarque du fichier excel est ignorée)' }),
+   ),
+   formid='notesfile',
+   submitlabel = 'Télécharger'))">
+
+<dtml-if "nf[0] == 0">
+ <dtml-var "nf[1]">
+<dtml-elif "nf[0] == -1">
+   Annulation
+<dtml-elif "nf[0] == 1">
+   <dtml-var "do_evaluation_upload_xls(REQUEST)">
+   <hr>
+   <dtml-var "nf[1]">
+</dtml-if>
+
+</div>
+
+<h3>Autres opérations</h3>
+
+<ul>
+<li><a href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
+</li> 
+</ul>
+
+<dtml-var sco_footer>

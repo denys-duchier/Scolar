@@ -1,0 +1,60 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: AnnuleAbsenceEtud
+     Description..: Annulation d'absence(s) d'un etudiant
+  -->
+</dtml-comment>
+
+
+<dtml-in "getEtudInfo(etudid, filled=1)" mapping>
+
+<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST,client=this())">
+
+<table><tr><td>
+<h1><font color="#FF0000">Annulation</font> d'une absence pour
+	  <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h1>
+</td><td>
+<a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
+<dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>
+</td></tr></table>
+
+<p>A n'utiliser que suite à une erreur de saisie ou lorsqu'il s'avère
+      que l'étudiant était en fait présent. Dans les autres cas,
+      <a href="<dtml-var
+	ScoURL>/Absences/JustifAbsenceEtud?etudid=<dtml-var etudid>">justifier l'absence</a>
+</p>
+
+
+<table frame="border" border="1"><tr><td>
+<form action="doAnnuleAbsence" method="get"> 
+<input type="hidden" name="etudid" value="<dtml-var etudid>">
+<p>
+Date d&eacute;but : <input type="text" name="datedebut" size="12"> 
+&nbsp; Date Fin (optionnel): <input type="text" name="datefin" size="12"> 
+
+&nbsp; <select name="demijournee">
+       <option value="2">Toute(s) la (ou les) journ&eacute;e(s)</option>
+       <option value="1">Matin(s) seulement</option>
+       <option value="0">Apr&egrave;s midi seulement</option>
+       </select>
+
+
+<p>
+<input type="submit" value="Supprimer les absences"> 
+</form> 
+</td></tr></table>
+
+<table frame="border" border="1"><tr><td>
+<form action="doAnnuleJustif" method="get"> 
+<input type="hidden" name="etudid" value="<dtml-var etudid>">
+<p>
+Date d&eacute;but : <input type="text" name="datedebut" size="12"> 
+&nbsp; Date Fin (optionnel): <input type="text" name="datefin" size="12"> 
+
+<p>
+<input type="submit" value="Supprimer les justificatifs"> 
+<i>(utiliser ceci en cas de justificatif erron&eacute; saisi ind&eacute;pendemment d'une absence)</i>
+</form> 
+</td></tr></table>
+
+<dtml-var sco_footer>
+</dtml-in getEtudInfo>

@@ -1,0 +1,49 @@
+<dtml-var manage_page_header>
+
+<dtml-var "manage_form_title(this(), _,
+           form_title='Add Notes',
+           help_product='ZNotes',
+           help_topic='ZNotes-add.stx'
+           )">
+
+<div class="form-help">
+<p>
+Notes Objects are very usefull thus not documented yet...
+</p>
+</div>
+
+<form name="form" action="manage_addZNotes"><br>
+
+<table cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Id
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="id" size="40" value="" />
+    </td>
+  </tr>
+
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-optional">
+    Title
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="title" size="40" />
+    </td>
+  </tr>
+
+  <div class="form-element">
+    <input class="form-element" 
+           type="submit" 
+  	   name="submit" 
+	   value=" Add " 
+	   />
+  </div>
+</form>
+
+<dtml-var manage_page_header>

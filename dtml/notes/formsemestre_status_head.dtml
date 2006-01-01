@@ -1,0 +1,27 @@
+<dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
+<dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0])">
+
+<dtml-call "REQUEST.set( 'inscrits', 
+            do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } ))">
+
+<dtml-call "REQUEST.set( 'Mlist', do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } ))">
+
+<XXXdtml-call "REQUEST.set( 'evals_status', do_evaluation_etat_in_sem( formsemestre_id ) )">
+
+<h2>Tableau de bord <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre']"></a> (formation <dtml-var "F['acronyme']">)</h2>
+
+
+<table>
+<tr><td class="fichetitre2">Date :</td><td>du <dtml-var "sem['date_debut']"> au <dtml-var "sem['date_fin']"></td><td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "sem['responsable_id']"></td></tr>
+<tr><td class="fichetitre2">Formation: </td><td><dtml-var "F['titre']">, semestre <dtml-var "sem['semestre_id']"></td></tr>
+<tr><td class="fichetitre2">Inscrits: </td><td> <dtml-var "len(inscrits)"> étudiants</td></tr>
+
+<dtml-in "do_evaluation_etat_in_sem( formsemestre_id )" mapping>
+
+<tr><td class="fichetitre2">Evaluations: </td><td> <dtml-var nb_evals_completes> ok, <dtml-var nb_evals_en_cours> en cours, <dtml-var nb_evals_vides> vides
+<dtml-if last_modif></td></tr><tr><td>&nbsp;</td><td><em>(dernière note saisie le <dtml-var "DateTime(str(last_modif)).strftime('%d/%m/%Y à %Hh%M')">)</em></dtml-if>
+</td></tr>
+
+</dtml-in do_evaluation_etat_in_sem>
+
+</table>

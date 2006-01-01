@@ -1,0 +1,62 @@
+<dtml-var manage_page_header>
+
+<dtml-var "manage_form_title(this(), _,
+           form_title='Add ZScolar',
+           help_product='ZScolar',
+           help_topic='ZScolar-add.stx'
+           )">
+
+<div class="form-help">
+<p>
+ZScolar: gestion scolarite d'un departement
+</p>
+</div>
+
+<form name="form" action="manage_addZScolar"><br>
+
+<table cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Id
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="id" size="40" value="" />
+    </td>
+  </tr>
+
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-optional">
+    Title
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="title" size="40" />
+    </td>
+  </tr>
+
+
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-optional">
+    DB connexion string
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="db_cnx_string" size="80" value="user=zopeuser dbname=SCOGTR password=XXXX host=localhost" />
+    </td>
+  </tr>
+
+
+  <div class="form-element">
+    <input class="form-element" 
+           type="submit" 
+  	   name="submit" 
+	   value=" Add " 
+	   />
+  </div>
+</form>
+
+<dtml-var manage_page_header>

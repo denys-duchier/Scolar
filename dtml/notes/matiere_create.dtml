@@ -1,0 +1,28 @@
+<dtml-var sco_header>
+
+<dtml-call "REQUEST.set( 'UE', do_ue_list( args={ 'ue_id' : ue_id } )[0])">
+
+
+<h2><dtml-var title_or_id> dans l'UE <dtml-var "UE['titre']"> (<dtml-var "UE['acronyme']">)</h2>
+
+<p>Les matières sont des groupes de modules dans une UE d'une formation donnée.</p>
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('ue_id', { 'input_type' : 'hidden', 'default' : ue_id }),
+    ('titre'    , { 'size' : 30, 'explanation' : 'nom de la matière.' }),
+    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour affichage',
+                     'type' : 'int' }),
+   ),
+   submitlabel = 'Créer cette matière'
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-var "REQUEST.set( 'matiere_id', do_matiere_create( tf[2] ) )">
+
+ <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(UE['formation_id']) )">
+
+</dtml-if>
+
+<dtml-var sco_footer>

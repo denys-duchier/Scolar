@@ -1,0 +1,62 @@
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+
+<dtml-call "REQUEST.set( 'E', do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0])">
+
+<dtml-call "REQUEST.set( 'curtime', ZopeTime().strftime('%d/%m/%Y') )">
+<dtml-call "REQUEST.set( 'link_create_corr', make_link_create_corr(entreprise_id) )">
+<dtml-call "REQUEST.set( 'correspondants', 
+                         do_entreprise_correspondant_listnames( args={ 'entreprise_id' : entreprise_id }) )">
+<dtml-if "len(correspondants) == 0">
+   <dtml-call "REQUEST.set( 'correspondants', [ ('inconnu','') ])">
+</dtml-if>
+
+<h2 class="entreprise_contact">Nouveau "contact" avec l'entreprise <dtml-var "E['nom']"></h2>
+
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( 
+    ('entreprise_id', { 'input_type' : 'hidden', 'default' : entreprise_id }),
+
+    ('type_contact', { 'input_type' : 'menu', 'title' : 'Objet',
+                       'allowed_values' : ('Prospection', 'Stage étudiant', 
+                                           'Contrat Apprentissage DUT GTR1', 
+                                           'Contrat Apprentissage DUT GTR2',
+                                           'Contrat Apprentissage Licence SQRT',
+                                           'Projet', 'Autre' ),
+                       'default' : 'Stage étudiant'
+                     }),
+
+    ('date', { 'size' : 12, 'title' : 'Date du contact (j/m/a)', 'allow_null' : False, 
+                'default':   curtime }),  
+
+    ('entreprise_corresp_id', {  'input_type' : 'menu', 'title' : 'Correspondant entreprise', 
+                         'explanation' : link_create_corr, 'allow_null' : True,
+                         'labels' : [ x[0] for x in correspondants ],
+                         'allowed_values' : [ x[1] for x in correspondants ] }),
+
+    ('etudiant', { 'size' : 16, 'title' : 'Etudiant concerné', 'allow_null' : True,
+                    'explanation' : 'nom (si pas ambigu) ou code' }),
+    ('enseignant', { 'size' : 16, 'title' : 'Enseignant (tuteur)', 'allow_null' : True }),
+    ('description',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Description' }),
+
+   ),
+   cancelbutton='Annuler',
+   submitlabel = 'Ajouter ce contact', readonly = REQUEST['_read_only']
+))">
+
+<dtml-call "REQUEST.set( 'etudok', do_entreprise_check_etudiant(etudiant) )">
+
+<dtml-if "(tf[0] == 0) or (etudok[0] == 0)">
+ <dtml-if "etudok[0] == 0">
+  <p class="entreprise_warning"><dtml-var "etudok[1]"></p>
+ </dtml-if>
+ <dtml-var "tf[1]">
+<dtml-elif "tf[0] == -1">
+ <dtml-call "RESPONSE.redirect( URL1 )">
+<dtml-else>
+  <dtml-call "tf[2].update( { 'etudid' : etudok[1] })">
+  <dtml-var "REQUEST.set( 'matiere_id', do_entreprise_contact_create( tf[2] ) )">
+  <dtml-call "RESPONSE.redirect( URL1 )">
+</dtml-if tf>
+
+<dtml-var "entreprise_footer(REQUEST=REQUEST)">

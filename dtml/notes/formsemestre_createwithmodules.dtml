@@ -1,0 +1,6 @@
+<dtml-var sco_header>
+<h2><dtml-var title_or_id></h2>
+
+<dtml-var "do_formsemestre_createwithmodules(REQUEST, getZopeUsers() )">
+
+<dtml-var sco_footer>

@@ -1,0 +1,105 @@
+
+* TODO: Notes  (modifs priotaires)
+-------------
+
+- formsemestre_status: voyants tricolores ?
+                       lignes tableau (rows) en couleur ?
+  
+- ajouter parcours sur feuille recap complet.
+
+- formPassage (reinscription semestre suivant)
+- formRedouble (quel sens a le redoublement avec les semestres ?)
+
+- formChoixSemestreGroupe: utilisé par Abscences/index_html
+    a améliorer
+
+- Génération PDF listes notes
+
+-  bug caracteres non ascii upper/lower: eg cedille etudid=2005_E_2
+   normalement réglé par locale python. Voir about()
+
+   Mais problème: voir par exemple GEAEID940
+
+
+* Gestion des sous-comm/jury
+----------------------------
+- edition feuille excel au format demandé par l'IUT pour les jurys.
+
+- ajout appréciation en sous-comm. (apparaissant sur bulletin)
+
+
+* FONCTIONNALITES SUPPLEMENTAIRES
+---------------------------------
+
+- formulaire formChangeGroupe: pouvoir specifier un NOUVEAU groupe.
+
+- verifier pas de saisie d'absences dans le FUTUR !
+
+- styles CSS sur les absences (messages d'erreur, ...)
+
+- revoir log de Notes (affichage liste, ...)
+
+- bulletin semestre:
+    - general (classement des etudiants, notes en colonnes)
+       Options:
+           - choix groupes
+           - critère de tri (moy ou alphab)
+           - nb de chiffres a afficher
+
+    + definir des "catégories" d'évaluations (eg "théorie","pratique")
+       afin de n'afficher que des moyennes "de catégorie" dans
+       le bulletin.
+
+- notes_evaluation_listenotes
+   - afficher groupes, moyenne, #inscrits, #absents, #manquantes dans l'en-tete.
+   - lien vers modif notes (selon role)
+
+- système de publication en lecture seule pour les ETUDIANTS
+   -> flag "published" sur les evaluations ?
+
+- faire des essais avec sessions Zope pour historique pages
+
+- formsemestre_editwithmodules: confirmer suppression modules
+      (et pour l'instant impossible si evaluations dans le module)
+
+
+- redefinir les UE du DUT R&T (UE11, UE12, ...)
+
+
+* FONCTIONNALITES DEMANDEES:
+- (GEA) edition tableau notes avec tous les evals d'un module
+        (comme notes_evaluation_listenotes mais avec tt les evals)
+
+
+
+
+* Détails:
+- verifier: table sql: notes_formsemestre.semestre_id == 1 ?
+
+
+* SCOGTR:
+
+* Misc:
+- style:
+   listes a puce avec symbole "+" pour creation items   
+
+* TrivialFormulator:
+ - clarifier le typage (strings/ints/...)
+   tout devrait rester en type string, ce qui n'empeche pas un checking
+
+ - class CSS sur tous les éléments, avec préfix paramétrable;
+
+ - Vers une seule description pour TableEditor et formulaires edit/create ?
+
+ - html_quote ?
+
+ - "widget" saisie menu + champ texte (comme fait au lipn)
+
+ - Creer un produit permettant d'utiliser la classe TF depuis Zope  ?
+
+ - terminer refactoring (classe TF)
+
+------------------------------------------------------------------------
+
+
+

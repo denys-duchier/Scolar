@@ -1,0 +1,29 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: APropos  -->
+</dtml-comment>
+
+<dtml-var sco_header>
+
+
+<p><font size=+1>
+Gestionnaire Scolarit&eacute; conçu et réalisé par 
+<a href="mailto:emmanuel.viennet@lipn.univ-paris13.fr">Emmanuel Viennet</a> 2000-2006.
+</font>
+
+<p>Logiciel &eacute;crit en Python et DTML, sous le système Zope+PostGreSQL.
+
+<p>Version 4.0, novembre 2005</p>
+
+<p>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0>
+<TR>
+<TD>
+<a href="http://www.python.org"><dtml-var "img.pythonpoweredsmall_img.tag(border=0)"></a>
+
+</TD><TD WIDTH=15>&nbsp;</TD>
+<TD>
+<dtml-var ZopeAttributionButton>
+</TD>
+</TABLE>
+
+<dtml-var sco_footer>

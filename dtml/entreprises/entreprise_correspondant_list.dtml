@@ -1,0 +1,52 @@
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+
+<dtml-call "REQUEST.set( 'E', do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0])">
+
+<h2>Listes des correspondants  dans l'entreprise <dtml-var "E['nom']"> </h2>
+
+<table class="corr_list">
+
+<tr><th>Nom</th><th>Entreprise</th><th>Fonction</th><th>Téléphone</th><th>Mail</th><th>Note</th></tr>
+
+<dtml-in "do_entreprise_correspondant_list( args={ 'entreprise_id' : entreprise_id })">
+ <dtml-let F="_['sequence-item']">
+ 
+ <tr class="<dtml-if sequence-odd>corr_list_odd<dtml-else>corr_list_even</dtml-if>">
+
+ <td><a class="corr_edit" href="entreprise_correspondant_edit?entreprise_corresp_id=<dtml-var "F['entreprise_corresp_id']">">
+   <dtml-if "F['nom']"><dtml-var "F['nom'].lower().capitalize()"></dtml-if>
+   <dtml-if "F['prenom']"> <dtml-var "F['prenom'].lower().capitalize()"></dtml-if>
+   </a>
+ </td>
+
+ <td class="corr_descr"><dtml-var "E['nom']"></td>
+
+ <td class="corr_descr"><dtml-var "F['fonction']"></td>
+ 
+ <td class="corr_descr">
+  <dtml-if "F['phone1']"><dtml-var "F['phone1']"></dtml-if>
+  <dtml-if "F['phone2']"> / <dtml-var "F['phone2']"></dtml-if>
+  <dtml-if "F['mobile']"> / <dtml-var "F['mobile']"></dtml-if>
+ </td>
+ 
+ <td class="corr_descr">
+  <dtml-if "F['mail1']"> <a href="mailto:<dtml-var "F['mail1']">"><dtml-var "F['mail1']"></a></dtml-if>
+  <dtml-if "F['mail1']"> <br> <a href="mailto:<dtml-var "F['mail2']">"><dtml-var "F['mail2']"></a></dtml-if>
+ </td>
+
+ <td class="corr_descr"><dtml-var "F['note']"></td>
+
+ <td class="corr_descr"><a class="corr_delete" href="entreprise_correspondant_edit?entreprise_corresp_id=<dtml-var "F['entreprise_corresp_id']">">modifier</a> </td>
+ <td class="corr_descr"><a class="corr_delete" href="entreprise_correspondant_delete?entreprise_corresp_id=<dtml-var "F['entreprise_corresp_id']">">supprimer</a> </td>
+ </tr>
+ </dtml-let>
+<dtml-else>
+<tr><td colspan="4"><font color="red"><em>Aucun correspondant dans cette entreprise !</em></font></td></tr>
+</dtml-in>
+</table>
+
+<p class="entreprise_create"><a class="entreprise_create" href="<dtml-var "URL1 + '/entreprise_correspondant_create?entreprise_id=' + entreprise_id">">
+Ajouter un correspondant dans l'entreprise <dtml-var "E['nom']"> </a><p>
+
+
+<dtml-var "entreprise_footer(REQUEST=REQUEST)">

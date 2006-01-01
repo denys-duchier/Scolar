@@ -1,0 +1,11 @@
+<h2 class="insidebar">D&eacute;pt. R&amp;T</h2>
+
+ <a href="<dtml-var BASE0>" class="sidebar">Accueil</a> <br> 
+ <a href="<dtml-var DeptURL>" class="sidebar">Intranet</a> <br>
+ <a href="<dtml-var BASE0>/Departement" class="sidebar">Plannings</a> <br> 
+ <a href="<dtml-var DeptURL>/Forum" class="sidebar">Forum</a> <br> 
+ <a href="<dtml-var DeptURL>/Expos" class="sidebar">Photos</a> <br> 
+ <a href="<dtml-var BASE0>/mailman/listinfo" class="sidebar">Mailman</a> <br> 
+ <br>
+ <a href="<dtml-var ScoURL>/Entreprises" class="sidebar">Entreprises</a> <br> 
+

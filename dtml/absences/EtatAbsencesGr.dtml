@@ -1,0 +1,77 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: EtatAbsencesGr
+
+     Author.......: Emmanuel Viennet
+     Created......: Mon Dec 20 1999
+
+     Description..: Etat des absences pour un groupe
+
+  -->
+</dtml-comment>
+
+<dtml-var "sco_header(page_title='Etat des absences pour un groupe',REQUEST=REQUEST,client=this())">
+
+<dtml-call "REQUEST.set('formsemestre_id', semestregroupe.split('!')[0])">
+<dtml-call "REQUEST.set('groupetd', semestregroupe.split('!')[1])">
+<dtml-call "REQUEST.set('groupeanglais', semestregroupe.split('!')[2])">
+<dtml-call "REQUEST.set('groupetp', semestregroupe.split('!')[3])">
+
+<dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0] )">
+
+<h1>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']"></h1>
+
+<p>p&eacute;riode du <dtml-var debut> au <dtml-var fin> (nombre de <b>demi-journ&eacute;es</b>)
+
+<style type="text/css">
+<!--
+A:link {text-decoration: none; color: #000000;}
+A:visited {text-decoration: none; color: #001040;}
+A:active {text-decoration: none; color: #000000;}
+A:hover {color: #FF0000; }
+-->
+</style>
+
+<dtml-let DATEDEBUT="DateDDMMYYYY2ISO(debut)"
+          DATEFIN="DateDDMMYYYY2ISO(fin)">
+<dtml-in "getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)" mapping>
+<dtml-if sequence-start>
+<table BORDER="0" CELLSPACING="4" CELLPADDING="0">
+<TR><TD>Statut</TD><TD align="center">&nbsp;</TD><TD>Justifi&eacute;es</TD><TD>Non justifi&eacute;es</TD><TD>Total<TD></TD></TR>
+</dtml-if>
+<TR bgcolor="#FFFFFF">
+<TD><dtml-var etatincursem></TD>
+<TD><a href="CalAbs?etudid=<dtml-var etudid>"><dtml-var nom> <dtml-var prenom></a></TD>
+<TD align="center">
+<dtml-let nbabs="CountAbs(etudid=etudid,debut=DATEDEBUT,fin=DATEFIN)">
+<dtml-let nbabsjust="CountAbsJust(etudid=etudid,debut=DATEDEBUT,fin=DATEFIN)">
+<dtml-var nbabsjust></TD>
+<TD align="center"><dtml-var "nbabs-nbabsjust"></TD>
+<TD align="center"><dtml-var nbabs></TD>
+</dtml-let></dtml-let></TR>
+<dtml-if sequence-end>
+</table>
+</dtml-if>
+</dtml-in getEtudInfoGroupe>
+ </dtml-let DATEDEBUT>
+</p>
+
+Cliquer sur un nom pour afficher le calendrier des absences
+<br>
+ou entrez une date pour visualiser les absents un jour donn&eacute&nbsp;:
+
+<p>
+<form action="EtatAbsencesDate" method="GET">
+
+<input type="hidden" name="semestregroupe" value="<dtml-var semestregroupe>">
+<input type="text" name="date" size="10"> (jour/mois/année)
+
+<input type="submit" name="" 
+   value="visualiser les absences">
+
+</form>
+
+
+
+</p>
+
+<dtml-var sco_footer>

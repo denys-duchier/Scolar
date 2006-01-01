@@ -1,0 +1,64 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: sidebar
+
+     Author.......: Emmanuel Viennet
+     Created......: Mon Dec 20 1999
+
+     Description..: Barre gauche GTR (Scolarite)
+  -->
+</dtml-comment>
+
+<div class="sidebar">
+
+<dtml-var sidebar_dept>
+
+<h2 class="insidebar">Scolarit&eacute;</h2>
+ <a href="<dtml-var ScoURL>" class="sidebar">Listes</a> <br> 
+ <a href="<dtml-var ScoURL>/Absences" class="sidebar">Absences</a> <br> 
+ <a href="<dtml-var ScoURL>/Notes" class="sidebar">Notes</a> <br> 
+ Chercher &eacute;tudiant:<br>
+<form action="<dtml-var ScoURL>/chercheEtud">
+<div><input type="text" size="12" name="expnom"></input></div>
+</form>
+
+<div class="etud-insidebar">
+
+<dtml-if etudid>
+<dtml-in "getEtudInfo(etudid=etudid,filled=1)" mapping>
+
+<h2 id="insidebar-etud">
+<a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>" class="sidebar">
+<font color="#FF0000"><dtml-var sexe> <dtml-var nom></font></a>
+</h2>
+<b>Absences</b> (1/2 j.)<br>
+
+
+<dtml-let nbabs="Absences.CountAbs(etudid=etudid,debut=`AnneeScolaire()`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">
+<dtml-let nbabsjust="Absences.CountAbsJust(etudid=etudid,debut=`AnneeScolaire()`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">
+<dtml-var nbabsjust> J., <dtml-var "nbabs-nbabsjust"> N.J. 
+</dtml-let></dtml-let>
+
+<ul>
+<dtml-if "_.SecurityGetUser().has_permission('Sco Change Absences',this())">
+<li>     <a href="<dtml-var ScoURL>/Absences/SignaleAbsenceEtud?etudid=<dtml-var etudid>">Ajouter</a>
+<li>     <a href="<dtml-var ScoURL>/Absences/JustifAbsenceEtud?etudid=<dtml-var etudid>">Justifier</a>
+<li>     <a href="<dtml-var ScoURL>/Absences/AnnuleAbsenceEtud?etudid=<dtml-var etudid>">Supprimer</a>
+</dtml-if>
+<li>     <a href="<dtml-var ScoURL>/Absences/CalAbs?etudid=<dtml-var etudid>">Calendrier</a>
+</ul>
+
+</dtml-in getEtudInfo>
+
+
+<dtml-else>
+(pas d'étudiant en cours)
+</dtml-if>
+
+</div>
+
+ <br> 
+  &nbsp; 
+<div class="logo-insidebar"><dtml-var "img.scologo_img"><br>
+<a href="<dtml-var ScoURL>/about" class="sidebar">A propos</a></div>
+
+</div> <!-- end of sidebar -->

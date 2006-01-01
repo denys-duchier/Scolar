@@ -1,0 +1,4 @@
+
+export PYTHONPATH=/home/WWW/zope/instance/lib/python:/home/WWW/zope/2.7.7/lib/python/Zope/Startup:/home/WWW/zope/2.7.7/lib/python:/usr/lib/python23.zip:/usr/lib/python2.3:/usr/lib/python2.3/plat-linux2:/usr/lib/python2.3/lib-tk:/usr/lib/python2.3/lib-dynload:/usr/local/lib/python2.3/site-packages:/usr/lib/python2.3/site-packages:/usr/lib/python2.3/site-packages/Numeric:/usr/lib/python2.3/site-packages/PIL:/usr/lib/python2.3/site-packages/gtk-2.0:/home/WWW/zope/instance/Extensions:/home/WWW/zope/instance/Extensions
+
+python -i $*

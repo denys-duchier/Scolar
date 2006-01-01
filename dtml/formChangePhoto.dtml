@@ -1,0 +1,37 @@
+<dtml-var "sco_header(page_title='Changement de photo',REQUEST=REQUEST,client=this())">
+<dtml-in "getEtudInfo(etudid=etudid,filled=1)" mapping>
+
+<h2>Changement de la photo <dtml-var nomprenom></h2>
+
+
+Photo actuelle: <dtml-var "etudfoto(etudid,fototitle='photo actuelle')">
+
+<p>Le fichier ne doit pas dépasser 500Ko (recadrer l'image, format "portrait" de préférence).</p>
+<p>
+L'image sera automagiquement réduite pour obtenir une hauteur de 90 pixels.
+</p>
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST, 
+  ( ('etudid',  { 'default' : etudid, 'input_type' : 'hidden' }),
+    ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
+    ('suppress', {'input_type' : 'checkbox', 'default': 0, 'title' : 'supprimer la photo actuelle', 'allowed_values' : ('1','0'), 'labels' : ('',) })
+   ),
+   submitlabel = 'Valider', cancelbutton='Annuler',
+))">
+
+
+<dtml-if   "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-elif "tf[0] == -1">
+ <dtml-call "RESPONSE.redirect( URL2 + '/ficheEtud?etudid=' + etudid)">
+<dtml-else>
+ <dtml-call "REQUEST.set( 'r', doChangePhoto(tf[2]['etudid'],  tf[2]['photofile'], REQUEST, suppress=tf[2]['suppress']))">
+      <dtml-if "r[0] != 0">
+        <dtml-call "RESPONSE.redirect( URL2 + '/ficheEtud?etudid=' + etudid)">
+      <dtml-else>
+         <p>Erreur: <dtml-var "r[1]">
+      </dtml-if r>
+</dtml-if tf>
+</dtml-in etud>
+
+<dtml-var sco_footer>

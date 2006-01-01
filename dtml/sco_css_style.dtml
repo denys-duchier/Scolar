@@ -1,0 +1,447 @@
+<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
+
+html,body {
+  margin:0;
+  padding:0;
+  background-color: rgb(221,221,238);
+}
+
+a:link { color:  #008080 }
+a:visited { color : "#000080" }
+
+@media print {
+.noprint {
+  display:none;
+}
+}
+
+/* ----- bandeau bleu ------ */
+table.bandeaugtr {
+  width: 100%;
+  margin: 0;
+  border-width: 0;
+  padding-left: 160px;
+  background-color: rgb(17,51,85);
+}
+@media print {
+table.bandeaugtr {
+   display:none;
+}
+}
+tr.bandeaugtr {
+  background-color: rgb(17,51,85);
+  color: rgb(255,215,0);
+  font-style: italic;
+  font-weight: bold;
+  border-width: 0;
+  margin: 0;
+}
+
+#authuser {
+  width: 25%;
+  color: rgb(255,0,0);
+  text-align: right;
+}
+
+/* ----- page content ------ */
+.gtrcontent {
+   float: left;
+   <dtml-if no_side_bar>
+   margin-left: 1em;
+   <dtml-else>
+   margin-left: 165px;
+   </dtml-if>
+   /* background-color: rgb(245,245,245); */
+}
+
+/* ---- (left) SIDEBAR  ----- */
+
+div.sidebar {
+  position: absolute;
+  top: 1em; left: 5px;
+  width: 130px;
+  border: black 1px;
+  /* debug background-color: rgb(245,245,245); */
+}
+@media print {
+div.sidebar {
+   display:none;
+}
+}
+a.sidebar:link { 
+  color:#358;
+  text-decoration:none;
+} 
+a.sidebar:visited { 
+   color: #358; 
+   text-decoration: none;
+}
+a.sidebar:hover {
+   color: rgb(153,51,51);
+   text-decoration: underline;
+}
+
+h2.insidebar {
+  color: rgb(102,102,102);
+  font-weight: bold;
+  font-size: large;
+  margin-bottom: 0;
+}
+
+h3.insidebar {
+  color: rgb(102,102,102);
+  font-weight: bold;
+  font-size: medium;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+ul.insidebar {
+  padding-left: 1em;
+  list-style: circle;
+}
+
+
+.etud-insidebar {
+   font-size: small;
+   background-color: rgb(220,220,220);
+   width: 100%;
+}
+
+.etud-insidebar h2 {
+  color: rgb(153,51,51);
+  font-size: medium;
+}
+
+
+.etud-insidebar ul {
+   padding-left: 1.5em;
+   margin-left: 0;
+}
+
+/* ----- fiches etudiants ------ */
+
+div.ficheadmission, div.ficheadresse {
+   background-color: rgb(238,238,221);
+   /* border-width: 1px;
+      border-style: dotted;
+      border-color: rgb(17,51,85);
+    */
+}
+
+div.ficheinscriptions {
+   background-color: rgb(200,238,221);
+   margin-bottom: 0px;
+   padding-bottom: 5px;
+}
+
+div.ficheadresse {
+   border-top-width: 0;
+}
+
+p.fichetitre {
+   font-weight: bold;
+}
+
+.ficheannotations {
+   background-color: rgb(170,187,204);
+}
+
+/* ----- Notes ------ */
+a.smallbutton {
+    border-width: 0;
+    margin: 0;
+    text-decoration: none;
+}
+
+.boldredmsg {
+    color: red;
+    font-weight: bold;
+}
+
+span.etuddem {
+    color: rgb(100,100,100);
+    font-style: italic; 
+}
+span.etudabs {
+    color: rgb(150,0,0);
+    font-weight: bold; 
+}
+table.tablenote {
+   border-collapse: collapse;
+   border: 2px solid blue;
+   width: 100%;
+}
+tr.tablenote {
+    border: solid blue 1px;
+}
+td.colnote {
+    text-align : right;
+    padding-right: 0.5em;
+    border: solid blue 1px;
+}
+td.colnotemoy {
+    text-align : right;
+    padding-right: 0.5em;
+    font-weight: bold; 
+}
+td.colcomment {
+    text-align: left;
+    padding-left: 2em;
+    font-style: italic; 
+    color: rgb(80,100,80);
+}
+table.formsemestre_status {
+        border-spacing: 2em 0px;
+}
+th.formsemestre_status {
+    font-weight: bold;
+    text-align: left;
+}
+th.formsemestre_status_inscrits {
+    font-weight: bold;
+    text-align: center;
+}
+td.formsemestre_status_code {
+    width: 2em;
+}
+a.formsemestre_status_link {
+    text-decoration:none;
+    color: black;
+}
+a.formsemestre_status_link:hover {
+   color: rgb(153,51,51);
+   text-decoration: underline;
+}
+
+td.formsemestre_status_inscrits {
+    text-align: center;
+}
+td.formsemestre_status_cell {
+    white-space: nowrap;
+}
+
+
+table.moduleimpl_evaluations {
+    width: 100%;
+}
+
+th.moduleimpl_evaluations {
+    font-weight: bold;
+    text-align: left;
+    color: red;
+}
+
+/* tableau recap notes */
+table.notes_recapcomplet {
+   border: 2px solid blue;
+   border-spacing: 0px 0px;
+   border-collapse: collapse;
+   white-space: nowrap;   
+}
+tr.recap_row_even {
+   background-color: rgb(210,210,210);
+}
+@media print {
+tr.recap_row_even { /* bordures noires pour impression */
+   border-top: 1px solid black;
+   border-bottom: 1px solid black;
+}
+}
+tr.recap_row_moy {
+   border-top: 1px solid blue;
+   font-weight: bold;
+}
+
+td.recap_tit {
+   font-weight: bold;
+   text-align: left;
+   padding-right: 1.2em;
+}
+td.recap_tit_ue {
+   font-weight: bold;
+   text-align: left;
+   padding-right: 1.2em;
+   padding-left: 2px;
+   border-left: 1px solid blue;
+}
+td.recap_col {
+   padding-right: 1.2em;
+   text-align: left;
+}
+td.recap_col_moy {
+   padding-right: 1.5em;
+   text-align: left;
+   font-weight: bold;
+   color: rgb(80,0,0);
+}
+td.recap_col_ue {
+   padding-right: 1.2em;
+   padding-left: 4px;
+   text-align: left;
+   font-weight: bold;
+   border-left: 1px solid blue;
+}
+
+/* bulletin */
+table.notes_bulletin {
+   border-collapse: collapse;
+   border: 2px solid blue;
+   width: 100%;
+   margin-right: 2em;
+}
+
+tr.notes_bulletin_row_ue {
+   background-color: rgb(170,187,204);
+}
+
+td.note_bold {
+   font-weight: bold; 
+}
+td.bull_coef_eval, td.bull_nom_eval {
+   font-style: italic; 
+   color: rgb(60,60,80);
+}
+
+a.bull_link {
+   text-decoration:none;
+   color: rgb(20,30,30);
+}
+a.bull_link:hover {
+   color: rgb(153,51,51);
+   text-decoration: underline;
+}
+
+table.bull_head {
+   width: 100%;
+}
+td.bull_photo {
+   horizontal-align: right;
+}
+
+div.eval_description {
+    color: rgb(20,20,20);
+    /* border: 1px solid rgb(30,100,0); */
+    padding: 3px;
+}
+
+/* ----- Formulator  ------- */
+ul.tf-msg { 
+  color: rgb(6,80,18);
+  border: 1px solid red;
+}
+
+li.tf-msg {  
+  list-style-image: url("<dtml-var BASE0>/img/warning16_img");
+}
+
+td.tf-ro-fieldlabel { 
+  font-weight: bold;
+}
+td.tf-ro-fieldlabel:after {
+   content: ' :';
+}
+
+/* ----- Entreprises ------- */
+
+table.entreprise_list, table.corr_list, table.contact_list {
+   width : 100%;
+   border-width: 0px;
+   /* border-style: solid; */
+   border-spacing: 0px 0px;
+   padding: 0px;
+}
+tr.entreprise_list_even, tr.corr_list_even, tr.contact_list_even {
+  background-color: rgb(85%,85%,95%);
+}
+tr.entreprise_list_odd, tr.corr_list_odd, tr.contact_list_odd {
+  background-color: rgb(90%,90%, 90%);
+}
+
+td.entreprise_descr, td.corr_descr, td.contact_descr { 
+  padding-left: 2em;
+}
+td.entreprise_descr_link { 
+  padding-left: 2em;
+   white-space: nowrap;
+}
+td.entreprise_descr_name { white-space: nowrap; }
+
+a.entreprise_delete {  color: black; text-decoration: underline; }
+a.entreprise_delete:visited { color: black; }
+
+a.entreprise_edit { 
+  text-decoration: underline; 
+  color : rgb(0,0,204);
+  font-weight: normal;
+}
+a.entreprise_edit:visited { color :  rgb(0,0,204); }
+a.entreprise_edit:hover {
+   color: rgb(153,51,51);
+   text-decoration: underline;
+}
+
+p.entreprise_create { padding-top: 2em; }
+a.entreprise_create { color : black; font-weight: bold; }
+a.entreprise_create:visited { color : black; }
+
+table.entreprise_list_title { 
+  width: 100%; 
+  border-top: 1px solid rgb(51,102,204); 
+  border-spacing: 0px 0px; 
+  padding: 0px;
+}
+tr.entreprise_list_title {
+  background-color: rgb(229,236,249);
+  font-weight: bold;
+}
+td.entreprise_list_title {
+  padding-left: 1em;
+}
+td.entreprise_list_title_res {
+  font-weight: normal;
+  text-align : right;
+}
+
+h2.entreprise { 
+  color: rgb(6,102,18);
+  border: 1px solid blue;
+}
+
+h2.entreprise_contact:before { 
+  content: url("<dtml-var BASE0>/img/contact_img");
+  vertical-align: -80%;  
+  padding-right: 1em; 
+}
+h2.entreprise_correspondant:before { 
+  content: url("<dtml-var BASE0>/img/correspondant_img");
+  vertical-align: -80%;  
+  padding-right: 1em; 
+}
+
+h2.entreprise_new:before { 
+  content: url("<dtml-var BASE0>/img/entreprise_img");
+  vertical-align: -80%; 
+  padding-right: 2em; 
+}
+
+p.entreprise_warning, p.gtr_warning, p.gtr_interdit, p.gtr_devel { 
+  color: red; 
+  font-style: italic; 
+  margin-top: -1em;
+}
+P.entreprise_warning:before { 
+  content: url("<dtml-var BASE0>/img/warning_img");
+  vertical-align: -80%;  
+}
+P.gtr_interdit:before {
+  content: url("<dtml-var BASE0>/img/interdit_img");
+  vertical-align: -80%;  
+}
+P.gtr_devel:before {
+  content: url("<dtml-var BASE0>/img/devel_img");
+  vertical-align: -80%;  
+}
+div.entreprise-insidebar { 
+  border: 1px solid blue;
+}

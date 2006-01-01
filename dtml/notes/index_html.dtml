@@ -1,0 +1,42 @@
+<dtml-var sco_header>
+<h2><dtml-var title_or_id></h2>
+<p class="gtr_devel">Système en cours de développement. <a href="mailto:viennet@lipn.univ-paris13.fr">viennet@lipn.univ-paris13.fr</a></p>
+
+
+<h3>Tableaux de bords par semestre</h3>
+<p>
+<ul>
+<dtml-in "do_formsemestre_list( args={} )">
+<dtml-let sem="_['sequence-item']">
+ <li><a href="formsemestre_status?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
+       <dtml-var "sem['titre']"></a></li>
+</dtml-let sem>
+</dtml-in>
+</ul>
+</p>
+
+<h3>Formations</h3>
+
+
+<ul class="notes_formation_list">
+<dtml-in "do_formation_list()">
+ <dtml-let F="_['sequence-item']">
+ <li class="notes_formation_list"> <dtml-var "F['acronyme']"> : <dtml-var "F['titre']">
+     <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
+     <a href="formation_edit?formation_id=<dtml-var "F['formation_id']">">modifier</a> 
+     <a href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
+    </dtml-if perm>
+
+    <a href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE et modules</a>     
+    
+ </li>
+ </dtml-let>
+</dtml-in>
+<dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
+ <li><a href="formation_create">Créer une formation</a> <em>(réservé aux administrateurs)</em></li>
+</dtml-if perm>
+</ul>
+
+
+
+<dtml-var sco_footer>

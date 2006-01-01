@@ -1,0 +1,20 @@
+<dtml-var sco_header>
+<h2><dtml-var title_or_id></h2>
+
+<ul class="notes_formation_list">
+<dtml-in "do_formation_list()">
+ <dtml-let F="_['sequence-item']">
+ <li class="notes_formation_list"> <dtml-var "F['acronyme']"> : <dtml-var "F['titre']">
+    <dtml-if "_.SecurityGetUser().hasRole(this(),('Sco Change Formation',))">
+     <a href="formation_edit?formation_id=<dtml-var "F['formation_id']">">modifier</a> 
+     <a href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
+    </dtml-if role>
+
+    <a href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE</a>     
+    <a href="module_list?formation_id=<dtml-var "F['formation_id']">">modules</a> 
+ </li>
+ </dtml-let>
+</dtml-in>
+</ul>
+
+<dtml-var sco_footer>

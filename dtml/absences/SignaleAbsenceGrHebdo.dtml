@@ -1,0 +1,62 @@
+<dtml-var "sco_header(page_title='Saisie hebdomadaire des absences', no_side_bar=1,REQUEST=REQUEST,client=this())">
+
+<dtml-call "REQUEST.set('formsemestre_id', semestregroupe.split('!')[0])">
+<dtml-call "REQUEST.set('groupetd', semestregroupe.split('!')[1])">
+<dtml-call "REQUEST.set('groupeanglais', semestregroupe.split('!')[2])">
+<dtml-call "REQUEST.set('groupetp', semestregroupe.split('!')[3])">
+
+<dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0] )">
+
+<table border="0" cellspacing="16"><tr><td>
+
+<h2>Saisie des absences pour le groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']">, 
+    semaine du lundi <dtml-var datelundi></h2>
+
+<p>(absences non justifiées)</p><p><a href="index_html">Annuler</a></p>
+
+<p>
+<dtml-let jours="['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']">
+<dtml-comment>calcule dates jours de cette semaine</dtml-comment>
+<dtml-call "REQUEST.set( 'datessem', [ DateDDMMYYYY2ISO(datelundi) ])">
+<dtml-in "jours[1:]">
+<dtml-call "REQUEST.set('datessem', datessem + [NextISODay(datessem[-1])])">
+</dtml-in>
+
+<form action="doSignaleAbsenceGrHebdo" method="get"> 
+<table rules="cols" frame="box">
+<tr><td>&nbsp;</td>
+<dtml-in jours><th colspan="2"><dtml-var sequence-item></th></dtml-in>
+</tr>
+<tr><td>&nbsp;</td><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th></tr>
+
+
+<dtml-in "getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)" mapping>
+
+<dtml-if sequence-odd><tr bgcolor="#ffffff"><dtml-else><tr></dtml-if>
+<td><b><dtml-var nom> <dtml-var prenom></b></td>
+
+<dtml-in datessem>
+
+<td><input type="checkbox" name="abslist:list" value="<dtml-var "etudid + ':' + _['sequence-item'] + ':am'">"></td>
+<td><input type="checkbox" name="abslist:list" value="<dtml-var "etudid + ':' + _['sequence-item'] + ':pm'">"></td>
+
+</dtml-in datessem>
+</tr> 
+
+</dtml-in getEtudInfoGroupe>
+
+
+</table>
+
+<div align="center">
+<p><input type="submit" value="OK, enregistrer ces absences"></p>
+</div>
+</form>
+</dtml-let jours>
+</p>
+<p><a href="index_html">Annuler</a></p>
+
+</td></tr></table>
+
+
+<dtml-var sco_footer>

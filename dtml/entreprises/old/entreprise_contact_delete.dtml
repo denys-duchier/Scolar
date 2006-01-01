@@ -1,0 +1,27 @@
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+
+<dtml-call "REQUEST.set( 'F', do_entreprise_contact_list( args={ 'entreprise_contact_id' : entreprise_contact_id } )[0])">
+
+<h2>Suppression du contact</h2>
+
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('entreprise_contact_id', { 'input_type' : 'hidden' }),
+   ),
+   initvalues = F,
+   submitlabel = 'Confirmer la suppression',
+   cancelbutton = 'Annuler', readonly = REQUEST['_read_only']
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-if "tf[0] == -1">
+    <dtml-call "RESPONSE.redirect( URL1 )">
+ <dtml-else>
+    <dtml-call "do_entreprise_contact_delete( F['entreprise_contact_id'] )">
+    <dtml-call "RESPONSE.redirect(URL1)">
+ </dtml-if>
+</dtml-if>
+
+<dtml-var entreprise_footer>

@@ -1,0 +1,59 @@
+<dtml-var sco_header>
+
+<dtml-var formsemestre_status_head>
+
+<dtml-unless _read_only>
+
+<dtml-if "REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())">
+<p>
+<a href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
+       Modifier le semestre "<dtml-var "sem['titre']">"</a>
+</p>
+</dtml-if permission>
+</dtml-unless>
+<p>
+<a href="formsemestre_recapcomplet?formsemestre_id=<dtml-var "sem['formsemestre_id']">">Tableau de toutes les moyennes (et liens bulletins)</a>
+</p>
+
+<h3>Modules</h3>
+
+<table class="formsemestre_status">
+<tr><th class="formsemestre_status">Code</th><th class="formsemestre_status">Module</th><th class="formsemestre_status">Inscrits</th><th class="formsemestre_status">Responsable</th><th class="formsemestre_status">Evaluations</th></tr>
+
+<dtml-in Mlist>
+<dtml-let M="_['sequence-item']">
+<dtml-call "REQUEST.set( 'Mod', M['module'] )">
+<dtml-call "REQUEST.set( 'ModInscrits',
+	      do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
+
+<dtml-in "do_evaluation_etat_in_mod(M['moduleimpl_id'] )" mapping>
+
+<tr>
+<td class="formsemestre_status_code">
+<a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"><dtml-var "Mod['code']"></a>
+</td>
+<td><a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
+     <dtml-if "Mod['abbrev']"><dtml-var "Mod['abbrev']"><dtml-else><dtml-var "Mod['titre']"></dtml-if>
+</a></td>
+
+<td class="formsemestre_status_inscrits"><dtml-var "len( ModInscrits )"></td>
+<td class="formsemestre_status_cell"><dtml-var "M['responsable_id']"></td>
+<td class="formsemestre_status_cell">
+ <dtml-if "(nb_evals_completes+nb_evals_en_cours+nb_evals_vides) != 0">
+ <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
+ <dtml-var "nb_evals_completes+nb_evals_en_cours+nb_evals_vides"> prévues,  <dtml-var nb_evals_completes> ok<dtml-if "nb_evals_en_cours > 0">, <dtml-var nb_evals_en_cours> en cours</dtml-if>
+ </a>
+ </dtml-if nb_evals!=0>
+</td>
+</tr>
+
+</dtml-in do_evaluation_etat_in_mod>
+</dtml-let M>
+</dtml-in Mlist>
+</table>
+
+
+<!-- LISTE DES ETUDIANTS -->
+<dtml-var "'\n'.join(make_listes_sem(sem))">
+
+<dtml-var sco_footer>

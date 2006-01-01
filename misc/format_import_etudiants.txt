@@ -1,0 +1,39 @@
+# Format fichiers CSV pour import etudiants
+# E.V., Sept 2005
+# (';' separated file)
+# Attribut     Type     Table       AllowNulls  Description
+bac;           text;    admissions; 1;  type de bac (S, STI, ...)
+specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)
+annee_bac;    integer;  admissions; 1;  annee d'obtention du bac
+math;         real;     admissions; 1;  note de math en terminale
+physique;     real;     admissions; 1;  note de physique en terminale
+anglais;      real;     admissions; 1;  note de anglais en terminale
+francais;     real;     admissions; 1;  note de francais au bac
+qualite;      real;     admissions; 1;  note de qualite du dossier
+rapporteur;   text;     admissions; 1;  identite du rapporteur (enseignant IUT)
+decision;     text;     admissions; 1;  decision (admis, attente, ...)
+score;        real;     admissions; 1;  score calcule lors de l'admission
+commentaire;  text;     admissions; 1;  commentaire du rapporteur
+nomlycee;     text;     admissions; 1;  nom du lycee
+villelycee;   text;     admissions; 1;  ville du lycee
+#
+nom;          text;     identite;   0;  nom de l'etudiant
+prenom;       text;     identite;   0;  prenom de l'etudiant
+sexe;         text;     identite;   0;  sexe ('MR' ou 'MLLE')
+annee_naissance;integer;identite;   1;  annee de naissance
+nationalite;  text;     identite;   1;  nationalite
+foto;         text;     identite;   1;  nom du fichier photo (trombinoscope)
+#
+email;        text;     adresse;    1;  adresse e-mail
+domicile;     text;     adresse;    1;  adresse domicile
+codepostaldomicile; text; adresse;  1;  code postal domicile
+villedomicile; text;    adresse;    1;  ville domicile
+paysdomicile; text;     adresse;    1;  pays domicile
+telephone;    text;     adresse;    1;  num. telephone (fixe)
+telephonemobile; text;  adresse;    1;  num. telephone (mobile)
+#
+# Information pour inscription
+codesemestre; text;     INS;        0;  code semestre inscription
+groupetd;     text;     INS;        0;  groupe de TD
+groupetp;     text;     INS;        1;  groupe de TP
+groupeanglais;text;     INS;        1;  groupe de anglais

@@ -1,0 +1,27 @@
+
+
+PERMISSION       : PERSONNE  typique :    ACTIONS
+ScoAdministrate  :  Chef Dept        : creation/modif Formations, UE, Matières, Modules
+ScoImplement     :  Chef Dept        : "implementation" d'une formation (creation d'un
+                                        semestre ou session)
+                                         -> creation/modif des formsemestre et moduleimpls
+View             : enseignants+secr  : voir les infos  
+
+
+Le dir. des etudes est "responsable" du formsemestre.
+ Il peut crer des evals et saisir des notes dans tous les modules de ce
+ semestre.
+
+Le responsable de module peut crer des evals et saisir des notes
+dans son module.
+
+
+
+ScoAbsChange     : Secretariat        : ajouter/justifier absences
+ScoEtudChange    : Secretariat,DirEtud: modif donnees etudiants (identite, adresse, photo)
+ScoEtudInscrit   : Chef Dept ???     : inscrire un eudiant a une formation
+                                       ou le changer de groupe td...
+
+ScoEntrepriseView: Tous ?            : Voir liste ntreprises
+ScoEntrepriseChange: Secretariat, qq profs : Modif liste entreprises & contacts
+

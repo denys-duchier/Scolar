@@ -1,0 +1,26 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: EtatAbsence
+     Author.......: Emmanuel Viennet
+     Created......: Mon Dec 20 1999
+     Description..: Etat des absences: choix du groupe
+  -->
+</dtml-comment>
+<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST,client=this())">
+
+<h1>Etat des absences</h1>
+
+<form action="EtatAbsencesGr" method="GET"> 
+
+<dtml-var formChoixSemestreGroupe>
+
+
+<input type="submit" name="" value=" OK " width=100>
+
+<table><tr><td>Date de début (j/m/aa) : </td><td>
+<input type="text" name="debut" size="10" value="01/09/<dtml-var AnneeScolaire>">
+</td></tr><tr><td>Date de fin : </td><td>
+ <input type="text" name="fin" size="10" value="<dtml-var "_.DateTime().strftime('%d/%m/%Y')">">
+</td></tr></table>
+</form>
+
+<dtml-var sco_footer>

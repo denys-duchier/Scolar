@@ -1,0 +1,44 @@
+<dtml-var sco_header>
+
+<dtml-call "REQUEST.set( 'M', do_matiere_list( args={'matiere_id' : matiere_id} )[0])">
+<dtml-call "REQUEST.set( 'UE', do_ue_list( args={'ue_id' : M['ue_id']} )[0])">
+
+<h2><dtml-var title_or_id> dans la matière <dtml-var "M['titre']"> (UE <dtml-var "UE['acronyme']">)</h2>
+
+<p>Les modules sont décrits dans le programme pédagogique.</p>
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( 
+    ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
+    ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
+    ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abbrégé (pour bulletins)' }),
+
+    ('heures_cours' , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de cours' }),
+    ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
+    ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
+
+    ('coefficient'  , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)' }),
+
+    ('formation_id', { 'default' : UE['formation_id'], 'input_type' : 'hidden' }),
+    ('ue_id', { 'default' : M['ue_id'], 'input_type' : 'hidden' }),
+    ('matiere_id', { 'default' : M['matiere_id'], 'input_type' : 'hidden' }),
+
+    ('semestre_id', { 'input_type' : 'menu', 'title' : 'Semestre', 
+                      'explanation' : 'semestre de début du module dans la formation standard',
+                      'labels' : ('1','2','3','4'), 'allowed_values' : ('1','2','3','4') }),
+    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
+                     'type' : 'int', 'default':10 }),
+   ),
+   submitlabel = 'Créer ce module'
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-var "REQUEST.set( 'module_id', do_module_create( tf[2] ) )">
+
+ <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(formation_id) )">
+
+</dtml-if>
+
+<dtml-var sco_footer>

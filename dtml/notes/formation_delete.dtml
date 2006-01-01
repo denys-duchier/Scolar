@@ -1,0 +1,28 @@
+<dtml-var sco_header>
+
+<dtml-call "REQUEST.set( 'F', do_formation_list(args={ 'formation_id' : formation_id } )[0])">
+
+<h2>Suppression de la formation <dtml-var "F['titre']"> (<dtml-var "F['acronyme']">)</h2>
+
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('formation_id', { 'input_type' : 'hidden' }),
+   ),
+   initvalues = F,
+   submitlabel = 'Confirmer la suppression',
+   cancelbutton = 'Annuler'
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-if "tf[0] == -1">
+    <dtml-call "RESPONSE.redirect( URL1 )">
+ <dtml-else>
+    <dtml-call "do_formation_delete( F['formation_id'] )">
+    <p>OK, formation supprimée.</p>
+    <p><a href="<dtml-var URL1>">continuer</a></p>
+ </dtml-if>
+</dtml-if>
+
+<dtml-var sco_footer>

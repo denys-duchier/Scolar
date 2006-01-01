@@ -1,0 +1,139 @@
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+
+<script type="text/javascript">
+function entsub(event,ourform) {
+  if (event && event.which == 13)
+    ourform.submit();
+  else
+    return true;}
+</script>
+
+<dtml-if entreprise_page_size> 
+ <dtml-call "REQUEST.set( 'entreprise_page_size', int(entreprise_page_size))">
+<dtml-else>
+ <dtml-call "REQUEST.set( 'entreprise_page_size', 10 )">
+</dtml-if>
+
+<h2><dtml-var title_or_id></h2>
+
+<dtml-comment>
+<p class="entreprise_warning">
+Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:viennet@lipn.univ-paris13.fr">Emmanuel</a>
+</p>
+</dtml-comment>
+
+<dtml-unless sort_type><dtml-call "REQUEST.set( 'sort_type', 'nom' )"></dtml-unless>
+<dtml-call "REQUEST.set( 'sort_on_contact', False )">
+
+<dtml-if "sort_type=='nom'">
+ <dtml-call "REQUEST.set( 'sort_key', 'nom' )">
+<dtml-elif "sort_type=='datecontact'">
+ <dtml-call "REQUEST.set( 'sort_on_contact', True )">
+ <dtml-call "REQUEST.set( 'sort_key', None )">
+<dtml-elif "sort_type=='qualite_relation'">
+ <dtml-call "REQUEST.set( 'sort_key', 'qualite_relation desc, nom asc' )">
+<dtml-elif "sort_type=='date_creation'">
+ <dtml-call "REQUEST.set( 'sort_key', 'date_creation desc, nom asc' )">
+<dtml-else>
+<p class="entreprise_warning">valeur invalide pour 'sort_type' !</p>
+</dtml-if>
+
+<dtml-if etud_nom>
+ <dtml-call "REQUEST.set( 'Elist', do_entreprise_list_by_etud( REQUEST.form, sort_on_contact=sort_on_contact ) )">
+<dtml-else>
+ <dtml-call "REQUEST.set( 'Elist', do_entreprise_list( REQUEST.form, test='~*', sort_on_contact=sort_on_contact, sortkey=sort_key ) )">
+</dtml-if>
+
+<dtml-unless start><dtml-call "REQUEST.set( 'start', 1)"></dtml-unless>
+
+
+<form action="" method="GET">
+<table><tr>
+ <th>nom</th><td><input type="text" name="nom" size="12" value="<dtml-if nom><dtml-var nom></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
+ <th>ville</th><td><input type="text" name="ville" size="12" value="<dtml-if ville><dtml-var ville></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
+ <th>étudiant</th><td><input type="text" name="etud_nom" size="12" value="<dtml-if etud_nom><dtml-var etud_nom></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
+ 
+ <td><input type="submit" value="rechercher"></input></td>
+ <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+ <td>Tri par: <select name="sort_type" onchange="this.form.submit()">
+    <option value="nom" <dtml-if "sort_type=='nom'">selected</dtml-if>>nom entreprise</option>
+    <option value="datecontact" <dtml-if "sort_type=='datecontact'">selected</dtml-if>>date dernier contact</option>
+    <option value="qualite_relation" <dtml-if "sort_type=='qualite_relation'">selected</dtml-if>>relation IUT/Entreprise</option>
+    <option value="date_creation" <dtml-if "sort_type=='date_creation'">selected</dtml-if>>date saisie entreprise</option>
+ </select></td>
+</tr></table>
+</form>
+
+<table class="entreprise_list">
+
+<dtml-in Elist size=entreprise_page_size start=start overlap=1>
+<dtml-if sequence-start>
+<table class="entreprise_list_title">
+<tr class="entreprise_list_title"><td class="entreprise_list_title">Entreprises</td>
+<td class="entreprise_list_title_res">Résultats <b><dtml-var start></b> - <b><dtml-try><dtml-var "_['next-sequence-start-number']"><dtml-except><dtml-var "len(Elist)"></dtml-try></b> sur <b><dtml-var "len(Elist)"> </b>
+</td>
+</tr>
+</table>
+<table class="entreprise_list">
+</dtml-if sequence-start>
+
+ <dtml-let F="_['sequence-item']">
+ <dtml-call "REQUEST.set( 'Cl', do_entreprise_correspondant_list( args={ 'entreprise_id' : F['entreprise_id'] }))">
+ <dtml-call "REQUEST.set( 'Ct', do_entreprise_contact_list( args={ 'entreprise_id' : F['entreprise_id'] }))">
+
+ <tr class="<dtml-if sequence-odd>entreprise_list_odd<dtml-else>entreprise_list_even</dtml-if>">
+
+ <td colspan="5" class="entreprise_descr_name"><a class="entreprise_edit" href="entreprise_edit?entreprise_id=<dtml-var "F['entreprise_id']">&start=<dtml-var start>"><dtml-var "F['nom']"></a></td>
+ </tr>
+ <tr class="<dtml-if sequence-odd>entreprise_list_odd<dtml-else>entreprise_list_even</dtml-if>">
+ <td>&nbsp;</td>
+ <td class="entreprise_descr"><dtml-var "str_abbrev(F['ville'], 22)"></td>
+ <td class="entreprise_descr"><dtml-var "F['secteur']"> </td>
+
+  <td class="entreprise_descr_link">    
+    <a class="entreprise_delete" href="entreprise_correspondant_list?entreprise_id=<dtml-var "F['entreprise_id']">"><dtml-var "len(Cl)"> corr.</a> 
+    <dtml-if "sort_type=='qualite_relation'"><b><dtml-var "{100:'TB',75:'B',50:'M',25:'!' }.get(F['qualite_relation'],'?')"></b></dtml-if>
+  </td>
+  <td class="entreprise_descr_link"><a class="entreprise_delete" href="entreprise_contact_list?entreprise_id=<dtml-var "F['entreprise_id']">"><dtml-var "len(Ct)"> contacts</a> 
+   <dtml-try>(<dtml-var "F['etud_nom']">)<dtml-except></dtml-try> 
+   <dtml-try>(<dtml-var "F['date']">)<dtml-except></dtml-try> 
+  </td>
+
+ </tr>
+ </dtml-let>
+<dtml-if sequence-end>
+</table>
+</dtml-if sequence-end>
+<dtml-else Elist>
+<p class="entreprise_warning">Aucune entreprise !</p>
+</dtml-in>
+
+
+ <p>
+   <form action="setPageSizeCookie" method="GET">
+      <input type="hidden" name="target_url" value="<dtml-var "URL0+'?'+QUERY_STRING">"></input>
+ 
+  <dtml-in Elist size=entreprise_page_size start=start overlap=1>
+     <dtml-if sequence-start>
+        <dtml-if previous-sequence>
+        <a href="<dtml-var URL><dtml-var sequence-query>start=<dtml-var previous-sequence-start-number>">
+           page précédente</a>&nbsp;&nbsp;&nbsp;&nbsp;
+         </dtml-if previous-sequence>
+     </dtml-if sequence-start>
+     <dtml-if sequence-end>
+         <dtml-if next-sequence>
+            <a href="<dtml-var URL><dtml-var sequence-query>start=<dtml-var next-sequence-start-number>">
+             page suivante</a>
+         </dtml-if next-sequence>
+     </dtml-if sequence-end>
+    </dtml-in Elist>
+   &nbsp; Résultats par page :
+        <select name="entreprise_page_size" onchange="this.form.submit()">
+        <dtml-in "((5,5),(10,10),(15,15),(20,20),(30,30),(50,50),(1000,'Tous'))"  prefix="label">
+            <option value="<dtml-var "label_key">" <dtml-if "label_key == entreprise_page_size">selected</dtml-if>><dtml-var label_item></option>
+        </dtml-in>
+        </select>
+   </form>
+    
+</p>
+<dtml-var entreprise_footer>

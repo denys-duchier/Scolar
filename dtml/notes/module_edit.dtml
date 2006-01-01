@@ -1,0 +1,51 @@
+<dtml-var sco_header>
+<h2><dtml-var title_or_id></h2>
+
+
+<dtml-call "REQUEST.set( 'F', do_module_list( args={ 'module_id' : module_id } )[0])">
+
+<dtml-call "REQUEST.set( 'M', do_matiere_list( args={'formation_id' : F['formation_id']} ))">
+<dtml-call "REQUEST.set( 'Mnames', [ x['titre'] for x in M ])">
+<dtml-call "REQUEST.set( 'Mids', [ x['matiere_id'] for x in M ])">
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( 
+    ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
+    ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
+    ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abbrégé (pour bulletins)' }),
+
+    ('heures_cours' , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de cours' }),
+    ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
+    ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
+
+    ('coefficient'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)' }),
+
+    ('formation_id', { 'input_type' : 'hidden' }),
+    ('ue_id',        { 'input_type' : 'hidden' }),
+    ('module_id',    { 'input_type' : 'hidden' }),
+
+    ('matiere_id', { 'input_type' : 'menu', 'title' : 'Matière', 
+                      'explanation' : 'un module appartient à une seule matière.',
+                      'labels' : Mnames, 'allowed_values' : Mids }),
+
+    ('semestre_id', { 'input_type' : 'menu', 'title' : 'Semestre', 'type' : 'int',
+                      'explanation' : 'semestre de début du module dans la formation standard',
+                      'labels' : ('1','2','3','4'), 'allowed_values' : (1,2,3,4) }),
+    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
+                     'type' : 'int' }),
+
+   ),
+   initvalues = F,
+   submitlabel = 'Modifier ce module'
+))">
+
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-call "do_module_edit( tf[2] )">
+ <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + formation_id )">
+</dtml-if>
+
+
+<dtml-var sco_footer>

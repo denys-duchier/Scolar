@@ -1,0 +1,95 @@
+<dtml-var sco_header>
+<dtml-call "REQUEST.set( 'M', do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0])">
+<dtml-call "REQUEST.set( 'Mod', do_module_list( args={ 'module_id' : M['module_id'] } )[0])">
+
+<dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : M['formsemestre_id'] } )[0])">
+<dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0])">
+<dtml-call "REQUEST.set( 'ModInscrits', do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
+
+<dtml-call "REQUEST.set( 'ModEvals', do_evaluation_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
+
+<dtml-let canedit="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
+
+<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titre']"></a>)</h2>
+
+
+<table>
+<tr><td class="fichetitre2">Responsable: </td><td class="redboldfont"><dtml-var "M['responsable_id']"></td></tr>
+<tr><td class="fichetitre2">Semestre: </td><td><dtml-var "sem['semestre_id']"></td>
+    <td class="fichetitre2">Coef dans le semestre:</td><td><dtml-var "Mod['coefficient']"></td>
+</tr>
+<tr><td class="fichetitre2">Formation: </td><td><dtml-var "F['titre']"></td></tr>
+<tr><td class="fichetitre2">Inscrits: </td><td> <dtml-var "len(ModInscrits)"> étudiants</td></tr>
+<tr><td class="fichetitre2">Evaluations: </td><td> <dtml-var "len(ModEvals)"> évaluations</td></tr>
+</table>
+
+<h3><dtml-var "len(ModEvals)"> évaluations</h3>
+
+<table class="moduleimpl_evaluations">
+<tr><th class="moduleimpl_evaluations">&nbsp;</th><th class="moduleimpl_evaluations">Date</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moy.</th><th class="moduleimpl_evaluations"></th></tr>
+<dtml-in ModEvals>
+<dtml-let eval="_['sequence-item']">
+<dtml-let evaletat="do_evaluation_etat( eval['evaluation_id'])">
+<tr class="mievr">
+    <td class="mievr">
+<dtml-if canedit>
+<a class="smallbutton" href="evaluation_edit?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.edit_img.tag(border='0', alt='modifier', title='Modifier')"></a>
+<a class="smallbutton" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.notes_img.tag(border='0',alt='saisie notes', title='Saisie des notes')"></a>
+</dtml-if canedit>
+<dtml-if "evaletat[1] == 0">
+<dtml-if canedit><a class="smallbutton" href="evaluation_delete?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if canedit><dtml-var "img.delete_img.tag(border='0', alt='supprimer', title='Supprimer')"><dtml-if canedit></a>
+</dtml-if canedit>
+<dtml-elif "evaletat[0] == evaletat[1]">
+ <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_green_img.tag(border='0',title='ok')"></a>
+<dtml-else>
+ <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_orange_img.tag(border='0',title='il manque des notes')"></a>
+</dtml-if etat>
+<dtml-if "eval['visibulletin']=='1'"><dtml-var "img.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires')">
+<dtml-else>&nbsp;
+</dtml-if>
+    </td>
+    <td><dtml-var "eval['jour']"></td>
+    <td><dtml-var " ('%3.2f'%(float(eval['heure_fin'].replace('h','.')) - float(eval['heure_debut'].replace('h','.')))).replace('.','h')"></td>
+    <td class="rightcell"><dtml-var "'%g' % eval['coefficient']"></td>
+    <td class="rightcell"><dtml-var "evaletat[1]"> / <dtml-var "evaletat[0]"></td>
+    <td class="rightcell"><dtml-var "evaletat[2]"></td>
+    <td class="rightcell"><dtml-var "evaletat[3]"></td>
+    <td class="rightcell"><dtml-if "evaletat[4]"><dtml-var "evaletat[4]">/<dtml-var "'%g' % eval['note_max']"></dtml-if></td>
+    <td><em><b><dtml-var "eval['description']"></b></em></td></tr>
+
+    <dtml-if "evaletat[6]">
+     <tr><td colspan="8">&nbsp;</td><td><em>modifié le <dtml-var "evaletat[6].strftime('%d/%m/%Y à %Hh%M')"></em></td></tr></dtml-if>
+     
+    
+   <dtml-if "(evaletat[0] != evaletat[1]) and evaletat[8]">
+    <tr><td colspan="8">&nbsp;</td><td>manque groupes <dtml-var "', '.join(evaletat[8])"></td></tr>
+   </dtml-if>
+
+   <tr><td colspan="9">&nbsp;</td></tr>
+
+</dtml-let evaletat>
+</dtml-let eval>
+</dtml-in ModEvals>
+
+<dtml-if canedit>
+ <tr><td colspan="4"><a href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a></td></tr>
+</dtml-if canedit>
+</table>
+
+<hr>
+<h4>Légende</h4>
+<ul>
+<li><dtml-var "img.edit_img.tag(border='0')"> : modifie description de l'évaluation (date, heure, coefficient, ...)</li>
+<li><dtml-var "img.notes_img.tag(border='0')"> : saisie des notes</li>
+<li><dtml-var "img.delete_img.tag(border='0')"> : indique qu'il n'y a aucune note entrée (cliquer pour supprimer cette évaluation)</li>
+<li><dtml-var "img.status_orange_img.tag(border='0')"> : indique qu'il manque quelques notes dans cette évaluation</li>
+<li><dtml-var "img.status_green_img.tag(border='0')"> : toutes les notes sont entrées (cliquer pour les afficher)</li>
+<li><dtml-var "img.status_visible_img.tag(border='0')"> : indique que cette évaluation sera mentionnée dans les bulletins au format "intermédiaire"
+</ul>
+
+<p>Rappel : seules les notes des évaluations complètement saisies (affichées en vert) apparaissent dans les bulletins.
+</p>
+
+</dtml-let canedit>
+
+<dtml-var sco_footer>

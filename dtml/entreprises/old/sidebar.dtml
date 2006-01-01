@@ -1,0 +1,56 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: sidebar
+
+     Author.......: Emmanuel Viennet
+     Created......: Mon Dec 20 1999
+
+     Description..: Barre gauche GTR (Entreprises)
+  -->
+</dtml-comment>
+
+<div id="sidebar-container">
+<div class="sidebar">
+
+<h2 class="insidebar"><a  href="<dtml-var BASE0>" class="sidebar">Dept. GTR</a></h2>
+
+ <a href="<dtml-var DeptURL>" class="sidebar">Intranet</a> <br>
+ <a href="<dtml-var ScoURL>" class="sidebar">Scolarité</a> <br>
+ <a href="<dtml-var BASE0>/Departement" class="sidebar">Plannings</a> <br> 
+ <a href="<dtml-var DeptURL>/Forum" class="sidebar">Forum</a> <br> 
+ <a href="<dtml-var DeptURL>/Expos" class="sidebar">Photos</a> <br> 
+ <a href="<dtml-var BASE0>/mailman/listinfo" class="sidebar">Mailman</a> <br> 
+
+<dtml-var ScoURL>
+
+<h2 class="insidebar"><a href="<dtml-var ScoURL>/Entreprises" class="sidebar">Entreprises</a></h2>
+ <ul class="insidebar">
+ <dtml-unless "REQUEST['_read_only']">
+ <li class="insidebar"><a href="entreprise_create" class="sidebar">Nouvelle entreprise</a> </li>
+ </dtml-unless>
+ <li class="insidebar"><a href="<dtml-var ScoURL>/Entreprises/entreprise_contact_list" class="sidebar">Contacts</a> </li> 
+ </ul>
+
+ <dtml-if entreprise_id>
+ <dtml-let E="do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0]">
+  <div class="entreprise-insidebar">
+  <h3 class="insidebar"><a href="entreprise_edit?entreprise_id=<dtml-var entreprise_id>" class="sidebar"><dtml-var "E['nom']"></a></h2>
+  <ul class="insidebar">
+  <li class="insidebar"><a href="entreprise_correspondant_list?entreprise_id=<dtml-var entreprise_id>" class="sidebar">Corresp.</a></li>
+  <dtml-unless "REQUEST['_read_only']">
+  <li class="insidebar"><a href="entreprise_correspondant_create?entreprise_id=<dtml-var entreprise_id>" class="sidebar">Nouveau Corresp.</a></li>
+  </dtml-unless>
+  <li class="insidebar"><a href="entreprise_contact_list?entreprise_id=<dtml-var entreprise_id>" class="sidebar">Contacts</a></li>
+  <dtml-unless "REQUEST['_read_only']">
+  <li class="insidebar"><a href="entreprise_contact_create?entreprise_id=<dtml-var entreprise_id>" class="sidebar">Nouveau "contact"</a></li>
+  </dtml-unless>
+  </ul>
+  </div>
+ </dtml-let E>
+ </dtml-if entreprise_id>
+ 
+
+<br><br>
+<dtml-var "img.entreprise_side_img">
+<dtml-if "REQUEST['_read_only']"><br><em>(Lecture seule)</em></dtml-if>
+</div> 
+</div> <!-- end of sidebar -->

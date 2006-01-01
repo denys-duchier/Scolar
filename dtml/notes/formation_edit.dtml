@@ -1,0 +1,24 @@
+<dtml-var sco_header>
+<h2><dtml-var title_or_id></h2>
+
+
+<dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : formation_id } )[0])">
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('formation_id', { 'default' : formation_id, 'input_type' : 'hidden' }),
+    ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT GTR)' }),
+    ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation' }),
+   ),
+   initvalues = F,
+   submitlabel = 'Modifier les valeurs'
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-else>
+ <dtml-var "do_formation_edit( tf[2] )">
+ OK, les valeurs sont: <dtml-var "tf[2]">
+ <dtml-call "RESPONSE.redirect( URL1 )">
+</dtml-if>
+
+<dtml-var sco_footer>

@@ -1,0 +1,41 @@
+<dtml-call "REQUEST.set( 'F', do_entreprise_correspondant_list( args={ 'entreprise_corresp_id' : entreprise_corresp_id } )[0])">
+<dtml-call "REQUEST.set( 'entreprise_id', F['entreprise_id'])">
+
+<dtml-var "entreprise_header(REQUEST=REQUEST)">
+<h2 class="entreprise_correspondant"><dtml-var title_or_id></h2>
+
+<dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
+  ( ('entreprise_corresp_id', { 'default' : entreprise_corresp_id, 'input_type' : 'hidden' }),
+    ('civilite',      { 'input_type' : 'menu', 
+                         'labels' : [ 'M.', 'Mme' ], 'allowed_values' : [ 'M.', 'Mme' ] }),  
+   ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null' : False }),  
+    ('prenom',    { 'size' : 25, 'title' : 'Prénom' }),   
+    ('fonction',  { 'input_type' : 'menu', 
+                    'allowed_values' : ('Directeur', 'RH', 'Resp. Administratif', 'Tuteur', 'Autre'),
+                    'explanation' : 'fonction via à vis de l\'IUT'  }),   
+    ('phone1',   { 'size' : 14, 'title' : 'Téléphone 1', }),
+    ('phone2',   { 'size' : 14, 'title' : 'Téléphone 2', }),
+    ('mobile',   { 'size' : 14, 'title' : 'Tél. mobile', }),
+    ('fax',   { 'size' : 14, 'title' : 'Fax', }),
+    ('mail1',   { 'size' : 25, 'title' : 'e-mail', }),
+    ('mail2',   { 'size' : 25, 'title' : 'e-mail 2', }),
+
+    ('note',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Note' }),
+   ),
+   cancelbutton = 'Annuler',
+   initvalues = F,
+   submitlabel = 'Modifier les valeurs', readonly = REQUEST['_read_only']
+))">
+
+<dtml-if "tf[0] == 0">
+ <dtml-var "tf[1]">
+<dtml-elif "tf[0] == -1">
+  <dtml-call "RESPONSE.redirect( REQUEST.REFERER )" >
+    <dtml-call "RESPONSE.redirect( URL1 + '/entreprise_correspondant_list?entreprise_id=' + str(F['entreprise_id']) )" >
+<dtml-else>
+  <dtml-call "do_entreprise_correspondant_edit( tf[2] )">
+    <dtml-call "RESPONSE.redirect( URL1 + '/entreprise_correspondant_list?entreprise_id=' + str(F['entreprise_id']) )" >
+</dtml-if>
+
+
+<dtml-var entreprise_footer>

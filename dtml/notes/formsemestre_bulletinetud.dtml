@@ -1,0 +1,50 @@
+<dtml-let PDF="REQUEST.form.get('format','html')=='pdf'">
+<dtml-if "not PDF">
+<dtml-unless format><dtml-call "REQUEST.set('format','html')"></dtml-unless>
+<dtml-unless version><dtml-call "REQUEST.set('version','long')"></dtml-unless>
+
+<dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
+
+<dtml-in "getEtudInfo(etudid=etudid,filled=1)" mapping>
+
+<dtml-var "sco_header(page_title='Bulletin de '+nomprenom,REQUEST=REQUEST,client=this())">
+<table class="bull_head">
+<TR><TD>
+<h2><dtml-var nomprenom> (<a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var inscription> <dtml-var groupetd></a>)</h2>
+
+<form name="f" method="GET">
+Bulletin <dtml-var "sem['titre']"> établi le <dtml-var "DateTime().strftime('%d/%m/%Y à %Hh%M')"> (notes sur 20) 
+<span class="rightjust">
+
+<input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"></input>
+<input type="hidden" name="etudid" value="<dtml-var etudid>"></input>
+<input type="hidden" name="format" value="<dtml-var format>"></input>
+<select name="version" onChange="document.f.submit()" class="noprint">
+<option value="short"<dtml-if "version=='short'"> selected</dtml-if>>
+Version courte</option>
+<option value="selectedevals"<dtml-if "version=='selectedevals'"> selected</dtml-if>>
+Version intermédiaire</option>
+<option value="long"<dtml-if "version=='long'"> selected</dtml-if>>
+Version complète</option>
+</select>
+
+<a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=pdf&version='+version">">version papier</a> 
+
+</form>
+
+</span>
+
+</td><td class="bull_photo">
+<a href="ficheEtud?etudid=<dtml-var etudid>"><dtml-var "etudfoto(foto=foto,etudid=etudid,fototitle='fiche de '+nom)"></a>
+</td></tr>
+</table>
+</dtml-in getEtudInfo>
+
+
+</dtml-if PDF>
+<dtml-var "do_formsemestre_bulletinetud(formsemestre_id, etudid, format=format, version=version, REQUEST=REQUEST)">
+
+<dtml-if "not PDF">
+<dtml-var sco_footer>
+</dtml-if PDF>
+</dtml-let PDF>

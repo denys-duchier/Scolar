@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-15"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title><dtml-if page_title><dtml-var page_title><dtml-else><dtml-var title_or_id></dtml-if></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="LANG" content="fr" />
+<meta name="DESCRIPTION" content="Intranet GTR : Intranet du département GTR de l'IUT de Villetaneuse" />
+
+<link HREF="<dtml-var "gtrintranetstyle.absolute_url()"><dtml-if no_side_bar>?no_side_bar=1</dtml-if>" rel="stylesheet" type="text/css" />
+<link HREF="<dtml-var "inc.menu_css.absolute_url()">" rel="stylesheet" type="text/css" />
+<script language="javascript" type="text/javascript" src="<dtml-var "inc.menu_js.absolute_url()">"></script>
+
+</head>
+
+<dtml-comment> fix : on utilisait ETUDID avant !</dtml-comment>
+<dtml-if etudid><dtml-call "REQUEST.set('ETUDID', etudid)"></dtml-if>
+
+<body>
+<table class="bandeaugtr">
+<tr class="bandeaugtr"><dtml-if titrebandeau><td><dtml-var titrebandeau></td></dtml-if>
+    <td class="bandeaugtr"><dtml-if menus_bandeau><dtml-var menus_bandeau></dtml-if></td>
+    <td id="authuser"><a href="<dtml-var ScoURL>/Users/userinfo"><dtml-var AUTHENTICATED_USER></a></td>
+</tr>
+</table>
+<dtml-unless no_side_bar><dtml-var sidebar></dtml-unless>
+
+<div class="gtrcontent">

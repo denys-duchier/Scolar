@@ -1,0 +1,63 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: EtatAbsencesDate
+
+     Author.......: Emmanuel Viennet
+     Description..: Etat des absences pour un groupe a une date donnee
+
+  -->
+</dtml-comment>
+
+<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST,client=this())">
+
+<dtml-call "REQUEST.set('formsemestre_id', semestregroupe.split('!')[0])">
+<dtml-call "REQUEST.set('groupetd', semestregroupe.split('!')[1])">
+<dtml-call "REQUEST.set('groupeanglais', semestregroupe.split('!')[2])">
+<dtml-call "REQUEST.set('groupetp', semestregroupe.split('!')[3])">
+
+<dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0] )">
+
+<h1>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']"> le <dtml-var date></h1>
+
+
+<dtml-let DATE="DateDDMMYYYY2ISO(date)">
+
+
+<p>
+<dtml-in "getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)" mapping>
+<dtml-if sequence-start>
+ <table border="0" cellspacing="4" cellpadding="0">
+<TR><TD align="center">&nbsp;</TD><TD>Justifi&eacute;e</TD></TR>
+</dtml-if sequence-start>
+
+<dtml-let nbabs="CountAbs(etudid=etudid,debut=DATE,fin=DATE)">
+
+<dtml-if "nbabs != 0">
+<TR bgcolor="#FFFFFF">
+ <dtml-let nbabsjust="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE)">
+
+<TD> <a href="CalAbs?etudid=<dtml-var etudid>"><font color="#A00000"><dtml-var nomprenom></font></a></TD>
+
+  <TD align="center">
+  <dtml-if "nbabsjust != 0">
+      Oui
+  <dtml-else>
+      Non justifi&eacute;e
+  </dtml-if>
+  </TD>
+
+ </dtml-let CountAbsJust>  
+</TR>
+</dtml-if nbabs>
+
+</dtml-let CountAbs>
+
+<dtml-if sequence-end>
+</TABLE>
+</dtml-if>
+</dtml-in listeGroupeTD>
+
+</dtml-let DATE>
+
+</p>
+
+<dtml-var sco_footer>

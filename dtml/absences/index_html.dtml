@@ -1,0 +1,49 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: index_html
+
+     Author.......: Emmanuel Viennet
+     Created......: Mon Dec 20 1999
+
+     Description..: Gestionnaire absences, page principale
+  -->
+</dtml-comment>
+
+<dtml-var "sco_header(page_title='Gestion des absences',REQUEST=REQUEST,client=this())">
+
+<div class="gtrcontent">
+
+<h2>Gestion des Absences</h2>
+
+<h3><a href="EtatAbsences">Afficher l'&eacute;tat des absences (pour tout un groupe)</a></h3>
+
+
+<p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'étudiant concerné:</p>
+
+<dtml-var "formChercheEtud(REQUEST)">
+
+<dtml-if "_.SecurityGetUser().has_permission('Sco Change Absences',this())">
+<hr>
+<h3>Saisie par semaine :</h3>
+
+<form action="SignaleAbsenceGrHebdo">
+
+<dtml-var formChoixSemestreGroupe>
+
+<table><tr><td valign="top">
+<dtml-in ListMondays>
+<dtml-if "(_['sequence-number'] - 1) % 6 == 0"></td><td></dtml-if>
+<button type="submit" name="datelundi" style="background-color: orange;" value="<dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )">"> <dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )"> </button><br>
+</dtml-in>
+</td></tr></table>
+
+</form>
+
+<dtml-else>
+<p class="scoinfo">Vous n'avez pas l'autorisation d'ajouter, justifier
+	  ou supprimer des absences.</p>
+</dtml-if secu>
+
+</div>
+<dtml-var sco_footer>
+
+

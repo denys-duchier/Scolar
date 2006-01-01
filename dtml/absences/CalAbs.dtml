@@ -1,0 +1,61 @@
+<dtml-comment > <!-- -*- mode:html -*- -->
+<!-- File.........: CalAbs
+     Author.......: Emmanuel Viennet
+     Created......: 30 Sep 2001
+     Description..: Calendrier des absences d'un etudiant
+  -->
+</dtml-comment>
+<dtml-in "getEtudInfo(etudid, filled=1)" mapping>
+<dtml-var "sco_header(page_title='Calendrier des absences de '+sexe+' '+nom,REQUEST=REQUEST,client=this())">
+<STYLE type="text/css">
+<!--  Tentative de migration encore tres incomplete ! -->
+   TABLE.tcellevt { border-spacing: 0;  border: 0px; padding: 0; border-spacing: 0; border-style: none}
+   TABLE.TR.rcellevt { border: 0px; padding: 0  }
+   TABLE.TD.cellevtleft   { padding: 0; border-style: none; text-align: left; width = "50%" }
+   TABLE.TD.cellevtright  { padding: 0; border-style: none; text-align: right; width="50%" }
+
+   .maincalendar { font-family: monospace; }
+
+ </STYLE>
+
+<table>
+<tr><td>
+<b><font size=+2>Absences de <b><dtml-var nomprenom>
+(<dtml-var inscription> <dtml-var groupetd>)</b></font>
+<br></b>
+<p>
+<font color="#EE0000">A : absence NON justifi&eacute;e</font><br>
+<font color="#F8B7B0">a : absence justifi&eacute;e</font><br>
+
+<dtml-call "REQUEST.set('DATEDEBUT', `AnneeScolaire()`+'-08-31' )">
+<dtml-call "REQUEST.set('DATEFIN', `AnneeScolaire()+1`+'-07-31' )">
+
+<dtml-let nbabs="CountAbs(etudid=etudid,debut=DATEDEBUT,fin=DATEFIN)">
+<dtml-let nbabsjust="CountAbsJust(etudid=etudid,debut=DATEDEBUT,fin=DATEFIN)">
+<dtml-var "nbabs"> absences, <dtml-var nbabsjust> justifi&eacute;es (soit <dtml-var "nbabs-nbabsjust"> non justifi&eacute;es) 
+</dtml-let></dtml-let>
+
+</td>
+<td><a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
+<dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a></td>
+</tr>
+</table>
+
+<!-- Calendrier -->
+<p class="maincalendar">
+
+<dtml-let L="[]">
+<dtml-in "ListeAbsJust( etudid=etudid, datedebut=`AnneeScolaire()`+'-08-31' )" mapping>
+<dtml-call "L.append( ( str(jour), 'a', '#F8B7B0', '', matin ) )">
+</dtml-in>
+<dtml-in "ListeAbsNonJust( etudid=etudid, datedebut=`_.int(AnneeScolaire())`+'-08-31' )" mapping>
+<dtml-call "L.append( ( str(jour), 'A', '#EE0000', '', matin ) )">
+</dtml-in>
+
+<dtml-var "YearTable( _.int(AnneeScolaire()), events=L, halfday=1 )"> 
+
+</dtml-let>
+</p>
+
+</dtml-in getEtudInfo>
+<dtml-var sco_footer>

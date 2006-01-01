@@ -1,0 +1,24 @@
+<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls')">
+<dtml-if "not isFile">
+<dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
+
+<dtml-call "REQUEST.set('no_side_bar', 1)">
+
+<dtml-var sco_header>
+<dtml-var formsemestre_status_head>
+
+<form name="f" method="GET">
+<input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"></input>
+<select name="tabformat" onChange="document.f.submit()" class="noprint">
+<option value="html"<dtml-if "tabformat=='html'"> selected</dtml-if>>HTML</option>
+<option value="xls"<dtml-if "tabformat=='xls'"> selected</dtml-if>>Fichier tableur (Excel)</option>
+<option value="csv"<dtml-if "tabformat=='csv'"> selected</dtml-if>>Fichier tableur (CSV)</option>
+</select>
+(cliquer sur un nom pour afficher son bulletin ou <a href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
+</form> 
+</dtml-if isFile>
+<dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat)">
+<dtml-if "not isFile">
+<dtml-var sco_footer>
+</dtml-if isFile>
+</dtml-let isFile>
