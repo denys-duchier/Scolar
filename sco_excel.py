@@ -133,6 +133,12 @@ def Excel_feuille_saisie( E, description, lines ):
     font_ro.colour_index = 0x19 # mauve, voir exemple format.py
     style_ro.font = font_ro
 
+    style_dem = XFStyle() # cells read-only
+    font_dem = Font()
+    font_dem.name = 'Arial'
+    font_dem.colour_index = 0x3c # marron
+    style_dem.font = font_dem
+
     style = XFStyle()
     font1 = Font()
     font1.name = 'Arial'
@@ -147,7 +153,7 @@ def Excel_feuille_saisie( E, description, lines ):
     ws0.write(li,0, "Ne pas modifier les cases en mauve !",style_expl)
     li += 1
     # description evaluation    
-    ws0.write(li,0, unescape_html(description), style)
+    ws0.write(li,0, unescape_html(description), style_titres)
     li += 1
     ws0.write(li,0, 'Le %s (coef. %g)' % (E['jour'],E['coefficient']),
               style )
@@ -162,16 +168,21 @@ def Excel_feuille_saisie( E, description, lines ):
     # etudiants
     for line in lines:
         li += 1
+        st = style
         ws0.write(li,0, '!'+line[0], style_ro ) # code
-        ws0.write(li,1, line[1], style )
-        ws0.write(li,2, line[2], style )
         if line[3] != 'I':
-            s = line[3] # etat demissionnaire
+            st = style_dem
+            if line[3] == 'D': # demissionnaire
+                s = 'DEM'
+            else:
+                s = line[3] # etat autre
         else:
             s = line[4] # groupes TD/TP/...
-        ws0.write(li,3, s, style )
-        ws0.write(li,4, line[5], style ) # note
-        ws0.write(li,5, line[6], style_ro ) # comment
+        ws0.write(li,1, line[1], st )
+        ws0.write(li,2, line[2], st )
+        ws0.write(li,3, s, st )
+        ws0.write(li,4, line[5], st ) # note
+        ws0.write(li,5, line[6], st ) # comment
     # explication en bas
     li+=2
     ws0.write(li, 1, "Code notes", style_titres )

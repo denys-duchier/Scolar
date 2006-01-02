@@ -1514,8 +1514,6 @@ class ZNotes(ObjectManager,
             inscr = self.do_formsemestre_inscription_list(
                 {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
             label = '%s %s' % (ident['nom'].upper(), ident['prenom'].lower().capitalize())
-            if inscr['etat'] != 'I':
-                label = '<span class="etuddem">' + label + '</span>'
             if NotesDB.has_key(etudid):
                 val = self._displayNote(NotesDB[etudid]['value'])
                 comment = NotesDB[etudid]['comment']
@@ -1530,6 +1528,8 @@ class ZNotes(ObjectManager,
         el.sort() # sort by name
         for (label,etudid, val, explanation, ident, inscr) in el:
             initvalues['note_'+etudid] = val
+            if inscr['etat'] != 'I':
+                label = '<span class="etuddem">' + label + '</span>'
             descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label,
                                              'explanation':explanation,
                                              'return_focus_next' : True,
