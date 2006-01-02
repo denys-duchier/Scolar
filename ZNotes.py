@@ -2415,7 +2415,7 @@ class CacheNotesTable:
             self.pdfcache = {}
         else:
             if self.cache.has_key(formsemestre_id):
-                del self.pdfcache[formsemestre_id]
+                del self.cache[formsemestre_id]
             if self.pdfcache.has_key(formsemestre_id):
                 del self.pdfcache[formsemestre_id]
 
