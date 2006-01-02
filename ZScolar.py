@@ -736,7 +736,11 @@ class ZScolar(ObjectManager,
                 ilist.append('</div></td>')
             ilist.append('</tr></table>')
         if not ilist:
-            ilist.append('<li>Etudiant%s non inscrit%s: <a href="%s/Notes/formsemestre_inscription_with_modules_form?etudid=%s">inscrire</a></li>'%(info['ne'],info['ne'],self.ScoURL(),etudid))
+            ilist.append('<p><b>Etudiant%s non inscrit%s'%(info['ne'],info['ne']))
+            if authuser.has_permission(ScoEtudInscrit,self):
+                ilist.append('<a href="%s/Notes/formsemestre_inscription_with_modules_form?etudid=%s">inscrire</a></li>'%(self.ScoURL(),etudid))
+            ilist.append('</b></b>')
+                
         info['liste_inscriptions'] = '\n'.join(ilist)
         # Liste des annotations
         alist = []
