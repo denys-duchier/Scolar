@@ -4,7 +4,7 @@
 ##############################################################################
 #
 # Gestion scolarite IUT
-#
+# 
 # Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -727,7 +727,7 @@ class ZScolar(ObjectManager,
                     <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>
                     <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
                     <li><a href="formRedouble?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Redoublement</a></li>
-                    <li><a href="formPassage?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Passage en GTR2</a></li>
+                    <li><a href="formPassage?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Passage dans le semestre suivant</a></li>
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Attribution du Dipl&ocirc;me</a></li>
                     <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire ailleurs</a>
                     </ul></ul>
@@ -976,15 +976,17 @@ class ZScolar(ObjectManager,
         return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
 
     security.declareProtected(ScoEtudChangeGroups, 'doChangeGroupe')
-    def doChangeGroupe(self, etudid, formsemestre_id,
-                       groupetd, groupeanglais, groupetp, REQUEST):        
+    def doChangeGroupe(self, etudid, formsemestre_id, groupetd,
+                       groupeanglais=None, groupetp=None, REQUEST=None):
         "change le groupe"
         cnx = self.GetDBConnexion()
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
         ins['groupetd'] = groupetd
-        ins['groupetp'] = groupetp
-        ins['groupeanglais'] = groupeanglais
+        if groupetp != None:
+            ins['groupetp'] = groupetp
+        if groupeanglais != None:
+            ins['groupeanglais'] = groupeanglais
         self.Notes.do_formsemestre_inscription_edit( args=ins )
         logdb(REQUEST,cnx,method='changeGroupe', etudid=etudid,
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
