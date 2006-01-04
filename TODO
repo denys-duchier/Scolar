@@ -2,6 +2,17 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+
+- semestre "suivant" pour passages
+
+- page recap notes moyennes par groupes (choisir type de groupe?)
+
+- liste des absents à une eval et croisement avec BD absences
+
+- absences par demi-journées sur EtatAbsencesDate
+
+- mail des bulletins aux etudiants
+
 - formsemestre_status: voyants tricolores ?
                        lignes tableau (rows) en couleur ?
   
