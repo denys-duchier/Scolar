@@ -1033,6 +1033,7 @@ class ZNotes(ObjectManager,
         groupes indiqués.
         Si getallstudents==True, donne tous les etudiants inscrits a cette
         evaluation.
+        Ne compte pas les etudinats démissionnaires (seulement les 'I')
         """
         # construit condition sur les groupes
         if not getallstudents:
@@ -1045,7 +1046,7 @@ class ZNotes(ObjectManager,
         else:
             r = ''
         # requete complete
-        req = 'select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s' + r
+        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s and Isem.etat='I'" + r
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()    
         cursor.execute( req, { 'evaluation_id' : evaluation_id } )
@@ -1162,7 +1163,7 @@ class ZNotes(ObjectManager,
         nb_evals_completes, nb_evals_en_cours, nb_evals_vides = 0,0,0
         dates = []
         for e in evals:
-            if e['nb_inscrits'] == e['nb_notes']:
+            if e['nb_notes'] >= e['nb_inscrits']: # sup. si demissionnaires !
                 nb_evals_completes += 1
             elif e['nb_notes'] == 0: # nb_notes == 0
                 nb_evals_vides += 1
@@ -1884,7 +1885,7 @@ class ZNotes(ObjectManager,
         S'il manque des notes et que le coef n'est pas nul,
         la moyenne n'est pas calculée: NA
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-            (ie nb_inscrits == nb_notes)
+            (ie nb_notes >= nb_inscrits, car il peut y avoir eu des démissions)
         Le résultat est une note sur 20
         """
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
@@ -1901,7 +1902,7 @@ class ZNotes(ObjectManager,
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
             e['notes'] = NotesDB
         # filtre les evals valides (toutes les notes entrées)
-        valid_evals = [ e for e in evals if e['nb_inscrits'] == e['nb_notes'] ]
+        valid_evals = [ e for e in evals if e['nb_notes'] >= e['nb_inscrits'] ]
         # 
         R = {}
         for etudid in etudids:
@@ -2019,7 +2020,7 @@ class ZNotes(ObjectManager,
             ligne_titres = cells + '</tr>'
             H.append( ligne_titres ) # titres
 
-            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a>'
+            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&version=selectedevals">%s</a>'
             ir = 0
             nblines = len(F)-1
             for l in F[1:]:
@@ -2088,7 +2089,6 @@ class ZNotes(ObjectManager,
         #
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
-        #nt.get_etud_eval_note(etudid, evaluation_id)
         ues = nt.get_ues()
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)        
@@ -2104,7 +2104,9 @@ class ZNotes(ObjectManager,
             PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
                              Color(170/255.,187/255.,204/255.) ))
         # ligne de titres
-        t = ('Moyenne', fmt_note(nt.get_etud_moy(etudid)[0]),
+        mg = fmt_note(nt.get_etud_moy(etudid)[0])
+        etatstr = nt.get_etud_etat_html(etudid)
+        t = ('Moyenne', mg + etatstr,
              'Rang %d/%d' % (nt.get_etud_rang(etudid), nbetuds),
              'Note/20', 'Coef')
         P.append(t)        
@@ -2152,12 +2154,7 @@ class ZNotes(ObjectManager,
                                     nom_eval = 'le %s' % e['jour']
                                 link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submit=OK">%s</a>' % (e['evaluation_id'], nom_eval)
                                 val = e['notes'][etudid]['value']
-                                try:
-                                    val = fmt_note(val, note_max=e['note_max'] )
-                                except:
-                                    # val = self._displayNote(val)
-                                    # je ne comprend plus ce code !
-                                    raise
+                                val = fmt_note(val, note_max=e['note_max'] )
                                 t = [ '', '', nom_eval, val, '%.2g' % e['coefficient'] ]
                                 P.append(tuple(t))
                                 t[2] = link_eval
@@ -2184,8 +2181,13 @@ class ZNotes(ObjectManager,
             etud['nbabsjust'] = nbabsjust
             infos = { 'DeptName' : self.DeptName }
             stand_alone = (format != 'pdfpart')
-            pdfbul = pdfbulletins.pdfbulletin_etud( etud, sem, P, PdfStyle,
-                                                    infos, stand_alone=stand_alone)
+            if nt.get_etud_etat(etudid) == 'D':
+                filigranne = 'DEMISSION'
+            else:
+                filigranne = ''
+            pdfbul = pdfbulletins.pdfbulletin_etud(
+                etud, sem, P, PdfStyle,
+                infos, stand_alone=stand_alone, filigranne=filigranne)
             if format == 'pdf':
                 dt = time.strftime( '%Y-%m-%d' )
                 filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
@@ -2307,6 +2309,16 @@ class NotesTable:
     def get_groupetd(self,etudid):
         "groupe de TD de l'etudiant dans ce semestre"
         return self.inscrdict[etudid]['groupetd']
+    def get_etud_etat(self, etudid):
+        return self.inscrdict[etudid]['etat']
+    def get_etud_etat_html(self, etudid):
+        etat = self.inscrdict[etudid]['etat']
+        if etat == 'I':
+            return ''
+        elif etat == 'D':
+            return ' <font color="red">(DEMISSIONNAIRE)</font> '
+        else:
+            return ' <font color="red">(%s)</font> ' % etat
     def get_ues(self):
         "liste des ue, ordonnée par numero"
         return self.ues
@@ -2329,7 +2341,7 @@ class NotesTable:
     def get_mod_moy(self, moduleimpl_id):
         """moyenne generale pour un module
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-        (ie nb_inscrits == nb_notes)
+        (ie nb_notes >= nb_inscrits)
         """
         nb_notes = 0
         sum_notes = 0.
@@ -2355,7 +2367,7 @@ class NotesTable:
     def get_etud_moy(self, etudid, ue_id=None):
         """moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-        (ie nb_inscrits == nb_notes)
+        (ie nb_notes >= nb_inscrits)
         Return: (moy, nb_notes, nb_missing)
         """
         modimpls = self.get_modimpls(ue_id)

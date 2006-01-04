@@ -118,7 +118,8 @@ def essaipdf(REQUEST):
     return sendPDFFile(REQUEST, data, filename)
 
 
-def pdfbulletin_etud(etud, sem, P, TableStyle, infos, stand_alone=True):
+def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
+                     stand_alone=True, filigranne=''):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
     Si stand_alone, génère un doc PDF complet et renvoie une string
@@ -138,7 +139,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos, stand_alone=True):
     # Build doc using ReportLab's platypus
     objects.append(Paragraph("Université Parix XIII - IUT de Villetaneuse - Département %(DeptName)s" % infos,
                             StyleSheet["Heading2"]) )
-    objects.append(Paragraph("Relevé de notes de %s (%s %s)" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2]), StyleSheet["Heading3"]))
+    objects.append(Paragraph("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne), StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
     # customize table style
     TableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )

@@ -41,14 +41,14 @@
 <dtml-if "nb_notes == 0">
 <dtml-if canedit><a class="smallbutton" href="evaluation_delete?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if canedit><dtml-var "img.delete_img.tag(border='0', alt='supprimer', title='Supprimer')"><dtml-if canedit></a>
 </dtml-if canedit>
-<dtml-elif "nb_inscrits == nb_notes">
+<dtml-elif "nb_notes >= nb_inscrits">
  <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_green_img.tag(border='0',title='ok')"></a>
 <dtml-else>
  <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_orange_img.tag(border='0',title='il manque des notes')"></a>
 </dtml-if etat>
 <dtml-if "eval['visibulletin']=='1'"><dtml-var "img.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires')">
 <dtml-else>&nbsp;
-</dtml-if>
+</dtml-if>    
     </td>
     <td><dtml-var "eval['jour']"></td>
     <td><dtml-var " ('%3.2f'%(float(eval['heure_fin'].replace('h','.')) - float(eval['heure_debut'].replace('h','.')))).replace('.','h')"></td>
