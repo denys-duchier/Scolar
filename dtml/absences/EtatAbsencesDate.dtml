@@ -26,33 +26,39 @@
 <dtml-in "getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)" mapping>
 <dtml-if sequence-start>
  <table border="0" cellspacing="4" cellpadding="0">
-<TR><TD align="center">&nbsp;</TD><TD>Justifi&eacute;e</TD></TR>
+<tr><th>&nbsp;</th>
+<th style="width: 10em;">Matin</th><th style="width: 10em;">Après-midi</th></tr>
 </dtml-if sequence-start>
 
-<dtml-let nbabs="CountAbs(etudid=etudid,debut=DATE,fin=DATE)">
+<dtml-let nbabsam="CountAbs(etudid=etudid,debut=DATE,fin=DATE,matin=1)">
+<dtml-let nbabspm="CountAbs(etudid=etudid,debut=DATE,fin=DATE,matin=0)">
 
-<dtml-if "nbabs != 0">
-<TR bgcolor="#FFFFFF">
- <dtml-let nbabsjust="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE)">
+<dtml-if "(nbabsam != 0) or (nbabspm != 0)">
+ <tr bgcolor="#FFFFFF">
+ <dtml-let nbabsjustam="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE,matin=1)">
+ <dtml-let nbabsjustpm="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE,matin=0)">
 
-<TD> <a href="CalAbs?etudid=<dtml-var etudid>"><font color="#A00000"><dtml-var nomprenom></font></a></TD>
+ <td> <a href="CalAbs?etudid=<dtml-var etudid>"><font color="#A00000"><dtml-var nomprenom></font></a></td>
 
-  <TD align="center">
-  <dtml-if "nbabsjust != 0">
-      Oui
-  <dtml-else>
-      Non justifi&eacute;e
-  </dtml-if>
-  </TD>
+ <td align="center">
+ <dtml-if "nbabsam != 0">
+   <dtml-if "nbabsjustam != 0">Just.<dtml-else>Abs.</dtml-if>
+ </dtml-if>
+ </td>
+ <td align="center">
+ <dtml-if "nbabspm != 0">
+   <dtml-if "nbabsjustpm != 0">Just.<dtml-else>Abs.</dtml-if>
+ </dtml-if>
+ </td>
 
- </dtml-let CountAbsJust>  
-</TR>
-</dtml-if nbabs>
+ </dtml-let CountAbsJust></dtml-let CountAbsJust>
+</tr>
+</dtml-if nbabsam>
 
-</dtml-let CountAbs>
+</dtml-let CountAbs></dtml-let CountAbs>
 
 <dtml-if sequence-end>
-</TABLE>
+</table>
 </dtml-if>
 </dtml-in listeGroupeTD>
 

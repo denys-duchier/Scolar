@@ -306,14 +306,19 @@ class ZAbsences(ObjectManager,
         self.Notes.CachedNotesTable.inval_cache()
 
     security.declareProtected(ScoView, 'CountAbs')
-    def CountAbs(self, etudid, debut, fin):
+    def CountAbs(self, etudid, debut, fin, matin=None):
+        if matin != None:
+            matin = _toboolean(matin)
+            ismatin = ' AND A.MATIN = %(matin)s '
+        else:
+            ismatin = ''
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT COUNT(*) AS NbAbs FROM (
     SELECT DISTINCT A.JOUR, A.MATIN
     FROM ABSENCES A
     WHERE A.ETUDID = %(etudid)s
-      AND A.ESTABS
+      AND A.ESTABS""" + ismatin + """
       AND A.JOUR BETWEEN %(debut)s AND %(fin)s
           ) AS tmp
           """, vars())
@@ -321,7 +326,12 @@ class ZAbsences(ObjectManager,
         return res
 
     security.declareProtected(ScoView, 'CountAbsJust')
-    def CountAbsJust(self, etudid, debut, fin):
+    def CountAbsJust(self, etudid, debut, fin, matin=None):
+        if matin != None:
+            matin = _toboolean(matin)
+            ismatin = ' AND A.MATIN = %(matin)s '
+        else:
+            ismatin = ''
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT COUNT(*) AS NbAbsJust FROM (
@@ -331,7 +341,7 @@ class ZAbsences(ObjectManager,
       AND A.ETUDID = B.ETUDID 
       AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN
       AND A.JOUR BETWEEN %(debut)s AND %(fin)s
-      AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)
+      AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)""" + ismatin + """
 ) AS tmp
         """, vars() )
         res = cursor.fetchone()[0]

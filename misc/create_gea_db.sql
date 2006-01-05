@@ -704,14 +704,6 @@ ALTER TABLE ONLY notes_notes_log
 --
 
 ALTER TABLE ONLY notes_notes_log
-    ADD CONSTRAINT "$2" FOREIGN KEY (evaluation_id) REFERENCES notes_evaluation(evaluation_id);
-
-
---
---
-
-
-ALTER TABLE ONLY notes_notes_log
     ADD CONSTRAINT "$4" FOREIGN KEY (etudid, evaluation_id) REFERENCES notes_notes(etudid, evaluation_id);
 
 
