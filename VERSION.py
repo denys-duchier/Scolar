@@ -1,6 +1,12 @@
-SCOVERSION = "4.1.4"
+SCOVERSION = "4.1.5"
 
 SCONEWS = """
+
+<h4>6 janvier 2006</h4>
+<ul>
+<li>Affichage des ex-aequos.</li>
+<li>Corrigé gestion des notes des démissionnaires.</li>
+</ul>
 
 <h4>1er janvier 2006</h4>
 <ul>

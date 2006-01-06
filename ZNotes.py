@@ -1988,7 +1988,7 @@ class ZNotes(ObjectManager,
         ue_index = [] # indices des moy UE dans l (pour appliquer style css)
         for t in T:
             etudid = t[-1]
-            l = [ str(nt.get_etud_rang(etudid)),nt.get_nom_short(etudid),
+            l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
                   nt.get_groupetd(etudid), fmt_note(t[0])] # rang, nom,  groupe, moy_gen
             i = 0
             for ue in ues:
@@ -2117,7 +2117,7 @@ class ZNotes(ObjectManager,
         mg = fmt_note(nt.get_etud_moy(etudid)[0])
         etatstr = nt.get_etud_etat_html(etudid)
         t = ('Moyenne', mg + etatstr,
-             'Rang %d/%d' % (nt.get_etud_rang(etudid), nbetuds),
+             'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds),
              'Note/20', 'Coef')
         P.append(t)        
         H.append( '<tr><td class="note_bold">' +
@@ -2303,11 +2303,28 @@ class NotesTable:
         T.reverse()
         self.T = T
         # calcul rangs (/ moyenne generale)
-        self.rangs = {} # { etudid : rangs }
-        rang = 0
-        for t in T:
-            rang += 1
-            self.rangs[t[-1]] = rang
+        self.rangs = {} # { etudid : rangs } (rang est une chaine)
+        nb_ex = 0 # nb d'ex-aequo consécutifs en cours
+        for i in range(len(T)):
+            # test ex-aequo
+            if i < len(T)-1:
+                next = T[i+1][0]
+            else:
+                next = None
+            moy = T[i][0]
+            if nb_ex:
+                srang = '%d ex' % (i+1-nb_ex)
+                if moy == next:
+                    nb_ex += 1
+                else:
+                    nb_ex = 0
+            else:
+                if moy == next:
+                    srang = '%d ex' % (i+1-nb_ex)
+                    nb_ex = 1
+                else:
+                    srang = '%d' % (i+1)                        
+            self.rangs[T[i][-1]] = srang # str(i+1)
         
     def get_etudids(self):
         return [ x['etudid'] for x in self.inscrlist ]
