@@ -1068,8 +1068,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_evaluation_etat')
     def do_evaluation_etat(self,evaluation_id):
         """donne infos sur l'etat du evaluation
-        ( nb_inscrits, nb_notes, nb_abs, nb_neutre, moyenne, mediane,
-        date_last_modif, gr_complets, gr_incomplets )
+        { nb_inscrits, nb_notes, nb_abs, nb_neutre, moyenne, mediane,
+        date_last_modif, gr_complets, gr_incomplets, evalcomplete }
+        evalcomplete est vrai si l'eval est complete (tous les inscrits ont des notes)
         """
         nb_inscrits = len(self.do_evaluation_listeetuds_groups(evaluation_id,getallstudents=True))
         NotesDB = self._notes_getall(evaluation_id) # { etudid : value }
@@ -1115,6 +1116,10 @@ class ZNotes(ObjectManager,
                     GrNbMissing[groupetd] = 1
         gr_incomplets = [ x for x in GrNbMissing.keys() ]
         gr_incomplets.sort()
+        if gr_incomplets:
+            complete = 0
+        else:
+            complete = 1
         # calcul moyenne dans chaque groupe de TD
         gr_moyennes = [] # groupetd : {moy,median, nb_notes}
         for gr in GrNotes.keys():
@@ -1132,7 +1137,8 @@ class ZNotes(ObjectManager,
             'moy':moy, 'median':median,
             'last_modif':last_modif,
             'gr_incomplets':gr_incomplets,
-            'gr_moyennes' : gr_moyennes } ]
+            'gr_moyennes' : gr_moyennes,
+            'evalcomplete' : complete } ]
         #return (nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif,
         #gr_complets, gr_incomplets)
     
@@ -1158,12 +1164,16 @@ class ZNotes(ObjectManager,
     def _eval_etat(self,evals):
         """evals: list of mappings (etats)
         -> nb_eval_completes, nb_evals_en_cours,
-        nb_evals_vides, date derniere modif"""
+        nb_evals_vides, date derniere modif
+
+        Une eval est "complete" ssi tous les etudiants *inscrits* ont une note.
+        
+        """
         
         nb_evals_completes, nb_evals_en_cours, nb_evals_vides = 0,0,0
         dates = []
         for e in evals:
-            if e['nb_notes'] >= e['nb_inscrits']: # sup. si demissionnaires !
+            if e['evalcomplete']:
                 nb_evals_completes += 1
             elif e['nb_notes'] == 0: # nb_notes == 0
                 nb_evals_vides += 1
@@ -1885,7 +1895,6 @@ class ZNotes(ObjectManager,
         S'il manque des notes et que le coef n'est pas nul,
         la moyenne n'est pas calculée: NA
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-            (ie nb_notes >= nb_inscrits, car il peut y avoir eu des démissions)
         Le résultat est une note sur 20
         """
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
@@ -1901,8 +1910,9 @@ class ZNotes(ObjectManager,
             e['nb_abs'] = len( [ x for x in notes if x is None ] )
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
             e['notes'] = NotesDB
-        # filtre les evals valides (toutes les notes entrées)
-        valid_evals = [ e for e in evals if e['nb_notes'] >= e['nb_inscrits'] ]
+            e['etat'] = self.do_evaluation_etat(e['evaluation_id'])[0]
+        # filtre les evals valides (toutes les notes entrées)        
+        valid_evals = [ e for e in evals if e['etat']['evalcomplete'] ]
         # 
         R = {}
         for etudid in etudids:
@@ -2341,7 +2351,6 @@ class NotesTable:
     def get_mod_moy(self, moduleimpl_id):
         """moyenne generale pour un module
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-        (ie nb_notes >= nb_inscrits)
         """
         nb_notes = 0
         sum_notes = 0.
@@ -2367,7 +2376,6 @@ class NotesTable:
     def get_etud_moy(self, etudid, ue_id=None):
         """moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-        (ie nb_notes >= nb_inscrits)
         Return: (moy, nb_notes, nb_missing)
         """
         modimpls = self.get_modimpls(ue_id)
