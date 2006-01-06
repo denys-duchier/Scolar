@@ -56,4 +56,14 @@
 <!-- LISTE DES ETUDIANTS -->
 <dtml-var "'\n'.join(make_listes_sem(sem))">
 
+
+<h3>Autres opérations</h3>
+
+<ul>
+<li>Classeur PDF des bulletins: <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=short">version courte</a>,
+    <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=selectedevals">version intermédiaire</a>, <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=long">version complete</a>
+</li>
+</ul>
+
+
 <dtml-var sco_footer>

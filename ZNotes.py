@@ -2097,6 +2097,8 @@ class ZNotes(ObjectManager,
                                      version='long', # short, long, selectedevals
                                      format='html', REQUEST=None):
         #
+        if not version in ('short','long','selectedevals'):
+            raise ValueError('invalid version code !')
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
         ues = nt.get_ues()
@@ -2209,9 +2211,10 @@ class ZNotes(ObjectManager,
             raise ValueError('invalid parameter: format')
 
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
-    def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST):
+    def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
+                                   version='selectedevals'):
         "publie le bulletins dans un classeur PDF"
-        cached = self.CachedNotesTable.get_bulletins_pdf(formsemestre_id)
+        cached = self.CachedNotesTable.get_bulletins_pdf(formsemestre_id,version)
         if cached:
             return sendPDFFile(REQUEST,cached[1],cached[0])
         fragments = []
@@ -2222,7 +2225,8 @@ class ZNotes(ObjectManager,
         i = 1
         for etudid in nt.get_etudids():
             fragments += self.do_formsemestre_bulletinetud(
-                formsemestre_id, etudid, format='pdfpart' )
+                formsemestre_id, etudid, format='pdfpart',
+                version=version )
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
@@ -2233,7 +2237,8 @@ class ZNotes(ObjectManager,
         filename = 'bul-%s-%s.pdf' % (sem['titre'], dt)
         filename = unescape_html(filename).replace(' ','_').replace('&','')
         # fill cache
-        self.CachedNotesTable.store_bulletins_pdf(formsemestre_id,(filename,pdfdoc))
+        self.CachedNotesTable.store_bulletins_pdf(formsemestre_id,version,
+                                                  (filename,pdfdoc))
         return sendPDFFile(REQUEST, pdfdoc, filename)
     
     # --------------------------------------------------------------------
@@ -2264,6 +2269,9 @@ class NotesTable:
             i = scolars.etudident_list( cnx, { 'etudid' : x['etudid'] } )[0]
             self.identdict[x['etudid']] = i
             self.inscrdict[x['etudid']] = x
+            x['nom'] = i['nom'] # pour tri
+        # Tri les etudids par NOM
+        self.inscrlist.sort( lambda x,y: cmp(x['nom'],y['nom']) )
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
         self.modmoys, self.modimpls, valid_evals = znote.do_formsemestre_moyennes(
             formsemestre_id)
@@ -2456,16 +2464,17 @@ class CacheNotesTable:
             if self.pdfcache.has_key(formsemestre_id):
                 del self.pdfcache[formsemestre_id]
 
-    def store_bulletins_pdf(self, formsemestre_id, (filename,pdfdoc) ):
+    def store_bulletins_pdf(self, formsemestre_id, version, (filename,pdfdoc) ):
         "cache pdf data"
-        log('caching PDF formsemestre_id=%s' % formsemestre_id )
-        self.pdfcache[formsemestre_id] = (filename,pdfdoc)
+        log('caching PDF formsemestre_id=%s version=%s'
+            % (formsemestre_id, version) )
+        self.pdfcache[(formsemestre_id,version)] = (filename,pdfdoc)
 
-    def get_bulletins_pdf(self, formsemestre_id):
+    def get_bulletins_pdf(self, formsemestre_id, version):
         "returns cached PDF, or None if not in the cache"
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
-        return self.pdfcache.get(formsemestre_id, None)
+        return self.pdfcache.get((formsemestre_id,version), None)
 
 # --------------------------------------------------------------------
 #

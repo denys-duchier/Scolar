@@ -5,6 +5,7 @@ SCONEWS = """
 <h4>6 janvier 2006</h4>
 <ul>
 <li>Affichage des ex-aequos.</li>
+<li>Classeurs bulletins PDF en différentes versions.</li>
 <li>Corrigé gestion des notes des démissionnaires.</li>
 </ul>
 
