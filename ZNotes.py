@@ -2153,7 +2153,7 @@ class ZNotes(ObjectManager,
                                 if not nom_eval:
                                     nom_eval = 'le %s' % e['jour']
                                 link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submit=OK">%s</a>' % (e['evaluation_id'], nom_eval)
-                                val = e['notes'].get('etudid', {'value':'NA'})['value'] # NA si etud demissoinnaire
+                                val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                                 val = fmt_note(val, note_max=e['note_max'] )
                                 t = [ '', '', nom_eval, val, '%.2g' % e['coefficient'] ]
                                 P.append(tuple(t))

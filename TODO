@@ -2,6 +2,13 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- format date sur annotations (ficheetud)
+
+- recapitulatif des "nouvelles"
+     - dernieres notes
+     - changement de statuts (demissions,inscriptions)
+     - annotations
+     - entreprises
 
 - semestre "suivant" pour passages
 
@@ -16,20 +23,19 @@
 - formsemestre_status: voyants tricolores ?
                        lignes tableau (rows) en couleur ?
   
-- ajouter parcours sur feuille recap complet.
+- gestion des decision de jury et des appreciations ?
+   -> scolar_events
 
-- formPassage (reinscription semestre suivant)
-- formRedouble (quel sens a le redoublement avec les semestres ?)
+- ajouter champs code_parcours et suivant dans les formsemestre
+- ajouter parcours sur feuille recap complet.
+- formPassage (scolar_events + inscription semestre suivant)
+- formRedouble
+    -> generer evenement "AUT_RED"
 
 - formChoixSemestreGroupe: utilisé par Abscences/index_html
     a améliorer
 
 - Génération PDF listes notes
-
--  bug caracteres non ascii upper/lower: eg cedille etudid=2005_E_2
-   normalement réglé par locale python. Voir about()
-
-   Mais problème: voir par exemple GEAEID940
 
 
 * Gestion des sous-comm/jury

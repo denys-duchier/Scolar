@@ -141,7 +141,7 @@ CREATE TABLE notes_notes (
 CREATE TABLE notes_notes_log (
 	id 	SERIAL PRIMARY KEY,
 	etudid text REFERENCES identite(etudid), 
-	evaluation_id text REFERENCES notes_evaluation(evaluation_id),
+	evaluation_id text,  -- REFERENCES notes_evaluation(evaluation_id),
 	value real,
 	comment text,
 	date timestamp,
