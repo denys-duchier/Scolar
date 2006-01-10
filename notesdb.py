@@ -310,7 +310,7 @@ def TimetoISO8601(t):
 
 
 def TimefromISO8601(t):
-    "convert time string from ISO 8601 (allow 16:03, 16h03, 16) to our display format"
+    "convert time string from ISO 8601 to our display format"
     if not t:
         return t
     fs = str(t).split(':') 

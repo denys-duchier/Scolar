@@ -869,8 +869,22 @@ class ZNotes(ObjectManager,
     def do_evaluation_list(self, args ):
         "list evaluations"
         cnx = self.GetDBConnexion()
-        return self._evaluationEditor.list(cnx, args)
-
+        evals = self._evaluationEditor.list(cnx, args)
+        # calcule duree (chaine de car.) de chaque evaluation
+        for e in evals:
+            heure_debut, heure_fin = e['heure_debut'], e['heure_fin']
+            if heure_debut and heure_fin:
+                h0, m0 = [ int(x) for x in heure_debut.split('h') ]
+                h1, m1 = [ int(x) for x in heure_fin.split('h') ]
+                d = (h1-h0)*60 + (m1-m0)
+                m = d%60                
+                e['duree'] = '%dh' % (d/60)
+                if m != 0:
+                    e['duree'] += '%02d' % m
+            else:
+                e['duree'] = ''
+        return evals
+    
     security.declareProtected(ScoEnsView, 'do_evaluation_edit')
     def do_evaluation_edit(self, REQUEST, args ):
         "edit a evaluation"

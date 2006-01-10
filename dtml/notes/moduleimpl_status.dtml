@@ -51,7 +51,7 @@
 </dtml-if>    
     </td>
     <td><dtml-var "eval['jour']"></td>
-    <td><dtml-var " ('%3.2f'%(float(eval['heure_fin'].replace('h','.')) - float(eval['heure_debut'].replace('h','.')))).replace('.','h')"></td>
+    <td><dtml-var "eval['duree']"></td>
     <td class="rightcell"><dtml-var "'%g' % eval['coefficient']"></td>
     <td class="rightcell"><dtml-var "nb_notes"> / <dtml-var "nb_inscrits"></td>
     <td class="rightcell"><dtml-var "nb_abs"></td>

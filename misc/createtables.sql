@@ -79,7 +79,7 @@ CREATE TABLE notes_formsemestre (
 	titre text,
 	date_debut date,
         date_fin   date,
-	responsable_id text REFERENCES notes_users(uid)
+	responsable_id text,
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
@@ -87,7 +87,7 @@ CREATE TABLE notes_moduleimpl (
 	moduleimpl_id  text default notes_newid('MIP') PRIMARY KEY,
 	module_id text REFERENCES notes_modules(module_id),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	responsable_id text REFERENCES notes_users(uid),
+	responsable_id text,
 	UNIQUE(module_id,formsemestre_id) -- ajoute
 );
 
@@ -134,7 +134,7 @@ CREATE TABLE notes_notes (
 	-- infos sur saisie de cette note:
 	comment text,
 	date timestamp default now(),
-	uid text REFERENCES notes_users(uid)
+	uid text
 );
 
 -- Historique des modifs sur notes (anciennes entrees de notes_notes)
@@ -145,7 +145,7 @@ CREATE TABLE notes_notes_log (
 	value real,
 	comment text,
 	date timestamp,
-	uid text REFERENCES notes_users(uid),
+	uid text,
 	FOREIGN KEY (etudid,evaluation_id) REFERENCES notes_notes(etudid,evaluation_id)
 );
 
@@ -165,4 +165,14 @@ CREATE TABLE scolar_events (
 	event_date timestamp default now(),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
 	event_type text -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 'DIPLOME', 'AUT_RED', 'EXCLUS' 
+);
+
+---------------------------------------------------------------------
+-- NOUVELLES
+--
+CREATE TABLE scolar_news (
+	news_id text default notes_newid('NEWS') PRIMARY KEY,
+	news_date timestamp default now(),
+	news_text text, -- free text
+	
 );
