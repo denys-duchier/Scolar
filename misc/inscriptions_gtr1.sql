@@ -58,3 +58,18 @@ INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid)
 	SELECT F.moduleimpl_id, I.etudid 
 	FROM  notes_moduleimpl F, notes_formsemestre_inscription I 
 	WHERE I.formsemestre_id=F.formsemestre_id and F.formsemestre_id='SEM1450';
+
+
+
+--- reinscription des GEA aux modules ajoutés en route
+INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid) 
+  SELECT 'GEAMIP1862', I.etudid FROM  notes_formsemestre_inscription I
+  WHERE I.formsemestre_id='GEASEM32';
+
+INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid) 
+  SELECT 'GEAMIP1865', I.etudid FROM  notes_formsemestre_inscription I
+  WHERE I.formsemestre_id='GEASEM32';
+
+INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid) 
+  SELECT 'GEAMIP1868', I.etudid FROM  notes_formsemestre_inscription I
+  WHERE I.formsemestre_id='GEASEM32';

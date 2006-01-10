@@ -434,6 +434,13 @@ class ZNotes(ObjectManager,
             initvalues = self.do_formsemestre_list(
                 {'formsemestre_id' : formsemestre_id})[0]
             semestre_id = initvalues['semestre_id']
+            initvalues['inscrire_etuds'] = initvalues.get('inscrire_etuds','1')
+            if initvalues['inscrire_etuds'] == '1':
+                initvalues['inscrire_etudslist'] = ['X']
+            else:
+                initvalues['inscrire_etudslist'] = []
+            if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('inscrire_etudslist'):
+                REQUEST.form['inscrire_etudslist'] = []                
             # add associated modules to tf-checked
             ams = self.do_moduleimpl_list( { 'formsemestre_id' : formsemestre_id } )
             initvalues['tf-checked'] = [ x['module_id'] for x in ams ]
@@ -471,6 +478,11 @@ class ZNotes(ObjectManager,
                                'title' : '%s %s' % (mod['code'],mod['titre']),
                                'allowed_values' : userlist }) )
         if edit:
+            modform.append( ('inscrire_etudslist',
+                             { 'input_type' : 'checkbox',
+                               'allowed_values' : ['X'], 'labels' : [ '' ],
+                               'title' : '' ,
+                               'explanation' : 'inscrire tous les étudiants du semestre aux modules ajoutés'}) )
             submitlabel = 'Modifier ce semestre de formation'
         else:
             submitlabel = 'Créer ce semestre de formation'
@@ -493,7 +505,7 @@ class ZNotes(ObjectManager,
                                 'formsemestre_id' : formsemestre_id,
                                 'responsable_id' :  mod_resp_id }
                     mid = self.do_moduleimpl_create(modargs)
-                return 'ok<br>' + str(tf[2])
+                return '<p>ok</>' # + str(tf[2])
             else:
                 # modification du semestre:
                 # on doit creer les modules nouvellement selectionnés
@@ -512,11 +524,19 @@ class ZNotes(ObjectManager,
                 # modules a detruire
                 mods_todelete = [ x for x in existingmods if not x in checkedmods ]
                 #
+                msg = ''
                 for module_id in mods_tocreate:
                     modargs = { 'module_id' : module_id,
                                 'formsemestre_id' : formsemestre_id,
                                 'responsable_id' :  tf[2][module_id] }
-                    self.do_moduleimpl_create(modargs)
+                    moduleimpl_id = self.do_moduleimpl_create(modargs)
+                    if tf[2]['inscrire_etudslist']:
+                        # il faut inscrire les etudiants du semestre
+                        # dans le nouveau module
+                        self.do_moduleimpl_inscrit_tout_semestre(
+                            moduleimpl_id,formsemestre_id)
+                        msg += '<p>etudiants inscrits au module %s</p>' % moduleimpl_id
+                #
                 for module_id in mods_todelete:
                     # get id
                     moduleimpl_id = self.do_moduleimpl_list(
@@ -533,7 +553,7 @@ class ZNotes(ObjectManager,
                         'formsemestre_id' : formsemestre_id,
                         'responsable_id' :  tf[2][module_id] }
                     self.do_moduleimpl_edit(modargs)
-                return 'edit ok<br>'  + str(tf[2])
+                return '<p>Modification effectuée</p>'  + msg #+ str(tf[2])
 
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
@@ -691,6 +711,22 @@ class ZNotes(ObjectManager,
         cursor.execute( req, { 'moduleimpl_id' : moduleimpl_id } )
         res = cursor.fetchall()
         return [ x[0] for x in res ]
+
+    security.declareProtected(ScoEtudInscrit,'do_moduleimpl_inscrit_tout_semestre')
+    def do_moduleimpl_inscrit_tout_semestre(self,
+                                            moduleimpl_id,formsemestre_id):
+        "inscrit tous les etudiants inscrit au semestre a ce module"
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        req = """INSERT INTO notes_moduleimpl_inscription
+                             (moduleimpl_id, etudid)
+                    SELECT %(moduleimpl_id)s, I.etudid
+                    FROM  notes_formsemestre_inscription I
+                    WHERE I.formsemestre_id=%(formsemestre_id)s"""
+        args = { 'moduleimpl_id':moduleimpl_id,
+                 'formsemestre_id':formsemestre_id }
+        cursor.execute( req, args )
+        
 
     security.declareProtected(ScoEtudInscrit,'do_formsemestre_inscription_with_modules')
     def do_formsemestre_inscription_with_modules(self, args=None,
@@ -2396,7 +2432,7 @@ class NotesTable:
         nb_missing = 0
         moys = self.modmoys[moduleimpl_id]
         for etudid in self.get_etudids():
-            val = moys[etudid]
+            val = moys.get(etudid, None) # None si non inscrit
             try:
                 sum_notes += val
                 nb_notes = nb_notes + 1
@@ -2409,8 +2445,8 @@ class NotesTable:
         return moy, nb_notes, nb_missing
 
     def get_etud_mod_moy(self, modimpl, etudid):
-        """moyenne d'un etudiant dans un module"""
-        return self.modmoys[modimpl['moduleimpl_id']][etudid]
+        """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        
+        return self.modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
     
     def get_etud_moy(self, etudid, ue_id=None):
         """moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
@@ -2423,7 +2459,8 @@ class NotesTable:
         sum_coefs = 0.
         nb_missing = 0
         for modimpl in modimpls:
-            val = self.modmoys[modimpl['moduleimpl_id']][etudid]
+            val = self.modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
+            # si 'NI' probablement etudiant non inscrit a ce module
             coef = modimpl['module']['coefficient']
             try:
                 #print '%g in module %s coef %g' % (val, modimpl['moduleimpl_id'], coef)
