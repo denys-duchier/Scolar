@@ -4,7 +4,8 @@
 
 - listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
 
-- format date sur annotations (ficheetud)
+- un bout de JS sur notes_eval_selectetuds pour empecher de valider 
+  s'il n'y a pas un groupe selectionné.
 
 - recapitulatif des "nouvelles"
      - dernieres notes

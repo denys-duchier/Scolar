@@ -323,7 +323,8 @@ class ZNotes(ObjectManager,
         "get formation_id from matiere"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('select UE.formation_id from notes_matieres M, notes_ue UE where M.matiere_id = %(matiere_id)s and M.ue_id = UE.ue_id' % { 'matier_id' : matiere_id } )
+        cursor.execute('select UE.formation_id from notes_matieres M, notes_ue UE where M.matiere_id = %(matiere_id)s and M.ue_id = UE.ue_id',
+                       { 'matiere_id' : matiere_id } )
         res = cursor.fetchall()
         return res[0][0]
 
@@ -1523,8 +1524,8 @@ class ZNotes(ObjectManager,
         initvalues = {}
         CSV = [] # une liste de liste de chaines: lignes du fichier CSV
         CSV.append( ['Fichier de notes (à enregistrer au format CSV XXX)'])
-        # Construit liste des etudiants
-        glist = REQUEST.form['groupes']
+        # Construit liste des etudiants        
+        glist = REQUEST.form.get('groupes', [] )
         gr_td = [ x[2:] for x in glist if x[:2] == 'td' ]
         gr_tp = [ x[2:] for x in glist if x[:2] == 'tp' ]
         gr_anglais = [ x[2:] for x in glist if x[:2] == 'ta' ]
@@ -1537,6 +1538,8 @@ class ZNotes(ObjectManager,
         etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
                                                        gr_td,gr_tp,gr_anglais,
                                                        getallstudents=getallstudents)
+        if not etudids:
+            return '<p>Aucun groupe sélectionné !</p>'
         # Notes existantes
         NotesDB = self._notes_getall(evaluation_id)
         #

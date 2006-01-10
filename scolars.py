@@ -247,7 +247,8 @@ _etud_annotationsEditor = EditableTable(
      'zope_authenticated_user', 'zope_remote_addr' ),
     sortkey = 'date desc',
     convert_null_outputs_to_empty=True,
-    output_formators = { 'comment' : safehtml.HTML2SafeHTML }
+    output_formators = { 'comment' : safehtml.HTML2SafeHTML,
+                         'date' : DateISOtoDMY }
     )
 
 

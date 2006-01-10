@@ -20,7 +20,7 @@
 <dtml-else>
  <dtml-call "do_matiere_edit( tf[2] )">
 
- <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + do_matiere_formation_id(matiere_id=matiere_id) )">
+ <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + do_matiere_formation_id(matiere_id=tf[2]['matiere_id']) )">
 
 </dtml-if>
 
