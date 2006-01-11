@@ -29,6 +29,13 @@
 """
 import urllib, time
 
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email.Header import Header
+from email import Encoders
+
+# Zope stuff
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
                                 # 'manage_propertiesForm' method
@@ -2162,7 +2169,72 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
     def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
                                      version='long', # short, long, selectedevals
-                                     format='html', REQUEST=None):
+                                     format='html', REQUEST=None, nohtml=False):
+        if format != 'mailpdf':
+            bul, etud, filename = self.make_formsemestre_bulletinetud(
+                formsemestre_id, etudid,
+                version=version,format=format)
+            if format == 'pdf':
+                return sendPDFFile(REQUEST, bul, filename)        
+            else:
+                return bul
+        else:
+            # format mailpdf: envoie le pdf par mail a l'etud, et affiche le html
+            if nohtml:
+                htm = '' # speed up if html version not needed
+            else:
+                htm, junk, junk = self.make_formsemestre_bulletinetud(
+                    formsemestre_id, etudid, version=version,format='html')            
+            pdf, etud, filename = self.make_formsemestre_bulletinetud(
+                formsemestre_id, etudid, version=version,format='pdf')
+            if not etud['email']:
+                return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'
+                        % etud['nomprenom']) + htm
+            #
+            webmaster = getattr(self,'webmaster_email',"l'administrateur.")
+            dept = unescape_html(getattr(self,'DeptName', ''))
+            hea = """%(nomprenom)s,
+
+vous trouverez ci-joint votre relevé de notes au format PDF.
+
+Il s'agit d'un relevé provisoire n'ayant aucune valeur officielle
+et susceptible de modifications.
+Pour toute question sur ce document, contactez votre enseignant
+ou le directeur des études (ne pas répondre à ce message).
+
+Cordialement,
+la scolarité du département %(dept)s.
+
+PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
+
+""" % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
+            msg = MIMEMultipart()
+            subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
+            recipients = [ etud['email'] ] 
+            msg['Subject'] = subj
+            msg['From'] = getattr(self,'mail_bulletin_from_addr', 'noreply' )
+            msg['To'] = ' ,'.join(recipients)
+            msg['Bcc'] = 'viennet@iutv.univ-paris13.fr'
+            # Guarantees the message ends in a newline
+            msg.epilogue = ''
+            # Text
+            txt = MIMEText( hea, 'plain', SCO_ENCODING )
+            msg.attach(txt)
+            # Attach pdf
+            att = MIMEBase('application', 'pdf')
+            att.add_header('Content-Disposition', 'attachment', filename=filename)
+            att.set_payload( pdf )
+            Encoders.encode_base64(att)
+            msg.attach(att)
+            log('mail bulletin a %s' % msg['To'] )
+            self.sendEmail(msg)
+            return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
+                    % (etud['emaillink'])) + htm
+
+    security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
+    def make_formsemestre_bulletinetud(self, formsemestre_id, etudid,
+                                       version='long', # short, long, selectedevals
+                                       format='html'):        
         #
         if not version in ('short','long','selectedevals'):
             raise ValueError('invalid version code !')
@@ -2253,7 +2325,7 @@ class ZNotes(ObjectManager,
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
         # ---------------
         if format == 'html':
-            return '\n'.join(H)    
+            return '\n'.join(H), None, None
         elif format == 'pdf' or format == 'pdfpart':
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
             etud['nbabs'] = nbabs
@@ -2267,13 +2339,10 @@ class ZNotes(ObjectManager,
             pdfbul = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne)
-            if format == 'pdf':
-                dt = time.strftime( '%Y-%m-%d' )
-                filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
-                filename = unescape_html(filename).replace(' ','_').replace('&','')
-                return sendPDFFile(REQUEST, pdfbul, filename)        
-            else:
-                return pdfbul
+            dt = time.strftime( '%Y-%m-%d' )
+            filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
+            filename = unescape_html(filename).replace(' ','_').replace('&','')
+            return pdfbul, etud, filename
         else:
             raise ValueError('invalid parameter: format')
 
@@ -2307,6 +2376,21 @@ class ZNotes(ObjectManager,
         self.CachedNotesTable.store_bulletins_pdf(formsemestre_id,version,
                                                   (filename,pdfdoc))
         return sendPDFFile(REQUEST, pdfdoc, filename)
+
+    security.declareProtected(ScoView, 'formsemestre_bulletins_mailetuds')
+    def formsemestre_bulletins_mailetuds(self, formsemestre_id, REQUEST,
+                                         version='long'):
+        "envoi a chaque etudiant (inscrit et ayant un mail) son bulletin"
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        # Make each bulletin
+        nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
+        for etudid in nt.get_etudids():
+            self.do_formsemestre_bulletinetud(
+                formsemestre_id, etudid,
+                version=version,
+                format = 'mailpdf', nohtml=True )
+        #
+        return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
     
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option

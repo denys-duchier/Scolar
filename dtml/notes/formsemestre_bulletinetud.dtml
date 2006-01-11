@@ -30,6 +30,12 @@ Version complète</option>
 
 <a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=pdf&version='+version">">version papier</a> 
 
+<dtml-if email>
+<a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=mailpdf&version='+version">">mail à l'étudiant</a> 
+<dtml-else>
+(pas d'e-mail)
+</dtml-if>
+
 </form>
 
 </span>

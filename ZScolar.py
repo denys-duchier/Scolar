@@ -99,12 +99,13 @@ class ZScolar(ObjectManager,
         )
 
     # no permissions, only called from python
-    def __init__(self, id, title, db_cnx_string=None):
+    def __init__(self, id, title, db_cnx_string=None, mail_host='MailHost'):
 	"initialise a new instance of ZScolar"
         self.id = id
 	self.title = title
         self._db_cnx_string = db_cnx_string        
         self._cnx = None
+        self.mail_host = mail_host
         # --- add editable DTML documents:
 #         sco_header = self.defaultDocFile('sco_header',
 #                                         'Header scolarite',     
@@ -1332,6 +1333,22 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
             return self.students_import_csv(tf[2]['csvfile'], REQUEST=REQUEST)
+    
+    # sendEmail is not used through the web
+    security.declareProtected(ScoAdministrate, "sendEmail")
+    def sendEmail(self,msg):
+        # sends an email to the address using the mailhost, if there is one
+        if not self.mail_host:
+            return
+        # a failed notification shouldn't cause a Zope error on a site.
+        try:
+            mhost=getattr(self,self.mail_host)
+            mhost.send(msg.as_string())
+            log('sendEmail')
+        except:
+            pass
+
+                        
             
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option

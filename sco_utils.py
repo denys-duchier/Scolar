@@ -32,7 +32,9 @@ from VERSION import SCOVERSION
 import os
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
-# (attention: lié au codage Zope et aussi à celui de postgresql)
+# Attention: encodage lié au codage Zope et aussi à celui de postgresql
+#            et aussi a celui des fichiers sources Python (comme celui-ci).
+
 
 CSV_FIELDSEP = ';'
 CSV_LINESEP  = '\n'

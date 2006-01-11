@@ -63,6 +63,8 @@
 <li>Classeur PDF des bulletins: <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=short">version courte</a>,
     <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=selectedevals">version intermédiaire</a>, <a href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=long">version complete</a>
 </li>
+<li><a href="formsemestre_bulletins_mailetuds?formsemestre_id=<dtml-var "sem['formsemestre_id']">">Envoyer à chaque étudiant son bulletin par e-mail</a> (<em>cette opération est longue</em>)
+</li>
 </ul>
 
 
