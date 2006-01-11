@@ -1332,8 +1332,9 @@ class ZNotes(ObjectManager,
             gr_tp = [ x[2:] for x in glist if x[:2] == 'tp' ]
             gr_anglais = [ x[2:] for x in glist if x[:2] == 'ta' ]
             g = gr_td+gr_tp+gr_anglais
+            gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
             if len(g) > 1:
-                gr_title = 'groupes ' + ', '.join(g)
+                gr_title = 'groupes ' + ', '.join(g)                
             elif len(g) == 1:            
                 gr_title = 'groupe ' + g[0]
             else:
@@ -1341,6 +1342,7 @@ class ZNotes(ObjectManager,
             if 'tous' in glist:
                 getallstudents = True
                 gr_title = 'tous'
+                gr_title_filename = 'tous'
             else:
                 getallstudents = False
             NotesDB = self._notes_getall(evaluation_id)
@@ -1356,7 +1358,7 @@ class ZNotes(ObjectManager,
                 nmx = 20
             else:
                 nmx = E['note_max']
-            Th = ['', 'Nom', 'Prénom', 'Etat', 'Groupe', 'Note sur %d'%nmx,
+            Th = ['', 'Nom', 'Prénom', 'Groupe', 'Note sur %d'%nmx,
                   'Remarque']
             T = [] # list of lists, used to build HTML and CSV
             nb_notes = 0
@@ -1384,18 +1386,28 @@ class ZNotes(ObjectManager,
                 else:
                     explanation = ''
                     val = ''
-                T.append( [ etudid, ident['nom'].upper(), ident['prenom'].lower().capitalize(),
-                          inscr['etat'],
-                          inscr['groupetd']+'/'+inscr['groupetp']+'/'+inscr['groupeanglais'],
-                          val, explanation ] )
+                if inscr['etat'] == 'I': # si inscrit, indique groupe
+                    grc=inscr['groupetd']
+                    if inscr['groupetp']:
+                        grc += '/' + inscr['groupetp']
+                    if inscr['groupeanglais']:
+                        grc += '/' + inscr['groupeanglais']
+                else:
+                    if inscr['etat'] == 'D':
+                        grc = 'DEM' # attention: ce code est re-ecrit plus bas, ne pas le changer
+                    else:
+                        grc = inscr['etat']
+                T.append( [ etudid, ident['nom'].upper(),
+                            ident['prenom'].lower().capitalize(),
+                            grc, val, explanation ] )
             T.sort( lambda x,y: cmp(x[1:3],y[1:3]) ) # sort by nom, prenom
             # display
             if liste_format == 'csv':
                 CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in [Th]+T ] )
-                filename = 'notes_%s.csv' % evalname
+                filename = 'notes_%s_%s.csv' % (evalname,gr_title_filename)
                 return sendCSVFile(REQUEST,CSV, filename ) 
             elif liste_format == 'xls':
-                title = 'notes_%s' % evalname
+                title = 'notes_%s_%s' % (evalname, gr_title_filename)
                 xls = sco_excel.Excel_SimpleTable(
                     titles= Th,
                     lines = T,
@@ -1406,16 +1418,16 @@ class ZNotes(ObjectManager,
                 if T:
                     if anonymous_listing:
                         # ce mode bizarre a été demandé par GTR1 en 2005
-                        Th = [ '', Th[5] ]
+                        Th = [ '', Th[4] ]
                         # tri par note decroissante (anonymisation !)
                         def mcmp(x,y):                            
                             try:
-                                return cmp(float(y[5]), float(x[5]))
+                                return cmp(float(y[4]), float(x[4]))
                             except:
-                                return cmp(y[5], x[5])
+                                return cmp(y[4], x[4])
                         T.sort( mcmp )
                     else:
-                        Th = [ Th[1], Th[2], Th[5], Th[6] ]
+                        Th = [ Th[1], Th[2], Th[4], Th[5] ]
                     Th = [ '<th>' + '</th><th>'.join(Th) + '</th>' ]
                     Tb = []
                     demfmt = '<span class="etuddem">%s</span>'
@@ -1425,13 +1437,13 @@ class ZNotes(ObjectManager,
                     for t in T:
                         idx += 1
                         fmt='%s'
-                        if t[3] != 'I':
+                        if t[3] == 'DEM':
                             fmt = demfmt
-                            comment =  t[3]+' '+t[6]
-                        elif t[5][:3] == 'ABS':
+                            comment =  t[3]+' '+t[5]
+                        elif t[4][:3] == 'ABS':
                             fmt = absfmt
                         nomlink = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a>' % (M['formsemestre_id'],t[0],t[1])
-                        nom,prenom,note,comment = fmt%nomlink, fmt%t[2],fmt%t[5],t[6]
+                        nom,prenom,note,comment = fmt%nomlink, fmt%t[2],fmt%t[4],t[5]
                         if anonymous_listing:
                             Tb.append( '<tr class="%s"><td>%s</td><td class="colnote">%s</td></tr>' % (cssclass, t[0], note) )
                         else:
@@ -1530,9 +1542,11 @@ class ZNotes(ObjectManager,
         gr_tp = [ x[2:] for x in glist if x[:2] == 'tp' ]
         gr_anglais = [ x[2:] for x in glist if x[:2] == 'ta' ]
         gr_title = ' '.join(gr_td+gr_tp+gr_anglais)
+        gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
         if 'tous' in glist:
             getallstudents = True
             gr_title = 'tous'
+            gr_title_filename = 'tous'
         else:
             getallstudents = False
         etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
@@ -1604,12 +1618,12 @@ class ZNotes(ObjectManager,
                           val, explanation ] )
         if note_method == 'csv':
             CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in CSV ] )
-            filename = 'notes_%s.csv' % evalname
+            filename = 'notes_%s_%s.csv' % (evalname,gr_title_filename)
             return sendCSVFile(REQUEST,CSV, filename )
         elif note_method == 'xls':
-            title = 'notes_%s' % evalname
+            filename = 'notes_%s_%s.xls' % (evalname, gr_title_filename)
             xls = sco_excel.Excel_feuille_saisie( E, description, lines=CSV[6:] )
-            return sco_excel.sendExcelFile(REQUEST, xls, title+'.xls' )
+            return sco_excel.sendExcelFile(REQUEST, xls, filename )
         if okbefore:
             submitlabel = 'Entrer ces notes'
         else:        
