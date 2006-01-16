@@ -119,7 +119,7 @@ def essaipdf(REQUEST):
 
 
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
-                     stand_alone=True, filigranne=''):
+                     stand_alone=True, filigranne='', appreciations=[]):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
     Si stand_alone, génère un doc PDF complet et renvoie une string
@@ -148,7 +148,11 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                            style=TableStyle ) )
     objects.append( Paragraph(
         "%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust']), CellStyle ) )
-    # 
+    #
+    if appreciations:
+        objects.append( Paragraph('Appréciation : ' + '\n'.join(appreciations),
+                                  CellStyle) )
+    #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
         return objects

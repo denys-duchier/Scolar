@@ -29,7 +29,7 @@ CREATE TABLE etud_annotations (
     date timestamp without time zone DEFAULT now(),
     etudid character(32),
     author text,
-    "comment" text,
+    comment text,
     zope_authenticated_user text,
     zope_remote_addr text
 );

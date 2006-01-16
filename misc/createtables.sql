@@ -176,3 +176,15 @@ CREATE TABLE scolar_news (
 	news_text text, -- free text
 	
 );
+
+-- Appreciations sur bulletins
+CREATE TABLE notes_appreciations (
+    id integer DEFAULT nextval('serial'::text) NOT NULL,
+    date timestamp without time zone DEFAULT now(),
+    etudid text REFERENCES identite(etudid),
+    formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+    author text,
+    comment text,
+    zope_authenticated_user text,
+    zope_remote_addr text
+);

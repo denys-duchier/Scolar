@@ -2173,7 +2173,7 @@ class ZNotes(ObjectManager,
         if format != 'mailpdf':
             bul, etud, filename = self.make_formsemestre_bulletinetud(
                 formsemestre_id, etudid,
-                version=version,format=format)
+                version=version,format=format, REQUEST=REQUEST)
             if format == 'pdf':
                 return sendPDFFile(REQUEST, bul, filename)        
             else:
@@ -2184,9 +2184,11 @@ class ZNotes(ObjectManager,
                 htm = '' # speed up if html version not needed
             else:
                 htm, junk, junk = self.make_formsemestre_bulletinetud(
-                    formsemestre_id, etudid, version=version,format='html')            
+                    formsemestre_id, etudid, version=version,format='html',
+                    REQUEST=REQUEST)
             pdf, etud, filename = self.make_formsemestre_bulletinetud(
-                formsemestre_id, etudid, version=version,format='pdf')
+                formsemestre_id, etudid, version=version,format='pdf',
+                REQUEST=REQUEST)
             if not etud['email']:
                 return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'
                         % etud['nomprenom']) + htm
@@ -2232,10 +2234,12 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                     % (etud['emaillink'])) + htm
 
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
-    def make_formsemestre_bulletinetud(self, formsemestre_id, etudid,
-                                       version='long', # short, long, selectedevals
-                                       format='html'):        
+    def make_formsemestre_bulletinetud(
+        self, formsemestre_id, etudid,
+        version='long', # short, long, selectedevals
+        format='html', REQUEST=None):        
         #
+        authuser = REQUEST.AUTHENTICATED_USER
         if not version in ('short','long','selectedevals'):
             raise ValueError('invalid version code !')
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
@@ -2323,6 +2327,28 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         (pendant ce semestre).
         </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
+        # --- Appreciations
+        # le dir. des etud peut ajouter des appreciation,
+        # mais aussi le chef (perm. ScoEtudInscrit)
+        can_edit_app = ((authuser == sem['responsable_id'])
+                        or (authuser.has_permission(ScoEtudInscrit,self)))
+        cnx = self.GetDBConnexion()   
+        apprecs = scolars.appreciations_list(
+            cnx,
+            args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
+        H.append('<div class="bull_appreciations">')
+        if apprecs:
+            H.append('<p><b>Appréciations</b></p>')
+        for app in apprecs:
+            if can_edit_app:
+                mlink = '<a href="appreciation_add_form?id=%s">modifier</a> <a href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
+            else:
+                mlink = ''
+            H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
+                         % (app['date'], app['comment'], mlink ) )
+        if can_edit_app:
+            H.append('<p><a href="appreciation_add_form?etudid=%s&formsemestre_id=%s">Ajouter une appréciation</a></p>' % (etudid, formsemestre_id))
+        H.append('</div>')
         # ---------------
         if format == 'html':
             return '\n'.join(H), None, None
@@ -2338,7 +2364,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 filigranne = ''
             pdfbul = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
-                infos, stand_alone=stand_alone, filigranne=filigranne)
+                infos, stand_alone=stand_alone, filigranne=filigranne,
+                appreciations=[ x['comment'] for x in apprecs ] )
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
             filename = unescape_html(filename).replace(' ','_').replace('&','')
@@ -2362,7 +2389,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for etudid in nt.get_etudids():
             fragments += self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid, format='pdfpart',
-                version=version )
+                version=version, REQUEST=REQUEST )
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
@@ -2391,6 +2418,85 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 format = 'mailpdf', nohtml=True )
         #
         return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
+
+    security.declareProtected(ScoEnsView, 'appreciation_add_form')
+    def appreciation_add_form(self, etudid=None, formsemestre_id=None,
+                              id=None, # si id, edit
+                              suppress=False, # si true, supress id
+                              REQUEST=None ):
+        "form ajout ou edition d'une appreciation"
+        cnx = self.GetDBConnexion()
+        authuser = REQUEST.AUTHENTICATED_USER
+        if id: # edit mode
+            app = scolars.appreciations_list( cnx, args={'id':id} )[0]
+            formsemestre_id = app['formsemestre_id']
+            etudid = app['etudid']
+        if REQUEST.form.has_key('edit'):
+            edit = int(REQUEST.form['edit'])
+        elif id:
+            edit = 1
+        else:
+            edit = 0
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        # check custom access permission
+        can_edit_app = ((authuser == sem['responsable_id'])
+                        or (authuser.has_permission(ScoEtudInscrit,self)))
+        if not can_edit_app:
+            raise AccessDenied("vous n'avez pas le droit d'ajouter une appreciation")
+        #
+        bull_url = 'formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s' % (formsemestre_id,etudid)
+        if suppress:
+            scolars.appreciations_delete( cnx, id )
+            logdb(REQUEST, cnx, method='appreciation_suppress',
+                  etudid=etudid, msg='')
+            return REQUEST.RESPONSE.redirect( bull_url )
+        #
+        etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+        if id:
+            a='Edition'
+        else:
+            a='Ajout'
+        H = [self.sco_header(self,REQUEST) + '<h2>%s d\'une appréciation sur %s</h2>' % (a,etud['nomprenom']) ]
+        F = self.sco_footer(self,REQUEST)
+        descr = [
+            ('edit', {'input_type' : 'hidden', 'default' : edit }),
+            ('etudid', {'input_type' : 'hidden' }),
+            ('formsemestre_id', {'input_type' : 'hidden' }),
+            ('id', {'input_type' : 'hidden'}),
+            ('comment', {'title' :'','input_type' : 'textarea', 'rows' : 4, 'cols' : 60})
+            ]
+        if id:
+            initvalues = { 'etudid' : etudid,
+                           'formsemestre_id':formsemestre_id,
+                           'comment' : app['comment'] }
+        else:
+            initvalues = {}
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                                initvalues=initvalues,
+                                cancelbutton = 'Annuler',
+                                submitlabel = 'Ajouter appréciation' )
+        if  tf[0] == 0:
+            return '\n'.join(H) + '\n' + tf[1] + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( bull_url )
+        else:
+            args={ 'etudid' : etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'author' : str(authuser),
+                   'comment' : tf[2]['comment'],
+                   'zope_authenticated_user' : str(authuser),
+                   'zope_remote_addr' : REQUEST.REMOTE_ADDR}
+            if edit:
+                args['id'] = id
+                scolars.appreciations_edit( cnx, args )
+            else: # nouvelle
+                scolars.appreciations_create( cnx, args, has_uniq_values=False)
+            # log
+            logdb(REQUEST, cnx, method='appreciation_add',
+                  etudid=etudid, msg=tf[2]['comment'])
+            # ennuyeux mais necessaire (pour le PDF seulement)
+            self.CachedNotesTable.inval_cache(pdfonly=True)
+            return REQUEST.RESPONSE.redirect( bull_url )
     
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
@@ -2602,17 +2708,19 @@ class CacheNotesTable:
             log('caching formsemestre_id=%s' % formsemestre_id ) 
             return nt
     
-    def inval_cache(self, formsemestre_id=None):
+    def inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
         log('inval_cache, formsemestre_id=%s' % formsemestre_id)
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
         if formsemestre_id is None:
-            self.cache = {}
+            if not pdfonly:
+                self.cache = {}
             self.pdfcache = {}
         else:
-            if self.cache.has_key(formsemestre_id):
-                del self.cache[formsemestre_id]
+            if not pdfonly:
+                if self.cache.has_key(formsemestre_id):
+                    del self.cache[formsemestre_id]
             if self.pdfcache.has_key(formsemestre_id):
                 del self.pdfcache[formsemestre_id]
 

@@ -256,3 +256,22 @@ etud_annotations_create = _etud_annotationsEditor.create
 etud_annotations_delete = _etud_annotationsEditor.delete
 etud_annotations_list   = _etud_annotationsEditor.list
 etud_annotations_edit   = _etud_annotationsEditor.edit
+
+# -------- APPRECIATIONS (sur bulletins) -------------------
+# Les appreciations sont dans la table postgres notes_appreciations
+_appreciationsEditor = EditableTable(
+    'notes_appreciations',
+    'id',
+    ('id', 'date', 'etudid', 'formsemestre_id', 'author', 'comment',
+     'zope_authenticated_user', 'zope_remote_addr' ),
+    sortkey = 'date desc',
+    convert_null_outputs_to_empty=True,
+    output_formators = { 'comment' : safehtml.HTML2SafeHTML,
+                         'date' : DateISOtoDMY }
+    )
+
+appreciations_create = _appreciationsEditor.create
+appreciations_delete = _appreciationsEditor.delete
+appreciations_list   = _appreciationsEditor.list
+appreciations_edit   = _appreciationsEditor.edit
+

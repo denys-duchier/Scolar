@@ -3,7 +3,7 @@
 
 # DEFINITION DES PERMISSIONS (ET NON PAS DES ROLES !)
 
-# prefix all permissions by "Sco" to group than in Zope management tab
+# prefix all permissions by "Sco" to group them in Zope management tab
 ScoAdministrate = "Sco Change Formation"
 ScoImplement    = "Sco Implement Formation"
 
