@@ -138,11 +138,11 @@ class ZNotes(ObjectManager,
     #
     # --------------------------------------------------------------------
     # used to view content of the object
-    security.declareProtected('View', 'index_html')
+    security.declareProtected('ScoView', 'index_html')
     index_html = DTMLFile('dtml/notes/index_html', globals())
 
     # XXX essai
-    security.declareProtected('View', 'essai')
+    security.declareProtected('ScoView', 'essai')
     def gloups(self, REQUEST): 
         "essai gloups"
         #return 'gloups gloups' + self.essai()

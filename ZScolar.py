@@ -181,22 +181,22 @@ class ZScolar(ObjectManager,
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
 
-    security.declareProtected('View', 'ScoURL')
+    security.declareProtected('ScoView', 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
         return self.absolute_url()
 
-    security.declareProtected('View', 'StyleURL')
+    security.declareProtected('ScoView', 'StyleURL')
     def StyleURL(self):
         "base URL for CSS style sheet"
         return self.gtrintranetstyle.absolute_url()
 
 
-#     security.declareProtected('View', 'sco_header')
+#     security.declareProtected('ScoView', 'sco_header')
 #     sco_header = DTMLFile('dtml/sco_header', globals())
-#     security.declareProtected('View', 'sco_footer')
+#     security.declareProtected('ScoView', 'sco_footer')
 #     sco_footer = DTMLFile('dtml/sco_footer', globals())
-    security.declareProtected('View', 'menus_bandeau')
+    security.declareProtected('ScoView', 'menus_bandeau')
     menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
 
     # --------------------------------------------------------------------
@@ -244,9 +244,9 @@ class ZScolar(ObjectManager,
     #
     # --------------------------------------------------------------------
     # used to view content of the object
-    #security.declareProtected('View', 'index_html')
+    #security.declareProtected('ScoView', 'index_html')
     #index_html = DTMLFile('dtml/index_html', globals())
-    security.declareProtected('View', 'about')
+    security.declareProtected('ScoView', 'about')
     def about(self, REQUEST):
         "version info"
         H = [ """<h2>Système de gestion scolarité</h2>
@@ -334,13 +334,13 @@ class ZScolar(ObjectManager,
                        {'etudid':etudid})
         return cursor.dictfetchall()
     #
-    security.declareProtected('View', 'getZopeUsers')
+    security.declareProtected('ScoView', 'getZopeUsers')
     def getZopeUsers(self):
         "liste des utilisateurs zope"
         return self.acl_users.getUserNames()
 
     # ----------  PAGE ACCUEIL (listes) --------------
-    security.declareProtected('View', 'index_html')
+    security.declareProtected('ScoView', 'index_html')
     def index_html(self,REQUEST=None):
         "page accueil sco"
         H = []
