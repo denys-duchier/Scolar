@@ -10,8 +10,10 @@
 <dtml-in "do_module_list( args={ 'formation_id' : formation_id } )">
  <dtml-let Mod="_['sequence-item']">
  <li class="notes_module_list"> <dtml-var Mod> 
+  <dtml-if "AUTHENTICATED_USER.has_permission('Sco Change Formation', this())">
       <a href="module_edit?module_id=<dtml-var "Mod['module_id']">">modifier</a> 
       <a href="module_delete?module_id=<dtml-var "Mod['module_id']">">supprimer</a> 
+  </dtml-if>
  </li>
  </dtml-let>
 </dtml-in>

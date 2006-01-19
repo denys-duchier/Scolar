@@ -2091,7 +2091,7 @@ class ZNotes(ObjectManager,
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
                     l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0])) # moyenne du module
-        F.append(l)
+        F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
         # Generation table au format demandé
         if format == 'html':
             # Table format HTML
@@ -2140,8 +2140,10 @@ class ZNotes(ObjectManager,
                         cssclass = 'recap_col_ue'
                         # grise si moy UE < barre
                         try:
-                            if float(nsn[i]) < 8:
+                            if float(nsn[i]) < 8.:
                                 cssclass = 'recap_col_ue_inf'
+                            elif float(nsn[i]) >= 10.:
+                                cssclass = 'recap_col_ue_val'
                         except:
                             pass
                     else:

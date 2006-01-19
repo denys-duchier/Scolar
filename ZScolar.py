@@ -307,9 +307,6 @@ class ZScolar(ObjectManager,
             for gr in gr_td:
                 tmpl = '<option value="%s!%s!!">%s %s</option>'
                 H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
-            for gr in gr_td:
-                tmpl = '<option value="%s!%s!!">%s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
             for gr in gr_anglais:
                 tmpl = '<option value="%s!!!%s">%s %s</option>'
                 H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
