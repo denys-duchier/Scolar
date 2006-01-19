@@ -4,7 +4,12 @@
 
 <dtml-unless _read_only>
 
-<dtml-if "REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())">
+<dtml-comment>Si on voulait autoriser le dir des etud a modifier le semestre,
+ il faudrait tester  or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))
+ et aussi modifer les permissions sur formsemestre_editwithmodules
+</dtml-comment>
+
+<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this()))">
 <p>
 <a href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
        Modifier le semestre "<dtml-var "sem['titre']">"</a>

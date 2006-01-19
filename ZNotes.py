@@ -582,8 +582,13 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_delete')
     def do_moduleimpl_delete(self, oid):
-        "delete moduleimpl"
+        "delete moduleimpl (desinscrit tous ls etudiants)"
         cnx = self.GetDBConnexion()
+        # --- desinscription des etudiants
+        cursor = cnx.cursor()
+        req = "DELETE FROM notes_moduleimpl_inscription WHERE moduleimpl_id=%(moduleimpl_id)s"
+        cursor.execute( req, { 'moduleimpl_id' : oid } )
+        # --- destruction du moduleimpl
         self._moduleimplEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
 
