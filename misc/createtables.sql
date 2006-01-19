@@ -164,7 +164,9 @@ CREATE TABLE scolar_events (
 	etudid text,
 	event_date timestamp default now(),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	event_type text -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 'DIPLOME', 'AUT_RED', 'EXCLUS' 
+        ue_id text REFERENCES notes_ue(ue_id),
+	event_type text -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 
+                        -- 'AUT_RED', 'EXCLUS', 'VALID_UE', 'VALID_SEM'
 );
 
 ---------------------------------------------------------------------

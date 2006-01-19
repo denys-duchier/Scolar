@@ -27,7 +27,7 @@ L'image sera automagiquement réduite pour obtenir une hauteur de 90 pixels.
 <dtml-else>
  <dtml-call "REQUEST.set( 'r', doChangePhoto(tf[2]['etudid'],  tf[2]['photofile'], REQUEST, suppress=tf[2]['suppress']))">
       <dtml-if "r[0] != 0">
-        <dtml-call "RESPONSE.redirect( URL2 + '/ficheEtud?etudid=' + etudid)">
+        <dtml-call "RESPONSE.redirect( ScoURL() + '/ficheEtud?etudid=' + etudid)">
       <dtml-else>
          <p>Erreur: <dtml-var "r[1]">
       </dtml-if r>

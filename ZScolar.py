@@ -58,6 +58,7 @@ from scolars import format_nom, format_prenom, format_sexe, format_lycee
 from scolars import format_telephone, format_pays
 from TrivialFormulator import TrivialFormulator, TF
 import sco_excel
+import imageresize
 
 import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
@@ -1037,6 +1038,7 @@ class ZScolar(ObjectManager,
             small_img = imageresize.ImageScaleH(photofile,H=90)
             self.Fotos.manage_addProduct['OFSP'].manage_addImage(photo_id, small_img, etudid )
             # Update database
+            cnx = self.GetDBConnexion() 
             scolars.identite_edit(cnx,args={'etudid':etudid,'foto':photo_id})
             logdb(REQUEST,cnx,method='changePhoto',msg=photo_id,etudid=etudid)
         elif suppress:
