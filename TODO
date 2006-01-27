@@ -2,7 +2,16 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- passage en masse d'un semestre au suivant.
+- bulletin: faire apparaitre:
+       soit semestre validé soit la liste des UE validées.
+
+- evaluations sans date: checkbox (?), vérifier qu'on peut entrer des notes
+
+- moy gen et moy UE sur fiche etud ?
 - listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
+
+- export excel des valeurs numeriques.
 
 - un bout de JS sur notes_eval_selectetuds pour empecher de valider 
   s'il n'y a pas un groupe selectionné.
@@ -20,8 +29,6 @@
 - liste des absents à une eval et croisement avec BD absences
 
 - absences par demi-journées sur EtatAbsencesDate
-
-- mail des bulletins aux etudiants
 
 - formsemestre_status: voyants tricolores ?
                        lignes tableau (rows) en couleur ?

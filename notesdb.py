@@ -243,6 +243,8 @@ def dictfilter( d, fields ):
 
 def DateDMYtoISO(dmy):
     "convert date string from french format to ISO"
+    if not dmy:
+        return None
     t = dmy.split('/')
     if len(t) != 3:
         raise ScoValueError('Format de date (j/m/a) invalide: "%s"' % str(dmy))

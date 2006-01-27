@@ -313,7 +313,7 @@ class ZScoUsers(ObjectManager,
         H.append('<h3>%d utilisateurs</h3>' % len(r))
         H.append('<table><tr><th>Login</th><th>Nom</th><th>Prénom</th><th>Roles</th><th>Modif. passwd</th><th>email</th></tr>')
         for u in r:
-            H.append('<tr><td>%(user_name)s</td><td>%(nom)s</td><td>%(prenom)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td><td>%(email)s</td></tr>' % u)
+            H.append('<tr><td><a href="form_change_password?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td><td>%(email)s</td></tr>' % u)
         H.append('</table>')
         return '\n'.join(H) + F
 
@@ -324,9 +324,9 @@ class ZScoUsers(ObjectManager,
 # Zope Product Administration
 #
 # --------------------------------------------------------------------
-def manage_addZAbsences(self, id= 'id_ZScousers', title='The Title for ZScoUsers Object', REQUEST=None):
+def manage_addZScoUsers(self, id= 'id_ZScousers', title='The Title for ZScoUsers Object', REQUEST=None):
    "Add a ZScoUsers instance to a folder."
-   self._setObject(id, ZAbsences(id, title))
+   self._setObject(id, ZScoUsers(id, title))
    if REQUEST is not None:
         return self.manage_main(self, REQUEST)
         #return self.manage_editForm(self, REQUEST)

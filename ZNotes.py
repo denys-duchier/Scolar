@@ -897,7 +897,10 @@ class ZNotes(ObjectManager,
         #
         cnx = self.GetDBConnexion()
         r = self._evaluationEditor.create(cnx, args)
-        self.CachedNotesTable.inval_cache()
+        # inval cache pour ce semestre
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
+        
+        self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
         return r
 
     security.declareProtected(ScoEnsView, 'do_evaluation_delete')
@@ -912,7 +915,9 @@ class ZNotes(ObjectManager,
         self._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)
         cnx = self.GetDBConnexion()
         self._evaluationEditor.delete(cnx, evaluation_id)
-        self.CachedNotesTable.inval_cache()
+        # inval cache pour ce semestre
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
+        self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
 
     security.declareProtected(ScoView, 'do_evaluation_list')
     def do_evaluation_list(self, args ):
@@ -947,7 +952,9 @@ class ZNotes(ObjectManager,
         self._evaluation_check_write_access(REQUEST, moduleimpl_id=moduleimpl_id)
         cnx = self.GetDBConnexion()
         self._evaluationEditor.edit(cnx, args )
-        self.CachedNotesTable.inval_cache()
+        # inval cache pour ce semestre
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
+        self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
 
     security.declareProtected(ScoEnsView, 'evaluation_edit')
     def evaluation_edit(self, evaluation_id, REQUEST ):
@@ -1941,6 +1948,9 @@ class ZNotes(ObjectManager,
                             nb_suppress += 1
                         nb_changed += 1                    
         except:
+            log('*** exception in _notes_add')
+            # inval cache
+            self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
             cnx.rollback() # abort
             raise # re-raise exception
         cnx.commit()
@@ -2422,7 +2432,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid,
                 version=version,
-                format = 'mailpdf', nohtml=True )
+                format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
         #
         return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
 
@@ -2707,7 +2717,7 @@ class CacheNotesTable:
     
     def get_NotesTable(self, znote, formsemestre_id):
         if self.cache.has_key(formsemestre_id):
-            #log('cache hit %s' % formsemestre_id)
+            log('cache hit %s' % formsemestre_id)
             return self.cache[formsemestre_id]
         else:
             nt = NotesTable( znote, formsemestre_id)
@@ -2717,7 +2727,7 @@ class CacheNotesTable:
     
     def inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        log('inval_cache, formsemestre_id=%s' % formsemestre_id)
+        log('inval_cache, formsemestre_id=%s pdfonly=%s' % (formsemestre_id,pdfonly))
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
         if formsemestre_id is None:
