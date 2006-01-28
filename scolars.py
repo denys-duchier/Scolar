@@ -33,6 +33,7 @@ import pdb,os,sys
 from notesdb import *
 from TrivialFormulator import TrivialFormulator
 import safehtml
+from scolog import logdb
 
 # XXXXXXXXX HACK: zope 2.7.7 bug turaround ?
 import locale
@@ -223,7 +224,7 @@ _scolar_eventsEditor = EditableTable(
     'scolar_events',
     'event_id',
     ( 'event_id','etudid','event_date',
-      'formsemestre_id', 'event_type' ),
+      'formsemestre_id', 'ue_id', 'event_type' ),
     sortkey = 'event_date',
     convert_null_outputs_to_empty=True,
     output_formators = { 'event_date' : DateISOtoDMY },
@@ -238,6 +239,92 @@ scolar_events_edit   = _scolar_eventsEditor.edit
 def scolar_events_create( cnx, args ):
     # several "events" may share the same values
     _scolar_eventsEditor.create( cnx, args, has_uniq_values=False )
+
+def scolar_get_validated( cnx, etudid, formsemestre_id ):
+    """None ou event si semestre valide, echec, liste de ue_id valides."""
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'event_type' : 'VALID_SEM' })
+    if events:
+        evt_valid_sem = events[0]
+    else:
+        evt_valid_sem = None
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'event_type' : 'ECHEC_SEM' })
+    if events:
+        evt_echec_sem = events[0]
+    else:
+        evt_echec_sem = None
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'event_type' : 'VALID_UE' })
+    #uelist = [ evt['ue_id'] for evt in events ]
+    return evt_valid_sem, evt_echec_sem, events
+
+def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
+                         event_date=None, REQUEST=None ):
+    """Si valid==True, valide ce semestre, sinon echec"""
+    logdb(REQUEST,cnx,method='valid_sem (valid=%s)'%valid, etudid=etudid)
+    log('scolar_validate_sem: etudid=%s formsemestre_id=%s valid=%s'
+        % (etudid, formsemestre_id, valid))
+    if valid:
+        code = 'VALID_SEM'
+    else:
+        code = 'ECHEC_SEM'
+    # verifie si deja events et les supprime
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'event_type' : 'VALID_SEM' })
+    for event in events:
+        log('scolar_validate_sem: deleting previous VALID_SEM')
+        scolar_events_delete(cnx, event['event_id'])
+
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'formsemestre_id':formsemestre_id,
+                   'event_type' : 'ECHEC_SEM' })
+    for event in events:
+        log('scolar_validate_sem: deleting previous ECHEC_SEM')
+        scolar_events_delete(cnx, event['event_id'])
+    
+    # nouvel event
+    scolar_events_create( cnx, args = {
+        'etudid' : etudid,
+        'event_date' : event_date,
+        'formsemestre_id' : formsemestre_id,
+        'event_type' : code } )
+
+def scolar_validate_ues( cnx, etudid, formsemestre_id,
+                         ue_ids=[],
+                         event_date=None, REQUEST=None,
+                         suppress_previously_validated=True ):
+    """Valide ces UE (attention: supprime les UE deja validees !)"""
+    logdb(REQUEST,cnx,method='valid_ue', etudid=etudid)
+    log('scolar_validate_ues: etudid=%s formsemestre_id=%s ue_ids=%s'
+        % (etudid, formsemestre_id, str(ue_ids)))
+    # verifie si deja events et les supprime
+    if suppress_previously_validated:
+        events = scolar_events_list(
+            cnx, args={'etudid':etudid, 
+                       'formsemestre_id':formsemestre_id,
+                       'event_type' : 'VALID_UE' })
+        for event in events:
+            log('scolar_validate_ues: deleting previous VALID_UE (%s)' % event['ue_id'])
+            scolar_events_delete(cnx, event['event_id'])
+    #
+    for ue_id in ue_ids:
+        scolar_events_create( cnx, args = {
+            'etudid' : etudid,
+            'event_date' : event_date,
+            'formsemestre_id' : formsemestre_id,
+            'ue_id' : ue_id,
+            'event_type' : 'VALID_UE' } )
+
 
 # --------
 _etud_annotationsEditor = EditableTable(

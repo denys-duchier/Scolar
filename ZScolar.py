@@ -727,7 +727,7 @@ class ZScolar(ObjectManager,
                     <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
                     <li><a href="formRedouble?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Redoublement</a></li>
                     <li><a href="formPassage?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Passage dans le semestre suivant</a></li>
-                    <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Attribution du Dipl&ocirc;me</a></li>
+                    <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire ailleurs</a>
                     </ul></ul>
                     """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )                    
@@ -855,10 +855,17 @@ class ZScolar(ObjectManager,
             etat = 'inscrit%s en %s' % (ne,sem['titre'])
         elif lastev['event_type'] == 'DEMISSION':
             etat = '<span class="boldredmsg">démission le %s</span>' % lastev['event_date']
-        elif lastev['event_type'] == 'DIPLOME':
+        elif lastev['event_type'] == 'VALID_SEM':
             sem = self.Notes.do_formsemestre_list(
                 {'formsemestre_id' : lastev['formsemestre_id']} )[0]
             etat = 'validé  %s (le %s)' % (sem['titre'],lastev['event_date'])
+        elif lastev['event_type'] == 'VALID_UE':
+            formsemestre_id = lastev['formsemestre_id']
+            etat = self.Notes.etud_descr_situation_semestre(etudid, formsemestre_id, ne=ne)
+        elif lastev['event_type'] == 'ECHEC_SEM':
+            sem = self.Notes.do_formsemestre_list(
+                {'formsemestre_id' : lastev['formsemestre_id']} )[0]
+            etat = 'échec en %s le %s' % (sem['titre'],lastev['event_date'])
         elif lastev['event_type'] == 'AUT_RED':
             sem = self.Notes.do_formsemestre_list(
                 {'formsemestre_id' : lastev['formsemestre_id']} )[0]
@@ -866,7 +873,7 @@ class ZScolar(ObjectManager,
         elif lastev['event_type'] == 'EXCLUS':
             etat = 'exclu%s le %s' % (ne,lastev['event_date'])
         else:
-            etat = 'code évenement inconnu (*ouch*) !'
+            etat = 'code évenement inconnu (%s) !' % lastev['event_type']
         #
         return ('%s %s' % (etat, date_entree)), parcours
 
@@ -1100,9 +1107,9 @@ class ZScolar(ObjectManager,
         #
         header = self.sco_header(
             self,REQUEST,
-            page_title='Attribution du diplôme à  %(prenom)s %(nom)s (du semestre %(semtitre)s)'%etud)
-        H = [ '<h2><font color="#FF0000">Attribution du diplôme à</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
-        H.append("""<form action="doDiplomeEtudiant" method="GET">
+            page_title='Validation du semestre %(semtitre)s pour %(prenom)s %(nom)s'%etud)
+        H = [ '<h2><font color="#FF0000">Validation du semestre %(semtitre)s</font> pour %(prenom)s %(nom)s</h2><p>' % etud ]
+        H.append("""<h1>NE PAS UTILISER: EN COURS DE DEV.</h1><form action="doDiplomeEtudiant" method="GET">
 <b>Date de la délivrance (J/M/AAAA):&nbsp;</b><input type="text" name="event_date" width=20 value="%(nowdmy)s">
 <input type="hidden" name="etudid" value="%(etudid)s">
 <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s">
@@ -1114,7 +1121,7 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoEtudInscrit, "doDiplomeEtudiant")
     def doDiplomeEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
-        "attribution du diplome"
+        "attribution du diplome" # XXX A REVOIR
         cnx = self.GetDBConnexion()
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]

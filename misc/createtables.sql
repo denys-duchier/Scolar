@@ -158,7 +158,10 @@ CREATE TABLE notes_notes_log (
 --       DIPLOME     en fin semestre, attribution du diplome correspondant
 --                          (ou plutot, validation du semestre)
 --       AUT_RED     en fin semestre, autorise a redoubler ce semestre
---       EXCL        exclus (== non autorise a redoubler)
+--       EXCLUS      exclus (== non autorise a redoubler)
+--       VALID_SEM   obtention semestre après jury terminal
+--       VALID_UE    obtention UE après jury terminal
+--       ECHEC_SEM   echec a ce semestre
 CREATE TABLE scolar_events (
 	event_id     text default notes_newid('EVT') PRIMARY KEY,
 	etudid text,
@@ -167,6 +170,7 @@ CREATE TABLE scolar_events (
         ue_id text REFERENCES notes_ue(ue_id),
 	event_type text -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 
                         -- 'AUT_RED', 'EXCLUS', 'VALID_UE', 'VALID_SEM'
+                        -- 'ECHEC_SEM'
 );
 
 ---------------------------------------------------------------------

@@ -19,6 +19,15 @@
 </dtml-if isFile>
 <dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat)">
 <dtml-if "not isFile">
+<p>
+ <a href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
+</p>
+<dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
+<p>
+ <a href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisisions du jury</a>
+</p>
+</dtml-if permission>
+
 <dtml-var sco_footer>
 </dtml-if isFile>
 </dtml-let isFile>

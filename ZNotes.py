@@ -27,7 +27,7 @@
 
 """Interface Zope <-> Notes
 """
-import urllib, time
+import urllib, time, datetime
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -70,6 +70,10 @@ NOTES_MIN = 0.       # valeur minimale admise pour une note
 NOTES_MAX = 100.
 NOTES_NEUTRALISE=-1000. # notes non prises en comptes dans moyennes
 NOTES_SUPPRESS=-1001.   # note a supprimer
+
+NOTES_BARRE_GEN = 10. # barre sur moyenne generale
+NOTES_BARRE_UE = 8.   # barre sur UE
+NOTES_BARRE_VALID_UE = 10. # seuil pour valider UE
 
 # ---------------
 
@@ -2140,7 +2144,7 @@ class ZNotes(ObjectManager,
                 # grise si moyenne generale < barre
                 cssclass = 'recap_col_moy'
                 try:
-                    if float(nsn[3]) < 10:
+                    if float(nsn[3]) < NOTES_BARRE_GEN:
                         cssclass = 'recap_col_moy_inf'
                 except:
                     pass
@@ -2150,9 +2154,9 @@ class ZNotes(ObjectManager,
                         cssclass = 'recap_col_ue'
                         # grise si moy UE < barre
                         try:
-                            if float(nsn[i]) < 8.:
+                            if float(nsn[i]) < NOTES_BARRE_UE:
                                 cssclass = 'recap_col_ue_inf'
-                            elif float(nsn[i]) >= 10.:
+                            elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:
                                 cssclass = 'recap_col_ue_val'
                         except:
                             pass
@@ -2263,7 +2267,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
         ues = nt.get_ues()
         modimpls = nt.get_modimpls()
-        nbetuds = len(nt.rangs)        
+        nbetuds = len(nt.rangs)
         # Genere le HTML H et aussi une table P pour le PDF
         H = [ '<table class="notes_bulletin">' ]
         P = []
@@ -2296,8 +2300,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             ueline(tabline)
             H.append('<tr class="notes_bulletin_row_ue">')
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
-            for modimpl in modimpls:
-                if modimpl['module']['ue_id'] == ue['ue_id']:
+            # Liste les modules de l'UE 
+            ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
+            for modimpl in ue_modimpls:
                     tabline += 1
                     H.append('<tr class="notes_bulletin_row_mod">')
                     # --- module avec moy. dans ce module et coef du module
@@ -2344,6 +2349,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         (pendant ce semestre).
         </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
+        # --- Decision Jury
+        situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
+        H.append( """<p class="bull_situation">%s</p>""" % situation )
         # --- Appreciations
         # le dir. des etud peut ajouter des appreciation,
         # mais aussi le chef (perm. ScoEtudInscrit)
@@ -2514,7 +2522,418 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             # ennuyeux mais necessaire (pour le PDF seulement)
             self.CachedNotesTable.inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
+
+    # -------- Events
+    security.declareProtected(ScoEnsView, 'appreciation_add_form')
+    def etud_descr_situation_semestre(self, etudid, formsemestre_id, ne='' ):
+        """chaine de caractères decrivant la situation de l'étudiant
+        dans ce semestre"""
+        cnx = self.GetDBConnexion()
+        # semestre et UE validés ?
+        evt_valid_sem, evt_echec_sem, ue_events = scolars.scolar_get_validated(
+            cnx, etudid, formsemestre_id )
+        # demission/inscription ?
+        events = scolars.scolar_events_list(
+            cnx, args={'etudid':etudid, 'formsemestre_id':formsemestre_id} )
+        date_inscr = None
+        date_dem = None
+        date_echec = None
+        for event in events:
+            event_type = event['event_type']
+            if event_type == 'INSCRIPTION':
+                assert date_inscr is None
+                date_inscr = event['event_date']
+            elif event_type == 'DEMISSION':
+                assert date_dem == None
+                date_dem = event['event_date']
+            elif event_type == 'ECHEC_SEM':
+                date_echec = event['event_date']
+        if not date_inscr:
+            inscr = 'Pas inscrit' + ne
+        else:
+            inscr = 'Inscrit%s le %s' % (ne, date_inscr)
+        if date_dem:
+            return inscr + '. Démission le %s.' % date_dem
+        if evt_valid_sem:
+            return inscr + ', validé le %s.' % evt_valid_sem['event_date']
+        if date_echec:
+            inscr += ', échec le %s.' % date_echec
+            # indique UE validées
+            if ue_events:
+                uelist = []
+                for ue_id in [ evt['ue_id'] for evt in ue_events ]:
+                    ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+                    uelist.append(ue)
+                uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
+                acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
+                inscr += ' UE validées: ' + acros + '. '
+            return inscr
+        else:
+            # ni echec ni valid: en cours ?
+            return inscr + ' (en cours).'
     
+
+    # --- FORMULAIRE POUR VALIDATION DES UE ET SEMESTRES
+    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_form')
+    def formsemestre_validation_form(self, formsemestre_id, etudid=None, REQUEST=None):
+        """formulaire valisation semestre et UE
+        Si etudid, traite un seul étudiant !
+        """        
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
+        ues = nt.get_ues()
+        T = nt.get_table_moyennes_triees()
+        # Traite toute la promo ou un seul étudiant ?
+        if REQUEST.form.has_key('etudid'):
+            etudid = REQUEST.form['etudid']
+        if etudid:
+            # restreint T a cet étudiant (validation individuelle)
+            for t in T:
+                if t[-1] == etudid:
+                    ok = 1
+                    break
+            if not ok:
+                raise ScoValueError('etudid invalide (%s)' % etudid)
+            T = [t]
+            # XXX OK, la suite est inachevee (modif titre, pris een compte de l'etat
+            # XXX courant de l'etudiant (sem et ue déjà validées) pour initialiser le form.            
+        # ------- Validations au dessus des barres
+        sem_should_valid = {} # etudid : True|False
+        ue_should_valid = {}  # ue_id : { etudid : True|False }
+        for ue in ues:
+            ue_should_valid[ue['ue_id']] = {}
+        for t in T:
+            etudid = t[-1]            
+            # premiere passe sur les UE pour verif barres:
+            barres_ue_ok = True
+            iue = 0
+            for ue in ues:
+                iue += 1
+                try:
+                    if (float(t[iue]) < NOTES_BARRE_UE):
+                        barres_ue_ok = False
+                except:
+                    barres_ue_ok = False # une UE sans note
+            # valide semestre
+            try:
+                if (float(t[0]) >= NOTES_BARRE_GEN) and barres_ue_ok:
+                    sem_should_valid[etudid] = True
+                else:
+                    sem_should_valid[etudid] = False
+            except:
+                sem_should_valid[etudid] = False # manque notes
+            # valide les UE
+            iue = 0
+            for ue in ues:
+                iue += 1
+                try:
+                    if (float(t[iue]) < NOTES_BARRE_VALID_UE) and not sem_should_valid[etudid]:
+                        ue_should_valid[ue['ue_id']][etudid] = False
+                    else:
+                        ue_should_valid[ue['ue_id']][etudid] = True                    
+                except:
+                    ue_should_valid[ue['ue_id']][etudid] = False
+            # et s'il est démissionnaire, il n'a rien
+            if nt.get_etud_etat(etudid) == 'D':
+                sem_should_valid[etudid] = False
+                for ue in ues:
+                    ue_should_valid[ue['ue_id']][etudid] = False
+        
+        # ------- Traitement des données formulaire
+        date_jury = REQUEST.form.get('date_jury','')
+        msg = ''
+        semvalid = {}
+        uevalid = {} # ue_id : { etudid : True|False }
+        uevalid_byetud = {} # etudid : [ ue_id, ... ]
+        for ue in ues:
+            uevalid[ue['ue_id']] = {}
+        if REQUEST.form.get('tf-submitted',False):
+            # recupere les etudiants du form
+            for etudid in [t[-1] for t in T]:
+                if sem_should_valid[etudid]:
+                    semvalid[etudid] = 1 # happily ignore form
+                else:
+                    v = REQUEST.form.get('sem_%s'%etudid,None)
+                    if v != None:
+                        semvalid[etudid] = int(v)
+                    else:
+                        semvalid[etudid] = 0
+                # recupere chaque UE validée
+                for ue in ues:
+                    if ue_should_valid[ue['ue_id']][etudid]:
+                        uevalid[ue['ue_id']][etudid] = 1 # happily ignore form
+                    else:
+                        v = REQUEST.form.get('ue_%s_%s'%(ue['ue_id'],etudid),None)
+                        if v != None:
+                            uevalid[ue['ue_id']][etudid] = int(v)
+                        else:
+                            uevalid[ue['ue_id']][etudid] = 0
+            # reconstruit la liste des ue valides pour chaque etud
+            uevalid_byetud = {}
+            for ue_id in uevalid.keys():
+                for etudid in uevalid[ue_id].keys():
+                    if not uevalid_byetud.has_key(etudid):
+                        uevalid_byetud[etudid] = []
+                    if uevalid[ue_id][etudid]:
+                        uevalid_byetud[etudid].append(ue_id)                    
+            # verification cohérence décision semestre/UE
+            inconsistent_etuds = []
+            for etudid in semvalid.keys():
+                if semvalid[etudid]:
+                    # le semestre valide, donc les UE doivent valider
+                    for ue_id in uevalid.keys():
+                        if not uevalid[ue_id][etudid]:
+                            inconsistent_etuds.append(nt.get_nom_short(etudid))            
+            #
+            nbvalid = len([ x for x in semvalid.values() if x ])            
+            msg = """<ul class="tf-msg">"""
+            if inconsistent_etuds:
+                msg += '<li class="tf-msg">Décisions incohérentes pour les étudiants suivants ! (si le semestre est validé, toutes les UE doivent l\'être)<ul><li>' + '</li><li>'.join( inconsistent_etuds ) + '</li></ul></li>'
+            msg += '<li class="tf-msg">%d étudiants valident le semestre' % nbvalid
+            if len(inconsistent_etuds)==0:
+                msg += '<input type="submit" name="go" value="ok, valider ceci"/>'
+            msg += '</li></ul>'
+        if REQUEST.form.get('go',False) and len(inconsistent_etuds)==0:
+            # OK, validation
+            return self._do_formsemestre_validation(formsemestre_id, semvalid,
+                                                    uevalid_byetud, REQUEST=REQUEST)
+        
+        # --- HTML head
+        header = self.sco_header(self,REQUEST)
+        footer = self.sco_footer(self, REQUEST)
+        H = [ """<h2>Validation (Jury) du semestre %s</h2>
+        <p>Utiliser ce formulaire après la décision définitive du jury.</p>
+        <p>Les étudiants au dessus des "barres" vont valider automatiquement le semestre ou certaines UE.
+        </p><p>Pour valider des étudiants sous les barres, cocher les cases correspondantes.</p>
+        <p>Attention: les décisions prises ici remplacent et annulent les précédentes s'il y en avait !</p>
+        <p>Attention: le formulaire va affecter TOUS LES ETUDIANTS !<p>
+        <form class="formvalidsemestre" method="POST">
+        <input type="hidden" name="tf-submitted" value="1"/>
+        <input type="hidden" name="formsemestre_id" value="%s"/>
+        %s
+        <p>Date du jury (j/m/a): <input type="text" name="date_jury" size="12" value="%s" /></p>
+        <table class="notes_recapcomplet">
+        <tr class="recap_row_tit"><td class="recap_tit">Rg</td><td class="recap_tit">Nom</td><td class="fvs_tit">Moy</td>
+        <td class="fvs_tit_chk">Semestre</td>
+        """ % (sem['titre'],formsemestre_id,msg,date_jury) ]
+        for ue in ues:
+            H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk">validée</td>' % ue['acronyme'])
+        H.append('</tr>')
+        # --- Generate form
+        ir = 0
+        for t in T:
+            etudid = t[-1]
+            if ir % 2 == 0:
+                cls = 'recap_row_even'
+            else:
+                cls = 'recap_row_odd'
+            ir += 1
+            if sem_should_valid[etudid]:
+                moycls = 'fvs_val'
+            else:
+                moycls = 'fvs_val_inf'
+            if semvalid.has_key(etudid): # dans le formulaire
+                if semvalid[etudid]:
+                    sem_checked, sem_unchecked = "checked", ""
+                    sem_is_valid = True
+                else:
+                    sem_checked, sem_unchecked = "", "checked"
+                    sem_is_valid = False
+            elif sem_should_valid[etudid]:
+                sem_checked, sem_unchecked = "checked", ""
+                sem_is_valid = True
+            else:
+                sem_checked, sem_unchecked = "", "checked"
+                sem_is_valid = False
+                
+            H.append('<tr class="%s"><td>%s</td><td>%s</td><td class="%s">%s</td>'
+                     % (cls, nt.get_etud_rang(etudid), nt.get_nom_short(etudid),
+                        moycls, fmt_note(t[0]) ))
+            # ne propose que si sous la barre
+            if sem_should_valid[etudid]:
+                H.append('<td class="fvs_chk">validé</td>')
+            elif nt.get_etud_etat(etudid) == 'D':
+                H.append('<td class="fvs_chk">démission</td>')
+            else:
+                H.append("""<td class="fvs_chk">
+                <input type="radio" name="sem_%s" value="1" %s/>O&nbsp;
+                <input type="radio" name="sem_%s" value="0" %s/>N
+                </td>            
+                """ % (etudid,sem_checked,etudid,sem_unchecked))
+            # UEs
+            iue = 0
+            for ue in ues:
+                iue += 1
+                if uevalid[ue['ue_id']].has_key(etudid): # dans le formulaire
+                    if uevalid[ue['ue_id']][etudid]:
+                        sem_checked, sem_unchecked = "checked", ""
+                    else:
+                        sem_checked, sem_unchecked = "", "checked"
+                elif ue_should_valid[ue['ue_id']][etudid]:
+                    sem_checked, sem_unchecked = "checked", ""
+                else:
+                    sem_checked, sem_unchecked = "", "checked"
+                # ne propose les UE que si le semestre est sous la barre
+                if ue_should_valid[ue['ue_id']][etudid]:
+                    H.append('<td class="fvs_val">%s</td><td class="fvs_chk">valid.</td>'
+                             % (t[iue],))
+                elif nt.get_etud_etat(etudid) == 'D':
+                    H.append('<td class="fvs_val"></td><td class="fvs_chk"></td>')
+                else:
+                    H.append("""<td class="fvs_val_inf">%s</td><td class="fvs_chk">
+                    <input type="radio" name="ue_%s_%s" value="1" class="radio_green" %s/>O&nbsp;
+                    <input type="radio" name="ue_%s_%s" value="0" class="radio_red" %s/>N
+                    </td>            
+                    """ % (t[iue],ue['ue_id'],etudid,sem_checked,ue['ue_id'],etudid,sem_unchecked))
+            #
+            H.append('</tr>')
+        # ligne titres en bas
+        H.append('<tr class="recap_row_tit"><td></td><td></td><td class="fvs_tit">Moy</td><td class="fvs_tit_chk">Semestre</td>')
+        for ue in ues:
+            H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk"></td>' % ue['acronyme'])
+        H.append('</tr>')
+        #
+        H.append("""</table><input type="submit" name="submit" value="Vérifier" /></form>""")
+        return header + '\n'.join(H) + footer
+
+    security.declareProtected(ScoEtudInscrit, '_do_formsemestre_validation')
+    def _do_formsemestre_validation(self, formsemestre_id, semvalid, uevalid_byetud,
+                                    date_jury=None, REQUEST=None):
+        # effectue la validation des semestres et UE indiques
+        cnx = self.GetDBConnexion()
+        # semestres
+        for etudid in semvalid.keys():
+            scolars.scolar_validate_sem( cnx, etudid,
+                                         formsemestre_id, valid=semvalid[etudid],
+                                         event_date=date_jury,
+                                         REQUEST=REQUEST)
+        # UE
+        for etudid in uevalid_byetud.keys():
+            scolars.scolar_validate_ues(cnx, etudid, formsemestre_id, 
+                                        uevalid_byetud[etudid], event_date=date_jury,
+                                        suppress_previously_validated=True,
+                                        REQUEST=REQUEST)
+        # Inval cache bulletins
+        self.CachedNotesTable.inval_cache(formsemestre_id=formsemestre_id)
+        #
+        return REQUEST.RESPONSE.redirect(
+            'formsemestre_validation_list?formsemestre_id=%s'%formsemestre_id)
+    
+    security.declareProtected(ScoEnsView, 'formsemestre_validation_list')
+    def formsemestre_validation_list(self,formsemestre_id, REQUEST):
+        "Liste les UE et semestres validés"
+        cnx = self.GetDBConnexion()
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
+        header = self.sco_header(self,REQUEST)
+        footer = self.sco_footer(self, REQUEST)
+        H = [ """<h2>Etudiants validant le semestre %s</h2>
+        <table><tr><td>Nom</td><td>Décision</td><td>UE validées</td></tr>"""
+              % sem['titre'] ]        
+        #
+        for e in nt.inscrlist: # ici par ordre alphabetique
+            etudid = e['etudid']
+            evt_valid_sem, evt_echec_sem, ue_events = scolars.scolar_get_validated(
+                cnx, etudid, formsemestre_id)
+            if nt.get_etud_etat(etudid) == 'D':
+                decision = 'démission'
+            elif evt_valid_sem:
+                decision = 'validé'
+            elif evt_echec_sem:
+                decision = 'refusé'
+            else:
+                decision = '<em>en cours</em>'            
+            acros = ''
+            if not evt_valid_sem and ue_events:
+                uelist = []
+                for ue_id in [ evt['ue_id'] for evt in ue_events ]:
+                    # XXX a optimiser: chercher les UE en dehors de la boucle !
+                    ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+                    uelist.append(ue)
+                uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
+                acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
+            #
+            H.append( '<tr><td>%s</td><td>%s</td><td>%s</td></tr>'
+                      % (self.nomprenom(nt.identdict[etudid]), decision, acros) )
+        H.append('</table>')
+        return header + '\n'.join(H) + footer
+
+    # ------------- INSCRIPTIONS: PASSAGE D'UN SEMESTRE A UN AUTRE
+    security.declareProtected(ScoEtudInscrit,'formsemestre_inscr_passage')
+    def formsemestre_inscr_passage(self, formsemestre_id, REQUEST=None):
+        """Form. pour inscription rapide des etudiants d'un semestre dans un autre
+        Permet de (de)selectionner parmi les etudiants inscrits (non demissionnaires).        
+        Les etudiants sont places dans le groupe "A"
+        """
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
+        T = nt.get_table_moyennes_triees()
+        #
+        if REQUEST.form.get('tf-submitted',False):
+            # soumission
+            pass # XXX
+        #
+        # --- HTML head
+        header = self.sco_header(self,REQUEST)
+        footer = self.sco_footer(self, REQUEST)
+        H = [ """<h2>Passage suite au semestre %s</h2>
+        <p>Inscription des étududiants du semestre dans un autre.</p>
+        <p>Seuls les étudiants inscrits (non démissionnaires) sont mentionnés.</p>
+        <p>Rappel: d'autres étudiants peuvent être inscrits individuellement par ailleurs
+        (et ceci à tout moment).</p>
+        <p>Le choix par défaut est de proposer le passage à tous les étudiants ayant validé
+        le semestre. Vous devez sélectionner manuellement les autres qui vous voulez faire
+        passer sans qu'ils aient validé le semestre.</p>
+        <p>Les étudiants seront ensuite inscrits à <em>tous les modules</em> constituant le
+        semestre choisi (attention si vous avez des parcours optionnels, vous devrez les désinscrire
+        des modules non désirés ensuite).<p>
+        """ % (sem['titre'],) ]
+        H.append("""<form method="POST">
+        <input type="hidden" name="tf-submitted" value="1"/>
+        <input type="hidden" name="formsemestre_id" value="%s"/>
+        """ % (formsemestre_id,) )
+        # menu avec liste des semestres débutant moins de 3 mois avant la date courante
+        sems = self.do_formsemestre_list()
+        othersems = []
+        today = datetime.date.today()
+        delais = datetime.timedelta(92) # 92 jours ~ 3 mois
+        for s in sems:
+            if s['formsemestre_id'] == formsemestre_id:
+                continue # saute le semestre d'où on vient
+            if s['date_debut']:
+                d,m,y = [ int(x) for x in s['date_debut'].split('/') ]
+                datedebut = datetime.date(y,m,d)
+                if (today - datedebut) > delais:
+                    continue # semestre trop ancien
+            s['titremenu'] = s['titre'] + '&nbsp;&nbsp;(%s - %s)' % (s['date_debut'],s['date_fin'])
+            othersems.append(s)
+        if not othersems:
+            raise ScoValueError('Aucun autre semestre de formation défini !')
+        menulist = [ '<option value="%s">%s</option>' % (o['formsemestre_id'],o['titremenu'])
+                     for o in othersems ]
+        H.append( '<p>Semestre destination: <select name="next_semestre_id">'
+                  + '\n '.join(menulist) + '</select></p>' )
+        # --- Liste des etudiants
+        H.append("""<p>Cocher les étudiants à faire passer (à inscrire) :</p>
+        <table class="notes_recapcomplet">
+        <tr class="recap_row_tit"><td class="recap_tit">Nom</td><td>Décision jury</td><td>Passage ?</td>
+        </tr>
+        """)
+        ir = 0
+        for t in T:
+            etudid = t[-1]
+            if ir % 2 == 0:
+                cls = 'recap_row_even'
+            else:
+                cls = 'recap_row_odd'
+            ir += 1
+            H.append('<tr class="%s"><td>%s</td><td>XXX</td>'
+                     % (cls, self.nomprenom(nt.identdict[etudid])) )
+            
+        #
+        H.append("""</table><input type="submit" name="submit" value="Inscrire !" /></form>""")
+        return header + '\n'.join(H) + footer
+
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab
@@ -2530,6 +2949,8 @@ class NotesTable:
     """
     def __init__(self, znote, formsemestre_id):
         #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG
+        if not formsemestre_id:
+            raise ScoValueError('invalid formsemestre_id' )
         cnx = znote.GetDBConnexion()
         sem = znote.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id})[0]
         # Infos sur les etudiants
@@ -2560,8 +2981,10 @@ class NotesTable:
             self.mods.append(mod)
             modimpl['module'] = mod # add module dict to moduleimpl
             ue = znote.do_ue_list(args={'ue_id' : mod['ue_id']})[0]
-            modimpl['ue'] = ue # add ue dict to moduleimpl
+            modimpl['ue'] = ue # add ue dict to moduleimpl            
             self.uedict[ue['ue_id']] = ue
+            mat = znote.do_matiere_list(args={'matiere_id': mod['matiere_id']})[0]
+            modimpl['mat'] = mat # add matiere dict to moduleimpl 
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
         #
@@ -2637,9 +3060,10 @@ class NotesTable:
             r = self.modimpls
         else:
             r = [ m for m in self.modimpls if m['ue']['ue_id'] == ue_id ]
-        # trie la liste par ue.numero puis mod.numero
-        r.sort( lambda x,y: cmp( x['ue']['numero']*10000 + x['module']['numero'],
-                                 y['ue']['numero']*10000 + y['module']['numero'] ) )
+        # trie la liste par ue.numero puis mat.numero puis mod.numero
+        r.sort( lambda x,y:
+                cmp( x['ue']['numero']*1000000 + x['mat']['numero']*1000 + x['module']['numero'],
+                     y['ue']['numero']*1000000 + y['mat']['numero']*1000 + y['module']['numero'] ) )
         return r
     def get_etud_eval_note(self,etudid, evaluation_id):
         "note d'un etudiant a une evaluation"

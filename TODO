@@ -2,11 +2,14 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+
 - passage en masse d'un semestre au suivant.
 - bulletin: faire apparaitre:
        soit semestre validé soit la liste des UE validées.
 
-- evaluations sans date: checkbox (?), vérifier qu'on peut entrer des notes
+- ajouter champs code_parcours et suivant dans les formsemestre
+- ajouter parcours sur feuille recap complet.
+
 
 - moy gen et moy UE sur fiche etud ?
 - listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
@@ -22,8 +25,6 @@
      - annotations
      - entreprises
 
-- semestre "suivant" pour passages
-
 - page recap notes moyennes par groupes (choisir type de groupe?)
 
 - liste des absents à une eval et croisement avec BD absences
@@ -33,14 +34,6 @@
 - formsemestre_status: voyants tricolores ?
                        lignes tableau (rows) en couleur ?
   
-- gestion des decision de jury et des appreciations ?
-   -> scolar_events
-
-- ajouter champs code_parcours et suivant dans les formsemestre
-- ajouter parcours sur feuille recap complet.
-- formPassage (scolar_events + inscription semestre suivant)
-- formRedouble
-    -> generer evenement "AUT_RED"
 
 - formChoixSemestreGroupe: utilisé par Abscences/index_html
     a améliorer
