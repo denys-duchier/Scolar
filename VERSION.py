@@ -1,6 +1,11 @@
 SCOVERSION = "4.1.5"
 
 SCONEWS = """
+<h4>23 février 2006</h4>
+<ul>
+<li>Décisions jury sur bulletins.</li>
+</ul>
+
 <h4>17 janvier 2006</h4>
 <ul>
 <li>Ajout et édition d'appréciations sur les bulletins.</li>

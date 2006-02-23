@@ -2390,7 +2390,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             pdfbul = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
-                appreciations=[ x['comment'] for x in apprecs ] )
+                appreciations=[ x['comment'] for x in apprecs ],
+                situation=situation )
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
             filename = unescape_html(filename).replace(' ','_').replace('&','')
