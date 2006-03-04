@@ -143,6 +143,13 @@ def Excel_feuille_saisie( E, description, lines ):
     font1 = Font()
     font1.name = 'Arial'
     style.font = font1
+
+    style_notes = XFStyle()
+    font1 = Font()
+    font1.name = 'Arial'
+    style.font = font1
+    style.num_format_str = 'general'
+    
     # ligne de titres
     li = 0
     ws0.write(li,0, "Feuille saisie note (à enregistrer au format excel)",
@@ -181,7 +188,11 @@ def Excel_feuille_saisie( E, description, lines ):
         ws0.write(li,1, line[1], st )
         ws0.write(li,2, line[2], st )
         ws0.write(li,3, s, st )
-        ws0.write(li,4, line[5], st ) # note
+        try:
+            val = float(line[5])
+        except:
+            val = line[5]
+        ws0.write(li,4, val, style_notes ) # note
         ws0.write(li,5, line[6], st ) # comment
     # explication en bas
     li+=2

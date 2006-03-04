@@ -1348,6 +1348,10 @@ class ZNotes(ObjectManager,
             liste_format = tf[2]['liste_format']
             anonymous_listing = tf[2]['anonymous_listing']
             note_sur_20 = tf[2]['note_sur_20']
+            if liste_format == 'xls':
+                keep_numeric = True # pas de converison des notes en strings
+            else:
+                keep_numeric = False
             # Build list of etudids (uniq, some groups may overlap)
             glist = tf[2]['groupes']
             gr_td = [ x[2:] for x in glist if x[:2] == 'td' ]
@@ -1399,7 +1403,7 @@ class ZNotes(ObjectManager,
                             val = val * 20. / E['note_max']
                         nb_notes = nb_notes + 1
                         sum_notes += val
-                    val = fmt_note(val)
+                    val = fmt_note(val, keep_numeric=keep_numeric)
                     comment = NotesDB[etudid]['comment']
                     if comment is None:
                         comment = ''
@@ -2065,6 +2069,10 @@ class ZNotes(ObjectManager,
         modimpls = nt.get_modimpls()
         ues = nt.get_ues()
         T = nt.get_table_moyennes_triees()
+        if format == 'xls':
+            keep_numeric = True # pas de converison des notes en strings
+        else:
+            keep_numeric = False
         # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
         F = []
         h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
@@ -2078,19 +2086,28 @@ class ZNotes(ObjectManager,
                     cod2mod[code] = modimpl['moduleimpl_id'] # pour fabriquer le lien
         F.append(h)
         ue_index = [] # indices des moy UE dans l (pour appliquer style css)
+        def fmtnum(val): # conversion en nombre pour cellules excel
+            if keep_numeric:
+                try:
+                    return float(val)
+                except:
+                    return val
+            else:
+                return val
         for t in T:
             etudid = t[-1]
             l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
-                  nt.get_groupetd(etudid), fmt_note(t[0])] # rang, nom,  groupe, moy_gen
+                  nt.get_groupetd(etudid),
+                  fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
             i = 0
             for ue in ues:
                 i += 1
-                l.append( t[i] ) # moyenne dans l'ue
+                l.append( fmtnum(t[i]) ) # moyenne dans l'ue
                 ue_index.append(len(l)-1)
                 j = 0
                 for modimpl in modimpls:
                     if modimpl['module']['ue_id'] == ue['ue_id']:
-                        l.append( t[j+len(ues)+1] ) # moyenne etud dans module
+                        l.append( fmtnum(t[j+len(ues)+1]) ) # moyenne etud dans module
                     j += 1
             l.append(etudid) # derniere colonne = etudid
             F.append(l)
@@ -2103,7 +2120,8 @@ class ZNotes(ObjectManager,
             ue_index.append(len(l)-1)
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
-                    l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0])) # moyenne du module
+                    l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0],
+                                      keep_numeric=keep_numeric)) # moyenne du module
         F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
         # Generation table au format demandé
         if format == 'html':
@@ -3367,8 +3385,10 @@ def ListMedian( L ):
     else:
 	return (L[n/2] + L[n/2-1])/2 
 
-def fmt_note(val, note_max=None):
-    "conversion note en str pour affichage dans tables HTML ou PDF"
+def fmt_note(val, note_max=None, keep_numeric=False):
+    """conversion note en str pour affichage dans tables HTML ou PDF.
+    Si keep_numeric, laisse les valeur numeriques telles quelles (pour export Excel)
+    """
     if val is None:
         return 'ABS'
     if val == NOTES_NEUTRALISE:
@@ -3377,9 +3397,12 @@ def fmt_note(val, note_max=None):
     if type(val) == type(0.0) or type(val) == type(1):
         if note_max != None:
             val = val * 20. / note_max
-        s = '%2.2f' % round(float(val),2) # 2 chiffres apres la virgule
-        s = '0'*(5-len(s)) + s
-        return s
+        if keep_numeric:
+            return val
+        else:
+            s = '%2.2f' % round(float(val),2) # 2 chiffres apres la virgule
+            s = '0'*(5-len(s)) + s
+            return s
     else:
         return val.replace('NA0', '-')  # notes sans le NA0
 

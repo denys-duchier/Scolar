@@ -4,6 +4,7 @@ SCONEWS = """
 <h4>4 mars 2007</h4>
 <ul>
 <li>Formulaire d'inscription au semestre suivant.</li>
+<li>Format "nombre" dans les feuilles excel exportées.</li>
 </ul>
 
 <h4>23 février 2006</h4>
