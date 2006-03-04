@@ -265,6 +265,7 @@ def scolar_get_validated( cnx, etudid, formsemestre_id ):
     #uelist = [ evt['ue_id'] for evt in events ]
     return evt_valid_sem, evt_echec_sem, events
 
+
 def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
                          event_date=None, REQUEST=None ):
     """Si valid==True, valide ce semestre, sinon echec"""

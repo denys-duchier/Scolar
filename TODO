@@ -2,10 +2,10 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- bug: un etudiant a demissionné. Comment le ré-inscrire ?
 
-- passage en masse d'un semestre au suivant.
-- bulletin: faire apparaitre:
-       soit semestre validé soit la liste des UE validées.
+- prise en compte des autorisation à redoubler et des exclusions
+  dans validation semestre (formsemestre_validation_form) ???
 
 - ajouter champs code_parcours et suivant dans les formsemestre
 - ajouter parcours sur feuille recap complet.

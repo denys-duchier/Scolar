@@ -726,14 +726,12 @@ class ZScolar(ObjectManager,
                 if authuser.has_permission(ScoEtudInscrit,self):
                     ilist.append("""
                     <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>
-                    <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
-                    <li><a href="formRedouble?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Redoublement</a></li>
-                    <li><a href="formPassage?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Passage dans le semestre suivant</a></li>
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire ailleurs</a>
                     </ul></ul>
                     """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )                    
-                    # "
+                    #                     <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
+                    #
                 ilist.append('</div></td>')
             ilist.append('</tr></table>')
         if not ilist:
@@ -1100,43 +1098,10 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoEtudInscrit, "formDiplome")
     def formDiplome(self, etudid, formsemestre_id, REQUEST):
         "Formulaire Diplome Etudiant"
-        cnx = self.GetDBConnexion()    
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
-        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-        etud['formsemestre_id'] = formsemestre_id
-        etud['semtitre'] = sem['titre']
-        etud['nowdmy'] = time.strftime('%d/%m/%Y')
-        #
-        header = self.sco_header(
-            self,REQUEST,
-            page_title='Validation du semestre %(semtitre)s pour %(prenom)s %(nom)s'%etud)
-        H = [ '<h2><font color="#FF0000">Validation du semestre %(semtitre)s</font> pour %(prenom)s %(nom)s</h2><p>' % etud ]
-        H.append("""<h1>NE PAS UTILISER: EN COURS DE DEV.</h1><form action="doDiplomeEtudiant" method="GET">
-<b>Date de la délivrance (J/M/AAAA):&nbsp;</b><input type="text" name="event_date" width=20 value="%(nowdmy)s">
-<input type="hidden" name="etudid" value="%(etudid)s">
-<input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s">
-<p>
-<input type="submit" value="Confirmer">
-
-</form>""" % etud )
-        return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
-
-    security.declareProtected(ScoEtudInscrit, "doDiplomeEtudiant")
-    def doDiplomeEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
-        "attribution du diplome" # XXX A REVOIR
-        cnx = self.GetDBConnexion()
-        ins = self.Notes.do_formsemestre_inscription_list(
-            { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
-        if ins['etat'] != 'I':
-            raise ScoException('etudiant non inscrit !')
-        logdb(REQUEST,cnx,method='diplomeEtudiant', etudid=etudid)
-        scolars.scolar_events_create( cnx, args = {
-            'etudid' : etudid,
-            'event_date' : event_date,
-            'formsemestre_id' : formsemestre_id,
-            'event_type' : 'DIPLOME' } )
-        if REQUEST:
-            REQUEST.REQUEST.redirect('ficheEtud?etudid='+etudid)
+        # maintenant fait dans Notes
+        return REQUEST.RESPONSE.redirect(
+            'Notes/formsemestre_validation_form?formsemestre_id=%s&etudid=%s'
+            % (formsemestre_id, etudid) )
 
     security.declareProtected(ScoEtudInscrit, "formExclusion")
     def formExclusion(self, etudid, formsemestre_id, REQUEST):
@@ -1156,7 +1121,7 @@ class ZScolar(ObjectManager,
 Utiliser ce formulaire en fin de semestre, après le jury.
 """)
         H.append("""<form action="doExclusionEtudiant" method="GET">
-<b>Date de la d&eacute;mission (J/M/AAAA):&nbsp;</b><input type="text" name="event_date" width=20 value="%(nowdmy)s">
+<b>Date de l'exclusion (J/M/AAAA):&nbsp;</b><input type="text" name="event_date" width=20 value="%(nowdmy)s">
 <input type="hidden" name="etudid" value="%(etudid)s">
 <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s">
 <p>
@@ -1182,17 +1147,17 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         if REQUEST:
             REQUEST.REQUEST.redirect('ficheEtud?etudid='+etudid)
 
-    security.declareProtected(ScoEtudInscrit, "formPassage")
-    def formPassage(self,REQUEST):
-        "Formulaire passage d'un semestre a l'autre"
-        raise NotImplementedError('fonctionnalité non implémentée !')
-        # -> choix du semestre, reincrition dans les bons groupes
+#     security.declareProtected(ScoEtudInscrit, "formPassage")
+#     def formPassage(self,REQUEST):
+#         "Formulaire passage d'un semestre a l'autre"
+#         raise NotImplementedError('fonctionnalité non implémentée !')
+#         # -> choix du semestre, reincrition dans les bons groupes
         
-    security.declareProtected(ScoEtudInscrit, "formRedouble")
-    def formRedouble(self,REQUEST):
-        "Formulaire redoublement d'un semestre"
-        raise NotImplementedError('fonctionnalité non implémentée !')
-        # -> choix du semestre, reincrition dans les bons groupes
+#     security.declareProtected(ScoEtudInscrit, "formRedouble")
+#     def formRedouble(self,REQUEST):
+#         "Formulaire redoublement d'un semestre"
+#         raise NotImplementedError('fonctionnalité non implémentée !')
+#         # -> choix du semestre, reincrition dans les bons groupes
 
     security.declareProtected(ScoEtudInscrit,"etudident_create_form")
     def etudident_create_form(self, REQUEST):
