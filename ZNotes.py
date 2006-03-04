@@ -1512,15 +1512,21 @@ class ZNotes(ObjectManager,
         grnams += [('tp'+x) for x in gr_tp ]
         grnams += [('ta'+x) for x in gr_anglais ]
         grlabs  = ['tous'] + gr_td + gr_tp + gr_anglais # legendes des boutons
+        if len(gr_td) <= 1 and len(gr_tp) <= 1 and len(gr_anglais) <= 1:
+            no_group = True
+        else:
+            no_group = False
         descr = [
             ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
             ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
                              'allowed_values' : [ 'xls', 'form' ],
                              'labels' : ['fichier tableur', 'formulaire web'],
-                             'title' : 'Méthode de saisie des notes' }),
-            ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'étudiants' }),
-            ('groupes', { 'input_type' : 'checkbox', 'title':'',
-                          'allowed_values' : grnams, 'labels' : grlabs }) ]
+                             'title' : 'Méthode de saisie des notes' }) ]
+        if not no_group:
+            descr += [ 
+                ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'étudiants' }),
+                ('groupes', { 'input_type' : 'checkbox', 'title':'',
+                              'allowed_values' : grnams, 'labels' : grlabs }) ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler',
                                 submitlabel = 'OK' )
@@ -1531,7 +1537,10 @@ class ZNotes(ObjectManager,
         else:
             # form submission
             #   get checked groups
-            g = tf[2]['groupes']
+            if no_group:
+                g = ['tous']
+            else:
+                g = tf[2]['groupes']
             note_method =  tf[2]['note_method']
             if note_method in ('form', 'xls'):
                 # return notes_evaluation_formnotes( REQUEST )
@@ -3110,7 +3119,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         #
         H.append("""</table>
         <p>
-        <input type="submit" name="check" value="Vérifier & Mettre à jour" />
+        <input type="submit" name="check" value="Vérifier ces informations" />
         &nbsp;
         <input type="submit" name="inscrire" value="Inscrire les étudiants choisis !" />
         </p></form>""")
