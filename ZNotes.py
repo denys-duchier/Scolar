@@ -2103,14 +2103,30 @@ class ZNotes(ObjectManager,
                     return val
             else:
                 return val
+        # calcul des moyennes des moyennes (generale et par UE)
+        sum_moy = 0
+        nb_moy = 0
+        for ue in ues:
+            ue['sum_moy'] = 0
+            ue['nb_moy'] = 0
         for t in T:
             etudid = t[-1]
             l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
                   nt.get_groupetd(etudid),
                   fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
+            try:
+                sum_moy += float(t[0])
+                nb_moy += 1
+            except:
+                pass
             i = 0
             for ue in ues:
                 i += 1
+                try:
+                    ue['sum_moy'] += float(t[i])
+                    ue['nb_moy']  += 1
+                except:
+                    pass
                 l.append( fmtnum(t[i]) ) # moyenne dans l'ue
                 ue_index.append(len(l)-1)
                 j = 0
@@ -2121,11 +2137,19 @@ class ZNotes(ObjectManager,
             l.append(etudid) # derniere colonne = etudid
             F.append(l)
         # Dernière ligne: moyennes UE et modules
-        l = [ '', 'Moyennes', '', '' ] # todo: calcul moyenne des moyennes
+        if nb_moy > 0:
+            moy_moy = sum_moy / nb_moy
+        else:
+            moy_moy = '-'
+        l = [ '', 'Moyennes', '', fmt_note(moy_moy) ] 
         i = 0
         for ue in ues:
             i += 1
-            l.append( '' ) # todo: moyenne des moyennes dans l'ue
+            if ue['nb_moy'] > 0:
+                moy_ue = ue['sum_moy'] / ue['nb_moy']
+            else:
+                moy_ue = ''
+            l.append( fmt_note(moy_ue) ) 
             ue_index.append(len(l)-1)
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
@@ -3004,7 +3028,6 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                     'groupetp' : i['groupetp'] }
             # - inscription de chaque etudiant
             inscrits = []
-            l = ''
             for t in T:
                 etudid = t[-1]                
                 if passe.has_key(etudid) and passe[etudid] \
@@ -3014,12 +3037,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                            'etudid' : etudid,
                            'etat' : 'I' }
                     args.update(gr[etudid])
-                    l += str(args)
                     self.do_formsemestre_inscription_with_modules(
                         args = args, 
                         REQUEST = REQUEST,
                         method = 'formsemestre_inscr_passage' )
-            H = l + '<p>%d étudiants inscrits : <ul><li>' % len(inscrits)            
+            H = '<p>%d étudiants inscrits : <ul><li>' % len(inscrits)            
             if len(inscrits) > 0:
                 H += '</li><li>'.join(
                     [ self.nomprenom(nt.identdict[eid]) for eid in inscrits ]
