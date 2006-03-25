@@ -636,12 +636,16 @@ class ZScolar(ObjectManager,
             etud['cursem'] = cursem
             if cursem:
                 etud['inscription'] = cursem['titre']
+                etud['inscriptionstr'] = 'Inscrit en ' + cursem['titre']
+                etud['inscription_formsemestre_id'] = cursem['formsemestre_id']
                 etud['groupetd'] = curi['groupetd']
                 etud['groupeanglais'] = curi['groupeanglais']
                 etud['groupetp'] = curi['groupetp']
                 etud['etatincursem'] = curi['etat']
             else:
                 etud['inscription'] = 'pas inscrit'
+                etud['inscriptionstr'] = etud['inscription']
+                etud['inscription_formsemestre_id'] = None
                 etud['groupetd'] = ''
                 etud['groupeanglais'] = ''
                 etud['groupetp'] = ''

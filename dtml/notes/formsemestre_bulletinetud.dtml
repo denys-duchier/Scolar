@@ -4,16 +4,19 @@
 <dtml-unless version><dtml-call "REQUEST.set('version','long')"></dtml-unless>
 
 <dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
+<dtml-call "REQUEST.set( 'etudinfo', getEtudInfo(etudid=etudid,filled=1) )">
 
-<dtml-in "getEtudInfo(etudid=etudid,filled=1)" mapping>
+<dtml-in etudinfo mapping>
 
 <dtml-var "sco_header(page_title='Bulletin de '+nomprenom,REQUEST=REQUEST,client=this())">
 <table class="bull_head">
 <TR><TD>
-<h2><dtml-var nomprenom> (<a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var inscription> <dtml-var groupetd></a>)</h2>
+<h2><dtml-var nomprenom></h2>
 
 <form name="f" method="GET">
-Bulletin <dtml-var "sem['titre']"> établi le <dtml-var "DateTime().strftime('%d/%m/%Y à %Hh%M')"> (notes sur 20) 
+Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"> <dtml-var "sem['titre']"></a></span> 
+<br/>
+établi le <dtml-var "DateTime().strftime('%d/%m/%Y à %Hh%M')"> (notes sur 20) 
 <span class="rightjust">
 
 <input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"></input>
@@ -47,10 +50,21 @@ Version complète</option>
 </dtml-in getEtudInfo>
 
 
-</dtml-if PDF>
+</dtml-if "not PDF">
 <dtml-var "do_formsemestre_bulletinetud(formsemestre_id, etudid, format=format, version=version, REQUEST=REQUEST)">
 
 <dtml-if "not PDF">
+<dtml-in etudinfo mapping>
+<p>Situation actuelle: 
+<dtml-if inscription_formsemestre_id>
+ <a href="formsemestre_status?formsemestre_id=<dtml-var inscription_formsemestre_id>">
+</dtml-if>
+<dtml-var inscriptionstr> <dtml-var groupetd>
+<dtml-if inscription_formsemestre_id>
+ </a>
+</dtml-if>
+</p>
+</dtml-in>
 <dtml-var sco_footer>
 </dtml-if PDF>
 </dtml-let PDF>
