@@ -35,6 +35,9 @@ from email.MIMEBase import MIMEBase
 from email.Header import Header
 from email import Encoders
 
+# XML generation package (apt-get install jaxml)
+import jaxml
+
 # Zope stuff
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -2242,9 +2245,13 @@ class ZNotes(ObjectManager,
                                      version='long', # short, long, selectedevals
                                      format='html', REQUEST=None, nohtml=False):
         if format != 'mailpdf':
-            bul, etud, filename = self.make_formsemestre_bulletinetud(
-                formsemestre_id, etudid,
-                version=version,format=format, REQUEST=REQUEST)
+            if format == 'xml':
+                bul = self.make_xml_formsemestre_bulletinetud(
+                    formsemestre_id,  etudid )
+            else:
+                bul, etud, filename = self.make_formsemestre_bulletinetud(
+                    formsemestre_id, etudid,
+                    version=version,format=format, REQUEST=REQUEST)
             if format == 'pdf':
                 return sendPDFFile(REQUEST, bul, filename)        
             else:
@@ -2304,7 +2311,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
                     % (etud['emaillink'])) + htm
 
-    security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
+    security.declareProtected(ScoView, 'make_formsemestre_bulletinetud')
     def make_formsemestre_bulletinetud(
         self, formsemestre_id, etudid,
         version='long', # short, long, selectedevals
@@ -2318,7 +2325,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         ues = nt.get_ues()
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)
-        # Genere le HTML H et aussi une table P pour le PDF
+        # Genere le HTML H, une table P pour le PDF
         H = [ '<table class="notes_bulletin">' ]
         P = []
         LINEWIDTH = 0.5
@@ -2452,7 +2459,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
     def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
                                    version='selectedevals'):
-        "publie le bulletins dans un classeur PDF"
+        "Publie les bulletins dans un classeur PDF"
         cached = self.CachedNotesTable.get_bulletins_pdf(formsemestre_id,version)
         if cached:
             return sendPDFFile(REQUEST,cached[1],cached[0])
@@ -2573,6 +2580,95 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             # ennuyeux mais necessaire (pour le PDF seulement)
             self.CachedNotesTable.inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
+    # -------- Bulletin en XML
+    security.declareProtected(ScoView, 'make_xml_formsemestre_bulletinetud')
+    def make_xml_formsemestre_bulletinetud( self, formsemestre_id, etudid,
+                                            REQUEST=None):
+        "bulletin au format XML"
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
+                          date=datetime.datetime.now().isoformat() )
+        # infos sur l'etudiant
+        etudinfo = self.getEtudInfo(etudid=etudid,filled=1)[0]
+        doc._push()
+        doc.etudiant( nom=etudinfo['nom'],
+                      prenom=etudinfo['prenom'],
+                      sexe=etudinfo['sexe'],
+                      photo_url=self.etudfoto_img(etudid).absolute_url()
+                      )
+        doc._pop()
+        # Note générale
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
+        ues = nt.get_ues()
+        modimpls = nt.get_modimpls()
+        nbetuds = len(nt.rangs)
+        mg = fmt_note(nt.get_etud_moy(etudid)[0])
+        doc._push()
+        doc.note( value=mg )
+        doc._pop()
+        doc._push()
+        doc.rang( value=nt.get_etud_rang(etudid), ninscrits=nbetuds )
+        doc._pop()
+        doc._push()
+        doc.note_max( value=20 ) # notes toujours sur 20
+        doc._pop()
+        # Liste les UE / modules /evals
+        for ue in ues:
+            doc._push()
+            doc.ue( id=ue['ue_id'], numero=ue['numero'],
+                    acronyme=ue['acronyme'], titre=ue['titre'] )            
+            doc._push()
+            doc.note( value=fmt_note(nt.get_etud_moy(etudid,ue_id=ue['ue_id'])[0]) )
+            doc._pop()
+            # Liste les modules de l'UE 
+            ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
+            for modimpl in ue_modimpls:
+                mod = modimpl['module']
+                doc._push()
+                doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
+                            coefficient=mod['coefficient'],
+                            numero=mod['numero'],
+                            titre=mod['titre'],
+                            abbrev=mod['abbrev'] )                
+                doc._push()
+                doc.note( value=fmt_note(nt.get_etud_mod_moy(modimpl, etudid)) )
+                doc._pop()
+                # --- notes de chaque eval:
+                evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
+                for e in evals:
+                    doc._push()
+                    doc.evaluation(jour=DateDMYtoISO(e['jour']),
+                                   heure_debut=TimetoISO8601(e['heure_debut']),
+                                   heure_fin=TimetoISO8601(e['heure_fin']),
+                                   coefficient=e['coefficient'],
+                                   description=e['description'])
+                    val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
+                    val = fmt_note(val, note_max=e['note_max'] )
+                    doc.note( value=val )
+                    doc._pop()
+                doc._pop()
+            doc._pop()
+        # --- Absences
+        debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
+        fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
+        nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
+                                               debut=debut_sem,fin=fin_sem)
+        doc._push()
+        doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
+        doc._pop()
+        # --- Decision Jury
+        situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
+        doc.situation( situation )
+        # --- Appreciations
+        cnx = self.GetDBConnexion() 
+        apprecs = scolars.appreciations_list(
+            cnx,
+            args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
+        for app in apprecs:
+            doc.appreciation( app['comment'], date=self.DateDDMMYYYY2ISO(app['date']))
+        return repr(doc)
 
     # -------- Events
     security.declareProtected(ScoEnsView, 'appreciation_add_form')

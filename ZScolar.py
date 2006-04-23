@@ -108,21 +108,15 @@ class ZScolar(ObjectManager,
         self._cnx = None
         self.mail_host = mail_host
         # --- add editable DTML documents:
-#         sco_header = self.defaultDocFile('sco_header',
-#                                         'Header scolarite',     
-#                                         'sco_header')     
-#         sco_footer = self.defaultDocFile('sco_footer',
-#                                          'Footer scolarite',     
-#                                          'sco_footer')  
-        sidebar_dept = self.defaultDocFile('sidebar_dept',
-                                           'barre gauche (partie haute)',
-                                           'sidebar_dept')
-        sco_header = self.defaultDocFile('sco_header',
-                                         'header commun',
-                                         'sco_header')
-        sco_header = self.defaultDocFile('sco_footer',
-                                         'footer commun',
-                                         'sco_footer')
+        self.defaultDocFile('sidebar_dept',
+                            'barre gauche (partie haute)',
+                            'sidebar_dept')
+        self.defaultDocFile('sco_header',
+                            'header commun',
+                            'sco_header')
+        self.defaultDocFile('sco_footer',
+                            'footer commun',
+                            'sco_footer')
         
         # --- add DB connector
         id = 'DB'
@@ -1010,6 +1004,10 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'etudfoto')
     def etudfoto(self, etudid, foto=None, fototitle=''):
         "html foto (taille petite)"
+        img = self.etudfoto_img(etudid, foto)
+        return img.tag(border='0',title=fototitle)
+
+    def etudfoto_img(self, etudid, foto=None):
         if foto is None:
             cnx = self.GetDBConnexion()
             etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
@@ -1020,9 +1018,9 @@ class ZScolar(ObjectManager,
             try:
                 img = getattr(self.Fotos, foto + '.h90.jpg' )
             except:
-                img = getattr(self.Fotos, 'unknown_img')
-        return img.tag(border='0',title=fototitle)
-
+                img = getattr(self.Fotos, 'unknown_img')        
+        return img
+    
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     formChangePhoto = DTMLFile('dtml/formChangePhoto', globals())
     security.declareProtected(ScoEtudChangeAdr, 'doChangePhoto')
