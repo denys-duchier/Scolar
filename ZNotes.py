@@ -392,12 +392,14 @@ class ZNotes(ObjectManager,
         'notes_formsemestre',
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
-         'date_debut', 'date_fin', 'responsable_id'),
+         'date_debut', 'date_fin', 'responsable_id', 'gestion_absence'),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
-                             'date_fin'   : DateISOtoDMY },
+                             'date_fin'   : DateISOtoDMY,
+                             'gestion_absence' : str },
         input_formators  = { 'date_debut' : DateDMYtoISO,
-                             'date_fin'   : DateDMYtoISO }
+                             'date_fin'   : DateDMYtoISO,
+                             'gestion_absence' : int }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
@@ -484,6 +486,11 @@ class ZNotes(ObjectManager,
                                  'title' : 'Directeur des études',
                                  'allowed_values' : userlist }),        
             ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre' }),
+            ('gestion_absence_lst', { 'input_type' : 'checkbox',
+                                      'title' : 'Suivi des absences',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'indiquer les absences sur les bulletins',
+                                       'labels' : [''] }),
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
         for mod in mods:
@@ -501,6 +508,15 @@ class ZNotes(ObjectManager,
             submitlabel = 'Modifier ce semestre de formation'
         else:
             submitlabel = 'Créer ce semestre de formation'
+        #
+        initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
+        if initvalues['gestion_absence'] == '1':
+            initvalues['gestion_absence_lst'] = ['X']
+        else:
+            initvalues['gestion_absence_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_absence_lst'):
+            REQUEST.form['gestion_absence_lst'] = []
+        #
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = submitlabel,
                                 cancelbutton = 'Annuler',
@@ -510,8 +526,12 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return '<h4>annulation</h4>'
         else:
+            if tf[2]['gestion_absence_lst']:
+                tf[2]['gestion_absence'] = 1
+            else:
+                tf[2]['gestion_absence'] = 0
             if not edit:
-                # creation du semestre
+                # creation du semestre                
                 formsemestre_id = self.do_formsemestre_create(tf[2])
                 # creation des modules
                 for module_id in tf[2]['tf-checked']:
@@ -568,7 +588,7 @@ class ZNotes(ObjectManager,
                         'formsemestre_id' : formsemestre_id,
                         'responsable_id' :  tf[2][module_id] }
                     self.do_moduleimpl_edit(modargs)
-                return '<p>Modification effectuée</p>'  + msg #+ str(tf[2])
+                return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
@@ -2395,17 +2415,18 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                 H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>' % tuple(t))
         H.append('</table>')
         # --- Absences
-        debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
-        fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
-        nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
+        if sem['gestion_absence'] == '1':
+            debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
+            fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
+            nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+            nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
                                                debut=debut_sem,fin=fin_sem)
-        H.append("""<p>
+            H.append("""<p>
         <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
         <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
         (pendant ce semestre).
         </a></p>
-        """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
+            """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
         # --- Decision Jury
         situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
         H.append( """<p class="bull_situation">%s</p>""" % situation )
@@ -2436,8 +2457,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             return '\n'.join(H), None, None
         elif format == 'pdf' or format == 'pdfpart':
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-            etud['nbabs'] = nbabs
-            etud['nbabsjust'] = nbabsjust
+            if sem['gestion_absence'] == '1':
+                etud['nbabs'] = nbabs
+                etud['nbabsjust'] = nbabsjust
             infos = { 'DeptName' : self.DeptName }
             stand_alone = (format != 'pdfpart')
             if nt.get_etud_etat(etudid) == 'D':
@@ -2652,14 +2674,15 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 doc._pop()
             doc._pop()
         # --- Absences
-        debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
-        fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
-        nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
+        if sem['gestion_absence'] == '1':
+            debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
+            fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
+            nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+            nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
                                                debut=debut_sem,fin=fin_sem)
-        doc._push()
-        doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
-        doc._pop()
+            doc._push()
+            doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
+            doc._pop()
         # --- Decision Jury
         situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
         doc.situation( situation )
@@ -2690,10 +2713,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for event in events:
             event_type = event['event_type']
             if event_type == 'INSCRIPTION':
-                assert date_inscr is None
+                assert date_inscr is None, 'plusieurs inscriptions !'
                 date_inscr = event['event_date']
             elif event_type == 'DEMISSION':
-                assert date_dem == None
+                assert date_dem == None, 'plusieurs démissions !'
                 date_dem = event['event_date']
             elif event_type == 'ECHEC_SEM':
                 date_echec = event['event_date']

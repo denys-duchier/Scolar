@@ -4,6 +4,7 @@ SCONEWS = """
 <h4>24 avril 2007</h4>
 <ul>
 <li>Export bulletins en XML (expérimental)</li>
+<li>Flag "gestion_absence" sur les semestres de formation</li>
 </ul>
 
 <h4>4 mars 2007</h4>

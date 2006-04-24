@@ -148,8 +148,9 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     objects.append( Table( Pt,
                            colWidths = (1.5*cm, 5*cm, 6*cm, 2*cm, 1*cm),
                            style=TableStyle ) )
-    objects.append( Paragraph(
-        "%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust']), CellStyle ) )
+    if etud.has_key('nbabs'):
+        objects.append( Paragraph(
+            "%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust']), CellStyle ) )
     #
     if appreciations:
         objects.append( Paragraph('Appréciation : ' + '\n'.join(appreciations),
