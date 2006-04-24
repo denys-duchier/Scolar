@@ -38,9 +38,10 @@ SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
 
 CSV_FIELDSEP = ';'
 CSV_LINESEP  = '\n'
-CSV_MIMETYPE = 'text/comma-separated-values';
-XLS_MIMETYPE = 'application/vnd.ms-excel';
+CSV_MIMETYPE = 'text/comma-separated-values'
+XLS_MIMETYPE = 'application/vnd.ms-excel'
 PDF_MIMETYPE = 'application/pdf'
+XML_MIMETYPE = 'text/xml'
 
 """ Simple python utilities
 """

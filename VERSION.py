@@ -1,6 +1,11 @@
 SCOVERSION = "4.1.5"
 
 SCONEWS = """
+<h4>24 avril 2007</h4>
+<ul>
+<li>Export bulletins en XML (expérimental)</li>
+</ul>
+
 <h4>4 mars 2007</h4>
 <ul>
 <li>Formulaire d'inscription au semestre suivant.</li>

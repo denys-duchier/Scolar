@@ -2247,7 +2247,7 @@ class ZNotes(ObjectManager,
         if format != 'mailpdf':
             if format == 'xml':
                 bul = self.make_xml_formsemestre_bulletinetud(
-                    formsemestre_id,  etudid )
+                    formsemestre_id,  etudid, REQUEST=REQUEST )
             else:
                 bul, etud, filename = self.make_formsemestre_bulletinetud(
                     formsemestre_id, etudid,
@@ -2585,6 +2585,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
     def make_xml_formsemestre_bulletinetud( self, formsemestre_id, etudid,
                                             REQUEST=None):
         "bulletin au format XML"
+        if REQUEST:
+            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
                           date=datetime.datetime.now().isoformat() )
