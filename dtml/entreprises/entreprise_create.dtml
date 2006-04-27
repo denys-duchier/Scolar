@@ -36,7 +36,7 @@
 <dtml-elif "tf[0] == -1">
  <dtml-call "RESPONSE.redirect( URL1 )" >
 <dtml-else>
- <dtml-call "do_entreprise_create( None, tf[2] )">
+ <dtml-call "do_entreprise_create( tf[2] )">
  <dtml-call "RESPONSE.redirect( URL1 )" >
 </dtml-if>
 
