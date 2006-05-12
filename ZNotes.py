@@ -179,6 +179,8 @@ class ZNotes(ObjectManager,
     formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
     security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
     formsemestre_editwithmodules = DTMLFile('dtml/notes/formsemestre_editwithmodules', globals(), title='Modification d\'un semestre (ou session) de formation avec ses modules' )
+    security.declareProtected(ScoImplement, 'formsemestre_delete')
+    formsemestre_delete = DTMLFile('dtml/notes/formsemestre_delete', globals(), title='Suppression d\'un semestre (ou session) de formation avec ses modules' )
     security.declareProtected(ScoView, 'formsemestre_recapcomplet')
     formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
 
@@ -411,10 +413,22 @@ class ZNotes(ObjectManager,
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_delete')
-    def do_formsemestre_delete(self, oid):
-        "delete formsemestre"
+    def do_formsemestre_delete(self, formsemestre_id):
+        "delete formsemestre, and all its moduleimpls"
         cnx = self.GetDBConnexion()
-        self._formsemestreEditor.delete(cnx, oid)
+        # --- Destruction des modules de ce semestre
+        mods = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
+        for mod in mods:
+            self.do_moduleimpl_delete(mod['moduleimpl_id'])
+        # --- Desinscription des etudiants
+        cursor = cnx.cursor()
+        req = "DELETE FROM notes_formsemestre_inscription WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Suppression des evenements
+        req = "DELETE FROM scolar_events WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Destruction du semestre
+        self._formsemestreEditor.delete(cnx, formsemestre_id)
         self.CachedNotesTable.inval_cache()
 
     security.declareProtected(ScoView, 'do_formsemestre_list')
@@ -546,7 +560,7 @@ class ZNotes(ObjectManager,
                 # on doit creer les modules nouvellement selectionnés
                 # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnés.
                 # Note: la destruction echouera s'il y a des objets dependants
-                #       (eg des etudiants inscrits ou des evaluations définies)
+                #       (eg des evaluations définies)
                 # nouveaux modules
                 checkedmods = tf[2]['tf-checked']
                 self.do_formsemestre_edit(tf[2])
@@ -581,8 +595,15 @@ class ZNotes(ObjectManager,
                         { 'formsemestre_id' : formsemestre_id,
                           'module_id' : module_id } )[0]['moduleimpl_id']
                     mod = self.do_module_list( { 'module_id' : module_id } )[0]
-                    msg += [ 'suppression de %s (%s)' % (mod['code'], mod['titre']) ] 
-                    self.do_moduleimpl_delete(moduleimpl_id)
+                    # Evaluations dans ce module ?
+                    evals = self.do_evaluation_list(
+                        { 'moduleimpl_id' : moduleimpl_id} )
+                    if evals:
+                        msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
+                    else:
+                        msg += [ 'suppression de %s (%s)'
+                                 % (mod['code'], mod['titre']) ]
+                        self.do_moduleimpl_delete(moduleimpl_id)
                 for module_id in mods_toedit:
                     moduleimpl_id = self.do_moduleimpl_list(
                         { 'formsemestre_id' : formsemestre_id,
