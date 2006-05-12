@@ -120,7 +120,11 @@ class TF:
             self.values[field] = str(self.values[field])
         #
         if not self.values.has_key('tf-checked'):
-            self.values['tf-checked'] = self.initvalues.get( 'tf-checked', [] )
+            if self.submitted():
+                # si rien n'est coché, tf-checked n'existe plus dans la reponse
+                self.values['tf-checked'] = []
+            else:
+                self.values['tf-checked'] = self.initvalues.get( 'tf-checked', [] )
         self.values['tf-checked'] = [ str(x) for x in self.values['tf-checked'] ]
 
     def checkvalues(self):
@@ -177,8 +181,8 @@ class TF:
                     msg.append("valeur invalide (%s) pour le champ '%s'"
                                % (val,field) )
                     ok = 0
-        if ok:
-            self.result = self.values
+        if ok:            
+            self.result = self.values            
         else:
             self.result = None
         return msg
@@ -243,7 +247,7 @@ class TF:
             lem = []
             if withcheckbox and input_type != 'hidden':
                 if field in values['tf-checked']:
-                    checked='checked'
+                    checked='checked="checked"'
                 else:
                     checked=''
                 lab.append('<input type="checkbox" name="%s:list" value="%s" %s></input>' % ('tf-checked', field, checked ) )
@@ -268,7 +272,7 @@ class TF:
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
                     if descr['allowed_values'][i] == values[field]:
-                        checked='checked'
+                        checked='checked="checked"'
                     else:
                         checked=''
                     lem.append(
@@ -289,7 +293,7 @@ class TF:
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
                     if descr['allowed_values'][i] in values[field]:
-                        checked='checked'
+                        checked='checked="checked"'
                     else:
                         checked=''
                     attribs = ' '.join(descr.get('attributes', []))

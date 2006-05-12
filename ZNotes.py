@@ -547,9 +547,9 @@ class ZNotes(ObjectManager,
                 # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnés.
                 # Note: la destruction echouera s'il y a des objets dependants
                 #       (eg des etudiants inscrits ou des evaluations définies)
-                self.do_formsemestre_edit(tf[2])
                 # nouveaux modules
                 checkedmods = tf[2]['tf-checked']
+                self.do_formsemestre_edit(tf[2])
                 ams = self.do_moduleimpl_list(
                     { 'formsemestre_id' : formsemestre_id } )
                 existingmods = [ x['module_id'] for x in ams ]
@@ -559,24 +559,29 @@ class ZNotes(ObjectManager,
                 # modules a detruire
                 mods_todelete = [ x for x in existingmods if not x in checkedmods ]
                 #
-                msg = ''
+                msg = []
                 for module_id in mods_tocreate:
                     modargs = { 'module_id' : module_id,
                                 'formsemestre_id' : formsemestre_id,
                                 'responsable_id' :  tf[2][module_id] }
                     moduleimpl_id = self.do_moduleimpl_create(modargs)
+                    mod = self.do_module_list( { 'module_id' : module_id } )[0]
+                    msg += [ 'création de %s (%s)' % (mod['code'], mod['titre']) ] 
                     if tf[2]['inscrire_etudslist']:
                         # il faut inscrire les etudiants du semestre
                         # dans le nouveau module
                         self.do_moduleimpl_inscrit_tout_semestre(
                             moduleimpl_id,formsemestre_id)
-                        msg += '<p>etudiants inscrits au module %s</p>' % moduleimpl_id
+                        msg += ['étudiants inscrits à %s (module %s)</p>'
+                                % (moduleimpl_id, mod['code']) ]
                 #
                 for module_id in mods_todelete:
                     # get id
                     moduleimpl_id = self.do_moduleimpl_list(
                         { 'formsemestre_id' : formsemestre_id,
                           'module_id' : module_id } )[0]['moduleimpl_id']
+                    mod = self.do_module_list( { 'module_id' : module_id } )[0]
+                    msg += [ 'suppression de %s (%s)' % (mod['code'], mod['titre']) ] 
                     self.do_moduleimpl_delete(moduleimpl_id)
                 for module_id in mods_toedit:
                     moduleimpl_id = self.do_moduleimpl_list(
@@ -588,6 +593,10 @@ class ZNotes(ObjectManager,
                         'formsemestre_id' : formsemestre_id,
                         'responsable_id' :  tf[2][module_id] }
                     self.do_moduleimpl_edit(modargs)
+                    mod = self.do_module_list( { 'module_id' : module_id } )[0]
+                    #msg += [ 'modification de %s (%s)' % (mod['code'], mod['titre']) ]
+                    
+                msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
                 return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
     # --- Gestion des "Implémentations de Modules"

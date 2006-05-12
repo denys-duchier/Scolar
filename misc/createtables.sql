@@ -32,7 +32,8 @@ CREATE TABLE notes_ue (
 	formation_id text REFERENCES notes_formations(formation_id),
 	acronyme text NOT NULL,
 	numero int, -- ordre de presentation
-	titre text
+	titre text,
+	type  int DEFAULT 0 -- 0 normal, 1 "sport"
 	-- XXX manque certainement des infos (semestre?)
 );
 

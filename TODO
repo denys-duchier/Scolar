@@ -2,6 +2,30 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- ajout de la note de sport/culture
+    -> UE speciale dans la formation
+       La moyenne du module est utilisee
+       (il peut y avoir plusieurs evals)
+       Les etudiants doivent etre inscrits
+       individuellement au module "sport".
+
+formsemestre_inscription_with_modules_form
+   tous les modules sauf le sport
+
+ficheEtud  indiquer si inscrit au module sport
+
+formsemestre_status ajouter module sport indiquer Sport (note speciale)
+
+
+- supprimer un semestre de formation ?
+- bug: si suppress un module dans un semestre, pas de message d'erreur
+  (mais ne le fait pas car il y a des etudiants inscrits)
+
+- affectation des etudiants a des groupes: mega formulaire !
+- lien vers semestres sur page d'accueil (listes)
+
+
+
 - formulaire apres upload fichier note pas clair 
 
 - bulletins sans les codes de modules.
