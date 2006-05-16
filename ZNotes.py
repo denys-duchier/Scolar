@@ -2132,9 +2132,30 @@ class ZNotes(ObjectManager,
         ues = nt.get_ues()
         T = nt.get_table_moyennes_triees()
         if format == 'xls':
-            keep_numeric = True # pas de converison des notes en strings
+            keep_numeric = True # pas de conversion des notes en strings
         else:
             keep_numeric = False
+        if format=='xml':
+            # XML export: liste tous les bulletins XML
+            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            doc = jaxml.XML_document( encoding=SCO_ENCODING )
+            doc.recapsemestre( formsemestre_id=formsemestre_id,
+                               date=datetime.datetime.now().isoformat() )
+            evals=self.do_evaluation_etat_in_sem(formsemestre_id)[0]
+            doc._push()
+            doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
+                            nb_evals_en_cours=evals['nb_evals_en_cours'],
+                            nb_evals_vides=evals['nb_evals_vides'],
+                            date_derniere_note=evals['last_modif'])
+            doc._pop()
+            for t in T:
+                etudid = t[-1]
+                doc._push()
+                self.make_xml_formsemestre_bulletinetud(
+                    formsemestre_id, etudid, doc=doc )
+                doc._pop()
+            return repr(doc)
+        
         # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
         F = []
         h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
@@ -2296,8 +2317,8 @@ class ZNotes(ObjectManager,
                                      format='html', REQUEST=None, nohtml=False):
         if format != 'mailpdf':
             if format == 'xml':
-                bul = self.make_xml_formsemestre_bulletinetud(
-                    formsemestre_id,  etudid, REQUEST=REQUEST )
+                bul = repr(self.make_xml_formsemestre_bulletinetud(
+                    formsemestre_id,  etudid, REQUEST=REQUEST ))
             else:
                 bul, etud, filename = self.make_formsemestre_bulletinetud(
                     formsemestre_id, etudid,
@@ -2633,13 +2654,17 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             self.CachedNotesTable.inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
     # -------- Bulletin en XML
+    # (fonction séparée pour simplifier le code,
+    #  mais attention a la maintenance !)
     security.declareProtected(ScoView, 'make_xml_formsemestre_bulletinetud')
     def make_xml_formsemestre_bulletinetud( self, formsemestre_id, etudid,
+                                            doc=None, # XML document
                                             REQUEST=None):
         "bulletin au format XML"
         if REQUEST:
             REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        if not doc:            
+            doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
                           date=datetime.datetime.now().isoformat() )
         # infos sur l'etudiant
@@ -2723,7 +2748,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
         for app in apprecs:
             doc.appreciation( app['comment'], date=self.DateDDMMYYYY2ISO(app['date']))
-        return repr(doc)
+        return doc
 
     # -------- Events
     security.declareProtected(ScoEnsView, 'appreciation_add_form')

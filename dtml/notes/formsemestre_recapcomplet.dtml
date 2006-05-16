@@ -1,4 +1,4 @@
-<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls')">
+<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')">
 <dtml-if "not isFile">
 <dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
 
@@ -13,6 +13,7 @@
 <option value="html"<dtml-if "tabformat=='html'"> selected</dtml-if>>HTML</option>
 <option value="xls"<dtml-if "tabformat=='xls'"> selected</dtml-if>>Fichier tableur (Excel)</option>
 <option value="csv"<dtml-if "tabformat=='csv'"> selected</dtml-if>>Fichier tableur (CSV)</option>
+<option value="xml"<dtml-if "tabformat=='xml'"> selected</dtml-if>>Fichier XML</option>
 </select>
 (cliquer sur un nom pour afficher son bulletin ou <a href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
 </form> 

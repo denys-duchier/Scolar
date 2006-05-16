@@ -1,13 +1,19 @@
 SCOVERSION = "4.1.5"
 
 SCONEWS = """
-<h4>24 avril 2007</h4>
+<h4>12 mai 2006</h4>
+<ul>
+<li>Possibilité de suppression d'un semestre</li>
+<li>Export XML du tableau recapitulatif des notes du semestre</li>
+</ul>
+
+<h4>24 avril 2006</h4>
 <ul>
 <li>Export bulletins en XML (expérimental)</li>
 <li>Flag "gestion_absence" sur les semestres de formation</li>
 </ul>
 
-<h4>4 mars 2007</h4>
+<h4>4 mars 2006</h4>
 <ul>
 <li>Formulaire d'inscription au semestre suivant.</li>
 <li>Format "nombre" dans les feuilles excel exportées.</li>

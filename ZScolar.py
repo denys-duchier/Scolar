@@ -997,6 +997,10 @@ class ZScolar(ObjectManager,
               (groupetd,groupeanglais,groupetp,formsemestre_id))
         REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
+    # --- Affectation initiale des groupes
+    security.declareProtected(ScoEtudChangeGroups, 'formAffectGroupe')
+    def formAffectGroupe(self):
+        pass # XXXXXXXXXXXXXXXXXXXXXXX TODO
 
     # --- Trombi: gestion photos
     # Ancien systeme (www-gtr):
