@@ -5,6 +5,7 @@ SCONEWS = """
 <ul>
 <li>Possibilité de suppression d'un semestre</li>
 <li>Export XML du tableau recapitulatif des notes du semestre</li>
+<li>Possibilité de supression d'une formation complète</li>
 </ul>
 
 <h4>24 avril 2006</h4>

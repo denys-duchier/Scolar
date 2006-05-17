@@ -242,8 +242,13 @@ class ZNotes(ObjectManager,
     
     security.declareProtected(ScoAdministrate, 'do_formation_delete')
     def do_formation_delete(self, oid):
-        "delete a formation"
+        "delete a formation (and all its UE, matiers, modules)"
         cnx = self.GetDBConnexion()
+        # delete all UE in this formation
+        ues = self.do_ue_list({ 'formation_id' : oid })
+        for ue in ues:
+            self.do_ue_delete(ue['ue_id'])
+        
         self._formationEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
 
@@ -279,8 +284,13 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoAdministrate, 'do_ue_delete')
     def do_ue_delete(self, oid):
-        "delete UE"
+        "delete UE and attached matieres"
         cnx = self.GetDBConnexion()
+        # delete all matiere in this UE
+        mats = self.do_matiere_list({ 'ue_id' : oid })
+        for mat in mats:
+            self.do_matiere_delete(mat['matiere_id'])
+        
         self._ueEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
 
@@ -316,8 +326,12 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoAdministrate, 'do_matiere_delete')
     def do_matiere_delete(self, oid):
-        "delete matiere"
+        "delete matiere and attached modules"
         cnx = self.GetDBConnexion()
+        # delete all modules in this matiere
+        mods = self.do_module_list({ 'matiere_id' : oid })
+        for mod in mods:
+            self.do_module_delete(mod['module_id'])
         self._matiereEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
 
