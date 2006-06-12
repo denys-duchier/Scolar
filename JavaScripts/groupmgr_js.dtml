@@ -1,0 +1,299 @@
+/* -*- mode: javascript -*-
+ * Mon premier programme AJAX:
+ * Affectation des groupes de TD
+ * Utilise: rico, prototype
+ */
+
+
+var onloads = new Array();
+function bodyOnLoad() {
+  new Rico.Effect.Round( null, 'roundNormal' );
+  new Rico.Effect.Round( null, 'roundCompact', {compact:true} );
+  for ( var i = 0 ; i < onloads.length ; i++ )
+    onloads[i]();
+  // alert('bodyOnLoad: done');
+}
+
+/* ------ Some utilities ----- */
+String.prototype.trim = function() {
+  // Strip leading and trailing white-space
+  return this.replace(/^\s*|\s*$/g, "");
+}
+
+
+/* ----- UPDATER ------- */
+CMyUpdater = Class.create();
+
+CMyUpdater.prototype = {
+  initialize: function() {
+    this.groups = new Object(); // effectifs dans chaque groupes
+  },
+  
+  ajaxUpdate: function(ajaxResponse) {
+    //console.log("ajaxUpdate called: " + ajaxResponse.childNodes[0]);
+    // Recupere la liste des groupes
+    nodes = ajaxResponse.getElementsByTagName('groupe');
+    if (nodes) {
+      for (var i=0; i < nodes.length; i++) {
+	var groupName = nodes[i].attributes.getNamedItem("groupName").value;
+	var displayName = nodes[i].attributes.getNamedItem("displayName").value;
+	// CREE LA BOITE POUR CE GROUPE
+	if (groupName) {
+	  gbox = new CGroupBox( groupName, displayName );
+	  etuds = nodes[i].getElementsByTagName('etud');
+	  var x='';
+	  //alert( 'etuds.length=' + etuds.length);
+	  for (var j=0; j < etuds.length; j++) {
+	    var nom = etuds[j].attributes.getNamedItem("nom").value;
+	    var prenom = etuds[j].attributes.getNamedItem("prenom").value;
+	    var sexe = etuds[j].attributes.getNamedItem("sexe").value;
+	    var etudid = etuds[j].attributes.getNamedItem("etudid").value;
+	    etud = new CDraggableEtud( nom, prenom, sexe, etudid );
+	    gbox.createEtudInGroup(etud, groupName);
+	  }
+	}
+      }
+    }
+    var cdiv = document.getElementById('gmsg');
+    cdiv.innerHTML = '';
+    updateginfo();
+  }
+};
+
+
+/* --- Boite pour un groupe --- */
+
+var groupBoxes; // assoc groupName : groupBox
+
+CGroupBox = Class.create();
+
+CGroupBox.prototype = {
+  initialize: function( groupName, displayName ) {
+    groupName = groupName.trim();
+    //alert("CGroupBox.initialize " + groupName);
+    if (! groupName) {
+      alert("Nom de groupe invalide");
+      return;
+    }
+    if ( groupName in MyUpdater.groups ) {
+      alert("Le groupe " + groupName + " existe déjà !");
+      return;
+    }
+    MyUpdater.groups[groupName] = 1;
+    this.groupName = groupName;
+    this.displayName = displayName;
+    this.etuds = new Object();
+    this.nbetuds = 0;
+    this.titleSpan = document.createElement("span");
+    this.titleSpan.className = "groupTitle";
+    this.groupBox = document.createElement("div");
+    this.groupBox.className = "simpleDropPanel";
+    this.groupBox.id = groupName;
+    this.groupBox.appendChild(this.titleSpan);
+    var gdiv = document.getElementById('groups');
+    gdiv.appendChild(this.groupBox);
+    this.updateTitle();
+    dndMgr.registerDropZone( new Rico.Dropzone(groupName) );
+    groupBoxes[groupName] = this; // register
+    updateginfo();
+  },
+  // add etud to group, attach to DOM 
+  createEtudInGroup: function(etud) {
+    this.addEtudToGroup(etud);
+    this.groupBox.appendChild(etud.htmlElement);
+  },
+  // add existing etud to group (does not affect DOM)
+  addEtudToGroup: function(etud) {
+    etud.groupName = this.groupName;
+    this.etuds[etud.etudid] = etud;
+    this.nbetuds++;
+    this.updateTitle();
+  },
+  // remove etud
+  removeEtud: function(etud) {
+    delete this.etuds[etud.etudid];
+    this.nbetuds--;
+    this.updateTitle();
+  },
+  // Update counter display
+  updateTitle: function() {
+    if (this.groupName != 'None')
+      this.titleSpan.innerHTML = 'Groupe ' + this.displayName + ' (' + this.nbetuds + ')';
+    else
+      this.titleSpan.innerHTML = 'Etudiants sans groupe' + ' (' + this.nbetuds + ')';
+    this.sortList(); // maintient toujours la liste triee
+  },
+  // Tri de la boite par nom
+  sortList: function() {
+    var newRows = new Array();
+    for (var i=1; i < this.groupBox.childNodes.length; i++) {
+      newRows[i-1] = this.groupBox.childNodes[i];
+    }
+    // console.log('sortList');
+    sortfn = function(a,b) {
+      // recupere les noms qui sont dans un span
+      nom_a = a.childNodes[1].childNodes[0].nodeValue;
+      nom_b = b.childNodes[1].childNodes[0].nodeValue;
+      // console.log( 'comp( %s, %s )', nom_a, nom_b );
+      if (nom_a==nom_b) return 0;
+      if (nom_a<nom_b) return -1;
+      return 1;
+    };
+    newRows.sort(sortfn); // XXX utiliser sortfn pour chercher le nom
+    for (var i=0;i<newRows.length;i++) {
+      this.groupBox.appendChild(newRows[i]);
+    }
+  }
+};
+
+
+var EtudColors = [ "#E8EEF7", "#E0ECFF", "#E5E6BE", "#F3EAE2", "#E3EAE1" ];
+var EtudColorsIdx = 0;
+var NbEtuds = 0;
+
+/* --- Etudiant draggable --- */
+var CDraggableEtud = Class.create();
+CDraggableEtud.prototype = (new Rico.Draggable()).extend( {
+  initialize: function(nom, prenom, sexe, etudid) {
+      this.type        = 'Custom';
+      this.name        = etudid;
+      this.etudid = etudid;
+      this.nom = nom;
+      this.prenom = prenom;
+      this.sexe = sexe;
+      this.createNode();
+      NbEtuds ++;
+    },
+      repr: function() {
+      return this.sexe + ' ' + this.prenom + ' <span class="nom">' + this.nom + '</span>';
+    },
+      createNode: function() {
+      // Create DOM element for student
+      var e = document.createElement("div");
+      this.htmlElement = e;
+      e.className = "box";
+      e.id = this.etudid;
+      e.style.backgroundColor = EtudColors[EtudColorsIdx];
+      EtudColorsIdx = (EtudColorsIdx + 1) % EtudColors.length;
+      //var txtNode = document.createTextNode( this.repr() );
+      //e.appendChild(txtNode);
+      e.innerHTML = this.repr();
+      // declare as draggable
+      dndMgr.registerDraggable(this);
+    },
+      endDrag: function() {
+      var el = this.htmlElement;
+      var p = el.parentNode;
+      // alert("endDrag: [" + this.name +"] " + p.id );
+      this.changeGroup( this.groupName, p.id  );
+      this.htmlElement.style.fontStyle = 'italic'; // italic pour les etudiants deplaces
+    },
+      // Move a student from a group to another
+      changeGroup: function(  oldGroupName, newGroupName ) {
+      if (oldGroupName) {
+	oldGroupBox = groupBoxes[oldGroupName];
+      }
+      // alert('changeGroup( ' + oldGroupName + ' -> ' + newGroupName + ' )' );
+      newGroupBox = groupBoxes[newGroupName];
+      newGroupBox.addEtudToGroup(this);
+      if (oldGroupBox != 'undefined')
+	oldGroupBox.removeEtud(this);
+      }
+  }
+);
+
+
+/* --- Upload du resultat --- */
+function processResponse(target, value) {
+  //console.log('processResponse: value=' + value);
+  if(target == 'alert') {
+    if(value!='ok')
+      alert(value);
+  }
+  else {
+    $(target).innerHTML = 'Groupes enregistres';
+  }
+}
+
+function handleError( errType, errMsg ) {
+  console.log( 'Error: ' + errType );
+  console.log( errMsg );
+  alert( 'Error: ' + errType );
+}
+
+function submitGroups(target) {
+  url = 'https://www-gtr.iutv.univ-paris13.fr/Dept/Scolarite/Notes/setGroupes';
+  //url = 'http://viennet.net/toto';
+  // build post request body: groupname \n etudid; ...
+  body = '';
+  for (var groupName in groupBoxes) {    
+    if (groupName != 'extend') { // je ne sais pas ce dont il s'agit
+      body += groupName + ';';
+      groupBox = groupBoxes[groupName];      
+      for (var etudid in groupBox.etuds) {
+	console.log( '%s, ', etudid );
+	if (etudid != 'extend')
+	  body += etudid + ';';
+      }
+      body += '\n'; // XXX
+    }
+  }
+  formsemestre_id = document.formGroup.formsemestre_id.value;
+  groupType = document.formGroup.groupType.value;
+  // Send to server
+  var status = new Ajax.Request( url, {
+    parameters : 'groupslists=' + encodeURIComponent(body) + '&formsemestre_id=' + encodeURIComponent(formsemestre_id) + '&groupType=' + encodeURIComponent(groupType),
+    onSuccess: function(req){ processResponse(target, req.responseText); },
+    onTimeout  : function(req){ handleError( 'Timeout', 'The request to the server timed out!\nStatus Text = '+req.statusText ); },
+    onError    : function(req){ handleError( 'Error', 'an error occured!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
+    onFailure  : function(req){ handleError( 'Failure', 'The request to the server failed!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
+    onException: function(req){ handleError( 'Exception', 'The request to the server raised an exception!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
+    } );
+  //alert('request sent');
+}
+
+
+/* */
+function loadGroupes() {
+  // alert("loadGroupes: sending request");
+  var cdiv = document.getElementById('gmsg');
+  cdiv.innerHTML = 'Chargement des groupes en cours...';
+  formsemestre_id = document.formGroup.formsemestre_id.value;
+  groupType = document.formGroup.groupType.value;
+  //console.log('loadGroupes(%s)', formsemestre_id );
+  ajaxEngine.sendRequest( 'getGroupesTD',
+			  'formsemestre_id=' + formsemestre_id,
+			  'groupType=' + groupType );
+}
+
+// Boite information haut de page 
+function updateginfo() {
+  g = document.getElementById('ginfo');
+  groupNames = new Array();
+  for (var groupName in groupBoxes) {
+    if (groupName != 'extend') { 
+      groupNames.push(groupName);
+    }
+  }
+  g.innerHTML = '<b>Groupes définis: ' + groupNames.join(', ') + '<br/>'
+    + "Nombre d'etudiants: " + NbEtuds + '</b>';
+
+}
+
+/* ------------------------------------------------- */
+onloads.push( initPage );
+
+var MyUpdater; // Global
+
+function initPage() {
+  //alert("initPage");
+  groupBoxes = new Object();
+  MyUpdater = new CMyUpdater();
+  ajaxEngine.registerAjaxObject("MyUpdater", MyUpdater );
+
+  ajaxEngine.registerRequest( 'getGroupesTD', 'XMLgetGroupesTD' );
+
+  /* --- Initialize content --- */
+  loadGroupes();
+}
+

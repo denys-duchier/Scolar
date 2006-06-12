@@ -1,0 +1,54 @@
+
+---- Structure d'un bulletin de note individuel: ----
+
+<bulletinetud etudid="" formsemestre_id="" date="">
+  
+  <etudiant nom="" prenom="" sexe="" etudid="" photo_url="" />
+  
+  <note value="13.13" />    <!-- Moyenne générale -->
+  
+  <rang value="3" ninscrits="64" /> <!-- 3ième sur 64 étudiants -->
+  
+  <note_max value="20" />  <!-- les notes de ce bulletin sont sur 20 -->
+  
+  <!-- il y a ensuite un nombre quelconque d'UE: -->
+  <ue id="" acronyme="" titre="" numero="">
+  
+    <note value="10" />  <!-- moyenne UE -->
+    
+    <module id="" code="" coefficient="" numero="" titre="" abbrev="">
+      <note value="12" /> <!-- moyenne du module -->
+      <evaluation jour="" heure_debut="" heure_fin="" 
+             coefficient="" description="">
+        <note value="12" /> <!-- note a cette evalution -->
+      </evaluation>
+    </module>
+  
+  </ue>
+
+  <!-- Informations sur l'assiduité (compte en 1/2 journées)
+       (n absences dont njust justifiées) -->
+  <absences nbabs="" nbabsjust="" />  
+
+  <!-- Situation etudiant -->
+  <situation>
+     blah blah
+  </situation>
+  
+  <!-- Appreciations de la sous-commission (jury) -->
+  <appreciation date="">
+    blah blah
+  </appreciation>
+
+</bulletinetud>
+
+---- Structure du tableau recapitulatif (recapcomplet) ----
+<recapsemestre formsemestre_id="" date="">
+
+ <evals_infos nb_evals_completes="" nb_evals_en_cours="" nb_evals_vides="" date_derniere_note=""/>
+ 
+ <bulletinetud etudid="" formsemestre_id="" date="">
+   ...
+ </bulletinetud>
+
+</recapsemestre>

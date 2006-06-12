@@ -1,0 +1,63 @@
+<dtml-var "sco_header(page_title='Affectation aux groupes',
+           REQUEST=REQUEST,client=this(),
+           javascripts=[ 'prototype_1_4_0_js', 'rico_js', 'groupmgr_js' ] )">
+
+
+<style type="text/css">
+
+.simpleDropPanel { 
+  float: left;
+  border-width: 1px;
+  border-style: dotted;
+  width: 15em;
+  margin: 1em;
+}
+
+.groupTitle {
+  font-weight: bold;
+}
+
+</style>
+
+
+<body bgcolor="<dtml-var body_bgcolor>" text="#000000" 
+      link="#008080" vlink="#000080"
+      topmargin="0" leftmargin="0" marginwidth="0" marginheight="0" 
+      onload="javascript:bodyOnLoad()">
+
+
+<h2>Affectation aux groupes de <dtml-var groupType></h2>
+
+<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes.
+</p>
+
+<div id="gmsg" style="font-style: italic">
+</div>
+
+<div id="ginfo">
+</div>
+
+<form name="formGroup" onSubmit="return false;">
+<input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"/>
+<input type="hidden" name="groupType" value="<dtml-var groupType>"/>
+
+<input name="groupName" size="6"/>
+<input type="button" onClick="new CGroupBox( document.formGroup.groupName.value, document.formGroup.groupName.value );" value="Creer groupe"/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="button" onClick="submitGroups( target='gmsg' );" value="Enregistrer ces groupes" />
+
+</form>
+
+
+<div style="background-color: salmon;">
+<div id="groups">
+</div>
+</div>
+
+<div style="clear: left; margin-top: 15px;">
+<p>Cette page ne fonctionne pas forcément avec tous les navigateurs (certaines versions d'Internet Explorer et de Safari posent problème). Utilisez de préférence Firefox.</p>
+</div>
+
+</div>
+
+<dtml-var standard_html_footer>

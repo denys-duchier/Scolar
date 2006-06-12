@@ -59,7 +59,7 @@
 
 
 <!-- LISTE DES ETUDIANTS -->
-<dtml-var "'\n'.join(make_listes_sem(sem))">
+<dtml-var "'\n'.join(make_listes_sem(sem, REQUEST))">
 
 
 <h3>Autres opérations</h3>

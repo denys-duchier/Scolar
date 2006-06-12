@@ -2247,13 +2247,15 @@ class ZNotes(ObjectManager,
         # Generation table au format demandé
         if format == 'html':
             # Table format HTML
-            H = [ '<table class="notes_recapcomplet">' ]
-            cells = '<tr class="recap_row_tit">'
+            H = [ '<table class="notes_recapcomplet sortable" id="recapcomplet">' ]
+            cells = '<tr class="recap_row_tit sortbottom">'
             for i in range(len(F[0])):
                 if i in ue_index:
                     cls = 'recap_tit_ue'
                 else:
                     cls = 'recap_tit'
+                if i == 0: # Rang: force tri numerique pour sortable
+                    cls = cls + ' sortnumeric'
                 if cod2mod.has_key(F[0][i]): # lien vers etat module
                     cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s">%s</a></td>' % (cls,cod2mod[F[0][i]], F[0][i])
                 else:
@@ -2267,7 +2269,7 @@ class ZNotes(ObjectManager,
             for l in F[1:]:
                 if ir == nblines-1:
                     el = l[1] # derniere ligne
-                    cells = '<tr class="recap_row_moy">'
+                    cells = '<tr class="recap_row_moy sortbottom">'
                 else:
                     el = etudlink % (formsemestre_id,l[-1],l[1])
                     if ir % 2 == 0:
@@ -2961,8 +2963,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                         uevalid[ue_id][etudid] = 1
                 else:
                     for ue_id in ue_ids:
-                        uevalid[ue_id][etudid] = 1
-            open('/tmp/toto','a').write('\n'+str(uevalid)+'\n')
+                        if uevalid.has_key(ue_id):
+                            # test car la formation peut avoir ete modifie
+                            # apres saisie des decisions !
+                            uevalid[ue_id][etudid] = 1
+            #open('/tmp/toto','a').write('\n'+str(uevalid)+'\n')
         #
         if REQUEST.form.get('go',False) and len(inconsistent_etuds)==0:
             # OK, validation
@@ -3254,23 +3259,26 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         que ceux du semestres qu'ils terminent. Pensez à modifier les groupes par
         la suite si nécessaire.
         </p>
+        <p><b>Vérifiez soigneusement le <font color="red">semestre de destination</font> !</b></p>
         """ % (sem['titre'],) ]
         H.append("""<form method="POST">
         <input type="hidden" name="tf-submitted" value="1"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
         """ % (formsemestre_id,) )
-        # menu avec liste des semestres débutant moins de 3 mois avant la date courante
+        # menu avec liste des semestres débutant a moins de 123 jours (4 mois)
+        # de la date de fin du semestre d'origine.
         sems = self.do_formsemestre_list()
         othersems = []
-        today = datetime.date.today()
-        delais = datetime.timedelta(92) # 92 jours ~ 3 mois
+        d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
+        date_fin_origine = datetime.date(y,m,d)
+        delais = datetime.timedelta(123) # 123 jours ~ 4 mois
         for s in sems:
             if s['formsemestre_id'] == formsemestre_id:
                 continue # saute le semestre d'où on vient
             if s['date_debut']:
                 d,m,y = [ int(x) for x in s['date_debut'].split('/') ]
                 datedebut = datetime.date(y,m,d)
-                if (today - datedebut) > delais:
+                if abs(date_fin_origine - datedebut) > delais:
                     continue # semestre trop ancien
             s['titremenu'] = s['titre'] + '&nbsp;&nbsp;(%s - %s)' % (s['date_debut'],s['date_fin'])
             othersems.append(s)

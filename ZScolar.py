@@ -28,7 +28,7 @@
 """Site Scolarite pour département IUT
 """
 
-import time, string
+import time, string, glob
 
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
@@ -65,6 +65,9 @@ import ImportScolars
 from VERSION import SCOVERSION, SCONEWS
 
 import Products.ZPsycopgDA.DA
+
+# XML generation package (apt-get install jaxml)
+import jaxml
 
 # ---------------
 
@@ -111,12 +114,6 @@ class ZScolar(ObjectManager,
         self.defaultDocFile('sidebar_dept',
                             'barre gauche (partie haute)',
                             'sidebar_dept')
-        self.defaultDocFile('sco_header',
-                            'header commun',
-                            'sco_header')
-        self.defaultDocFile('sco_footer',
-                            'footer commun',
-                            'sco_footer')
         
         # --- add DB connector
         id = 'DB'
@@ -176,6 +173,26 @@ class ZScolar(ObjectManager,
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
 
+    # Ajout des JavaScripts 
+    security.declareProtected('ScoView', 'groupmgr_js')
+    groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
+
+    security.declareProtected('ScoView', 'prototype_1_4_0_js')
+    prototype_1_4_0_js = DTMLFile('JavaScripts/prototype_1_4_0_js', globals())
+
+    security.declareProtected('ScoView', 'rico_js')
+    rico_js = DTMLFile('JavaScripts/rico_js', globals())
+
+    security.declareProtected('ScoView', 'sorttable_js')
+    sorttable_js = DTMLFile('JavaScripts/sorttable_js', globals())
+
+    security.declareProtected('ScoView', 'menu_js')
+    menu_js = DTMLFile('JavaScripts/menu_js', globals())
+
+    security.declareProtected('ScoView', 'menu_css')
+    menu_css = DTMLFile('JavaScripts/menu_css', globals())
+
+    
     security.declareProtected('ScoView', 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
@@ -187,10 +204,10 @@ class ZScolar(ObjectManager,
         return self.gtrintranetstyle.absolute_url()
 
 
-#     security.declareProtected('ScoView', 'sco_header')
-#     sco_header = DTMLFile('dtml/sco_header', globals())
-#     security.declareProtected('ScoView', 'sco_footer')
-#     sco_footer = DTMLFile('dtml/sco_footer', globals())
+    security.declareProtected('ScoView', 'sco_header')
+    sco_header = DTMLFile('dtml/sco_header', globals())
+    security.declareProtected('ScoView', 'sco_footer')
+    sco_footer = DTMLFile('dtml/sco_footer', globals())
     security.declareProtected('ScoView', 'menus_bandeau')
     menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
 
@@ -352,10 +369,10 @@ class ZScolar(ObjectManager,
         # liste des fomsemestres "courants"
         H.append('<h2>Semestres en cours</h3>')
         for sem in cursems:
-            H += self.make_listes_sem(sem)
+            H += self.make_listes_sem(sem, REQUEST)
         H.append('<h2>Semestres en passés ou futurs</h3>')
         for sem in othersems:
-            H += self.make_listes_sem(sem)
+            H += self.make_listes_sem(sem, REQUEST)
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit,self):
@@ -365,7 +382,9 @@ class ZScolar(ObjectManager,
         #
         return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
 
-    def make_listes_sem(self, sem):
+    # genere liste html pour acces aux groupes TD/TP/TA de ce semestre
+    def make_listes_sem(self, sem, REQUEST):
+        authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
         H = []
         H.append("<h3>Listes des étudiants de %s</h3>" % sem['titre'] )
@@ -406,14 +425,18 @@ class ZScolar(ObjectManager,
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
             H.append('<li><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
+        # Si admin, lien changementde groupes
+        if authuser.has_permission(ScoEtudChangeGroups,self):
+            H.append('<li>Modifier les groupes de <a href="affectGroupes?formsemestre_id=%s&groupType=TD">TD</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TA">anglais</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TP">TP</a></li>' % (formsemestre_id,formsemestre_id,formsemestre_id))
         H.append('</ul>')
         return H
 
-    security.declareProtected(ScoView, 'liste_groupe')
+    security.declareProtected(ScoView, 'listegroupe')
     def listegroupe(self, 
-                     formsemestre_id, REQUEST=None,
-                     groupetd=None, groupetp=None, groupeanglais=None,etat=None,
-                     format='html' ):
+                    formsemestre_id, REQUEST=None,
+                    groupetd=None, groupetp=None, groupeanglais=None,
+                    etat=None,
+                    format='html' ):
         """liste etudiants inscrits dans ce semestre
         format: html, cs, (XXX futur: pdf)
         """
@@ -422,7 +445,7 @@ class ZScolar(ObjectManager,
         #
         if format == 'html':
             H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre'], ng) ]
-            H.append('<table>')
+            H.append('<table class="sortable" id="listegroupe">')
             H.append('<tr><th>Nom</th><th>Prénom</th><th>Groupe</th><th>Mail</th></tr>')
             for t in T:
                 H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s %s</td><td><a href="mailto:%s">%s</a></td></tr>' %
@@ -949,7 +972,7 @@ class ZScolar(ObjectManager,
         # Liste des groupes existant (== ou il y a des inscrits)
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         #
-        H.append("""<form action="doChangeGroupe" method="GET">
+        H.append("""<form action="doChangeGroupe" method="GET" name="cg">
 <table>
 <tr><th></th><th>TD</th><th>"Anglais"</th><th>TP</th></tr>
 <tr><td><b>Groupes actuels&nbsp;:</b></td><td>%(groupetd)s</td><td>%(groupeanglais)s</td><td>%(groupetp)s</td></tr>
@@ -959,7 +982,7 @@ class ZScolar(ObjectManager,
             (gr_td,'groupetd'),
             (gr_anglais, 'groupeanglais'),
             (gr_tp, 'groupetp') ):
-            H.append('<td><select name="%s">' % gname )
+            H.append('<td><select name="%s" id="%s">' % (gname,gname) )
             for g in glist:
                 if ins[gname] == g:
                     selected = 'selected'
@@ -967,21 +990,50 @@ class ZScolar(ObjectManager,
                     selected = ''
                 H.append('<option value="%s" %s>%s</option>' % (g,selected,g))
             H.append('</select></td>')
-        # XXX possibilite de creer un groupe (champ texte lié en JS au menu)
         H.append('</tr></table>')
         H.append("""<input type="hidden" name="etudid" value="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
 <p>
 (attention, vérifier que les groupes de TD, TP et Anglais sont compatibles)
-<p>
-<input type="submit" value="Changer de groupe">
+</p>
+<script type="text/javascript">
+function tweakmenu( gname ) {
+   var gr = document.cg.newgroupname.value;
+   if (!gr) {
+      alert("nom de groupe vide !");
+      return false;
+   }
+   var menutd = document.getElementById(gname);
+   var newopt = document.createElement('option');
+   newopt.value = gr;
+   var textopt = document.createTextNode(gr);
+   newopt.appendChild(textopt);
+   menutd.appendChild(newopt);
+   var msg = document.getElementById("groupemsg");
+   msg.appendChild( document.createTextNode("groupe " + gr + " créé; ") );
+   document.cg.newgroupname.value = "";
+}
+</script>
 
-</form>""" % (etudid, formsemestre_id) )
+<p>Créer un nouveau groupe:
+<input type="text" id="newgroupname" size="8"/>
+<input type="button" onClick="tweakmenu( 'groupetd' );" value="créer groupe TD"/>
+<input type="button" onClick="tweakmenu( 'groupeanglais' );" value="créer groupe Anglais"/>
+<input type="button" onClick="tweakmenu( 'groupetp' );" value="créer groupe TP"/>
+</p>
+<p id="groupemsg" style="font-style: italic;"></p>
+
+<input type="submit" value="Changer de groupe">
+<input type="button" value="Annuler" onClick="window.location='%s'">
+
+</form>""" % (etudid, formsemestre_id, REQUEST.URL1) )
+        
         return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
 
     security.declareProtected(ScoEtudChangeGroups, 'doChangeGroupe')
-    def doChangeGroupe(self, etudid, formsemestre_id, groupetd,
-                       groupeanglais=None, groupetp=None, REQUEST=None):
+    def doChangeGroupe(self, etudid, formsemestre_id, groupetd=None,
+                       groupeanglais=None, groupetp=None, REQUEST=None,
+                       redirect=1):
         "change le groupe"
         cnx = self.GetDBConnexion()
         ins = self.Notes.do_formsemestre_inscription_list(
@@ -995,13 +1047,91 @@ class ZScolar(ObjectManager,
         logdb(REQUEST,cnx,method='changeGroupe', etudid=etudid,
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
               (groupetd,groupeanglais,groupetp,formsemestre_id))
-        REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
+        if redirect:
+            REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
     # --- Affectation initiale des groupes
-    security.declareProtected(ScoEtudChangeGroups, 'formAffectGroupe')
-    def formAffectGroupe(self):
-        pass # XXXXXXXXXXXXXXXXXXXXXXX TODO
+    security.declareProtected(ScoEtudChangeGroups, 'affectGroupes')
+    affectGroupes = DTMLFile('dtml/groups/affectGroupes', globals()) 
 
+    security.declareProtected(ScoView, 'XMLgetGroupesTD')
+    def XMLgetGroupesTD(self, formsemestre_id, groupType, REQUEST):
+        "Liste des etudiants dans chaque groupe de TD"
+        if not groupType in ('TD', 'TP', 'TA'):
+            raise ValueError( 'invalid group type: ' + groupType)
+        cnx = self.GetDBConnexion()
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc._text( '<ajax-response><response type="object" id="MyUpdater">' )
+        doc._push()
+
+        
+        # --- Infos sur les groupes existants
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        nt = self.Notes.CachedNotesTable.get_NotesTable(self.Notes,
+                                                        formsemestre_id)
+        inscrlist = nt.inscrlist # liste triee par nom
+        open('/tmp/titi','w').write(str(inscrlist))
+        # -- groupes TD (XXX experimental)
+        if groupType == 'TD':
+            gr, key = gr_td, 'groupetd'
+        elif groupType == 'TP':
+            gr, key = gr_tp, 'groupetp'
+        else:
+            gr, key = gr_anglais, 'groupeanglais'
+        inscr_nogroups = [ e for e in inscrlist if not e[key] ]
+        if inscr_nogroups:
+            # ajoute None pour avoir ceux non affectes a un groupe
+            gr.append(None)
+        for g in gr: 
+            doc._push()
+            if g:
+                gname = g
+            else:
+                gname = 'Aucun'
+            doc.groupe( type=groupType, displayName=gname, groupName=g )
+            for e in inscrlist:
+                if (g and e[key] == g) or (not g and not e[key]):
+                    ident = nt.identdict[e['etudid']]
+                    doc._push()
+                    doc.etud( etudid=e['etudid'],
+                              sexe=format_sexe(ident['sexe']),
+                              nom=format_nom(ident['nom']),
+                              prenom=format_prenom(ident['prenom']))
+                    doc._pop()    
+            doc._pop()
+        doc._pop()
+        doc._text( '</response></ajax-response>' )
+        return repr(doc)
+
+    security.declareProtected(ScoEtudChangeGroups, 'setGroupes')
+    def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
+                   REQUEST=None):
+        "affect groups (Ajax request)"
+        #f = open('/tmp/toto','w')
+        #f.write('formsemestre_id=%s\n' % formsemestre_id)
+        #f.write('groupType=%s\n' % groupType )
+        #f.write(groupslists)
+        if not groupType in ('TD', 'TP', 'TA'):
+            raise ValueError, 'invalid group type: ' + groupType
+        if groupType == 'TD':
+            grn = 'groupetd'
+        elif groupType == 'TP':
+            grn = 'groupetp'
+        else:
+            grn = 'groupeanglais'
+        args = { 'REQUEST' : REQUEST, 'redirect' : False }
+        for line in groupslists.split('\n'):
+            fs = line.split(';')
+            groupName = fs[0].strip();
+            args[grn] = groupName
+            for etudid in fs[1:-1]:
+                self.doChangeGroupe( etudid, formsemestre_id, **args )
+        
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        return '<ajax-response><response type="object" id="ok"/></ajax-response>'
+        
     # --- Trombi: gestion photos
     # Ancien systeme (www-gtr):
     #  fotos dans ZODB, folder Fotos, id=identite.foto

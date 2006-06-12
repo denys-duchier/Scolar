@@ -12,6 +12,17 @@
 <link HREF="<dtml-var "inc.menu_css.absolute_url()">" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="<dtml-var "inc.menu_js.absolute_url()">"></script>
 
+<script language="javascript" type="text/javascript" src="<dtml-var "inc.sorttable_js.absolute_url()">"></script>
+
+<dtml-if javascripts>
+<dtml-in javascripts>
+<dtml-let script_obj=sequence-item>
+<script language="javascript" type="text/javascript" 
+   src="<dtml-var "script_obj">"></script>
+</dtml-let>
+</dtml-in>
+</dtml-if>
+
 </head>
 
 <dtml-comment> fix : on utilisait ETUDID avant !</dtml-comment>

@@ -24,6 +24,9 @@
 
 <dtml-else>
 
+<p><b>Attention:</b> la suppression d'une formation est <b>irréversible</b> et implique la supressions des toutes les UE, matières et modules de la formation !
+</p>
+
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('formation_id', { 'input_type' : 'hidden' }),
    ),

@@ -1,6 +1,12 @@
 SCOVERSION = "4.1.5"
 
 SCONEWS = """
+<h4>12 juin 2006</h4>
+<ul>
+<li>Formulaire dynamique d'affectation aux groupes</li>
+<li>Tri des tableaux (listes, récapitulatif)</li>
+</ul>
+
 <h4>12 mai 2006</h4>
 <ul>
 <li>Possibilité de suppression d'un semestre</li>
