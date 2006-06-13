@@ -438,7 +438,7 @@ class ZScolar(ObjectManager,
                     etat=None,
                     format='html' ):
         """liste etudiants inscrits dans ce semestre
-        format: html, cs, (XXX futur: pdf)
+        format: html, csv, xls, xml (XXX futur: pdf)
         """
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
                                                    groupetd,groupetp,groupeanglais,etat )
@@ -474,6 +474,30 @@ class ZScolar(ObjectManager,
                 SheetName = title )
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        elif format == 'xml':
+            doc = jaxml.XML_document( encoding=SCO_ENCODING )
+            if REQUEST:
+                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            a = { 'formsemestre_id' : formsemestre_id }
+            if groupetd:
+                a['groupetd'] = groupetd
+            if groupeanglais:
+                a['groupeta'] = groupeanglais
+            if groupetp:
+                a['groupetp'] = groupetp
+            if etat:
+                a['etat'] = etat
+            doc.groupe( **a )
+            doc._push()
+            for t in T:
+                a = { 'etudid' : t[2],
+                      'nom' : t[0], 'prenom' : t[1], 'groupe' : t[5],
+                      'etat' : t[4], 'mail' : t[3] }
+                doc._push()
+                doc.etudiant(**a)
+                doc._pop()
+            doc._pop()
+            return repr(doc)
         else:
             raise ValueError('unsupported format')
 
@@ -696,6 +720,50 @@ class ZScolar(ObjectManager,
                 etud['telephonemobilestr'] = '<b>Mobile:</b> ' + format_telephone(etud['telephonemobile'])
             else:
                 etud['telephonemobilestr'] = ''
+
+    security.declareProtected(ScoView, 'XMLgetEtudInfos')
+    def XMLgetEtudInfos(self, etudid, REQUEST):
+        "Donne les informatons sur un etudiant"
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        cnx = self.GetDBConnexion()
+        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        self.fillEtudsInfo([etud])
+        doc.etudiant( etudid=etudid,
+                      nom=etud['nom'],
+                      prenom=etud['prenom'],
+                      sexe=etud['sexe'],
+                      nomprenom=etud['nomprenom'],
+                      email=etud['email'])
+        doc._push()
+        sem = etud['cursem']
+        if sem:
+            doc._push()
+            doc.insemestre( current='1',
+                            formsemestre_id=sem['formsemestre_id'],
+                            date_debut=DateDMYtoISO(sem['date_debut']),
+                            date_fin=DateDMYtoISO(sem['date_fin']),
+                            groupetd=sem['ins']['groupetd'],
+                            groupeta=sem['ins']['groupeanglais'],
+                            groupetp=sem['ins']['groupetp'],
+                            etat=sem['ins']['etat']
+                            )
+            doc._pop()
+        for sem in etud['sems']:
+            if sem != etud['cursem']:
+                doc._push()
+                doc.insemestre( 
+                    formsemestre_id=sem['formsemestre_id'],
+                    date_debut=DateDMYtoISO(sem['date_debut']),
+                    date_fin=DateDMYtoISO(sem['date_fin']),
+                    groupetd=sem['ins']['groupetd'],
+                    groupeta=sem['ins']['groupeanglais'],
+                    groupetp=sem['ins']['groupetp'],
+                    etat=sem['ins']['etat']
+                    )
+                doc._pop()
+        doc._pop()
+        return repr(doc)
 
     # -------------------------- FICHE ETUDIANT --------------------------
     security.declareProtected(ScoView, 'ficheEtud')

@@ -52,3 +52,17 @@
  </bulletinetud>
 
 </recapsemestre>
+
+---- Structure des infos sur un etudiant (XMLgetEtudInfos)
+<etudiant etudid="" nom="" prenom="" sexe="" nomprenom="" email="">
+
+<insemestre current="1" formsemestre_id=""
+            date_debut="" date_fin=""
+            groupetd="" groupeta="" groupetp=""
+            etat=""
+/>
+
+<!-- autres semestres, en nombre quelconque -->
+
+</etudiant>
+

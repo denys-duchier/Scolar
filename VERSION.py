@@ -5,6 +5,7 @@ SCONEWS = """
 <ul>
 <li>Formulaire dynamique d'affectation aux groupes</li>
 <li>Tri des tableaux (listes, récapitulatif)</li>
+<li>Export XML des iunfos sur un etudiant et des groupes</li>
 </ul>
 
 <h4>12 mai 2006</h4>

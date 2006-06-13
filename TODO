@@ -26,6 +26,8 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 - codes INE
 
+- liste complete: nom de fichier insuffisant (liste_.xls)
+
 - formulaire apres upload fichier note pas clair 
 
 - bulletins sans les codes de modules.
@@ -82,8 +84,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 * FONCTIONNALITES SUPPLEMENTAIRES
 ---------------------------------
-
-- formulaire formChangeGroupe: pouvoir specifier un NOUVEAU groupe.
 
 - verifier pas de saisie d'absences dans le FUTUR !
 
