@@ -74,6 +74,7 @@ background-color: rgb(176,176,176) ;
  width:256px;
  list-style-type: none ;
   display: none ;
+  z-index: 1000;
 /* le position absolute indique que la position est absolue par rapport au contenant */
 	position: absolute ;
  margin:0px;

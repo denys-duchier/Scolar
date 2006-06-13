@@ -9,16 +9,16 @@
 <meta name="DESCRIPTION" content="Intranet GTR : Intranet du département GTR de l'IUT de Villetaneuse" />
 
 <link HREF="<dtml-var "gtrintranetstyle.absolute_url()"><dtml-if no_side_bar>?no_side_bar=1</dtml-if>" rel="stylesheet" type="text/css" />
-<link HREF="<dtml-var "inc.menu_css.absolute_url()">" rel="stylesheet" type="text/css" />
-<script language="javascript" type="text/javascript" src="<dtml-var "inc.menu_js.absolute_url()">"></script>
+<link HREF="<dtml-var "ScoURL()">/menu_css" rel="stylesheet" type="text/css" />
+<script language="javascript" type="text/javascript" src="<dtml-var "ScoURL()">/menu_js"></script>
 
-<script language="javascript" type="text/javascript" src="<dtml-var "inc.sorttable_js.absolute_url()">"></script>
+<script language="javascript" type="text/javascript" src="<dtml-var "ScoURL()">/sorttable_js"></script>
 
 <dtml-if javascripts>
 <dtml-in javascripts>
 <dtml-let script_obj=sequence-item>
 <script language="javascript" type="text/javascript" 
-   src="<dtml-var "script_obj">"></script>
+   src="<dtml-var "ScoURL()">/<dtml-var "script_obj">"></script>
 </dtml-let>
 </dtml-in>
 </dtml-if>
