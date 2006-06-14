@@ -28,7 +28,7 @@
 <dtml-comment> fix : on utilisait ETUDID avant !</dtml-comment>
 <dtml-if etudid><dtml-call "REQUEST.set('ETUDID', etudid)"></dtml-if>
 
-<body>
+<body <dtml-if bodyOnLoad>onload="<dtml-var bodyOnLoad>"</dtml-if>>
 <table class="bandeaugtr">
 <tr class="bandeaugtr"><dtml-if titrebandeau><td><dtml-var titrebandeau></td></dtml-if>
     <td class="bandeaugtr"><dtml-if menus_bandeau><dtml-var menus_bandeau></dtml-if></td>

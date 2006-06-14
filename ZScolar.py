@@ -843,7 +843,14 @@ class ZScolar(ObjectManager,
             alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br>%(comment)s</td></tr>' % a )
         info['liste_annotations'] = '\n'.join(alist)
         #
-        tmpl = """<div class="ficheEtud"><table>
+        tmpl = """
+<script language="javascript" type="text/javascript">
+function bodyOnLoad() {
+    //Rico.Corner.round('tota');
+}
+</script>
+
+<div class="ficheEtud" id="ficheEtud"><table>
 <tr><td>
 <h2>%(nomprenom)s (%(inscription)s)</h2>
 
@@ -862,7 +869,7 @@ class ZScolar(ObjectManager,
 </div>
 
 <!-- Adresse -->
-<div class="ficheadresse">
+<div class="ficheadresse" id="ficheadresse">
 <table><tr>
 <td class="fichetitre2">Adresse :</td><td> %(domicile)s %(codepostaldomicile)s %(villedomicile)s %(paysdomicile)s
 %(modifadresse)s
@@ -873,7 +880,7 @@ class ZScolar(ObjectManager,
 </div>
 
 <!-- Inscriptions -->
-<div class="ficheinscriptions">
+<div class="ficheinscriptions" id="ficheinscriptions">
 <p class="fichetitre">Inscriptions</p>
 %(liste_inscriptions)s
 </div>
@@ -910,8 +917,11 @@ class ZScolar(ObjectManager,
 </div>
 </div>
         """
-        header = self.sco_header(self,REQUEST,
-                                 page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
+        header = self.sco_header(
+                    self, REQUEST,
+                    #javascripts=[ 'prototype_1_4_0_js', 'rico_js'],
+                    #bodyOnLoad='javascript:bodyOnLoad()',
+                    page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
         return header + tmpl % info + self.sco_footer(self,REQUEST)
 
     security.declareProtected(ScoView, 'descr_situation_etud')
