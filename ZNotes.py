@@ -677,7 +677,10 @@ class ZNotes(ObjectManager,
         for mo in modimpls:
             mo['module'] = self.do_module_list(
                 args={'module_id':mo['module_id']})[0]
-        modimpls.sort(lambda x,y: cmp(x['module']['numero'],y['module']['numero']))
+            mo['ue'] = self.do_ue_list( args={'ue_id' : mo['module']['ue_id']} )[0]
+        modimpls.sort(lambda x,y:
+                      cmp(x['ue']['numero']*1000 + x['module']['numero'],
+                          y['ue']['numero']*1000 + y['module']['numero']))
         return modimpls
 
     # --- Gestion des inscriptions aux modules
