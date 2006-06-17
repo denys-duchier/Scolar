@@ -446,6 +446,8 @@ class ZScolar(ObjectManager,
         """
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
                                                    groupetd,groupetp,groupeanglais,etat )
+        if not nomgroupe:
+            nomgroupe = 'tous'
         #
         if format == 'html':
             H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre'], ng) ]
