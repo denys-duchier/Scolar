@@ -137,6 +137,7 @@ class EditableTable:
                  aux_tables = [],
                  convert_null_outputs_to_empty=True,
                  callback_on_write = None,
+                 allow_set_id = False
                  ):
         self.table_name = table_name
         self.id_name = id_name
@@ -147,11 +148,12 @@ class EditableTable:
         self.input_formators = input_formators
         self.convert_null_outputs_to_empty = convert_null_outputs_to_empty
         self.callback_on_write = callback_on_write # called after each modification
+        self.allow_set_id = allow_set_id
     
     def create(self, cnx, args, has_uniq_values=True):
         "create object in table"        
         vals = dictfilter(args, self.dbfields)        
-        if vals.has_key(self.id_name):
+        if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
         quote_dict(vals) # quote all HTML markup
         

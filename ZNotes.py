@@ -2791,7 +2791,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         if date_dem:
             return inscr + '. Démission le %s.' % date_dem
         if evt_valid_sem:
-            return inscr + ', validé le %s.' % evt_valid_sem['event_date']
+            return inscr + ', obtenu le %s.' % evt_valid_sem['event_date']
         if date_echec:
             inscr += ', échec le %s.' % date_echec
             # indique UE validées

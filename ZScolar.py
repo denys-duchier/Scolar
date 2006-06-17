@@ -336,7 +336,7 @@ class ZScolar(ObjectManager,
     showEtudLog = DTMLFile('dtml/showEtudLog', globals())
     security.declareProtected('ScoView', 'listScoLog')
     def listScoLog(self,etudid):
-        "liste des operation effectuees sur cet etudiant"
+        "liste des operations effectuees sur cet etudiant"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("select * from scolog where etudid=%(etudid)s ORDER BY DATE DESC",
@@ -387,7 +387,11 @@ class ZScolar(ObjectManager,
         authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
         H = []
-        H.append("<h3>Listes des étudiants de %s</h3>" % sem['titre'] )
+        # -- prevoir si necessaire un moyen de chercher le vrai nom du
+        #    responsable de formation.
+        sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
+        #
+        H.append('<h3>%(titre)s <span class="infostitresem">(%(date_debut)s - %(date_fin)s, %(responsable_name)s)</span></h3>' % sem )
         # cherche les groupes de ce semestre
         formsemestre_id = sem['formsemestre_id']
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
@@ -1477,11 +1481,13 @@ Utiliser ce formulaire en fin de semestre, après le jury.
     
     # ---- inscriptions "en masse"
     security.declareProtected(ScoEtudInscrit, "students_import_csv")
-    def students_import_csv(self, csvfile, REQUEST=None):
-        "import students from CSV file"
-        ImportScolars.scolars_import_csv_file( csvfile, file_path, self.Notes )
+    def students_import_excel(self, csvfile, REQUEST=None):
+        "import students from Excel file"
+        diag = ImportScolars.scolars_import_excel_file(
+            csvfile, file_path, self.Notes, REQUEST )
         if REQUEST:
             H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]
+            H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
@@ -1495,15 +1501,18 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         F = self.sco_footer(self,REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
-            (('csvfile', {'input_type' : 'file', 'size' : 40 }),
+            (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file', 'size' : 40 }),
              ), submitlabel = 'Télécharger')
-        S = ["""<p>Le fichier CSV décrivant les étudiants doit comporter les colonnes suivantes.
-Il s'agit d'un fichier texte, colonnes séparées par des <b>tabulations</b>,
-codage des caractères <b>iso8859-15</b>. 
+        S = ["""<p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
 le <b>titre</b> exact (tel que ci-dessous) doit être sur la première ligne.
+</p>
 <p>
 Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
+</p>
+<p>
+Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="import_generate_excel_sample">ici</a>
+</p>
 <p>
 <table>
 <tr><td><b>Attribut</b></td><td><b>Type</b></td><td><b>Description</b></td></tr>"""]
@@ -1519,7 +1528,14 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
-            return self.students_import_csv(tf[2]['csvfile'], REQUEST=REQUEST)
+            return self.students_import_excel(tf[2]['csvfile'], REQUEST=REQUEST)
+
+    security.declareProtected(ScoEtudInscrit,"sco_import_generate_excel_sample")
+    def import_generate_excel_sample(self, REQUEST):
+        "une feuille excel pour importation etudiants"
+        format = ImportScolars.sco_import_format(file_path)
+        data = ImportScolars.sco_import_generate_excel_sample(format)
+        return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
     
     # sendEmail is not used through the web
     security.declareProtected(ScoAdministrate, "sendEmail")

@@ -35,6 +35,14 @@ from notes_log import log
 from scolog import logdb
 from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html
 
+COLOR_CODES = { 'black' : 0,
+                'red' : 0x0A,
+                'mauve' : 0x19,
+                'marron' : 0x3c,
+                'blue' : 0x4,
+                'orange' : 0x34
+                }
+
 
 def sendExcelFile(REQUEST,data,filename):
     """publication fichier.
@@ -71,26 +79,24 @@ def sendExcelFile(REQUEST,data,filename):
 #         return doc.savetostr(self.get_biff_data())
 
 # ------ Export simple type 'CSV': 1ere ligne en gras, le reste tel quel
-def Excel_SimpleTable( titles=[], lines=[[]], SheetName='feuille'):
+def Excel_SimpleTable( titles=[], lines=[[]],                       
+                       SheetName='feuille',
+                       titlesStyles=[]
+                       ):
     
     UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
-    
     wb = Workbook()
     ws0 = wb.add_sheet(SheetName)
-    style_titres = XFStyle()
-    font0 = Font()
-    font0.bold = True
-    font0.name = 'Times New Roman'
-    font0.bold = True
-    style_titres.font = font0
-
-    style = XFStyle()
+    if not titlesStyles:
+        style = Excel_MakeStyle( bold=True )
+        titlesStyles = [style]*len(titles)
     # ligne de titres
     col = 0
     for it in titles:
-        ws0.write(0, col, it, style_titres)
+        ws0.write(0, col, it, titlesStyles[col])
         col += 1
     # suite
+    style = Excel_MakeStyle()
     li = 1
     for l in lines:
         col = 0
@@ -100,6 +106,17 @@ def Excel_SimpleTable( titles=[], lines=[[]], SheetName='feuille'):
         li += 1
     #
     return wb.savetostr()
+
+def Excel_MakeStyle( bold=False, color='black' ):
+    style = XFStyle()
+    font = Font()
+    font.bold = bold
+    font.name = 'Arial'                    
+    colour_index = COLOR_CODES.get(color, None)    
+    if colour_index:
+        font.colour_index = colour_index
+    style.font = font
+    return style
 
 def Excel_feuille_saisie( E, description, lines ):
     """Genere feuille excel pour saisie des notes.
@@ -230,10 +247,10 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
             v = v.encode(SCO_ENCODING, 'backslashreplace')
         else:
             v = str(v)
-        last_row, last_col = len(matrix), len(matrix[-1])
-        while last_row < row_idx:
+        n_row, last_col = len(matrix), len(matrix[-1])
+        while n_row <= row_idx:
             matrix.extend([[]])
-            last_row = len(matrix)
+            n_row = len(matrix)
         while last_col < col_idx:
             matrix[-1].extend([''])
             last_col = len(matrix[-1])

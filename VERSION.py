@@ -1,4 +1,4 @@
-SCOVERSION = "4.1.5"
+SCOVERSION = "4.2"
 
 SCONEWS = """
 <h4>12 juin 2006</h4>

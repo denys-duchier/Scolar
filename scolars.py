@@ -127,7 +127,9 @@ _identiteEditor = EditableTable(
                         'sexe' : force_uppercase,
                         'annee_naissance' : pivot_year,
                         },
-    convert_null_outputs_to_empty=True )
+    convert_null_outputs_to_empty=True,
+    allow_set_id = True # car on specifie le code Apogee a la creation
+    )
 
 identite_create = _identiteEditor.create
 identite_delete = _identiteEditor.delete

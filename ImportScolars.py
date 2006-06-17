@@ -33,6 +33,7 @@ import os, sys, time, pdb
 from notesdb import *
 from notes_log import log
 import scolars
+import sco_excel
 
 # format description (relative to Product directory))
 FORMAT_FILE = "misc/format_import_etudiants.txt"
@@ -52,24 +53,43 @@ def sco_import_format( product_file_path ):
             r.append( tuple( [x.strip() for x in fs]) )
     return r
 
-def scolars_import_csv_file( csvfile, product_file_path, Notes, REQUEST):
+def sco_import_generate_excel_sample( format ):
+    """generates an excel document based on format
+    (format is the result of sco_import_format())
+    """
+    style = sco_excel.Excel_MakeStyle(bold=True)
+    style_required = sco_excel.Excel_MakeStyle(bold=True, color='red')
+    titles = []
+    titlesStyles = []
+    for l in format:
+        if int(l[3]):
+            titlesStyles.append(style)
+        else:
+            titlesStyles.append(style_required)
+        titles.append(l[0])
+    return sco_excel.Excel_SimpleTable( titles=titles,
+                                        titlesStyles=titlesStyles,
+                                        SheetName="Etudiants" )
+
+
+def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
     """Importe etudiants depuis fichier CSV
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
     cnx = Notes.GetDBConnexion()
     cursor = cnx.cursor()
     annee_courante = time.localtime()[0]
+    diag, data = sco_excel.Excel_to_list(datafile.read())
     # 1-  --- check title line
     titles = {}
     fmt = sco_import_format(product_file_path)
     for l in fmt:
         tit = l[0].lower() # titles in lowercase
         titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
-    head = csvfile.readline()
-    if not head:
+    if not data:
         raise FormatError('check_csv_file: empty file !')
-    fs = [ x.strip().lower() for x in head.split('\t') ]
-    log("csv: fs='%s'" % str(fs))
+    fs = [ x.strip().lower() for x in data[0] ]
+    log("csv: fs='%s'\ndata=%s" % (str(fs), str(data)))
     # remove quotes
     for i in range(len(fs)):
         if len(fs[i]) > 1:
@@ -96,20 +116,16 @@ def scolars_import_csv_file( csvfile, product_file_path, Notes, REQUEST):
     created_etudids = []
     try: # --- begin DB transaction
         linenum = 0
-        lines = csvfile.readlines() # small file, read it
-        for line in lines:
+        for line in data[1:]:
             linenum += 1            
             # Read fields, check and convert type
-            values = {} # { title : value } (for this line)
-            if line and (line[-1] == '\n' or  line[-1] == '\r'):
-                line = line[:-1]
-            fs = line.split('\t')
+            values = {}
+            fs = line
             # remove quotes
             for i in range(len(fs)):
                 if fs[i] and ((fs[i][0] == '"' and fs[i][-1] == '"')
                            or (fs[i][0] == "'" and fs[i][-1] == "'")):
                     fs[i] = fs[i][1:-1]
-            assert len(fs) == len(titleslist)
             for i in range(len(fs)):
                 val = fs[i].strip()
                 table, typ, an, descr = tuple(titles[titleslist[i]])
@@ -146,7 +162,10 @@ def scolars_import_csv_file( csvfile, product_file_path, Notes, REQUEST):
             log( 'csv inscription: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
+            args['etudid'] = values['code']
             etudid = scolars.identite_create(cnx,args)
+            if values['code']:
+                assert etudid == values['code']
             created_etudids.append(etudid)
             # Admissions
             args['etudid'] = etudid
@@ -158,8 +177,7 @@ def scolars_import_csv_file( csvfile, product_file_path, Notes, REQUEST):
             adresse_id = scolars.adresse_create(cnx,args)
             # Inscription au semestre
             args['etat'] = 'I' # etat insc. semestre
-            formsemestre_id = kw['args']['codesemestre']
-            kw['args']['formsemestre_id'] = formsemestre_id
+            args['formsemestre_id'] = values['codesemestre']
             Notes.do_formsemestre_inscription_with_modules(args=args,
                                                            REQUEST=REQUEST,
                                                            method='import_csv_file')
@@ -181,4 +199,4 @@ def scolars_import_csv_file( csvfile, product_file_path, Notes, REQUEST):
         raise
     log('csv: completing transaction')
     cnx.commit()
-
+    return diag
