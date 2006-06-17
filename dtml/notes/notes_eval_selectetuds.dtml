@@ -1,14 +1,17 @@
 <dtml-var "sco_header(page_title='Saisie des notes',REQUEST=REQUEST,client=this())">
 <h2>Saisie des notes</h2>
+
+<dtml-unless notesfile-submitted>
+
 <p>
-<dtml-var "do_evaluation_selectetuds(REQUEST )">
+<dtml-var "do_evaluation_selectetuds(REQUEST)">
 </p>
 
+</dtml-unless>
+<dtml-let eval="do_evaluation_list( {'evaluation_id' : evaluation_id})[0]">
 
 <div style="border: 1px solid blue;">
 <h3>Chargement d'un fichier de notes</h3>
-<p>Le fichier doit être un fichier tableur obtenu via le formulaire ci-dessus, puis complété et enregistré au format Excel.
-</p>
 
 <dtml-call "REQUEST.set('nf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
@@ -21,13 +24,17 @@
    submitlabel = 'Télécharger'))">
 
 <dtml-if "nf[0] == 0">
+<p>Le fichier doit être un fichier tableur obtenu via le formulaire ci-dessus, puis complété et enregistré au format Excel.
+</p>
  <dtml-var "nf[1]">
 <dtml-elif "nf[0] == -1">
    Annulation
 <dtml-elif "nf[0] == 1">
    <dtml-var "do_evaluation_upload_xls(REQUEST)">
-   <hr>
-   <dtml-var "nf[1]">
+   <p>Notes chargées. 
+    <a href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">
+     Continuer</a>
+   </p>
 </dtml-if>
 
 </div>
@@ -37,6 +44,9 @@
 <ul>
 <li><a href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
 </li> 
+<li><a href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">Revenir au module</a>
+</li>
 </ul>
 
+</dtml-let eval>
 <dtml-var sco_footer>
