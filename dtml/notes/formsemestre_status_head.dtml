@@ -19,7 +19,7 @@
 <dtml-in "do_evaluation_etat_in_sem( formsemestre_id )" mapping>
 
 <tr><td class="fichetitre2">Evaluations: </td><td> <dtml-var nb_evals_completes> ok, <dtml-var nb_evals_en_cours> en cours, <dtml-var nb_evals_vides> vides
-<dtml-if last_modif></td></tr><tr><td>&nbsp;</td><td><em>(dernière note saisie le <dtml-var "DateTime(str(last_modif)).strftime('%d/%m/%Y à %Hh%M')">)</em></dtml-if>
+<dtml-if last_modif><em>(dernière note saisie le <dtml-var "DateTime(str(last_modif)).strftime('%d/%m/%Y à %Hh%M')">)</em></dtml-if>
 </td></tr>
 
 </dtml-in do_evaluation_etat_in_sem>
