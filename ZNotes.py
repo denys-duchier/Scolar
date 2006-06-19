@@ -2613,7 +2613,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             raise ValueError('invalid version code !')
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
-        ues = nt.get_ues()
+        ues = nt.get_ues( filter_sport=True, etudid=etudid )
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)
         # Genere le HTML H, une table P pour le PDF

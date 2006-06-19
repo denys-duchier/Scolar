@@ -4,6 +4,7 @@ SCONEWS = """
 <h4>18 juin 2006</h4>
 <ul>
 <li>Gestion des modules optionnels</li>
+<li>Prise en compte note "activités cultuerelles ou sportives"</li>
 <li>Amélioration tableau de bord semestre</li>
 <li>Import listes étudiants depuis Excel (avec code Apogée)</li>
 </ul>

@@ -181,9 +181,30 @@ class NotesTable:
             return ' <font color="red">(DEMISSIONNAIRE)</font> '
         else:
             return ' <font color="red">(%s)</font> ' % etat
-    def get_ues(self):
-        "liste des ue, ordonnée par numero"
-        return self._ues
+    def get_ues(self, filter_sport=False, etudid=None):
+        """liste des ue, ordonnée par numero.
+        Si filter_sport, retire les UE "sport" si etudiant pas inscrit.
+        """
+        if not filter_sport:
+            return self._ues
+        ues = []
+        for ue in self._ues:
+            # verifie que l'etud. est inscrit a au moins un module de l'UE
+            # (en fait verifie qu'il a une note)
+            modimpls = self.get_modimpls( ue['ue_id'] )
+            has_note = False
+            for modi in modimpls:
+                moy = self.get_etud_mod_moy(modi, etudid)
+                try:
+                    float(moy)
+                    has_note = True
+                    break
+                except:
+                    pass
+            if has_note:
+                ues.append(ue)
+        return ues
+    
     def get_modimpls(self, ue_id=None):
         "liste des modules pour une UE (ou toutes si ue_id==None)"
         if ue_id is None:
@@ -236,19 +257,38 @@ class NotesTable:
         sum_notes = 0.
         sum_coefs = 0.
         nb_missing = 0
+        sum_notes_sport = 0.
+        sum_coef_sport = 0.
         for modimpl in modimpls:
             val = self._modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
             # si 'NI' probablement etudiant non inscrit a ce module
-            coef = modimpl['module']['coefficient']
-            try:
-                #print '%g in module %s coef %g' % (val, modimpl['moduleimpl_id'], coef)
-                sum_notes += val * coef
-                sum_coefs += coef
-                nb_notes = nb_notes + 1
-            except:
-                nb_missing = nb_missing + 1
+            if modimpl['ue']['type'] == UE_STANDARD:
+                coef = modimpl['module']['coefficient']
+                try:
+                    sum_notes += val * coef
+                    sum_coefs += coef
+                    nb_notes = nb_notes + 1
+                except:
+                    nb_missing = nb_missing + 1
+            elif modimpl['ue']['type'] == UE_SPORT:
+                # la note du module de sport agit directement sur la moyenne gen.
+                try:
+                    sum_notes_sport += val * coef
+                    sum_coef_sport += coef
+                except:
+                    pass
+            else:
+                raise ScoValueError("type d'UE inconnu (%s)"%modimpl['ue']['type'])
         if sum_coefs > 0:
             moy = sum_notes/ sum_coefs
+            # la note de sport n'est prise en compte que sur la moy. gen.
+            if not ue_id:
+                if sum_coef_sport > 0:
+                    note_sport = sum_notes_sport / sum_coef_sport
+                    # regle de calcul maison:
+                    if note_sport > 10.:
+                        bonus = (note_sport - 10.) / 20.
+                        moy += bonus
         else:
             moy = 'NA'
         return moy, nb_notes, nb_missing
