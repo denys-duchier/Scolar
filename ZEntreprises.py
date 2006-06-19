@@ -79,15 +79,14 @@ class EntreprisesEditor(EditableTable):
         
     def list(self, cnx, args={},
              operator = 'and', test='=', sortkey=None,
-             sort_on_contact=False ):
+             sort_on_contact=False, ZEntrepriseInstance=None ):
         # list, then sort on date of last contact
         R = EditableTable.list(self, cnx, args=args,
                                operator=operator, test=test, sortkey=sortkey)
         if sort_on_contact:
             for r in R:
-                c = entreprise_contact_list(
-                    uid,
-                    {'entreprise_id' : r['entreprise_id']},
+                c = ZEntrepriseInstance.do_entreprise_contact_list(
+                    args={ 'entreprise_id' : r['entreprise_id'] },
                     disable_formatting=True)
                 if c:
                     r['date'] = max( [ x['date'] for x in c ] )
@@ -290,6 +289,7 @@ class ZEntreprises(ObjectManager,
     def do_entreprise_list(self, **kw):
         "entreprise_list"
         cnx = self.GetDBConnexion()
+        kw['ZEntrepriseInstance'] = self
         return _entreprisesEditor.list( cnx, **kw )
 
     security.declareProtected(ScoEntrepriseView, 'do_entreprise_list_by_etud')

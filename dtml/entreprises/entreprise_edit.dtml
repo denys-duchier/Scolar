@@ -72,11 +72,15 @@
  <li><a href="entreprise_contact_edit?entreprise_contact_id=<dtml-var "c['entreprise_contact_id']">">
    <dtml-var "c['date']"></a> 
       &nbsp;&nbsp;&nbsp;<dtml-if "c['type_contact']"><dtml-var "c['type_contact']"></dtml-if>
+      <dtml-let etud="getEtudInfo(etudid=c['etudid'], filled=1)">
+      <dtml-if "len(etud) == 1">
       <dtml-try>
-        <dtml-in "getEtudInfo(etudid=c['etudid'], filled=1)" mapping>
+        <dtml-in etud mapping>
             <a href="<dtml-var DeptURL>/Scolarite/ficheEtud?etudid=<dtml-var "c['etudid']">"><dtml-var nomprenom></a>
         </dtml-in>
       <dtml-except></dtml-try>
+      </dtml-if>
+      </dtml-let>
       <dtml-if "c['description']">(<dtml-var "c['description']">)</dtml-if>
   </li>
  </dtml-let c>

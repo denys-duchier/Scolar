@@ -2393,7 +2393,12 @@ class ZNotes(ObjectManager,
         h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
         cod2mod ={} # code : moduleimpl_id
         for ue in ues:
-            h.append( ue['acronyme'] )
+            if ue['type'] == UE_STANDARD:            
+                h.append( ue['acronyme'] )
+            elif ue['type'] == UE_SPORT:
+                h.append('') # n'affiche pas la moyenne d'UE dans ce cas
+            else:
+                raise ScoValueError('type UE invalide !')
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
                     code = modimpl['module']['code']
@@ -2433,7 +2438,10 @@ class ZNotes(ObjectManager,
                     ue['nb_moy']  += 1
                 except:
                     pass
-                l.append( fmtnum(t[i]) ) # moyenne dans l'ue
+                if ue['type'] == UE_STANDARD:
+                    l.append( fmtnum(t[i]) ) # moyenne dans l'ue
+                elif ue['type'] == UE_SPORT:
+                    l.append('') # n'affiche pas la moyenne d'UE dans ce cas
                 ue_index.append(len(l)-1)
                 j = 0
                 for modimpl in modimpls:
@@ -2455,7 +2463,10 @@ class ZNotes(ObjectManager,
                 moy_ue = ue['sum_moy'] / ue['nb_moy']
             else:
                 moy_ue = ''
-            l.append( fmt_note(moy_ue) ) 
+            if ue['type'] == UE_STANDARD:
+                l.append( fmt_note(moy_ue) ) 
+            elif ue['type'] == UE_SPORT:
+                l.append('') # n'affiche pas la moyenne d'UE dans ce cas
             ue_index.append(len(l)-1)
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
@@ -2655,9 +2666,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for ue in ues:
             tabline += 1
             # Ligne UE
-            t = ( ue['acronyme'],
-                  fmt_note(nt.get_etud_moy(etudid,ue_id=ue['ue_id'])[0]),
-                  '', '', '' ) # xxx sum coef UE TODO
+            moy_ue = fmt_note(nt.get_etud_moy(etudid,ue_id=ue['ue_id'])[0])
+            if ue['type'] == UE_SPORT:
+                moy_ue = '(note spéciale)'
+            t = ( ue['acronyme'], moy_ue, '', '', '' ) # xxx sum coef UE TODO
             P.append(t)
             ueline(tabline)
             H.append('<tr class="notes_bulletin_row_ue">')
