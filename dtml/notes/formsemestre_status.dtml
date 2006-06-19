@@ -32,13 +32,19 @@
 <dtml-call "REQUEST.set( 'ModInscrits',
 	      do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
 
+<dtml-if "M['ue']['type'] != 0">
+ <dtml-call "REQUEST.set('fontorange', ' fontorange')">
+<dtml-else>
+ <dtml-call "REQUEST.set('fontorange', '')">
+</dtml-if>
+
 <dtml-in "do_evaluation_etat_in_mod(M['moduleimpl_id'] )" mapping>
 <dtml-if "(nb_evals_completes > 0) and (nb_evals_en_cours==0) and (nb_evals_vides==0)">
-<tr class="formsemestre_status_green">
+<tr class="formsemestre_status_green<dtml-var fontorange>">
 <dtml-else>
-<tr class="formsemestre_status">
+<tr class="formsemestre_status<dtml-var fontorange>">
 </dtml-if>
-<td><dtml-var "M['ue']['acronyme']"></td>
+<td><dtml-var "M['ue']['acronyme']"> </td>
 <td class="formsemestre_status_code">
 <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"><dtml-var "Mod['code']"></a>
 </td>

@@ -44,6 +44,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
              size : text field width
              rows, cols: textarea geometry
              labels : labels for radio or menu lists (associated to allowed_values)
+             vertical: for checkbox; if true, vertical layout
     """
     if method == 'GET':
         enctype = None
@@ -291,14 +292,23 @@ class TF:
                 lem.append('</select>')
             elif input_type == 'checkbox':
                 labels = descr.get('labels', descr['allowed_values'])
+                vertical=descr.get('vertical', False)
+                if vertical:
+                    lem.append('<table>')
                 for i in range(len(labels)):
                     if descr['allowed_values'][i] in values[field]:
                         checked='checked="checked"'
                     else:
                         checked=''
                     attribs = ' '.join(descr.get('attributes', []))
+                    if vertical:
+                        lem.append('<tr><td>')
                     lem.append('<input type="checkbox" name="%s:list" value="%s" %s %s>%s</input>'
                                % (field, descr['allowed_values'][i], attribs, checked, labels[i]) )
+                    if vertical:
+                        lem.append('</tr></td>')
+                if vertical:
+                    lem.append('</table>')
             elif input_type == 'textarea':
                 lem.append('<textarea name="%s" rows="%d" cols="%d">%s</textarea>'
                            % (field,rows,cols,values[field]) )

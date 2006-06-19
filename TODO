@@ -9,14 +9,22 @@
        Les etudiants doivent etre inscrits
        individuellement au module "sport".
 
+attribut "type" dans les UE (0 normal, 1 sport)
+
 formsemestre_inscription_with_modules_form
    tous les modules sauf le sport
+
+page pour inscription d'un etudiant a un module
+page pour visualiser les modules auquel un etudiant est inscrit,
+et le desinscrire si besoin.
 
 ficheEtud  indiquer si inscrit au module sport
 
 formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 calcul de la moyenne
+
+- verifier date evaluation (doit etre incluse dans les dates du semestre)
 
 - statistiques sur nombres d'étudiants par type de bacs
 

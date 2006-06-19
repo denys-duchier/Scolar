@@ -822,8 +822,10 @@ class ZScolar(ObjectManager,
                     ilist.append("""
                     <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
-                    <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire ailleurs</a>
-                    </ul></ul>
+                    <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>
+                    <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">EN TEST Inscrire à un module optionnel (ou au sport)</a></li>
+                    </ul>
+                    </ul>
                     """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )                    
                     #                     <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
                     #

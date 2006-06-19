@@ -1,6 +1,13 @@
 SCOVERSION = "4.2"
 
 SCONEWS = """
+<h4>18 juin 2006</h4>
+<ul>
+<li>Gestion des modules optionnels</li>
+<li>Amélioration tableau de bord semestre</li>
+<li>Import listes étudiants depuis Excel (avec code Apogée)</li>
+</ul>
+
 <h4>12 juin 2006</h4>
 <ul>
 <li>Formulaire dynamique d'affectation aux groupes</li>

@@ -41,6 +41,10 @@ NOTES_BARRE_GEN = 10. # barre sur moyenne generale
 NOTES_BARRE_UE = 8.   # barre sur UE
 NOTES_BARRE_VALID_UE = 10. # seuil pour valider UE
 
+UE_STANDARD = 0
+UE_SPORT = 1
+
+UE_TYPE_NAME = { UE_STANDARD : 'standard', UE_SPORT : 'sport' }
 
 def fmt_note(val, note_max=None, keep_numeric=False):
     """conversion note en str pour affichage dans tables HTML ou PDF.
