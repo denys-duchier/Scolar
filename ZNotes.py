@@ -1159,6 +1159,19 @@ class ZNotes(ObjectManager,
         "create a evaluation"
         moduleimpl_id = args['moduleimpl_id']
         self._evaluation_check_write_access(REQUEST, moduleimpl_id=moduleimpl_id)
+        # check date
+        jour = args.get('jour', None)
+        if jour:
+            M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
+            sem = self.do_formsemestre_list(args={ 'formsemestre_id':M['formsemestre_id']})[0]
+            d,m,y = [ int(x) for x in sem['date_debut'].split('/') ]
+            date_debut = datetime.date(y,m,d)
+            d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
+            date_fin = datetime.date(y,m,d)
+            d,m,y = [ int(x) for x in jour.split('/') ]
+            jour = datetime.date(y,m,d)
+            if (jour > date_fin) or (jour < date_debut):
+                raise ScoValueError("La date de l'évaluation n'est pas dans le semestre !")
         #
         cnx = self.GetDBConnexion()
         r = self._evaluationEditor.create(cnx, args)
@@ -1279,7 +1292,8 @@ class ZNotes(ObjectManager,
         #
         H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h3>'
              % (action, moduleimpl_id, Mod['code'], Mod['titre']),
-             'Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre']) ]
+             '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre']),
+             'du %(date_debut)s au %(date_fin)s</p>' % sem ]
         if readonly:
             E = initvalues
             # version affichage seule (générée ici pour etre plus jolie que le Formulator)

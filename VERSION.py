@@ -4,7 +4,7 @@ SCONEWS = """
 <h4>18 juin 2006</h4>
 <ul>
 <li>Gestion des modules optionnels</li>
-<li>Prise en compte note "activités cultuerelles ou sportives"</li>
+<li>Prise en compte note "activités culturelles ou sportives"</li>
 <li>Amélioration tableau de bord semestre</li>
 <li>Import listes étudiants depuis Excel (avec code Apogée)</li>
 </ul>
@@ -88,7 +88,7 @@ SCONEWS = """
 <li>Suppression de notes (permet donc de supprimer une évaluation)
 </li>
 <li>Bulletins en versions courtes (seulement moyennes de chaque module), longues
-(toutes els notes) et intermédiaire (moyenne de chaque module plus notes dans les évaluations sélectionnées).
+(toutes les notes) et intermédiaire (moyenne de chaque module plus notes dans les évaluations sélectionnées).
 </li>
 <li>Notes moyennes sous les barres en rouge dans le tableau récapitulatif (seuil=10 sur la moyenne générale, et 8 sur chaque UE).
 </li>
