@@ -2175,13 +2175,18 @@ class ZNotes(ObjectManager,
             return True        
 
     security.declareProtected(ScoView, 'evaluation_suppress_alln')
-    def evaluation_suppress_alln(self, evaluation_id, REQUEST):
+    def evaluation_suppress_alln(self, evaluation_id, REQUEST, dialog_confirmed=False):
         "suppress all notes in this eval"
         authuser = str(REQUEST.AUTHENTICATED_USER)
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
         if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
             # XXX imaginer un redirect + msg erreur
             raise AccessDenied('Modification des notes impossible pour %s'%authuser)
+        if not dialog_confirmed:
+            return self.confirmDialog('<p>Confirmer la suppression des notes ?</p>',
+                                      dest_url="", REQUEST=REQUEST,
+                                      cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
+                                      parameters={'evaluation_id':evaluation_id})
         # recupere les etuds ayant une note
         NotesDB = self._notes_getall(evaluation_id)
         notes = [ (etudid, NOTES_SUPPRESS) for etudid in NotesDB.keys() ]
@@ -2251,6 +2256,8 @@ class ZNotes(ObjectManager,
                         if value != NOTES_SUPPRESS:
                             cursor.execute('update notes_notes set value=%(value)s, comment=%(comment)s, date=%(date)s, uid=%(uid)s where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
                         else: # supression ancienne note
+                            log('_notes_add, suppress, evaluation_id=%s, etudid=%s, oldval=%s'
+                                % (evaluation_id,etudid,oldval) )
                             cursor.execute('delete from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
                             nb_suppress += 1
                         nb_changed += 1                    

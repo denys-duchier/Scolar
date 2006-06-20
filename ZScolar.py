@@ -1555,7 +1555,26 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
         except:
             pass
 
-                        
+    security.declareProtected(ScoAdministrate, "confirmDialog")
+    def confirmDialog(self, message='<p>Confirmer ?</p>',
+                      OK='OK', Cancel='Annuler',
+                      dest_url="", cancel_url="",
+                      parameters={},
+                      REQUEST=None ):
+        "dialog de confirmation simple"
+        parameters['dialog_confirmed'] = 1
+        H = [ message,
+              """<form action="%s">
+              <input type="submit" value="%s"/>""" % (dest_url, OK) ]
+        if cancel_url:
+            H.append(
+                """<input type ="button" value="%s"
+                onClick="document.location='%s';"/>""" % (Cancel,cancel_url))
+        for param in parameters.keys():
+            H.append('<input type="hidden" name="%s" value="%s"/>'
+                     % (param, parameters[param]))
+        H.append('</form>')
+        return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
             
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
