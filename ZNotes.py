@@ -1293,13 +1293,17 @@ class ZNotes(ObjectManager,
         H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h3>'
              % (action, moduleimpl_id, Mod['code'], Mod['titre']),
              '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre']),
-             'du %(date_debut)s au %(date_fin)s</p>' % sem ]
+             'du %(date_debut)s au %(date_fin)s' % sem ]
         if readonly:
             E = initvalues
             # version affichage seule (générée ici pour etre plus jolie que le Formulator)
-            H.append( '<br>évaluation réalisée le <b>%s</b> de %s à %s'
-                      % (E['jour'],E['heure_debut'],E['heure_fin']) )
-            H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
+            jour = E['jour']
+            if not jour:
+                jour = '???'
+            H.append( '<br>Evaluation réalisée le <b>%s</b> de %s à %s'
+                      % (jour,E['heure_debut'],E['heure_fin']) )
+            if E['jour']:
+                H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
             H.append( '<br>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
             return '<div class="eval_description">' + '\n'.join(H) + '</div>'
 
@@ -1815,7 +1819,10 @@ class ZNotes(ObjectManager,
                                 cancelbutton = 'Annuler',
                                 submitlabel = 'OK' )
         if  tf[0] == 0:
-            return '\n'.join(H) + '\n' + tf[1]
+            H.append( """<div class="saisienote_etape1">
+            <span class="titredivsaisienote">Etape 1 : choix du groupe et de la méthode</span>
+            """)
+            return '\n'.join(H) + '\n' + tf[1] + "\n</div>"
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:

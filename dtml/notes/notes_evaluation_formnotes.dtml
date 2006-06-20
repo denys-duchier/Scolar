@@ -2,7 +2,7 @@
 <dtml-var sco_header>
 <h2>Saisie des notes</h2>
 <p>
-<em>Utiliser 'ABS' pour dénoter les absents, 'NEUTRE' pour indiquer 
+<em>Utiliser 'ABS' pour dénoter les absents, 'NEUTRE' (ou 'EXC') pour indiquer 
 que la note ne devra pas être prise en compte dans la moyenne, ou 'SUPR'
 pour supprimer une note.
 </em>

@@ -10,9 +10,8 @@
 </dtml-unless>
 <dtml-let eval="do_evaluation_list( {'evaluation_id' : evaluation_id})[0]">
 
-<div style="border: 1px solid blue;">
-<h3>Chargement d'un fichier de notes</h3>
-
+<div class="saisienote_etape2">
+<span class="titredivsaisienote">Etape 2 : chargement d'un fichier de notes</span>
 <dtml-call "REQUEST.set('nf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
     ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
@@ -47,6 +46,24 @@
 <li><a href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">Revenir au module</a>
 </li>
 </ul>
+
+<h3>Explications</h3>
+<ol>
+<li>Cadre bleu (étape 1): 
+<ol><li>choisir la méthode de saisie (formulaire web ou feuille Excel);
+    <li>choisir le ou les groupes;</li>
+</ol>
+</li>
+<li>Cadre rouge (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel téléchargé à l'étape 1 et dans lequel on a saisi des notes. Remarques:
+<ul>
+<li>le fichier Excel ne doit pas forcément être complet: on peut ne saisir que quelques notes et répéter l'opération (en téléchargeant un nouveau fichier) plus tard;</li>
+<li>seules les valeurs des notes modifiées sont prises en compte;</li>
+<li>seules les notes sont extraites du fichier Excel;</li>
+<li>on peut optionnellement ajouter un commentaire (type "copies corrigées par Dupont", ou "Modif. suite à contestation") dans la case "Commentaire".
+</li>
+</ul>
+</li>
+</ol>
 
 </dtml-let eval>
 <dtml-var sco_footer>
