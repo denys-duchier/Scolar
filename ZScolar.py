@@ -824,6 +824,7 @@ class ZScolar(ObjectManager,
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">EN TEST Inscrire à un module optionnel (ou au sport)</a></li>
+                    <li><a href="Notes/do_formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">déinscrire (en cas d'erreur)</a></li>
                     </ul>
                     </ul>
                     """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )                    

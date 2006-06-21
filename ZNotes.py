@@ -746,6 +746,38 @@ class ZNotes(ObjectManager,
         gr_anglais.sort()
         return gr_td, gr_tp, gr_anglais
 
+    security.declareProtected(ScoImplement, 'do_formsemestre_desinscription')
+    def do_formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None, dialog_confirmed=False):
+        """desinscrit l'etudiant de ce semestre (et donc de tous les modules).
+        A n'utiliser qu'en cas d'erreur de saisie"""
+        if not dialog_confirmed:
+            etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+            sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+            return self.confirmDialog(
+                """<p>Confirmer la demande de desinscription ?</p>
+                <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
+                <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
+                Un étudiant réellement inscrit doit le rester, le faire éventuellement <b>démissionner<b>.
+                </p>
+                """ % (etud['nomprenom'],sem['titre'],sem['date_debut'],sem['date_fin']),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
+                parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
+        # -- desinscription de tous les modules
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute( "select moduleimpl_inscription_id from notes_moduleimpl_inscription Im, notes_moduleimpl M  where Im.etudid=%(etudid)s and Im.moduleimpl_id = M.moduleimpl_id and M.formsemestre_id = %(formsemestre_id)s",
+                        { 'etudid' : etudid, 'formsemestre_id' : formsemestre_id } )
+        res = cursor.fetchall()
+        moduleimpl_inscription_ids = [ x[0] for x in res ]
+        for moduleimpl_inscription_id in moduleimpl_inscription_ids:
+            self.do_moduleimpl_inscription_delete(moduleimpl_inscription_id)
+        # -- desincription du semestre
+        insem = self.do_formsemestre_inscription_list(
+            args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
+        self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
+        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a href="ficheEtud?etudid=%s">retour à la fiche</a>'%etudid + self.sco_footer(self,REQUEST)
+        
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(
         'notes_moduleimpl_inscription',

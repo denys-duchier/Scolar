@@ -22,6 +22,8 @@ ficheEtud  indiquer si inscrit au module sport
 
 formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
+- formsemestre_editwithmodules ne permet pas de changer le semestre_id
+
 - saisie des notes par les chargés de TD
 
 - statistiques sur nombres d'étudiants par type de bacs
