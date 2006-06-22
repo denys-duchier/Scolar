@@ -1,8 +1,9 @@
 SCOVERSION = "4.2"
 
 SCONEWS = """
-<h4>18 juin 2006</h4>
+<h4>22 juin 2006</h4>
 <ul>
+<li>Génération feuilles pour préparation jury</li>
 <li>Gestion des modules optionnels</li>
 <li>Prise en compte note "activités culturelles ou sportives"</li>
 <li>Amélioration tableau de bord semestre</li>

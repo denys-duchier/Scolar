@@ -231,7 +231,7 @@ function submitGroups(target) {
       body += groupName + ';';
       groupBox = groupBoxes[groupName];      
       for (var etudid in groupBox.etuds) {
-	console.log( '%s, ', etudid );
+	//console.log( '%s, ', etudid );
 	if (etudid != 'extend')
 	  body += etudid + ';';
       }

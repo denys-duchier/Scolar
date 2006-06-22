@@ -3453,7 +3453,103 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         else:
             ue_ids = []
         return sem_d, ue_ids
-            
+
+    # ------------- Feuille excel pour preparation des jurys
+    security.declareProtected(ScoView,'do_feuille_preparation_jury')
+    def do_feuille_preparation_jury(self, formsemestre_id1, formsemestre_id2, REQUEST):
+        "Feuille excel pour preparation des jurys"
+        nt1 = self.CachedNotesTable.get_NotesTable(self, formsemestre_id1)
+        nt2 = self.CachedNotesTable.get_NotesTable(self, formsemestre_id2)
+        # construit { etudid : [ ident, { formsemestre_id : (moyennes) } ] }
+        # (fusionne les liste d'etudiants qui peuvent differer d'un semestre a l'autre)
+        R = {}
+        Tdict = nt1.get_table_moyennes_dict()
+        for etudid in Tdict.keys():
+            R[etudid] = [ nt1.identdict[etudid], { formsemestre_id1 : Tdict[etudid] } ]
+        Tdict = nt2.get_table_moyennes_dict()
+        for etudid in Tdict.keys():
+            if R.has_key(etudid):
+                R[etudid][1][formsemestre_id2] = Tdict[etudid]
+            else:
+                R[etudid] = [ nt2.identdict[etudid], { formsemestre_id2 : Tdict[etudid] } ]
+        ues_sems = { formsemestre_id1 : nt1.get_ues(), formsemestre_id2 : nt2.get_ues() }
+        # Contruit table pour export excel
+        # Nom, Prenom, Naissance, Cursus (?), moy sem. 1, moy sem 2
+        head = ['Nom', 'Prénom', 'Date Naissance', 'Cursus']
+        for nt in (nt1,nt2):
+            for ue in nt.get_ues():
+                head.append(ue['acronyme'])
+            head += ['Moy', 'Décision Comm.', 'Compensation' ]
+        titres_sems = ['','','','']
+        for nt in (nt1,nt2):
+            titres_sems += [ '%s du %s au %s'%(unquote(nt.sem['titre']), # export xls, pas html
+                                               nt.sem['date_debut'], nt.sem['date_fin']) ]
+            titres_sems += ['']*(len(ues_sems[nt.sem['formsemestre_id']])+2)
+        L = [ titres_sems ]
+        # forme la liste des etudids tries par noms
+        etudids = [ (R[k][0]['nom'], k) for k in R.keys() ] # (nom, etudid)
+        etudids.sort()
+        etudids = [ x[1] for x in etudids ]
+        for etudid in etudids:
+            ident = R[etudid][0]
+            l = [ ident['nom'], ident['prenom'], ident['annee_naissance'], '' ]
+            for formsemestre_id in (formsemestre_id1, formsemestre_id2):
+                t = R[etudid][1].get(formsemestre_id,None)
+                if not t:
+                    l += ['']*(len(ues_sems[formsemestre_id])+3)
+                else:
+                    iue = 0
+                    for ues in ues_sems[formsemestre_id]:
+                        iue += 1
+                        l.append(t[iue])
+                    l.append(t[0])
+                    l += ['',''] # decision com, compensation
+            L.append(l)
+        # 
+        xls = sco_excel.Excel_SimpleTable( titles=head, lines=L, SheetName='Notes' )
+        return sco_excel.sendExcelFile(REQUEST, xls, 'RecapMoyennesJury.xls' )
+
+    security.declareProtected(ScoView,'feuille_preparation_jury')
+    def feuille_preparation_jury(self,formsemestre_id, REQUEST):
+        "choix semestre precedent pour feuille jury"
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        H = [ self.sco_header(self,REQUEST) ]
+        H.append( """<p>
+        Cette fonction va générer une feuille Excel avec les moyennes de deux semestres,
+        pour présentation en jury de fin d'année.</p>
+        <p>Le semestre courant est: %s (%s - %s)</p>
+        <p>Choissisez le semestre "précédent".</p>
+        <form method="GET" action="do_feuille_preparation_jury">
+        <input type="hidden" name="formsemestre_id2" value="%s"/>
+        """ % (sem['titre'], sem['date_debut'], sem['date_fin'], formsemestre_id) )
+        sems = self.do_formsemestre_list()
+        othersems = []
+        d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
+        date_fin_origine = datetime.date(y,m,d)
+        for s in sems:
+            if s['formsemestre_id'] == formsemestre_id:
+                continue # saute le semestre d'où on vient
+            if s['date_debut']:
+                d,m,y = [ int(x) for x in s['date_debut'].split('/') ]
+                datedebut = datetime.date(y,m,d)
+                if datedebut > date_fin_origine:
+                    continue # ne mentionne pas les semestres situes apres
+            s['titremenu'] = s['titre'] + '&nbsp;&nbsp;(%s - %s)' % (s['date_debut'],s['date_fin'])
+            othersems.append(s)  
+        menulist = []
+        for o in othersems:
+            s = ''
+            menulist.append(
+                '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
+        
+        H.append( '<p><b>Semestre destination:</b> <select name="formsemestre_id1">'
+                  + '\n '.join(menulist) + '</select></p>' )
+        H.append("""<input type="submit" value="Générer feuille"/></form>""")
+        H.append(self.sco_footer(self, REQUEST))
+        return '\n'.join(H)
+
+        
+        
     # ------------- INSCRIPTIONS: PASSAGE D'UN SEMESTRE A UN AUTRE
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscr_passage')
     def formsemestre_inscr_passage(self, formsemestre_id, REQUEST=None):

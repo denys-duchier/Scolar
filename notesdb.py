@@ -14,6 +14,12 @@ def quote_dict( d ):
         if type(v) == StringType:
             d[k] = escape(v)
 
+def unquote(s):
+    "inverse of quote"
+    # pas d'inverse de cgi.escape
+    # ne traite que &
+    return s.replace('&amp;', '&')
+
 DB = psycopg
 
 def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
@@ -102,7 +108,10 @@ def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
                 vals[col] = None
     s = ', '.join([ '%s=%%(%s)s' % (x,x) for x in vals.keys() ])
     try:
-        cursor.execute('update ' + table + ' set ' + s + ' where ' + where, vals )
+        req = 'update ' + table + ' set ' + s + ' where ' + where
+        cursor.execute( req, vals )
+        #open('/tmp/toto','a').write('req=%s\n'%req)
+        #open('/tmp/toto','a').write('vals=%s\n'%vals)
     except:
         cnx.commit() # get rid of this transaction
         raise        # and re-raise exception

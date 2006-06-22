@@ -94,6 +94,10 @@
  <li><a href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
  </li>
 
+ <li><a href="feuille_preparation_jury?formsemestre_id=<dtml-var formsemestre_id>">Générer feuille préparation Jury</a>
+ </li>
+
+
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>
  <a href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) à un autre semestre</a>

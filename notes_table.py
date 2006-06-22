@@ -77,14 +77,16 @@ class NotesTable:
     Attributs publics (en lecture):
     - inscrlist: étudiants inscrits à ce semestre, par ordre alphabétique
     - identdict: { etudid : ident }
-    - 
+    - sem : le formsemestre
+    get_table_moyennes_triees: [ (moy_gen, moy_ue1, moy_ue2, ... moy_ues, moy_mod1, ..., moy_modn, etudid) ] 
+    (où toutes les valeurs sont formatéees (fmt_note)
     """
     def __init__(self, znote, formsemestre_id):
         #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG
         if not formsemestre_id:
             raise ScoValueError('invalid formsemestre_id' )
         cnx = znote.GetDBConnexion()
-        sem = znote.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id})[0]
+        self.sem = znote.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id})[0]
         # Infos sur les etudiants
         self.inscrlist = znote.do_formsemestre_inscription_list(
             args = { 'formsemestre_id' : formsemestre_id })
@@ -298,7 +300,13 @@ class NotesTable:
     def get_etud_rang(self, etudid):
         return self.rangs[etudid]
 
-
+    def get_table_moyennes_dict(self):
+        """{ etudid : (liste des moyennes) } comme get_table_moyennes_triees
+        """
+        D = {}
+        for t in self.T:
+            D[t[-1]] = t
+        return D
 
 class CacheNotesTable:
     """gestion rudimentaire de cache pour les NotesTables"""

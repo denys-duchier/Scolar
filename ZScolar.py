@@ -1076,6 +1076,7 @@ function bodyOnLoad() {
                 else:
                     selected = ''
                 H.append('<option value="%s" %s>%s</option>' % (g,selected,g))
+            H.append('<option value="">Aucun</option>')
             H.append('</select></td>')
         H.append('</tr></table>')
         H.append("""<input type="hidden" name="etudid" value="%s">
@@ -1121,19 +1122,31 @@ function tweakmenu( gname ) {
     def doChangeGroupe(self, etudid, formsemestre_id, groupetd=None,
                        groupeanglais=None, groupetp=None, REQUEST=None,
                        redirect=1):
-        "change le groupe"
+        "Change le groupe. Si la valeur du groupe est '' (vide) ou 'None', le met à NULL (aucun groupe)"
         cnx = self.GetDBConnexion()
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
-        ins['groupetd'] = groupetd
+        if groupetd != None:
+            if groupetd == '' or groupetd == 'None':
+                groupetd = None
+            ins['groupetd'] = groupetd
         if groupetp != None:
+            if groupetp == '' or groupetp == 'None':
+                groupetp = None
             ins['groupetp'] = groupetp
         if groupeanglais != None:
+            if groupeanglais == '' or groupeanglais == 'None':
+                groupeanglais = None
             ins['groupeanglais'] = groupeanglais
-        self.Notes.do_formsemestre_inscription_edit( args=ins )
+        #self.Notes.do_formsemestre_inscription_edit( args=ins )
+        # on ne peut pas utiliser do_formsemestre_inscription_edit car le groupe peut
+        # etre null et les nulls sont filtrés par dictfilter dans notesdb
+        cursor = cnx.cursor()
+        cursor.execute("update notes_formsemestre_inscription set groupetd=%(groupetd)s, groupetp=%(groupetp)s, groupeanglais=%(groupeanglais)s where formsemestre_id=%(formsemestre_id)s and etudid=%(etudid)s", ins)
         logdb(REQUEST,cnx,method='changeGroupe', etudid=etudid,
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
               (groupetd,groupeanglais,groupetp,formsemestre_id))
+        cnx.commit()
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1196,10 +1209,10 @@ function tweakmenu( gname ) {
     def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
                    REQUEST=None):
         "affect groups (Ajax request)"
-        #f = open('/tmp/toto','w')
-        #f.write('formsemestre_id=%s\n' % formsemestre_id)
-        #f.write('groupType=%s\n' % groupType )
-        #f.write(groupslists)
+        f = open('/tmp/toto','w')
+        f.write('formsemestre_id=%s\n' % formsemestre_id)
+        f.write('groupType=%s\n' % groupType )
+        f.write(groupslists)
         if not groupType in ('TD', 'TP', 'TA'):
             raise ValueError, 'invalid group type: ' + groupType
         if groupType == 'TD':
