@@ -2,7 +2,149 @@
 -- Creation des tables pour gestion notes
 -- E. Viennet, Sep 2005
 
--- genereation des id
+
+
+-- creation de la base:
+--  en tant qu'utilisateur postgres
+--     createuser --pwprompt scogea
+--     createdb -E latin1 -O scogea SCOGEA "scolarite GEA"
+--
+--
+
+CREATE TABLE identite (
+    etudid text DEFAULT notes_newid('EID'::text) NOT NULL,
+    nom text,
+    prenom text,
+    sexe text,
+    annee_naissance integer,
+    nationalite text,
+    foto text
+);
+
+CREATE TABLE adresse (
+    adresse_id text DEFAULT notes_newid('ADR'::text) NOT NULL,
+    etudid text NOT NULL,
+    email text,
+    domicile text,
+    codepostaldomicile text,
+    villedomicile text,
+    paysdomicile text,
+    telephone text,
+    telephonemobile text,
+    fax text,
+    typeadresse text DEFAULT 'domicile'::text NOT NULL,
+    entreprise_id integer,
+    description text
+);
+
+CREATE TABLE admissions (
+    adm_id text DEFAULT notes_newid('ADM'::text) NOT NULL,
+    etudid text NOT NULL,
+    annee integer,
+    bac text,
+    specialite text,
+    annee_bac integer,
+    math real,
+    physique real,
+    anglais real,
+    francais real,
+    rang integer,
+    qualite real,
+    rapporteur text,
+    decision text,
+    score real,
+    commentaire text,
+    nomlycee text,
+    villelycee text
+);
+
+CREATE TABLE absences (
+    etudid text NOT NULL,
+    jour date,
+    estabs boolean,
+    estjust boolean,
+    matin boolean
+);
+
+CREATE TABLE scolog (
+    date timestamp without time zone DEFAULT now(),
+    authenticated_user text,
+    remote_addr text,
+    remote_host text,
+    method text,
+    etudid character(32),
+    msg text
+);
+
+
+CREATE TABLE etud_annotations (
+    id integer DEFAULT nextval('serial'::text) NOT NULL,
+    date timestamp without time zone DEFAULT now(),
+    etudid character(32),
+    author text,
+    comment text,
+    zope_authenticated_user text,
+    zope_remote_addr text
+);
+
+
+
+
+--  ------------ ENTREPRISES ------------
+
+CREATE TABLE entreprises (
+    entreprise_id serial NOT NULL,
+    nom text,
+    adresse text,
+    ville text,
+    codepostal text,
+    pays text,
+    contact_origine text,
+    secteur text,
+    note text,
+    privee text,
+    localisation text,
+    qualite_relation integer, -- -1 inconnue, 0, 25, 50, 75, 100
+    plus10salaries integer,
+    date_creation timestamp without time zone DEFAULT now()
+);
+
+
+CREATE TABLE entreprise_correspondant (
+    entreprise_corresp_id serial NOT NULL,
+    nom text,
+    prenom text,
+    fonction text,
+    phone1 text,
+    phone2 text,
+    mobile text,
+    mail1 text,
+    mail2 text,
+    note text,
+    entreprise_id integer,
+    civilite text,
+    fax text
+);
+
+
+--
+--
+
+CREATE TABLE entreprise_contact (
+    entreprise_contact_id serial NOT NULL,
+    date date,
+    type_contact text,
+    entreprise_id integer,
+    entreprise_corresp_id integer,
+    etudid text,
+    description text,
+    enseignant text
+);
+
+
+--  ------------ NOTES ------------
+
+-- generation des id
 CREATE SEQUENCE notes_idgen;
 
 CREATE FUNCTION notes_newid( text ) returns text as '
@@ -176,7 +318,7 @@ CREATE TABLE scolar_events (
 );
 
 ---------------------------------------------------------------------
--- NOUVELLES
+-- NOUVELLES (inutilise pour l'instant)
 --
 CREATE TABLE scolar_news (
 	news_id text default notes_newid('NEWS') PRIMARY KEY,
