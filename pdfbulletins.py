@@ -90,7 +90,7 @@ class ScolarsPageTemplate(PageTemplate) :
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
         dt = time.strftime( '%d/%m/%Y à %Hh%M' )
         canvas.drawString(2*cm, 0.25 * inch,
-                          "Edité par Scolars le %s sur %s" % (dt,self.server_name) )
+                          "Edité par %s le %s sur %s" % (VERSION.SCONAME,dt,self.server_name) )
         canvas.restoreState()
 
 

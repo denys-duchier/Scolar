@@ -29,6 +29,7 @@
 """ Common definitions
 """
 from VERSION import SCOVERSION
+import VERSION
 import os
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !

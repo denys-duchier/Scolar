@@ -283,7 +283,7 @@ class TF:
                 lem.append('<select name="%s">'%field)
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
-                    if descr['allowed_values'][i] == values[field]:
+                    if str(descr['allowed_values'][i]) == str(values[field]):
                         selected='selected'
                     else:
                         selected=''

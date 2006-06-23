@@ -1,5 +1,7 @@
 SCOVERSION = "4.2"
 
+SCONAME = "AxoNote"
+
 SCONEWS = """
 <h4>22 juin 2006</h4>
 <ul>

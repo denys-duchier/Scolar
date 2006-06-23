@@ -68,7 +68,7 @@ from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import pdfbulletins
 from notes_table import *
-
+import VERSION
 
 # ---------------
 
@@ -3260,7 +3260,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                      page_title='Validation du semestre %s pour %s'
                                      % (sem['titre'],nomprenom))
             H = [ """<h2>Validation (Jury) du semestre %s pour %s</h2>
-            <p>Utiliser ce formulaire après la décision définitive du jury.</p>
+            <p>Utiliser ce formulaire après la <b>décision définitive du jury</b>.</p>
             <p>Attention: les décisions prises ici remplacent et annulent les précédentes s'il y en avait !</p>
             """ % (sem['titre'],nomprenom)]
         else:
@@ -3505,7 +3505,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                     l.append(t[0])
                     l += ['',''] # decision com, compensation
             L.append(l)
-        # 
+        #
+        L.append( [''] )
+        L.append( ['Préparé par %s le %s sur %s pour %s' %
+                   (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
+                    REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )
         xls = sco_excel.Excel_SimpleTable( titles=head, lines=L, SheetName='Notes' )
         return sco_excel.sendExcelFile(REQUEST, xls, 'RecapMoyennesJury.xls' )
 
@@ -3518,7 +3522,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         Cette fonction va générer une feuille Excel avec les moyennes de deux semestres,
         pour présentation en jury de fin d'année.</p>
         <p>Le semestre courant est: %s (%s - %s)</p>
-        <p>Choissisez le semestre "précédent".</p>
+        <p>Choisissez le semestre "précédent".</p>
         <form method="GET" action="do_feuille_preparation_jury">
         <input type="hidden" name="formsemestre_id2" value="%s"/>
         """ % (sem['titre'], sem['date_debut'], sem['date_fin'], formsemestre_id) )
@@ -3542,7 +3546,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             menulist.append(
                 '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
         
-        H.append( '<p><b>Semestre destination:</b> <select name="formsemestre_id1">'
+        H.append( '<p><b>Semestre précédent:</b> <select name="formsemestre_id1">'
                   + '\n '.join(menulist) + '</select></p>' )
         H.append("""<input type="submit" value="Générer feuille"/></form>""")
         H.append(self.sco_footer(self, REQUEST))

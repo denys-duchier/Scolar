@@ -4,6 +4,7 @@
 
 <h2 class="entreprise"><dtml-var "F['nom']"></h2>
 
+
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('entreprise_id', { 'default' : entreprise_id, 'input_type' : 'hidden' }),
     ('start', { 'default' : 1, 'input_type' : 'hidden' }),
