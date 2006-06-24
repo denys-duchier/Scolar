@@ -1413,12 +1413,14 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_evaluation_listeetuds_groups')
     def do_evaluation_listeetuds_groups(self, evaluation_id,
                                         gr_td=[],gr_tp=[],gr_anglais=[],
-                                        getallstudents=False ):
+                                        getallstudents=False,
+                                        include_dems=False):
         """Donne la liste des etudids inscrits a cette evaluation dans les
         groupes indiqués.
         Si getallstudents==True, donne tous les etudiants inscrits a cette
         evaluation.
-        Ne compte pas les etudinats démissionnaires (seulement les 'I')
+        Si include_dems, compte aussi les etudiants démissionnaires
+        (sinon, par défaut, seulement les 'I')
         """
         # construit condition sur les groupes
         if not getallstudents:
@@ -1429,9 +1431,12 @@ class ZNotes(ObjectManager,
                 return [] # no groups, so no students
             r = ' and (' + ' or '.join(rg) + ' )'
         else:
-            r = ''
+            r = ''        
         # requete complete
-        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s and Isem.etat='I'" + r
+        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
+        if not include_dems:
+            req += " and Isem.etat='I'"
+        req += r
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()    
         cursor.execute( req, { 'evaluation_id' : evaluation_id } )
@@ -2243,7 +2248,8 @@ class ZNotes(ObjectManager,
         Return number of changed notes
         """
         # Verifie inscription et valeur note
-        inscrits = {}.fromkeys(self.do_evaluation_listeetuds_groups(evaluation_id,getallstudents=True))
+        inscrits = {}.fromkeys(self.do_evaluation_listeetuds_groups(
+            evaluation_id,getallstudents=True, include_dems=True))
         for (etudid,value) in notes:
             if not inscrits.has_key(etudid):
                 raise NoteProcessError("etudiant %s non inscrit a l'evaluation %s" %(etudid,evaluation_id))
