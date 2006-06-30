@@ -3,8 +3,9 @@ SCOVERSION = "4.2"
 SCONAME = "AxoNote"
 
 SCONEWS = """
-<h4>22 juin 2006</h4>
+<h4>30 juin 2006</h4>
 <ul>
+<li>Option pour ne pas afficher les décisions sur les bulletins</li>
 <li>Génération feuilles pour préparation jury</li>
 <li>Gestion des modules optionnels</li>
 <li>Prise en compte note "activités culturelles ou sportives"</li>

@@ -223,7 +223,8 @@ CREATE TABLE notes_formsemestre (
 	date_debut date,
         date_fin   date,
 	responsable_id text,
-        gestion_absence integer default 1;
+        gestion_absence integer default 1,
+	bul_show_decision integer default 1;
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre

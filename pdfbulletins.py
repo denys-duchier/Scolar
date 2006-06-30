@@ -50,6 +50,12 @@ SCOLAR_FONT = 'Helvetica'
 SCOLAR_FONT_SIZE = 10
 SCOLAR_FONT_SIZE_FOOT = 6
 
+
+def SU(s):
+    "convert s from SCO default encoding to Unicode"
+    # XXX a mettre en service quand on passaera a ReportLab 2.0
+    return s # unicode(s, SCO_ENCODING, 'replace')
+
 class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""
     def __init__(self, document, pagesbookmarks={},
@@ -88,9 +94,9 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.addOutlineEntry(bm,bm)
         # ---- Footer
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
-        dt = time.strftime( '%d/%m/%Y à %Hh%M' )
+        dt = time.strftime( SU('%d/%m/%Y à %Hh%M') )
         canvas.drawString(2*cm, 0.25 * inch,
-                          "Edité par %s le %s sur %s" % (VERSION.SCONAME,dt,self.server_name) )
+                          SU("Edité par %s le %s sur %s" % (VERSION.SCONAME,dt,self.server_name)) )
         canvas.restoreState()
 
 
@@ -103,11 +109,12 @@ def essaipdf(REQUEST):
     # get the default style sheet
     StyleSheet = styles.getSampleStyleSheet()
     # then build a simple doc with ReportLab's platypus
-    sometext = "A sample script to show how to use ReportLab from within Zope"
-    objects.append(Paragraph("Using ReportLab from within Zope",
+    sometext = SU("A sample script to show how to use ReportLab from within Zope")
+    objects.append(Paragraph(SU("Using ReportLab from within Zope"),
                              StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
-    objects.append(Paragraph("Bla bla blo blilllll auhih jhi", StyleSheet['Normal']))
+    objects.append(Paragraph(SU("Hélène à Bla bla blo blilllll auhih jhi"),
+                             StyleSheet['Normal']))
     objects.append(Paragraph('<b>URL0</b>=%s' % REQUEST.URL0, StyleSheet['Normal']))
     objects.append(Spacer(0, 40))
     objects.append(Paragraph("If possible, this report will be automatically saved as : %s" % filename, StyleSheet['Normal']))

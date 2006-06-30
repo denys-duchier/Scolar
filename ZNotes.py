@@ -401,14 +401,18 @@ class ZNotes(ObjectManager,
         'notes_formsemestre',
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
-         'date_debut', 'date_fin', 'responsable_id', 'gestion_absence'),
+         'date_debut', 'date_fin', 'responsable_id',
+         'gestion_absence', 'bul_show_decision'),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
                              'date_fin'   : DateISOtoDMY,
-                             'gestion_absence' : str },
+                             'gestion_absence' : str,
+                             'bul_show_decision' : str },
+
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
-                             'gestion_absence' : int }
+                             'gestion_absence' : int,
+                             'bul_show_decision' : int }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
@@ -512,6 +516,11 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'indiquer les absences sur les bulletins',
                                        'labels' : [''] }),
+            ('bul_show_decision_lst', { 'input_type' : 'checkbox',
+                                      'title' : 'Décisions',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'faire figurer les décisions sur les bulletins',
+                                       'labels' : [''] }),
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
         for mod in mods:
@@ -537,6 +546,14 @@ class ZNotes(ObjectManager,
             initvalues['gestion_absence_lst'] = []
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_absence_lst'):
             REQUEST.form['gestion_absence_lst'] = []
+        
+        initvalues['bul_show_decision'] = initvalues.get('bul_show_decision','1')
+        if initvalues['bul_show_decision'] == '1':
+            initvalues['bul_show_decision_lst'] = ['X']
+        else:
+            initvalues['bul_show_decision_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
+            REQUEST.form['bul_show_decision_lst'] = []
         #
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = submitlabel,
@@ -551,6 +568,10 @@ class ZNotes(ObjectManager,
                 tf[2]['gestion_absence'] = 1
             else:
                 tf[2]['gestion_absence'] = 0
+            if tf[2]['bul_show_decision_lst']:
+                tf[2]['bul_show_decision'] = 1
+            else:
+                tf[2]['bul_show_decision'] = 0
             if not edit:
                 # creation du semestre                
                 formsemestre_id = self.do_formsemestre_create(tf[2])
@@ -856,7 +877,7 @@ class ZNotes(ObjectManager,
         for mod in modimpls:
             if mod['ue']['type'] == UE_STANDARD:
                 self.do_moduleimpl_inscription_create(
-                    {'moduleimpl_id' : moduleimpl_id,
+                    {'moduleimpl_id' : mod['moduleimpl_id'],
                      'etudid' : etudid} )
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules_form')
@@ -2611,7 +2632,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
     def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
                                      version='long', # short, long, selectedevals
-                                     format='html', REQUEST=None, nohtml=False):
+                                     format='html',
+                                     REQUEST=None,
+                                     nohtml=False):
         if format != 'mailpdf':
             if format == 'xml':
                 bul = repr(self.make_xml_formsemestre_bulletinetud(
@@ -2619,7 +2642,8 @@ class ZNotes(ObjectManager,
             else:
                 bul, etud, filename = self.make_formsemestre_bulletinetud(
                     formsemestre_id, etudid,
-                    version=version,format=format, REQUEST=REQUEST)
+                    version=version,format=format,
+                    REQUEST=REQUEST)
             if format == 'pdf':
                 return sendPDFFile(REQUEST, bul, filename)        
             else:
@@ -2683,7 +2707,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
     def make_formsemestre_bulletinetud(
         self, formsemestre_id, etudid,
         version='long', # short, long, selectedevals
-        format='html', REQUEST=None):        
+        format='html',
+        REQUEST=None):        
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if not version in ('short','long','selectedevals'):
@@ -2777,8 +2802,12 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         </a></p>
             """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
         # --- Decision Jury
-        situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
-        H.append( """<p class="bull_situation">%s</p>""" % situation )
+        if sem['bul_show_decision'] == '1':
+            situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
+        else:
+            situation = ''
+        if situation:
+            H.append( """<p class="bull_situation">%s</p>""" % situation )
         # --- Appreciations
         # le dir. des etud peut ajouter des appreciation,
         # mais aussi le chef (perm. ScoEtudInscrit)
@@ -2843,7 +2872,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for etudid in nt.get_etudids():
             fragments += self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid, format='pdfpart',
-                version=version, REQUEST=REQUEST )
+                version=version, 
+                REQUEST=REQUEST )
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
@@ -2868,7 +2898,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for etudid in nt.get_etudids():
             self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid,
-                version=version,
+                version=version, 
                 format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
         #
         return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
@@ -3037,8 +3067,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
             doc._pop()
         # --- Decision Jury
-        situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
-        doc.situation( situation )
+        if sem['bul_show_decision']:
+            situation = self.etud_descr_situation_semestre(
+                etudid, formsemestre_id )
+            doc.situation( situation )
         # --- Appreciations
         cnx = self.GetDBConnexion() 
         apprecs = scolars.appreciations_list(

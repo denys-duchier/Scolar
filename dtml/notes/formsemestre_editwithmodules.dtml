@@ -7,6 +7,8 @@
 
 <dtml-var "do_formsemestre_createwithmodules(REQUEST, getZopeUsers(), edit=1 )">
 
+
+<dtml-unless "REQUEST.get('tf-submitted',False)">
 <p><em>Seuls les modules cochés font partie de ce semestre. Pour les retirer, 
 "décocher"-les et appuyer sur le bouton "modifier".
 </em></p>
@@ -15,6 +17,7 @@
 
 <p><a href="formsemestre_delete?formsemestre_id=<dtml-var formsemestre_id>">Supprimer ce semestre</a></p>
 
+</dtml-unless>
 
 <p><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>">Retour au tableau de bord du module</a>
 
