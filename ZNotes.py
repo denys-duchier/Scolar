@@ -2879,7 +2879,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
         # --- Decision Jury
         if sem['bul_show_decision'] == '1':
-            situation = self.etud_descr_situation_semestre( etudid, formsemestre_id )
+            situation = self.etud_descr_situation_semestre( etudid, formsemestre_id,
+                                                            format=format)
         else:
             situation = ''
         if situation:
@@ -2923,7 +2924,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             pdfbul = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
-                appreciations=[ x['comment'] for x in apprecs ],
+                appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
                 situation=situation )
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
@@ -3158,9 +3159,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
 
     # -------- Events
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
-    def etud_descr_situation_semestre(self, etudid, formsemestre_id, ne='' ):
+    def etud_descr_situation_semestre(self, etudid, formsemestre_id, ne='',
+                                      format='html'):
         """chaine de caractères decrivant la situation de l'étudiant
-        dans ce semestre"""
+        dans ce semestre.
+        Si format == 'html', peut inclure du balisage html"""
         cnx = self.GetDBConnexion()
         # semestre et UE validés ?
         evt_valid_sem, evt_echec_sem, ue_events = scolars.scolar_get_validated(
@@ -3190,9 +3193,15 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         if date_dem:
             return inscr + '. Démission le %s.' % date_dem
         if evt_valid_sem:
-            return inscr + ', obtenu le %s.' % evt_valid_sem['event_date']
+            blah = 'OBTENU le %s' % evt_valid_sem['event_date']
+            if format == 'html':
+                blah = '<b>' + blah + '</b>'
+            return inscr + ', ' + blah
         if date_echec:
-            inscr += ', échec le %s.' % date_echec
+            blah = 'ECHEC le %s.' % date_echec
+            if format == 'html':
+                blah = '<b>' + blah + '</b>'
+            inscr += ', ' + blah
             # indique UE validées
             if ue_events:
                 uelist = []
@@ -3201,7 +3210,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                     uelist.append(ue)
                 uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
                 acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-                inscr += ' UE validées: ' + acros + '. '
+                blah = 'UE validées:' + acros
+                if format == 'html':
+                    blah = '<b>' + blah + '</b>'
+                inscr += ' ' + blah + '. '
             return inscr
         else:
             # ni echec ni valid: en cours ?

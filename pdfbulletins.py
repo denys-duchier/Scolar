@@ -146,7 +146,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
     Pt = [ [Paragraph(x,CellStyle) for x in line ] for line in P ]
     # Build doc using ReportLab's platypus
-    objects.append(Paragraph("Université Parix XIII - IUT de Villetaneuse - Département %(DeptName)s" % infos,
+    objects.append(Paragraph("Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s" % infos,
                             StyleSheet["Heading2"]) )
     objects.append(Paragraph("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne), StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
@@ -156,14 +156,17 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                            colWidths = (1.5*cm, 5*cm, 6*cm, 2*cm, 1*cm),
                            style=TableStyle ) )
     if etud.has_key('nbabs'):
+        objects.append( Spacer(0, 0.4*cm) )
         objects.append( Paragraph(
             "%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust']), CellStyle ) )
     #
     if appreciations:
+        objects.append( Spacer(0, 0.2*cm) )
         objects.append( Paragraph('Appréciation : ' + '\n'.join(appreciations),
                                   CellStyle) )
     if situation:
-        objects.append( Paragraph( situation, CellStyle ) )
+        objects.append( Spacer(0, 0.5*cm) )
+        objects.append( Paragraph( situation, StyleSheet["Heading3"] ) )
     #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
