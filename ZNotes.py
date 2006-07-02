@@ -648,6 +648,82 @@ class ZNotes(ObjectManager,
                 msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
                 return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
+    
+    security.declareProtected(ScoView,'formsemestre_edit_options')
+    def formsemestre_edit_options(self, formsemestre_id, REQUEST=None):
+        """dialog to change formsemestre options
+        (ScoImplement ou dir. etudes"""        
+        sem = self.do_formsemestre_list(
+            args={ 'formsemestre_id' : formsemestre_id } )[0]
+        F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+        header = self.sco_header(page_title='Modification d\'un semestre',
+                                 REQUEST=REQUEST)
+        footer = self.sco_footer(self, REQUEST)
+        H = [ header,
+              self.formsemestre_status_head(self, REQUEST=REQUEST,
+                                            formsemestre_id=formsemestre_id )
+              ]
+        if ((sem['responsable_id'] != str(REQUEST.AUTHENTICATED_USER))
+            and not REQUEST.AUTHENTICATED_USER.has_permission(ScoImplement,self)):
+            H.append('<h2>Opération non autorisée pour %s</h2>'
+                     % REQUEST.AUTHENTICATED_USER )
+            H.append('<p>Responsable de ce semestre : <b>%s</b></p>'
+                     % sem['responsable_id']) 
+            return '\n'.join(H) + footer
+        H.append("""<h2>Modification du semestre
+             <a href="formsemestre_status?formsemestre_id=%s">%s</a>
+             (formation %s)</h2>
+             """ % (formsemestre_id, sem['titre'], F['acronyme']) )        
+        modform = [
+            ('formsemestre_id', { 'input_type' : 'hidden' }),
+            ('gestion_absence_lst', { 'input_type' : 'checkbox',
+                                      'title' : 'Suivi des absences',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'indiquer les absences sur les bulletins',
+                                       'labels' : [''] }),
+            ('bul_show_decision_lst', { 'input_type' : 'checkbox',
+                                      'title' : 'Décisions',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'faire figurer les décisions sur les bulletins',
+                                       'labels' : [''] }),
+            ]
+        initvalues = sem
+        initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
+        if initvalues['gestion_absence'] == '1':
+            initvalues['gestion_absence_lst'] = ['X']
+        else:
+            initvalues['gestion_absence_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_absence_lst'):
+            REQUEST.form['gestion_absence_lst'] = []
+        
+        initvalues['bul_show_decision'] = initvalues.get('bul_show_decision','1')
+        if initvalues['bul_show_decision'] == '1':
+            initvalues['bul_show_decision_lst'] = ['X']
+        else:
+            initvalues['bul_show_decision_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
+            REQUEST.form['bul_show_decision_lst'] = []
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
+                                submitlabel = 'Modifier',
+                                cancelbutton = 'Annuler',
+                                initvalues = initvalues)
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + footer
+        elif tf[0] == -1:
+            return header + '<h4>annulation</h4>' + footer
+        else:
+            if tf[2]['gestion_absence_lst']:
+                tf[2]['gestion_absence'] = 1
+            else:
+                tf[2]['gestion_absence'] = 0
+            if tf[2]['bul_show_decision_lst']:
+                tf[2]['bul_show_decision'] = 1
+            else:
+                tf[2]['bul_show_decision'] = 0
+            # modification du semestre:
+            self.do_formsemestre_edit(tf[2])
+            return header + '<h3>Modification effectuées<h3><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id + footer
+
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
     # dans une formation spécifique, à une date spécifique.
@@ -774,7 +850,7 @@ class ZNotes(ObjectManager,
         if not dialog_confirmed:
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
             sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-            return self.confirmDialog(
+            return self._confirmDialog(
                 """<p>Confirmer la demande de desinscription ?</p>
                 <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
                 <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
@@ -2241,7 +2317,7 @@ class ZNotes(ObjectManager,
             # XXX imaginer un redirect + msg erreur
             raise AccessDenied('Modification des notes impossible pour %s'%authuser)
         if not dialog_confirmed:
-            return self.confirmDialog('<p>Confirmer la suppression des notes ?</p>',
+            return self._confirmDialog('<p>Confirmer la suppression des notes ?</p>',
                                       dest_url="", REQUEST=REQUEST,
                                       cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
                                       parameters={'evaluation_id':evaluation_id})
@@ -2699,7 +2775,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             Encoders.encode_base64(att)
             msg.attach(att)
             log('mail bulletin a %s' % msg['To'] )
-            self.sendEmail(msg)
+            self._sendEmail(msg)
             return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
                     % (etud['emaillink'])) + htm
 

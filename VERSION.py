@@ -3,6 +3,12 @@ SCOVERSION = "4.2"
 SCONAME = "AxoNote"
 
 SCONEWS = """
+<h4>juillet 2006</h4>
+<ul>
+<li>Dialogue permettant au directeur des études de modifier
+les options d'un semestre</li>
+</ul>
+
 <h4>30 juin 2006</h4>
 <ul>
 <li>Option pour ne pas afficher les décisions sur les bulletins</li>

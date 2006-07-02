@@ -1556,8 +1556,7 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
     
     # sendEmail is not used through the web
-    security.declareProtected(ScoAdministrate, "sendEmail")
-    def sendEmail(self,msg):
+    def _sendEmail(self,msg):
         # sends an email to the address using the mailhost, if there is one
         if not self.mail_host:
             return
@@ -1569,8 +1568,7 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
         except:
             pass
 
-    security.declareProtected(ScoAdministrate, "confirmDialog")
-    def confirmDialog(self, message='<p>Confirmer ?</p>',
+    def _confirmDialog(self, message='<p>Confirmer ?</p>',
                       OK='OK', Cancel='Annuler',
                       dest_url="", cancel_url="",
                       parameters={},

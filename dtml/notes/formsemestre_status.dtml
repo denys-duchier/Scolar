@@ -9,14 +9,17 @@
  et aussi modifer les permissions sur formsemestre_editwithmodules
 </dtml-comment>
 
-<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this()))">
 <p>
+<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this()))">
 <a href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
        Modifier le semestre "<dtml-var "sem['titre']">"</a>
-</p>
+</dtml-if permission>
+<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))">
+<a href="formsemestre_edit_options?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
+       Modifier les options</a>
 </dtml-if permission>
 </dtml-unless>
-<p>
+
 <a href="formsemestre_recapcomplet?formsemestre_id=<dtml-var "sem['formsemestre_id']">">Tableau de toutes les moyennes (et liens bulletins)</a>
 </p>
 
