@@ -34,6 +34,7 @@ from notesdb import *
 from TrivialFormulator import TrivialFormulator
 import safehtml
 from scolog import logdb
+from notes_table import *
 
 # XXXXXXXXX HACK: zope 2.7.7 bug turaround ?
 import locale
@@ -302,11 +303,13 @@ def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
         'formsemestre_id' : formsemestre_id,
         'event_type' : code } )
 
-def scolar_validate_ues( cnx, etudid, formsemestre_id,
+def scolar_validate_ues( znotes, cnx, etudid, formsemestre_id,
                          ue_ids=[],
                          event_date=None, REQUEST=None,
                          suppress_previously_validated=True ):
-    """Valide ces UE (attention: supprime les UE deja validees !)"""
+    """Valide ces UE (attention: supprime les UE deja validees !)
+    Ne valide jamais les UE de type SPORT
+    """
     logdb(REQUEST,cnx,method='valid_ue', etudid=etudid)
     log('scolar_validate_ues: etudid=%s formsemestre_id=%s ue_ids=%s'
         % (etudid, formsemestre_id, str(ue_ids)))
@@ -321,6 +324,9 @@ def scolar_validate_ues( cnx, etudid, formsemestre_id,
             scolar_events_delete(cnx, event['event_id'])
     #
     for ue_id in ue_ids:
+        ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+        if ue['type'] == UE_SPORT:
+            continue # skip UE sport
         scolar_events_create( cnx, args = {
             'etudid' : etudid,
             'event_date' : event_date,

@@ -1556,7 +1556,7 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
     
     # sendEmail is not used through the web
-    def _sendEmail(self,msg):
+    def sendEmail(self,msg):
         # sends an email to the address using the mailhost, if there is one
         if not self.mail_host:
             return

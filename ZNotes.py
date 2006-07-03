@@ -402,17 +402,19 @@ class ZNotes(ObjectManager,
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
-         'gestion_absence', 'bul_show_decision'),
+         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid'),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
                              'date_fin'   : DateISOtoDMY,
                              'gestion_absence' : str,
-                             'bul_show_decision' : str },
+                             'bul_show_decision' : str,
+                             'bul_show_uevalid' : str },
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
                              'gestion_absence' : int,
-                             'bul_show_decision' : int }
+                             'bul_show_decision' : int,
+                             'bul_show_uevalid' : int }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
@@ -686,6 +688,11 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'faire figurer les décisions sur les bulletins',
                                        'labels' : [''] }),
+            ('bul_show_uevalid_lst', { 'input_type' : 'checkbox',
+                                   'title' : '',
+                                   'allowed_values' : ['X'],
+                                   'explanation' : 'faire figurer les UE validées sur les bulletins',
+                                   'labels' : [''] }),
             ]
         initvalues = sem
         initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
@@ -703,6 +710,13 @@ class ZNotes(ObjectManager,
             initvalues['bul_show_decision_lst'] = []
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
             REQUEST.form['bul_show_decision_lst'] = []
+        initvalues['bul_show_uevalid'] = initvalues.get('bul_show_uevalid','1')
+        if initvalues['bul_show_uevalid'] == '1':
+            initvalues['bul_show_uevalid_lst'] = ['X']
+        else:
+            initvalues['bul_show_uevalid_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_uevalid_lst'):
+            REQUEST.form['bul_show_uevalid_lst'] = []
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = 'Modifier',
                                 cancelbutton = 'Annuler',
@@ -716,13 +730,19 @@ class ZNotes(ObjectManager,
                 tf[2]['gestion_absence'] = 1
             else:
                 tf[2]['gestion_absence'] = 0
+
             if tf[2]['bul_show_decision_lst']:
                 tf[2]['bul_show_decision'] = 1
             else:
                 tf[2]['bul_show_decision'] = 0
+
+            if tf[2]['bul_show_uevalid_lst']:
+                tf[2]['bul_show_uevalid'] = 1
+            else:
+                tf[2]['bul_show_uevalid'] = 0
             # modification du semestre:
             self.do_formsemestre_edit(tf[2])
-            return header + '<h3>Modification effectuées<h3><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id + footer
+            return header + ('<h3>Modification effectuées<h3><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
 
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
@@ -2775,7 +2795,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             Encoders.encode_base64(att)
             msg.attach(att)
             log('mail bulletin a %s' % msg['To'] )
-            self._sendEmail(msg)
+            self.sendEmail(msg)
             return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
                     % (etud['emaillink'])) + htm
 
@@ -2879,8 +2899,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
         # --- Decision Jury
         if sem['bul_show_decision'] == '1':
-            situation = self.etud_descr_situation_semestre( etudid, formsemestre_id,
-                                                            format=format)
+            situation = self.etud_descr_situation_semestre(
+                etudid, formsemestre_id,
+                format=format,
+                show_uevalid=(sem['bul_show_uevalid']=='1'))
         else:
             situation = ''
         if situation:
@@ -3144,9 +3166,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
             doc._pop()
         # --- Decision Jury
-        if sem['bul_show_decision']:
+        if sem['bul_show_decision'] == '1':
             situation = self.etud_descr_situation_semestre(
-                etudid, formsemestre_id )
+                etudid, formsemestre_id, format='xml',
+                show_uevalid=(sem['bul_show_uevalid']=='1'))
             doc.situation( situation )
         # --- Appreciations
         cnx = self.GetDBConnexion() 
@@ -3160,7 +3183,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
     # -------- Events
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
     def etud_descr_situation_semestre(self, etudid, formsemestre_id, ne='',
-                                      format='html'):
+                                      format='html',
+                                      show_uevalid=True
+                                      ):
         """chaine de caractères decrivant la situation de l'étudiant
         dans ce semestre.
         Si format == 'html', peut inclure du balisage html"""
@@ -3202,8 +3227,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             if format == 'html':
                 blah = '<b>' + blah + '</b>'
             inscr += ', ' + blah
-            # indique UE validées
-            if ue_events:
+            # indique UE validées            
+            if show_uevalid and ue_events:
                 uelist = []
                 for ue_id in [ evt['ue_id'] for evt in ue_events ]:
                     ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
@@ -3257,11 +3282,13 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             ue_must_valid[ue['ue_id']] = {}
         for t in T:
             etudid = t[-1]            
-            # premiere passe sur les UE pour verif barres:
+            # premiere passe sur les UE pour verif barres (sauf sport):
             barres_ue_ok = True
             iue = 0
             for ue in ues:
                 iue += 1
+                if ue['type'] == UE_SPORT:
+                    continue # pas de barre sur notes de sport
                 try:
                     if (float(t[iue]) < NOTES_BARRE_UE):
                         barres_ue_ok = False
@@ -3279,6 +3306,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             iue = 0
             for ue in ues:
                 iue += 1
+                if ue['type'] == UE_SPORT:
+                    ue_must_valid[ue['ue_id']][etudid] = False
+                    continue
                 try:
                     if (float(t[iue]) < NOTES_BARRE_VALID_UE) and not sem_must_valid[etudid]:
                         ue_must_valid[ue['ue_id']][etudid] = False
@@ -3313,6 +3343,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                         semvalid[etudid] = 0
                 # recupere chaque UE validée
                 for ue in ues:
+                    if ue['type'] == UE_SPORT:
+                        uevalid[ue['ue_id']][etudid] = 1
+                        continue
                     if ue_must_valid[ue['ue_id']][etudid]:
                         uevalid[ue['ue_id']][etudid] = 1 # happily ignore form
                     else:
@@ -3412,7 +3445,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         """ % (formsemestre_id,msg,date_jury) )        
 
         for ue in ues:
-            H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk">validée</td>' % ue['acronyme'])
+            if ue['type'] != UE_SPORT:
+                H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk">validée</td>' % ue['acronyme'])
         H.append('</tr>')
         # --- Generate form
         ir = 0
@@ -3459,6 +3493,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             iue = 0
             for ue in ues:
                 iue += 1
+                if ue['type'] == UE_SPORT:
+                    continue
                 if uevalid[ue['ue_id']].has_key(etudid): # dans le formulaire
                     if uevalid[ue['ue_id']][etudid]:
                         sem_checked, sem_unchecked = "checked", ""
@@ -3485,7 +3521,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         # ligne titres en bas
         H.append('<tr class="recap_row_tit"><td></td><td></td><td class="fvs_tit">Moy</td><td class="fvs_tit_chk">Semestre</td>')
         for ue in ues:
-            H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk"></td>' % ue['acronyme'])
+            if ue['type'] != UE_SPORT:
+                H.append('<td class="fvs_tit">%s</td><td class="fvs_tit_chk"></td>' % ue['acronyme'])
         H.append('</tr></table>')
         if valid_individuelle:
             H.append('<input type="hidden" name="etudid" value="%s" />' % etudid)
@@ -3507,7 +3544,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                          REQUEST=REQUEST)
         # UE
         for etudid in uevalid_byetud.keys():
-            scolars.scolar_validate_ues(cnx, etudid, formsemestre_id, 
+            scolars.scolar_validate_ues(self, cnx, etudid, formsemestre_id, 
                                         uevalid_byetud[etudid], event_date=date_jury,
                                         suppress_previously_validated=True,
                                         REQUEST=REQUEST)

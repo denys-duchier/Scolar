@@ -7,6 +7,7 @@ SCONEWS = """
 <ul>
 <li>Dialogue permettant au directeur des études de modifier
 les options d'un semestre</li>
+<li>Option pour ne pas afficher les UE validées sur les bulletins</li>
 </ul>
 
 <h4>30 juin 2006</h4>
