@@ -128,6 +128,7 @@ def essaipdf(REQUEST):
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
                      filigranne='', appreciations=[], situation='',
+                     server_name=None
                      ):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
@@ -180,7 +181,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                             author='Scolars %s (E. Viennet)' % SCOVERSION,
                             title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
                             subject='Bulletin de note',
-                            server_name = 'www-gtr.iutv.univ-paris13.fr'))
+                            server_name = server_name))
 
         document.build(objects)
         data = report.getvalue()

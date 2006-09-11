@@ -34,6 +34,9 @@ from pyExcelerator import *
 from notes_log import log
 from scolog import logdb
 from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html
+import notesdb
+
+import time
 
 COLOR_CODES = { 'black' : 0,
                 'red' : 0x0A,
@@ -261,3 +264,104 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
     #
     return diag, matrix
 
+#
+def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
+    "generation feuille appel"
+    SheetName = 'Liste ' + groupname
+    wb = Workbook()
+    ws0 = wb.add_sheet(SheetName)
+    
+    font1 = Font()
+    font1.name = 'Arial'
+    font1.height = 10*0x14
+
+    font1i = Font()
+    font1i.name = 'Arial'
+    font1i.height = 10*0x14
+    font1i.italic = True
+    
+    style1i = XFStyle()
+    style1i.font = font1i
+    
+    style1b = XFStyle()
+    style1b.font = font1
+    borders = Borders()
+    borders.left = 1
+    borders.top = 1
+    borders.bottom = 1
+    style1b.borders = borders
+    
+    style2 = XFStyle()
+    font2 = Font()
+    font2.name = 'Arial'
+    font2.height = 14*0x14
+    style2.font = font2
+    
+    style2b = XFStyle()
+    style2b.font = font2
+    borders = Borders()
+    borders.left = 1
+    borders.top = 1
+    borders.bottom = 1
+    borders.right = 1
+    style2b.borders = borders
+
+    style2tb = XFStyle()
+    borders = Borders()
+    borders.top = 1
+    borders.bottom = 1
+    style2tb.borders = borders
+
+    style2t3 = XFStyle()
+    borders = Borders()
+    borders.top = 1
+    borders.bottom = 1
+    borders.left = 1
+    style2t3.borders = borders
+
+    style3 = XFStyle()
+    font3 = Font()
+    font3.name = 'Arial'
+    font3.bold = True
+    font3.height = 14*0x14
+    style3.font = font3
+    
+    # ligne 1
+    li = 0
+    ws0.write(li,1, "%s (%s - %s)"
+              % (notesdb.unquote(sem['titre']),
+                 sem['date_debut'],sem['date_fin']), style2)
+    # ligne 2
+    li += 1
+    ws0.write(li,1, "Discipline :", style2)
+    # ligne 3
+    li += 1
+    ws0.write(li,1, "Enseignant :", style2)
+    ws0.write(li,5, "Groupe %s" % groupname, style3)
+    #
+    li += 2
+    li += 1
+    ws0.write(li,1, "Nom", style3)
+    ws0.write(li,2, "Date", style3)
+    for i in range(5):
+        ws0.write(li, 3+i, '', style2b)
+    n = 0
+    for l in lines:
+        n += 1
+        li += 1
+        ws0.write(li, 0, n, style1b)
+        ws0.write(li, 1, l[0] + ' ' + l[1], style2t3) # nom, prenom
+        ws0.write(li, 2, '', style2tb) # vide
+        for i in range(5):
+            ws0.write(li, 3+i, l[2], style2b) # etat
+    #
+    li += 2
+    dt = time.strftime( '%d/%m/%Y à %Hh%M' )
+    if server_name:
+        dt += ' sur ' + server_name
+    ws0.write(li, 1, 'Liste éditée le ' + dt, style1i)
+    #
+    ws0.col(0).width = 850
+    ws0.col(1).width = 10000
+
+    return wb.savetostr()

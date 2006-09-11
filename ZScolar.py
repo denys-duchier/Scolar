@@ -474,10 +474,12 @@ class ZScolar(ObjectManager,
             return sendCSVFile(REQUEST,CSV, filename )
         elif format == 'xls':
             title = 'liste_%s' % nomgroupe
-            xls = sco_excel.Excel_SimpleTable(
-                titles= [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ],
-                lines = [ (t[0], t[1], t[5], t[4], t[3]) for t in T ],
-                SheetName = title )
+            lines = [ (t[0], t[1], t[4]) for t in T ]
+#             xls = sco_excel.Excel_SimpleTable(
+#                 titles= [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ],
+#                 lines = lines,
+#                 SheetName = title )
+            xls = sco_excel.Excel_feuille_listeappel(sem, nomgroupe, lines, server_name=REQUEST.BASE0)
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
         elif format == 'xml':
@@ -1568,12 +1570,12 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
         except:
             pass
 
-    def _confirmDialog(self, message='<p>Confirmer ?</p>',
+    def confirmDialog(self, message='<p>Confirmer ?</p>',
                       OK='OK', Cancel='Annuler',
                       dest_url="", cancel_url="",
                       parameters={},
                       REQUEST=None ):
-        "dialog de confirmation simple"
+        # dialog de confirmation simple"
         parameters['dialog_confirmed'] = 1
         H = [ message,
               """<form action="%s">

@@ -9,7 +9,7 @@
 <dtml-in "do_formsemestre_list( args={} )">
 <dtml-let sem="_['sequence-item']">
  <li><a href="formsemestre_status?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       <dtml-var "sem['titre']"></a></li>
+       <dtml-var "sem['titreannee']"></a></li>
 </dtml-let sem>
 </dtml-in>
 </ul>

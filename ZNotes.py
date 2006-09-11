@@ -451,12 +451,29 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         #log( 'x %s' % str(self._formsemestreEditor.list(cnx)))
         try:
-            return self._formsemestreEditor.list(cnx,*a,**kw)
+            sems = self._formsemestreEditor.list(cnx,*a,**kw)
         except:
             # debug (isodate bug !)
             log('*** do_formsemestre_list: exception')
             log('*** do_formsemestre_list: a=%s kw=%s' % (a,kw) )
             raise
+        # ajoute titre + annee et dateord (pour tris)
+        for sem in sems:
+            sem['dateord'] = DateDMYtoISO(sem['date_debut'])
+            try:
+                annee_debut = sem['date_debut'].split('/')[2]
+            except:
+                annee_debut = ''
+            try:
+                annee_fin = sem['date_fin'].split('/')[2]
+            except:
+                annee_fin = ''
+            sem['titreannee'] = sem['titre'] + ' ' + annee_debut
+            if annee_fin != annee_debut:
+                sem['titreannee'] += '-' + annee_fin
+        # tri par date
+        sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
+        return sems
     
     security.declareProtected(ScoImplement, 'do_formsemestre_edit')
     def do_formsemestre_edit(self, *a, **kw ):
@@ -870,7 +887,7 @@ class ZNotes(ObjectManager,
         if not dialog_confirmed:
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
             sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-            return self._confirmDialog(
+            return self.confirmDialog(
                 """<p>Confirmer la demande de desinscription ?</p>
                 <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
                 <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
@@ -1791,7 +1808,7 @@ class ZNotes(ObjectManager,
             anonymous_listing = tf[2]['anonymous_listing']
             note_sur_20 = tf[2]['note_sur_20']
             if liste_format == 'xls':
-                keep_numeric = True # pas de converison des notes en strings
+                keep_numeric = True # pas de conversion des notes en strings
             else:
                 keep_numeric = False
             # Build list of etudids (uniq, some groups may overlap)
@@ -2337,7 +2354,7 @@ class ZNotes(ObjectManager,
             # XXX imaginer un redirect + msg erreur
             raise AccessDenied('Modification des notes impossible pour %s'%authuser)
         if not dialog_confirmed:
-            return self._confirmDialog('<p>Confirmer la suppression des notes ?</p>',
+            return self.confirmDialog('<p>Confirmer la suppression des notes ?</p>',
                                       dest_url="", REQUEST=REQUEST,
                                       cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
                                       parameters={'evaluation_id':evaluation_id})
@@ -2806,6 +2823,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         format='html',
         REQUEST=None):        
         #
+        if REQUEST:
+            server_name = REQUEST.BASE0
+        else:
+            server_name = ''
         authuser = REQUEST.AUTHENTICATED_USER
         if not version in ('short','long','selectedevals'):
             raise ValueError('invalid version code !')
@@ -2947,7 +2968,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
                 appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
-                situation=situation )
+                situation=situation,
+                server_name=server_name)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
             filename = unescape_html(filename).replace(' ','_').replace('&','')
