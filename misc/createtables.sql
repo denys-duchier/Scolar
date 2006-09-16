@@ -11,8 +11,26 @@
 --
 --
 
+-- generation des id
+CREATE SEQUENCE notes_idgen;
+
+CREATE FUNCTION notes_newid( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
+
+CREATE SEQUENCE notes_idgen2;
+
+CREATE FUNCTION notes_newid2( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen2\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
+
+
+
+
 CREATE TABLE identite (
-    etudid text DEFAULT notes_newid('EID'::text) NOT NULL,
+    etudid text DEFAULT notes_newid('EID'::text) UNIQUE NOT NULL,
     nom text,
     prenom text,
     sexe text,
@@ -144,21 +162,6 @@ CREATE TABLE entreprise_contact (
 
 --  ------------ NOTES ------------
 
--- generation des id
-CREATE SEQUENCE notes_idgen;
-
-CREATE FUNCTION notes_newid( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen\'), \'FM999999999\' ) 
-	as result;
-	' language SQL;
-
-CREATE SEQUENCE notes_idgen2;
-
-CREATE FUNCTION notes_newid2( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen2\'), \'FM999999999\' ) 
-	as result;
-	' language SQL;
-
 
 -- Description generique d'un module (eg infos du PPN)
 
@@ -210,8 +213,8 @@ CREATE TABLE notes_modules (
 	formation_id text REFERENCES notes_formations(formation_id),
 	matiere_id text  REFERENCES notes_matieres(matiere_id),
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
-	numero int -- ordre de presentation
-	abbrev text, -- nom court
+	numero int, -- ordre de presentation
+	abbrev text -- nom court
 );
 
 -- Mise en oeuvre d'un semestre de formation
@@ -225,7 +228,7 @@ CREATE TABLE notes_formsemestre (
 	responsable_id text,
         gestion_absence integer default 1,
 	bul_show_decision integer default 1,
-	bul_show_uevalid integer default 1;
+	bul_show_uevalid integer default 1
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
@@ -325,8 +328,7 @@ CREATE TABLE scolar_events (
 CREATE TABLE scolar_news (
 	news_id text default notes_newid('NEWS') PRIMARY KEY,
 	news_date timestamp default now(),
-	news_text text, -- free text
-	
+	news_text text -- free text
 );
 
 -- Appreciations sur bulletins
