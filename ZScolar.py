@@ -1516,23 +1516,39 @@ Utiliser ce formulaire en fin de semestre, après le jury.
     security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
     def form_students_import_csv(self, REQUEST):
         "formulaire import csv"
-        H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]        
-        H.append('<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2><p>')
+        H = [self.sco_header(self,REQUEST, page_title='Import etudiants'),
+             """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
+             <p>
+             L'opération se déroule en deux étapes. Dans un premier temps,
+             vous téléchargez une feuille Excel type. Vous devez remplir
+             cette feuille, une ligne décrivant chaque étudiant. Ensuite,
+             vous indiquez le nom de votre fichier dans la case "Fichier Excel"
+             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
+             votre liste.
+             </p>
+             <p>Pour inscrire directement les étudiants dans un semestre de
+             formation, il suffit d'indiquer le code de ce semestre
+             (qui doit avoir été crée au préalable). <a href="%s/Notes?showcodes=1">Cliquez ici pour afficher les codes</a>
+             </p>
+             <ol>
+             <li><a href="import_generate_excel_sample">Obtenir la feuille excel à remplir</a></li>
+             <li>""" % (self.ScoURL())        
+        ]        
+
         F = self.sco_footer(self,REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file', 'size' : 40 }),
              ), submitlabel = 'Télécharger')
-        S = ["""<p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
+        S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
 le <b>titre</b> exact (tel que ci-dessous) doit être sur la première ligne.
 </p>
 <p>
 Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
 </p>
-<p>
-Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="import_generate_excel_sample">ici</a>
-</p>
+
+
 <p>
 <table>
 <tr><td><b>Attribut</b></td><td><b>Type</b></td><td><b>Description</b></td></tr>"""]
@@ -1544,7 +1560,7 @@ Vous pouvez obtenir une feuille excel avec les colonnes à remplir <a href="impor
             S.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
                      % (t[0],t[1],t[4], ast))
         if  tf[0] == 0:
-            return '\n'.join(H) + tf[1] + '\n'.join(S) + F
+            return '\n'.join(H) + tf[1] + '</li></ol>' + '\n'.join(S) + F
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:

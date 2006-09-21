@@ -1567,12 +1567,12 @@ class ZNotes(ObjectManager,
         else:
             r = ''        
         # requete complete
-        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
+        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and Isem.formsemestre_id=M.formsemestre_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
         if not include_dems:
             req += " and Isem.etat='I'"
         req += r
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()    
+        cursor = cnx.cursor()
         cursor.execute( req, { 'evaluation_id' : evaluation_id } )
         res = cursor.fetchall()
         return [ x[0] for x in res ]

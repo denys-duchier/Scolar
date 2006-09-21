@@ -298,7 +298,7 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     style2.font = font2
     
     style2b = XFStyle()
-    style2b.font = font2
+    style2b.font = font1i
     borders = Borders()
     borders.left = 1
     borders.top = 1
@@ -311,6 +311,8 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     borders.top = 1
     borders.bottom = 1
     style2tb.borders = borders
+    style2tb.font = Font()
+    style2tb.font.height = 16*0x14 # -> ligne hautes
 
     style2t3 = XFStyle()
     borders = Borders()
@@ -343,7 +345,7 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     li += 1
     ws0.write(li,1, "Nom", style3)
     ws0.write(li,2, "Date", style3)
-    for i in range(5):
+    for i in range(4):
         ws0.write(li, 3+i, '', style2b)
     n = 0
     for l in lines:
@@ -352,8 +354,9 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
         ws0.write(li, 0, n, style1b)
         ws0.write(li, 1, l[0] + ' ' + l[1], style2t3) # nom, prenom
         ws0.write(li, 2, '', style2tb) # vide
-        for i in range(5):
+        for i in range(4):
             ws0.write(li, 3+i, l[2], style2b) # etat
+        ws0.row(li).height = 850 # sans effet ?
     #
     li += 2
     dt = time.strftime( '%d/%m/%Y à %Hh%M' )
@@ -362,6 +365,6 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     ws0.write(li, 1, 'Liste éditée le ' + dt, style1i)
     #
     ws0.col(0).width = 850
-    ws0.col(1).width = 10000
+    ws0.col(1).width = 9000
 
     return wb.savetostr()
