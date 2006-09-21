@@ -1264,6 +1264,7 @@ function tweakmenu( gname ) {
         """change la photo d'un etudiant
         Si suppress, supprime la photo existante.
         """
+        cnx = self.GetDBConnexion() 
         if photofile:
             # mesure la taille du fichier uploaded
             filesize = len(photofile.read())
@@ -1280,7 +1281,6 @@ function tweakmenu( gname ) {
             small_img = imageresize.ImageScaleH(photofile,H=90)
             self.Fotos.manage_addProduct['OFSP'].manage_addImage(photo_id, small_img, etudid )
             # Update database
-            cnx = self.GetDBConnexion() 
             scolars.identite_edit(cnx,args={'etudid':etudid,'foto':photo_id})
             logdb(REQUEST,cnx,method='changePhoto',msg=photo_id,etudid=etudid)
         elif suppress:
