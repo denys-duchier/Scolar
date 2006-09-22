@@ -10,6 +10,7 @@
 </dtml-comment>
 
 <p>
+<dtml-if "sem['etat'] != '1'"><dtml-var "img.lock_img"></dtml-if>
 <dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this()))">
 <a href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
        Modifier le semestre "<dtml-var "sem['titre']">"</a>

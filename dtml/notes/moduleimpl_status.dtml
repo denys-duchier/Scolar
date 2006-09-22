@@ -15,7 +15,9 @@
 
 <table>
 <tr><td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "M['responsable_id']"></td></tr>
-<tr><td class="fichetitre2">Semestre: </td><td><dtml-var "sem['semestre_id']"></td>
+<tr><td class="fichetitre2">Semestre: </td><td><dtml-var "sem['semestre_id']">
+    <dtml-if "sem['etat'] != '1'"><dtml-var "img.lock32_img.tag(border='0')"></dtml-if>
+   </td>
     <td class="fichetitre2">Coef dans le semestre:</td><td><dtml-var "Mod['coefficient']"></td>
 </tr>
 <tr><td class="fichetitre2">Formation: </td><td><dtml-var "F['titre']"></td></tr>
@@ -93,8 +95,15 @@
 </dtml-let eval>
 </dtml-in ModEvals>
 
-<dtml-if canedit>
- <tr><td colspan="4"><a href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a></td></tr>
+<dtml-if "canedit or sem['etat'] != '1'">
+ <tr><td colspan="4">
+
+<dtml-if "sem['etat'] != '1'">
+  <dtml-var "img.lock32_img.tag(border='0')"> semestre verrouillé
+<dtml-else>
+<a href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a>
+</dtml-if>
+</td></tr>
 </dtml-if canedit>
 </table>
 

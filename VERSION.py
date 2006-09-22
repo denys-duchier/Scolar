@@ -1,10 +1,11 @@
-SCOVERSION = "4.2"
+SCOVERSION = "4.3"
 
 SCONAME = "AxoNote"
 
 SCONEWS = """
 <h4>septembre 2006</h4>
 <ul>
+<li>"Verrouillage" des semestres</li>
 <li>Amélioration mise en page des listes au format excel</li>
 </ul>
 

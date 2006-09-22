@@ -359,18 +359,26 @@ class ZScolar(ObjectManager,
         # H.append('<p>listes du %s</p>' % now )
         cursems = []   # semestres "courants"
         othersems = [] # autres (anciens ou futurs)        
+        # selection sur l'etat du semestre
         for sem in sems:
-            debut = DateDMYtoISO(sem['date_debut'])
-            fin = DateDMYtoISO(sem['date_fin'])
-            if debut <= now and now <= fin:
+            if sem['etat'] == '1':
                 cursems.append(sem)
             else:
                 othersems.append(sem)
+# # selection basee sur la date courante        
+#        for sem in sems:
+#            debut = DateDMYtoISO(sem['date_debut'])
+#            fin = DateDMYtoISO(sem['date_fin'])
+#            if debut <= now and now <= fin:
+#                cursems.append(sem)
+#            else:
+#                othersems.append(sem)
+                
         # liste des fomsemestres "courants"
         H.append('<h2>Semestres en cours</h3>')
         for sem in cursems:
             H += self.make_listes_sem(sem, REQUEST)
-        H.append('<h2>Semestres en passés ou futurs</h3>')
+        H.append('<h2>Semestres en passés ou futurs (non modifiables)</h3>')
         for sem in othersems:
             H += self.make_listes_sem(sem, REQUEST)
         #
@@ -810,6 +818,7 @@ class ZScolar(ObjectManager,
             data = sem.copy()
             data.update(info)
             data.update(sem['ins'])
+            locked = (sem['etat'] != '1')
             i = sem['ins']
             ilist.append('<table><tr><td><a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s %(date_debut)s - %(date_fin)s</a> [%(etat)s] groupe %(groupetd)s </td><td><div class="barrenav"><ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul></div></td>' % data )
 
@@ -818,18 +827,19 @@ class ZScolar(ObjectManager,
                 ilist.append("""<td><div class="barrenav"><ul class="nav"><li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#"
 	    class="menu direction_etud">Scolarité</a><ul>""") # "
 
-                if authuser.has_permission(ScoEtudChangeGroups,self):
+                if authuser.has_permission(ScoEtudChangeGroups,self) and not locked:
                     ilist.append('<li><a href="formChangeGroupe?etudid=%s&formsemestre_id=%s">changer de groupe</a></li>' % (etudid,i['formsemestre_id']) )
-                if authuser.has_permission(ScoEtudInscrit,self):
+                if authuser.has_permission(ScoEtudInscrit,self) and not locked:
                     ilist.append("""
                     <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
-                    <li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>
-                    <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">EN TEST Inscrire à un module optionnel (ou au sport)</a></li>
+                    <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">Inscrire à un module optionnel (ou au sport)</a></li>
                     <li><a href="Notes/do_formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">déinscrire (en cas d'erreur)</a></li>
-                    </ul>
-                    </ul>
-                    """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )                    
+                    """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )
+                if authuser.has_permission(ScoEtudInscrit,self):
+                    ilist.append('<li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>'%{ 'etudid' : etudid})
+                ilist.append('</ul></ul>')
+
                     #                     <li><a href="formExclusion?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Exclusion (non redoublement)</a></li>
                     #
                 ilist.append('</div></td>')
@@ -1053,6 +1063,11 @@ function bodyOnLoad() {
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
         #
+        # -- check lock
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        #
         etud['semtitre'] = sem['titre']
         H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         header = self.sco_header(
@@ -1126,6 +1141,10 @@ function tweakmenu( gname ) {
                        redirect=1):
         "Change le groupe. Si la valeur du groupe est '' (vide) ou 'None', le met à NULL (aucun groupe)"
         cnx = self.GetDBConnexion()
+        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        #
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
         if groupetd != None:
@@ -1294,6 +1313,9 @@ function tweakmenu( gname ) {
         cnx = self.GetDBConnexion()    
         etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+
         etud['formsemestre_id']=formsemestre_id
         etud['semtitre'] = sem['titre']
         etud['nowdmy'] = time.strftime('%d/%m/%Y')
@@ -1312,12 +1334,17 @@ function tweakmenu( gname ) {
 </form>""" % etud )
         return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
     
-    security.declareProtected(ScoEtudInscrit, "formDem")
+    security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
     def doDemEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
         "demission d'un etudiant"
         # marque D dans l'inscription au semestre et ajoute
         # un "evenement" scolarite
         cnx = self.GetDBConnexion()
+        # check lock
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        #
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
         if ins['etat'] != 'I':

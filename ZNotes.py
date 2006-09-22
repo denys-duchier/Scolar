@@ -402,19 +402,21 @@ class ZNotes(ObjectManager,
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
-         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid'),
+         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid', 'etat'),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
                              'date_fin'   : DateISOtoDMY,
                              'gestion_absence' : str,
                              'bul_show_decision' : str,
-                             'bul_show_uevalid' : str },
+                             'bul_show_uevalid' : str,
+                             'etat' : str },
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
                              'gestion_absence' : int,
                              'bul_show_decision' : int,
-                             'bul_show_uevalid' : int }
+                             'bul_show_uevalid' : int,
+                             'etat' : int }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
@@ -710,6 +712,11 @@ class ZNotes(ObjectManager,
                                    'allowed_values' : ['X'],
                                    'explanation' : 'faire figurer les UE validées sur les bulletins',
                                    'labels' : [''] }),
+            ('etat_lst', { 'input_type' : 'checkbox',
+                           'title' : '',
+                           'allowed_values' : ['X'],
+                           'explanation' : 'semestre "ouvert"',
+                           'labels' : [''] }),
             ]
         initvalues = sem
         initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
@@ -727,6 +734,7 @@ class ZNotes(ObjectManager,
             initvalues['bul_show_decision_lst'] = []
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
             REQUEST.form['bul_show_decision_lst'] = []
+
         initvalues['bul_show_uevalid'] = initvalues.get('bul_show_uevalid','1')
         if initvalues['bul_show_uevalid'] == '1':
             initvalues['bul_show_uevalid_lst'] = ['X']
@@ -734,6 +742,15 @@ class ZNotes(ObjectManager,
             initvalues['bul_show_uevalid_lst'] = []
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_uevalid_lst'):
             REQUEST.form['bul_show_uevalid_lst'] = []
+
+        initvalues['etat'] = initvalues.get('etat','1')
+        if initvalues['etat'] == '1':
+            initvalues['etat_lst'] = ['X']
+        else:
+            initvalues['etat_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('etat_lst'):
+            REQUEST.form['etat_lst'] = []
+        
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = 'Modifier',
                                 cancelbutton = 'Annuler',
@@ -757,6 +774,12 @@ class ZNotes(ObjectManager,
                 tf[2]['bul_show_uevalid'] = 1
             else:
                 tf[2]['bul_show_uevalid'] = 0
+
+            if tf[2]['etat_lst']:
+                tf[2]['etat'] = 1
+            else:
+                tf[2]['etat'] = 0                
+
             # modification du semestre:
             self.do_formsemestre_edit(tf[2])
             return header + ('<h3>Modification effectuées<h3><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
@@ -831,6 +854,12 @@ class ZNotes(ObjectManager,
     def do_formsemestre_inscription_create(self, args, REQUEST, method=None ):
         "create a formsemestre_inscription (and sco event)"
         cnx = self.GetDBConnexion()
+        # check lock
+        sem = self.do_formsemestre_list(
+            {'formsemestre_id':args['formsemestre_id']})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('inscription: semestre verrouille')
+        #
         r = self._formsemestre_inscriptionEditor.create(cnx, args)
         # Evenement
         scolars.scolar_events_create( cnx, args = {
@@ -887,6 +916,8 @@ class ZNotes(ObjectManager,
         if not dialog_confirmed:
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
             sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+            if sem['etat'] != '1':
+                raise ScoValueError('desinscription impossible: semestre verrouille')
             return self.confirmDialog(
                 """<p>Confirmer la demande de desinscription ?</p>
                 <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
@@ -897,6 +928,10 @@ class ZNotes(ObjectManager,
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
+        # -- check lock
+        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('desinscription impossible: semestre verrouille')
         # -- desinscription de tous les modules
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -975,8 +1010,10 @@ class ZNotes(ObjectManager,
         
 
     security.declareProtected(ScoEtudInscrit,'do_formsemestre_inscription_with_modules')
-    def do_formsemestre_inscription_with_modules(self, args=None,
-                                                 REQUEST=None, method='inscription_with_modules' ):
+    def do_formsemestre_inscription_with_modules(
+        self, args=None, REQUEST=None,
+        method='inscription_with_modules'
+        ):
         "inscrit cet etudiant a ce semestre et TOUS ses modules normaux (donc sauf le sport)"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -1002,7 +1039,7 @@ class ZNotes(ObjectManager,
               + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie.</p>" 
               ]
         F = self.sco_footer(self,REQUEST)
-        sems = self.do_formsemestre_list()
+        sems = self.do_formsemestre_list( args={ 'etat' : '1' } )
         if sems:
             H.append('<ul>')
             for sem in sems:
@@ -1136,6 +1173,9 @@ class ZNotes(ObjectManager,
                                         REQUEST=None):
         "Dialogue pour (des)inscription a des modules optionnels"
         sem = self.do_formsemestre_list( {'formsemestre_id':formsemestre_id} )[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
         F = self.sco_footer(self,REQUEST)
         H = [ self.sco_header(self,REQUEST)
@@ -2340,6 +2380,8 @@ class ZNotes(ObjectManager,
         uid = str(uid)
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
+        if sem['etat'] != '1':
+            return False # semestre verrouillé
         if uid != 'admin' and uid != M['responsable_id'] and uid != sem['responsable_id']:
             return False
         else:
@@ -3276,6 +3318,12 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         """
         cnx = self.GetDBConnexion()
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        if sem['etat'] != '1':
+            header = self.sco_header(self,REQUEST,
+                                     page_title="Semestre verrouillé")
+            footer = self.sco_footer(self, REQUEST)
+            return header + '<p>Semestre verrouillé</p>' + footer
+        
         nt = self.CachedNotesTable.get_NotesTable(self, formsemestre_id)
         ues = nt.get_ues()
         T = nt.get_table_moyennes_triees()
@@ -3828,14 +3876,16 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         <input type="hidden" name="tf-submitted" value="1"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
         """ % (formsemestre_id,) )
-        # menu avec liste des semestres débutant a moins de 123 jours (4 mois)
-        # de la date de fin du semestre d'origine.
+        # menu avec liste des semestres "ouverts" débutant a moins
+        # de 123 jours (4 mois) de la date de fin du semestre d'origine.
         sems = self.do_formsemestre_list()
         othersems = []
         d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
         date_fin_origine = datetime.date(y,m,d)
         delais = datetime.timedelta(123) # 123 jours ~ 4 mois
         for s in sems:
+            if s['etat'] != '1':
+                continue # saute semestres pas ouverts
             if s['formsemestre_id'] == formsemestre_id:
                 continue # saute le semestre d'où on vient
             if s['date_debut']:
