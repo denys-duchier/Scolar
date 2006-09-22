@@ -2,17 +2,9 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
-- ajout de la note de sport/culture
-    -> UE speciale dans la formation
-       La moyenne du module est utilisee
-       (il peut y avoir plusieurs evals)
-       Les etudiants doivent etre inscrits
-       individuellement au module "sport".
+- saisie des notes par les chargés de TD
 
-attribut "type" dans les UE (0 normal, 1 sport)
-
-formsemestre_inscription_with_modules_form
-   tous les modules sauf le sport
+- statistiques sur nombres d'étudiants par type de bacs
 
 page pour inscription d'un etudiant a un module
 page pour visualiser les modules auquel un etudiant est inscrit,
@@ -25,10 +17,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 - formsemestre_editwithmodules ne permet pas de changer le semestre_id
 
 - formsemestre_recapcomplet : indiquer les etudiants démissionnaires
-
-- saisie des notes par les chargés de TD
-
-- statistiques sur nombres d'étudiants par type de bacs
 
 - "fermeture" semestre (plus de possibilité d'ajout d'evals ou de modifs notes)
 

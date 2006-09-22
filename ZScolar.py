@@ -307,10 +307,15 @@ class ZScolar(ObjectManager,
         </form>"""
     
     security.declareProtected(ScoView, 'formChoixSemestreGroupe')
-    def formChoixSemestreGroupe(self):
-        "partie de formulaire pour le choix d'un semestre et d'un groupe"
+    def formChoixSemestreGroupe(self, all=False):
+        """partie de formulaire pour le choix d'un semestre et d'un groupe.
+        Si all, donne tous les semestres (meme ceux verrouillés).
+        """
         # XXX assez primitif, a ameliorer
-        sems = self.Notes.do_formsemestre_list()
+        if all:
+            sems = self.Notes.do_formsemestre_list()
+        else:
+            sems = self.Notes.do_formsemestre_list( args={'etat':'1'} )
         H = ['<select name="semestregroupe">']
         for sem in sems:
             formsemestre_id = sem['formsemestre_id']
@@ -1599,6 +1604,39 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         format = ImportScolars.sco_import_format(file_path)
         data = ImportScolars.sco_import_generate_excel_sample(format)
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
+
+    # --- Statistiques
+    security.declareProtected(ScoView, "stat_bac")
+    def stat_bac(self,formsemestre_id):
+        "Renvoie statistisques sur nb d'etudiants par bac"
+        cnx = self.GetDBConnexion()
+        sem = self.Notes.do_formsemestre_list( args={'formsemestre_id':formsemestre_id} )[0]
+        ins = self.Notes.do_formsemestre_inscription_list(
+            args={ 'formsemestre_id' : formsemestre_id } )
+        Bacs = {} # type bac : nb etud 
+        for i in ins:
+            etud = scolars.etudident_list(cnx, {'etudid':i['etudid']})[0]
+            typebac = '%(bac)s %(specialite)s' % etud
+            Bacs[typebac] = Bacs.get(typebac, 0) + 1
+        return Bacs
+    security.declareProtected(ScoView, "stat_bac_fmt")
+    def stat_bac_fmt(self,formsemestre_id, format='html', REQUEST=None):
+        "Statistiques sur nb d'etudiants par bac"
+        Bacs = self.stat_bac(formsemestre_id)
+        sem = self.Notes.do_formsemestre_list(
+            {'formsemestre_id' : formsemestre_id} )[0]
+        header = self.sco_header(self, REQUEST,
+                                 page_title='Statistiques bacs ' + sem['titre'])
+        H = [ """
+        <h2>Origine des étudiants de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> (%(date_debut)s - %(date_fin)s)</h2>
+        """ % sem,
+              '<table><tr><th>Nombre d\'inscrits</th><th>Bac</th></tr>']
+        bacs = Bacs.keys()
+        bacs.sort()
+        for bac in bacs:
+            H.append('<tr><td>%s</td><td>%s</td></tr>' % (Bacs[bac],bac) )
+        H.append('</table>')
+        return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
     
     # sendEmail is not used through the web
     def sendEmail(self,msg):

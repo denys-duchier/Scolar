@@ -89,6 +89,9 @@
 <a href="formsemestre_bulletins_mailetuds?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=all">version complète</a> 
 (<em>cette opération est longue</em>)
 </li>
+
+<li><a href="stat_bac_fmt?formsemestre_id=<dtml-var formsemestre_id>">Tableau de répartition des bacs</a></li>
+
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>
  <a href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisions du jury</a>
