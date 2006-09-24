@@ -909,7 +909,8 @@ class ZNotes(ObjectManager,
               '<ul><li>%s (responsable)</li>' % M['responsable_id']
               ]
         for ens in M['ens']:
-            H.append('<li>%s (<a href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' % (ens['ens_id'],moduleimpl_id,ens['ens_id']))
+            H.append('<li>%s (<a href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
+                     (self.Users.user_info(ens['ens_id'])['nomprenom'], moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
         F = """<p class="help">Les enseignants d'un module ont le droit de
         saisir et modifier toutes les notes des évaluations de ce module.
@@ -919,12 +920,16 @@ class ZNotes(ObjectManager,
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         userlist = self.getZopeUsers()
+        nomprenoms = []
+        for user in userlist: # XXX may be slow on large user base ?
+            nomprenoms.append( self.Users.user_info(user)['nomprenom'] )
         modform = [
             ('moduleimpl_id', { 'input_type' : 'hidden' }),
             ('ens_id',
              { 'input_type' : 'menu',
                'title' : 'Ajouter un enseignant',
-               'allowed_values' : ['Choisir un enseignant...'] + userlist })
+               'allowed_values' : [''] + userlist,
+               'labels' : ['Choisir un enseignant...'] + nomprenoms })
             ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = 'Ajouter enseignant',

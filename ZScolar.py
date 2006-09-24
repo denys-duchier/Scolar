@@ -351,7 +351,9 @@ class ZScolar(ObjectManager,
     security.declareProtected('ScoView', 'getZopeUsers')
     def getZopeUsers(self):
         "liste des utilisateurs zope"
-        return self.acl_users.getUserNames()
+        l = self.acl_users.getUserNames()
+        l.sort()
+        return l
 
     # ----------  PAGE ACCUEIL (listes) --------------
     security.declareProtected('ScoView', 'index_html')

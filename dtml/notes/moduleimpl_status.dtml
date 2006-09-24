@@ -16,12 +16,15 @@
 
 <table>
 <tr>
-<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "M['responsable_id']"></td>
-<td><dtml-in "M['ens']">, <dtml-var "_['sequence-item']['ens_id']"></dtml-in>
+<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(M['responsable_id'])['nomprenom']"></td>
+<td><dtml-in "M['ens']">, <dtml-var "Users.user_info(_['sequence-item']['ens_id'])['nomprenom']"></dtml-in>
 </td>
-<td><dtml-try> <dtml-call "can_change_ens(REQUEST, moduleimpl_id)">
-<a href="edit_enseignants_form?moduleimpl_id=<dtml-var moduleimpl_id>">modifier les enseignants</a>
-<dtml-except></dtml-try>
+<td>
+<dtml-try> 
+ <dtml-call "can_change_ens(REQUEST, moduleimpl_id)">
+ <a href="edit_enseignants_form?moduleimpl_id=<dtml-var moduleimpl_id>">modifier les enseignants</a>
+<dtml-except>
+</dtml-try>
 </td>
 
 </tr>

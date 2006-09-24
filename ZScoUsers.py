@@ -149,6 +149,25 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetDBConnexion()        
         return self._userEditor.list( cnx, **kw )
 
+    def user_info(self, user_name):
+        "donne infos sur l'utilisateur (qui peut ne pas etre dans notre base)"
+        infos = self.user_list( args={'user_name':user_name} )
+        if not infos:
+            return { 'user_name' : user_name,
+                     'nom' : user_name, 'prenom' : '', 'email' : '', 'dept' : '' }
+        else:
+            info = infos[0]
+            if info['prenom']:
+                p = info['prenom'][:1].upper() + '. '
+            else:
+                p = ''
+            if info['nom']:
+                n = info['nom'].lower().capitalize()
+            else:
+                n = user_name
+            info['nomprenom'] = p + n
+            return info
+
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
         "change a password"
