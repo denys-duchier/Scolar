@@ -2,10 +2,6 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
-- saisie des notes par les chargés de TD
-
-- statistiques sur nombres d'étudiants par type de bacs
-
 page pour inscription d'un etudiant a un module
 page pour visualiser les modules auquel un etudiant est inscrit,
 et le desinscrire si besoin.

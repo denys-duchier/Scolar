@@ -1,8 +1,9 @@
 <dtml-var sco_header>
-<h2><dtml-var title_or_id></h2>
-
 
 <dtml-call "REQUEST.set( 'F', do_ue_list( args={ 'ue_id' : ue_id } )[0])">
+
+<h2>Modification de l'UE <dtml-var "F['titre']"></h2>
+
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('ue_id', { 'input_type' : 'hidden' }),

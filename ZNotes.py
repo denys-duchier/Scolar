@@ -519,6 +519,12 @@ class ZNotes(ObjectManager,
             for mat in matlist:
                 modsmat = self.do_module_list( { 'matiere_id' : mat['matiere_id'] })
                 mods = mods + modsmat
+        # Pour regroupement par semestres:
+        semestre_ids = {}
+        for mod in mods:
+            semestre_ids[mod['semestre_id']] = 1
+        semestre_ids = semestre_ids.keys()
+        semestre_ids.sort()
         #
         modform = [
             ('formsemestre_id', { 'input_type' : 'hidden' }),
@@ -544,12 +550,18 @@ class ZNotes(ObjectManager,
                                        'labels' : [''] }),
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
-        for mod in mods:
-            modform.append( (str(mod['module_id']),
-                             { 'input_type' : 'menu',
-                               'withcheckbox' : True,
-                               'title' : '%s %s' % (mod['code'],mod['titre']),
-                               'allowed_values' : userlist }) )
+        for semestre_id in semestre_ids:
+            modform.append(('sep',
+                            { 'input_type' : 'separator',
+                              'title' :
+                              '<b>Semestre %s</b>' % semestre_id}))
+            for mod in mods:
+                if mod['semestre_id'] == semestre_id:
+                    modform.append( (str(mod['module_id']),
+                                     { 'input_type' : 'menu',
+                                       'withcheckbox' : True,
+                                       'title' : '%s %s' % (mod['code'],mod['titre']),
+                                       'allowed_values' : userlist }) )
         if edit:
             modform.append( ('inscrire_etudslist',
                              { 'input_type' : 'checkbox',
@@ -792,6 +804,12 @@ class ZNotes(ObjectManager,
         'moduleimpl_id',
         ('moduleimpl_id','module_id','formsemestre_id','responsable_id'),
         )
+
+    _modules_enseignantsEditor = EditableTable(
+        'notes_modules_enseignants',
+        'modules_enseignants_id',
+        ('modules_enseignants_id','moduleimpl_id','ens_id'),
+        )
     
     security.declareProtected(ScoImplement, 'do_moduleimpl_create')
     def do_moduleimpl_create(self, args):
@@ -809,6 +827,8 @@ class ZNotes(ObjectManager,
         cursor = cnx.cursor()
         req = "DELETE FROM notes_moduleimpl_inscription WHERE moduleimpl_id=%(moduleimpl_id)s"
         cursor.execute( req, { 'moduleimpl_id' : oid } )
+        # --- suppression des enseignants
+        cursor.execute( "DELETE FROM notes_modules_enseignants WHERE moduleimpl_id=%(moduleimpl_id)s", { 'moduleimpl_id' : oid } )
         # --- destruction du moduleimpl
         self._moduleimplEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
@@ -817,7 +837,12 @@ class ZNotes(ObjectManager,
     def do_moduleimpl_list(self, *args, **kw ):
         "list moduleimpls"
         cnx = self.GetDBConnexion()
-        return self._moduleimplEditor.list(cnx, *args, **kw)
+        modimpls = self._moduleimplEditor.list(cnx, *args, **kw)
+        # Ajoute la liste des enseignants
+        for mo in modimpls:
+            mo['ens'] = self.do_ens_list(
+                args={'moduleimpl_id':mo['moduleimpl_id']})
+        return modimpls
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_edit')
     def do_moduleimpl_edit(self, *args, **kw ):
@@ -841,6 +866,121 @@ class ZNotes(ObjectManager,
                           y['ue']['numero']*1000 + y['module']['numero']))
         return modimpls
 
+    security.declareProtected(ScoView,'do_ens_list')
+    def do_ens_list(self, *args, **kw ):
+        "liste les enseignants d'un moduleimpl (pas le responsable)"
+        cnx = self.GetDBConnexion()
+        ens = self._modules_enseignantsEditor.list(cnx, *args, **kw)
+        return ens
+
+    security.declareProtected(ScoImplement, 'do_ens_edit')
+    def do_ens_edit(self, *args, **kw ):
+        "edit ens"
+        cnx = self.GetDBConnexion()
+        self._modules_enseignantsEditor.edit(cnx, *args, **kw )
+
+    security.declareProtected(ScoImplement, 'do_ens_create')
+    def do_ens_create(self, args):
+        "create ens"
+        cnx = self.GetDBConnexion()
+        r = self._modules_enseignantsEditor.create(cnx, args)
+        return r
+
+    security.declareProtected(ScoImplement, 'do_ens_delete')
+    def do_ens_delete(self, oid):
+        "delete ens"
+        cnx = self.GetDBConnexion()
+        r = self._modules_enseignantsEditor.delete(cnx, oid)
+        return r
+
+    # --- dialogue modif enseignants/moduleimpl
+    security.declareProtected(ScoView, 'edit_enseignants_form')
+    def edit_enseignants_form(self, REQUEST, moduleimpl_id):
+        "modif liste enseignants/moduleimpl"
+        M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
+        # --
+        header = self.sco_header(self,REQUEST,
+                                 page_title='Enseignants du module %s'
+                                 % M['module']['titre'])
+        footer = self.sco_footer(self,REQUEST)
+        H = [ '<p>Semestre %s, du %s au %s</p>'
+              % (sem['titre'], sem['date_debut'], sem['date_fin']),
+              '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
+              '<ul><li>%s (responsable)</li>' % M['responsable_id']
+              ]
+        for ens in M['ens']:
+            H.append('<li>%s (<a href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' % (ens['ens_id'],moduleimpl_id,ens['ens_id']))
+        H.append('</ul>')
+        F = """<p class="help">Les enseignants d'un module ont le droit de
+        saisir et modifier toutes les notes des évaluations de ce module.
+        </p>
+        <p class="help">Pour changer le responsable du module, passez par la
+        page "<a href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>"
+        </p>
+        """ % (sem['formation_id'],M['formsemestre_id'])
+        userlist = self.getZopeUsers()
+        modform = [
+            ('moduleimpl_id', { 'input_type' : 'hidden' }),
+            ('ens_id',
+             { 'input_type' : 'menu',
+               'title' : 'Ajouter un enseignant',
+               'allowed_values' : ['Choisir un enseignant...'] + userlist })
+            ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
+                                submitlabel = 'Ajouter enseignant',
+                                cancelbutton = 'Annuler')
+        if tf[0] == 0:
+            return header + '\n'.join(H) + tf[1] + F + footer
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
+        else:
+            ens_id = tf[2]['ens_id']
+            # verifie qu'il existe
+            if not ens_id in userlist:
+                H.append('<p class="help">Pour ajouter un enseignant, choisissez un nom dans le menu</p>')
+            else:
+                # et qu'il n'est pas deja:
+                if ens_id in [ x['ens_id'] for x in M['ens'] ]:
+                    H.append('<p class="help">Enseignant %s déjà dans la liste !</p>' % ens_id)
+                else:                    
+                    self.do_ens_create( { 'moduleimpl_id' : moduleimpl_id,
+                                          'ens_id' : ens_id } )
+                    return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
+            return header + '\n'.join(H) + tf[1] + F + footer
+
+    security.declareProtected(ScoView, 'edit_enseignants_form_delete')
+    def edit_enseignants_form_delete(self, REQUEST, moduleimpl_id, ens_id):
+        "remove ens"
+        M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
+        # search ens_id
+        ok = False
+        for ens in M['ens']:
+            if ens['ens_id'] == ens_id:
+                ok = True
+                break
+        if not ok:
+            raise ScoValueError('invalid ens_id (%s)' % ens_id)
+        self.do_ens_delete(ens['modules_enseignants_id'])
+        return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
+
+    security.declareProtected(ScoView,'can_change_ens')
+    def can_change_ens(self, REQUEST, moduleimpl_id):
+        "check if current user can modify ens list (raise exception if not)"
+        M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
+        # -- check lock
+        sem = self.do_formsemestre_list({'formsemestre_id':M['formsemestre_id']})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        # -- check access
+        authuser = REQUEST.AUTHENTICATED_USER
+        uid = str(authuser)
+        # admin, resp. module ou resp. semestre
+        if (uid != 'admin' and uid != M['responsable_id']
+            and not authuser.has_permission(ScoImplement, self)
+            and uid != sem['responsable_id']):
+            raise AccessDenied('Modification impossible pour %s' % uid)
+        return M, sem
+    
     # --- Gestion des inscriptions aux modules
     _formsemestre_inscriptionEditor = EditableTable(
         'notes_formsemestre_inscription',
@@ -2383,6 +2523,10 @@ class ZNotes(ObjectManager,
         if sem['etat'] != '1':
             return False # semestre verrouillé
         if uid != 'admin' and uid != M['responsable_id'] and uid != sem['responsable_id']:
+            # enseignant (chargé de TD) ?
+            for ens in M['ens']:
+                if ens['ens_id'] == uid:
+                    return True
             return False
         else:
             return True        

@@ -1,8 +1,9 @@
 <dtml-var sco_header>
-<h2><dtml-var title_or_id></h2>
-
 
 <dtml-call "REQUEST.set( 'F', do_module_list( args={ 'module_id' : module_id } )[0])">
+
+<h2>Modification du module <dtml-var "F['titre']"></h2>
+
 
 <dtml-call "REQUEST.set( 'M', do_matiere_list( args={'formation_id' : F['formation_id']} ))">
 <dtml-call "REQUEST.set( 'Mnames', [ x['titre'] for x in M ])">

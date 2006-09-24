@@ -10,11 +10,21 @@
 
 <dtml-let canedit="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
 
-<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titre']"></a>)</h2>
+<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titre']"></a>, <dtml-var "sem['date_debut']">)
+</h2>
 
 
 <table>
-<tr><td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "M['responsable_id']"></td></tr>
+<tr>
+<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "M['responsable_id']"></td>
+<td><dtml-in "M['ens']">, <dtml-var "_['sequence-item']['ens_id']"></dtml-in>
+</td>
+<td><dtml-try> <dtml-call "can_change_ens(REQUEST, moduleimpl_id)">
+<a href="edit_enseignants_form?moduleimpl_id=<dtml-var moduleimpl_id>">modifier les enseignants</a>
+<dtml-except></dtml-try>
+</td>
+
+</tr>
 <tr><td class="fichetitre2">Semestre: </td><td><dtml-var "sem['semestre_id']">
     <dtml-if "sem['etat'] != '1'"><dtml-var "img.lock32_img.tag(border='0')"></dtml-if>
    </td>
