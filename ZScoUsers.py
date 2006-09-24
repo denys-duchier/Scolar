@@ -120,6 +120,18 @@ class ZScoUsers(ObjectManager,
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
 
+    security.declareProtected('Change DTML Documents', 'GetUsersDBConnexion')
+    def GetUsersDBConnexion(self,new=False):
+        # not published
+        try:
+            # a database adaptor called UsersDB must exists
+            cnx = self.UsersDB().db 
+        except:
+            # backward compat: try to use same DB
+            cnx = self.GetDBConnexion() 
+        cnx.commit() # sync !
+        return cnx
+
     # --------------------------------------------------------------------
     #
     #   Users (top level)
@@ -146,7 +158,7 @@ class ZScoUsers(ObjectManager,
     security.declareProtected(ScoAdminUsers, 'user_list')
     def user_list(self, **kw):
         "list info sur utilisateur(s)"
-        cnx = self.GetDBConnexion()        
+        cnx = self.GetUsersDBConnexion()        
         return self._userEditor.list( cnx, **kw )
 
     def user_info(self, user_name):
@@ -193,7 +205,7 @@ class ZScoUsers(ObjectManager,
                     digest = digest.digest()
                     md5pwd = string.strip(base64.encodestring(digest))
                     #
-                    cnx = self.GetDBConnexion()
+                    cnx = self.GetUsersDBConnexion()
                     cursor = cnx.cursor()
                     cursor.execute( 'select count(*) from sco_users where user_name=%(user_name)s', { 'user_name' : user_name } )
                     r = cursor.fetchall()
@@ -314,7 +326,7 @@ class ZScoUsers(ObjectManager,
 #     security.declareProtected(ScoAdminUsers, 'create_user')
 #     def create_user(self, args, REQUEST=None):
 #         "creation utilisateur zope"
-#         cnx = self.GetDBConnexion()
+#         cnx = self.GetUsersDBConnexion()
 #         r = self._userEditor.create(cnx, args)
 #         if REQUEST:
 #             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
