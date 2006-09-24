@@ -17,9 +17,10 @@ CREATE TABLE sco_users (
 	date_modif_passwd date default now(),
 	nom text,
 	prenom text,
-        email text
+        email text,
+	dept text -- departement d'appartenance
 );
 
-insert into sco_users (user_name, passwd, nom, prenom, email) 
-values ('viennet', 'NqUrsimfzVSmTHk/k7qyVw==', 'viennet', 'emmanuel', 'viennet@lipn.univ-paris13.fr');
+insert into sco_users (user_name, passwd, nom, prenom, email, dept ) 
+values ('viennet', 'NqUrsimfzVSmTHk/k7qyVw==', 'viennet', 'emmanuel', 'viennet@lipn.univ-paris13.fr', 'RT');
 
