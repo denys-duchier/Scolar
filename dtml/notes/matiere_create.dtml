@@ -5,7 +5,20 @@
 
 <h2><dtml-var title_or_id> dans l'UE <dtml-var "UE['titre']"> (<dtml-var "UE['acronyme']">)</h2>
 
-<p>Les matières sont des groupes de modules dans une UE d'une formation donnée.</p>
+<p class="help">Les matières sont des groupes de modules dans une UE
+d'une formation donnée. Les matières servent surtout pour la
+présentation (bulletins, etc) mais <em>n'ont pas de rôle dans le calcul
+des notes.</em>
+</p> 
+
+<p class="help">Si votre formation n'utilise pas la notion de
+"matières", créez une matière par UE, et donnez lui le même nom que l'UE
+(en effet, tout module doit appartenir à une matière).
+</p>
+
+<p class="help">Comme les UE, les matières n'ont pas de coefficient
+associé.
+</p>
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('ue_id', { 'input_type' : 'hidden', 'default' : ue_id }),

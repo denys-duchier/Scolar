@@ -5,7 +5,21 @@
 
 <h2><dtml-var title_or_id> dans la matière <dtml-var "M['titre']"> (UE <dtml-var "UE['acronyme']">)</h2>
 
-<p>Les modules sont décrits dans le programme pédagogique.</p>
+<p class="help">
+Les modules sont décrits dans le programme pédagogique. Un module est pour ce 
+logiciel l'unité pédagogique élémentaire. On va lui associer une note 
+à travers des <em>évaluations</em>. 
+Cette note (moyenne de module) sera utilisée pour calculer la moyenne
+générale (et la moyenne de l'UE à laquelle appartient le module). Pour
+cela, on utilisera le <em>coefficient</em> associé au module.
+</p>
+
+<p class="help">Un module possède un enseignant responsable
+(typiquement celui qui dispense le cours magistral). On peut associer
+au module une liste d'enseignants (typiquement les chargés de TD).
+Tous ces enseignants, plus le responsable du semestre, pourront
+saisir et modifier les notes de ce module.
+</p> 
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( 

@@ -25,4 +25,20 @@
 </dtml-if>
 
 
+<p class="help">Les matières sont des groupes de modules dans une UE
+d'une formation donnée. Les matières servent surtout pour la
+présentation (bulletins, etc) mais <em>n'ont pas de rôle dans le calcul
+des notes.</em>
+</p> 
+
+<p class="help">Si votre formation n'utilise pas la notion de
+"matières", créez une matière par UE, et donnez lui le même nom que l'UE
+(en effet, tout module doit appartenir à une matière).
+</p>
+
+<p class="help">Comme les UE, les matières n'ont pas de coefficient
+associé.
+</p>
+
+
 <dtml-var sco_footer>

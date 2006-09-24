@@ -1,7 +1,11 @@
 <dtml-var sco_header>
-<h2><dtml-var title_or_id></h2>
+<h2>Ajout d'une UE</h2>
 
-<p>Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation</p>
+<p class="help">Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation (on calcule des moyennes par UE et applique des seuils ("barres")). 
+</p>
+
+<p class="help">Note: L'UE n'a pas de coefficient associé. Seuls les <em>modules</em> ont des coefficients.
+</p>
 
 <dtml-call "REQUEST.set( 'F', do_formation_list())">
 <dtml-call "REQUEST.set( 'Fnames', [ x['acronyme'] for x in F ])">
@@ -10,8 +14,8 @@
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
     ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
-    ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation' }),
-    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour affichage',
+    ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
+    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
                      'type' : 'int' }),
     ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
 	       'input_type' : 'menu',

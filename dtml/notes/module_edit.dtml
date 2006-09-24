@@ -4,6 +4,21 @@
 
 <h2>Modification du module <dtml-var "F['titre']"></h2>
 
+<p class="help">
+Les modules sont décrits dans le programme pédagogique. Un module est pour ce 
+logiciel l'unité pédagogique élémentaire. On va lui associer une note 
+à travers des <em>évaluations</em>. 
+Cette note (moyenne de module) sera utilisée pour calculer la moyenne
+générale (et la moyenne de l'UE à laquelle appartient le module). Pour
+cela, on utilisera le <em>coefficient</em> associé au module.
+</p>
+
+<p class="help">Un module possède un enseignant responsable
+(typiquement celui qui dispense le cours magistral). On peut associer
+au module une liste d'enseignants (typiquement les chargés de TD).
+Tous ces enseignants, plus le responsable du semestre, pourront
+saisir et modifier les notes de ce module.
+</p> 
 
 <dtml-call "REQUEST.set( 'M', do_matiere_list( args={'formation_id' : F['formation_id']} ))">
 <dtml-call "REQUEST.set( 'Mnames', [ x['titre'] for x in M ])">
