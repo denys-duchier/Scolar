@@ -250,7 +250,7 @@ CREATE TABLE notes_moduleimpl (
 -- Enseignants (chargés de TD ou TP) d'un moduleimpl
 CREATE TABLE notes_modules_enseignants (
 	modules_enseignants_id text default notes_newid('ENS') PRIMARY KEY,
-	moduleimpl_id text REFERENCES notes_moduleimpl(module_id),
+	moduleimpl_id text REFERENCES notes_moduleimpl(moduleimpl_id),
 	ens_id text
 );
 
