@@ -550,6 +550,7 @@ class ZNotes(ObjectManager,
                                        'labels' : [''] }),
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
+        
         for semestre_id in semestre_ids:
             modform.append(('sep',
                             { 'input_type' : 'separator',
@@ -562,6 +563,10 @@ class ZNotes(ObjectManager,
                                        'withcheckbox' : True,
                                        'title' : '%s %s' % (mod['code'],mod['titre']),
                                        'allowed_values' : userlist }) )
+        else:
+            modform.append(('sep',
+                            { 'input_type' : 'separator',
+                              'title' : 'aucun module dans cette formation !!!'}))
         if edit:
             modform.append( ('inscrire_etudslist',
                              { 'input_type' : 'checkbox',

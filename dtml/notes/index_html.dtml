@@ -29,7 +29,7 @@
      <a href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
     </dtml-if perm>
 
-    <a href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE et modules</a>     
+    <a href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE, modules, semestres</a>     
     
  </li>
  </dtml-let>
