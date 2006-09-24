@@ -26,11 +26,17 @@ CREATE FUNCTION notes_newid2( text ) returns text as '
 	as result;
 	' language SQL;
 
+CREATE SEQUENCE notes_idgen_etud;
+
+CREATE FUNCTION notes_newid_etud( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen_etud\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
 
 
 
 CREATE TABLE identite (
-    etudid text DEFAULT notes_newid('EID'::text) UNIQUE NOT NULL,
+    etudid text DEFAULT notes_newid_etud('EID'::text) UNIQUE NOT NULL,
     nom text,
     prenom text,
     sexe text,
@@ -40,7 +46,7 @@ CREATE TABLE identite (
 );
 
 CREATE TABLE adresse (
-    adresse_id text DEFAULT notes_newid('ADR'::text) NOT NULL,
+    adresse_id text DEFAULT notes_newid_etud('ADR'::text) NOT NULL,
     etudid text NOT NULL,
     email text,
     domicile text,
@@ -56,7 +62,7 @@ CREATE TABLE adresse (
 );
 
 CREATE TABLE admissions (
-    adm_id text DEFAULT notes_newid('ADM'::text) NOT NULL,
+    adm_id text DEFAULT notes_newid_etud('ADM'::text) NOT NULL,
     etudid text NOT NULL,
     annee integer,
     bac text,
@@ -228,7 +234,8 @@ CREATE TABLE notes_formsemestre (
 	responsable_id text,
         gestion_absence integer default 1,
 	bul_show_decision integer default 1,
-	bul_show_uevalid integer default 1
+	bul_show_uevalid integer default 1,
+        etat integer default 1, -- 1 ouvert, 0 ferme
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
@@ -238,6 +245,13 @@ CREATE TABLE notes_moduleimpl (
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
 	responsable_id text,
 	UNIQUE(module_id,formsemestre_id) -- ajoute
+);
+
+-- Enseignants (chargés de TD ou TP) d'un moduleimpl
+CREATE TABLE notes_modules_enseignants (
+	modules_enseignants_id text default notes_newid('ENS') PRIMARY KEY,
+	moduleimpl_id text REFERENCES notes_moduleimpl(module_id),
+	ens_id text
 );
 
 -- Inscription a un semestre de formation
