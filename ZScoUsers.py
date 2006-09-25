@@ -166,7 +166,9 @@ class ZScoUsers(ObjectManager,
         infos = self.user_list( args={'user_name':user_name} )
         if not infos:
             return { 'user_name' : user_name,
-                     'nom' : user_name, 'prenom' : '', 'email' : '', 'dept' : '' }
+                     'nom' : user_name, 'prenom' : '',
+                     'email' : '', 'dept' : '',
+                     'nomprenom' : user_name }
         else:
             info = infos[0]
             if info['prenom']:
