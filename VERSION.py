@@ -3,15 +3,16 @@ SCOVERSION = "4.4"
 SCONAME = "AxoNote"
 
 SCONEWS = """
-<h4>septembre 2006</h4>
+<h4>Septembre 2006</h4>
 <ul>
 <li>"Verrouillage" des semestres</li>
 <li>Liste d'enseignants (chargés de TD) associés à un module (et pouvant saisir ldes notes)</li>
+<li>Noms de types de groupes (TD, TP, ...) modifiables</li>
 <li>Tableau rudimentaire donnant la répartition des bacs dans un semestre</li>
 <li>Amélioration mise en page des listes au format excel</li>
 </ul>
 
-<h4>juillet 2006</h4>
+<h4>Juillet 2006</h4>
 <ul>
 <li>Dialogue permettant au directeur des études de modifier
 les options d'un semestre</li>

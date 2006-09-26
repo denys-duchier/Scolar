@@ -402,7 +402,10 @@ class ZNotes(ObjectManager,
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
-         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid', 'etat'),
+         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
+         'etat',
+         'nomgroupetd', 'nomgroupetp', 'nomgroupeta'
+         ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
                              'date_fin'   : DateISOtoDMY,
@@ -489,7 +492,11 @@ class ZNotes(ObjectManager,
         "Form choix modules / responsables et creation formsemestre"
         formation_id = REQUEST.form['formation_id']
         if not edit:
-            initvalues = {}
+            initvalues = {
+                'nomgroupetd' : 'TD',
+                'nomgroupetp' : 'TP',
+                'nomgroupeta' : 'langues'
+                }
             semestre_id  = REQUEST.form['semestre_id']
         else:
             # setup form init values
@@ -548,6 +555,15 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'faire figurer les décisions sur les bulletins',
                                        'labels' : [''] }),
+            ('nomgroupetd', { 'size' : 20,
+                              'title' : 'Nom des groupes primaires',
+                              'explanation' : 'TD' }),
+            ('nomgroupetp', { 'size' : 20,
+                              'title' : 'Nom des groupes secondaires',
+                              'explanation' : 'TP' }),
+            ('nomgroupeta', { 'size' : 20,
+                              'title' : 'Nom des groupes tertiaires',
+                              'explanation' : 'langues' }),            
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
         
@@ -618,7 +634,8 @@ class ZNotes(ObjectManager,
                     mod_resp_id = tf[2][module_id]
                     modargs = { 'module_id' : module_id,
                                 'formsemestre_id' : formsemestre_id,
-                                'responsable_id' :  mod_resp_id }
+                                'responsable_id' :  mod_resp_id,
+                                }
                     mid = self.do_moduleimpl_create(modargs)
                 return '<p>ok</>' # + str(tf[2])
             else:
@@ -1242,8 +1259,8 @@ class ZNotes(ObjectManager,
             <input type="hidden" name="etudid" value="%s">
             <input type="hidden" name="formsemestre_id" value="%s">
             <table>
-            <tr><td>Groupe de TD</td><td>
-            <select name="groupetdmenu" onChange="document.groupesel.groupetd.value=this.options[this.selectedIndex].value;">""" %(etudid,formsemestre_id))
+            <tr><td>Groupe de %s</td><td>
+            <select name="groupetdmenu" onChange="document.groupesel.groupetd.value=this.options[this.selectedIndex].value;">""" %(etudid,formsemestre_id,sem['nomgroupetd']))
             for g in gr_td:
                 H.append('<option value="%s">%s</option>'%(g,g))
             H.append("""</select>
@@ -1251,8 +1268,8 @@ class ZNotes(ObjectManager,
             </input></td></tr>
             """ % gr_td[0])
             # anglais
-            H.append("""<tr><td>Groupe d'"anglais"</td><td>
-            <select name="groupeanglaismenu" onChange="document.groupesel.groupeanglais.value=this.options[this.selectedIndex].value;">""" )
+            H.append("""<tr><td>Groupe de %s</td><td>
+            <select name="groupeanglaismenu" onChange="document.groupesel.groupeanglais.value=this.options[this.selectedIndex].value;">""" % sem['nomgroupeta'] )
             for g in gr_anglais:
                 H.append('<option value="%s">%s</option>'%(g,g))
             H.append("""</select>
@@ -1260,8 +1277,8 @@ class ZNotes(ObjectManager,
             </input></td></tr>
             """% gr_anglais[0])
             # tp
-            H.append("""<tr><td>Groupe de TP</td><td>
-            <select name="groupetpmenu" onChange="document.groupesel.groupetp.value=this.options[this.selectedIndex].value;">""" )
+            H.append("""<tr><td>Groupe de %s</td><td>
+            <select name="groupetpmenu" onChange="document.groupesel.groupetp.value=this.options[this.selectedIndex].value;">"""%sem['nomgroupetp'])
             for g in gr_tp:
                 H.append('<option value="%s">%s</option>'%(g,g))
             H.append("""</select>
@@ -1272,9 +1289,9 @@ class ZNotes(ObjectManager,
             H.append("""</table>
             <input type="submit" value="Inscrire"/>
             <p>Note: vous pouvez choisir l'un des groupes existants (figurant dans les menus) ou bien décider de créer un nouveau groupe (saisir son identifiant dans les champs textes).</p>
-            <p>Note 2: le groupe de TD doit être non vide. Les autres groupes sont facultatifs.</p>
+            <p>Note 2: le groupe primaire (%s) doit être non vide. Les autres groupes sont facultatifs.</p>
             </form>            
-            """)
+            """ % sem['nomgroupetd'])
             return '\n'.join(H) + F
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_optionXXX')

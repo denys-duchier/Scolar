@@ -236,6 +236,9 @@ CREATE TABLE notes_formsemestre (
 	bul_show_decision integer default 1,
 	bul_show_uevalid integer default 1,
         etat integer default 1, -- 1 ouvert, 0 ferme
+ 	nomgroupetd text default 'TD',
+ 	nomgroupetp text default 'TP',
+ 	nomgroupeta text default 'langue'
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre

@@ -385,7 +385,7 @@ class ZScolar(ObjectManager,
         H.append('<h2>Semestres en cours</h3>')
         for sem in cursems:
             H += self.make_listes_sem(sem, REQUEST)
-        H.append('<h2>Semestres en passés ou futurs (non modifiables)</h3>')
+        H.append('<hr/><h2>Semestres en passés ou futurs (non modifiables)</h3>')
         for sem in othersems:
             H += self.make_listes_sem(sem, REQUEST)
         #
@@ -413,7 +413,7 @@ class ZScolar(ObjectManager,
         #H.append( str(gr_td+gr_tp+gr_anglais) + '<p>')
         H.append('<ul>')            
         if gr_td:
-            H.append('<li>Groupes de TD</li>')
+            H.append('<li>Groupes de %s</li>' % sem['nomgroupetd'])
             H.append('<ul>')
             for gr in gr_td:
                 args = { 'formsemestre_id' : formsemestre_id, 'groupetd' : gr }
@@ -422,7 +422,7 @@ class ZScolar(ObjectManager,
                 H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s&groupetd=%s">groupe %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&groupetd=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&groupetd=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>'%(r,formsemestre_id,gr,gr,r,formsemestre_id,gr,r,formsemestre_id,gr,nb))
             H.append('</ul>')
         if gr_anglais: 
-            H.append('<li>Groupes d\'anglais</li>')
+            H.append('<li>Groupes de %s</li>' % sem['nomgroupeta'])
             H.append('<ul>')
             for gr in gr_anglais:
                 args = { 'formsemestre_id' : formsemestre_id, 'groupeanglais' : gr }
@@ -431,7 +431,7 @@ class ZScolar(ObjectManager,
                 H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s&groupeanglais=%s">groupe %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&groupeanglais=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&groupeanglais=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>'%(r,formsemestre_id,gr,gr,r,formsemestre_id,gr,r,formsemestre_id,gr,nb))
             H.append('</ul>')
         if gr_tp: 
-            H.append('<li>Groupes de TP</li>')
+            H.append('<li>Groupes de %s</li>' % sem['nomgroupetp'])
             H.append('<ul>')
             for gr in gr_tp:
                 args = { 'formsemestre_id' : formsemestre_id, 'groupetp' : gr }
@@ -446,7 +446,10 @@ class ZScolar(ObjectManager,
             H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
         # Si admin, lien changementde groupes
         if authuser.has_permission(ScoEtudChangeGroups,self):
-            H.append('<li class="listegroupelink">Modifier les groupes de <a href="affectGroupes?formsemestre_id=%s&groupType=TD">TD</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TA">anglais</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TP">TP</a></li>' % (formsemestre_id,formsemestre_id,formsemestre_id))
+            H.append('<li class="listegroupelink">Modifier les groupes de <a href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a></li>'
+                     % (formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd'],
+                        formsemestre_id,sem['nomgroupeta'],sem['nomgroupeta'],
+                        formsemestre_id,sem['nomgroupetp'],sem['nomgroupetp']))
         H.append('</ul>')
         return H
 
@@ -1085,7 +1088,9 @@ function bodyOnLoad() {
         #
         H.append("""<form action="doChangeGroupe" method="GET" name="cg">
 <table>
-<tr><th></th><th>TD</th><th>"Anglais"</th><th>TP</th></tr>
+<tr><th></th><th>%s</th><th>%s</th><th>%s</th></tr>"""
+                 % (sem['nomgroupetd'],sem['nomgroupeta'],sem['nomgroupetp']) )
+        H.append("""
 <tr><td><b>Groupes actuels&nbsp;:</b></td><td>%(groupetd)s</td><td>%(groupeanglais)s</td><td>%(groupetp)s</td></tr>
 <tr><td><b>Nouveaux groupes&nbsp;:</b></td>
 """ % ins)
@@ -1106,7 +1111,7 @@ function bodyOnLoad() {
         H.append("""<input type="hidden" name="etudid" value="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
 <p>
-(attention, vérifier que les groupes de TD, TP et Anglais sont compatibles)
+(attention, vérifier que les groupes sont compatibles, selon votre organisation)
 </p>
 <script type="text/javascript">
 function tweakmenu( gname ) {
@@ -1129,16 +1134,18 @@ function tweakmenu( gname ) {
 
 <p>Créer un nouveau groupe:
 <input type="text" id="newgroupname" size="8"/>
-<input type="button" onClick="tweakmenu( 'groupetd' );" value="créer groupe TD"/>
-<input type="button" onClick="tweakmenu( 'groupeanglais' );" value="créer groupe Anglais"/>
-<input type="button" onClick="tweakmenu( 'groupetp' );" value="créer groupe TP"/>
+<input type="button" onClick="tweakmenu( 'groupetd' );" value="créer groupe de %s"/>
+<input type="button" onClick="tweakmenu( 'groupeanglais' );" value="créer groupe de %s"/>
+<input type="button" onClick="tweakmenu( 'groupetp' );" value="créer groupe de %s"/>
 </p>
 <p id="groupemsg" style="font-style: italic;"></p>
 
 <input type="submit" value="Changer de groupe">
 <input type="button" value="Annuler" onClick="window.location='%s'">
 
-</form>""" % (etudid, formsemestre_id, REQUEST.URL1) )
+</form>""" % (etudid, formsemestre_id,
+              sem['nomgroupetd'], sem['nomgroupeta'], sem['nomgroupetp'], 
+              REQUEST.URL1) )
         
         return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
 
@@ -1148,7 +1155,7 @@ function tweakmenu( gname ) {
                        redirect=1):
         "Change le groupe. Si la valeur du groupe est '' (vide) ou 'None', le met à NULL (aucun groupe)"
         cnx = self.GetDBConnexion()
-        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         #
@@ -1200,7 +1207,7 @@ function tweakmenu( gname ) {
         nt = self.Notes.CachedNotesTable.get_NotesTable(self.Notes,
                                                         formsemestre_id)
         inscrlist = nt.inscrlist # liste triee par nom
-        open('/tmp/titi','w').write(str(inscrlist))
+        #open('/tmp/titi','w').write(str(inscrlist))
         # -- groupes TD (XXX experimental)
         if groupType == 'TD':
             gr, key = gr_td, 'groupetd'
