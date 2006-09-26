@@ -2,8 +2,8 @@
 # E.V., Sept 2005
 # (';' separated file)
 # Attribut     Type     Table       AllowNulls  Description
-code;         text;     identite;   0; code etudiant (Apogee)
-bac;           text;    admissions; 1;  type de bac (S, STI, ...)
+Code_INE;     text;     identite;   0; code etudiant (INE Apogee)
+bac;          text;     admissions; 1;  type de bac (S, STI, ...)
 specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)
 annee_bac;    integer;  admissions; 1;  annee d'obtention du bac
 math;         real;     admissions; 1;  note de math en terminale

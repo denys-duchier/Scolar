@@ -162,10 +162,10 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
             log( 'csv inscription: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
-            args['etudid'] = values['code']
+            args['etudid'] = values['Code_INE']
             etudid = scolars.identite_create(cnx,args)
-            if values['code']:
-                assert etudid == values['code']
+            if values['Code_INE']:
+                assert etudid == values['Code_INE']
             created_etudids.append(etudid)
             # Admissions
             args['etudid'] = etudid
