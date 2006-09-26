@@ -7,7 +7,7 @@
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
     ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)', 'allow_null' : False }),
-    ('titre'    , { 'size' : 30, 'explanation' : 'nom complet de la formation (ex: "DUT Réseaux et Télécommunications"', 'allow_null' : False }),
+    ('titre'    , { 'size' : 30, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications)', 'allow_null' : False }),
    ),
    cancelbutton = 'Annuler',
    submitlabel = 'Créer cette formation'

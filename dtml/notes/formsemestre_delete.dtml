@@ -28,8 +28,8 @@ un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tou
  <dtml-if "tf[0] == -1">
     <dtml-call "RESPONSE.redirect( URL1 )">
  <dtml-else>
-    <dtml-var "do_formsemestre_delete(formsemestre_id)">
-    <p>OK, semestre supprimée.</p>
+    <dtml-call "do_formsemestre_delete(formsemestre_id)">
+    <p>OK, semestre supprimé.</p>
 
     <p><a href="<dtml-var URL1>">Continuer</a></p>
  </dtml-if>

@@ -566,7 +566,8 @@ class ZNotes(ObjectManager,
                               'explanation' : 'langues' }),            
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
-        
+
+        nbmod = 0
         for semestre_id in semestre_ids:
             modform.append(('sep',
                             { 'input_type' : 'separator',
@@ -574,12 +575,13 @@ class ZNotes(ObjectManager,
                               '<b>Semestre %s</b>' % semestre_id}))
             for mod in mods:
                 if mod['semestre_id'] == semestre_id:
+                    nbmod += 1;
                     modform.append( (str(mod['module_id']),
                                      { 'input_type' : 'menu',
                                        'withcheckbox' : True,
                                        'title' : '%s %s' % (mod['code'],mod['titre']),
                                        'allowed_values' : userlist }) )
-        else:
+        if nbmod == 0:
             modform.append(('sep',
                             { 'input_type' : 'separator',
                               'title' : 'aucun module dans cette formation !!!'}))
@@ -637,7 +639,7 @@ class ZNotes(ObjectManager,
                                 'responsable_id' :  mod_resp_id,
                                 }
                     mid = self.do_moduleimpl_create(modargs)
-                return '<p>ok</>' # + str(tf[2])
+                return '<p>ok, session créée<p/><p><a href="Notes">Continuer</a>' # + str(tf[2])
             else:
                 # modification du semestre:
                 # on doit creer les modules nouvellement selectionnés
