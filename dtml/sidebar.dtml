@@ -58,7 +58,9 @@
 
  <br> 
   &nbsp; 
-<div class="logo-insidebar"><dtml-var "img.scologo_img"><br>
-<a href="<dtml-var ScoURL>/about" class="sidebar">A propos</a></div>
+<div class="logo-insidebar"><dtml-var "img.scologo_img"><br/>
+<a href="<dtml-var ScoURL>/about" class="sidebar">A propos</a><br/>
+<a href="https://www-gtr.iutv.univ-paris13.fr/ScoDoc/PageD'Accueil" class="sidebar">Aide</a><br/>
+</div>
 
 </div> <!-- end of sidebar -->
