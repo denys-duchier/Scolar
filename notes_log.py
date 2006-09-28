@@ -7,21 +7,33 @@ import pdb,os,sys,time
 # (logging to SQL is done in scolog)
 
 
-LOG_FILENAME = '/tmp/notes2.log' # empty to disable logging
+LOG_FILENAME = 'notes.log' # empty to disable logging
+DEFAULT_LOG_DIR = '/tmp' # clients should call set_log_directory to change this
 
 class _logguer:
-    def __init__(self, filename):
-        if filename:
-            self.file = open(filename, 'a')
+    def __init__(self):
+        self.file = None
+        self.set_log_directory( DEFAULT_LOG_DIR )
+        
+    def set_log_directory(self, directory):
+        self.directory = directory
+
+    def _open(self):
+        if LOG_FILENAME:
+            path = os.path.join( self.directory, LOG_FILENAME )
+            self.file = open( path, 'a')
             self( 'new _logguer' )
         else:
-            self.file = None
+            self.file = None # logging disabled
     
     def __call__(self, msg):
+        if not self.file:
+            self._open()
         if self.file:
             self.file.write( '[%s] %s\n' %(time.strftime('%a %b %d %H:%M:%S %Y'), msg) )
             self.file.flush()
 
 
-log = _logguer( LOG_FILENAME )
+log = _logguer()
+
 

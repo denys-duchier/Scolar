@@ -41,17 +41,21 @@ from AccessControl import ClassSecurityInfo
 import Globals
 from Globals import DTMLFile # can use DTML files
 from Globals import Persistent
+from Globals import INSTANCE_HOME
 from Acquisition import Implicit
 
 # where we exist on the file system
 file_path = Globals.package_home(globals())
 
 # ---------------
+from notes_log import log
+log.set_log_directory( INSTANCE_HOME + '/log' )
+log("restarting...")
+
 from sco_exceptions import *
 from sco_utils import *
 from ScolarRolesNames import *
 from notesdb import *
-from notes_log import log
 from scolog import logdb
 import scolars
 from scolars import format_nom, format_prenom, format_sexe, format_lycee

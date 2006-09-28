@@ -152,7 +152,7 @@ var EtudColorsIdx = 0;
 var NbEtuds = 0;
 
 /* --- Etudiant draggable --- */
-var CDraggableEtud = Class.create();
+var CDraggableEtud = Class.create(); // Prototype 
 CDraggableEtud.prototype = (new Rico.Draggable()).extend( {
   initialize: function(nom, prenom, sexe, etudid) {
       this.type        = 'Custom';

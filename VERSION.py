@@ -6,7 +6,7 @@ SCONEWS = """
 <h4>Septembre 2006</h4>
 <ul>
 <li>"Verrouillage" des semestres</li>
-<li>Liste d'enseignants (chargés de TD) associés à un module (et pouvant saisir ldes notes)</li>
+<li>Liste d'enseignants (chargés de TD) associés à un module (et pouvant saisir des notes)</li>
 <li>Noms de types de groupes (TD, TP, ...) modifiables</li>
 <li>Tableau rudimentaire donnant la répartition des bacs dans un semestre</li>
 <li>Amélioration mise en page des listes au format excel</li>
