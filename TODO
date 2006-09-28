@@ -2,6 +2,8 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- suppression d'un groupe
+
 page pour inscription d'un etudiant a un module
 page pour visualiser les modules auquel un etudiant est inscrit,
 et le desinscrire si besoin.

@@ -143,7 +143,9 @@ class ZScoUsers(ObjectManager,
         "gestion utilisateurs..."
         H = [self.sco_header(self,REQUEST,page_title='Gestion des utilisateurs')]
         n = len(self.user_list())
-        H.append('<h1>Gestion des utilisateurs</h1>')
+        H.append("""<h1>Gestion des utilisateurs</h1>
+        <p>Cliquer sur un nom pour changer son mot de passe</p>
+        """)
         H.append( self.list_users() )
         F = self.sco_footer(self,REQUEST)
         return '\n'.join(H) + F
@@ -153,7 +155,8 @@ class ZScoUsers(ObjectManager,
         'user_id',
         ('user_id', 'user_name','passwd','roles',
          'date_modif_passwd','nom','prenom'),
-        output_formators = { 'date_modif_passwd' : DateISOtoDMY }
+        output_formators = { 'date_modif_passwd' : DateISOtoDMY },
+        sortkey = 'user_name'
         )
     security.declareProtected(ScoAdminUsers, 'user_list')
     def user_list(self, **kw):
@@ -185,7 +188,7 @@ class ZScoUsers(ObjectManager,
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
         "change a password"
-        H = [self.sco_header(self,REQUEST)]
+        H = []
         F = self.sco_footer(self,REQUEST)
         # Check access permission
         authuser = REQUEST.AUTHENTICATED_USER
@@ -215,16 +218,35 @@ class ZScoUsers(ObjectManager,
                     if len(r) != 1:
                         H.append( """<p>Cet utilisateur (%s) n'est pas défini dans ce module. Nous ne pouvons modifier son mot de passe ici.</p>""" % user_name )
                     else:
-                        cursor.execute('update sco_users set passwd=%(md5pwd)s, date_modif_passwd=now() where user_name=%(user_name)s', { 'md5pwd' : md5pwd, 'user_name' : user_name } )
+                        #cursor.execute('update sco_users set passwd=%(md5pwd)s, date_modif_passwd=now() where user_name=%(user_name)s', { 'md5pwd' : md5pwd, 'user_name' : user_name } )
+                        #cnx.commit()
+                        cursor.execute('update sco_users set date_modif_passwd=now() where user_name=%(user_name)s', { 'user_name' : user_name } )
                         cnx.commit()
+                        user = self.user_list( args={'user_name':user_name})[0]
+                        req = { 'password' : password,
+                                'password_confirm' : password,
+                                'roles' : [user['roles']] }
+                        # Laisse le exUserFolder modifier les donnees
+                        self.acl_users.manage_editUser( user_name, req )
                         log("change_password: change ok for %s" % user_name)
+                        # 
+                        # ici page simplifiee car on peut ne plus avoir
+                        # le droit d'acceder aux feuilles de style
                         H.append("<h2>Changement effectué !</h2><p>Ne notez pas ce mot de passe, mais mémorisez le !</p><p>Rappel: il est <b>interdit</b> de communiquer son mot de passe à un tiers, même si c'est un collègue de confiance !</p><p><b>Le système va vous redemander votre login et nouveau mot de passe au prochain accès, c'est normal.</b></p>")
+                        return """<?xml version="1.0" encoding="iso-8859-15"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Mot de passe changé</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
+<body><h1>Mot de passe changé !</h1>
+""" + '\n'.join(H) + '<a href="%s">Continuer</a></body></html>' % self.ScoURL()
         else:
             # access denied
             log("change_password: access denied (authuser=%s, user_name=%s, ip=%s)"
                 % (authuser, user_name, REQUEST.REMOTE_ADDR) )
             raise AccessDenied("vous n'avez pas la permission de changer ce mot de passe")
-        return '\n'.join(H) + F
+        return self.sco_header(self,REQUEST) + '\n'.join(H) + F
     
     security.declareProtected(ScoView, 'form_change_password')
     def form_change_password(self, REQUEST, user_name=None):
@@ -271,7 +293,8 @@ class ZScoUsers(ObjectManager,
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             """ % info[0])
             H.append('<p><ul><li><a href="form_change_password">changer le mot de passe</a></li><li>Se déconnecter: <a href="acl_users/logout">logout</a></li></ul>')
-            
+        if authuser.has_permission(ScoAdminUsers,self):
+            H.append('<p><a href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
         return '\n'.join(H)+F
         
 #     security.declareProtected(ScoAdminUsers, 'create_user_form')

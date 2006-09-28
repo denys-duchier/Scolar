@@ -238,7 +238,7 @@ CREATE TABLE notes_formsemestre (
         etat integer default 1, -- 1 ouvert, 0 ferme
  	nomgroupetd text default 'TD',
  	nomgroupetp text default 'TP',
- 	nomgroupeta text default 'langue'
+ 	nomgroupeta text default 'langues'
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
