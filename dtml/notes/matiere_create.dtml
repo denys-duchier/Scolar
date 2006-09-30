@@ -3,7 +3,7 @@
 <dtml-call "REQUEST.set( 'UE', do_ue_list( args={ 'ue_id' : ue_id } )[0])">
 
 
-<h2><dtml-var title_or_id> dans l'UE <dtml-var "UE['titre']"> (<dtml-var "UE['acronyme']">)</h2>
+<h2>Création d'une matière dans l'UE <dtml-var "UE['titre']"> (<dtml-var "UE['acronyme']">)</h2>
 
 <p class="help">Les matières sont des groupes de modules dans une UE
 d'une formation donnée. Les matières servent surtout pour la

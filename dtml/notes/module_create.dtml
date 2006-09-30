@@ -3,7 +3,7 @@
 <dtml-call "REQUEST.set( 'M', do_matiere_list( args={'matiere_id' : matiere_id} )[0])">
 <dtml-call "REQUEST.set( 'UE', do_ue_list( args={'ue_id' : M['ue_id']} )[0])">
 
-<h2><dtml-var title_or_id> dans la matière <dtml-var "M['titre']"> (UE <dtml-var "UE['acronyme']">)</h2>
+<h2>Création d'un module dans la matière <dtml-var "M['titre']"> (UE <dtml-var "UE['acronyme']">)</h2>
 
 <p class="help">
 Les modules sont décrits dans le programme pédagogique. Un module est pour ce 

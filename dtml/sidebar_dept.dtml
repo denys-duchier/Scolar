@@ -3,10 +3,10 @@
 <dtml-comment>COLONNE DE GAUCHE: A ADAPTER A VOS BESOINS</dtml-comment>
 
  <a href="<dtml-var BASE0>" class="sidebar">Accueil</a> <br> 
- <a href="<dtml-var DeptIntranetURL>" class="sidebar">Intranet</a> <br>
- <a href="<dtml-var BASE0>/Departement" class="sidebar">Plannings</a> <br> 
+ <a href="<dtml-var DeptIntranetURL>/Scolarite" class="sidebar">Intranet</a> <br>
 
 <dtml-comment>
+ <a href="<dtml-var BASE0>/Departement" class="sidebar">Plannings</a> <br> 
  <a href="<dtml-var DeptURL>/Forum" class="sidebar">Forum</a> <br> 
  <a href="<dtml-var DeptURL>/Expos" class="sidebar">Photos</a> <br> 
  <a href="<dtml-var BASE0>/mailman/listinfo" class="sidebar">Mailman</a> <br> 

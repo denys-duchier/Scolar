@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta name="LANG" content="fr" />
-<meta name="DESCRIPTION" content="Intranet GTR : Intranet du département GTR de l'IUT de Villetaneuse" />
+<meta name="DESCRIPTION" content="Scolarite de l'IUT de Villetaneuse" />
 
 <link HREF="<dtml-var "gtrintranetstyle.absolute_url()"><dtml-if no_side_bar>?no_side_bar=1</dtml-if>" rel="stylesheet" type="text/css" />
 <link HREF="<dtml-var "ScoURL()">/menu_css" rel="stylesheet" type="text/css" />
