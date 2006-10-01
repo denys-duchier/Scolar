@@ -2,7 +2,8 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
-- bug suppr photo
+- si edit user: devrait _ajouter_ (et non remplacer) des roles
+  à ceux qu'il ne connait pas.
 - fiche etud: liste des inscription: trier par date
  (ex https://notes.iutv.univ-paris13.fr/in/GEA/Scolarite/ficheEtud?etudid=10500372)
 

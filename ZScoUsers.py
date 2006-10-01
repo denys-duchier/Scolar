@@ -181,7 +181,7 @@ class ZScoUsers(ObjectManager,
 
     def _user_edit(self, *args, **kw ):
         # edit user
-        cnx = self.GetDBConnexion()
+        cnx = self.GetUsersDBConnexion()
         self._userEditor.edit( cnx, *args, **kw )
 
     security.declareProtected(ScoAdminUsers, 'user_info')
