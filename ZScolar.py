@@ -943,7 +943,7 @@ function bodyOnLoad() {
 <b>Ajouter une annotation sur %(nomprenom)s: </b>
 <table><tr>
 <tr><td><textarea name="comment" rows="4" cols="50" value=""></textarea>
-<br><font size=-1><i>Balises HTML autorisées: b, a, i, br, p.</i></font>
+<br><font size=-1><i>Balises HTML autorisées: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrétariat.</i></font>
 </td></tr>
 <tr><td>Auteur : <input type="text" name="author" width=12 value="%(authuser)s">&nbsp;
 <input type="submit" value="Ajouter annotation"></td></tr>
