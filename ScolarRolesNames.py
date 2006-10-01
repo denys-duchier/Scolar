@@ -4,7 +4,9 @@
 # DEFINITION DES PERMISSIONS (ET NON PAS DES ROLES !)
 
 # prefix all permissions by "Sco" to group them in Zope management tab
-ScoAdministrate = "Sco Change Formation"
+
+ScoChangeFormation = "Sco Change Formation"
+ScoEditAllNotes = "Sco Modifier toutes notes" 
 ScoImplement    = "Sco Implement Formation"
 
 ScoAbsChange    = "Sco Change Absences"
@@ -15,7 +17,7 @@ ScoEtudAddAnnotations = "Sco Etud Add Annotations"
 ScoEntrepriseView = "Sco View Entreprises"
 ScoEntrepriseChange = "Sco Change Entreprises"
 
-ScoView = 'ScoView'
+ScoView = 'Sco View' 
 ScoEnsView = 'Sco View Ens' # parties visibles par enseignants slt
 
 ScoAdminUsers = 'Sco Administrer utilisateurs'

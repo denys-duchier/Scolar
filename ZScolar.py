@@ -149,7 +149,7 @@ class ZScolar(ObjectManager,
         self._p_changed = 1
         RESPONSE.redirect('manage_editForm')
 
-    security.declareProtected('ScoView', 'essai')
+    security.declareProtected(ScoView, 'essai')
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
         b = '<p>Hello, World !</p><br>'
@@ -178,41 +178,41 @@ class ZScolar(ObjectManager,
         self.manage_addDTMLMethod(id,title,file)
 
     # Ajout des JavaScripts 
-    security.declareProtected('ScoView', 'groupmgr_js')
+    security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
 
-    security.declareProtected('ScoView', 'prototype_1_4_0_js')
+    security.declareProtected(ScoView, 'prototype_1_4_0_js')
     prototype_1_4_0_js = DTMLFile('JavaScripts/prototype_1_4_0_js', globals())
 
-    security.declareProtected('ScoView', 'rico_js')
+    security.declareProtected(ScoView, 'rico_js')
     rico_js = DTMLFile('JavaScripts/rico_js', globals())
 
-    security.declareProtected('ScoView', 'sorttable_js')
+    security.declareProtected(ScoView, 'sorttable_js')
     sorttable_js = DTMLFile('JavaScripts/sorttable_js', globals())
 
-    security.declareProtected('ScoView', 'menu_js')
+    security.declareProtected(ScoView, 'menu_js')
     menu_js = DTMLFile('JavaScripts/menu_js', globals())
 
-    security.declareProtected('ScoView', 'menu_css')
+    security.declareProtected(ScoView, 'menu_css')
     menu_css = DTMLFile('JavaScripts/menu_css', globals())
 
     
-    security.declareProtected('ScoView', 'ScoURL')
+    security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
         return self.absolute_url()
 
-    security.declareProtected('ScoView', 'StyleURL')
+    security.declareProtected(ScoView, 'StyleURL')
     def StyleURL(self):
         "base URL for CSS style sheet"
         return self.gtrintranetstyle.absolute_url()
 
 
-    security.declareProtected('ScoView', 'sco_header')
+    security.declareProtected(ScoView, 'sco_header')
     sco_header = DTMLFile('dtml/sco_header', globals())
-    security.declareProtected('ScoView', 'sco_footer')
+    security.declareProtected(ScoView, 'sco_footer')
     sco_footer = DTMLFile('dtml/sco_footer', globals())
-    security.declareProtected('ScoView', 'menus_bandeau')
+    security.declareProtected(ScoView, 'menus_bandeau')
     menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
 
     # --------------------------------------------------------------------
@@ -260,9 +260,9 @@ class ZScolar(ObjectManager,
     #
     # --------------------------------------------------------------------
     # used to view content of the object
-    #security.declareProtected('ScoView', 'index_html')
+    #security.declareProtected(ScoView, 'index_html')
     #index_html = DTMLFile('dtml/index_html', globals())
-    security.declareProtected('ScoView', 'about')
+    security.declareProtected(ScoView, 'about')
     def about(self, REQUEST):
         "version info"
         H = [ """<h2>Système de gestion scolarité</h2>
@@ -338,12 +338,12 @@ class ZScolar(ObjectManager,
         return '\n'.join(H)    
 
     # -----------------  BANDEAUX -------------------
-    security.declareProtected('ScoView', 'sidebar')
+    security.declareProtected(ScoView, 'sidebar')
     sidebar = DTMLFile('dtml/sidebar', globals())
     
-    security.declareProtected('ScoView', 'showEtudLog')
+    security.declareProtected(ScoView, 'showEtudLog')
     showEtudLog = DTMLFile('dtml/showEtudLog', globals())
-    security.declareProtected('ScoView', 'listScoLog')
+    security.declareProtected(ScoView, 'listScoLog')
     def listScoLog(self,etudid):
         "liste des operations effectuees sur cet etudiant"
         cnx = self.GetDBConnexion()
@@ -352,7 +352,7 @@ class ZScolar(ObjectManager,
                        {'etudid':etudid})
         return cursor.dictfetchall()
     #
-    security.declareProtected('ScoView', 'getZopeUsers')
+    security.declareProtected(ScoView, 'getZopeUsers')
     def getZopeUsers(self):
         "liste des utilisateurs zope"
         l = self.acl_users.getUserNames()
@@ -360,7 +360,7 @@ class ZScolar(ObjectManager,
         return l
 
     # ----------  PAGE ACCUEIL (listes) --------------
-    security.declareProtected('ScoView', 'index_html')
+    security.declareProtected(ScoView, 'index_html')
     def index_html(self,REQUEST=None):
         "page accueil sco"
         H = []
@@ -1321,7 +1321,7 @@ function tweakmenu( gname ) {
             scolars.identite_edit(cnx,args={'etudid':etudid,'foto':photo_id})
             logdb(REQUEST,cnx,method='changePhoto',msg=photo_id,etudid=etudid)
         elif suppress:
-            scolars.identite_edit(cnx,args={'etudid':etudid,'foto':''})
+            scolars.identite_edit(cnx,args={'etudid':etudid,'foto':'unknown_img'})
             logdb(REQUEST,cnx,method='changePhoto',msg='supression', etudid=etudid)
         return 1, 'ok'
     #

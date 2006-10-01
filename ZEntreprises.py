@@ -242,7 +242,7 @@ class ZEntreprises(ObjectManager,
   
     security.declareProtected(ScoEntrepriseView, 'entreprise_contact_list')
     entreprise_contact_list = DTMLFile('dtml/entreprises/entreprise_contact_list',globals())
-    security.declareProtected('ScoEntrepriseView', 'entreprise_correspondant_list')
+    security.declareProtected(ScoEntrepriseView, 'entreprise_correspondant_list')
     entreprise_correspondant_list = DTMLFile('dtml/entreprises/entreprise_correspondant_list',globals())
     # les methodes "edit" sont aussi en ScoEntrepriseView car elles permettent
     # la visualisation (via variable _read_only positionnee dans entreprise_header)

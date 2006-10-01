@@ -57,7 +57,7 @@
 </a></td>
 
 <td class="formsemestre_status_inscrits"><dtml-var "len( ModInscrits )"></td>
-<td class="formsemestre_status_cell"><dtml-var "Users.user_info(M['responsable_id'])['nomprenom']"></td>
+<td class="formsemestre_status_cell"><dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']"></td>
 <td class="formsemestre_status_cell">
  <dtml-if "(nb_evals_completes+nb_evals_en_cours+nb_evals_vides) != 0">
  <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">

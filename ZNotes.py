@@ -156,11 +156,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEnsView, 'evaluation_delete')
     evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
 
-    security.declareProtected(ScoAdministrate, 'formation_create')
+    security.declareProtected(ScoChangeFormation, 'formation_create')
     formation_create = DTMLFile('dtml/notes/formation_create', globals())
-    security.declareProtected(ScoAdministrate, 'formation_delete')
+    security.declareProtected(ScoChangeFormation, 'formation_delete')
     formation_delete = DTMLFile('dtml/notes/formation_delete', globals())
-    security.declareProtected(ScoAdministrate, 'formation_edit')
+    security.declareProtected(ScoChangeFormation, 'formation_edit')
     formation_edit = DTMLFile('dtml/notes/formation_edit', globals())
     security.declareProtected(ScoView, 'formation_list')
     formation_list = DTMLFile('dtml/notes/formation_list', globals())
@@ -176,29 +176,29 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_recapcomplet')
     formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
 
-    security.declareProtected(ScoAdministrate, 'ue_create')
+    security.declareProtected(ScoChangeFormation, 'ue_create')
     ue_create = DTMLFile('dtml/notes/ue_create', globals(), title='Création d\'une UE')
-    security.declareProtected(ScoAdministrate, 'ue_delete')
+    security.declareProtected(ScoChangeFormation, 'ue_delete')
     ue_delete = DTMLFile('dtml/notes/ue_delete', globals(), title='Suppression d\'une UE')
-    security.declareProtected(ScoAdministrate, 'ue_edit')
+    security.declareProtected(ScoChangeFormation, 'ue_edit')
     ue_edit = DTMLFile('dtml/notes/ue_edit', globals(), title='Modification d\'une UE')
     security.declareProtected(ScoView, 'ue_list')
     ue_list = DTMLFile('dtml/notes/ue_list', globals(), title='Liste des matières (dans une formation)')
 
-    security.declareProtected(ScoAdministrate, 'matiere_create')
+    security.declareProtected(ScoChangeFormation, 'matiere_create')
     matiere_create = DTMLFile('dtml/notes/matiere_create', globals(), title='Création d\'une matière')
-    security.declareProtected(ScoAdministrate, 'matiere_delete')
+    security.declareProtected(ScoChangeFormation, 'matiere_delete')
     matiere_delete = DTMLFile('dtml/notes/matiere_delete', globals(), title='Suppression d\'une matière')
-    security.declareProtected(ScoAdministrate, 'matiere_edit')
+    security.declareProtected(ScoChangeFormation, 'matiere_edit')
     matiere_edit = DTMLFile('dtml/notes/matiere_edit', globals(), title='Modification d\'une matière')
     security.declareProtected(ScoView, 'matiere_list')
     matiere_list = DTMLFile('dtml/notes/matiere_list', globals(), title='Liste des matières (dans une UE)')
 
-    security.declareProtected(ScoAdministrate, 'module_create')
+    security.declareProtected(ScoChangeFormation, 'module_create')
     module_create = DTMLFile('dtml/notes/module_create', globals(), title='Création d\'une module')
-    security.declareProtected(ScoAdministrate, 'module_delete')
+    security.declareProtected(ScoChangeFormation, 'module_delete')
     module_delete = DTMLFile('dtml/notes/module_delete', globals(), title='Suppression d\'une module')
-    security.declareProtected(ScoAdministrate, 'module_edit')
+    security.declareProtected(ScoChangeFormation, 'module_edit')
     module_edit = DTMLFile('dtml/notes/module_edit', globals(), title='Modification d\'un module')
     security.declareProtected(ScoView, 'module_list')
     module_list = DTMLFile('dtml/notes/module_list', globals(), title='Liste des modules (dans une formation)')
@@ -224,7 +224,7 @@ class ZNotes(ObjectManager,
         ('formation_id', 'acronyme','titre'),
         )
 
-    security.declareProtected(ScoAdministrate, 'do_formation_create')
+    security.declareProtected(ScoChangeFormation, 'do_formation_create')
     def do_formation_create(self, args):
         "create a formation"
         cnx = self.GetDBConnexion()
@@ -232,7 +232,7 @@ class ZNotes(ObjectManager,
         self.CachedNotesTable.inval_cache()
         return r 
     
-    security.declareProtected(ScoAdministrate, 'do_formation_delete')
+    security.declareProtected(ScoChangeFormation, 'do_formation_delete')
     def do_formation_delete(self, oid):
         "delete a formation (and all its UE, matiers, modules)"
         cnx = self.GetDBConnexion()
@@ -250,7 +250,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()        
         return self._formationEditor.list( cnx, **kw )
 
-    security.declareProtected(ScoAdministrate, 'do_formation_edit')
+    security.declareProtected(ScoChangeFormation, 'do_formation_edit')
     def do_formation_edit(self, *args, **kw ):
         "edit a formation"
         cnx = self.GetDBConnexion()
@@ -267,7 +267,7 @@ class ZNotes(ObjectManager,
         output_formators = { 'numero' : int_null_is_zero },
         )
 
-    security.declareProtected(ScoAdministrate, 'do_ue_create')
+    security.declareProtected(ScoChangeFormation, 'do_ue_create')
     def do_ue_create(self, args):
         "create an ue"
         cnx = self.GetDBConnexion()
@@ -275,7 +275,7 @@ class ZNotes(ObjectManager,
         self.CachedNotesTable.inval_cache()
         return r
 
-    security.declareProtected(ScoAdministrate, 'do_ue_delete')
+    security.declareProtected(ScoChangeFormation, 'do_ue_delete')
     def do_ue_delete(self, oid):
         "delete UE and attached matieres"
         cnx = self.GetDBConnexion()
@@ -293,7 +293,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         return self._ueEditor.list(cnx, *args, **kw)
 
-    security.declareProtected(ScoAdministrate, 'do_ue_edit')
+    security.declareProtected(ScoChangeFormation, 'do_ue_edit')
     def do_ue_edit(self, *args, **kw ):
         "edit an UE"
         cnx = self.GetDBConnexion()
@@ -309,7 +309,7 @@ class ZNotes(ObjectManager,
         output_formators = { 'numero' : int_null_is_zero },
         )
 
-    security.declareProtected(ScoAdministrate, 'do_matiere_create')
+    security.declareProtected(ScoChangeFormation, 'do_matiere_create')
     def do_matiere_create(self, args):
         "create a matiere"
         cnx = self.GetDBConnexion()
@@ -317,7 +317,7 @@ class ZNotes(ObjectManager,
         self.CachedNotesTable.inval_cache()
         return r
 
-    security.declareProtected(ScoAdministrate, 'do_matiere_delete')
+    security.declareProtected(ScoChangeFormation, 'do_matiere_delete')
     def do_matiere_delete(self, oid):
         "delete matiere and attached modules"
         cnx = self.GetDBConnexion()
@@ -334,7 +334,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         return self._matiereEditor.list(cnx, *args, **kw)
 
-    security.declareProtected(ScoAdministrate, 'do_matiere_edit')
+    security.declareProtected(ScoChangeFormation, 'do_matiere_edit')
     def do_matiere_edit(self, *args, **kw ):
         "edit a matiere"
         cnx = self.GetDBConnexion()
@@ -368,7 +368,7 @@ class ZNotes(ObjectManager,
                              },
         )
 
-    security.declareProtected(ScoAdministrate, 'do_module_create')
+    security.declareProtected(ScoChangeFormation, 'do_module_create')
     def do_module_create(self, args):
         "create a module"
         cnx = self.GetDBConnexion()
@@ -376,7 +376,7 @@ class ZNotes(ObjectManager,
         self.CachedNotesTable.inval_cache()
         return r
 
-    security.declareProtected(ScoAdministrate, 'do_module_delete')
+    security.declareProtected(ScoChangeFormation, 'do_module_delete')
     def do_module_delete(self, oid):
         "delete module"
         cnx = self.GetDBConnexion()
@@ -389,7 +389,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         return self._moduleEditor.list(cnx, *args, **kw)
 
-    security.declareProtected(ScoAdministrate, 'do_module_edit')
+    security.declareProtected(ScoChangeFormation, 'do_module_edit')
     def do_module_edit(self, *args, **kw ):
         "edit a module"
         cnx = self.GetDBConnexion()
@@ -934,19 +934,23 @@ class ZNotes(ObjectManager,
               ]
         for ens in M['ens']:
             H.append('<li>%s (<a href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
-                     (self.Users.user_info(ens['ens_id'])['nomprenom'], moduleimpl_id, ens['ens_id']))
+                     (self.Users.user_info(ens['ens_id'],REQUEST)['nomprenom'], moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
         F = """<p class="help">Les enseignants d'un module ont le droit de
         saisir et modifier toutes les notes des évaluations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>"
+        page "<a href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a> (pour dir. étud ou admin.)"
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         userlist = self.getZopeUsers()
-        nomprenoms = []
+        iii = []
         for user in userlist: # XXX may be slow on large user base ?
-            nomprenoms.append( self.Users.user_info(user)['nomprenom'] )
+            info = self.Users.user_info(user,REQUEST)
+            iii.append( (info['nom'].upper(), info['nomprenom'], user) )
+        iii.sort()
+        nomprenoms = [ x[1] for x in iii ]
+        userlist =  [ x[2] for x in iii ]
         modform = [
             ('moduleimpl_id', { 'input_type' : 'hidden' }),
             ('ens_id',
@@ -1004,7 +1008,7 @@ class ZNotes(ObjectManager,
         authuser = REQUEST.AUTHENTICATED_USER
         uid = str(authuser)
         # admin, resp. module ou resp. semestre
-        if (uid != 'admin' and uid != M['responsable_id']
+        if (uid != M['responsable_id']
             and not authuser.has_permission(ScoImplement, self)
             and uid != sem['responsable_id']):
             raise AccessDenied('Modification impossible pour %s' % uid)
@@ -1522,11 +1526,12 @@ class ZNotes(ObjectManager,
         # acces pour resp. moduleimpl et resp. form semestre (dir etud)
         if moduleimpl_id is None:
             raise ValueError('no moduleimpl specified') # bug
-        uid=str(REQUEST.AUTHENTICATED_USER)
+        authuser = REQUEST.AUTHENTICATED_USER
+        uid = str(authuser)
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         sem = self.do_formsemestre_list(
             args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
-        if uid != 'admin' and uid != M['responsable_id'] and uid != sem['responsable_id']:
+        if (not authuser.has_permission(ScoEditAllNotes,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
             raise AccessDenied('Modification évaluation impossible pour %s (%s) (%s)'%(uid,str(M),str(sem)))
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')
@@ -2226,14 +2231,15 @@ class ZNotes(ObjectManager,
         """Formulaire soumission notes pour une evaluation.
         parametres: evaluation_id, groupes (liste, avec prefixes tp, td, ta)
         """
-        authuser = str(REQUEST.AUTHENTICATED_USER)
+        authuser = REQUEST.AUTHENTICATED_USER
+        authusername = str(authuser)
         evaluation_id = REQUEST.form['evaluation_id']
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
         # Check access
         # (admin, respformation, and responsable_id)
         if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
             # XXX imaginer un redirect + msg erreur
-            raise AccessDenied('Modification des notes impossible pour %s'%authuser)
+            raise AccessDenied('Modification des notes impossible pour %s'%authusername)
         #
         cnx = self.GetDBConnexion()
         note_method = REQUEST.form['note_method']
@@ -2379,7 +2385,7 @@ class ZNotes(ObjectManager,
     def do_evaluation_upload_csv(self, REQUEST):
         """soumission d'un fichier CSV (evaluation_id, notefile)
         """
-        authuser = str(REQUEST.AUTHENTICATED_USER)
+        authuser = REQUEST.AUTHENTICATED_USER
         evaluation_id = REQUEST.form['evaluation_id']
         comment = REQUEST.form['comment']
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
@@ -2436,7 +2442,7 @@ class ZNotes(ObjectManager,
     def do_evaluation_upload_xls(self, REQUEST):
         """soumission d'un fichier XLS (evaluation_id, notefile)
         """
-        authuser = str(REQUEST.AUTHENTICATED_USER)
+        authuser = REQUEST.AUTHENTICATED_USER
         evaluation_id = REQUEST.form['evaluation_id']
         comment = REQUEST.form['comment']
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
@@ -2544,14 +2550,16 @@ class ZNotes(ObjectManager,
         return L, invalids, withoutnotes, absents, tosuppress
 
     security.declareProtected(ScoView, 'can_edit_notes')
-    def can_edit_notes(self, uid, moduleimpl_id ):
-        "True if user 'uid' can enter or edit notes in this module"
-        uid = str(uid)
+    def can_edit_notes(self, authuser, moduleimpl_id ):
+        "True if authuser can enter or edit notes in this module"
+        uid = str(authuser)
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
         if sem['etat'] != '1':
             return False # semestre verrouillé
-        if uid != 'admin' and uid != M['responsable_id'] and uid != sem['responsable_id']:
+        if ((not authuser.has_permission(ScoEditAllNotes,self))
+            and uid != M['responsable_id']
+            and uid != sem['responsable_id']):
             # enseignant (chargé de TD) ?
             for ens in M['ens']:
                 if ens['ens_id'] == uid:
@@ -2560,10 +2568,15 @@ class ZNotes(ObjectManager,
         else:
             return True        
 
+    security.declareProtected(ScoEditAllNotes, 'dummy_ScoEditAllNotes')
+    def dummy_ScoEditAllNotes(self):
+        "dummy method, necessary to declare permission ScoEditAllNotes"
+        return True
+
     security.declareProtected(ScoView, 'evaluation_suppress_alln')
     def evaluation_suppress_alln(self, evaluation_id, REQUEST, dialog_confirmed=False):
         "suppress all notes in this eval"
-        authuser = str(REQUEST.AUTHENTICATED_USER)
+        authuser = REQUEST.AUTHENTICATED_USER
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
         if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
             # XXX imaginer un redirect + msg erreur
@@ -2596,6 +2609,7 @@ class ZNotes(ObjectManager,
         - si la note existe deja avec valeur distincte, ajoute une entree au log (notes_notes_log)
         Return number of changed notes
         """
+        uid = str(uid)
         # Verifie inscription et valeur note
         inscrits = {}.fromkeys(self.do_evaluation_listeetuds_groups(
             evaluation_id,getallstudents=True, include_dems=True))

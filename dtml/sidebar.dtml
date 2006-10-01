@@ -56,6 +56,10 @@
 
 </div>
 
+<dtml-if "REQUEST.AUTHENTICATED_USER.has_permission('ScoAdminUsers',this())">
+<br><a href="Users">Utilisateurs</a>
+</dtml-if ScoAdminUsers>
+
  <br> 
   &nbsp; 
 <div class="logo-insidebar"><dtml-var "img.scologo_img"><br/>

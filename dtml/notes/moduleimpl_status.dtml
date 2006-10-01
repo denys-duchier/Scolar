@@ -16,8 +16,8 @@
 
 <table>
 <tr>
-<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(M['responsable_id'])['nomprenom']"></td>
-<td><dtml-in "M['ens']">, <dtml-var "Users.user_info(_['sequence-item']['ens_id'])['nomprenom']"></dtml-in>
+<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']"></td>
+<td><dtml-in "M['ens']">, <dtml-var "Users.user_info(_['sequence-item']['ens_id'],REQUEST)['nomprenom']"></dtml-in>
 </td>
 <td>
 <dtml-try> 
