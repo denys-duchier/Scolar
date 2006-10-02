@@ -222,7 +222,7 @@ function handleError( errType, errMsg ) {
 }
 
 function submitGroups(target) {
-  url = 'https://www-gtr.iutv.univ-paris13.fr/Dept/Scolarite/Notes/setGroupes';
+  url = 'Notes/setGroupes';
   //url = 'http://viennet.net/toto';
   // build post request body: groupname \n etudid; ...
   body = '';

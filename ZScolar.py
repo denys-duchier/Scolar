@@ -1159,7 +1159,12 @@ function tweakmenu( gname ) {
                        redirect=1):
         "Change le groupe. Si la valeur du groupe est '' (vide) ou 'None', le met à NULL (aucun groupe)"
         cnx = self.GetDBConnexion()
-        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        log('doChangeGroupe(etudid=%s,formsemestre_id=%s) len=%d'%(etudid,formsemestre_id, len(formsemestre_id)))
+        
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})
+        log( 'sem=' + str(sem))
+
+        sem = sem[0]
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         #
@@ -1186,6 +1191,7 @@ function tweakmenu( gname ) {
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
               (groupetd,groupeanglais,groupetp,formsemestre_id))
         cnx.commit()
+        self.Notes.CachedNotesTable.inval_cache(formsemestre_id=formsemestre_id)
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1248,10 +1254,9 @@ function tweakmenu( gname ) {
     def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
                    REQUEST=None):
         "affect groups (Ajax request)"
-        f = open('/tmp/toto','w')
-        f.write('formsemestre_id=%s\n' % formsemestre_id)
-        f.write('groupType=%s\n' % groupType )
-        f.write(groupslists)
+        log('***setGroupes\nformsemestre_id=%s' % formsemestre_id)
+        log('groupType=%s' % groupType )
+        log(groupslists)
         if not groupType in ('TD', 'TP', 'TA'):
             raise ValueError, 'invalid group type: ' + groupType
         if groupType == 'TD':
@@ -1270,7 +1275,93 @@ function tweakmenu( gname ) {
         
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         return '<ajax-response><response type="object" id="ok"/></ajax-response>'
+
+    security.declareProtected(ScoEtudChangeGroups, 'suppressGroup')
+    def suppressGroup(self, REQUEST, formsemestre_id=None,
+                      groupType=None, groupTypeName=None ):
+        """form suppression d'un groupe.
+        (ne desisncrit pas les etudiants, change juste leur
+        affectation aux groupes)
+        """
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        if groupType == 'TD':
+            groupes = gr_td
+        elif groupType == 'TP':
+            groupes = gr_tp
+        elif groupType == 'TA':
+            groupes = gr_anglais
+        else:
+            raise ValueError, 'invalid group type: ' + groupType
+        labels = ['aucun'] + groupes
+        groupeskeys = [''] + groupes
+        if gr_td:
+            gr_td.sort()
+            default_group = gr_td[0]
+        else:
+            default_group = 'aucun'
+        #
+        header = self.sco_header(self, REQUEST,
+                                 page_title='Suppression d\'un groupe' )
+        H = [ '<h2>Suppression d\'un groupe de %s</h2>' % groupTypeName ]
+        if groupType == 'TD':
+            if len(gr_td) > 1:
+                H.append( '<p>Les étudiants doivent avoir un groupe de TD. Si vous supprimer ce groupe, il seront affectés au groupe destination choisi (vous pourrez les changer par la suite)</p>'  )
+            else:
+                H.append('<p>Il n\'y a qu\'un seul groupe défini, vous ne pouvez pas le supprimer.</p><p><a href="Notes/formsemestre_status?formsemestre_id=%s">Revenir au semestre</a>' % formsemestre_id )
+                return  header + '\n'.join(H) + self.sco_footer(self,REQUEST)
         
+        descr = [
+            ('formsemestre_id', { 'input_type' : 'hidden' }),
+            ('groupType', { 'input_type' : 'hidden' }),
+            ('groupTypeName', { 'input_type' : 'hidden' }),
+            ('groupName', { 'title' : 'Nom du groupe',
+                            'input_type' : 'menu',
+                            'allowed_values' : groupeskeys, 'labels' : labels })
+           ]
+        if groupType == 'TD':
+            descr.append(
+                ('groupDest', { 'title' : 'Groupe destination',
+                                'explanation' : 'les étudiants du groupe supprimé seront inscrits dans ce groupe',
+                                'input_type' : 'menu',
+                                'allowed_values' : groupes }) )
+
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                                {},
+                                cancelbutton = 'Annuler', method='GET',
+                                submitlabel = 'Supprimer ce groupe',
+                                name='tf' )
+        if  tf[0] == 0:
+            return header + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(self,REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            # form submission
+            formsemestre_id = tf[2]['formsemestre_id']
+            groupType = tf[2]['groupType']
+            groupName = tf[2]['groupName']
+            if groupType=='TD':
+                default_group = tf[2]['groupDest']
+                req = 'update notes_formsemestre_inscription set groupetd=%(default_group)s where formsemestre_id=%(formsemestre_id)s and groupetd=%(groupName)s'
+            elif groupType=='TP':
+                default_group = None
+                req = 'update notes_formsemestre_inscription set groupetp=%(default_group)s where formsemestre_id=%(formsemestre_id)s and groupetp=%(groupName)s'
+            elif groupType=='TA':
+                default_group = None
+                req = 'update notes_formsemestre_inscription set groupeanglais=%(default_group)s where formsemestre_id=%(formsemestre_id)s and groupeanglais=%(groupName)s'
+            else:
+                raise ValueError, 'invalid group type: ' + groupType
+            cnx = self.GetDBConnexion()
+            cursor = cnx.cursor()
+            aa = { 'formsemestre_id' : formsemestre_id,
+                   'groupName' : groupName,
+                   'default_group' : default_group }
+            quote_dict(aa)
+            log('suppressGroup( req=%s, args=%s )' % (req, aa) )
+            cursor.execute( req, aa )
+            cnx.commit()
+            self.Notes.CachedNotesTable.inval_cache(formsemestre_id=formsemestre_id)
+            return REQUEST.RESPONSE.redirect( 'Notes/formsemestre_status?formsemestre_id=%s' % formsemestre_id )
+
     # --- Trombi: gestion photos
     # Ancien systeme (www-gtr):
     #  fotos dans ZODB, folder Fotos, id=identite.foto

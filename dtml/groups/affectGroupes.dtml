@@ -23,7 +23,8 @@
 
 <h2>Affectation aux groupes de <dtml-var groupTypeName></h2>
 
-<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes.
+<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes. Pour supprimer complètement
+un groupe, <a href="suppressGroup?formsemestre_id=<dtml-var formsemestre_id>&groupType=<dtml-var groupType>&groupTypeName=<dtml-var groupTypeName>">cliquez ici</a>
 </p>
 
 <div id="gmsg" style="font-style: italic">

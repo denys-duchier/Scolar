@@ -452,7 +452,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_list')
     def do_formsemestre_list(self, *a, **kw ):
         "list formsemestres"
-        #log('do_formsemestre_list: kw=%s' % (str(kw)))
+        #log('do_formsemestre_list: a=%s kw=%s' % (str(a),str(kw)))
         cnx = self.GetDBConnexion()
         #log( 'x %s' % str(self._formsemestreEditor.list(cnx)))
         try:
@@ -462,6 +462,7 @@ class ZNotes(ObjectManager,
             log('*** do_formsemestre_list: exception')
             log('*** do_formsemestre_list: a=%s kw=%s' % (a,kw) )
             raise
+        #log( 'sems=%s' % str(sems) )
         # ajoute titre + annee et dateord (pour tris)
         for sem in sems:
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
@@ -1393,7 +1394,7 @@ class ZNotes(ObjectManager,
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 initvalues,
                                 cancelbutton = 'Annuler', method='GET',
-                                submitlabel = 'Modifier les inscriptions', cssclass='inscroption',
+                                submitlabel = 'Modifier les inscriptions', cssclass='inscription',
                                 name='tf' )
         if  tf[0] == 0:
             return '\n'.join(H) + '\n' + tf[1] + F
