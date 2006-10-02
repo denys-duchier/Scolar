@@ -352,6 +352,7 @@ class ZScoUsers(ObjectManager,
             <b>Prénom :</b> %(prenom)s<br>
             <b>Mail :</b> %(email)s<br>
             <b>Roles :</b> %(roles)s<br>
+            <b>Dept :</b> %(dept)s<br>
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             <p><ul>
              <li><a href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
@@ -471,8 +472,7 @@ class ZScoUsers(ObjectManager,
              for role in vals['roles']:
                  if not role in valid_roles:
                      raise ScoValueError('Invalid role for new user: %s' % role)
-             vals['roles'] = ','.join(vals['roles'])
-
+                 
              if REQUEST.form.has_key('edit'):
                  edit = int(REQUEST.form['edit'])
              else:
@@ -484,9 +484,18 @@ class ZScoUsers(ObjectManager,
                      del vals['passwd']
                  if vals.has_key('date_modif_passwd'):
                      del vals['date_modif_passwd']
+                 # traitement des roles: ne doit pas affecter les roles
+                 # que l'on en controle pas:
+                 orig_roles = initvalues['roles'].split(',')
+                 for role in orig_roles:
+                     if not role in valid_roles:
+                         vals['roles'].append(role)
+                 vals['roles'] = ','.join(vals['roles'])
+                 # ok, edit
                  self._user_edit(vals)
                  return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
              else: # creation utilisateur
+                 vals['roles'] = ','.join(vals['roles'])
                  # check passwords
                  if vals['passwd'] != vals['passwd2']:
                      msg = '<ul class="tf-msg"><li>Les deux mots de passes ne correspondent pas !</li></ul>'
