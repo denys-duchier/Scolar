@@ -1,4 +1,4 @@
-SCOVERSION = "4.5"
+SCOVERSION = "4.6"
 
 SCONAME = "AxoNote"
 
@@ -11,6 +11,7 @@ SCONEWS = """
 <li>Noms de types de groupes (TD, TP, ...) modifiables</li>
 <li>Tableau rudimentaire donnant la répartition des bacs dans un semestre</li>
 <li>Amélioration mise en page des listes au format excel</li>
+<li>Annulation des démissions</li>
 </ul>
 
 <h4>Juillet 2006</h4>

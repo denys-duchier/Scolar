@@ -105,7 +105,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
                 del missing[f]
             else:
                 unknown.append(f)
-        raise FormatError('check_csv_file: invalid number of columns (should be %d, got %d) (missing columns: %s, unknown: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
+        raise ScoValueError('nombre de colonnes incorrect (devrait être %d, et non %d) (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
     titleslist = []
     for t in fs:
         if not titles.has_key(t):
@@ -128,9 +128,10 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
                     fs[i] = fs[i][1:-1]
             for i in range(len(fs)):
                 val = fs[i].strip()
-                table, typ, an, descr = tuple(titles[titleslist[i]])
+                typ, table, an, descr = tuple(titles[titleslist[i]])
+                log('field %s: %s %s %s %s'%(titleslist[i], table, typ, an, descr))
                 if not val and not an:
-                    raise ValueError(
+                    raise ScoValueError(
                         "line %d: null value not allowed in column %s"
                         % (linenum, titleslist[i]))
                 if val == '':
@@ -141,31 +142,31 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
                         try:
                             val = float(val)
                         except:
-                            raise ValueError(
-                                "invalid float value (%s) at line %d, column %s"
+                            raise ScoValueError(
+                                "valeur nombre reel invalide (%s) sur line %d, colonne %s"
                                 % (val, linenum, titleslist[i]))
                     elif typ == 'integer':
                         try:
                             val = int(val)
                         except:
-                            raise ValueError(
-                                "invalid integer value (%s) at line %d, column %s"
+                            raise ScoValueError(
+                                "valeur nombre entier invalide (%s) sur ligne %d, colonne %s"
                                 % (val, linenum, titleslist[i]))
                 # xxx Ad-hoc checks (should be in format description)
                 if  titleslist[i].lower() == 'sexe':
                     val = val.upper()
                     if not val in ('MR', 'MLLE'):
-                        raise ValueError("invalid value for 'SEXE' (expecting 'MR' or 'MLLE', got '%s') at line %d, column %s" % (val, linenum, titleslist[i]))
-                
+                        raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
+                # --
                 values[titleslist[i]] = val
             # Insert in DB tables
             log( 'csv inscription: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
-            args['etudid'] = values['Code_INE']
+            args['etudid'] = values['code_ine']
             etudid = scolars.identite_create(cnx,args)
-            if values['Code_INE']:
-                assert etudid == values['Code_INE']
+            if values['code_ine']:
+                assert etudid == values['code_ine']
             created_etudids.append(etudid)
             # Admissions
             args['etudid'] = etudid

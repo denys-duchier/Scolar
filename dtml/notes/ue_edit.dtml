@@ -16,7 +16,7 @@
     ('formation_id', { 'input_type' : 'hidden' }),
     ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
     ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
-    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l'\ordre d\'affichage',
+    ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
                      'type' : 'int' }),
     ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
 	       'input_type' : 'menu',

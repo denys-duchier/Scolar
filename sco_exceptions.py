@@ -54,5 +54,7 @@ class ScoValueError(ScoException):
         if REQUEST and dest_url:
             REQUEST.set('dest_url', dest_url)
 
-
-
+class ScoLockedFormError(ScoException):
+    def __init__(self, msg='', REQUEST=None):
+        msg = 'Cette formation est verrouillée (car il y a un semestre verrouillé qui s\'y réfère). ' + str(msg)
+        ScoException.__init__(self,msg)

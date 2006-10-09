@@ -686,7 +686,7 @@ class ZScolar(ObjectManager,
                 etud['emaillink'] = '<a href="mailto:%s">%s</a>'%(etud['email'],etud['email'])
             else:
                 etud['emaillink'] = '<em>(pas d\'adresse e-mail)</em>'
-                    # Semestres dans lesquel il est inscrit
+            # Semestres dans lesquel il est inscrit
             ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
             etud['ins'] = ins
             now = time.strftime( '%Y-%m-%d' )
@@ -839,17 +839,24 @@ class ZScolar(ObjectManager,
             if authuser.has_permission(ScoEtudChangeGroups,self) or authuser.has_permission(ScoEtudInscrit,self):
                 # menu pour action sur etudiant
                 ilist.append("""<td><div class="barrenav"><ul class="nav"><li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#"
-	    class="menu direction_etud">Scolarité</a><ul>""") # "
+                    class="menu direction_etud">Scolarité</a><ul>""") # "
 
                 if authuser.has_permission(ScoEtudChangeGroups,self) and not locked:
                     ilist.append('<li><a href="formChangeGroupe?etudid=%s&formsemestre_id=%s">changer de groupe</a></li>' % (etudid,i['formsemestre_id']) )
                 if authuser.has_permission(ScoEtudInscrit,self) and not locked:
+                    args = { 'etudid' : etudid,
+                             'formsemestre_id' : i['formsemestre_id'] }
+                    if data['etat'] != 'D':
+                        ilist.append("""
+                        <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>""" % args )
+                    else: # demissionnaire
+                        ilist.append("""
+                        <li><a href="doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Annuler la d&eacute;mission</a></li>""" % args )
                     ilist.append("""
-                    <li><a href="formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">D&eacute;mission</a></li>
                     <li><a href="formDiplome?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">Inscrire à un module optionnel (ou au sport)</a></li>
                     <li><a href="Notes/do_formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">déinscrire (en cas d'erreur)</a></li>
-                    """ % { 'etudid' : etudid, 'formsemestre_id' : i['formsemestre_id'] } )
+                    """ % args )
                 if authuser.has_permission(ScoEtudInscrit,self):
                     ilist.append('<li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>'%{ 'etudid' : etudid})
                 ilist.append('</ul></ul>')
@@ -1469,6 +1476,48 @@ function tweakmenu( gname ) {
         if REQUEST:
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
+    security.declareProtected(ScoEtudInscrit, "doCancelDem")
+    def doCancelDem(self,etudid,formsemestre_id,dialog_confirmed=False,
+                    REQUEST=None):
+        "annule une demission"
+        # check lock
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        # verif
+        info = self.getEtudInfo(etudid, filled=True)[0]
+        ok = False
+        for i in info['ins']:
+            if i['formsemestre_id'] == formsemestre_id:
+                if i['etat'] != 'D':
+                    raise ScoValueError('etudiant non demissionnaire !')
+                ok = True
+                break
+        if not ok:
+            raise ScoValueError('etudiant non inscrit ???')
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                '<p>Confirmer l\'annulation de la démission ?</p>',
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="ficheEtud?etudid=%s"%etudid,
+                parameters={'etudid' : etudid,
+                            'formsemestre_id' : formsemestre_id})
+        # 
+        ins = self.Notes.do_formsemestre_inscription_list(
+            { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
+        if ins['etat'] != 'D':
+            raise ScoException('etudiant non dem. !!!') # obviously a bug
+        ins['etat'] = 'I'
+        cnx = self.GetDBConnexion()
+        self.Notes.do_formsemestre_inscription_edit( args=ins )
+        logdb(REQUEST,cnx,method='cancelDem', etudid=etudid)
+        cursor = cnx.cursor()
+        cursor.execute( "delete from scolar_events where etudid=%(etudid)s and formsemestre_id=%(formsemestre_id)s and event_type='DEMISSION'",
+                        { 'etudid':etudid, 'formsemestre_id':formsemestre_id})
+        cnx.commit()
+        return REQUEST.RESPONSE.redirect("ficheEtud?etudid=%s"%etudid)
+        
+
     security.declareProtected(ScoEtudInscrit, "formDiplome")
     def formDiplome(self, etudid, formsemestre_id, REQUEST):
         "Formulaire Diplome Etudiant"
@@ -1645,6 +1694,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]
             H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
+            H.append('<p><a href="%s">continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
         self.Notes.CachedNotesTable.inval_cache()
@@ -1674,7 +1724,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         F = self.sco_footer(self,REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
-            (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file', 'size' : 40 }),
+            (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
+                          'size' : 40 }),
              ), submitlabel = 'Télécharger')
         S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
@@ -1695,7 +1746,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                 ast = '*'
             S.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
                      % (t[0],t[1],t[4], ast))
-        if  tf[0] == 0:
+        if  tf[0] == 0:            
             return '\n'.join(H) + tf[1] + '</li></ol>' + '\n'.join(S) + F
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )

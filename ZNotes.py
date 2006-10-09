@@ -234,7 +234,9 @@ class ZNotes(ObjectManager,
     
     security.declareProtected(ScoChangeFormation, 'do_formation_delete')
     def do_formation_delete(self, oid):
-        "delete a formation (and all its UE, matiers, modules)"
+        "delete a formation (and all its UE, matieres, modules)"
+        if self.formation_has_locked_sems(oid):
+            raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         # delete all UE in this formation
         ues = self.do_ue_list({ 'formation_id' : oid })
@@ -253,6 +255,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_formation_edit')
     def do_formation_edit(self, *args, **kw ):
         "edit a formation"
+        log('do_formation_edit( args=%s kw=%s )'%(args,kw))
+        if self.formation_has_locked_sems(args[0]['formation_id']):
+            raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         self._formationEditor.edit( cnx, *args, **kw )
         self.CachedNotesTable.inval_cache()
@@ -270,6 +275,8 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_ue_create')
     def do_ue_create(self, args):
         "create an ue"
+        if self.formation_has_locked_sems(args['formation_id']):
+            raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         r = self._ueEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
@@ -278,12 +285,15 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_ue_delete')
     def do_ue_delete(self, oid):
         "delete UE and attached matieres"
-        cnx = self.GetDBConnexion()
+        # check
+        ue = self.do_ue_list({ 'ue_id' : oid })[0]
+        if self.formation_has_locked_sems(ue['formation_id']):
+            raise ScoLockedFormError()        
         # delete all matiere in this UE
         mats = self.do_matiere_list({ 'ue_id' : oid })
         for mat in mats:
             self.do_matiere_delete(mat['matiere_id'])
-        
+        cnx = self.GetDBConnexion()
         self._ueEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
 
@@ -296,6 +306,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_ue_edit')
     def do_ue_edit(self, *args, **kw ):
         "edit an UE"
+        # check
+        ue = self.do_ue_list({ 'ue_id' : args[0]['ue_id'] })[0]
+        if self.formation_has_locked_sems(ue['formation_id']):
+            raise ScoLockedFormError()        
+        
         cnx = self.GetDBConnexion()
         self._ueEditor.edit( cnx, *args, **kw )
         self.CachedNotesTable.inval_cache()
@@ -313,6 +328,11 @@ class ZNotes(ObjectManager,
     def do_matiere_create(self, args):
         "create a matiere"
         cnx = self.GetDBConnexion()
+        # check
+        ue = self.do_ue_list({ 'ue_id' : args['ue_id'] })[0]
+        if self.formation_has_locked_sems(ue['formation_id']):
+            raise ScoLockedFormError()
+        # create matiere
         r = self._matiereEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
         return r
@@ -321,6 +341,11 @@ class ZNotes(ObjectManager,
     def do_matiere_delete(self, oid):
         "delete matiere and attached modules"
         cnx = self.GetDBConnexion()
+        # check
+        mat = self.do_matiere_list({ 'matiere_id' : oid })[0]
+        ue = self.do_ue_list({ 'ue_id' : mat['ue_id'] })[0]
+        if self.formation_has_locked_sems(ue['formation_id']):
+            raise ScoLockedFormError()  
         # delete all modules in this matiere
         mods = self.do_module_list({ 'matiere_id' : oid })
         for mod in mods:
@@ -338,6 +363,12 @@ class ZNotes(ObjectManager,
     def do_matiere_edit(self, *args, **kw ):
         "edit a matiere"
         cnx = self.GetDBConnexion()
+        # check
+        mat = self.do_matiere_list({ 'matiere_id' :args[0]['matiere_id']})[0]
+        ue = self.do_ue_list({ 'ue_id' : mat['ue_id'] })[0]
+        if self.formation_has_locked_sems(ue['formation_id']):
+            raise ScoLockedFormError() 
+        # edit
         self._matiereEditor.edit( cnx, *args, **kw )
         self.CachedNotesTable.inval_cache()
 
@@ -371,6 +402,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_module_create')
     def do_module_create(self, args):
         "create a module"
+        # check
+        if self.formation_has_locked_sems(args['formation_id']):
+            raise ScoLockedFormError()
+        # create
         cnx = self.GetDBConnexion()
         r = self._moduleEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
@@ -379,6 +414,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_module_delete')
     def do_module_delete(self, oid):
         "delete module"
+        mod = self.do_module_list({ 'module_id' : oid})[0]
+        if self.formation_has_locked_sems(mod['formation_id']):
+            raise ScoLockedFormError()
+        # delete
         cnx = self.GetDBConnexion()
         self._moduleEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
@@ -392,9 +431,23 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_module_edit')
     def do_module_edit(self, *args, **kw ):
         "edit a module"
+        # check
+        mod = self.do_module_list({'module_id' : args[0]['module_id']})[0]
+        if self.formation_has_locked_sems(mod['formation_id']):
+            raise ScoLockedFormError()
+        # edit
         cnx = self.GetDBConnexion()
         self._moduleEditor.edit(cnx, *args, **kw )
         self.CachedNotesTable.inval_cache()
+
+    #
+    security.declareProtected(ScoView, 'formation_has_locked_sems')
+    def formation_has_locked_sems(self, formation_id):
+        "True if there is a locked formsemestre in this formation"
+        sems = self.do_formsemestre_list(
+            args={ 'formation_id' : formation_id,
+                   'etat' : '0'} )
+        return len(sems) > 0
     
     # --- Semestres de formation
     _formsemestreEditor = EditableTable(
@@ -1028,9 +1081,13 @@ class ZNotes(ObjectManager,
     def do_formsemestre_inscription_create(self, args, REQUEST, method=None ):
         "create a formsemestre_inscription (and sco event)"
         cnx = self.GetDBConnexion()
+        log('do_formsemestre_inscription_create: args=%s' % str(args))
         # check lock
-        sem = self.do_formsemestre_list(
-            {'formsemestre_id':args['formsemestre_id']})[0]
+        sems = self.do_formsemestre_list(
+            {'formsemestre_id':args['formsemestre_id']})
+        if len(sems) != 1:
+            raise ScoValueError('code de semestre invalide: %s'%args['formsemestre_id'])
+        sem = sems[0]
         if sem['etat'] != '1':
             raise ScoValueError('inscription: semestre verrouille')
         #
@@ -1549,7 +1606,8 @@ class ZNotes(ObjectManager,
             date_debut = datetime.date(y,m,d)
             d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
             date_fin = datetime.date(y,m,d)
-            d,m,y = [ int(x) for x in jour.split('/') ]
+            # passe par DateDMYtoISO pour avoir date pivot
+            y,m,d = [ int(x) for x in DateDMYtoISO(jour).split('-') ]
             jour = datetime.date(y,m,d)
             if (jour > date_fin) or (jour < date_debut):
                 raise ScoValueError("La date de l'évaluation n'est pas dans le semestre !")

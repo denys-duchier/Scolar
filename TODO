@@ -28,10 +28,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 - bug: un etudiant a demissionné. Comment le ré-inscrire ?
 
-- bug: on ne peut pas supprimer les notes des etudiants demissionnaires
-  ce qui est genant pour supprimer des evaluations (cas rare).
-  -> proposer un lien pour supprimer toutes les notes d'une eval.
-  
 - prise en compte des autorisation à redoubler et des exclusions
   dans validation semestre (formsemestre_validation_form) ???
 
