@@ -5,6 +5,7 @@ SCONAME = "AxoNote"
 SCONEWS = """
 <h4>Septembre 2006</h4>
 <ul>
+<li>Page pour suppression des groupes.</li>
 <li>Amélioration gestion des utilisateurs</li>
 <li>"Verrouillage" des semestres</li>
 <li>Liste d'enseignants (chargés de TD) associés à un module (et pouvant saisir des notes)</li>

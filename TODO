@@ -2,13 +2,18 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+- mettre dans les bulletins de notes une valeur ATT se calculant à
+l'identique de EXC, mais différenciant les décisions provisoires des 
+définitives. 
+
+- mettre dans le bilan du semestre un item "compensé par", par défaut
+à 'rien', qui peut être renseigné par un autre semestre (contigu).
+
 - fiche etud: liste des inscription: trier par date
  (ex https://notes.iutv.univ-paris13.fr/in/GEA/Scolarite/ficheEtud?etudid=10500372)
 
 - notes invalides: afficher les noms des etudiants concernes 
   dans le message d'erreur
-
-- suppression d'un groupe
 
 page pour inscription d'un etudiant a un module
 page pour visualiser les modules auquel un etudiant est inscrit,

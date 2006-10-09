@@ -382,7 +382,7 @@ class ZScoUsers(ObjectManager,
         return '\n'.join(H)+F
         
     security.declareProtected(ScoAdminUsers, 'create_user_form')
-    def create_user_form(self, REQUEST, user_name=None, edit=False):
+    def create_user_form(self, REQUEST, user_name=None, edit=0):
          "form. creation ou edit utilisateur"
          # Get authuser info
          authuser = REQUEST.AUTHENTICATED_USER
@@ -391,6 +391,7 @@ class ZScoUsers(ObjectManager,
          if not user_name:
              user_name = auth_name
          #
+         edit = int(edit)
          H = [self.sco_header(self,REQUEST)]
          F = self.sco_footer(self,REQUEST)
          H.append("<h1>Création d'un utilisateur</h1>")
@@ -400,7 +401,7 @@ class ZScoUsers(ObjectManager,
          valid_roles = [ x.strip()
                          for x in self.DeptCreatedUsersRoles.split(',') ]
          #
-         if not edit:             
+         if not edit:
              initvalues = {}
              submitlabel = 'Créer utilisateur'
          else:

@@ -167,6 +167,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
             etudid = scolars.identite_create(cnx,args)
             if values['code_ine']:
                 assert etudid == values['code_ine']
+
             created_etudids.append(etudid)
             # Admissions
             args['etudid'] = etudid
