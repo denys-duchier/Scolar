@@ -20,11 +20,8 @@ ficheEtud  indiquer si inscrit au module sport
 
 formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
-- formsemestre_editwithmodules ne permet pas de changer le semestre_id
-
-- formsemestre_recapcomplet : indiquer les etudiants démissionnaires
-
-- "fermeture" semestre (plus de possibilité d'ajout d'evals ou de modifs notes)
+- Le champ semestre_id des formsemestre est inutilisé.
+  formsemestre_editwithmodules ne permet pas de changer le semestre_id
 
 - bulletins sans les codes de modules.
 

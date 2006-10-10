@@ -2906,8 +2906,12 @@ class ZNotes(ObjectManager,
             ue['nb_moy'] = 0
         for t in T:
             etudid = t[-1]
+            if nt.get_etud_etat(etudid) == 'D':
+                gr = 'dem'
+            else:
+                gr = nt.get_groupetd(etudid)
             l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
-                  nt.get_groupetd(etudid),
+                  gr,
                   fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
             try:
                 sum_moy += float(t[0])
