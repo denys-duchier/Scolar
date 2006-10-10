@@ -40,7 +40,7 @@ FORMAT_FILE = "misc/format_import_etudiants.txt"
 
 # ----
 
-def sco_import_format( product_file_path ):
+def sco_import_format( product_file_path, with_codesemestre=True ):
     "returns tuples (Attribut, Type, Table, AllowNulls, Description)"
     r = []
     for l in open(product_file_path+'/'+FORMAT_FILE):
@@ -50,10 +50,11 @@ def sco_import_format( product_file_path ):
             if len(fs) != 5:
                 raise FormatError('file %s has invalid format (expected %d fields, got %d) (%s)'
                                   % (FORMAT_FILE,5,len(fs),l))
-            r.append( tuple( [x.strip() for x in fs]) )
+            if with_codesemestre or fs[0].strip().lower() != 'codesemestre':
+                r.append( tuple( [x.strip() for x in fs]) )
     return r
 
-def sco_import_generate_excel_sample( format ):
+def sco_import_generate_excel_sample( format, with_codesemestre=True ):
     """generates an excel document based on format
     (format is the result of sco_import_format())
     """
@@ -62,6 +63,8 @@ def sco_import_generate_excel_sample( format ):
     titles = []
     titlesStyles = []
     for l in format:
+        if (not with_codesemestre) and l[0].lower() == 'codesemestre':
+            continue # pas de colonne codesemestre
         if int(l[3]):
             titlesStyles.append(style)
         else:
@@ -72,24 +75,31 @@ def sco_import_generate_excel_sample( format ):
                                         SheetName="Etudiants" )
 
 
-def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
+def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
+                               formsemestre_id=None):
     """Importe etudiants depuis fichier CSV
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
+    log('scolars_import_excel_file: formsemestre_id=%s'%formsemestre_id)
     cnx = Notes.GetDBConnexion()
     cursor = cnx.cursor()
     annee_courante = time.localtime()[0]
-    diag, data = sco_excel.Excel_to_list(datafile.read())
+    exceldata = datafile.read()
+    if not exceldata:
+        raise ScoValueError("Ficher excel vide ou invalide")
+    diag, data = sco_excel.Excel_to_list(exceldata)
+    if not data: # probably a bug
+        raise FormatError('check_csv_file: empty file !')
     # 1-  --- check title line
     titles = {}
     fmt = sco_import_format(product_file_path)
     for l in fmt:
         tit = l[0].lower() # titles in lowercase
-        titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
-    if not data:
-        raise FormatError('check_csv_file: empty file !')
+        if (not formsemestre_id) or (tit != 'codesemestre'):
+            titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
     fs = [ x.strip().lower() for x in data[0] ]
-    log("csv: fs='%s'\ndata=%s" % (str(fs), str(data)))
+    #log("titles=%s" % titles)
+    log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     # remove quotes
     for i in range(len(fs)):
         if len(fs[i]) > 1:
@@ -105,7 +115,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
                 del missing[f]
             else:
                 unknown.append(f)
-        raise ScoValueError('nombre de colonnes incorrect (devrait être %d, et non %d) (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
+        raise ScoValueError('nombre de colonnes incorrect (devrait être %d, et non %d) <br> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
     titleslist = []
     for t in fs:
         if not titles.has_key(t):
@@ -179,7 +189,10 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST):
             adresse_id = scolars.adresse_create(cnx,args)
             # Inscription au semestre
             args['etat'] = 'I' # etat insc. semestre
-            args['formsemestre_id'] = values['codesemestre']
+            if formsemestre_id:
+                args['formsemestre_id'] = formsemestre_id
+            else:
+                args['formsemestre_id'] = values['codesemestre']
             Notes.do_formsemestre_inscription_with_modules(args=args,
                                                            REQUEST=REQUEST,
                                                            method='import_csv_file')

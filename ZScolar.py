@@ -702,7 +702,7 @@ class ZScolar(ObjectManager,
                 sem['ins'] = i
                 sems.append(sem)
             # tri les semestre par date de debut
-            sems.sort( lambda x,y: cmp( y['date_debut'], x['date_debut'] ) )
+            sems.sort( lambda x,y: cmp(y['dateord'], x['dateord']) )
             etud['sems'] = sems
             etud['cursem'] = cursem
             if cursem:
@@ -834,7 +834,12 @@ class ZScolar(ObjectManager,
             data.update(sem['ins'])
             locked = (sem['etat'] != '1')
             i = sem['ins']
-            ilist.append('<table><tr><td><a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s %(date_debut)s - %(date_fin)s</a> [%(etat)s] groupe %(groupetd)s </td><td><div class="barrenav"><ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul></div></td>' % data )
+            ilist.append("""<table><tr>
+            <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> [%(etat)s] groupe %(groupetd)s
+            </td><td><div class="barrenav">
+            <ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
+            </div></td>"""
+                         % data )
 
             if authuser.has_permission(ScoEtudChangeGroups,self) or authuser.has_permission(ScoEtudInscrit,self):
                 # menu pour action sur etudiant
@@ -1595,7 +1600,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = self.sco_header(self,REQUEST)
+        H = [self.sco_header(self,REQUEST)]
         F = self.sco_footer(self,REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)
@@ -1604,11 +1609,16 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             # creation nouvel etudiant
             initvalues = {}
             submitlabel = 'Ajouter cet étudiant'
+            H.append("""<h2>Création d'un étudiant</h2>
+            <p><em>L'étudiant créé ne sera pas inscrit.
+            Pensez à l'inscrire dans un semestre !</em></p>
+            """)
         else:
             # edition donnees d'un etudiant existant
             # setup form init values
+            H.append('<h2>Modification d\'un étudiant</h2>')
             if not etudid:
-                raise ScoValueError('missing etudid parameter')
+                raise ValueError('missing etudid parameter')
             initvalues = scolars.etudident_list(cnx, {'etudid' : etudid})
             assert len(initvalues) == 1
             initvalues = initvalues[0]
@@ -1661,9 +1671,9 @@ Utiliser ce formulaire en fin de semestre, après le jury.
                                 cancelbutton = 'Annuler',
                                 initvalues = initvalues)
         if tf[0] == 0:
-            return H + tf[1] + '<p>' + str(initvalues) + F
+            return '\n'.join(H) + tf[1] + '<p>' + F
         elif tf[0] == -1:
-            return H + '<h4>annulation</h4>' + F
+            return '\n'.join(H) + '<h4>annulation</h4>' + F
         else:
             # form submission
             if not edit:
@@ -1686,10 +1696,12 @@ Utiliser ce formulaire en fin de semestre, après le jury.
     
     # ---- inscriptions "en masse"
     security.declareProtected(ScoEtudInscrit, "students_import_csv")
-    def students_import_excel(self, csvfile, REQUEST=None):
+    def students_import_excel(self, csvfile, REQUEST=None,
+                              formsemestre_id=None):
         "import students from Excel file"
         diag = ImportScolars.scolars_import_excel_file(
-            csvfile, file_path, self.Notes, REQUEST )
+            csvfile, file_path, self.Notes, REQUEST,
+            formsemestre_id=formsemestre_id )
         if REQUEST:
             H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]
             H.append('<p>Import excel: %s</p>'% diag)
@@ -1700,7 +1712,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         self.Notes.CachedNotesTable.inval_cache()
     
     security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
-    def form_students_import_csv(self, REQUEST):
+    def form_students_import_csv(self, REQUEST, formsemestre_id=None):
         "formulaire import csv"
         H = [self.sco_header(self,REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
@@ -1712,20 +1724,36 @@ Utiliser ce formulaire en fin de semestre, après le jury.
              ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
              votre liste.
              </p>
+             """]
+        if formsemestre_id:
+            sem = self.Notes.do_formsemestre_list(
+                args={'formsemestre_id':formsemestre_id} )[0]            
+            H.append("""<p style="color: red">Les étudiants importés seront inscrits dans
+            le semestre <b>%s</b></p>""" % sem['titreannee'])
+        else:
+            H.append("""
              <p>Pour inscrire directement les étudiants dans un semestre de
              formation, il suffit d'indiquer le code de ce semestre
              (qui doit avoir été crée au préalable). <a href="%s/Notes?showcodes=1">Cliquez ici pour afficher les codes</a>
              </p>
-             <ol>
-             <li><a href="import_generate_excel_sample">Obtenir la feuille excel à remplir</a></li>
-             <li>""" % (self.ScoURL())        
-        ]        
+             """  % (self.ScoURL()))
 
+        H.append("""<ol><li>""")
+        if formsemestre_id:
+            H.append("""
+            <a href="import_generate_excel_sample?with_codesemestre=0">
+            """)
+        else:
+            H.append("""<a href="import_generate_excel_sample">""")
+        H.append("""Obtenir la feuille excel à remplir</a></li>
+        <li>""")
+        
         F = self.sco_footer(self,REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
                           'size' : 40 }),
+             ('formsemestre_id', {'input_type' : 'hidden' }), 
              ), submitlabel = 'Télécharger')
         S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
@@ -1739,7 +1767,9 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
 <p>
 <table>
 <tr><td><b>Attribut</b></td><td><b>Type</b></td><td><b>Description</b></td></tr>"""]
-        for t in ImportScolars.sco_import_format(file_path):
+        for t in ImportScolars.sco_import_format(
+                    file_path,
+                    with_codesemestre=(formsemestre_id == None)):
             if int(t[3]):
                 ast = ''
             else:
@@ -1751,13 +1781,19 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
-            return self.students_import_excel(tf[2]['csvfile'], REQUEST=REQUEST)
+            return self.students_import_excel(tf[2]['csvfile'],
+                                              REQUEST=REQUEST,
+                                              formsemestre_id=formsemestre_id)
 
     security.declareProtected(ScoEtudInscrit,"sco_import_generate_excel_sample")
-    def import_generate_excel_sample(self, REQUEST):
+    def import_generate_excel_sample(self, REQUEST, with_codesemestre='1'):
         "une feuille excel pour importation etudiants"
+        if with_codesemestre:
+            with_codesemestre = int(with_codesemestre)
+        else:
+            with_codesemestre = 0
         format = ImportScolars.sco_import_format(file_path)
-        data = ImportScolars.sco_import_generate_excel_sample(format)
+        data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre)
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
 
     # --- Statistiques

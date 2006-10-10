@@ -1,6 +1,5 @@
 <dtml-var sco_header>
 <h2><dtml-var title_or_id></h2>
-<p class="gtr_devel">Système en cours de développement. <a href="mailto:viennet@lipn.univ-paris13.fr">viennet@lipn.univ-paris13.fr</a></p>
 
 
 <h3>Tableaux de bords par semestre</h3>

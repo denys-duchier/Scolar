@@ -109,6 +109,11 @@
 <li>
  <a href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) à un autre semestre</a>
 </li>
+
+<li><a href="form_students_import_csv?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a></li>
+
+<li><a href="etudident_create_form?formsemestre_id=<dtml-var formsemestre_id>">créer <em>un</em> nouvel étudiant</a></li>
+
 </dtml-if permission>
 
 </ul>

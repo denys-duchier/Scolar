@@ -520,16 +520,26 @@ class ZNotes(ObjectManager,
         for sem in sems:
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
             try:
-                annee_debut = sem['date_debut'].split('/')[2]
+                mois_debut, annee_debut = sem['date_debut'].split('/')[1:]
             except:
-                annee_debut = ''
+                mois_debut, annee_debut = '', ''
             try:
-                annee_fin = sem['date_fin'].split('/')[2]
+                mois_fin, annee_fin = sem['date_fin'].split('/')[1:]
             except:
-                annee_fin = ''
+                mois_fin, annee_fin = '', ''
             sem['titreannee'] = sem['titre'] + ' ' + annee_debut
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
+            # et les dates sous la forme "oct 2007 - fev 2008"
+            months = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
+                       'Aout', 'Sept', 'Oct ', 'Nov ', 'Dec ' ]
+            if mois_debut:
+                mois_debut = months[int(mois_debut)-1]
+            if mois_fin:
+                mois_fin = months[int(mois_fin)-1]
+            sem['mois_debut'] = mois_debut + ' ' + annee_debut
+            sem['mois_fin'] = mois_fin + ' ' + annee_fin
+            log('mois_debut='+sem['mois_debut'])
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
         return sems
