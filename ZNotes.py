@@ -2694,6 +2694,9 @@ class ZNotes(ObjectManager,
         cursor = cnx.cursor()
         nb_changed = 0
         nb_suppress = 0
+        E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+        M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
+
         try:
             for (etudid,value) in notes:
                 if not NotesDB.has_key(etudid):
@@ -2738,8 +2741,6 @@ class ZNotes(ObjectManager,
             cnx.rollback() # abort
             raise # re-raise exception
         cnx.commit()
-        E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-        M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
         self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id']) 
         return nb_changed, nb_suppress
 
