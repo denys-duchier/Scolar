@@ -239,6 +239,7 @@ CREATE TABLE notes_formsemestre (
  	nomgroupetd text default 'TD',
  	nomgroupetp text default 'TP',
  	nomgroupeta text default 'langues'
+	bul_show_codemodules integer default 1,
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
@@ -288,7 +289,8 @@ CREATE TABLE notes_evaluation (
 	heure_fin time,
 	description text,
 	note_max real,
-	coefficient real
+	coefficient real,
+        visibulletin integer default 1
 );
 
 -- Les notes...

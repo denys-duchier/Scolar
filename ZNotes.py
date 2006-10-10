@@ -456,6 +456,7 @@ class ZNotes(ObjectManager,
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
+         'bul_show_codemodules',
          'etat',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta'
          ),
@@ -465,6 +466,7 @@ class ZNotes(ObjectManager,
                              'gestion_absence' : str,
                              'bul_show_decision' : str,
                              'bul_show_uevalid' : str,
+                             'bul_show_codemodules' : str,
                              'etat' : str },
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
@@ -472,6 +474,7 @@ class ZNotes(ObjectManager,
                              'gestion_absence' : int,
                              'bul_show_decision' : int,
                              'bul_show_uevalid' : int,
+                             'bul_show_codemodules' : int,
                              'etat' : int }
         )
     
@@ -619,6 +622,11 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'faire figurer les décisions sur les bulletins',
                                        'labels' : [''] }),
+            ('bul_show_codemodules_lst',  { 'input_type' : 'checkbox',
+                                      'title' : '',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'afficher codes des modules sur les bulletins',
+                                       'labels' : [''] }),
             ('nomgroupetd', { 'size' : 20,
                               'title' : 'Nom des groupes primaires',
                               'explanation' : 'TD' }),
@@ -672,6 +680,13 @@ class ZNotes(ObjectManager,
             initvalues['bul_show_decision_lst'] = ['X']
         else:
             initvalues['bul_show_decision_lst'] = []
+
+        initvalues['bul_show_codemodules'] = initvalues.get('bul_show_codemodules','1')
+        if initvalues['bul_show_codemodules'] == '1':
+            initvalues['bul_show_codemodules_lst'] = ['X']
+        else:
+            initvalues['bul_show_codemodules_lst'] = []
+
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
             REQUEST.form['bul_show_decision_lst'] = []
         #
@@ -692,6 +707,10 @@ class ZNotes(ObjectManager,
                 tf[2]['bul_show_decision'] = 1
             else:
                 tf[2]['bul_show_decision'] = 0
+            if tf[2]['bul_show_codemodules_lst']:
+                tf[2]['bul_show_codemodules'] = 1
+            else:
+                tf[2]['bul_show_codemodules'] = 0                
             if not edit:
                 # creation du semestre                
                 formsemestre_id = self.do_formsemestre_create(tf[2])
@@ -807,6 +826,11 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'faire figurer les décisions sur les bulletins',
                                        'labels' : [''] }),
+            ('bul_show_codemodules_lst',  { 'input_type' : 'checkbox',
+                                      'title' : '',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'afficher codes des modules sur les bulletins',
+                                       'labels' : [''] }),
             ('bul_show_uevalid_lst', { 'input_type' : 'checkbox',
                                    'title' : '',
                                    'allowed_values' : ['X'],
@@ -843,6 +867,14 @@ class ZNotes(ObjectManager,
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_uevalid_lst'):
             REQUEST.form['bul_show_uevalid_lst'] = []
 
+        initvalues['bul_show_codemodules'] = initvalues.get('bul_show_codemodules','1')
+        if initvalues['bul_show_codemodules'] == '1':
+            initvalues['bul_show_codemodules_lst'] = ['X']
+        else:
+            initvalues['bul_show_codemodules_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_codemodules_lst'):
+            REQUEST.form['bul_show_codemodules_lst'] = []
+
         initvalues['etat'] = initvalues.get('etat','1')
         if initvalues['etat'] == '1':
             initvalues['etat_lst'] = ['X']
@@ -874,6 +906,11 @@ class ZNotes(ObjectManager,
                 tf[2]['bul_show_uevalid'] = 1
             else:
                 tf[2]['bul_show_uevalid'] = 0
+
+            if tf[2]['bul_show_codemodules_lst']:
+                tf[2]['bul_show_codemodules'] = 1
+            else:
+                tf[2]['bul_show_codemodules'] = 0
 
             if tf[2]['etat_lst']:
                 tf[2]['etat'] = 1
@@ -3185,6 +3222,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                           '%.2g' % modimpl['module']['coefficient'] ]
                     if version == 'short':
                         t[3], t[2] = t[2], t[3] # deplace colonne note
+                    if sem['bul_show_codemodules'] != '1':
+                        t[0] = '' # pas affichage du code module
                     P.append(tuple(t))
                     link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s">' % modimpl['moduleimpl_id']
                     t[0] = link_mod + t[0] # add html link

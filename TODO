@@ -23,10 +23,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 - Le champ semestre_id des formsemestre est inutilisé.
   formsemestre_editwithmodules ne permet pas de changer le semestre_id
 
-- bulletins sans les codes de modules.
-
-- bug: un etudiant a demissionné. Comment le ré-inscrire ?
-
 - prise en compte des autorisation à redoubler et des exclusions
   dans validation semestre (formsemestre_validation_form) ???
 
