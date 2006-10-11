@@ -57,9 +57,14 @@ from sco_utils import *
 from ScolarRolesNames import *
 from notesdb import *
 from scolog import logdb
+
 import scolars
 from scolars import format_nom, format_prenom, format_sexe, format_lycee
 from scolars import format_telephone, format_pays
+
+import sco_news
+from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+
 from TrivialFormulator import TrivialFormulator, TF
 import sco_excel
 import imageresize
@@ -214,7 +219,7 @@ class ZScolar(ObjectManager,
     sco_footer = DTMLFile('dtml/sco_footer', globals())
     security.declareProtected(ScoView, 'menus_bandeau')
     menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
-
+    
     # --------------------------------------------------------------------
     #
     #    GESTION DE LA BD
@@ -361,21 +366,48 @@ class ZScolar(ObjectManager,
 
     # ----------  PAGE ACCUEIL (listes) --------------
     security.declareProtected(ScoView, 'index_html')
-    def index_html(self,REQUEST=None):
+    def index_html(self,REQUEST=None, showcodes=0):
         "page accueil sco"
         H = []
+        # news
+        cnx = self.GetDBConnexion()
+        H.append( sco_news.scolar_news_summary_html(cnx) )
+        
         # liste de toutes les sessions
         sems = self.Notes.do_formsemestre_list()
         now = time.strftime( '%Y-%m-%d' )
-        # H.append('<p>listes du %s</p>' % now )
+
         cursems = []   # semestres "courants"
-        othersems = [] # autres (anciens ou futurs)        
+        othersems = [] # autres (anciens ou futurs)
+        # icon image:
+        groupicon = self.img.groupicon_img.tag(title="Listes et groupes",
+                                               border='0') 
+        emptygroupicon = self.img.emptygroupicon_img.tag(title="Pas d'inscrits",
+                                                         border='0')
+        lockicon = self.img.lock32_img.tag(title="verrouillé", border='0')
         # selection sur l'etat du semestre
         for sem in sems:
             if sem['etat'] == '1':
+                sem['lockimg'] = ''
                 cursems.append(sem)
             else:
+                sem['lockimg'] = lockicon
                 othersems.append(sem)
+            # -- prevoir si necessaire un moyen de chercher le vrai nom du
+            #    responsable de formation.
+            sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
+            if showcodes=='1':
+                sem['tmpcode'] = '<td><tt>%s</tt></td>' % sem['formsemestre_id']
+            else:
+                sem['tmpcode'] = ''
+            # nombre d'inscrits
+            args = { 'formsemestre_id' : sem['formsemestre_id'] }
+            ins = self.Notes.do_formsemestre_inscription_list( args=args )
+            nb = len(ins) # nb etudiants
+            if nb > 0:
+                sem['groupicon'] = groupicon
+            else:
+                sem['groupicon'] = emptygroupicon
 # # selection basee sur la date courante        
 #        for sem in sems:
 #            debut = DateDMYtoISO(sem['date_debut'])
@@ -384,20 +416,44 @@ class ZScolar(ObjectManager,
 #                cursems.append(sem)
 #            else:
 #                othersems.append(sem)
-                
+        
         # liste des fomsemestres "courants"
-        H.append('<h2>Semestres en cours</h3>')
-        for sem in cursems:
-            H += self.make_listes_sem(sem, REQUEST)
-        H.append('<hr/><h2>Semestres en passés ou futurs (non modifiables)</h3>')
-        for sem in othersems:
-            H += self.make_listes_sem(sem, REQUEST)
+        tmpl = """<tr>%(tmpcode)s
+        <td>%(lockimg)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s#groupes">%(groupicon)s</a></td>        
+        <td class="datesem">%(mois_debut)s - %(mois_fin)s</td>
+        <td><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a>
+        <span class="respsem">(%(responsable_name)s)</span>
+        </td>
+        </tr>
+        """
+        # " (this quote fix a font lock bug)
+        if cursems:
+            H.append('<h2>Semestres en cours</h2><table class="listesems">')
+            for sem in cursems:
+                H.append( tmpl % sem )
+            H.append('</table>')
+                #H += self.make_listes_sem(sem, REQUEST)
+        if othersems:
+            H.append("""<hr/>
+            <h2>Semestres terminés (non modifiables)</h2>
+            <table class="listesems">""")
+            
+            for sem in othersems:
+                H.append( tmpl % sem )
+                #H += self.make_listes_sem(sem, REQUEST)
+            H.append('</table>')
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit,self):
-            H.append('<hr><ul><li><a href="form_students_import_csv">importer de nouveaux étudiants</a></li>')
-            H.append('<li><a href="etudident_create_form">créer <em>un</em> nouvel étudiant</a></li>')
-            H.append('</ul>')
+            H.append("""<hr>
+            <h3>Gestion des étudiants</h3>
+            <ul>
+            <li><a class="stdlink" href="etudident_create_form">créer <em>un</em> nouvel étudiant</a></li>
+            <li><a class="stdlink" href="form_students_import_csv">importer de nouveaux étudiants</a> (ne pas utiliser sauf cas particulier, utilisez plutôt le lien dans
+            le tableau de bord semestre si vous souhaitez inscrire les
+            étudiants importés à un semestre)</li>
+            </ul>
+            """)
         #
         return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
 
@@ -410,7 +466,7 @@ class ZScolar(ObjectManager,
         #    responsable de formation.
         sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
         #
-        H.append('<h3>%(titre)s <span class="infostitresem">(%(date_debut)s - %(date_fin)s, %(responsable_name)s)</span> [<span class="linktitresem"><a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">notes</a></span>] </h3>' % sem )
+        H.append('<h3>Listes de %(titre)s <span class="infostitresem">(%(mois_debut)s - %(mois_fin)s, %(responsable_name)s)</span></h3>' % sem )
         # cherche les groupes de ce semestre
         formsemestre_id = sem['formsemestre_id']
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
@@ -448,13 +504,14 @@ class ZScolar(ObjectManager,
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
             H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
+        H.append('</ul>')
         # Si admin, lien changementde groupes
         if authuser.has_permission(ScoEtudChangeGroups,self):
-            H.append('<li class="listegroupelink">Modifier les groupes de <a href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a></li>'
+            H.append('<p class="listegroupelink">Modifier les groupes de <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a></p>'
                      % (formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd'],
                         formsemestre_id,sem['nomgroupeta'],sem['nomgroupeta'],
                         formsemestre_id,sem['nomgroupetp'],sem['nomgroupetp']))
-        H.append('</ul>')
+        
         return H
 
     security.declareProtected(ScoView, 'listegroupe')
@@ -485,7 +542,7 @@ class ZScolar(ObjectManager,
                 s = ''
             H.append('<p>soit %d étudiants inscrits et %d démissionaire%s<br>' % (len(T)-nbdem,nbdem,s))
             amail=','.join([x[3] for x in T ])
-            H.append('<a href="mailto:%s">envoyer un mail collectif au groupe %s</a></p>' % (amail,nomgroupe))
+            H.append('<a class="stdlink" href="mailto:%s">envoyer un mail collectif au groupe %s</a></p>' % (amail,nomgroupe))
             return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
         elif format == 'csv':
             Th = [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ]
@@ -683,7 +740,7 @@ class ZScolar(ObjectManager,
             else:
                 etud['ne'] = 'e'
             if etud['email']:
-                etud['emaillink'] = '<a href="mailto:%s">%s</a>'%(etud['email'],etud['email'])
+                etud['emaillink'] = '<a class="stdlink" href="mailto:%s">%s</a>'%(etud['email'],etud['email'])
             else:
                 etud['emaillink'] = '<em>(pas d\'adresse e-mail)</em>'
             # Semestres dans lesquel il est inscrit
@@ -823,7 +880,7 @@ class ZScolar(ObjectManager,
             info['telephones'] = ''
         # champs dependant des permissions
         if authuser.has_permission(ScoEtudChangeAdr,self):
-            info['modifadresse'] = '<a href="formChangeCoordonnees?etudid=%s">modifier adresse</a>' % etudid
+            info['modifadresse'] = '<a class="stdlink" href="formChangeCoordonnees?etudid=%s">modifier adresse</a>' % etudid
         else:
             info['modifadresse'] = ''
         # Liste des inscriptions
@@ -837,7 +894,7 @@ class ZScolar(ObjectManager,
             ilist.append("""<table><tr>
             <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> [%(etat)s] groupe %(groupetd)s
             </td><td><div class="barrenav">
-            <ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
+            <ul class="nav"><li><a class="stdlink" href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
             </div></td>"""
                          % data )
 
@@ -1319,7 +1376,7 @@ function tweakmenu( gname ) {
             if len(gr_td) > 1:
                 H.append( '<p>Les étudiants doivent avoir un groupe de TD. Si vous supprimer ce groupe, il seront affectés au groupe destination choisi (vous pourrez les changer par la suite)</p>'  )
             else:
-                H.append('<p>Il n\'y a qu\'un seul groupe défini, vous ne pouvez pas le supprimer.</p><p><a href="Notes/formsemestre_status?formsemestre_id=%s">Revenir au semestre</a>' % formsemestre_id )
+                H.append('<p>Il n\'y a qu\'un seul groupe défini, vous ne pouvez pas le supprimer.</p><p><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%s">Revenir au semestre</a>' % formsemestre_id )
                 return  header + '\n'.join(H) + self.sco_footer(self,REQUEST)
         
         descr = [
@@ -1688,6 +1745,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
                 # log
                 logdb(REQUEST, cnx, method='etudident_edit_form',
                       etudid=etudid, msg='creation initiale')
+                sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
+                             text='Nouvel étudiant %(sexe)s %(nom)s' % tf[2])  
             else:
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2])
@@ -1706,7 +1765,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]
             H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
-            H.append('<p><a href="%s">continuer</a></p>' % REQUEST.URL1)
+            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
         self.Notes.CachedNotesTable.inval_cache()
@@ -1734,17 +1793,17 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             H.append("""
              <p>Pour inscrire directement les étudiants dans un semestre de
              formation, il suffit d'indiquer le code de ce semestre
-             (qui doit avoir été crée au préalable). <a href="%s/Notes?showcodes=1">Cliquez ici pour afficher les codes</a>
+             (qui doit avoir été créé au préalable). <a class="stdlink" href="%s?showcodes=1">Cliquez ici pour afficher les codes</a>
              </p>
              """  % (self.ScoURL()))
 
         H.append("""<ol><li>""")
         if formsemestre_id:
             H.append("""
-            <a href="import_generate_excel_sample?with_codesemestre=0">
+            <a class="stdlink" href="import_generate_excel_sample?with_codesemestre=0">
             """)
         else:
-            H.append("""<a href="import_generate_excel_sample">""")
+            H.append("""<a class="stdlink" href="import_generate_excel_sample">""")
         H.append("""Obtenir la feuille excel à remplir</a></li>
         <li>""")
         

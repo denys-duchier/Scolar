@@ -18,7 +18,7 @@
 <dtml-elif "tf[0] == -1">
    <dtml-call "RESPONSE.redirect( URL1 )">
 <dtml-else>
- <dtml-call "REQUEST.set( 'formation_id', do_formation_create( tf[2] ) )">
+ <dtml-call "REQUEST.set( 'formation_id', do_formation_create( tf[2], REQUEST ) )">
  <dtml-call "RESPONSE.redirect( URL1 )">
 </dtml-if>
 

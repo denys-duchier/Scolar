@@ -41,7 +41,7 @@
  <dtml-if "tf[0] == -1">
     <dtml-call "RESPONSE.redirect( URL1 )">
  <dtml-else>
-    <dtml-call "do_formation_delete( F['formation_id'] )">
+    <dtml-call "do_formation_delete( F['formation_id'], REQUEST )">
     <p>OK, formation supprimée.</p>
     <p><a href="<dtml-var URL1>">continuer</a></p>
  </dtml-if>

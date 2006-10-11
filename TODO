@@ -2,6 +2,14 @@
 * TODO: Notes  (modifs priotaires)
 -------------
 
+
+- optimiser scolar_news_summary
+- indiquer sur Notes/index_html le nb de semestres dans chaque formation, 
+  et si elle est verrouillée.
+- style tableau bord module (cadre ?)
+- formattage nom prenom sexe dans news emise par creation etudiant
+
+
 - mettre dans les bulletins de notes une valeur ATT se calculant à
 l'identique de EXC, mais différenciant les décisions provisoires des 
 définitives. 
@@ -60,12 +68,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 - Génération PDF listes notes
 
 
-* Gestion des sous-comm/jury
-----------------------------
-- edition feuille excel au format demandé par l'IUT pour les jurys.
-
-- ajout appréciation en sous-comm. (apparaissant sur bulletin)
-
 
 * FONCTIONNALITES SUPPLEMENTAIRES
 ---------------------------------
@@ -73,8 +75,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 - verifier pas de saisie d'absences dans le FUTUR !
 
 - styles CSS sur les absences (messages d'erreur, ...)
-
-- revoir log de Notes (affichage liste, ...)
 
 - bulletin semestre:
     - general (classement des etudiants, notes en colonnes)
@@ -106,12 +106,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 * FONCTIONNALITES DEMANDEES:
 - (GEA) edition tableau notes avec tous les evals d'un module
         (comme notes_evaluation_listenotes mais avec tt les evals)
-
-
-
-
-* Détails:
-- verifier: table sql: notes_formsemestre.semestre_id == 1 ?
 
 
 * SCOGTR:

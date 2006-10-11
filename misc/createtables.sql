@@ -346,8 +346,11 @@ CREATE TABLE scolar_events (
 --
 CREATE TABLE scolar_news (
 	news_id text default notes_newid('NEWS') PRIMARY KEY,
-	news_date timestamp default now(),
-	news_text text -- free text
+	date timestamp default now(),
+	authenticated_user text, 
+	type text, -- 'INSCR', 'NOTES', 'FORM', 'SEM', 'MISC'
+	object text, -- moduleimpl_id, formation_id, formsemestre_id, 
+	text text -- free text
 );
 
 -- Appreciations sur bulletins

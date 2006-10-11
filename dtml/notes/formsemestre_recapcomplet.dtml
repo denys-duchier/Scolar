@@ -15,17 +15,17 @@
 <option value="csv"<dtml-if "tabformat=='csv'"> selected</dtml-if>>Fichier tableur (CSV)</option>
 <option value="xml"<dtml-if "tabformat=='xml'"> selected</dtml-if>>Fichier XML</option>
 </select>
-(cliquer sur un nom pour afficher son bulletin ou <a href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
+(cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
 </form> 
 </dtml-if isFile>
 <dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat)">
 <dtml-if "not isFile">
 <p>
- <a href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
+ <a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
 </p>
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <p>
- <a href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisisions du jury</a>
+ <a class="stdlink" href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisisions du jury</a>
 </p>
 </dtml-if permission>
 

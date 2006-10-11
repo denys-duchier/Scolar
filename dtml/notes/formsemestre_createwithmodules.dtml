@@ -1,5 +1,5 @@
 <dtml-var "sco_header(page_title='Création d\'une formation',REQUEST=REQUEST,client=this())">
-<h2>Création d'une formation</h2>
+<h2>Mise en place d'un semestre de formation</h2>
 
 <dtml-var "do_formsemestre_createwithmodules(REQUEST, getZopeUsers() )">
 

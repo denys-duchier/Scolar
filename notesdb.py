@@ -8,7 +8,7 @@ from types import *
 from cgi import escape
 
 def quote_dict( d ):
-    "quote all values in dict"
+    "html quote all values in dict"
     for k in d.keys():
         v = d[k]
         if type(v) == StringType:
@@ -146,7 +146,8 @@ class EditableTable:
                  aux_tables = [],
                  convert_null_outputs_to_empty=True,
                  callback_on_write = None,
-                 allow_set_id = False
+                 allow_set_id = False,
+                 html_quote = True
                  ):
         self.table_name = table_name
         self.id_name = id_name
@@ -158,13 +159,15 @@ class EditableTable:
         self.convert_null_outputs_to_empty = convert_null_outputs_to_empty
         self.callback_on_write = callback_on_write # called after each modification
         self.allow_set_id = allow_set_id
+        self.html_quote = html_quote
     
     def create(self, cnx, args, has_uniq_values=True):
         "create object in table"        
         vals = dictfilter(args, self.dbfields)        
         if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
-        quote_dict(vals) # quote all HTML markup
+        if self.html_quote:
+            quote_dict(vals) # quote all HTML markup
         
         # format value
         for title in vals.keys():
@@ -328,6 +331,17 @@ def TimefromISO8601(t):
         return t
     fs = str(t).split(':') 
     return fs[0] + 'h' + fs[1] # discard seconds
+
+def TimeDuration( heure_debut, heure_fin ):
+    "duree (nb entier de minutes) entre deuxheures a notre format"
+    if heure_debut and heure_fin:
+        h0, m0 = [ int(x) for x in heure_debut.split('h') ]
+        h1, m1 = [ int(x) for x in heure_fin.split('h') ]
+        d = (h1-h0)*60 + (m1-m0)
+        return d
+    else:
+        return None
+
 
 def float_null_is_zero(x):
     if x is None or x == '':

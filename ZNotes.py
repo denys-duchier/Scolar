@@ -66,6 +66,8 @@ import sco_excel
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import scolars
+import sco_news
+from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -225,26 +227,32 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoChangeFormation, 'do_formation_create')
-    def do_formation_create(self, args):
+    def do_formation_create(self, args, REQUEST):
         "create a formation"
         cnx = self.GetDBConnexion()
         r = self._formationEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
-        return r 
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM,
+                     text='Création de la formation %(titre)s (%(acronyme)s)' % args )
+        return r
     
     security.declareProtected(ScoChangeFormation, 'do_formation_delete')
-    def do_formation_delete(self, oid):
+    def do_formation_delete(self, oid, REQUEST):
         "delete a formation (and all its UE, matieres, modules)"
+        F = self.do_formation_list(args={'formation_id':oid})[0]
         if self.formation_has_locked_sems(oid):
             raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         # delete all UE in this formation
         ues = self.do_ue_list({ 'formation_id' : oid })
         for ue in ues:
-            self.do_ue_delete(ue['ue_id'])
+            self.do_ue_delete(ue['ue_id'], REQUEST)
         
         self._formationEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
+        # news
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=oid,
+                     text='Suppression de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_formation_list')
     def do_formation_list(self, **kw ):
@@ -273,17 +281,27 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoChangeFormation, 'do_ue_create')
-    def do_ue_create(self, args):
+    def do_ue_create(self, args, REQUEST):
         "create an ue"
         if self.formation_has_locked_sems(args['formation_id']):
             raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
+        # check duplicates
+        ues = self.do_ue_list({'formation_id' : args['formation_id'],
+                               'acronyme' : args['acronyme'] })
+        if ues:
+            raise ScoValueError('UE "%s" déjà existante !' % args['acronyme'])
+        # create
         r = self._ueEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
         return r
 
     security.declareProtected(ScoChangeFormation, 'do_ue_delete')
-    def do_ue_delete(self, oid):
+    def do_ue_delete(self, oid, REQUEST):
         "delete UE and attached matieres"
         # check
         ue = self.do_ue_list({ 'ue_id' : oid })[0]
@@ -292,10 +310,14 @@ class ZNotes(ObjectManager,
         # delete all matiere in this UE
         mats = self.do_matiere_list({ 'ue_id' : oid })
         for mat in mats:
-            self.do_matiere_delete(mat['matiere_id'])
+            self.do_matiere_delete(mat['matiere_id'], REQUEST)
         cnx = self.GetDBConnexion()
         self._ueEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_ue_list')
     def do_ue_list(self, *args, **kw ):
@@ -325,7 +347,7 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoChangeFormation, 'do_matiere_create')
-    def do_matiere_create(self, args):
+    def do_matiere_create(self, args, REQUEST):
         "create a matiere"
         cnx = self.GetDBConnexion()
         # check
@@ -335,10 +357,14 @@ class ZNotes(ObjectManager,
         # create matiere
         r = self._matiereEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
         return r
 
     security.declareProtected(ScoChangeFormation, 'do_matiere_delete')
-    def do_matiere_delete(self, oid):
+    def do_matiere_delete(self, oid, REQUEST):
         "delete matiere and attached modules"
         cnx = self.GetDBConnexion()
         # check
@@ -349,9 +375,13 @@ class ZNotes(ObjectManager,
         # delete all modules in this matiere
         mods = self.do_module_list({ 'matiere_id' : oid })
         for mod in mods:
-            self.do_module_delete(mod['module_id'])
+            self.do_module_delete(mod['module_id'],REQUEST)
         self._matiereEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_matiere_list')
     def do_matiere_list(self, *args, **kw ):
@@ -400,7 +430,7 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoChangeFormation, 'do_module_create')
-    def do_module_create(self, args):
+    def do_module_create(self, args, REQUEST):
         "create a module"
         # check
         if self.formation_has_locked_sems(args['formation_id']):
@@ -409,10 +439,14 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         r = self._moduleEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
         return r
 
     security.declareProtected(ScoChangeFormation, 'do_module_delete')
-    def do_module_delete(self, oid):
+    def do_module_delete(self, oid, REQUEST):
         "delete module"
         mod = self.do_module_list({ 'module_id' : oid})[0]
         if self.formation_has_locked_sems(mod['formation_id']):
@@ -421,6 +455,10 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         self._moduleEditor.delete(cnx, oid)
         self.CachedNotesTable.inval_cache()
+        # news
+        F = self.do_formation_list(args={ 'formation_id' :mod['formation_id']})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=mod['formation_id'],
+                     text='Modification de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_module_list')
     def do_module_list(self, *args, **kw ):
@@ -479,17 +517,24 @@ class ZNotes(ObjectManager,
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
-    def do_formsemestre_create(self, args):
+    def do_formsemestre_create(self, args, REQUEST):
         "create a formsemestre"
         cnx = self.GetDBConnexion()
         r = self._formsemestreEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
+        # news
+        if not args.has_key('titre'):
+            args['titre'] = 'sans titre'
+        args['formsemestre_id'] = r
+        sco_news.add(REQUEST, cnx, typ=NEWS_SEM,
+                     text='Création du semestre <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a>' % args )
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_delete')
-    def do_formsemestre_delete(self, formsemestre_id):
+    def do_formsemestre_delete(self, formsemestre_id, REQUEST):
         "delete formsemestre, and all its moduleimpls"
         cnx = self.GetDBConnexion()
+        sem = self.do_formsemestre_list({'formsemestre_id' : formsemestre_id})[0]
         # --- Destruction des modules de ce semestre
         mods = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
         for mod in mods:
@@ -501,9 +546,15 @@ class ZNotes(ObjectManager,
         # --- Suppression des evenements
         req = "DELETE FROM scolar_events WHERE formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Suppression des appreciations
+        req = "DELETE FROM notes_appreciations WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Destruction du semestre
         self._formsemestreEditor.delete(cnx, formsemestre_id)
         self.CachedNotesTable.inval_cache()
+        # news
+        sco_news.add(REQUEST, cnx, typ=NEWS_SEM, object=formsemestre_id,
+                     text='Suppression du semestre %(titre)s' % sem )
 
     security.declareProtected(ScoView, 'do_formsemestre_list')
     def do_formsemestre_list(self, *a, **kw ):
@@ -534,8 +585,7 @@ class ZNotes(ObjectManager,
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
             # et les dates sous la forme "oct 2007 - fev 2008"
-            months = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
-                       'Aout', 'Sept', 'Oct ', 'Nov ', 'Dec ' ]
+            months = scolars.abbrvmonthsnames
             if mois_debut:
                 mois_debut = months[int(mois_debut)-1]
             if mois_fin:
@@ -713,7 +763,7 @@ class ZNotes(ObjectManager,
                 tf[2]['bul_show_codemodules'] = 0                
             if not edit:
                 # creation du semestre                
-                formsemestre_id = self.do_formsemestre_create(tf[2])
+                formsemestre_id = self.do_formsemestre_create(tf[2], REQUEST)
                 # creation des modules
                 for module_id in tf[2]['tf-checked']:
                     mod_resp_id = tf[2][module_id]
@@ -722,7 +772,7 @@ class ZNotes(ObjectManager,
                                 'responsable_id' :  mod_resp_id,
                                 }
                     mid = self.do_moduleimpl_create(modargs)
-                return '<p>ok, session créée<p/><p><a href="Notes">Continuer</a>' # + str(tf[2])
+                return '<p>ok, session créée<p/><p><a class="stdlink" href="%s">Continuer</a>'%REQUEST.URL2
             else:
                 # modification du semestre:
                 # on doit creer les modules nouvellement selectionnés
@@ -919,7 +969,7 @@ class ZNotes(ObjectManager,
 
             # modification du semestre:
             self.do_formsemestre_edit(tf[2])
-            return header + ('<h3>Modification effectuées<h3><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
+            return header + ('<h3>Modification effectuées<h3><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
 
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
@@ -1034,14 +1084,14 @@ class ZNotes(ObjectManager,
               '<ul><li>%s (responsable)</li>' % M['responsable_id']
               ]
         for ens in M['ens']:
-            H.append('<li>%s (<a href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
+            H.append('<li>%s (<a class="stdlink" href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
                      (self.Users.user_info(ens['ens_id'],REQUEST)['nomprenom'], moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
         F = """<p class="help">Les enseignants d'un module ont le droit de
         saisir et modifier toutes les notes des évaluations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a> (pour dir. étud ou admin.)"
+        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a> (pour dir. étud ou admin.)"
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         userlist = self.getZopeUsers()
@@ -1223,7 +1273,7 @@ class ZNotes(ObjectManager,
         insem = self.do_formsemestre_inscription_list(
             args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
-        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a href="ficheEtud?etudid=%s">retour à la fiche</a>'%etudid + self.sco_footer(self,REQUEST)
+        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="ficheEtud?etudid=%s">retour à la fiche</a>'%etudid + self.sco_footer(self,REQUEST)
         
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(
@@ -1326,7 +1376,7 @@ class ZNotes(ObjectManager,
             H.append('</ul>')
         else:
             H.append('<p>aucune session de formation !</p>')
-        H.append('<a href="%s/ficheEtud?etudid=%s">retour à la fiche de %s</a>'
+        H.append('<a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche de %s</a>'
                  % (self.ScoURL(), etudid, etud['nomprenom']) )
         return '\n'.join(H) + F
 
@@ -1442,7 +1492,7 @@ class ZNotes(ObjectManager,
             # XXXX manque bouton valider et renvoi vers une fonction faisant l'inscription
             H.append("</select></form>")
         else:
-            H.append('<p>Cet étudiant est déjà inscrit à tous les modules du semestre !</p><p><a href="ficheEtud?etudid=%(etudid)s">Retour à la fiche de %(nomprenom)s</a></p>' % etud )
+            H.append('<p>Cet étudiant est déjà inscrit à tous les modules du semestre !</p><p><a class="stdlink" href="ficheEtud?etudid=%(etudid)s">Retour à la fiche de %(nomprenom)s</a></p>' % etud )
         return '\n'.join(H) + self.sco_footer(self,REQUEST)
 
 
@@ -1531,7 +1581,7 @@ class ZNotes(ObjectManager,
             #
             if (not a_inscrire) and (not a_desinscrire):
                 H.append("""<h3>Aucune modification à effectuer</h3>
-                <p><a href="ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % etudid)
+                <p><a class="stdlink" href="ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % etudid)
                 return '\n'.join(H) + F
             
             H.append("<h3>Confirmer les modifications</h3>")
@@ -1601,7 +1651,7 @@ class ZNotes(ObjectManager,
         if REQUEST:
             H = [ self.sco_header(self,REQUEST),
                   """<h3>Modifications effectuées</h3>
-                  <p><a href="ficheEtud?etudid=%s">
+                  <p><a class="stdlink" href="ficheEtud?etudid=%s">
                   Retour à la fiche étudiant</a></p>
                   """ % etudid,
                   self.sco_footer(self, REQUEST)]
@@ -1644,6 +1694,25 @@ class ZNotes(ObjectManager,
         "create a evaluation"
         moduleimpl_id = args['moduleimpl_id']
         self._evaluation_check_write_access(REQUEST, moduleimpl_id=moduleimpl_id)
+        self._check_evaluation_args(args)
+        #
+        cnx = self.GetDBConnexion()
+        r = self._evaluationEditor.create(cnx, args)
+        # inval cache pour ce semestre
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
+        
+        self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
+        # news
+        mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+        mod['moduleimpl_id'] = M['moduleimpl_id']
+        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
+                     text='Création d\'une évaluation dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+
+        return r
+
+    def _check_evaluation_args(self, args):
+        "raise exception if invalid args"
+        moduleimpl_id = args['moduleimpl_id']
         # check date
         jour = args.get('jour', None)
         if jour:
@@ -1658,14 +1727,12 @@ class ZNotes(ObjectManager,
             jour = datetime.date(y,m,d)
             if (jour > date_fin) or (jour < date_debut):
                 raise ScoValueError("La date de l'évaluation n'est pas dans le semestre !")
-        #
-        cnx = self.GetDBConnexion()
-        r = self._evaluationEditor.create(cnx, args)
-        # inval cache pour ce semestre
-        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-        
-        self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
-        return r
+        heure_debut = args.get('heure_debut', None)
+        heure_fin = args.get('heure_fin', None)
+        d = TimeDuration(heure_debut, heure_fin)
+        if d and ((d < 0) or (d > 60*12)):
+            raise ScoValueError("Heures de l'évaluation incohérentes !")            
+
 
     security.declareProtected(ScoEnsView, 'do_evaluation_delete')
     def do_evaluation_delete(self, REQUEST, evaluation_id):
@@ -1682,6 +1749,11 @@ class ZNotes(ObjectManager,
         # inval cache pour ce semestre
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         self.CachedNotesTable.inval_cache(formsemestre_id=M['formsemestre_id'])
+        # news
+        mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+        mod['moduleimpl_id'] = M['moduleimpl_id']
+        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
+                     text='Suppression d\'une évaluation dans <a href=Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"">%(titre)s</a>' % mod )
 
     security.declareProtected(ScoView, 'do_evaluation_list')
     def do_evaluation_list(self, args ):
@@ -1691,10 +1763,8 @@ class ZNotes(ObjectManager,
         # calcule duree (chaine de car.) de chaque evaluation
         for e in evals:
             heure_debut, heure_fin = e['heure_debut'], e['heure_fin']
-            if heure_debut and heure_fin:
-                h0, m0 = [ int(x) for x in heure_debut.split('h') ]
-                h1, m1 = [ int(x) for x in heure_fin.split('h') ]
-                d = (h1-h0)*60 + (m1-m0)
+            d = TimeDuration(heure_debut, heure_fin)
+            if d is not None:
                 m = d%60                
                 e['duree'] = '%dh' % (d/60)
                 if m != 0:
@@ -1702,7 +1772,18 @@ class ZNotes(ObjectManager,
             else:
                 e['duree'] = ''
         return evals
-    
+
+    security.declareProtected(ScoView, 'do_evaluation_list_in_formsemestre')
+    def do_evaluation_list_in_formsemestre(self, formsemestre_id ):
+        "list evaluations in this formsemestre"
+        cnx = self.GetDBConnexion()
+        mods = self.do_moduleimpl_list( args={'formsemestre_id' : formsemestre_id} )
+        evals = []
+        for mod in mods:
+            evals += self.do_evaluation_list(
+                args={'moduleimpl_id':mod['moduleimpl_id']})
+        return evals
+                          
     security.declareProtected(ScoEnsView, 'do_evaluation_edit')
     def do_evaluation_edit(self, REQUEST, args ):
         "edit a evaluation"
@@ -1711,8 +1792,9 @@ class ZNotes(ObjectManager,
                 {'evaluation_id' : evaluation_id})
         if not the_evals:
             raise ValueError, "evaluation inexistante !"
-        
         moduleimpl_id = the_evals[0]['moduleimpl_id']
+        args['moduleimpl_id'] = moduleimpl_id
+        self._check_evaluation_args(args)
         self._evaluation_check_write_access(REQUEST, moduleimpl_id=moduleimpl_id)
         cnx = self.GetDBConnexion()
         self._evaluationEditor.edit(cnx, args )
@@ -2483,12 +2565,17 @@ class ZNotes(ObjectManager,
             if oknow and reviewed:
                 # ok, on rentre ces notes
                 nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
-                return '<p>OK !<br>%s notes modifiées (%d supprimées)<br></p><p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
+                if nbchanged > 0 or nbsuppress > 0:
+                    Mod['moduleimpl_id'] = M['moduleimpl_id']
+                    sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+                                 text='Chargement notes dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % Mod )
+                
+                return '<p>OK !<br>%s notes modifiées (%d supprimées)<br></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
             else:            
                 return head + '\n'.join(H) + tf.getform()
 
     security.declareProtected(ScoEnsView, 'do_evaluation_upload_csv')
-    def do_evaluation_upload_csv(self, REQUEST):
+    def _XXX_do_evaluation_upload_csv(self, REQUEST): # XXX UNUSED
         """soumission d'un fichier CSV (evaluation_id, notefile)
         """
         authuser = REQUEST.AUTHENTICATED_USER
@@ -2611,6 +2698,14 @@ class ZNotes(ObjectManager,
                 raise FormatError()
             else:
                 nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
+                # news
+                E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+                M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+                mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+                mod['moduleimpl_id'] = M['moduleimpl_id']
+                sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+                             text='Chargement notes dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+                
                 return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
         except FormatError:
@@ -2700,9 +2795,17 @@ class ZNotes(ObjectManager,
             authuser, evaluation_id, notes, comment='suppress all' )
         assert nb_changed == nb_suppress       
         H = [ '<p>%s notes supprimées</p>' % nb_suppress,
-              '<p><a href="moduleimpl_status?moduleimpl_id=%s">continuer</a>'
+              '<p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">continuer</a>'
               % E['moduleimpl_id']
               ]
+        # news
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+        mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+        mod['moduleimpl_id'] = M['moduleimpl_id']
+        cnx = self.GetDBConnexion()
+        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+                     text='Suppression des notes d\'une évaluation dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+
         return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
     
     # not accessible through the web
@@ -3284,13 +3387,13 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             H.append('<p><b>Appréciations</b></p>')
         for app in apprecs:
             if can_edit_app:
-                mlink = '<a href="appreciation_add_form?id=%s">modifier</a> <a href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
+                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
             else:
                 mlink = ''
             H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
                          % (app['date'], app['comment'], mlink ) )
         if can_edit_app:
-            H.append('<p><a href="appreciation_add_form?etudid=%s&formsemestre_id=%s">Ajouter une appréciation</a></p>' % (etudid, formsemestre_id))
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%s&formsemestre_id=%s">Ajouter une appréciation</a></p>' % (etudid, formsemestre_id))
         H.append('</div>')
         # ---------------
         if format == 'html':
@@ -3364,7 +3467,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 version=version, 
                 format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
         #
-        return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
+        return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
 
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
     def appreciation_add_form(self, etudid=None, formsemestre_id=None,

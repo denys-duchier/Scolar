@@ -1,8 +1,13 @@
-SCOVERSION = "4.6"
+SCOVERSION = "4.7"
 
 SCONAME = "AxoNote"
 
 SCONEWS = """
+<h4>Octobre 2006</h4>
+<ul>
+<li>Réorganisation des pages d'accueil</li>
+<li>Ajout des "nouvelles" (dernières opérations)</li>
+</ul>
 <h4>Septembre 2006</h4>
 <ul>
 <li>Page pour suppression des groupes.</li>

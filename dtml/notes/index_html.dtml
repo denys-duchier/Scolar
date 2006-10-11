@@ -2,20 +2,6 @@
 <h2><dtml-var title_or_id></h2>
 
 
-<h3>Tableaux de bords par semestre</h3>
-<p>
-<ul>
-<dtml-in "do_formsemestre_list( args={} )">
-<dtml-let sem="_['sequence-item']">
- <li><dtml-if showcodes><tt><dtml-var "sem['formsemestre_id']"></tt></dtml-if>
-<dtml-if "sem['etat'] != '1'"><dtml-var "img.lock32_img"></dtml-if>
-<a href="formsemestre_status?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       <dtml-var "sem['titreannee']"></a></li>
-</dtml-let sem>
-</dtml-in>
-</ul>
-</p>
-
 <h3>Formations</h3>
 
 
@@ -24,17 +10,19 @@
  <dtml-let F="_['sequence-item']">
  <li class="notes_formation_list"> <dtml-var "F['acronyme']"> : <dtml-var "F['titre']">
      <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
-     <a href="formation_edit?formation_id=<dtml-var "F['formation_id']">">modifier</a> 
-     <a href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
+     <a class="stdlink" href="formation_edit?formation_id=<dtml-var "F['formation_id']">">modifier</a> 
+     <a class="stdlink" href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
     </dtml-if perm>
 
-    <a href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE, modules, semestres</a>     
+    <a class="stdlink" href="ue_list?formation_id=<dtml-var "F['formation_id']">">UE, modules, semestres</a>     
     
  </li>
- </dtml-let>
-</dtml-in>
+ </dtml-let F>
+</dtml-in do_formation_list>
+</ul>
+
 <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
- <li><a href="formation_create">Créer une formation</a> <em>(réservé aux administrateurs)</em></li>
+ <p><a class="stdlink" href="formation_create">Créer une formation</a></p>
 </dtml-if perm>
 </ul>
 

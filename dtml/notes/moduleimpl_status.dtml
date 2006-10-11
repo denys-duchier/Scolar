@@ -22,7 +22,7 @@
 <td>
 <dtml-try> 
  <dtml-call "can_change_ens(REQUEST, moduleimpl_id)">
- <a href="edit_enseignants_form?moduleimpl_id=<dtml-var moduleimpl_id>">modifier les enseignants</a>
+ <a class="stdlink" href="edit_enseignants_form?moduleimpl_id=<dtml-var moduleimpl_id>">modifier les enseignants</a>
 <dtml-except>
 </dtml-try>
 </td>
@@ -114,7 +114,7 @@
 <dtml-if "sem['etat'] != '1'">
   <dtml-var "img.lock32_img.tag(border='0')"> semestre verrouillé
 <dtml-else>
-<a href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a>
+<a class="stdlink" href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a>
 </dtml-if>
 </td></tr>
 </dtml-if canedit>

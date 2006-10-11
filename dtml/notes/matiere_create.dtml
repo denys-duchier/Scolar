@@ -32,7 +32,7 @@ associé.
 <dtml-if "tf[0] == 0">
  <dtml-var "tf[1]">
 <dtml-else>
- <dtml-var "REQUEST.set( 'matiere_id', do_matiere_create( tf[2] ) )">
+ <dtml-var "REQUEST.set( 'matiere_id', do_matiere_create( tf[2], REQUEST ) )">
 
  <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(UE['formation_id']) )">
 

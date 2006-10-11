@@ -34,6 +34,8 @@ from notesdb import *
 from notes_log import log
 import scolars
 import sco_excel
+import sco_news
+from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
 # format description (relative to Product directory))
 FORMAT_FILE = "misc/format_import_etudiants.txt"
@@ -123,7 +125,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
         titleslist.append(t) # 
     # ok, same titles
     # Start inserting data, abort whole transaction in case of error
-    created_etudids = []
+    created_etudids = []    
     try: # --- begin DB transaction
         linenum = 0
         for line in data[1:]:
@@ -213,5 +215,9 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
         log('csv: re-raising exception')
         raise
     log('csv: completing transaction')
-    cnx.commit()
+    
+    sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
+                 text='Inscription de %d étudiants' # peuvent avoir ete inscrits a des semestres differents
+                 % len(created_etudids))
+    cnx.commit()    
     return diag

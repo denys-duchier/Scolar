@@ -25,7 +25,7 @@
     <dtml-call "do_evaluation_delete( REQUEST, F['evaluation_id'] )">
     <p>OK, évaluation supprimée.</p>
 
-    <p><a href="<dtml-var "ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+F['moduleimpl_id']">">Continuer</a></p>
+    <p><a class="stdlink" href="<dtml-var "ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+F['moduleimpl_id']">">Continuer</a></p>
  </dtml-if>
 </dtml-if>
 

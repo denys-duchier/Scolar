@@ -19,7 +19,7 @@
  <dtml-if "tf[0] == -1">
     <dtml-call "RESPONSE.redirect( URL1 )">
  <dtml-else>
-    <dtml-call "do_module_delete( F['module_id'] )">
+    <dtml-call "do_module_delete( F['module_id'], REQUEST )">
     
    <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(F['formation_id']) )"> 
     

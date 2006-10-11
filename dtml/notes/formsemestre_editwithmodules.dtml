@@ -19,12 +19,12 @@
 <p><em>Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</em></p>
 
 
-<p><a href="formsemestre_delete?formsemestre_id=<dtml-var formsemestre_id>">Supprimer ce semestre</a></p>
+<p><a class="stdlink" href="formsemestre_delete?formsemestre_id=<dtml-var formsemestre_id>">Supprimer ce semestre</a></p>
 
 </dtml-unless>
 
 </dtml-if etat>
 
-<p><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>">Retour au tableau de bord du module</a>
+<p><a class="stdlink" href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>">Retour au tableau de bord du module</a>
 
 <dtml-var sco_footer>

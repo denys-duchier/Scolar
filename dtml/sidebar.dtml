@@ -13,9 +13,9 @@
 <dtml-var sidebar_dept>
 
 <h2 class="insidebar">Scolarit&eacute;</h2>
- <a href="<dtml-var ScoURL>" class="sidebar">Listes</a> <br> 
+ <a href="<dtml-var ScoURL>" class="sidebar">Semestres</a> <br> 
+ <a href="<dtml-var ScoURL>/Notes" class="sidebar">Formations</a> <br> 
  <a href="<dtml-var ScoURL>/Absences" class="sidebar">Absences</a> <br> 
- <a href="<dtml-var ScoURL>/Notes" class="sidebar">Notes</a> <br> 
  Chercher &eacute;tudiant:<br>
 <form action="<dtml-var ScoURL>/chercheEtud">
 <div><input type="text" size="12" name="expnom"></input></div>

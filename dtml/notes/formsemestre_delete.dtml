@@ -23,15 +23,21 @@ un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tou
  si aucune évaluation n'a été définie (s'il y a des évaluations, allez d'abord 
  les supprimer)</p>
 
- <dtml-var "tf[1]">
+ <dtml-call "REQUEST.set( 'evals', do_evaluation_list_in_formsemestre( formsemestre_id ))">
+ <dtml-if "evals">
+ <p><b>Ce semestre ne peut pas être supprimé ! (il reste <dtml-var "len(evals)"> évaluations)</b></p>
+  <dtml-else>
+    <dtml-var "tf[1]">
+  </dtml-if>
+
 <dtml-else>
  <dtml-if "tf[0] == -1">
     <dtml-call "RESPONSE.redirect( URL1 )">
  <dtml-else>
-    <dtml-call "do_formsemestre_delete(formsemestre_id)">
+    <dtml-call "do_formsemestre_delete(formsemestre_id, REQUEST)">
     <p>OK, semestre supprimé.</p>
 
-    <p><a href="<dtml-var URL1>">Continuer</a></p>
+    <p><a href="<dtml-var URL2>">Continuer</a></p>
  </dtml-if>
 </dtml-if>
 

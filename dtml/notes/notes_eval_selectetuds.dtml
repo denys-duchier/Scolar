@@ -31,7 +31,7 @@
 <dtml-elif "nf[0] == 1">
    <dtml-var "do_evaluation_upload_xls(REQUEST)">
    <p>Notes chargées. 
-    <a href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">
+    <a class="stdlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">
      Continuer</a>
    </p>
 </dtml-if>
@@ -41,9 +41,9 @@
 <h3>Autres opérations</h3>
 
 <ul>
-<li><a href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
+<li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
 </li> 
-<li><a href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">Revenir au module</a>
+<li><a class="stdlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">Revenir au module</a>
 </li>
 </ul>
 

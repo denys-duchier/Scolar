@@ -49,7 +49,7 @@ saisir et modifier les notes de ce module.
 <dtml-if "tf[0] == 0">
  <dtml-var "tf[1]">
 <dtml-else>
- <dtml-var "REQUEST.set( 'module_id', do_module_create( tf[2] ) )">
+ <dtml-var "REQUEST.set( 'module_id', do_module_create( tf[2], REQUEST ) )">
 
  <dtml-call "RESPONSE.redirect( URL1 + '/ue_list?formation_id=' + str(formation_id) )">
 

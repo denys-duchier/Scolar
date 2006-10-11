@@ -40,6 +40,14 @@ from notes_table import *
 import locale
 locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
 
+
+abbrvmonthsnames = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
+                     'Aout', 'Sept', 'Oct ', 'Nov ', 'Dec ' ]
+
+monthsnames = [ 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                'juillet', 'aout', 'septembre', 'octobre', 'novembre',
+                'décembre' ]                
+
 def force_uppercase(s):
     if s:
         s = s.upper()
