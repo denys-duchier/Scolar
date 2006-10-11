@@ -1,0 +1,115 @@
+# -*- mode: python -*-
+# -*- coding: iso8859-15 -*-
+
+##############################################################################
+#
+# Gestion scolarite IUT
+#
+# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#   Emmanuel Viennet      emmanuel.viennet@viennet.net
+#
+##############################################################################
+
+"""Gestions des "nouvelles"
+"""
+
+from notesdb import *
+from notes_log import log
+from scolars import monthsnames, abbrvmonthsnames
+
+_scolar_news_editor = EditableTable(
+    'scolar_news',
+    'news_id',
+    ( 'date', 'authenticated_user', 'type', 'object', 'text' ),
+    sortkey = 'date desc',
+    output_formators = { 'date' : DateISOtoDMY },
+    input_formators  = { 'date' : DateDMYtoISO },
+    html_quote=False # no user supplied data, needed to store html links
+)
+
+NEWS_INSCR = 'INSCR'
+NEWS_NOTE = 'NOTES'
+NEWS_FORM = 'FORM'
+NEWS_SEM  =  'SEM'
+NEWS_MISC = 'MISC'
+NEWS_TYPES = (NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC)
+
+scolar_news_create = _scolar_news_editor.create
+scolar_news_list   = _scolar_news_editor.list
+
+def add(REQUEST, cnx, typ, object=None, text='' ):
+    args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
+             'type' : typ,
+             'object' : object,
+             'text' : text
+             }
+    return scolar_news_create(cnx,args,has_uniq_values=False)
+
+def resultset(cursor):
+    "generator"
+    row = cursor.dictfetchone()
+    while row:
+        yield row
+        row = cursor.dictfetchone()
+        
+def scolar_news_summary(cnx, n=5):
+    """Return last n news.
+    News are "compressed", ie redondant events are joined.
+    """
+    # XXX mauvais algo: oblige a extraire toutes les news pour faire le resume
+    cursor = cnx.cursor()
+    cursor.execute( 'select * from scolar_news order by date asc' )
+    selected_news = {} # (type,object) : news dict
+    for r in resultset(cursor):
+        # si on a deja une news avec meme (type,object)
+        # et du meme jour, on la remplace
+        dmy = DateISOtoDMY(r['date']) # round
+        key = (r['type'],r['object'],dmy)
+        selected_news[key] = r
+            
+    news = selected_news.values()
+    # sort by date, descending
+    news.sort( lambda x,y: cmp(y['date'],x['date']) )
+    news = news[:n]
+    # mimic EditableTable.list output formatting:
+    for n in news:
+        # heure
+        n['hm'] = n['date'].strftime('%Hh%M')
+        for k in n.keys():
+            if n[k] is None:
+                n[k] = ''
+            if _scolar_news_editor.output_formators.has_key(k):
+                n[k] = _scolar_news_editor.output_formators[k](n[k])
+        # date resumee
+        j, m = n['date'].split('/')[:2]
+        mois = abbrvmonthsnames[int(m)-1]
+        n['formatted_date'] = '%s %s %s' % (j,mois,n['hm'])
+    return news
+
+def scolar_news_summary_html(cnx, n=5):
+    """News summary, formated in HTML"""
+    news = scolar_news_summary(cnx,n=n)
+    if not news:
+        return ''
+    H= ['<div class="news"><span class="newstitle">Dernières opérations</span><ul class="newslist">']
+    for n in news:
+        H.append('<li class="newslist"><span class="newsdate">%(formatted_date)s</span><span class="newstext">%(text)s</span></li>' % n )
+    H.append('</ul></div>')
+    return '\n'.join(H)
+
+    
