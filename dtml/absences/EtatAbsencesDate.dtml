@@ -16,6 +16,9 @@
 
 <dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0] )">
 
+<dtml-if date>
+
+
 <h1>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']"> le <dtml-var date></h1>
 
 
@@ -65,5 +68,12 @@
 </dtml-let DATE>
 
 </p>
+
+<dtml-else date>
+
+<h2>Erreur: vous n'avez pas choisi de date !</h2>
+<a class="stdlink" href="<dtml-var "REQUEST.HTTP_REFERER">">Continuer</a>
+
+</dtml-if date>
 
 <dtml-var sco_footer>
