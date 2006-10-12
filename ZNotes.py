@@ -4181,9 +4181,13 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             s = ''
             menulist.append(
                 '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
-        
-        H.append( '<p><b>Semestre précédent:</b> <select name="formsemestre_id1">'
+        if othersems:
+            H.append( '<p><b>Semestre précédent:</b> <select name="formsemestre_id1">'
                   + '\n '.join(menulist) + '</select></p>' )
+        else:
+            H.append("""<p>Aucun autre semestre ! (on va répéter le même)</p>
+            <input type="hidden" name="formsemestre_id1" value="%s"/>
+            """ % formsemestre_id)
         H.append("""<input type="submit" value="Générer feuille"/></form>""")
         H.append(self.sco_footer(self, REQUEST))
         return '\n'.join(H)

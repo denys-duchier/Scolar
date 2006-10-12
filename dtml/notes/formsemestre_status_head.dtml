@@ -6,7 +6,6 @@
 
 <dtml-call "REQUEST.set( 'Mlist', do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } ))">
 
-<XXXdtml-call "REQUEST.set( 'evals_status', do_evaluation_etat_in_sem( formsemestre_id ) )">
 
 <h2>Tableau de bord <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre']"></a> (formation <dtml-var "F['acronyme']">)
 <dtml-if "sem['etat'] != '1'"><dtml-var "img.lock_img"></dtml-if>

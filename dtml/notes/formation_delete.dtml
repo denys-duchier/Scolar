@@ -43,7 +43,7 @@
  <dtml-else>
     <dtml-call "do_formation_delete( F['formation_id'], REQUEST )">
     <p>OK, formation supprimée.</p>
-    <p><a href="<dtml-var URL1>">continuer</a></p>
+    <p><a class="stdlink" href="<dtml-var URL1>">continuer</a></p>
  </dtml-if>
 </dtml-if>
 

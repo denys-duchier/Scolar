@@ -8,8 +8,8 @@
 <meta name="LANG" content="fr" />
 <meta name="DESCRIPTION" content="Scolarite de l'IUT de Villetaneuse" />
 
-<link HREF="<dtml-var "gtrintranetstyle.absolute_url()"><dtml-if no_side_bar>?no_side_bar=1</dtml-if>" rel="stylesheet" type="text/css" />
-<link HREF="<dtml-var "ScoURL()">/menu_css" rel="stylesheet" type="text/css" />
+<link href="<dtml-var "gtrintranetstyle.absolute_url()"><dtml-if no_side_bar>?no_side_bar=1</dtml-if>" rel="stylesheet" type="text/css" />
+<link href="<dtml-var "ScoURL()">/menu_css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="<dtml-var "ScoURL()">/menu_js"></script>
 
 <script language="javascript" type="text/javascript" src="<dtml-var "ScoURL()">/sorttable_js"></script>

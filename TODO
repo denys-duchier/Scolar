@@ -9,7 +9,11 @@
 - style tableau bord module (cadre ?)
 - formattage nom prenom sexe dans news emise par creation etudiant
 
+BUGS:
+do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 
 
+
+FUTUR:
 - mettre dans les bulletins de notes une valeur ATT se calculant à
 l'identique de EXC, mais différenciant les décisions provisoires des 
 définitives. 

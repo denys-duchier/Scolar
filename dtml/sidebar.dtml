@@ -13,10 +13,10 @@
 <dtml-var sidebar_dept>
 
 <h2 class="insidebar">Scolarit&eacute;</h2>
- <a href="<dtml-var ScoURL>" class="sidebar">Semestres</a> <br> 
- <a href="<dtml-var ScoURL>/Notes" class="sidebar">Formations</a> <br> 
- <a href="<dtml-var ScoURL>/Absences" class="sidebar">Absences</a> <br> 
- Chercher &eacute;tudiant:<br>
+ <a href="<dtml-var ScoURL>" class="sidebar">Semestres</a> <br/> 
+ <a href="<dtml-var ScoURL>/Notes" class="sidebar">Formations</a> <br/> 
+ <a href="<dtml-var ScoURL>/Absences" class="sidebar">Absences</a> <br/> 
+ Chercher &eacute;tudiant:<br/>
 <form action="<dtml-var ScoURL>/chercheEtud">
 <div><input type="text" size="12" name="expnom"></input></div>
 </form>
@@ -30,7 +30,7 @@
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>" class="sidebar">
 <font color="#FF0000"><dtml-var sexe> <dtml-var nom></font></a>
 </h2>
-<b>Absences</b> (1/2 j.)<br>
+<b>Absences</b> (1/2 j.)<br/>
 
 
 <dtml-let nbabs="Absences.CountAbs(etudid=etudid,debut=`AnneeScolaire()`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">
@@ -57,10 +57,10 @@
 </div>
 
 <dtml-if "REQUEST.AUTHENTICATED_USER.has_permission('ScoAdminUsers',this())">
-<br><a href="Users">Utilisateurs</a>
+<br/><a href="Users">Utilisateurs</a>
 </dtml-if ScoAdminUsers>
 
- <br> 
+ <br/> 
   &nbsp; 
 <div class="logo-insidebar"><dtml-var "img.scologo_img"><br/>
 <a href="<dtml-var ScoURL>/about" class="sidebar">A propos</a><br/>
