@@ -131,6 +131,12 @@ def Excel_feuille_saisie( E, description, lines ):
     SheetName = 'Saisie notes'
     wb = Workbook()
     ws0 = wb.add_sheet(SheetName)
+    # ajuste largeurs colonnes (unite inconnue, empirique)
+    ws0.col(0).width = 3000 # codes
+    ws0.col(1).width = 6000 # noms
+    ws0.col(3).width = 1800 # groupes
+    ws0.col(5).width = 13000 # remarques
+    # styles
     style_titres = XFStyle()
     font0 = Font()
     font0.bold = True
@@ -146,43 +152,63 @@ def Excel_feuille_saisie( E, description, lines ):
     font0.height = 12*0x14
     font_expl.colour_index = 0x0A # rouge, voir exemple format.py
     style_expl.font = font_expl
+
+    topborders = Borders()
+    topborders.top = 1
+    topleftborders = Borders()
+    topleftborders.top = 1
+    topleftborders.left = 1
+    rightborder = Borders()
+    rightborder.right = 1
     
     style_ro = XFStyle() # cells read-only
     font_ro = Font()
     font_ro.name = 'Arial'
     font_ro.colour_index = 0x19 # mauve, voir exemple format.py
     style_ro.font = font_ro
+    style_ro.borders = rightborder
 
     style_dem = XFStyle() # cells read-only
     font_dem = Font()
     font_dem.name = 'Arial'
     font_dem.colour_index = 0x3c # marron
     style_dem.font = font_dem
-
+    style_dem.borders = topleftborders
+    
     style = XFStyle()
     font1 = Font()
     font1.name = 'Arial'
+    font1.height = 12*0x14
     style.font = font1
 
+    style_nom = XFStyle() # style pour nom, prenom, groupe
+    style_nom.font = font1
+    style_nom.borders = topborders
+    
     style_notes = XFStyle()
-    font1 = Font()
-    font1.name = 'Arial'
-    style.font = font1
-    style.num_format_str = 'general'
+    font2 = Font()
+    font2.name = 'Arial'
+    font2.bold = True
+    style_notes.font = font2
+    style_notes.num_format_str = 'general'
+    style_notes.pattern = Pattern() # fond jaune
+    style_notes.pattern.pattern = Pattern.SOLID_PATTERN    
+    style_notes.pattern.pattern_fore_colour = 0x2b # jaune clair
+    style_notes.borders = topborders
     
     # ligne de titres
     li = 0
     ws0.write(li,0, "Feuille saisie note (à enregistrer au format excel)",
               style_titres)
     li += 1
-    ws0.write(li,0, "Saisir les notes dans la colonne E", style_expl)
+    ws0.write(li,0, "Saisir les notes dans la colonne E (cases jaunes)", style_expl)
     li += 1
     ws0.write(li,0, "Ne pas modifier les cases en mauve !",style_expl)
     li += 1
     # description evaluation    
     ws0.write(li,0, unescape_html(description), style_titres)
     li += 1
-    ws0.write(li,0, 'Le %s (coef. %g)' % (E['jour'],E['coefficient']),
+    ws0.write(li,0, 'Evaluation du %s (coef. %g)' % (E['jour'],E['coefficient']),
               style )
     li += 1
     # code et titres colonnes
@@ -195,7 +221,7 @@ def Excel_feuille_saisie( E, description, lines ):
     # etudiants
     for line in lines:
         li += 1
-        st = style
+        st = style_nom
         ws0.write(li,0, '!'+line[0], style_ro ) # code
         if line[3] != 'I':
             st = style_dem

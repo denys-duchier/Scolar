@@ -2382,11 +2382,10 @@ class ZNotes(ObjectManager,
             ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
                              'allowed_values' : [ 'xls', 'form' ],
                              'labels' : ['fichier tableur', 'formulaire web'],
-                             'title' : 'Méthode de saisie des notes' }) ]
+                             'title' : 'Méthode de saisie des notes :' }) ]
         if not no_group:
             descr += [ 
-                ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'étudiants' }),
-                ('groupes', { 'input_type' : 'checkbox', 'title':'',
+                ('groupes', { 'input_type' : 'checkbox', 'title':'Choix du ou des groupes d\'étudiants :',
                               'allowed_values' : grnams, 'labels' : grlabs }) ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler',
@@ -2512,10 +2511,14 @@ class ZNotes(ObjectManager,
                                              'explanation':explanation,
                                              'return_focus_next' : True,
                                              } ) )
+            grnam = inscr['groupetd']
+            if inscr['groupetp'] or inscr['groupeanglais']:
+                grnam += '/' + inscr['groupetp']
+                if inscr['groupeanglais']:
+                    grnam += '/' + inscr['groupeanglais']
             CSV.append( [ '%s' % etudid, ident['nom'].upper(), ident['prenom'].lower().capitalize(),
                           inscr['etat'],
-                          inscr['groupetd']+'/'+inscr['groupetp']+'/'+inscr['groupeanglais'],
-                          val, explanation ] )
+                          grnam, val, explanation ] )
         if note_method == 'csv':
             CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in CSV ] )
             filename = 'notes_%s_%s.csv' % (evalname,gr_title_filename)
@@ -2699,6 +2702,7 @@ class ZNotes(ObjectManager,
             else:
                 nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
                 # news
+                cnx = self.GetDBConnexion()
                 E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
                 M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
                 mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]

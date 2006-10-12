@@ -54,7 +54,7 @@
     <li>choisir le ou les groupes;</li>
 </ol>
 </li>
-<li>Cadre rouge (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel téléchargé à l'étape 1 et dans lequel on a saisi des notes. Remarques:
+<li>Cadre vert (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel téléchargé à l'étape 1 et dans lequel on a saisi des notes. Remarques:
 <ul>
 <li>le fichier Excel ne doit pas forcément être complet: on peut ne saisir que quelques notes et répéter l'opération (en téléchargeant un nouveau fichier) plus tard;</li>
 <li>seules les valeurs des notes modifiées sont prises en compte;</li>

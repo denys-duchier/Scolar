@@ -91,9 +91,9 @@
        <dtml-if "gr_nb_notes > 0">
          <td><dtml-var gr_moy></td>
          <td>&nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=td<dtml-var gr>"><dtml-var gr_nb_notes></a> notes)
-         <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if>
+         <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=td<dtml-var gr>"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if>
        <dtml-else>
-         <td>&nbsp;</td><td><span class="redboldtext">&nbsp; <dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if>pas de notes<dtml-if canedit></a></dtml-if></span>
+         <td>&nbsp;</td><td><span class="redboldtext">&nbsp; <dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=td<dtml-var gr>"></dtml-if>pas de notes<dtml-if canedit></a></dtml-if></span>
        </dtml-if gr_nb_notes>
        </td></tr>
    </dtml-in>
