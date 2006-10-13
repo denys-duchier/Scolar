@@ -6,7 +6,7 @@ SCONEWS = """
 <h4>Octobre 2006</h4>
 <ul>
 <li>Réorganisation des pages d'accueil</li>
-<li>Ajout des "nouvelles" (dernières opérations)</li>
+<li>Ajout des "nouvelles" (dernières opérations), avec flux RSS</li>
 </ul>
 <h4>Septembre 2006</h4>
 <ul>

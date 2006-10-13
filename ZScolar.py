@@ -371,7 +371,8 @@ class ZScolar(ObjectManager,
         H = []
         # news
         cnx = self.GetDBConnexion()
-        H.append( sco_news.scolar_news_summary_html(cnx) )
+        rssicon = self.img.rssicon_img.tag(title='Flux RSS', border='0') 
+        H.append( sco_news.scolar_news_summary_html(cnx, rssicon=rssicon) )
         
         # liste de toutes les sessions
         sems = self.Notes.do_formsemestre_list()
@@ -457,6 +458,15 @@ class ZScolar(ObjectManager,
         #
         return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
 
+
+    security.declareProtected(ScoView, 'index_html')
+    def rssnews(self,REQUEST=None):
+        "rss feed"
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        cnx = self.GetDBConnexion()
+        return sco_news.scolar_news_summary_rss( cnx, 'Nouvelles de ' + self.DeptName,
+                                                 self.ScoURL() )
+        
     # genere liste html pour acces aux groupes TD/TP/TA de ce semestre
     def make_listes_sem(self, sem, REQUEST):
         authuser = REQUEST.AUTHENTICATED_USER
@@ -1051,7 +1061,7 @@ function bodyOnLoad() {
         # dernier event
         lastev = events[-1]
         if lastev['event_type'] == 'CREATION':  
-            etat = 'créé%s le %s (<b>non inscrit%s</b>)' % (ne,ne,lastev['event_date'])
+            etat = 'créé%s le %s (<b>non inscrit %s</b>)' % (ne,ne,lastev['event_date'])
         elif lastev['event_type'] == 'INSCRIPTION':        
             sem = self.Notes.do_formsemestre_list(
                 {'formsemestre_id' : lastev['formsemestre_id']} )[0]
@@ -1685,14 +1695,15 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }),
             ('adm_id', { 'input_type' : 'hidden' }),
 
-            ('nom',       { 'size' : 25, 'title' : 'Nom' }),
+            ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
             ('prenom',    { 'size' : 25, 'title' : 'Prénom' }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
                             'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
             ('annee_naissance', { 'size' : 5, 'title' : 'Année de naissance', 'type' : 'int' }),
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
 
-            ('annee', { 'size' : 5, 'title' : 'Année admission IUT', 'type' : 'int' }),
+            ('annee', { 'size' : 5, 'title' : 'Année admission IUT',
+                        'type' : 'int', 'allow_null' : False }),
             #
             ('sep', { 'input_type' : 'separator', 'title' : 'Scolarité antérieure:' }),
             ('bac', { 'size' : 5, 'explanation' : 'série du bac (S, STI, STT, ...)' }),

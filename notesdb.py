@@ -34,9 +34,11 @@ def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
     colnames= ','.join(cols)
     fmt = ','.join([ '%%(%s)s' % col for col in cols ])
     #print 'insert into %s (%s) values (%s)' % (table,colnames,fmt)
+    oid = None
     try:
         cursor.execute('insert into %s (%s) values (%s)' % (table,colnames,fmt),
                        vals )
+        oid = cursor.lastoid()
     except:
         log('DBInsertDict: EXCEPTION !')
         log('DBInsertDict: table=%s, vals=%s' % (str(table),str(vals)))
@@ -46,7 +48,7 @@ def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
     if commit:
         log('DBInsertDict: commit (requested)')
         cnx.commit()
-    return cnx
+    return oid
 
 def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
                   test='=', operator='and', distinct=True,
@@ -160,31 +162,40 @@ class EditableTable:
         self.callback_on_write = callback_on_write # called after each modification
         self.allow_set_id = allow_set_id
         self.html_quote = html_quote
-    
-    def create(self, cnx, args, has_uniq_values=True):
+
+    def create(self, cnx, args, has_uniq_values=False):
         "create object in table"        
         vals = dictfilter(args, self.dbfields)        
         if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
         if self.html_quote:
             quote_dict(vals) # quote all HTML markup
-        
         # format value
         for title in vals.keys():
             if self.input_formators.has_key(title):
                 vals[title] = self.input_formators[title](vals[title])
-        DBInsertDict(cnx, self.table_name, vals, commit=True )
-        if has_uniq_values:
-            # get new id (assume all tuples are UNIQUE !)
+        # insert
+        oid = DBInsertDict(cnx, self.table_name, vals, commit=True )        
+        # get back new object id
+        cursor = cnx.cursor()
+        cursor.execute("select %(id_name)s from %(table_name)s where oid=%(oid)s"
+                       %
+                       { 'id_name' : self.id_name,
+                         'table_name' : self.table_name,
+                         'oid' : oid } )
+        new_id = cursor.fetchone()[0]
+        if has_uniq_values: # XXX probably obsolete
+            # check  all tuples (without id_name) are UNIQUE !
             titles, res = DBSelectArgs(cnx,
                 self.table_name, vals, what=[self.id_name] )
-            if self.callback_on_write:
-                self.callback_on_write()
             if len(res) != 1:
                 # BUG !
                 log('create: BUG table_name=%s args=%s' % (self.table_name,str(args)))
                 assert len(res) == 1, 'len(res) = %d != 1 !' % len(res)
-            return res[0][0]
+        if self.callback_on_write:
+            self.callback_on_write()
+
+        return new_id
     
     def delete(self, cnx, oid, commit=True ):
         # get info

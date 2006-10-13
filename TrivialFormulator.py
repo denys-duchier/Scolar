@@ -142,7 +142,8 @@ class TF:
             allow_null = descr.get('allow_null',True)
             if not allow_null:
                 if val == '' or val == None:
-                    msg.append("Le champ '%s' doit être renseigné" % field)
+                    msg.append("Le champ '%s' doit être renseigné"
+                               % descr.get('title', field))
                     ok = 0
             # type
             typ = descr.get('type', 'string')

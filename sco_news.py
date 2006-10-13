@@ -31,6 +31,11 @@
 from notesdb import *
 from notes_log import log
 from scolars import monthsnames, abbrvmonthsnames
+from sco_utils import SCO_ENCODING
+
+import PyRSS2Gen
+from cStringIO import StringIO
+import datetime
 
 _scolar_news_editor = EditableTable(
     'scolar_news',
@@ -90,6 +95,7 @@ def scolar_news_summary(cnx, n=5):
     for n in news:
         # heure
         n['hm'] = n['date'].strftime('%Hh%M')
+        n['rssdate'] = n['date'].strftime('%d/%m %Hh%M') # pour affichage
         for k in n.keys():
             if n[k] is None:
                 n[k] = ''
@@ -101,15 +107,43 @@ def scolar_news_summary(cnx, n=5):
         n['formatted_date'] = '%s %s %s' % (j,mois,n['hm'])
     return news
 
-def scolar_news_summary_html(cnx, n=5):
+def scolar_news_summary_html(cnx, n=5, rssicon=None):
     """News summary, formated in HTML"""
     news = scolar_news_summary(cnx,n=n)
     if not news:
         return ''
-    H= ['<div class="news"><span class="newstitle">Dernières opérations</span><ul class="newslist">']
+    H= ['<div class="news"><span class="newstitle">Dernières opérations']
+    if rssicon:
+        H.append( '<a href="rssnews">' + rssicon + '</a>' )
+    H.append( '</span><ul class="newslist">' )
+    
     for n in news:
         H.append('<li class="newslist"><span class="newsdate">%(formatted_date)s</span><span class="newstext">%(text)s</span></li>' % n )
     H.append('</ul></div>')
     return '\n'.join(H)
 
     
+def scolar_news_summary_rss(cnx, title, sco_url, n=5):
+    """rss feed for scolar news"""
+    news = scolar_news_summary(cnx,n=n)
+    items = []
+    for n in news:
+        items.append( PyRSS2Gen.RSSItem(
+            title= unicode( '%s %s' % (n['rssdate'], n['text']), SCO_ENCODING),
+            link = sco_url,
+            pubDate = n['date'] ))
+    rss = PyRSS2Gen.RSS2(
+        title = unicode(title, SCO_ENCODING),
+        link = sco_url,
+        description = unicode(title, SCO_ENCODING),
+        lastBuildDate = datetime.datetime.now(),
+        items = items )
+    f = StringIO()
+    rss.write_xml(f)
+    f.seek(0)
+    data = f.read()
+    f.close()
+    return data
+    
+                      
+            

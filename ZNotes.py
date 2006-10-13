@@ -230,6 +230,11 @@ class ZNotes(ObjectManager,
     def do_formation_create(self, args, REQUEST):
         "create a formation"
         cnx = self.GetDBConnexion()
+        # check unique acronyme
+        F = self.do_formation_list(args={'acronyme':args['acronyme']})
+        if len(F) > 0:
+            raise ScoValueError("L'acronyme '%s' est déjà utilisé !" % args['acronyme'])
+        #
         r = self._formationEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM,
@@ -592,7 +597,7 @@ class ZNotes(ObjectManager,
                 mois_fin = months[int(mois_fin)-1]
             sem['mois_debut'] = mois_debut + ' ' + annee_debut
             sem['mois_fin'] = mois_fin + ' ' + annee_fin
-            log('mois_debut='+sem['mois_debut'])
+        
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
         return sems
