@@ -30,6 +30,7 @@
 
 import scolars
 from notes_log import log
+from types import StringType
 
 NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
 NOTES_MIN = 0.       # valeur minimale admise pour une note
@@ -101,6 +102,10 @@ class NotesTable:
             x['nom'] = i['nom'] # pour tri
         # Tri les etudids par NOM
         self.inscrlist.sort( lambda x,y: cmp(x['nom'],y['nom']) )
+        # { etudid : rang dans l'ordre alphabetique }
+        rangalpha = {}
+        for i in range(len(self.inscrlist)):
+            rangalpha[self.inscrlist[i]['etudid']] = i
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
         self._modmoys, self._modimpls, valid_evals = znote.do_formsemestre_moyennes(
             formsemestre_id)
@@ -135,9 +140,18 @@ class NotesTable:
                         t.append(fmt_note(val))
             t.append(etudid)
             T.append(tuple(t))
-        # tri par moyennes décroissantes
-        T.sort()
-        T.reverse()
+        # tri par moyennes décroissantes,
+        # en laissant les demissionnaires a la fin, par ordre alphabetique
+        def cmprows(x,y):
+            try:
+                return cmp(float(y[0]), float(x[0])) # moy. gen.
+            except:
+                if (type(x[0]) == type(y[0])) and type(x[0]) == StringType:
+                    # rang alphabetique par nom
+                    return rangalpha[x[-1]] - rangalpha[y[-1]]
+                else:
+                    return cmp(x,y)
+        T.sort(cmprows)
         self.T = T
         # calcul rangs (/ moyenne generale)
         self.rangs = {} # { etudid : rangs } (rang est une chaine)
