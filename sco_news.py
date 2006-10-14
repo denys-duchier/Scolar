@@ -36,11 +36,12 @@ from sco_utils import SCO_ENCODING
 import PyRSS2Gen
 from cStringIO import StringIO
 import datetime
+from stripogram import html2text, html2safehtml
 
 _scolar_news_editor = EditableTable(
     'scolar_news',
     'news_id',
-    ( 'date', 'authenticated_user', 'type', 'object', 'text' ),
+    ( 'date', 'authenticated_user', 'type', 'object', 'text', 'url' ),
     sortkey = 'date desc',
     output_formators = { 'date' : DateISOtoDMY },
     input_formators  = { 'date' : DateDMYtoISO },
@@ -57,11 +58,12 @@ NEWS_TYPES = (NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC)
 scolar_news_create = _scolar_news_editor.create
 scolar_news_list   = _scolar_news_editor.list
 
-def add(REQUEST, cnx, typ, object=None, text='' ):
+def add(REQUEST, cnx, typ, object=None, text='', url=None ):
     args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
              'type' : typ,
              'object' : object,
-             'text' : text
+             'text' : text,
+             'url' : url
              }
     return scolar_news_create(cnx,args,has_uniq_values=False)
 
@@ -128,9 +130,10 @@ def scolar_news_summary_rss(cnx, title, sco_url, n=5):
     news = scolar_news_summary(cnx,n=n)
     items = []
     for n in news:
+        text = html2text(n['text'])
         items.append( PyRSS2Gen.RSSItem(
-            title= unicode( '%s %s' % (n['rssdate'], n['text']), SCO_ENCODING),
-            link = sco_url,
+            title= unicode( '%s %s' % (n['rssdate'], text), SCO_ENCODING),
+            link = sco_url + '/' + n['url'],
             pubDate = n['date'] ))
     rss = PyRSS2Gen.RSS2(
         title = unicode(title, SCO_ENCODING),

@@ -350,7 +350,8 @@ CREATE TABLE scolar_news (
 	authenticated_user text, 
 	type text, -- 'INSCR', 'NOTES', 'FORM', 'SEM', 'MISC'
 	object text, -- moduleimpl_id, formation_id, formsemestre_id, 
-	text text -- free text
+	text text, -- free text
+	url text -- optional URL
 );
 
 -- Appreciations sur bulletins

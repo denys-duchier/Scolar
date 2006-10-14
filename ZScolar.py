@@ -1756,8 +1756,12 @@ Utiliser ce formulaire en fin de semestre, après le jury.
                 # log
                 logdb(REQUEST, cnx, method='etudident_edit_form',
                       etudid=etudid, msg='creation initiale')
-                sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
-                             text='Nouvel étudiant %(sexe)s %(nom)s' % tf[2])  
+                etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+                self.fillEtudsInfo([etud])
+                etud['url']='ficheEtud?etudid=%(etudid)s' % etud
+                sco_news.add(REQUEST, cnx, typ=NEWS_INSCR, # pas d'object pour ne montrer qu'un etudiant
+                             text='Nouvel étudiant <a href="%(url)s">%(nomprenom)s</a>' % etud,
+                             url=etud['url'])  
             else:
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2])

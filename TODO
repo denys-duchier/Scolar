@@ -9,6 +9,9 @@
 - style tableau bord module (cadre ?)
 - formattage nom prenom sexe dans news emise par creation etudiant
 
+- representation du "niveau" de l'étudant sous son bulletin
+  (barres comme evals CE2)
+
 BUGS:
 do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 
 

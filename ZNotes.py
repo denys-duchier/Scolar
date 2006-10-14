@@ -531,8 +531,10 @@ class ZNotes(ObjectManager,
         if not args.has_key('titre'):
             args['titre'] = 'sans titre'
         args['formsemestre_id'] = r
+        args['url'] = 'Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s'%args
         sco_news.add(REQUEST, cnx, typ=NEWS_SEM,
-                     text='Création du semestre <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a>' % args )
+                     text='Création du semestre <a href="%(url)s">%(titre)s</a>' % args,
+                     url=args['url'])
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_delete')
@@ -1710,8 +1712,10 @@ class ZNotes(ObjectManager,
         # news
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
+        mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
         sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
-                     text='Création d\'une évaluation dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+                     text='Création d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                     url=mod['url'])
 
         return r
 
@@ -1757,8 +1761,10 @@ class ZNotes(ObjectManager,
         # news
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
+        mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
         sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
-                     text='Suppression d\'une évaluation dans <a href=Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"">%(titre)s</a>' % mod )
+                     text='Suppression d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                     url=mod['url'])
 
     security.declareProtected(ScoView, 'do_evaluation_list')
     def do_evaluation_list(self, args ):
@@ -2455,7 +2461,8 @@ class ZNotes(ObjectManager,
             getallstudents = False
         etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
                                                        gr_td,gr_tp,gr_anglais,
-                                                       getallstudents=getallstudents)
+                                                       getallstudents=getallstudents,
+                                                       include_dems=True)
         if not etudids:
             return '<p>Aucun groupe sélectionné !</p>'
         # Notes existantes
@@ -2509,9 +2516,13 @@ class ZNotes(ObjectManager,
             el.append( (label, etudid, val, explanation, ident, inscr) )
         el.sort() # sort by name
         for (label,etudid, val, explanation, ident, inscr) in el:
-            initvalues['note_'+etudid] = val
-            if inscr['etat'] != 'I':
+
+            if inscr['etat'] == 'D':
                 label = '<span class="etuddem">' + label + '</span>'
+                if not val:
+                    val = 'DEM'
+                    explanation = 'Démission'
+            initvalues['note_'+etudid] = val                
             descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label,
                                              'explanation':explanation,
                                              'return_focus_next' : True,
@@ -2575,8 +2586,10 @@ class ZNotes(ObjectManager,
                 nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
                 if nbchanged > 0 or nbsuppress > 0:
                     Mod['moduleimpl_id'] = M['moduleimpl_id']
+                    Mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s" % Mod
                     sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
-                                 text='Chargement notes dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % Mod )
+                                 text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
+                                 url=Mod['url'])
                 
                 return '<p>OK !<br>%s notes modifiées (%d supprimées)<br></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
             else:            
@@ -2712,8 +2725,10 @@ class ZNotes(ObjectManager,
                 M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
                 mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
                 mod['moduleimpl_id'] = M['moduleimpl_id']
+                mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
                 sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
-                             text='Chargement notes dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+                             text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % mod,
+                             url = mod['url'])
                 
                 return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
@@ -2747,6 +2762,8 @@ class ZNotes(ObjectManager,
                 elif note[:3] == 'SUP':
                     note = NOTES_SUPPRESS
                     tosuppress.append(etudid)
+                elif note[:3] == 'DEM':
+                    continue # skip !
                 else:
                     try:
                         note = float(note)
@@ -2812,8 +2829,10 @@ class ZNotes(ObjectManager,
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
         cnx = self.GetDBConnexion()
+        mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
         sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
-                     text='Suppression des notes d\'une évaluation dans <a href="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">%(titre)s</a>' % mod )
+                     text='Suppression des notes d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                     url= mod['url'])
 
         return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
     
