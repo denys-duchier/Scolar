@@ -6,8 +6,6 @@
 - optimiser scolar_news_summary
 - indiquer sur Notes/index_html le nb de semestres dans chaque formation, 
   et si elle est verrouillée.
-- style tableau bord module (cadre ?)
-- formattage nom prenom sexe dans news emise par creation etudiant
 
 - representation du "niveau" de l'étudant sous son bulletin
   (barres comme evals CE2)
