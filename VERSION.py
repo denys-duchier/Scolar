@@ -1,4 +1,4 @@
-SCOVERSION = "4.7"
+SCOVERSION = "4.8"
 
 SCONAME = "AxoNote"
 
@@ -7,6 +7,7 @@ SCONEWS = """
 <ul>
 <li>Réorganisation des pages d'accueil</li>
 <li>Ajout des "nouvelles" (dernières opérations), avec flux RSS</li>
+<li>Import/Export XML des formations, duplication d'une formation (versions)</li>
 </ul>
 <h4>Septembre 2006</h4>
 <ul>

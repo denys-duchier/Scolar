@@ -1,15 +1,14 @@
 <dtml-var sco_header>
-<h2>Ajout d'une UE</h2>
+<dtml-call "REQUEST.set( 'Fo', do_formation_list( args={ 'formation_id' : formation_id } )[0])">
+
+
+<h2>Ajout d'une UE dans la formation <dtml-var "Fo['acronyme']">, version <dtml-var "Fo['version']"></h2>
 
 <p class="help">Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation (on calcule des moyennes par UE et applique des seuils ("barres")). 
 </p>
 
 <p class="help">Note: L'UE n'a pas de coefficient associé. Seuls les <em>modules</em> ont des coefficients.
 </p>
-
-<dtml-call "REQUEST.set( 'F', do_formation_list())">
-<dtml-call "REQUEST.set( 'Fnames', [ x['acronyme'] for x in F ])">
-<dtml-call "REQUEST.set( 'Fids', [ str(x['formation_id']) for x in F ])">
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
@@ -21,9 +20,7 @@
 	       'input_type' : 'menu',
                'allowed_values': ('0','1'),
                'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
-    ('formation_id', { 'input_type' : 'menu', 'title' : 'Formation', 
-                       'explanation' : 'une UE appartient à une seule formation.',
-                      'labels' : Fnames, 'allowed_values' : Fids }),
+    ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id }),
    ),
    submitlabel = 'Créer cette UE'
 ))">

@@ -8,7 +8,10 @@
 <ul class="notes_formation_list">
 <dtml-in "do_formation_list()">
  <dtml-let F="_['sequence-item']">
- <li class="notes_formation_list"> <dtml-var "F['acronyme']"> : <dtml-var "F['titre']">
+ <li class="notes_formation_list"> <dtml-var "F['acronyme']"> : <dtml-var "F['titre']"> (version <dtml-var "F['version']">)
+     <dtml-if "formation_has_locked_sems(F['formation_id'])">
+        <dtml-var "img.lock32_img.tag(border='0', title='formation verrouilée')">
+     </dtml-if>
      <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
      <a class="stdlink" href="formation_edit?formation_id=<dtml-var "F['formation_id']">">modifier</a> 
      <a class="stdlink" href="formation_delete?formation_id=<dtml-var "F['formation_id']">">supprimer</a> 
@@ -23,6 +26,7 @@
 
 <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
  <p><a class="stdlink" href="formation_create">Créer une formation</a></p>
+ <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>
 </dtml-if perm>
 </ul>
 

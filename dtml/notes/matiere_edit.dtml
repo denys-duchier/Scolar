@@ -1,8 +1,11 @@
 <dtml-var sco_header>
 
 <dtml-call "REQUEST.set( 'F', do_matiere_list(args={ 'matiere_id' : matiere_id } )[0])">
+<dtml-call "REQUEST.set( 'U', do_ue_list( args={ 'ue_id' : F['ue_id'] } )[0])">
+<dtml-call "REQUEST.set( 'Fo', do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0])">
 
-<h2>Modification de la matière <dtml-var "F['titre']"></h2>
+
+<h2>Modification de la matière <dtml-var "F['titre']"> (formation <dtml-var "Fo['acronyme']">, version <dtml-var "Fo['version']">)</h2>
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('matiere_id', { 'input_type' : 'hidden' }),

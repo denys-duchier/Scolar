@@ -2,9 +2,18 @@
 
 <dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : formation_id } )[0])">
 
- 
-<h2>Listes des UE dans la formation <dtml-var "F['titre']"> (<dtml-var "F['acronyme']">)</h2>
+<dtml-call "REQUEST.set( 'locked', formation_has_locked_sems(formation_id) )">
 
+<h2>Formation <dtml-var "F['titre']"> (<dtml-var "F['acronyme']">) [version <dtml-var "F['version']">]
+<dtml-if locked><dtml-var "img.lock_img"></dtml-if>
+</h2>
+
+<dtml-if locked>
+<p class="help">Cette formation est verrouillée car un ou plusieurs semestres verrouillés s'y réferent.
+</p>
+</dtml-if>
+
+<dtml-if msg><p class="msg"><dtml-var msg></p></dtml-if>
 
 <ul class="notes_ue_list">
 <dtml-in "do_ue_list( args={ 'formation_id' : formation_id } )">
@@ -63,8 +72,11 @@
 </dtml-if>
 </ul>
 
-<p><ul>
-<li><a class="stdlink" href="module_list?formation_id=<dtml-var "F['formation_id']">">Liste détaillée des modules de cette formation</a> 
+<p>
+<ul>
+<li><a class="stdlink" href="formation_create_new_version?formation_id=<dtml-var "F['formation_id']">">Créer une nouvelle version (non verrouillée)</a></li>
+<li><a class="stdlink" href="module_list?formation_id=<dtml-var "F['formation_id']">">Liste détaillée des modules de la formation</a> </li>
+<li><a class="stdlink" href="formation_export_xml?formation_id=<dtml-var "F['formation_id']">">Export XML de la formation</a> </li>
 </ul>
 </p>
 

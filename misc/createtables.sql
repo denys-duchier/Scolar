@@ -175,7 +175,8 @@ CREATE TABLE notes_formations (
 	formation_id text default notes_newid('FORM') PRIMARY KEY,
 	acronyme text NOT NULL, -- 'DUT R&T', 'LPSQRT', ...	
 	titre text NOT NULL,     -- titre complet
-	UNIQUE(acronyme,titre)
+	version integer default 1, -- version de la formation
+	UNIQUE(acronyme,titre,version)
 );
 
 CREATE TABLE notes_ue (

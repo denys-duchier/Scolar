@@ -1,8 +1,9 @@
 <dtml-var sco_header>
 
 <dtml-call "REQUEST.set( 'F', do_module_list( args={ 'module_id' : module_id } )[0])">
+<dtml-call "REQUEST.set( 'Fo', do_formation_list( args={ 'formation_id' : F['formation_id'] } )[0])">
 
-<h2>Modification du module <dtml-var "F['titre']"></h2>
+<h2>Modification du module <dtml-var "F['titre']"> (formation <dtml-var "Fo['acronyme']">, version <dtml-var "Fo['version']">)</h2>
 
 <p class="help">
 Les modules sont décrits dans le programme pédagogique. Un module est pour ce 

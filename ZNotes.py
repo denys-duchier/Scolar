@@ -69,6 +69,7 @@ from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+import sco_formations
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -224,17 +225,21 @@ class ZNotes(ObjectManager,
     _formationEditor = EditableTable(
         'notes_formations',
         'formation_id',
-        ('formation_id', 'acronyme','titre'),
+        ('formation_id', 'acronyme','titre', 'version'),
+        sortkey='acronyme'
         )
 
     security.declareProtected(ScoChangeFormation, 'do_formation_create')
     def do_formation_create(self, args, REQUEST):
         "create a formation"
         cnx = self.GetDBConnexion()
-        # check unique acronyme
-        F = self.do_formation_list(args={'acronyme':args['acronyme']})
+        # check unique acronyme/titre/version
+        a = args.copy()
+        if a.has_key('formation_id'):
+            del a['formation_id']
+        F = self.do_formation_list(args=a)
         if len(F) > 0:
-            raise ScoValueError("L'acronyme '%s' est déjà utilisé !" % args['acronyme'])
+            raise ScoValueError("Formation non unique (%s) !" % str(a))
         #
         r = self._formationEditor.create(cnx, args)
         self.CachedNotesTable.inval_cache()
@@ -276,6 +281,58 @@ class ZNotes(ObjectManager,
         self._formationEditor.edit( cnx, *args, **kw )
         self.CachedNotesTable.inval_cache()
 
+    security.declareProtected(ScoView, 'formation_export_xml')
+    def formation_export_xml(self, formation_id, REQUEST):
+        "export XML de la formation"
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)        
+        return sco_formations.formation_export_xml(self, formation_id)
+
+    security.declareProtected(ScoChangeFormation, 'formation_import_xml')
+    def formation_import_xml(self, file, REQUEST):
+        "import d'une formation en XML"
+        log('formation_import_xml')
+        doc = file.read()
+        return sco_formations.formation_import_xml(self,REQUEST, doc)
+
+    security.declareProtected(ScoChangeFormation, 'formation_import_xml_form')
+    def formation_import_xml_form(self,REQUEST):
+        "form import d'une formation en XML"
+        H = [ self.sco_header(page_title='Import d\'une formation',
+                              REQUEST=REQUEST),
+              """<h2>Import d'une formation</h2>
+        <p>Création d'une formation (avec UE, matières, modules)
+        à partir un fichier XML (réservé aux utilisateurs avertis)</p>
+        """]
+        footer = self.sco_footer(self, REQUEST)
+        tf = TrivialFormulator(REQUEST.URL0, REQUEST.form,
+                               ( ('xmlfile',
+                                  { 'input_type' : 'file',
+                                    'title' : 'Fichier XML', 'size' : 30 }),    
+                                 ),
+                               submitlabel='Importer',
+                               cancelbutton = 'Annuler')
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + footer
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            formation_id = self.formation_import_xml(tf[2]['xmlfile'],REQUEST)
+            
+            return '\n'.join(H) + """<p>Import effectué !</p>
+            <p><a class="stdlink" href="ue_list?formation_id=%s">Voir la formation</a></p>""" % formation_id + footer
+
+    security.declareProtected(ScoChangeFormation, 'formation_create_new_version')
+    def formation_create_new_version(self,formation_id,REQUEST):
+        "duplicate formation, with new version number"
+        xml = sco_formations.formation_export_xml(self, formation_id)
+        new_id = sco_formations.formation_import_xml(self,REQUEST, xml)
+        # news
+        cnx = self.GetDBConnexion()
+        F = self.do_formation_list(args={ 'formation_id' :new_id})[0]
+        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=new_id,
+                     text='Nouvelle version de la formation %(acronyme)s'%F)
+        return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&msg=Nouvelle version !')
+        
     # --- UE
     _ueEditor = EditableTable(
         'notes_ue',
@@ -897,7 +954,7 @@ class ZNotes(ObjectManager,
             ('etat_lst', { 'input_type' : 'checkbox',
                            'title' : '',
                            'allowed_values' : ['X'],
-                           'explanation' : 'semestre "ouvert"',
+                           'explanation' : 'semestre "ouvert" (non verrouillé)',
                            'labels' : [''] }),
             ]
         initvalues = sem

@@ -1,8 +1,9 @@
 <dtml-var sco_header>
 
-<dtml-call "REQUEST.set( 'F', do_ue_list( args={ 'ue_id' : ue_id } )[0])">
+<dtml-call "REQUEST.set( 'U', do_ue_list( args={ 'ue_id' : ue_id } )[0])">
+<dtml-call "REQUEST.set( 'Fo', do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0])">
 
-<h2>Modification de l'UE <dtml-var "F['titre']"></h2>
+<h2>Modification de l'UE <dtml-var "U['titre']"> (formation <dtml-var "Fo['acronyme']">, version <dtml-var "Fo['version']">)</h2>
 
 
 <p class="help">Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation (on calcule des moyennes par UE et applique des seuils ("barres")). 
@@ -23,7 +24,7 @@
                'allowed_values': ('0','1'),
                'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
    ),
-   initvalues = F,
+   initvalues = U,
    submitlabel = 'Modifier les valeurs'
 ))">
 
