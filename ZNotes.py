@@ -61,6 +61,7 @@ from notes_log import log
 from scolog import logdb
 from sco_exceptions import *
 from sco_utils import *
+import htmlutils
 import sco_excel
 #import notes_users
 from ScolarRolesNames import *
@@ -3307,8 +3308,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)
         # Genere le HTML H, une table P pour le PDF
-        H = [ '<table class="notes_bulletin">' ]
-        P = []
+        H = [ '<table class="notes_bulletin">' ] # elems html
+        P = [] # elems pour gen. pdf
         LINEWIDTH = 0.5
         from reportlab.lib.colors import Color
         PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
@@ -3318,9 +3319,14 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
                              Color(170/255.,187/255.,204/255.) ))
         # ligne de titres
-        mg = fmt_note(nt.get_etud_moy(etudid)[0])
+        moy = nt.get_etud_moy(etudid)[0]
+        mg = fmt_note(moy)
         etatstr = nt.get_etud_etat_html(etudid)
-        t = ('Moyenne', mg + etatstr,
+        if type(moy) != StringType:
+            bargraph = '&nbsp;' + htmlutils.horizontal_bargraph(moy*5, 50);
+        else:
+            bargraph = ''
+        t = ('Moyenne', mg + etatstr + bargraph,
              'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds),
              'Note/20', 'Coef')
         P.append(t)        

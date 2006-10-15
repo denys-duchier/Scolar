@@ -259,8 +259,13 @@ def dictfilter( d, fields ):
     # returns a copy of d with only keys listed in "fields" and non null values
     r = {}
     for f in fields:
-        if d.has_key(f) and d[f] != None and d[f] != '':
-            r[f] = d[f]
+        if d.has_key(f) and d[f] != None:
+            try:
+                val = d[f].strip()
+            except:
+                val = d[f]
+            #if val != '': not a good idea: how to suppress a field ?
+            r[f] = val
     return r
 
 # --------------------------------------------------------------------
