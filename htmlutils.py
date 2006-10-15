@@ -38,6 +38,6 @@ def horizontal_bargraph( value, mark ):
     <span class="mark" style="left: %(mark)d%%; "></span>
     </span>
     """ 
-    return tmpl % { 'value' : int(value), 'mark' : int(value) }
+    return tmpl % { 'value' : int(value), 'mark' : int(mark) }
 
     

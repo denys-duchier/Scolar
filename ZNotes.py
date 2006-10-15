@@ -3125,12 +3125,7 @@ class ZNotes(ObjectManager,
                     return val
             else:
                 return val
-        # calcul des moyennes des moyennes (generale et par UE)
-        sum_moy = 0
-        nb_moy = 0
-        for ue in ues:
-            ue['sum_moy'] = 0
-            ue['nb_moy'] = 0
+        # 
         for t in T:
             etudid = t[-1]
             if nt.get_etud_etat(etudid) == 'D':
@@ -3140,21 +3135,11 @@ class ZNotes(ObjectManager,
             l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
                   gr,
                   fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
-            try:
-                sum_moy += float(t[0])
-                nb_moy += 1
-            except:
-                pass
             i = 0
             for ue in ues:
                 i += 1
-                try:
-                    ue['sum_moy'] += float(t[i])
-                    ue['nb_moy']  += 1
-                except:
-                    pass
                 if ue['type'] == UE_STANDARD:
-                    l.append( fmtnum(t[i]) ) # moyenne dans l'ue
+                    l.append( fmtnum(t[i]) ) # moyenne etud dans ue
                 elif ue['type'] == UE_SPORT:
                     l.append('') # n'affiche pas la moyenne d'UE dans ce cas
                 ue_index.append(len(l)-1)
@@ -3166,20 +3151,12 @@ class ZNotes(ObjectManager,
             l.append(etudid) # derniere colonne = etudid
             F.append(l)
         # Dernière ligne: moyennes UE et modules
-        if nb_moy > 0:
-            moy_moy = sum_moy / nb_moy
-        else:
-            moy_moy = '-'
-        l = [ '', 'Moyennes', '', fmt_note(moy_moy) ] 
+        l = [ '', 'Moyennes', '', fmt_note(nt.moy_moy) ] 
         i = 0
         for ue in ues:
             i += 1
-            if ue['nb_moy'] > 0:
-                moy_ue = ue['sum_moy'] / ue['nb_moy']
-            else:
-                moy_ue = ''
             if ue['type'] == UE_STANDARD:
-                l.append( fmt_note(moy_ue) ) 
+                l.append( fmt_note(ue['moy']) ) 
             elif ue['type'] == UE_SPORT:
                 l.append('') # n'affiche pas la moyenne d'UE dans ce cas
             ue_index.append(len(l)-1)
@@ -3379,8 +3356,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         moy = nt.get_etud_moy(etudid)[0]
         mg = fmt_note(moy)
         etatstr = nt.get_etud_etat_html(etudid)
-        if type(moy) != StringType:
-            bargraph = '&nbsp;' + htmlutils.horizontal_bargraph(moy*5, 50);
+        if type(moy) != StringType and nt.moy_moy != StringType:
+            bargraph = '&nbsp;' + htmlutils.horizontal_bargraph(moy*5, nt.moy_moy*5)
         else:
             bargraph = ''
         t = ('Moyenne', mg + etatstr + bargraph,

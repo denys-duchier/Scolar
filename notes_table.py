@@ -176,6 +176,8 @@ class NotesTable:
                 else:
                     srang = '%d' % (i+1)                        
             self.rangs[T[i][-1]] = srang # str(i+1)
+        #
+        self.compute_moy_moy()
         
     def get_etudids(self):
         return [ x['etudid'] for x in self.inscrlist ]
@@ -258,6 +260,45 @@ class NotesTable:
         else:
             moy = 'NA'
         return moy, nb_notes, nb_missing
+
+    def compute_moy_moy(self):
+        """precalcule les moyennes d'UE et generale (moyennes sur tous
+        les etudiants, et les stocke dans self.moy_moy, self.ue['moy']
+        """
+        ues = self.get_ues()
+        sum_moy = 0
+        nb_moy = 0
+        for ue in ues:
+            ue['sum_moy'] = 0
+            ue['nb_moy'] = 0
+        T = self.get_table_moyennes_triees()
+        for t in T:
+            etudid = t[-1]
+            try:
+                sum_moy += float(t[0])
+                nb_moy += 1
+            except:
+                pass
+            i = 0
+            for ue in ues:
+                i += 1
+                try:
+                    ue['sum_moy'] += float(t[i])
+                    ue['nb_moy']  += 1
+                except:
+                    pass
+        if nb_moy > 0:
+            self.moy_moy = sum_moy / nb_moy
+        else:
+            self.moy_moy = '-'
+        i = 0
+        for ue in ues:
+            i += 1
+            if ue['nb_moy'] > 0:
+                ue['moy'] = ue['sum_moy'] / ue['nb_moy']
+            else:
+                ue['moy'] = ''
+        
 
     def get_etud_mod_moy(self, modimpl, etudid):
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        

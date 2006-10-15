@@ -904,7 +904,7 @@ class ZScolar(ObjectManager,
             ilist.append("""<table><tr>
             <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> [%(etat)s] groupe %(groupetd)s
             </td><td><div class="barrenav">
-            <ul class="nav"><li><a class="stdlink" href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
+            <ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
             </div></td>"""
                          % data )
 
