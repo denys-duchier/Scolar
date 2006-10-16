@@ -146,13 +146,23 @@ class NotesTable:
             try:
                 return cmp(float(y[0]), float(x[0])) # moy. gen.
             except:
-                if (type(x[0]) == type(y[0])) and type(x[0]) == StringType:
+                vx, vy = x[0], y[0]
+                try:
+                    vx = float(vx)
+                except:
+                    pass
+                try:
+                    vy = float(vy)
+                except:
+                    pass
+                if (type(vx) == type(vy)): # and type(vx) == StringType:
                     # rang alphabetique par nom
                     return rangalpha[x[-1]] - rangalpha[y[-1]]
                 else:
-                    return cmp(x,y)
+                    return cmp(type(vx),type(vy))
         T.sort(cmprows)
         self.T = T
+        
         # calcul rangs (/ moyenne generale)
         self.rangs = {} # { etudid : rangs } (rang est une chaine)
         nb_ex = 0 # nb d'ex-aequo consécutifs en cours

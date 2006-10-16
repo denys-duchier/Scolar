@@ -3414,7 +3414,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                 nom_eval = e['description']
                                 if not nom_eval:
                                     nom_eval = 'le %s' % e['jour']
-                                link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submit=OK">%s</a>' % (e['evaluation_id'], nom_eval)
+                                link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submitted=1">%s</a>' % (e['evaluation_id'], nom_eval)
                                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                                 val = fmt_note(val, note_max=e['note_max'] )
                                 t = [ '', '', nom_eval, val, '%.2g' % e['coefficient'] ]
