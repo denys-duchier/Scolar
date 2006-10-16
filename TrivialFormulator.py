@@ -9,7 +9,7 @@
 """
 
 def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
-                      method='POST', enctype=None,
+                      method='post', enctype=None,
                       submitlabel='OK', name=None, formid='tf', cssclass=None,
                       cancelbutton=None,
                       readonly=False ):
@@ -46,7 +46,8 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
              labels : labels for radio or menu lists (associated to allowed_values)
              vertical: for checkbox; if true, vertical layout
     """
-    if method == 'GET':
+    method = method.lower()
+    if method == 'get':
         enctype = None
     t = TF(form_url, values, formdescription, initvalues,
            method, enctype, submitlabel, name, formid, cssclass, cancelbutton, readonly)
@@ -206,7 +207,7 @@ class TF:
         # ---- build form
         R = []
         if self.enctype is None:
-            if self.method == 'POST':
+            if self.method == 'post':
                 enctype = 'multipart/form-data'
             else:
                 enctype = 'application/x-www-form-urlencoded'
@@ -220,7 +221,7 @@ class TF:
             name = 'tf'
         R.append( '<form action="%s" method="%s" id="%s" enctype="%s" name="%s" %s>'
                   % (self.form_url,self.method,self.formid,enctype,name,klass) )
-        R.append('<input type="hidden" name="%s-submitted" value="1"></input>'%self.formid)
+        R.append('<input type="hidden" name="%s-submitted" value="1"/>'%self.formid)
         R.append( '<table>')
         idx = 0
         for idx in range(len(self.formdescription)):
@@ -252,7 +253,7 @@ class TF:
                     checked='checked="checked"'
                 else:
                     checked=''
-                lab.append('<input type="checkbox" name="%s:list" value="%s" %s></input>' % ('tf-checked', field, checked ) )
+                lab.append('<input type="checkbox" name="%s:list" value="%s" %s/>' % ('tf-checked', field, checked ) )
             lab.append(title)
             #
             if input_type == 'text':
@@ -264,8 +265,8 @@ class TF:
                     # event.cancelBubble = true; event.returnValue = false;}"''')
                     lem.append('onkeypress="return enter_focus_next(this, event);"')
                     add_no_enter_js = True
-#                    lem.append('onChange="document.%s.%s.focus()"'%(name,nextitemname))
-#                    lem.append('onBlur="document.%s.%s.focus()"'%(name,nextitemname))
+#                    lem.append('onchange="document.%s.%s.focus()"'%(name,nextitemname))
+#                    lem.append('onblur="document.%s.%s.focus()"'%(name,nextitemname))
                 lem.append( ('value="%('+field+')s" />') % values )
             elif input_type == 'password':
                 lem.append( '<input type="password" name="%s" size="%d" ' % (field,size) )
@@ -331,7 +332,7 @@ class TF:
             R.append( etempl % { 'label' : '\n'.join(lab),
                                  'elem' : '\n'.join(lem) } )
         R.append( '</table>' )
-        R.append('<br><input type="submit" name="%s_submit" value="%s">'
+        R.append('<br/><input type="submit" name="%s_submit" value="%s">'
                  % (self.formid,self.submitlabel) )
         if self.cancelbutton:
             R.append('<input type="submit" name="%s_cancel" value="%s">'

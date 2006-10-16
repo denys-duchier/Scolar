@@ -314,7 +314,8 @@ def DateISOtoDMY(isodate):
         return ''
     # si isodate est une instance de DateTime !
     try:
-        isodate = str(isodate.date)
+        isodate = '%s-%s-%s' % (isodate.year, isodate.month, isodate.day)
+        #log('DateISOtoDMY: converted isodate to iso !')
     except:
         pass
     # drop time from isodate and split

@@ -1673,7 +1673,7 @@ class ZNotes(ObjectManager,
             <input type="hidden" name="modulesimpls_ainscrire" value="%s"/>
             <input type="hidden" name="modulesimpls_adesinscrire" value="%s"/>
             <input type ="submit" value="Confirmer"/>
-            <input type ="button" value="Annuler" onClick="document.location='ficheEtud?etudid=%s';"/>
+            <input type ="button" value="Annuler" onclick="document.location='ficheEtud?etudid=%s';"/>
             </form>
             """ % (etudid,modulesimpls_ainscrire,modulesimpls_adesinscrire,etudid))
             return '\n'.join(H) + F
@@ -1937,11 +1937,11 @@ class ZNotes(ObjectManager,
             jour = E['jour']
             if not jour:
                 jour = '???'
-            H.append( '<br>Evaluation réalisée le <b>%s</b> de %s à %s'
+            H.append( '<br/>Evaluation réalisée le <b>%s</b> de %s à %s'
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
                 H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
-            H.append( '<br>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
+            H.append( '<br/>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
             return '<div class="eval_description">' + '\n'.join(H) + '</div>'
 
         heures = [ '%02dh%02d' % (h,m) for h in range(8,19) for m in (0,30) ]
@@ -2216,8 +2216,8 @@ class ZNotes(ObjectManager,
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('liste_format','html')=='html':
             header = self.sco_header(self,REQUEST, cssstyles=['verticalhisto_css'])
-            H = header + "<h2>Affichage des notes d'une évaluation</h2><p>"
-            F = '</p>' + self.sco_footer(self,REQUEST)
+            H = header + "<h2>Affichage des notes d'une évaluation</h2>"
+            F = self.sco_footer(self,REQUEST)
         else:
             H, F = '', ''
         B = self.do_evaluation_listenotes(REQUEST)
@@ -2253,17 +2253,17 @@ class ZNotes(ObjectManager,
             ('groupes',
              { 'input_type' : 'checkbox', 'title':'',
                'allowed_values' : grnams, 'labels' : grlabs,
-               'attributes' : ('onClick="document.tf.submit();"',) }),
+               'attributes' : ('onclick="document.tf.submit();"',) }),
             ('anonymous_listing',
              { 'input_type' : 'checkbox', 'title':'',
                'allowed_values' : ('yes',), 'labels' : ('listing "anonyme"',),
-               'attributes' : ('onClick="document.tf.submit();"',),
+               'attributes' : ('onclick="document.tf.submit();"',),
                'template' : '<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s &nbsp;&nbsp;'
                }),
             ('note_sur_20',
              { 'input_type' : 'checkbox', 'title':'',
                'allowed_values' : ('yes',), 'labels' : ('notes sur 20',),
-               'attributes' : ('onClick="document.tf.submit();"',),
+               'attributes' : ('onclick="document.tf.submit();"',),
                'template' : '%(elem)s</td></tr>'
                }),            
             ]
@@ -2420,8 +2420,8 @@ class ZNotes(ObjectManager,
                         tclass='tablenote_anonyme'
                     else:
                         tclass='tablenote'
-                    histo = '' # htmlutils.histogram_notes(notes)
-                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + [ '<div>' + histo + '</div>\n' ]
+                    histo = htmlutils.histogram_notes(notes)
+                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + [ '<div><h4>Répartition des notes:</h4>' + histo + '</div>\n' ]
                 else:
                     Tab = [ '<span class="boldredmsg">aucun groupe sélectionné !</span>' ]
                 return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 
@@ -2555,7 +2555,7 @@ class ZNotes(ObjectManager,
             ('note_method', { 'default' : note_method, 'input_type' : 'hidden'}),
             ('comment', { 'size' : 44, 'title' : 'Commentaire',
                           'return_focus_next' : True, }),
-            ('s2' , {'input_type' : 'separator', 'title': '<br>'}),
+            ('s2' , {'input_type' : 'separator', 'title': '<br/>'}),
             ]
         el = [] # list de (label, etudid, note_value, explanation )
         for etudid in etudids:
@@ -2653,7 +2653,7 @@ class ZNotes(ObjectManager,
                                  text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                                  url=Mod['url'])
                 
-                return '<p>OK !<br>%s notes modifiées (%d supprimées)<br></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
+                return '<p>OK !<br/>%s notes modifiées (%d supprimées)<br/></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
             else:            
                 return head + '\n'.join(H) + tf.getform()
 
@@ -2705,7 +2705,7 @@ class ZNotes(ObjectManager,
                         notes.append((etudid,val))
                 ni += 1
         except:
-            raise NoteProcessError('Format de fichier invalide ! (erreur ligne %d)<br>"%s"' % (ni, lines[ni]))
+            raise NoteProcessError('Format de fichier invalide ! (erreur ligne %d)<br/>"%s"' % (ni, lines[ni]))
         L, invalids, withoutnotes, absents, tosuppress = self._check_notes(notes,E)
         if len(invalids):
             return '<p class="boldredmsg">Le fichier contient %d notes invalides</p>' % len(invalids)
@@ -2770,7 +2770,7 @@ class ZNotes(ObjectManager,
                                 notes.append((etudid,val))
                     ni += 1
             except:
-                diag.append('Erreur: feuille invalide ! (erreur ligne %d)<br>"%s"' % (ni, str(lines[ni])))
+                diag.append('Erreur: feuille invalide ! (erreur ligne %d)<br/>"%s"' % (ni, str(lines[ni])))
                 raise FormatError()
             # -- check values
             L, invalids, withoutnotes, absents, tosuppress = self._check_notes(notes,E)

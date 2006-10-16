@@ -1,11 +1,10 @@
 <dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
 
-<style type="text/css">
 #vhist-q-graph {
 /* Ceci est la classe du UL principal qui contient toute les autres données */
 /* Définir un With est un Height est essentiel, c'est ça qui donne les dimension du graphique */
   width: 600px;
-  height: 300px;
+  height: 200px;
 /* Ne pas oublier d'enlever le point qui se trouve a coté des LI */
   list-style: none;
 /* le reste n'est que positionnement et esthétique */
@@ -35,7 +34,7 @@
 }
 #vhist-q-graph li.vhist-qtr {
 /* esthétique des colonnes */
-  height: 298px; 
+  height: 198px; 
   padding-top: 2px;
   /* border-right: 1px dotted #C4C4C4; */
   color: #AAA;
@@ -50,12 +49,22 @@
 }
 #vhist-q-graph li.vhist-bar p { 
 /* esthétique de titre dans les bâtons */
-  margin: 5px 0 0;  
+  margin: 0px 0 0;  
   padding: 0; 
 }
+
+p.leg { /* legende (sous l'axe horizontal) */
+   position: absolute;
+   bottom: -18px;
+   left: 2px;
+   width: 10px;
+   color: red;
+   text-align: right;
+}
+
 #vhist-q-graph li.vhist-sent {
 /* la position left est importante car le bâton 2 a comme left : left(baton1) + espacement. Il faut donc pensé a espacer les bâton !! */
-  left: 13px;
+  left: 5px;
 /* esthétique d'un baton en particulier */
   background: #DCA;
   border-color: #EDC #BA9 #000 #EDC;
