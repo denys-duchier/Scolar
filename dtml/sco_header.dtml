@@ -14,6 +14,15 @@
 
 <script language="javascript" type="text/javascript" src="<dtml-var "ScoURL()">/sorttable_js"></script>
 
+<dtml-if cssstyles>
+<dtml-in cssstyles>
+<dtml-let script_obj=sequence-item>
+<link type="text/css" rel="stylesheet"
+   href="<dtml-var "ScoURL()">/<dtml-var "script_obj">"/>
+</dtml-let>
+</dtml-in>
+</dtml-if>
+
 <dtml-if javascripts>
 <dtml-in javascripts>
 <dtml-let script_obj=sequence-item>

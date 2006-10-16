@@ -40,4 +40,21 @@ def horizontal_bargraph( value, mark ):
     """ 
     return tmpl % { 'value' : int(value), 'mark' : int(mark) }
 
-    
+
+import listhistogram
+
+def histogram_notes( notes ):
+    "HTML code drawing histogram"
+    bins, H = listhistogram.ListHistogram( notes, 21, minmax=(0,20) )
+    D = ['<ul id="vhist-q-graph"><li class="vhist-qtr" id="vhist-q1"><ul>']
+    left=13
+    colwidth = 16 # must match #q-graph li.bar width in stylesheet
+    hfactor = 100./max(H)
+    for i in range(len(H)):
+        if H[i] > 0:
+            x=left + i*(4+colwidth)
+            heightpercent = H[i] * hfactor 
+            D.append('<li class="vhist-bar" style="left:%dpx;height:%f%%"><p>%d</p></li>'
+                     % (x,heightpercent, H[i]))
+    D.append('</ul></li></ul>')
+    return '\n'.join(D)

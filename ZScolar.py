@@ -201,6 +201,8 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'menu_css')
     menu_css = DTMLFile('JavaScripts/menu_css', globals())
 
+    security.declareProtected(ScoView, 'verticalhisto_css')
+    verticalhisto_css = DTMLFile('JavaScripts/verticalhisto_css', globals())
     
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
@@ -1672,6 +1674,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)
         cnx = self.GetDBConnexion()
+        descr = []
         if not edit:
             # creation nouvel etudiant
             initvalues = {}
@@ -1680,9 +1683,12 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             <p><em>L'étudiant créé ne sera pas inscrit.
             Pensez à l'inscrire dans un semestre !</em></p>
             """)
+            descr.append( ('etudid', { 'size' : 25, 'title' : 'Numéro INE', 'allow_null':False,
+                                       'explanation' : 'numéro identité étudiant (obligatoire)'}) )
         else:
             # edition donnees d'un etudiant existant
             # setup form init values
+            descr.append( ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }) )
             H.append('<h2>Modification d\'un étudiant</h2>')
             if not etudid:
                 raise ValueError('missing etudid parameter')
@@ -1690,9 +1696,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             assert len(initvalues) == 1
             initvalues = initvalues[0]
             submitlabel = 'Modifier les données'
-        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
-                                ( 
-            ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }),
+
+        descr += [
             ('adm_id', { 'input_type' : 'hidden' }),
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
@@ -1734,7 +1739,9 @@ Utiliser ce formulaire en fin de semestre, après le jury.
                              'title' : 'Note du rapporteur' }),
             ('nomlycee', { 'size' : 20, 'title' : 'Lycée d\'origine' }),
             ('villelycee', { 'size' : 15, 'title' : 'Commune du Lycée' })
-            ),                            
+            ]
+
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 submitlabel = submitlabel,
                                 cancelbutton = 'Annuler',
                                 initvalues = initvalues)

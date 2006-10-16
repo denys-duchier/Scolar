@@ -2215,7 +2215,8 @@ class ZNotes(ObjectManager,
     def evaluation_listenotes(self, REQUEST ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('liste_format','html')=='html':
-            H = self.sco_header(self,REQUEST) + "<h2>Affichage des notes d'une évaluation</h2><p>"
+            header = self.sco_header(self,REQUEST, cssstyles=['verticalhisto_css'])
+            H = header + "<h2>Affichage des notes d'une évaluation</h2><p>"
             F = '</p>' + self.sco_footer(self,REQUEST)
         else:
             H, F = '', ''
@@ -2319,6 +2320,7 @@ class ZNotes(ObjectManager,
             T = [] # list of lists, used to build HTML and CSV
             nb_notes = 0
             sum_notes = 0
+            notes = [] # liste des notes numeriques, pour calcul histogramme uniquement
             for etudid in etudids:
                 # infos identite etudiant (xxx sous-optimal: 1/select par etudiant)
                 ident = scolars.etudident_list(cnx, { 'etudid' : etudid })[0]
@@ -2328,9 +2330,10 @@ class ZNotes(ObjectManager,
                 if NotesDB.has_key(etudid):
                     val = NotesDB[etudid]['value']
                     if val != None and val != NOTES_NEUTRALISE: # calcul moyenne SANS LES ABSENTS
-                        if note_sur_20:
-                            # remet sur 20
-                            val = val * 20. / E['note_max']
+                        valsur20 = val * 20. / E['note_max'] # remet sur 20
+                        notes.append(valsur20) # toujours sur 20 pour l'histogramme
+                        if note_sur_20:                            
+                            val = valsur20 # affichage notes / 20 demandé
                         nb_notes = nb_notes + 1
                         sum_notes += val
                     val = fmt_note(val, keep_numeric=keep_numeric)
@@ -2417,7 +2420,8 @@ class ZNotes(ObjectManager,
                         tclass='tablenote_anonyme'
                     else:
                         tclass='tablenote'
-                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ]
+                    histo = '' # htmlutils.histogram_notes(notes)
+                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + [ '<div>' + histo + '</div>\n' ]
                 else:
                     Tab = [ '<span class="boldredmsg">aucun groupe sélectionné !</span>' ]
                 return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 

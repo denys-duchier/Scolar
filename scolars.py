@@ -117,6 +117,8 @@ def format_pays(s):
 PIVOT_YEAR = 70
 
 def pivot_year(y):
+    if y == '' or y is None:
+        return None
     y = int(y)
     if y >= 0 and y < 100:
         if y < PIVOT_YEAR:
@@ -140,10 +142,17 @@ _identiteEditor = EditableTable(
     allow_set_id = True # car on specifie le code Apogee a la creation
     )
 
-identite_create = _identiteEditor.create
 identite_delete = _identiteEditor.delete
 identite_list   = _identiteEditor.list
 identite_edit   = _identiteEditor.edit
+
+def identite_create( cnx, args ):
+    "check unique etudid, then create"
+    etudid = args['etudid']
+    r = identite_list(cnx, {'etudid' : etudid})
+    if r:
+        raise ScoValueError('Code identifiant (INE) déjà utilisé ! (%s)' % etudid)
+    return _identiteEditor.create(cnx, args)
 
 # --------
 # Note: la table adresse n'est pas dans dans la table "identite"
