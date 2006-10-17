@@ -19,8 +19,8 @@ def ListHistogram( L, nbins, minmax=None, normalize=None ):
                 L[i] = xmin
             if L[i] > xmax:
                 L[i] = xmax
-    bin_width = (xmax-xmin)/float(nbins)
-    H = [0]*(nbins+1)
+    bin_width = (xmax-xmin)/float(nbins-1)
+    H = [0]*nbins
     for i in range(n):
         idx = int(math.floor( (L[i] - xmin)/bin_width ))
         H[idx] += 1

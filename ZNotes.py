@@ -2316,7 +2316,7 @@ class ZNotes(ObjectManager,
             else:
                 nmx = E['note_max']
             Th = ['', 'Nom', 'Prénom', 'Groupe', 'Note sur %d'%nmx,
-                  'Remarque']
+                  'Rem.']
             T = [] # list of lists, used to build HTML and CSV
             nb_notes = 0
             sum_notes = 0
@@ -2393,6 +2393,8 @@ class ZNotes(ObjectManager,
                     absfmt = '<span class="etudabs">%s</span>'
                     cssclass = 'tablenote'
                     idx = 0
+                    lastkey = 'a'
+                    comments = {} # comment : key (pour regrouper les comments a la fin)
                     for t in T:
                         idx += 1
                         fmt='%s'
@@ -2406,8 +2408,15 @@ class ZNotes(ObjectManager,
                         if anonymous_listing:
                             Tb.append( '<tr class="%s"><td>%s</td><td class="colnote">%s</td></tr>' % (cssclass, t[0], note) )
                         else:
-                            Tb.append( '<tr class="%s"><td>%s</td><td>%s</td><td class="colnote">%s</td><td class="colcomment">%s</td></tr>' % (cssclass,nom,prenom,note,comment) )
+                            if comments.has_key(comment):
+                                key = comments[comment]
+                            else:
+                                comments[comment] = lastkey
+                                key = lastkey
+                                lastkey = chr(ord(lastkey)+1)
+                            Tb.append( '<tr class="%s"><td>%s</td><td>%s</td><td class="colnote">%s</td><td class="colcomment">%s</td></tr>' % (cssclass,nom,prenom,note,key) )
                     Tb = [ '\n'.join(Tb ) ]
+                    
                     if nb_notes > 0:
                         moy = '%.3g' % (sum_notes/nb_notes)
                     else:
@@ -2415,13 +2424,21 @@ class ZNotes(ObjectManager,
                     if anonymous_listing:
                         Tm = [ '<tr class="tablenote"><td colspan="2" class="colnotemoy">Moyenne %s</td></tr>' % moy ]
                     else:
-                        Tm = [ '<tr class="tablenote"><td></td><td>Moyenne</td><td class="colnotemoy">%s</td><td class="colcomment">sur %d notes (sans les absents)</td></tr>' % (moy, nb_notes) ]
+                        Tm = [ '<tr class="tablenote"><td colspan="2" style="text-align: right;"><b>Moyenne</b> sur %d notes (sans les absents) :</td><td class="colnotemoy">%s</td></tr>' % (nb_notes, moy) ]
                     if anonymous_listing:
                         tclass='tablenote_anonyme'
                     else:
                         tclass='tablenote'
                     histo = htmlutils.histogram_notes(notes)
-                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + [ '<div><h4>Répartition des notes:</h4>' + histo + '</div>\n' ]
+                    # 2 colonnes: histo, comments
+                    C = ['<table><tr><td><div><h4>Répartition des notes:</h4>' + histo + '</div></td>\n',
+                         '<td style="padding-left: 50px; vertical-align: top;"><p>' ]
+                    commentkeys = comments.items() # [ (comment, key), ... ]
+                    commentkeys.sort( lambda x,y: cmp(x[1], y[1]) )
+                    for (comment,key) in commentkeys:
+                        C.append('<span class="colcomment">(%s)</span> <em>%s</em><br/>' % (key, comment))
+                    
+                    Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + C
                 else:
                     Tab = [ '<span class="boldredmsg">aucun groupe sélectionné !</span>' ]
                 return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 

@@ -3,7 +3,7 @@
 #vhist-q-graph {
 /* Ceci est la classe du UL principal qui contient toute les autres données */
 /* Définir un With est un Height est essentiel, c'est ça qui donne les dimension du graphique */
-  width: 600px;
+  width: 428px;
   height: 200px;
 /* Ne pas oublier d'enlever le point qui se trouve a coté des LI */
   list-style: none;
@@ -32,8 +32,7 @@
   text-align: center; 
   list-style: none;
 }
-#vhist-q-graph li.vhist-qtr {
-/* esthétique des colonnes */
+#vhist-q-graph li.vhist-qtr { /* colonnes */
   height: 198px; 
   padding-top: 2px;
   /* border-right: 1px dotted #C4C4C4; */
