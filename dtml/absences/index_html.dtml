@@ -8,11 +8,15 @@
   -->
 </dtml-comment>
 
+<dtml-let _formChoixSemestreGroupe=formChoixSemestreGroupe>
+
 <dtml-var "sco_header(page_title='Gestion des absences',REQUEST=REQUEST,client=this())">
 
 <div class="gtrcontent">
 
 <h2>Gestion des Absences</h2>
+
+<dtml-if _formChoixSemestreGroupe>
 
 <h3><a href="EtatAbsences">Afficher l'&eacute;tat des absences (pour tout un groupe)</a></h3>
 
@@ -43,7 +47,15 @@
 	  ou supprimer des absences.</p>
 </dtml-if secu>
 
+<dtml-else>
+
+<p class="warning">Aucun semestre défini (ou aucun groupe d'étudiant)
+</p>
+
+</dtml-if _formChoixSemestreGroupe>
+
 </div>
 <dtml-var sco_footer>
 
+</dtml-let formChoixSemestreGroupe>
 

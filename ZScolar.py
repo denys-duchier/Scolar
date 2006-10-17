@@ -327,7 +327,10 @@ class ZScolar(ObjectManager,
             sems = self.Notes.do_formsemestre_list()
         else:
             sems = self.Notes.do_formsemestre_list( args={'etat':'1'} )
-        H = ['<select name="semestregroupe">']
+        if sems:
+            H = ['<select name="semestregroupe">']
+        else:
+            H = [] # no formsemestre defined => no choice !
         for sem in sems:
             formsemestre_id = sem['formsemestre_id']
             gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
@@ -340,8 +343,8 @@ class ZScolar(ObjectManager,
             for gr in gr_tp:
                 tmpl = '<option value="%s!!%s!">%s %s</option>'
                 H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
-
-        H.append('</select>')
+        if sems:
+            H.append('</select>')
         return '\n'.join(H)    
 
     # -----------------  BANDEAUX -------------------

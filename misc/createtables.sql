@@ -315,7 +315,9 @@ CREATE TABLE notes_notes_log (
 	comment text,
 	date timestamp,
 	uid text,
-	FOREIGN KEY (etudid,evaluation_id) REFERENCES notes_notes(etudid,evaluation_id)
+	-- pas de foreign key, sinon bug lors supression notes (et on 
+	-- veut garder le log)
+	-- FOREIGN KEY (etudid,evaluation_id) REFERENCES notes_notes(etudid,evaluation_id)
 );
 
 
