@@ -93,7 +93,7 @@ class ddmmyyyy:
         elif fmt == 'iso':
             self.year, self.month, self.day = string.split(date, '-')
         else:
-            raise ValueError; 'invalid format spec.'
+            raise ValueError; 'invalid format spec. (%s)' % fmt
 	self.year = string.atoi(self.year)
 	self.month = string.atoi(self.month)
 	self.day = string.atoi(self.day)
@@ -106,10 +106,10 @@ class ddmmyyyy:
 	    else:
 		self.year = self.year + 1900
 	if self.month < 1 or self.month > 12:
-	    raise ValueError, 'invalid month'
+	    raise ValueError, 'invalid month (%s)' % self.month
 	
 	if self.day < 1 or self.day > MonthNbDays(self.month,self.year):
-	    raise ValueError, 'invalid day'
+	    raise ValueError, 'invalid day (%s)' % self.day
     
 	self.weekday = calendar.weekday(self.year,self.month,self.day)
 	self.time = time.mktime( (self.year,self.month,self.day,0,0,0,0,0,0) )
@@ -134,13 +134,27 @@ class ddmmyyyy:
 	day = self.day + days        
 	month = self.month
 	year = self.year
-
+        
         while day > MonthNbDays(month,year):
             day = day - MonthNbDays(month,year)
             month = month + 1
             if month > 12:
 		month = 1
 		year = year + 1
+	return self.__class__( '%02d/%02d/%04d' % (day,month,year) )
+    
+    def prev(self,days=1):
+        "date for previous day"
+        day = self.day - days 
+        month = self.month
+	year = self.year        
+        while day <= 0:
+            month = month - 1
+            if month == 0:
+                month = 12
+                year = year - 1            
+            day = day + MonthNbDays(month,year)
+        
 	return self.__class__( '%02d/%02d/%04d' % (day,month,year) )
     
     def __cmp__ (self, other):
@@ -247,6 +261,11 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoAbsChange, 'doAnnuleJustif')
     doAnnuleJustif=DTMLFile('dtml/absences/doAnnuleJustif', globals())
 
+    security.declareProtected(ScoView, 'calabs_css')
+    calabs_css = DTMLFile('JavaScripts/calabs_css', globals())
+    security.declareProtected(ScoView, 'calabs_js')
+    calabs_js = DTMLFile('JavaScripts/calabs_js', globals())
+    
     # --------------------------------------------------------------------
     #
     #   SQL METHODS
@@ -375,7 +394,7 @@ class ZAbsences(ObjectManager,
         """, vars() )
         return cursor.dictfetchall()
 
-    security.declareProtected(ScoView, '')
+    security.declareProtected(ScoView, 'ListeAbsNonJust')
     def ListeAbsNonJust(self, etudid, datedebut):
         "Liste des absences NON justifiees"
         cnx = self.GetDBConnexion()
@@ -409,6 +428,15 @@ class ZAbsences(ObjectManager,
         H.append( '</pre>' ) # debug
 
         return '\n'.join(H) + self.sco_footer(self,REQUEST)
+
+    #
+    security.declareProtected(ScoView, 'CalSelectWeek')
+    def CalSelectWeek(self, year=None, REQUEST=None):
+        "display calendar allowing week selection"
+        if not year:
+            year = self.AnneeScolaire()
+        C = self.YearTable(int(year), dayattributes='onmouseover="highlightweek(this);" onmouseout="deselectweeks();" onclick="wclick(this);"')
+        return C
 
 
     # --- Misc tools.... ------------------
@@ -483,7 +511,8 @@ class ZAbsences(ObjectManager,
             raise ValueError, 'invalid day'    
         return '%d-%d-%d' % (year, month, day)
 
-    def YearTable(self, year, events=[], firstmonth=9, lastmonth=6, halfday=0 ):
+    def YearTable(self, year, events=[],
+                  firstmonth=9, lastmonth=6, halfday=0, dayattributes='' ):
         """Generate a calendar table
         events = list of tuples (date, text, color, href [,halfday])
                  where date is a string in ISO format (yyyy-mm-dd)
@@ -491,13 +520,13 @@ class ZAbsences(ObjectManager,
         text  = text to put in calendar (must be short, 1-5 cars) (optional)
         if halday, generate 2 cells per day (morning, afternoon)
         """
-        T = [ '<table class="maincalendar" border="3" cellpadding="1" cellspacing="1" frame="box">' ]
+        T = [ '<table id="maincalendar" class="maincalendar" border="3" cellpadding="1" cellspacing="1" frame="box">' ]
         T.append( '<tr>' )
         month = firstmonth
         while 1:
             T.append( '<td valign="top">' )
             T.append( MonthTableHead( month ) )
-            T.append( MonthTableBody( month, year, events, halfday ) )
+            T.append( MonthTableBody( month, year, events, halfday, dayattributes ) )
             T.append( MonthTableTail() )
             T.append( '</td>' )
             if month == lastmonth:
@@ -538,23 +567,35 @@ WEEKENDCOLOR = GREEN3
 
 def MonthTableHead( month ):
     color = WHITE
-    return """<table class="maincalendar" border="0" cellpadding="0" cellspacing="0" frame="box">
+    return """<table class="monthcalendar" border="0" cellpadding="0" cellspacing="0" frame="box">
      <tr bgcolor="%s"><td colspan="2" align="center">%s</td></tr>\n""" % (
 	 color,MONTHNAMES_ABREV[month-1])
 
 def MonthTableTail():
     return '</table>\n'
 
-def MonthTableBody( month, year, events=[], halfday=0 ):
+def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
     firstday, nbdays = calendar.monthrange(year,month)
+    localtime = time.localtime()
+    current_weeknum = time.strftime( '%U', localtime )
+    current_year =  localtime[0]
     T = []
+    # cherche date du lundi de la 1ere semaine de ce mois
+    monday = ddmmyyyy( '1/%d/%d' % (month,year) )
+    while monday.weekday != 0:
+        monday = monday.prev()
+    
     if not halfday:
         for d in range(1,nbdays+1):
+            weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
+                                                         '%d/%m/%Y'))
             day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
             if day in ('S','D'):
                 bgcolor = WEEKENDCOLOR
+                weekclass = 'wkend'
             else:
                 bgcolor = WEEKDAYCOLOR
+                weekclass = 'wk' + str(monday).replace('/','_')
             color = None
             legend = ''
             href = ''
@@ -591,17 +632,30 @@ def MonthTableBody( month, year, events=[], halfday=0 ):
                 cc.append('</a>')
             cc.append('</td>')
             cell = string.join(cc,'')
-            T.append( '<tr bgcolor="%s"><td align="right">%d%s</td>%s</tr>'
-                      % (bgcolor, d, day, cell) )
+            if day == 'D':
+                monday = monday.next(7)
+            if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
+                weekclass += " currentweek"
+            T.append( '<tr bgcolor="%s" class="%s" %s><td align="right">%d%s</td>%s</tr>'
+                      % (bgcolor, weekclass, trattributes, d, day, cell) )
     else:
         # Calendar with 2 cells / day
         for d in range(1,nbdays+1):
+            weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
+                                                         '%d/%m/%Y'))
             day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
             if day in ('S','D'):
                 bgcolor = WEEKENDCOLOR
+                weekclass = 'wkend'
             else:
                 bgcolor = WEEKDAYCOLOR
-            T.append( '<tr bgcolor="%s"><td align="right">%d%s</td>' % (bgcolor, d, day) )
+                weekclass = 'wk' + str(monday).replace('/','_')
+            if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
+                weeknum += " currentweek"
+
+            if day == 'D':
+                monday = monday.next(7)
+            T.append( '<tr bgcolor="%s" class="wk%s" %s><td align="right">%d%s</td>' % (bgcolor, weekclass, trattributes, d, day) )
             cc = []
             for morning in (1,0):
                 color = None

@@ -1,4 +1,9 @@
-<dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
+<dtml-call "REQUEST.set( 'semlist', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } ))">
+<dtml-if "len(semlist) == 0">
+<dtml-call "raiseScoValueError('Semestre inexistant (il a peut être été supprimé ?)')">
+</dtml-if>
+
+<dtml-call "REQUEST.set( 'sem', semlist[0])">
 <dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0])">
 
 <dtml-call "REQUEST.set( 'inscrits', 

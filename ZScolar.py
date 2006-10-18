@@ -287,6 +287,15 @@ class ZScolar(ObjectManager,
         #d = "<p>locale=%s, g=%s -> %s</p>"% (locale.getlocale(), g, g.lower() )
         return self.sco_header(self,REQUEST)+ '\n'.join(H) + d + self.sco_footer(self,REQUEST)
 
+    
+    security.declareProtected(ScoView, 'raiseScoValueError')
+    def raiseScoValueError(self,msg):
+        """raise ScoValueError exception
+        (used from legacy dtml code, where class-based exception
+        cannot be raised...)
+        """
+        raise ScoValueError(msg)
+
     security.declareProtected(ScoView, 'AnneeScolaire')
     def AnneeScolaire(self):
         "annee de debut de l'annee scolaire courante"

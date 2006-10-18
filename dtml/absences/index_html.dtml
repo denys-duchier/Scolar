@@ -10,9 +10,9 @@
 
 <dtml-let _formChoixSemestreGroupe=formChoixSemestreGroupe>
 
-<dtml-var "sco_header(page_title='Gestion des absences',REQUEST=REQUEST,client=this())">
-
-<div class="gtrcontent">
+<dtml-var "sco_header(page_title='Gestion des absences',
+            REQUEST=REQUEST,client=this(), 
+            cssstyles=['Absences/calabs_css'], javascripts=['Absences/calabs_js'])">
 
 <h2>Gestion des Absences</h2>
 
@@ -29,16 +29,26 @@
 <hr>
 <h3>Saisie par semaine :</h3>
 
-<form action="SignaleAbsenceGrHebdo">
+<form action="SignaleAbsenceGrHebdo" id="formw">
+
+<input name="datelundi" type="hidden" value="x"/>
 
 <dtml-var formChoixSemestreGroupe>
 
+<dtml-var CalSelectWeek>
+
+<p class="help">Sélectionner le groupe d'étudiants, puis cliquez sur une semaine pour
+saisir les absences de toute cette semaine.</p>
+
+<dtml-comment> ANCIENNE INTERFACE (1 bouton/semaine) 
 <table><tr><td valign="top">
 <dtml-in ListMondays>
 <dtml-if "(_['sequence-number'] - 1) % 6 == 0"></td><td></dtml-if>
 <button type="submit" name="datelundi" style="background-color: orange;" value="<dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )">"> <dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )"> </button><br>
 </dtml-in>
 </td></tr></table>
+
+</dtml-comment>
 
 </form>
 
@@ -54,7 +64,7 @@
 
 </dtml-if _formChoixSemestreGroupe>
 
-</div>
+
 <dtml-var sco_footer>
 
 </dtml-let formChoixSemestreGroupe>
