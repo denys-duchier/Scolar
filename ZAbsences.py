@@ -411,21 +411,22 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
     def doSignaleAbsenceGrHebdo(self, abslist, REQUEST):
-        "enregsitre absences hebdo"
+        "enregistre absences hebdo"
         H = [ self.sco_header(self,REQUEST,page_title='Absences') + '<h3>Absences ajoutées</h3>' ]
-        H.append('<pre>') # debug
+        H.append('<p><a class="stdlink" href="%s">continuer</a></p>'%REQUEST.URL1)
+        # H.append('<pre>') # debug
         for a in abslist:
-           etudid, jour, ampm = a.split(':')
-           if ampm == 'am':
-              matin=1
-           elif ampm=='pm':
-              matin=0
-           else:
-              raise ValueError, 'invalid ampm !'
-           H.append( str((etudid, jour, matin )) )
+            etudid, jour, ampm = a.split(':')
+            if ampm == 'am':
+                matin=1
+            elif ampm=='pm':
+                matin=0
+            else:
+                raise ValueError, 'invalid ampm !'
+            # H.append( str((etudid, jour, matin )) )
            
-           self.AddAbsence( etudid, jour, matin, 0, REQUEST )
-        H.append( '</pre>' ) # debug
+            self.AddAbsence( etudid, jour, matin, 0, REQUEST )
+        # H.append( '</pre>' ) # debug
 
         return '\n'.join(H) + self.sco_footer(self,REQUEST)
 

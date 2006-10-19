@@ -27,13 +27,16 @@
 
 <dtml-if "_.SecurityGetUser().has_permission('Sco Change Absences',this())">
 <hr>
-<h3>Saisie par semaine :</h3>
 
 <form action="SignaleAbsenceGrHebdo" id="formw">
 
-<input name="datelundi" type="hidden" value="x"/>
+<p>
+<span  style="font-weight: bold; font-size:120%;">
+ Saisie par semaine </span> - Choix du groupe:
+	      <input name="datelundi" type="hidden" value="x"/>
 
 <dtml-var formChoixSemestreGroupe>
+</p>
 
 <dtml-var CalSelectWeek>
 

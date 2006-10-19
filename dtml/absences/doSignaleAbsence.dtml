@@ -43,7 +43,7 @@
 Ajout de <b><dtml-var sequence-length></b> absence(s) <b><dtml-if estjust><dtml-else>NON</dtml-if> justifi&eacute;e(s)</b> du <dtml-var datedebut><dtml-if datefin>au <dtml-var datefin></dtml-if>.
 </dtml-if>
 <dtml-else> <p>
-<font color="#FF0000" size=+1>Aucune date ouvrable entre le <dtml-var datedebut> et  <dtml-var datefin> !!!</font>
+<font color="#FF0000" size="+1">Aucune date ouvrable entre le <dtml-var datedebut> et  <dtml-var datefin> !!!</font>
 </dtml-in DateRangeISO>
 
 
@@ -52,7 +52,7 @@ Ajout de <b><dtml-var sequence-length></b> absence(s) <b><dtml-if estjust><dtml-
 <dtml-let nbabsjust="Absences.CountAbsJust(etudid=etudid,debut=`AnneeScolaire()`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">
 (<dtml-var nbabsjust> J., <dtml-var "nbabs-nbabsjust"> N.J.)
 <dtml-if "(nbajoute >= 3) or (((nbabs-nbabsjust) >= 6) and ((nbabs-nbabsjust) % 6 == 0))">
-<dtml-if "email_chefdpt and send_mail_absence_to_chef">
+<dtml-if "email_chefdpt and int(send_mail_absence_to_chef)">
 <h3><dtml-var email_chefdpt></h3>
 <dtml-sendmail mailhost=MailHost>
 To: <dtml-var email_chefdpt>
@@ -60,21 +60,21 @@ From: Systeme_de_Gestion_des_Absences_GTR
 Subject: [Absences] Trop d'absences pour <dtml-var nom> 
 
 
-L'Ã©tudiant <dtml-var prenom> <dtml-var nom> (<dtml-var inscription>)
-a cumulÃ© <dtml-var nbabsjust> absences justifiÃ©es, 
-et <dtml-var "nbabs-nbabsjust"> absences NON justifiÃ©es.
+L'étudiant <dtml-var prenom> <dtml-var nom> (<dtml-var inscription>)
+a cumulé <dtml-var nbabsjust> absences justifiées, 
+et <dtml-var "nbabs-nbabsjust"> absences NON justifiées.
 
 Il convient donc de le pendre haut et court.
 Voir <dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>
 
-Votre devouÃ© serveur GTR.
+Votre devoué serveur GTR.
 
-PS: Au dela de 6, un email automatique est adressÃ© toutes les 6 absences non
-    justifiÃ©es. VÃ©rifier cependant que l'absence n'a pas Ã©tÃ©e justifiÃ©e
-    ulterieurement avant de sÃ©vir.
+PS: Au dela de 6, un email automatique est adressé toutes les 6 absences non
+    justifiées. Vérifier cependant que l'absence n'a pas été justifiée
+    ulterieurement avant de sévir.
 </dtml-sendmail>
 
-<p><b>Un e-mail vient d'etre adresse au chef (<dtml-var email_chefdpt>) !</p><br>
+<p><b>Un e-mail vient d'être adressé au chef (<dtml-var email_chefdpt>) !</p><br>
 
 </dtml-if>
 </dtml-if>
