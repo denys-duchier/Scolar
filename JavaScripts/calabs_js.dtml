@@ -59,6 +59,6 @@ function highlightweek(el) {
 function wclick(el) {
   monday = el.className;
   form = document.getElementById('formw');
-  form.datelundi.value = monday.substr(2).replace(/_/g,'/');
+  form.datelundi.value = monday.substr(2).replace(/_/g,'/').split(' ')[0];
   form.submit();
 }
