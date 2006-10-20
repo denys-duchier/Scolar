@@ -2408,12 +2408,15 @@ class ZNotes(ObjectManager,
                         if anonymous_listing:
                             Tb.append( '<tr class="%s"><td>%s</td><td class="colnote">%s</td></tr>' % (cssclass, t[0], note) )
                         else:
-                            if comments.has_key(comment):
-                                key = comments[comment]
+                            if comment:
+                                if comments.has_key(comment):
+                                    key = comments[comment]
+                                else:
+                                    comments[comment] = lastkey
+                                    key = lastkey
+                                    lastkey = chr(ord(lastkey)+1)
                             else:
-                                comments[comment] = lastkey
-                                key = lastkey
-                                lastkey = chr(ord(lastkey)+1)
+                                key = ''
                             Tb.append( '<tr class="%s"><td>%s</td><td>%s</td><td class="colnote">%s</td><td class="colcomment">%s</td></tr>' % (cssclass,nom,prenom,note,key) )
                     Tb = [ '\n'.join(Tb ) ]
                     
