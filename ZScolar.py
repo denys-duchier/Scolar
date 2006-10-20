@@ -342,16 +342,16 @@ class ZScolar(ObjectManager,
             formsemestre_id = sem['formsemestre_id']
             gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
             for gr in gr_td:
-                tmpl = '<option value="%s!%s!!">%s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
+                tmpl = '<option value="%s!%s!!">%s: %s %s</option>'
+                H.append( tmpl %(formsemestre_id,gr,sem['titre'],sem['nomgroupetd'],gr))
                 nbgroups += 1
             for gr in gr_anglais:
-                tmpl = '<option value="%s!!!%s">%s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
+                tmpl = '<option value="%s!!!%s">%s: %s %s</option>'
+                H.append( tmpl %(formsemestre_id,gr,sem['titre'],sem['nomgroupeta'], gr))
                 nbgroups += 1
             for gr in gr_tp:
-                tmpl = '<option value="%s!!%s!">%s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre'],gr))
+                tmpl = '<option value="%s!!%s!">%s: %s %s</option>'
+                H.append( tmpl %(formsemestre_id,gr,sem['titre'],sem['nomgroupetp'], gr))
                 nbgroups += 1
         if nbgroups == 0:
             return '' # aucun groupe, pas de choix
