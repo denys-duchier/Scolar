@@ -1697,8 +1697,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             <p><em>L'étudiant créé ne sera pas inscrit.
             Pensez à l'inscrire dans un semestre !</em></p>
             """)
-            descr.append( ('etudid', { 'size' : 25, 'title' : 'Numéro INE', 'allow_null':False,
-                                       'explanation' : 'numéro identité étudiant (obligatoire)'}) )
+            descr.append( ('etudid', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':False,
+                                       'explanation' : 'numéro identité étudiant (Apogée) (obligatoire)'}) )
         else:
             # edition donnees d'un etudiant existant
             # setup form init values

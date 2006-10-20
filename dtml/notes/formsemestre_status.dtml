@@ -13,11 +13,11 @@
 
 <dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())) and (sem['etat'] == '1')">
 <a class="stdlink" href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       Modifier le semestre "<dtml-var "sem['titre']">"</a><br/>
+       Modifier ce semestre</a>&nbsp;&nbsp;&nbsp;
 </dtml-if permission>
 <dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))">
 <a class="stdlink" href="formsemestre_edit_options?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       Modifier les options</a><br/>
+       Options du semestre</a><br/>
 </dtml-if permission>
 </dtml-unless>
 
