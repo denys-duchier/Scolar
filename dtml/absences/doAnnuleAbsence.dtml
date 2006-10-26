@@ -2,11 +2,9 @@
 <!--          Annulation d'une absence -->
 </dtml-comment>
 
-
 <dtml-in "getEtudInfo(etudid, filled=1)" mapping>
 
 <dtml-var "sco_header(page_title='Annulation d\'une absence pour '+nomprenom,REQUEST=REQUEST,client=this())">
-
 
 <dtml-in "DateRangeISO( datedebut, datefin )">
 <dtml-let jour=sequence-item><dtml-call "REQUEST.set('jour', jour )">

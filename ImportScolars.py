@@ -159,6 +159,11 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                                 % (val, linenum, titleslist[i]))
                     elif typ == 'integer':
                         try:
+                            # on doit accepter des valeurs comme "2006.0"
+                            val = val.replace(',','.') # si virgule a la française
+                            val = float(val)
+                            if val % 1.0 > 1e-4:
+                                raise ValueError()
                             val = int(val)
                         except:
                             raise ScoValueError(

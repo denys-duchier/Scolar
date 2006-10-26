@@ -467,6 +467,8 @@ class ZAbsences(ObjectManager,
     def DateRangeISO(self, date_beg, date_end, workable=1 ):
         """returns list of dates in [date_beg,date_end]
         workable = 1 => keeps only workable days"""
+        if not date_beg:
+            raise ScoValueError("pas de date spécifiée !")
         if not date_end:
             date_end = date_beg
         r = []
