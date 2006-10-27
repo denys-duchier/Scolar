@@ -2,7 +2,16 @@
 # E.V., Sept 2005
 # (';' separated file)
 # Attribut     Type     Table       AllowNulls  Description
-Code_NIP;     text;     identite;   0; code etudiant (NIP Apogee)
+Code_NIP;     text;     identite;   1; code etudiant (NIP Apogee)
+Code_INE;     text;     identite;   1; code INE
+#
+nom;          text;     identite;   0;  nom de l'etudiant
+prenom;       text;     identite;   0;  prenom de l'etudiant
+sexe;         text;     identite;   0;  sexe ('MR' ou 'MLLE')
+annee_naissance;integer;identite;   1;  annee de naissance
+nationalite;  text;     identite;   1;  nationalite
+foto;         text;     identite;   1;  nom du fichier photo (trombinoscope
+#
 bac;          text;     admissions; 1;  type de bac (S, STI, ...)
 specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)
 annee_bac;    integer;  admissions; 1;  annee d'obtention du bac
@@ -17,13 +26,6 @@ score;        real;     admissions; 1;  score calcule lors de l'admission
 commentaire;  text;     admissions; 1;  commentaire du rapporteur
 nomlycee;     text;     admissions; 1;  nom du lycee
 villelycee;   text;     admissions; 1;  ville du lycee
-#
-nom;          text;     identite;   0;  nom de l'etudiant
-prenom;       text;     identite;   0;  prenom de l'etudiant
-sexe;         text;     identite;   0;  sexe ('MR' ou 'MLLE')
-annee_naissance;integer;identite;   1;  annee de naissance
-nationalite;  text;     identite;   1;  nationalite
-foto;         text;     identite;   1;  nom du fichier photo (trombinoscope)
 #
 email;        text;     adresse;    1;  adresse e-mail
 domicile;     text;     adresse;    1;  adresse domicile

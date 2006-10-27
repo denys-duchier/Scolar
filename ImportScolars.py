@@ -141,7 +141,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             for i in range(len(fs)):
                 val = fs[i].strip()
                 typ, table, an, descr = tuple(titles[titleslist[i]])
-                log('field %s: %s %s %s %s'%(titleslist[i], table, typ, an, descr))
+                #log('field %s: %s %s %s %s'%(titleslist[i], table, typ, an, descr))
                 if not val and not an:
                     raise ScoValueError(
                         "line %d: null value not allowed in column %s"
@@ -180,11 +180,8 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             log( 'csv inscription: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
-            args['etudid'] = values['code_nip']
             etudid = scolars.identite_create(cnx,args)
-            if values['code_nip']:
-                assert etudid == values['code_nip']
-
+            
             created_etudids.append(etudid)
             # Admissions
             args['etudid'] = etudid

@@ -149,10 +149,11 @@ identite_edit   = _identiteEditor.edit
 
 def identite_create( cnx, args ):
     "check unique etudid, then create"
-    etudid = args['etudid']
-    r = identite_list(cnx, {'etudid' : etudid})
-    if r:
-        raise ScoValueError('Code identifiant (NIP) déjà utilisé ! (%s)' % etudid)
+    if args.has_key('etudid'):
+        etudid = args['etudid']
+        r = identite_list(cnx, {'etudid' : etudid})
+        if r:
+            raise ScoValueError('Code identifiant (NIP) déjà utilisé ! (%s)' % etudid)
     return _identiteEditor.create(cnx, args)
 
 # --------

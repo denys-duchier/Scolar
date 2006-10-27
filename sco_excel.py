@@ -253,7 +253,7 @@ def Excel_feuille_saisie( E, description, lines ):
     ws0.write(li+4, 2, "cellule vide -> note non modifiée", style_expl )
     return wb.savetostr()
 
-# Import -> liste de listes
+
 def Excel_to_list( data ): # we may need 'encoding' argument ?
     P = parse_xls('', SCO_ENCODING, doc=data )
     diag = [] # liste de chaines pour former message d'erreur
@@ -263,32 +263,32 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
         return diag, None
     if len(P) > 1:
         diag.append('Attention: n\'utilise que la première feuille du classeur !')
-    # fill matrix (inspired by Roman V. Kiseliov example)
+    # fill matrix 
     sheet_name, values = P[0]
-    matrix = [[]]
     sheet_name = sheet_name.encode(SCO_ENCODING, 'backslashreplace')
     # diag.append(str(values))
     indexes = values.keys()
-    indexes.sort()
+    # search numbers of rows and cols
+    rows = [ x[0] for x in values.keys() ]
+    cols = [ x[1] for x in values.keys() ]
+    nbcols = max(cols) + 1
+    nbrows = max(rows) + 1
+    M = []
+    for i in range(nbrows):
+        M.append( [''] * nbcols )
+    
     for row_idx, col_idx in indexes:
         v = values[(row_idx, col_idx)]
         if isinstance(v, unicode):
             v = v.encode(SCO_ENCODING, 'backslashreplace')
         else:
             v = str(v)
-        n_row, last_col = len(matrix), len(matrix[-1])
-        while n_row <= row_idx:
-            matrix.extend([[]])
-            n_row = len(matrix)
-        while last_col < col_idx:
-            matrix[-1].extend([''])
-            last_col = len(matrix[-1])
-        matrix[-1].extend([v])
+        M[row_idx][col_idx] = v
     diag.append('Feuille "%s", %d lignes' %
-                (sheet_name,len(matrix)))
-    #diag.append(str(matrix))
+                (sheet_name,len(M)))
+    #diag.append(str(M))
     #
-    return diag, matrix
+    return diag, M
 
 #
 def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):

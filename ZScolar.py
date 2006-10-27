@@ -1713,8 +1713,6 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             <p><em>L'étudiant créé ne sera pas inscrit.
             Pensez à l'inscrire dans un semestre !</em></p>
             """)
-            descr.append( ('etudid', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':False,
-                                       'explanation' : 'numéro identité étudiant (Apogée) (obligatoire)'}) )
         else:
             # edition donnees d'un etudiant existant
             # setup form init values
@@ -1738,7 +1736,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
 
             ('annee', { 'size' : 5, 'title' : 'Année admission IUT',
-                        'type' : 'int', 'allow_null' : False }),
+                        'type' : 'int', 'allow_null' : False,
+                        'explanation' : 'année 1ere inscription (obligatoire)'}),
             #
             ('sep', { 'input_type' : 'separator', 'title' : 'Scolarité antérieure:' }),
             ('bac', { 'size' : 5, 'explanation' : 'série du bac (S, STI, STT, ...)' }),
@@ -1768,7 +1767,12 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             ('commentaire', {'input_type' : 'textarea', 'rows' : 4, 'cols' : 50,
                              'title' : 'Note du rapporteur' }),
             ('nomlycee', { 'size' : 20, 'title' : 'Lycée d\'origine' }),
-            ('villelycee', { 'size' : 15, 'title' : 'Commune du Lycée' })
+            ('villelycee', { 'size' : 15, 'title' : 'Commune du Lycée' }),
+            ('sep', { 'input_type' : 'separator', 'title' : 'Codes Apogée: (optionnels)' }),
+            ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':False,
+                           'explanation' : 'numéro identité étudiant (Apogée)'}),
+            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE (optionnel)', 'allow_null':False,
+                           'explanation' : 'numéro INE'}),
             ]
 
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
