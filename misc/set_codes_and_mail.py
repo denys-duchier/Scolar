@@ -10,8 +10,7 @@ import csv
 
 CSVFILENAME = '/tmp/viennet-20061025-1033.csv'
 
-#DBCNXSTRING = 'host=localhost user=scogea dbname=SCOGEA password=R&Totoro'
-DBCNXSTRING = 'host=localhost user=zopeuser dbname=SCOGTR password=R&Totoro'
+DBCNXSTRING = 'XXX' 
 
 idx_dept = 0
 idx_prenom = 1
@@ -23,25 +22,30 @@ idx_mail = 6
 DO_IT =  False
 #DO_IT = True
 
+formsemestre_id = 'SEM129' 
+
+
 # en general, pas d'accents dans le CSV
 SCO_ENCODING = 'iso8859-15'
 from SuppressAccents import suppression_diacritics
 def suppr_acc_and_ponct(s):
+    s = s.replace( ' ', '' )
     s = s.replace('-', ' ')    
     return str(suppression_diacritics( unicode(s, SCO_ENCODING) ))
 
 def make_key(nom, prenom):
-    nom = suppr_acc_and_ponct(nom).upper()
+    nom = suppr_acc_and_ponct(nom).upper()    
     prenom = suppr_acc_and_ponct(prenom).upper()
     return nom + ' ' + prenom[:4]
 
 reader = csv.reader(open( CSVFILENAME, "rb"))
 noms = {}
 for row in reader:
-    key = make_key( row[idx_nom], row[idx_prenom])
-    if noms.has_key(key):
-        raise ValueError, 'duplicate key: %s' % key
-    noms[key] = row
+    if row[0][0] != '#':
+        key = make_key( row[idx_nom], row[idx_prenom])
+        if noms.has_key(key):
+            raise ValueError, 'duplicate key: %s' % key
+        noms[key] = row
 
 cnx = psycopg.connect( DBCNXSTRING )
 
@@ -53,7 +57,7 @@ def fix_email(etudid, email): # ne change que s'il n'y a pas deja un mail
     if not r:
         # pas d'email, insere le notre
         if DO_IT:
-            cursor.execute("insert into adresse (etudid, email) values (%(etudid)s, %(email)s", { 'etudid' : etudid, 'email' : email })
+            cursor.execute("insert into adresse (etudid, email) values (%(etudid)s, %(email)s)", { 'etudid' : etudid, 'email' : email })
         return True
     elif not r[0]:
         # email vide, met a jour avec le notre
@@ -77,7 +81,7 @@ def fix_codes(etudid, ine, nip): # change toujours
     return True
 
 cursor = cnx.cursor()
-cursor.execute("select * from identite i, notes_formsemestre_inscription ins where i.etudid = ins.etudid and ins.formsemestre_id = 'SEM2567'")
+cursor.execute("select * from identite i, notes_formsemestre_inscription ins where i.etudid = ins.etudid and ins.formsemestre_id = '%s'" %formsemestre_id )
 R = cursor.dictfetchall()
 
 nok=0
