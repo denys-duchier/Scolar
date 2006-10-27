@@ -60,7 +60,7 @@ from scolog import logdb
 
 import scolars
 from scolars import format_nom, format_prenom, format_sexe, format_lycee
-from scolars import format_telephone, format_pays
+from scolars import format_telephone, format_pays, make_etud_args
 
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
@@ -702,7 +702,7 @@ class ZScolar(ObjectManager,
         ins = self.Notes.do_formsemestre_inscription_list( args=args )
         etuds = []
         for i in ins:
-            etud = self.getEtudInfo(i['etudid'],filled=True)[0]
+            etud = self.getEtudInfo(etudid=i['etudid'],filled=True)[0]
             etuds.append(etud)
         # tri par nom
         etuds.sort( lambda x,y: cmp(x['nom'],y['nom']) )
@@ -710,13 +710,23 @@ class ZScolar(ObjectManager,
         
     # -------------------------- INFOS SUR ETUDIANTS --------------------------
     security.declareProtected(ScoView, 'getEtudInfo')
-    def getEtudInfo(self,etudid,filled=False):
-        "infos sur un etudiant pour utilisation en Zope DTML"
+    def getEtudInfo(self,etudid=None,filled=False,REQUEST=None):
+        """infos sur un etudiant pour utilisation en Zope DTML
+        On peut specifier etudid
+        ou bien cherche dans REQUEST.form: etudid, code_nip, code_ine
+        (dans cet ordre).
+        """
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx,args={'etudid':etudid})
+        args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
+        etud = scolars.etudident_list(cnx,args=args)
         if filled:
             self.fillEtudsInfo(etud)
         return etud
+
+    security.declareProtected(ScoView, 'ggg')
+    def ggg(self,etudid=None,filled=False,REQUEST=None):
+        "ggg"
+        return str(REQUEST.form.has_key('xx')) + '\n<br>' + str(REQUEST.form)
 
     #
     security.declareProtected(ScoView, 'nomprenom')
@@ -835,12 +845,13 @@ class ZScolar(ObjectManager,
                 etud['telephonemobilestr'] = ''
 
     security.declareProtected(ScoView, 'XMLgetEtudInfos')
-    def XMLgetEtudInfos(self, etudid, REQUEST):
+    def XMLgetEtudInfos(self, etudid=None, REQUEST=None):
         "Donne les informatons sur un etudiant"
+        args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        etud = scolars.etudident_list(cnx, args)[0]
         self.fillEtudsInfo([etud])
         doc.etudiant( etudid=etudid,
                       nom=etud['nom'],
@@ -880,11 +891,13 @@ class ZScolar(ObjectManager,
 
     # -------------------------- FICHE ETUDIANT --------------------------
     security.declareProtected(ScoView, 'ficheEtud')
-    def ficheEtud(self,etudid,REQUEST=None):
+    def ficheEtud(self,etudid=None,REQUEST=None):
         "fiche d'informations sur un etudiant"
         authuser = REQUEST.AUTHENTICATED_USER
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
+        etud = scolars.etudident_list(cnx, args)[0]
+        etudid = etud['etudid']
         self.fillEtudsInfo([etud])
         #
         info = etud
@@ -984,7 +997,7 @@ function bodyOnLoad() {
 <tr><td>
 <h2>%(nomprenom)s (%(inscription)s)</h2>
 
-%(emaillink)s
+<span>%(emaillink)s</span> 
 </td><td class="photocell">
 %(etudfoto)s
 </td></tr></table>
@@ -1045,6 +1058,9 @@ function bodyOnLoad() {
 </table>
 </form>
 </div>
+
+<div class="code_nip">code NIP: %(code_nip)s</div>
+
 </div>
         """
         header = self.sco_header(

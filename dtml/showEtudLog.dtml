@@ -1,6 +1,6 @@
 <dtml-comment > <!-- -*- mode:html -*- --></dtml-comment>
 
-<dtml-in "getEtudInfo(etudid, filled=1)" mapping>
+<dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 <dtml-var "sco_header(page_title='Opérations (log) sur '+nomprenom,REQUEST=REQUEST,client=this())">
 
 

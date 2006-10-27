@@ -73,7 +73,7 @@
    <dtml-var "c['date']"></a> 
       &nbsp;&nbsp;&nbsp;<dtml-if "c['type_contact']"><dtml-var "c['type_contact']"></dtml-if>
       <dtml-try>
-        <dtml-in "getEtudInfo(ETUDID=c['etudid'])">
+        <dtml-in "getEtudInfo(etudid=c['etudid'])">
             <a href="<dtml-var DeptURL>/Scolarite/ficheEtud?ETUDID=<dtml-var ETUDID>"><dtml-var "NOM.upper()"> <dtml-var "PRENOM.lower().capitalize()"></a>
         </dtml-in>
       <dtml-except></dtml-try>

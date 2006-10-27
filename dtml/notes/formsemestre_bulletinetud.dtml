@@ -5,7 +5,8 @@
 <dtml-unless format><dtml-call "REQUEST.set('format','html')"></dtml-unless>
 
 <dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
-<dtml-call "REQUEST.set( 'etudinfo', getEtudInfo(etudid=etudid,filled=1) )">
+<dtml-call "REQUEST.set( 'etudinfo', getEtudInfo(filled=1, REQUEST=REQUEST) )">
+<dtml-call "REQUEST.set( 'etudid', etudinfo[0]['etudid'] )">
 
 <dtml-in etudinfo mapping>
 
@@ -34,11 +35,13 @@ Version complète</option>
 
 <a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=pdf&version='+version">">version papier</a> 
 
-<dtml-if email>
+<dtml-if email>&nbsp;
 <a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=mailpdf&version='+version">">mail à l'étudiant</a> 
 <dtml-else>
 (pas d'e-mail)
 </dtml-if>
+&nbsp;
+<a href="<dtml-var "URL0+'?formsemestre_id='+formsemestre_id+'&etudid='+etudid+'&format=xml&version='+version">">xml</a> 
 
 </form>
 

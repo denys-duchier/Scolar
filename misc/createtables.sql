@@ -42,7 +42,9 @@ CREATE TABLE identite (
     sexe text,
     annee_naissance integer,
     nationalite text,
-    foto text
+    foto text,
+    code_nip text UNIQUE, -- code NIP Apogee (may be null)
+    code_ine text UNIQUE  -- code INE Apogee
 );
 
 CREATE TABLE adresse (

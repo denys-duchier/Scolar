@@ -131,7 +131,8 @@ def pivot_year(y):
 _identiteEditor = EditableTable(
     'identite',
     'etudid',
-    ('etudid','nom','prenom','sexe','annee_naissance','nationalite','foto'),
+    ('etudid','nom','prenom','sexe','annee_naissance','nationalite',
+     'foto', 'code_ine', 'code_nip'),
     sortkey = 'nom',
     input_formators = { 'nom' : force_uppercase,
                         'prenom' : force_uppercase,
@@ -238,6 +239,26 @@ _etudidentEditor = EtudIdentEditor()
 etudident_list   = _etudidentEditor.list
 etudident_edit   = _etudidentEditor.edit
 etudident_create = _etudidentEditor.create
+
+def make_etud_args(etudid=None, REQUEST=None):
+    """forme args dict pour requete recherche etudiant
+    On peut specifier etudid
+    ou bien cherche dans REQUEST.form: etudid, code_nip, code_ine
+    (dans cet ordre).
+    """
+    args = None
+    if etudid:
+        args = {'etudid':etudid}
+    elif REQUEST:
+        if REQUEST.form.has_key('etudid'):
+            args = {'etudid':REQUEST.form['etudid'] }
+        elif REQUEST.form.has_key('code_nip'):
+            args = { 'code_nip' : REQUEST.form['code_nip'] }
+        elif REQUEST.form.has_key('code_ine'):
+            args = { 'code_ine' : REQUEST.form['code_ine'] }
+    if not args:
+        raise ValueError('getEtudInfo: no parameter !')
+    return args
 
 # ---------- "EVENTS"
 _scolar_eventsEditor = EditableTable(

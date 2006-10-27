@@ -28,7 +28,7 @@
  <td class="contact_descr"><dtml-var "F['type_contact']"></td>
  <dtml-unless entreprise_id><td class="contact_descr"><dtml-var "Ec['nom']"></td></dtml-unless>
  <td class="contact_descr">
- <dtml-in "getEtudInfo(ETUDID=F['etudid'])">
+ <dtml-in "getEtudInfo(etudid=F['etudid'])">
    <a href="<dtml-var DeptURL>/Scolarite/ficheEtud?ETUDID=<dtml-var ETUDID>"><dtml-var "NOM.upper()"> <dtml-var "PRENOM.lower().capitalize()"></a>
  </dtml-in>
  </td>
