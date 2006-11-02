@@ -410,9 +410,9 @@ class ZScolar(ObjectManager,
             else:
                 sem['lockimg'] = lockicon
                 othersems.append(sem)
-            # -- prevoir si necessaire un moyen de chercher le vrai nom du
             #    responsable de formation.
-            sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
+            user_info = self.Users.user_info(sem['responsable_id'], REQUEST)
+            sem['responsable_name'] = user_info['nomprenom']
             if showcodes=='1':
                 sem['tmpcode'] = '<td><tt>%s</tt></td>' % sem['formsemestre_id']
             else:

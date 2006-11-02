@@ -209,7 +209,7 @@ class ZScoUsers(ObjectManager,
                 n = info['nom'].lower().capitalize()
             else:
                 n = user_name
-            info['nomprenom'] = abbrev_prenom(p) + ' ' + n
+            info['nomprenom'] = (abbrev_prenom(p) + ' ' + n).strip()
 
             return info
 
