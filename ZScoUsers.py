@@ -202,14 +202,14 @@ class ZScoUsers(ObjectManager,
             del info['passwd'] # always conceal password !
             #
             if info['prenom']:
-                p = info['prenom'][:1].upper() + '. '
+                p = info['prenom'][:1]
             else:
                 p = ''
             if info['nom']:
                 n = info['nom'].lower().capitalize()
             else:
                 n = user_name
-            info['nomprenom'] = p + n
+            info['nomprenom'] = abbrev_prenom(p) + ' ' + n
 
             return info
 

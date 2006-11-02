@@ -93,3 +93,18 @@ def get_svn_version(path):
         return os.popen('svnversion ' + path).read().strip()
     else:
         return 'non disponible'
+
+def abbrev_prenom(prenom):
+    "Donne la forme abreggée d'un prenom"
+    mots = prenom.split()
+    first = True
+    abrevs = []
+    for mot in mots:
+        mot = mot.strip().capitalize()
+        if first and len(mot) > 2 and mot[:3] == 'Cha':
+            abrv = 'Ch'
+        else:
+            abrv = mot[0]
+        abrevs.append( abrv + '.' )        
+        first = False
+    return '-'.join(abrevs)
