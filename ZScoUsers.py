@@ -202,7 +202,7 @@ class ZScoUsers(ObjectManager,
             del info['passwd'] # always conceal password !
             #
             if info['prenom']:
-                p = info['prenom'][:1]
+                p = info['prenom']
             else:
                 p = ''
             if info['nom']:
