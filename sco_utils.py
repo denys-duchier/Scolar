@@ -95,16 +95,34 @@ def get_svn_version(path):
         return 'non disponible'
 
 def abbrev_prenom(prenom):
-    "Donne la forme abreggée d'un prenom"
-    mots = prenom.split()
-    first = True
-    abrevs = []
-    for mot in mots:
-        mot = mot.strip().capitalize()
-        if first and len(mot) > 2 and mot[:3] == 'Cha':
-            abrv = 'Ch'
-        else:
-            abrv = mot[0]
-        abrevs.append( abrv + '.' )        
-        first = False
-    return '-'.join(abrevs)
+    "Donne l'abreviation d'un prenom"
+    # un peu lent, mais espère traiter tous les cas
+    # Jean -> J.
+    # Charles -> Ch.
+    # Jean-Christophe -> J.-C.
+    # Marie Odile -> M. O.
+    prenom = prenom.replace('.', ' ').strip()
+    if not prenom:
+        return prenom
+    d = prenom[:3].upper()
+    if d == 'CHA':
+        abrv = 'Ch.' # 'Charles' donne 'Ch.'
+        i = 3
+    else:
+        abrv = prenom[0].upper() + '.'
+        i = 1
+    n = len(prenom)
+    while i < n:
+        c = prenom[i]
+        if c == ' ' or c == '-' and i < n-1:
+            sep = c
+            i += 1
+            # gobbe tous les separateurs
+            while i < n and  (prenom[i] == ' ' or prenom[i] == '-'):
+                if prenom[i] == '-':
+                    sep = '-'
+                i += 1
+            if i < n:
+                abrv += sep + prenom[i].upper() + '.'
+        i += 1
+    return abrv
