@@ -10,7 +10,7 @@ import csv
 
 CSVFILENAME = '/tmp/viennet-20061025-1033.csv'
 
-DBCNXSTRING = 'XXX' 
+DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOINFO password=R&Totoro'
 
 idx_dept = 0
 idx_prenom = 1
