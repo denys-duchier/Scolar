@@ -367,9 +367,10 @@ class ZScoUsers(ObjectManager,
             H.append('<div class="permissions">')
             permissions = self.ac_inherited_permissions(1)
             scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
+            thisuser = self.acl_users.getUser(user_name)
             for p in scoperms:
                 permname, value = p[:2]
-                if authuser.has_permission(permname,self):
+                if thisuser.has_permission(permname,self):
                     b = 'oui'
                 else:
                     b = 'non'
