@@ -51,10 +51,14 @@ def histogram_notes( notes ):
     colwidth = 16 # must match #q-graph li.bar width in stylesheet
     hfactor = 95./max(H) # garde une marge de 5% pour l'esthetique
     for i in range(len(H)):
-        if H[i] > 0:
+        if H[i] >= 0:
             x=left + i*(4+colwidth)
-            heightpercent = H[i] * hfactor 
-            D.append('<li class="vhist-bar" style="left:%dpx;height:%f%%"><p>%d</p><p class="leg">%d</p></li>'
-                     % (x,heightpercent, H[i], i))
+            heightpercent = H[i] * hfactor
+            if H[i] > 0:
+                nn = '<p>%d</p>' % H[i]
+            else:
+                nn = ''
+            D.append('<li class="vhist-bar" style="left:%dpx;height:%f%%">%s<p class="leg">%d</p></li>'
+                     % (x,heightpercent, nn, i))
     D.append('</ul></li></ul>')
     return '\n'.join(D)

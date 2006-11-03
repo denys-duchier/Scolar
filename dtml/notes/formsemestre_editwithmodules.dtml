@@ -25,6 +25,6 @@
 
 </dtml-if etat>
 
-<p><a class="stdlink" href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>">Retour au tableau de bord du module</a>
+<p><a class="stdlink" href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>">Retour au tableau de bord du semestre</a>
 
 <dtml-var sco_footer>

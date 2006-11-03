@@ -899,8 +899,8 @@ class ZNotes(ObjectManager,
                     self.do_moduleimpl_edit(modargs)
                     mod = self.do_module_list( { 'module_id' : module_id } )[0]
                     #msg += [ 'modification de %s (%s)' % (mod['code'], mod['titre']) ]
-                    
-                msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
+                if msg:
+                    msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
                 return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
     
@@ -1908,7 +1908,7 @@ class ZNotes(ObjectManager,
                 raise ValueError, 'missing moduleimpl_id parameter'
             initvalues = { 'note_max' : 20 }
             submitlabel = 'Créer cette évaluation'
-            action = 'Création d\'une '
+            action = 'Création d\'une é'
         else:
             # edition donnees existantes
             # setup form init values

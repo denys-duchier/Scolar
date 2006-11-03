@@ -1,6 +1,6 @@
 SCOVERSION = "4.8"
 
-SCONAME = "AxoNote"
+SCONAME = "ScoDoc"
 
 SCONEWS = """
 <h4>Octobre 2006</h4>
