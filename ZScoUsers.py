@@ -159,7 +159,7 @@ class ZScoUsers(ObjectManager,
         H.append('<h1>Gestion des utilisateurs</h1>')        
         # 
         if authuser.has_permission(ScoAdminUsers,self):
-            H.append('<p><a href="create_user_form">Ajouter un utilisateur</a></p>')
+            H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a></p>')
         #
         H.append( self.list_users( dept ) )
         F = self.sco_footer(self,REQUEST)
@@ -265,11 +265,11 @@ class ZScoUsers(ObjectManager,
         # check password
         if password != password2:
             H.append( """<p>Les deux mots de passes saisis sont différents !</p>
-            <p><a href="form_change_password">Recommencer</a></p>""")
+            <p><a href="form_change_password" class="stdlink">Recommencer</a></p>""")
         else:
             if not self._is_valid_passwd(password):
                 H.append( """<p><b>ce mot de passe n\'est pas assez compliqué !</b><br>(oui, il faut un mot de passe vraiment compliqué !)</p>
-                <p><a href="form_change_password">Recommencer</a></p>
+                <p><a href="form_change_password" class="stdlink">Recommencer</a></p>
                 """ )
             else:
                 # ok, strong password
@@ -303,7 +303,7 @@ class ZScoUsers(ObjectManager,
 <title>Mot de passe changé</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
 <body><h1>Mot de passe changé !</h1>
-""" + '\n'.join(H) + '<a href="%s">Continuer</a></body></html>' % self.ScoURL()
+""" + '\n'.join(H) + '<a href="%s"  class="stdlink">Continuer</a></body></html>' % self.ScoURL()
         return self.sco_header(self,REQUEST) + '\n'.join(H) + F
     
     security.declareProtected(ScoView, 'form_change_password')
@@ -355,30 +355,28 @@ class ZScoUsers(ObjectManager,
             <b>Dept :</b> %(dept)s<br>
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             <p><ul>
-             <li><a href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
+             <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoAdminUsers,self):
                 H.append("""
-             <li><a href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a>""" % info[0])
+             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a>""" % info[0])
             H.append('</ul>')
             
             if str(authuser) == user_name:
-                H.append('<p><b>Se déconnecter: <a href="acl_users/logout">logout</a></b></p>')
-            # essai: liste des permissions
-            #permissions = self.ac_inherited_permissions(1)
-            #scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
-            #H.append( str(self.aq_parent.aq_parent.permission_settings()) )
-            #H.append('<p>perms: %s</p>'%str(scoperms))
-            #H.append('<p>valid_roles: %s</p>'%str(self.valid_roles()))
-            #H.append('<p>ac_inherited_permissions=%s</p>'%str(self.ac_inherited_permissions(1)))
-            #from AccessControl.Permission import Permission
-            #for p in scoperms:
-            #   name, value = p[:2]
-            #   P = Permission(name,value,self)
-            #   roles = self.rolesOfPermission(name) # P.getRoles()
-            #   H.append('<p>perm %s : roles=%s</p>' % (p[:2], roles))
-        
+                H.append('<p><b>Se déconnecter: <a class="stdlink" href="acl_users/logout">logout</a></b></p>')
+            # Liste des permissions
+            H.append('<div class="permissions">')
+            permissions = self.ac_inherited_permissions(1)
+            scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
+            for p in scoperms:
+                permname, value = p[:2]
+                if authuser.has_permission(permname,self):
+                    b = 'oui'
+                else:
+                    b = 'non'
+                H.append('%s : %s<br/>' % (permname,b)) 
+            H.append('</div>')
         if authuser.has_permission(ScoAdminUsers,self):
-            H.append('<p><a href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
+            H.append('<p><a class="stdlink" href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
         return '\n'.join(H)+F
         
     security.declareProtected(ScoAdminUsers, 'create_user_form')
@@ -544,7 +542,7 @@ class ZScoUsers(ObjectManager,
         H.append('<p>Cliquer sur un nom pour changer son mot de passe</p>')
         H.append('<table><tr><th>Login</th><th>Nom</th><th>Prénom</th><th>Roles</th><th>Modif. passwd</th><th>email</th><th>Dept.</th></tr>')
         for u in r:
-            H.append('<tr><td><a href="userinfo?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td><td>%(email)s</td><td>%(dept)s</td></tr>' % u)
+            H.append('<tr><td><a class="stdlink" href="userinfo?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td><td>%(email)s</td><td>%(dept)s</td></tr>' % u)
         H.append('</table>')
         return '\n'.join(H) + F
 

@@ -129,7 +129,7 @@ class ZNotes(ObjectManager,
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
 
-    security.declareProtected('ScoView', 'clearcache')
+    security.declareProtected(ScoView, 'clearcache')
     def clearcache(self):
         "efface les caches de notes (utile pendant developpement slt)"
         log('*** clearcache request')
@@ -141,11 +141,11 @@ class ZNotes(ObjectManager,
     #
     # --------------------------------------------------------------------
     # used to view content of the object
-    security.declareProtected('ScoView', 'index_html')
+    security.declareProtected(ScoView, 'index_html')
     index_html = DTMLFile('dtml/notes/index_html', globals())
 
     # XXX essai
-    security.declareProtected('ScoView', 'essai')
+    security.declareProtected(ScoView, 'essai')
     def gloups(self, REQUEST): 
         "essai gloups"
         #return 'gloups gloups' + self.essai()
@@ -901,6 +901,8 @@ class ZNotes(ObjectManager,
                     #msg += [ 'modification de %s (%s)' % (mod['code'], mod['titre']) ]
                 if msg:
                     msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
+                else:
+                    msg = ''
                 return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
     

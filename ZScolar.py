@@ -158,22 +158,54 @@ class ZScolar(ObjectManager,
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
         b = '<p>Hello, World !</p><br>'
-        raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
+        #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
         cnx = self.GetDBConnexion()
         b += str(dir(cnx))
         #cursor = cnx.cursor()
         #cursor.execute("select * from notes_formations")
         #b += str(cursor.fetchall())
         #b = self.Notes.gloups()
-        raise NoteProcessError('test exception !')
-        return self.sco_header(self,REQUEST)+ b + self.sco_footer(self,REQUEST)
-        #return self.objectIds()
-        #return sendCSVFile(REQUEST, "toto;titi", "toto.csv", "toto.csv")
-        REQUEST.RESPONSE.setHeader('Content-type', 'text/comma-separated-values')
-        return ('Content-type: text/comma-separated-values; name="listeTD.csv"\n'
-                +'Content-disposition: filename="listeTD.csv"\n'
-                +'Title: Groupe\n'
-                +'\n' + 'NOM;PRENOM;ETAT\n')    
+        #raise NoteProcessError('test exception !')        
+
+        # essai: liste des permissions
+        from AccessControl import getSecurityManager
+        from AccessControl.Permission import Permission        
+        
+        permissions = self.ac_inherited_permissions(1)
+        scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
+        #H.append( str(self.aq_parent.aq_parent.permission_settings()) )
+        #H.append('<p>perms: %s</p>'%str(scoperms))
+        #H.append('<p>valid_roles: %s</p>'%str(self.valid_roles()))
+        #H.append('<p>ac_inherited_permissions=%s</p>'%str(self.ac_inherited_permissions(1)))
+        def collect_roles( context, rd ):
+            for p in scoperms:
+                name, value = p[:2]
+                P = Permission(name,value,context)
+                roles = list(P.getRoles())
+                if rd.has_key(name):
+                    rd[name] += roles
+                else:
+                    rd[name] = roles
+            if hasattr(context, 'aq_parent'):
+                collect_roles(context.aq_parent, rd)
+            
+        b = ''
+        rd = {}
+        collect_roles(self, rd)
+        b = '<p>' + str(rd) + '</p>'
+
+        authuser = REQUEST.AUTHENTICATED_USER
+        for p in scoperms:
+            permname, value = p[:2]
+            b += '<p>' + permname + ' : '
+            if authuser.has_permission(permname,self):
+                b += 'yes'
+            else:
+                b += 'no'
+            b += '</p>'
+        b += '<p>xxx</p><hr><p>' + str(self.aq_parent.aq_parent)
+
+        return self.sco_header(self,REQUEST)+ str(b) + self.sco_footer(self,REQUEST)
         
     # Ajout (dans l'instance) d'un dtml modifiable par Zope
     def defaultDocFile(self,id,title,file):
@@ -985,6 +1017,41 @@ class ZScolar(ObjectManager,
             i += 1
             alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br>%(comment)s</td></tr>' % a )
         info['liste_annotations'] = '\n'.join(alist)
+        # fiche admission
+        has_adm_notes = info['math'] or info['physique'] or info['anglais'] or info['francais']
+        has_bac_info = info['bac'] or info['specialite'] or info['annee_bac']
+        if has_bac_info or has_adm_notes:
+            if has_adm_notes:
+                adm_tmpl = """<!-- Donnees admission -->
+<div class="ficheadmission">
+<p class="fichetitre">Informations admission</p>
+<table>
+<tr><th>Bac</th><th>An. Bac</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Francais</th></tr>
+<tr>
+<td>%(bac)s (%(specialite)s)</td>
+<td>%(annee_bac)s </td>
+<td>%(math)s</td><td>%(physique)s</td><td>%(anglais)s</td><td>%(francais)s</td>
+</tr>
+</table>
+<p>%(ilycee)s %(rap)s
+</div>
+"""
+            else:
+                adm_tmpl = """<!-- Donnees admission (pas de notes) -->
+<div class="ficheadmission">
+<p class="fichetitre">Informations admission</p>
+<p>Bac %(bac)s (%(specialite)s) obtenu en %(annee_bac)s </p>
+<p>%(ilycee)s %(rap)s
+</div>
+"""
+        else:
+            adm_tmpl = '' # pas de boite "info admission"
+        info['adm_data'] = adm_tmpl % info
+        #
+        if info['liste_annotations']:
+            info['tit_anno'] = '<h4>Annotations</h4>'
+        else:
+            info['tit_anno'] = '<div style="margin-top: 1em; padding-top: 5px;"></div>'
         #
         tmpl = """
 <script language="javascript" type="text/javascript">
@@ -1028,22 +1095,10 @@ function bodyOnLoad() {
 %(liste_inscriptions)s
 </div>
 
-<!-- Donnees admission -->
-<div class="ficheadmission">
-<p class="fichetitre">Informations admission</p>
-<table>
-<tr><th>Bac</th><th>An. Bac</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Francais</th></tr>
-<tr>
-<td>%(bac)s (%(specialite)s)</td>
-<td>%(annee_bac)s </td>
-<td>%(math)s</td><td>%(physique)s</td><td>%(anglais)s</td><td>%(francais)s</td>
-</tr>
-</table>
-<p>%(ilycee)s %(rap)s
-</div>
+%(adm_data)s
 
 <div class="ficheannotations">
-<h4>Annotations</h4>
+%(tit_anno)s
 <table width="95%%">%(liste_annotations)s</table>
 
 <form action="doAddAnnotation" method="GET" class="noprint">
@@ -1062,7 +1117,7 @@ function bodyOnLoad() {
 <div class="code_nip">code NIP: %(code_nip)s</div>
 
 </div>
-        """
+        """                           
         header = self.sco_header(
                     self, REQUEST,
                     #javascripts=[ 'prototype_1_4_0_js', 'rico_js'],
