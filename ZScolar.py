@@ -1769,9 +1769,9 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             ('nomlycee', { 'size' : 20, 'title' : 'Lycée d\'origine' }),
             ('villelycee', { 'size' : 15, 'title' : 'Commune du Lycée' }),
             ('sep', { 'input_type' : 'separator', 'title' : 'Codes Apogée: (optionnels)' }),
-            ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':False,
+            ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':True,
                            'explanation' : 'numéro identité étudiant (Apogée)'}),
-            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE (optionnel)', 'allow_null':False,
+            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE (optionnel)', 'allow_null':True,
                            'explanation' : 'numéro INE'}),
             ]
 
@@ -1806,6 +1806,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             else:
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2])
+            # inval all caches
+            self.Notes.CachedNotesTable.inval_cache()
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     

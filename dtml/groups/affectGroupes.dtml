@@ -18,22 +18,38 @@
   font-weight: bold;
 }
 
+#gmsg {
+  font-weight: bold;
+  font-style: italic;
+  color: red;
+}
+
+#ginfo {
+  margin: 1em;
+  padding-bottom: 1em;
+}
+
+#formGroup {
+  margin: 1em;
+}
+
 </style>
 
+<dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
 
-<h2>Affectation aux groupes de <dtml-var groupTypeName></h2>
+<h2>Affectation aux groupes de <dtml-var groupTypeName> du semestre <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre']"></a></h2>
 
-<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes. Pour supprimer complètement
+<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes. Pour <em>supprimer</em> complètement
 un groupe, <a href="suppressGroup?formsemestre_id=<dtml-var formsemestre_id>&groupType=<dtml-var groupType>&groupTypeName=<dtml-var groupTypeName>">cliquez ici</a>
 </p>
 
-<div id="gmsg" style="font-style: italic">
+<div id="gmsg">
 </div>
 
 <div id="ginfo">
 </div>
 
-<form name="formGroup" onSubmit="return false;">
+<form name="formGroup" id="formGroup" onSubmit="return false;">
 <input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"/>
 <input type="hidden" name="groupType" value="<dtml-var groupType>"/>
 
@@ -56,4 +72,4 @@ un groupe, <a href="suppressGroup?formsemestre_id=<dtml-var formsemestre_id>&gro
 
 </div>
 
-<dtml-var standard_html_footer>
+<dtml-var sco_footer>

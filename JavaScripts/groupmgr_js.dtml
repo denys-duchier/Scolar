@@ -32,15 +32,15 @@ CMyUpdater.prototype = {
   ajaxUpdate: function(ajaxResponse) {
     //console.log("ajaxUpdate called: " + ajaxResponse.childNodes[0]);
     // Recupere la liste des groupes
-    nodes = ajaxResponse.getElementsByTagName('groupe');
+    var nodes = ajaxResponse.getElementsByTagName('groupe');
     if (nodes) {
       for (var i=0; i < nodes.length; i++) {
 	var groupName = nodes[i].attributes.getNamedItem("groupName").value;
 	var displayName = nodes[i].attributes.getNamedItem("displayName").value;
 	// CREE LA BOITE POUR CE GROUPE
 	if (groupName) {
-	  gbox = new CGroupBox( groupName, displayName );
-	  etuds = nodes[i].getElementsByTagName('etud');
+	  var gbox = new CGroupBox( groupName, displayName );
+	  var etuds = nodes[i].getElementsByTagName('etud');
 	  var x='';
 	  //alert( 'etuds.length=' + etuds.length);
 	  for (var j=0; j < etuds.length; j++) {
@@ -212,6 +212,8 @@ function processResponse(target, value) {
   }
   else {
     $(target).innerHTML = 'Groupes enregistres';
+    // quit
+    window.location = 'formsemestre_status?formsemestre_id=' + document.formGroup.formsemestre_id.value;    
   }
 }
 

@@ -29,7 +29,7 @@ saisir et modifier les notes de ce module.
   ( 
     ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
     ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
-    ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abbrégé (pour bulletins)' }),
+    ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrégé (pour bulletins)' }),
 
     ('heures_cours' , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de cours' }),
     ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
