@@ -1102,16 +1102,10 @@ class ZNotes(ObjectManager,
             mo['module'] = self.do_module_list(
                 args={'module_id':mo['module_id']})[0]
             mo['ue'] = self.do_ue_list( args={'ue_id' : mo['module']['ue_id']} )[0]
-        def cmpmods( x, y ):
-            log('cmpmods( %s, %s )' % (str(x),str(y)))
-            # Separe les UE
-            if x['ue']['numero'] != y['ue']['numero']:
-                return cmp(x['ue']['numero'], y['module']['numero'])
-            # Separe les semestres (cas des formations multi-semestres)
-            if x['module']['semestre_id'] != y['module']['semestre_id']:
-                return cmp(x['module']['semestre_id'], y['module']['semestre_id'])
-            return cmp(x['module']['numero'], y['module']['numero'])
-        modimpls.sort( cmpmods )
+        # tri par UE/semestre/numero
+        modimpls.sort( lambda x,y: cmp(
+            (x['ue']['numero'], x['module']['semestre_id'], x['module']['numero']),
+            (y['ue']['numero'], y['module']['semestre_id'], y['module']['numero']) ))
         return modimpls
 
     security.declareProtected(ScoView,'do_ens_list')
