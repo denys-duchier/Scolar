@@ -176,6 +176,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     if situation:
         objects.append( Spacer(0, 0.5*cm) )
         objects.append( Paragraph( SU(situation), StyleSheet["Heading3"] ) )
+    # reduit sur une page
+    objects = [KeepInFrame(0,0,objects,mode='shrink')]    
     #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
@@ -190,8 +192,6 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                             title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
                             subject='Bulletin de note',
                             server_name = server_name))
-        # reduit sur une page
-        objects = [KeepInFrame(0,0,objects,mode='shrink')]
         document.build(objects)
         data = report.getvalue()
         return data
