@@ -148,7 +148,8 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'essai')
     def gloups(self, REQUEST): 
         "essai gloups"
-        return sendPDFFile(REQUEST, pdfbulletins.pdftrombino(0,0), 'toto.pdf' )
+        return pdfbulletins.essaipdf(REQUEST)
+        #return sendPDFFile(REQUEST, pdfbulletins.pdftrombino(0,0), 'toto.pdf' )
 
     # DTML METHODS
     security.declareProtected(ScoView, 'formsemestre_status_head')

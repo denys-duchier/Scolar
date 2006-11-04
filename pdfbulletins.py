@@ -30,7 +30,7 @@
 import time, cStringIO
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Frame, PageBreak
-from reportlab.platypus import Table, TableStyle, Image
+from reportlab.platypus import Table, TableStyle, Image, KeepInFrame
 from reportlab.platypus.flowables import Flowable
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.lib.styles import getSampleStyleSheet
@@ -53,9 +53,10 @@ SCOLAR_FONT_SIZE_FOOT = 6
 
 
 def SU(s):
-    "convert s from SCO default encoding to Unicode"
-    # XXX a mettre en service quand on passaera a ReportLab 2.0
-    return s # unicode(s, SCO_ENCODING, 'replace')
+    "convert s from SCO default encoding to UTF8"
+    # XXX mis en service le 4/11/06, passage à ReportLab 2.0
+    return unicode(s, SCO_ENCODING, 'replace').encode('utf8')
+
 
 class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""
@@ -84,20 +85,22 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.drawImage(image, inch, doc.pagesize[1] - inch, width, height)
         # ---- Add some meta data and bookmarks
         if self.pdfmeta_author:
-            canvas.setAuthor(self.pdfmeta_author)
+            canvas.setAuthor(SU(self.pdfmeta_author))
         if self.pdfmeta_title:
-            canvas.setTitle(self.pdfmeta_title)
+            canvas.setTitle(SU(self.pdfmeta_title))
         if self.pdfmeta_subject:
-            canvas.setSubject(self.pdfmeta_subject)
+            canvas.setSubject(SU(self.pdfmeta_subject))
         bm = self.pagesbookmarks.get(doc.page,None)
         if bm != None:
             canvas.bookmarkPage(bm)
             canvas.addOutlineEntry(bm,bm)
         # ---- Footer
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
-        dt = time.strftime( SU('%d/%m/%Y à %Hh%M') )
+        dt = time.strftime('%d/%m/%Y à %Hh%M')
         if self.server_name:
             s = ' sur %s' % self.server_name
+        else:
+            s = ''
         canvas.drawString(2*cm, 0.25 * inch,
                           SU("Edité par %s le %s%s" % (VERSION.SCONAME,dt,s)) )
         canvas.restoreState()
@@ -148,11 +151,11 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     CellStyle.fontSize= SCOLAR_FONT_SIZE
     CellStyle.fontName= SCOLAR_FONT    
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
-    Pt = [ [Paragraph(x,CellStyle) for x in line ] for line in P ]
+    Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
     # Build doc using ReportLab's platypus
-    objects.append(Paragraph("Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s" % infos,
+    objects.append(Paragraph(SU("Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s" % infos),
                             StyleSheet["Heading2"]) )
-    objects.append(Paragraph("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne), StyleSheet["Heading3"]))
+    objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne)), StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
     # customize table style
     TableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )
@@ -162,15 +165,15 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     if etud.has_key('nbabs'):
         objects.append( Spacer(0, 0.4*cm) )
         objects.append( Paragraph(
-            "%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust']), CellStyle ) )
+            SU("%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust'])), CellStyle ) )
     #
     if appreciations:
         objects.append( Spacer(0, 0.2*cm) )
-        objects.append( Paragraph('Appréciation : ' + '\n'.join(appreciations),
+        objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(appreciations)),
                                   CellStyle) )
     if situation:
         objects.append( Spacer(0, 0.5*cm) )
-        objects.append( Paragraph( situation, StyleSheet["Heading3"] ) )
+        objects.append( Paragraph( SU(situation), StyleSheet["Heading3"] ) )
     #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
@@ -185,7 +188,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                             title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
                             subject='Bulletin de note',
                             server_name = server_name))
-
+        # reduit sur une page
+        objects = [KeepInFrame(0,0,objects,mode='shrink')]
         document.build(objects)
         data = report.getvalue()
         return data
