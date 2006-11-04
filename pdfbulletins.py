@@ -92,8 +92,10 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.setSubject(SU(self.pdfmeta_subject))
         bm = self.pagesbookmarks.get(doc.page,None)
         if bm != None:
-            canvas.bookmarkPage(bm)
-            canvas.addOutlineEntry(bm,bm)
+            key = bm
+            txt = SU(bm)
+            canvas.bookmarkPage(key)
+            canvas.addOutlineEntry(txt,bm)
         # ---- Footer
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
         dt = time.strftime('%d/%m/%Y à %Hh%M')
