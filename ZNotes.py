@@ -148,8 +148,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'essai')
     def gloups(self, REQUEST): 
         "essai gloups"
-        #return 'gloups gloups' + self.essai()
-        return pdfbulletins.essaipdf(REQUEST)
+        return sendPDFFile(REQUEST, pdfbulletins.pdftrombino(0,0), 'toto.pdf' )
 
     # DTML METHODS
     security.declareProtected(ScoView, 'formsemestre_status_head')
@@ -1103,9 +1102,16 @@ class ZNotes(ObjectManager,
             mo['module'] = self.do_module_list(
                 args={'module_id':mo['module_id']})[0]
             mo['ue'] = self.do_ue_list( args={'ue_id' : mo['module']['ue_id']} )[0]
-        modimpls.sort(lambda x,y:
-                      cmp(x['ue']['numero']*1000 + x['module']['numero'],
-                          y['ue']['numero']*1000 + y['module']['numero']))
+        def cmpmods( x, y ):
+            log('cmpmods( %s, %s )' % (str(x),str(y)))
+            # Separe les UE
+            if x['ue']['numero'] != y['ue']['numero']:
+                return cmp(x['ue']['numero'], y['module']['numero'])
+            # Separe les semestres (cas des formations multi-semestres)
+            if x['module']['semestre_id'] != y['module']['semestre_id']:
+                return cmp(x['module']['semestre_id'], y['module']['semestre_id'])
+            return cmp(x['module']['numero'], y['module']['numero'])
+        modimpls.sort( cmpmods )
         return modimpls
 
     security.declareProtected(ScoView,'do_ens_list')
@@ -1158,7 +1164,7 @@ class ZNotes(ObjectManager,
         saisir et modifier toutes les notes des évaluations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a> (pour dir. étud ou admin.)"
+        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>, accessible uniquement au responsable de la formation (chef de département)"
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         userlist = self.getZopeUsers()
@@ -3538,7 +3544,12 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             i = i + 1
         #
         infos = { 'DeptName' : self.DeptName }
-        pdfdoc = pdfbulletins.pdfassemblebulletins(fragments, sem, infos, bookmarks)
+        if REQUEST:
+            server_name = REQUEST.BASE0
+        else:
+            server_name = ''
+        pdfdoc = pdfbulletins.pdfassemblebulletins(
+            fragments, sem, infos, bookmarks, server_name = server_name)
         #
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s.pdf' % (sem['titre'], dt)

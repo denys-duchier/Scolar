@@ -1,17 +1,14 @@
 
-* TODO: Notes  (modifs priotaires)
+* TODO: Notes  (modifs prioritaires)
 -------------
 
 
 - optimiser scolar_news_summary
-- indiquer sur Notes/index_html le nb de semestres dans chaque formation, 
-  et si elle est verrouillée.
 
 - representation du "niveau" de l'étudant sous son bulletin
   (barres comme evals CE2)
 
 - version pdf du trombinoscope
-- suppression boite "infos admission" de la fiche etudiant
 
 BUGS:
 do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 

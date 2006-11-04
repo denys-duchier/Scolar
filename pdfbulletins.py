@@ -30,7 +30,7 @@
 import time, cStringIO
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Frame, PageBreak
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, Image
 from reportlab.platypus.flowables import Flowable
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.lib.styles import getSampleStyleSheet
@@ -42,6 +42,7 @@ from reportlab.lib import styles
 
 from sco_utils import *
 from notes_log import log
+from VERSION import SCOVERSION, SCONAME
 
 PAGE_HEIGHT=defaultPageSize[1]
 PAGE_WIDTH=defaultPageSize[0]
@@ -95,8 +96,10 @@ class ScolarsPageTemplate(PageTemplate) :
         # ---- Footer
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
         dt = time.strftime( SU('%d/%m/%Y à %Hh%M') )
+        if self.server_name:
+            s = ' sur %s' % self.server_name
         canvas.drawString(2*cm, 0.25 * inch,
-                          SU("Edité par %s le %s sur %s" % (VERSION.SCONAME,dt,self.server_name)) )
+                          SU("Edité par %s le %s%s" % (VERSION.SCONAME,dt,s)) )
         canvas.restoreState()
 
 
@@ -187,17 +190,38 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         data = report.getvalue()
         return data
 
-def pdfassemblebulletins( objects, sem, infos, pagesbookmarks ):
+def pdfassemblebulletins( objects, sem, infos, pagesbookmarks, server_name='' ):
     "generate PDF document from a list of PLATYPUS objects"
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
     document.addPageTemplates(
         ScolarsPageTemplate(document,
-                            author='Scolars %s (E. Viennet)' % SCOVERSION,
+                            author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
                             title='Bulletin %s' % (sem['titre']),
                             subject='Bulletin de note',
-                            server_name = 'www-gtr.iutv.univ-paris13.fr',
+                            server_name = server_name,
                             pagesbookmarks=pagesbookmarks))
+    document.build(objects)
+    data = report.getvalue()
+    return data
+
+# -------------- Trombinoscope
+def pdftrombino( sem, etudfotos, server_name='' ):
+    """generate PDF trombinoscope
+    etudfotos = [ (etud, foto), ... ]
+    """
+    objects = []
+    objects.append( Image("/tmp/viennet.jpg") )
+    # generation du document PDF
+    report = cStringIO.StringIO() # in-memory document, no disk file
+    document = BaseDocTemplate(report)
+    document.addPageTemplates(
+    ScolarsPageTemplate(document,
+                        author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+                        title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
+                        subject='Bulletin de note',
+                        server_name = server_name))
+    
     document.build(objects)
     data = report.getvalue()
     return data
