@@ -41,7 +41,9 @@
 <table class="bandeaugtr">
 <tr class="bandeaugtr"><dtml-if titrebandeau><td><dtml-var titrebandeau></td></dtml-if>
     <td class="bandeaugtr"><dtml-if menus_bandeau><dtml-var menus_bandeau></dtml-if></td>
-    <td id="authuser"><a href="<dtml-var ScoURL>/Users/userinfo"><dtml-var AUTHENTICATED_USER></a></td>
+    <td id="authuser"><span><a id="authuserlink" href="<dtml-var ScoURL>/Users/userinfo"><dtml-var AUTHENTICATED_USER></a> &nbsp;&nbsp;&nbsp;
+<a id="deconnectlink" href="<dtml-var ScoURL>/acl_users/logout">déconnexion</a></span>
+</td>
 </tr>
 </table>
 <dtml-unless no_side_bar><dtml-var sidebar></dtml-unless>

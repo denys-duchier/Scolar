@@ -8,7 +8,7 @@ SCONEWS = """
 <li>Réorganisation des pages d'accueil</li>
 <li>Ajout des "nouvelles" (dernières opérations), avec flux RSS</li>
 <li>Import/Export XML des formations, duplication d'une formation (versions)</li>
-<li>Bulletins toujours sur une seule feuille (passage à ReportLab 2.0).</li>
+<li>Bulletins toujours sur une seule feuille (passage à ReportLab 2.0)</li>
 </ul>
 <h4>Septembre 2006</h4>
 <ul>

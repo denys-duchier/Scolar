@@ -5,6 +5,9 @@
 
 # prefix all permissions by "Sco" to group them in Zope management tab
 
+# Attention: si on change ses valeurs, il faut verifier les codes
+# DTML qui utilisent directement les chaines de caractères...
+
 ScoChangeFormation = "Sco Change Formation"
 ScoEditAllNotes = "Sco Modifier toutes notes" 
 ScoImplement    = "Sco Implement Formation"

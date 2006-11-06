@@ -16,6 +16,9 @@
  <a href="<dtml-var ScoURL>" class="sidebar">Semestres</a> <br/> 
  <a href="<dtml-var ScoURL>/Notes" class="sidebar">Programmes</a> <br/> 
  <a href="<dtml-var ScoURL>/Absences" class="sidebar">Absences</a> <br/> 
+<dtml-if "AUTHENTICATED_USER.has_permission('Sco Administrer utilisateurs', this())">
+ <a href="<dtml-var ScoURL>/Users" class="sidebar">Utilisateurs</a> <br/> 
+</dtml-if>
  Chercher &eacute;tudiant:<br/>
 <form action="<dtml-var ScoURL>/chercheEtud">
 <div><input type="text" size="12" name="expnom"></input></div>

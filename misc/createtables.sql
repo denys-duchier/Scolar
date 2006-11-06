@@ -12,6 +12,7 @@
 --
 
 -- generation des id
+CREATE SEQUENCE serial;
 CREATE SEQUENCE notes_idgen;
 
 CREATE FUNCTION notes_newid( text ) returns text as '

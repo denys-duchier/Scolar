@@ -393,7 +393,10 @@ class ZScoUsers(ObjectManager,
          edit = int(edit)
          H = [self.sco_header(self,REQUEST)]
          F = self.sco_footer(self,REQUEST)
-         H.append("<h1>Création d'un utilisateur</h1>")
+         if edit:
+             H.append("<h1>Modification d'un utilisateur</h1>")
+         else:
+             H.append("<h1>Création d'un utilisateur</h1>")
          # Noms de roles pouvant etre attribues aux nouveaux utilisateurs
          # ! NE PAS INCLURE DE ROLES PRIVILEGIES !
          # (normalement: EnsDept, SecrDept)

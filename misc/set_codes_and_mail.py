@@ -19,10 +19,10 @@ idx_nip = 3
 idx_ine = 4
 idx_mail = 6
 
-#DO_IT =  False
-DO_IT = True
+DO_IT =  False
+#DO_IT = True
 
-formsemestre_id = 'SEM322' 
+formsemestre_id = 'SEM229' 
 
 
 # en general, pas d'accents dans le CSV
