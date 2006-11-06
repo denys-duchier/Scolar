@@ -184,6 +184,12 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()
         self._userEditor.edit( cnx, *args, **kw )
 
+    def _user_delete(self, user_name):
+        # delete user
+        cnx = self.GetUsersDBConnexion()
+        user_id = self._user_list( args={'user_name':user_name} )[0]['user_id']
+        self._userEditor.delete( cnx, user_id )
+
     security.declareProtected(ScoAdminUsers, 'user_info')
     def user_info(self, user_name, REQUEST):        
         "donne infos sur l'utilisateur (qui peut ne pas etre dans notre base)"
@@ -358,7 +364,10 @@ class ZScoUsers(ObjectManager,
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoAdminUsers,self):
                 H.append("""
-             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a>""" % info[0])
+             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a></li>
+             <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(à n'utiliser qu'en cas d'erreur !)</em></li>
+             """ % info[0])
+                
             H.append('</ul>')
             
             if str(authuser) == user_name:
@@ -417,7 +426,8 @@ class ZScoUsers(ObjectManager,
              ('prenom', { 'title' : 'Prénom',
                        'size' : 20, 'allow_null' : False }),
              ('user_name', { 'title' : 'Pseudo (login)',
-                             'size' : 20, 'allow_null' : False })
+                             'size' : 20, 'allow_null' : False,
+                             'explanation' : 'nom utilisé pour la connexion. Doit être unique parmi tous les utilisateurs.'})
              ]
          if not edit:
              descr += [
@@ -527,6 +537,26 @@ class ZScoUsers(ObjectManager,
         if REQUEST:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
 
+    security.declareProtected(ScoAdminUsers, 'delete_user_form')
+    def delete_user_form(self, REQUEST, user_name, dialog_confirmed=False):
+        "delete user"
+        r = self._user_list( args={'user_name' : user_name})
+        if len(r) != 1:
+            return ScoValueError('utilisateur %s inexistant' % user_name)
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                """<h2>Confirmer la suppression de l\'utilisateur %s ?</h2>
+                <p>En général, il est déconseillé de supprimer un utilisateur, son
+                identité étant référencé dans les modules de formation. N'utilisez
+                cette fonction qu'en cas d'erreur (création de doublons, etc).
+                </p>
+                """% user_name,
+                dest_url="", REQUEST=REQUEST,
+                cancel_url=REQUEST.URL1,
+                parameters={'user_name':user_name})
+        self._user_delete(user_name)
+        REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        
     security.declareProtected(ScoAdminUsers, 'list_users')
     def list_users(self, dept, REQUEST=None):
         "liste des utilisateurs"
