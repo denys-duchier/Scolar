@@ -22,7 +22,7 @@ idx_mail = 6
 DO_IT =  False
 #DO_IT = True
 
-formsemestre_id = 'SEM229' 
+formsemestre_id = 'SEM118' 
 
 
 # en general, pas d'accents dans le CSV
