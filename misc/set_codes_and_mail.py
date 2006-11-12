@@ -19,8 +19,8 @@ idx_nip = 3
 idx_ine = 4
 idx_mail = 6
 
-DO_IT =  False
-#DO_IT = True
+#DO_IT =  False
+DO_IT = True
 
 formsemestre_id = 'SEM118' 
 
@@ -71,9 +71,13 @@ def fix_codes(etudid, ine, nip): # change toujours
     cursor = cnx.cursor()
     cursor.execute("select code_ine, code_nip from identite where etudid=%(etudid)s",
                    { 'etudid' : etudid } )
-    r = cursor.fetchone()
+    r = cursor.dictfetchone()
     if not r:
         raise ValueError('invalid etudid: %s' % etudid)
+    if r['code_ine'] and r['code_ine'] != ine:
+        print 'Warning: replacing code INE with different value (%s != %s)' % (r['code_ine'], ine)
+    if r['code_nip'] and r['code_nip'] != nip:
+        print 'Warning: replacing code NIP with different value'
     print "update identite set code_ine=%(ine)s, code_nip=%(nip)s where etudid=%(etudid)s" % { 'etudid' : etudid, 'ine':ine, 'nip':nip }
     if DO_IT:
         cursor.execute("update identite set code_ine=%(ine)s, code_nip=%(nip)s where etudid=%(etudid)s",

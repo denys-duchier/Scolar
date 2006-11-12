@@ -210,6 +210,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             log('csv: deleting etudid=%s'%etudid)
             cursor.execute('delete from notes_moduleimpl_inscription where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from notes_formsemestre_inscription where etudid=%(etudid)s', { 'etudid':etudid })
+            cursor.execute('delete from scolar_events where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from adresse where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from admissions where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })

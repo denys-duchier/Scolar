@@ -1135,15 +1135,23 @@ function bodyOnLoad() {
             return 'aucune information sur cet étudiant !', ''
         # recherche la date de 1ere inscription
         date_entree = ''
-        titressem = []
-        for ev in events:
+        titressem = []        
+        for i in range(len(events)):
+            ev = events[i]
             if ev['event_type'] == 'INSCRIPTION':
                 if not date_entree:
                     # garde la premiere date d'inscription
                     date_entree = '(entré%s le %s)' % (ne,ev['event_date'])
                 sem = self.Notes.do_formsemestre_list(
                      {'formsemestre_id' : ev['formsemestre_id']} )[0]
-                titressem.append(sem['titre'])
+                # filtre inscriptions dupliquees (specifique pour bug CJ oct 2006)
+                duplicate = False
+                if i > 0:
+                    pr = events[i-1]
+                    if pr['event_type'] == 'INSCRIPTION' and pr['event_date'] == ev['event_date'] and pr['formsemestre_id'] == ev['formsemestre_id']:
+                        duplicate = True
+                if not duplicate:
+                    titressem.append(sem['titre'])
         parcours = ', '.join(titressem)
         # dernier event
         lastev = events[-1]

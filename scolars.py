@@ -153,7 +153,7 @@ def identite_create( cnx, args ):
         etudid = args['etudid']
         r = identite_list(cnx, {'etudid' : etudid})
         if r:
-            raise ScoValueError('Code identifiant (NIP) déjà utilisé ! (%s)' % etudid)
+            raise ScoValueError('Code identifiant (etudid) déjà utilisé ! (%s)' % etudid)
     return _identiteEditor.create(cnx, args)
 
 # --------
