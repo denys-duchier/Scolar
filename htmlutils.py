@@ -45,10 +45,14 @@ import listhistogram
 
 def histogram_notes( notes ):
     "HTML code drawing histogram"
+    if not notes:
+        return ''
     bins, H = listhistogram.ListHistogram( notes, 21, minmax=(0,20) )
     D = ['<ul id="vhist-q-graph"><li class="vhist-qtr" id="vhist-q1"><ul>']
     left=5
     colwidth = 16 # must match #q-graph li.bar width in stylesheet
+    if max(H) <= 0:
+        return ''
     hfactor = 95./max(H) # garde une marge de 5% pour l'esthetique
     for i in range(len(H)):
         if H[i] >= 0:
