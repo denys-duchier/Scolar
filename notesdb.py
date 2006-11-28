@@ -312,6 +312,7 @@ def DateDMYtoISO(dmy):
 def DateISOtoDMY(isodate):    
     if not isodate:
         return ''
+    arg = isodate # debug
     # si isodate est une instance de DateTime !
     try:
         isodate = '%s-%s-%s' % (isodate.year, isodate.month, isodate.day)
@@ -322,8 +323,8 @@ def DateISOtoDMY(isodate):
     t = str(isodate).split()[0].split('-')
     if len(t) != 3:
         # XXX recherche bug intermittent assez etrange
-        log('*** DateISOtoDMY: invalid isodate %s'%str(isodate))
-        raise NoteProcessError('invalid isodate: "%s"' % str(isodate))
+        log('*** DateISOtoDMY: invalid isodate "%s" (arg="%s")'%(str(isodate),arg))
+        raise NoteProcessError('invalid isodate: "%s" (arg="%s")' % (str(isodate),arg))
     year, month, day = t
     year = int(year)
     month = int(month)

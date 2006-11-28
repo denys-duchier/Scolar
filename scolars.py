@@ -241,7 +241,7 @@ etudident_list   = _etudidentEditor.list
 etudident_edit   = _etudidentEditor.edit
 etudident_create = _etudidentEditor.create
 
-def make_etud_args(etudid=None, REQUEST=None):
+def make_etud_args(etudid=None, REQUEST=None, raise_exc=True):
     """forme args dict pour requete recherche etudiant
     On peut specifier etudid
     ou bien cherche dans REQUEST.form: etudid, code_nip, code_ine
@@ -257,7 +257,7 @@ def make_etud_args(etudid=None, REQUEST=None):
             args = { 'code_nip' : REQUEST.form['code_nip'] }
         elif REQUEST.form.has_key('code_ine'):
             args = { 'code_ine' : REQUEST.form['code_ine'] }
-    if not args:
+    if not args and raise_exc:
         raise ValueError('getEtudInfo: no parameter !')
     return args
 

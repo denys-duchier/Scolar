@@ -29,6 +29,10 @@
 </p>
 </dtml-if permission>
 
+<p>
+ <a class="stdlink" href="clearcache">Forcer le recalcul des moyennes</a>
+</p>
+
 <dtml-var sco_footer>
 </dtml-if isFile>
 </dtml-let isFile>

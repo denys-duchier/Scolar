@@ -742,12 +742,14 @@ class ZScolar(ObjectManager,
         
     # -------------------------- INFOS SUR ETUDIANTS --------------------------
     security.declareProtected(ScoView, 'getEtudInfo')
-    def getEtudInfo(self,etudid=None,filled=False,REQUEST=None):
+    def getEtudInfo(self,etudid=False,filled=False,REQUEST=None):
         """infos sur un etudiant pour utilisation en Zope DTML
         On peut specifier etudid
         ou bien cherche dans REQUEST.form: etudid, code_nip, code_ine
         (dans cet ordre).
         """
+        if etudid is None:
+            return []
         cnx = self.GetDBConnexion()
         args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
         etud = scolars.etudident_list(cnx,args=args)
