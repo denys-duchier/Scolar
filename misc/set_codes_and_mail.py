@@ -8,9 +8,9 @@ import pdb,os,sys,psycopg
 import csv
 
 
-CSVFILENAME = '/tmp/viennet-20061025-1033.csv'
+CSVFILENAME = '/tmp/viennet-20061110-1009.csv'
 
-DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOINFO password=R&Totoro'
+DBCNXSTRING = 'host=localhost user=zopeuser dbname=SCOXXX password=XXX'
 
 idx_dept = 0
 idx_prenom = 1
@@ -22,7 +22,7 @@ idx_mail = 6
 #DO_IT =  False
 DO_IT = True
 
-formsemestre_id = 'SEM118' 
+formsemestre_id = 'SEM3608' 
 
 
 # en general, pas d'accents dans le CSV
@@ -30,7 +30,7 @@ SCO_ENCODING = 'iso8859-15'
 from SuppressAccents import suppression_diacritics
 def suppr_acc_and_ponct(s):
     s = s.replace( ' ', '' )
-    s = s.replace('-', ' ')    
+    s = s.replace('-', '')    
     return str(suppression_diacritics( unicode(s, SCO_ENCODING) ))
 
 def make_key(nom, prenom):
@@ -41,7 +41,7 @@ def make_key(nom, prenom):
 reader = csv.reader(open( CSVFILENAME, "rb"))
 noms = {}
 for row in reader:
-    if row[0][0] != '#':
+    if row and row[0][0] != '#':
         key = make_key( row[idx_nom], row[idx_prenom])
         if noms.has_key(key):
             raise ValueError, 'duplicate key: %s' % key
@@ -58,6 +58,7 @@ def fix_email(etudid, email): # ne change que s'il n'y a pas deja un mail
         # pas d'email, insere le notre
         if DO_IT:
             cursor.execute("insert into adresse (etudid, email) values (%(etudid)s, %(email)s)", { 'etudid' : etudid, 'email' : email })
+        print 'mail set to %s' % email
         return True
     elif not r[0]:
         # email vide, met a jour avec le notre
@@ -92,7 +93,7 @@ nok=0
 for e in R:
     key = make_key(e['nom'], e['prenom'])
     if not noms.has_key(key):
-        print '** no match for %s (%s)' % (key, e['etudid'])
+        print '\n******* no match for %s (%s)' % (key, e['etudid'])
     else:
         info = noms[key]
         print '* %s %s: ine=%s   %s' % (key, e['prenom'], info[idx_ine], info[idx_prenom])

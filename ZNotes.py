@@ -2862,8 +2862,10 @@ class ZNotes(ObjectManager,
         return L, invalids, withoutnotes, absents, tosuppress
 
     security.declareProtected(ScoView, 'can_edit_notes')
-    def can_edit_notes(self, authuser, moduleimpl_id ):
-        "True if authuser can enter or edit notes in this module"
+    def can_edit_notes(self, authuser, moduleimpl_id, allow_ens=True ):
+        """True if authuser can enter or edit notes in this module.
+        If allow_ens, grant access to all ens in this module
+        """
         uid = str(authuser)
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
@@ -2873,9 +2875,10 @@ class ZNotes(ObjectManager,
             and uid != M['responsable_id']
             and uid != sem['responsable_id']):
             # enseignant (chargé de TD) ?
-            for ens in M['ens']:
-                if ens['ens_id'] == uid:
-                    return True
+            if allow_ens:
+                for ens in M['ens']:
+                    if ens['ens_id'] == uid:
+                        return True
             return False
         else:
             return True        
@@ -2890,7 +2893,8 @@ class ZNotes(ObjectManager,
         "suppress all notes in this eval"
         authuser = REQUEST.AUTHENTICATED_USER
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-        if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
+        if not self.can_edit_notes( authuser, E['moduleimpl_id'], allow_ens=False ):
+            # NB: les chargés de TD n'ont pas le droit.
             # XXX imaginer un redirect + msg erreur
             raise AccessDenied('Modification des notes impossible pour %s'%authuser)
         if not dialog_confirmed:

@@ -29,7 +29,8 @@
 """
 
 import time, string, glob
-
+import urllib2, xml
+        
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -59,6 +60,7 @@ from notesdb import *
 from scolog import logdb
 
 import scolars
+import sco_formations
 from scolars import format_nom, format_prenom, format_sexe, format_lycee
 from scolars import format_telephone, format_pays, make_etud_args
 
@@ -1790,6 +1792,52 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             initvalues = initvalues[0]
             submitlabel = 'Modifier les données'
 
+        # recuperation infos Apogee
+        nom = REQUEST.form.get('nom',None)
+        if nom is None:
+            nom = initvalues.get('nom',None)
+        if nom is None:
+            infos = []
+        else:
+            prenom = REQUEST.form.get('prenom','')
+            if not prenom:
+                prenom = initvalues.get('prenom','')
+            infos = self.get_infos_apogee(nom, prenom)
+        if infos:
+            formatted_infos = [ """
+            <script type="text/javascript">
+            /* <![CDATA[ */
+            function copy_nip(nip) {
+            document.tf.code_nip.value = nip;
+            }
+            /* ]]> */
+            </script>
+            <ol>""" ]
+            nanswers = len(infos)
+            nmax = 10 # nb max de reponse montrees
+            infos = infos[:nmax]
+            for i in infos:
+                formatted_infos.append( '<li><ul>' )
+                for k in i.keys():
+                    if k != 'nip':
+                        item = '<li>%s : %s</li>' % (k, i[k])
+                    else:
+                        item = '<li><form>%s : %s <input type="button" value="copier ce code" onmousedown="copy_nip(%s);"/></form></li>' % (k, i[k], i[k])
+                    formatted_infos.append( item )
+                    
+                formatted_infos.append( '</ul></li>' )                
+            formatted_infos.append( '</ol>' )
+            m = "%d étudiants trouvés" % nanswers
+            if len(infos) != nanswers:
+                m += " (%d montrés)" % len(infos)
+            A = """<div class="infoapogee">
+            <h5>Informations Apogée</h5>
+            <p>%s</p>
+            %s
+            </div>""" % (m, '\n'.join(formatted_infos))
+        else:
+            A = """<div class="infoapogee"><p>Pas d'informations d'Apogée</p></div>"""
+        
         descr += [
             ('adm_id', { 'input_type' : 'hidden' }),
 
@@ -1842,12 +1890,13 @@ Utiliser ce formulaire en fin de semestre, après le jury.
 
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 submitlabel = submitlabel,
-                                cancelbutton = 'Annuler',
+                                cancelbutton = 'Interroger Apogee',
                                 initvalues = initvalues)
         if tf[0] == 0:
-            return '\n'.join(H) + tf[1] + '<p>' + F
+            return '\n'.join(H) + tf[1] + '<p>' + A + F
         elif tf[0] == -1:
-            return '\n'.join(H) + '<h4>annulation</h4>' + F
+            return '\n'.join(H) + tf[1] + '<p>' + A + F
+            #return '\n'.join(H) + '<h4>annulation</h4>' + F
         else:
             # form submission
             if not edit:
@@ -1892,7 +1941,39 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
         self.Notes.CachedNotesTable.inval_cache()
-    
+
+
+    security.declareProtected(ScoView, "get_infos_apogee")
+    def get_infos_apogee(self, nom, prenom):
+        """recupere les codes Apogee en utilisant le web service CRIT
+        """
+        if (not nom) and (not prenom):
+            return []
+        from SuppressAccents import suppression_diacritics
+        if nom:
+            nom = str(suppression_diacritics( unicode(nom, SCO_ENCODING) ))
+        if prenom:
+            prenom = str(suppression_diacritics( unicode(prenom, SCO_ENCODING) ))
+        req = 'https://portail.cevif.univ-paris13.fr/getEtud.php?nom=%s&prenom=%s' %(nom,prenom)
+        f = urllib2.urlopen(req)
+        doc = f.read()
+        dom = xml.dom.minidom.parseString(doc)
+        infos = []
+        try:
+            if dom.childNodes[0].nodeName != u'etudiants':
+                raise ValueError
+            etudiants = dom.getElementsByTagName('etudiant')
+            for etudiant in etudiants:
+                d = {}
+                # recupere toutes les valeurs <valeur>XXX</valeur>
+                for e in etudiant.childNodes:
+                    if e.nodeType == e.ELEMENT_NODE:
+                        d[str(e.nodeName)] = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
+                infos.append(d)
+        except:
+            raise ValueError('invalid XML response from getEtud Web Service\n%s' % req)
+        return infos
+        
     security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
     def form_students_import_csv(self, REQUEST, formsemestre_id=None):
         "formulaire import csv"

@@ -271,12 +271,12 @@ class ZScoUsers(ObjectManager,
         # check password
         if password != password2:
             H.append( """<p>Les deux mots de passes saisis sont différents !</p>
-            <p><a href="form_change_password" class="stdlink">Recommencer</a></p>""")
+            <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>""" % user_name )
         else:
             if not self._is_valid_passwd(password):
                 H.append( """<p><b>ce mot de passe n\'est pas assez compliqué !</b><br>(oui, il faut un mot de passe vraiment compliqué !)</p>
-                <p><a href="form_change_password" class="stdlink">Recommencer</a></p>
-                """ )
+                <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>
+                """ % user_name )
             else:
                 # ok, strong password
                 # MD5 hash (now computed by exUserFolder)

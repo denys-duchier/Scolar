@@ -41,8 +41,10 @@
 <h3>Autres opérations</h3>
 
 <ul>
+<dtml-if "can_edit_notes(AUTHENTICATED_USER,eval['moduleimpl_id'],allow_ens=False)">
 <li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
 </li> 
+</dtml-if>
 <li><a class="stdlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">Revenir au module</a>
 </li>
 </ul>

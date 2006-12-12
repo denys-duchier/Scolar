@@ -10,6 +10,8 @@
 
 - version pdf du trombinoscope
 
+- lien "changer responsable" sur tableau bord module (pour admin et dir etud)
+
 BUGS:
 - saisie absence sans date: message erreur (validation formulaire)
 - moduleimpl_status: lien creation evaluation d: ne pas montrer aux charges de TD

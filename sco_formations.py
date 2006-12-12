@@ -67,6 +67,7 @@ def formation_export_xml( context, formation_id ):
 
 
 ELEMENT_NODE = 1
+TEXT_NODE = 3
 def XMLToDicts(element, encoding):
     """Represent dom element as a dict
     Example:
@@ -87,6 +88,7 @@ def XMLToDicts(element, encoding):
         if child.nodeType == ELEMENT_NODE:
             childs.append( XMLToDicts(child, encoding) )
     return (element.nodeName.encode(encoding), d, childs)
+
 
 def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     """Create a formation from XML representation
