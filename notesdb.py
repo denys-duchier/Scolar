@@ -324,7 +324,7 @@ def DateISOtoDMY(isodate):
     if len(t) != 3:
         # XXX recherche bug intermittent assez etrange
         log('*** DateISOtoDMY: invalid isodate "%s" (arg="%s")'%(str(isodate),arg))
-        raise NoteProcessError('invalid isodate: "%s" (arg="%s")' % (str(isodate),arg))
+        raise NoteProcessError('invalid isodate: "%s" (arg="%s" type=%s)' % (str(isodate),arg, type(arg)))
     year, month, day = t
     year = int(year)
     month = int(month)

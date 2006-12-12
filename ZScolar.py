@@ -1955,7 +1955,11 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         if prenom:
             prenom = str(suppression_diacritics( unicode(prenom, SCO_ENCODING) ))
         req = 'https://portail.cevif.univ-paris13.fr/getEtud.php?nom=%s&prenom=%s' %(nom,prenom)
-        f = urllib2.urlopen(req)
+        try:
+            f = urllib2.urlopen(req)
+        except:
+            log("get_infos_apogee: can't connect to Apogee portal")
+            return []
         doc = f.read()
         dom = xml.dom.minidom.parseString(doc)
         infos = []
