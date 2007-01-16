@@ -8,12 +8,13 @@ import pdb,os,sys,psycopg
 import csv
 
 
-CSVFILENAME = '/tmp/listephotos.csv'
+CSVFILENAME = '/tmp/aaa.csv'
+#CSVFILENAME = '/tmp/ferhan2.csv'
 
-DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOINFO password=XXX'
+DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOINFO password=R&Totoro'
 
-idx_nip = 0
-idx_photo = 1
+idx_nip = 1
+idx_photo = 0
 
 
 #DO_IT =  False
@@ -22,7 +23,7 @@ DO_IT = True
 # en general, pas d'accents dans le CSV
 SCO_ENCODING = 'iso8859-15'
 
-reader = csv.reader(open( CSVFILENAME, "rb"), delimiter='\t')
+reader = csv.reader(open( CSVFILENAME, "rb"), delimiter=',')
 photos = {}
 for row in reader:
     if row[0][0] != '#':

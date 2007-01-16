@@ -8,8 +8,7 @@ import pdb,os,sys,psycopg
 import csv
 
 
-CSVFILENAME = '/tmp/viennet-20061110-1009.csv'
-
+CSVFILENAME = '/tmp/viennet-20061110-1009-latin1.csv'
 DBCNXSTRING = 'host=localhost user=zopeuser dbname=SCOXXX password=XXX'
 
 idx_dept = 0
@@ -22,9 +21,7 @@ idx_mail = 6
 #DO_IT =  False
 DO_IT = True
 
-formsemestre_id = 'SEM3608' 
-
-
+formsemestre_id = 'GEASEM4185'
 # en general, pas d'accents dans le CSV
 SCO_ENCODING = 'iso8859-15'
 from SuppressAccents import suppression_diacritics
@@ -90,10 +87,11 @@ cursor.execute("select * from identite i, notes_formsemestre_inscription ins whe
 R = cursor.dictfetchall()
 
 nok=0
+unmatched = []
 for e in R:
     key = make_key(e['nom'], e['prenom'])
     if not noms.has_key(key):
-        print '\n******* no match for %s (%s)' % (key, e['etudid'])
+        unmatched.append( (key, e['etudid']) )
     else:
         info = noms[key]
         print '* %s %s: ine=%s   %s' % (key, e['prenom'], info[idx_ine], info[idx_prenom])
@@ -106,5 +104,9 @@ for e in R:
             print '\tcodes set: ine=%s, nip=%s' % (ine, nip)
 
 cnx.commit()
+
+print '%d unmatched:' % len(unmatched)
+for (key,etudid) in unmatched:
+    print '\t%s\t%s' % (key,etudid)
 
 print '%d etudiants, %d ok' % (len(R), nok)
