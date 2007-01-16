@@ -4285,6 +4285,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             s = ''
             menulist.append(
                 '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
+        menulist.append('<option value="%s">Répéter celui-ci</option>' % formsemestre_id)
         if othersems:
             H.append( '<p><b>Semestre précédent:</b> <select name="formsemestre_id1">'
                   + '\n '.join(menulist) + '</select></p>' )
