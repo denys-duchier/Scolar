@@ -30,7 +30,10 @@
 
 import time, string, glob
 import urllib2, xml
-        
+try: from cStringIO import StringIO
+except: from StringIO import StringIO
+from zipfile import ZipFile
+
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -650,28 +653,65 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoView,'trombino')
     def trombino(self,REQUEST,formsemestre_id,
-                 groupetd=None, groupetp=None, groupeanglais=None, etat=None, nbcols=5):
+                 groupetd=None, groupetp=None, groupeanglais=None,
+                 etat=None, nbcols=5,
+                 format = 'html' ):
         """Trombinoscope"""
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
                                                           groupetd,groupetp,groupeanglais,etat )
         #
-        nbcols = int(nbcols)
-        H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre'], ng) ]
-        H.append('<table width="100%">')
-        i = 0
+        if format == 'zip':
+            return self._trombino_zip(T, REQUEST)
+        else:
+            nbcols = int(nbcols)
+            H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre'], ng) ]
+            H.append('<table width="100%">')
+            i = 0
+            for t in T:
+                if i % nbcols == 0:
+                    H.append('<tr>')
+                H.append('<td align="center">')
+                foto = self.etudfoto(t[2],fototitle='fiche de '+ t[0],foto=t[6] )
+                H.append('<a href="ficheEtud?etudid='+t[2]+'">'+foto+'</a>')
+                H.append('<br>' + t[1] + '<br>' + t[0] )
+                H.append('</td>')
+                i += 1
+                if i % nbcols == 0:
+                    H.append('</tr>')
+            H.append('</table>')
+            args='formsemestre_id=%s&format=zip' % formsemestre_id
+            if groupetd:
+                args += '&groupetd=%s' % groupetd
+            if groupetp:
+                args += '&groupetp=%s' % groupetp
+            if groupeanglais:
+                args += '&groupeanglais=%s' % groupeanglais
+            if etat:
+                args += '&etat=%s' % etat            
+            H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
+            return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+
+    def _trombino_zip(self, T, REQUEST ):
+        "Send photos as zip archive"
+        data = StringIO()
+        Z = ZipFile( data, 'w' )
         for t in T:
-            if i % nbcols == 0:
-                H.append('<tr>')
-            H.append('<td align="center">')
-            foto = self.etudfoto(t[2],fototitle='fiche de '+ t[0],foto=t[6] )
-            H.append('<a href="ficheEtud?etudid='+t[2]+'">'+foto+'</a>')
-            H.append('<br>' + t[1] + '<br>' + t[0] )
-            H.append('</td>')
-            i += 1
-            if i % nbcols == 0:
-                H.append('</tr>')
-        H.append('</table>')
-        return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+            fotoimg=self.etudfoto_img(t[2],foto=t[6])
+            code_nip = t[8]
+            if code_nip:
+                filename = code_nip + '.jpg'
+            else:
+                filename = t[0] + '_' + t[1] + '_' + t[2] + '.jpg'
+            Z.writestr( filename, fotoimg.data )
+        Z.close()
+        size = data.tell()
+        log('trombino_zip: %d bytes'%size)
+        content_type = 'application/zip'
+        REQUEST.RESPONSE.setHeader('Content-Disposition',
+                                   'attachement;filename="trombi.zip"'  )
+        REQUEST.RESPONSE.setHeader('Content-Type', content_type)
+        REQUEST.RESPONSE.setHeader('Content-Length', size)
+        return data.getvalue()
 
     def _getlisteetud(self, formsemestre_id,
                       groupetd=None, groupetp=None, groupeanglais=None, etat=None ):
@@ -694,7 +734,7 @@ class ZScolar(ObjectManager,
         for i in ins:
             etud = scolars.etudident_list(cnx, {'etudid':i['etudid']})[0]
             t = [format_nom(etud['nom']), format_prenom(etud['prenom']), etud['etudid'],
-                 scolars.getEmail(cnx,etud['etudid']), i['etat'],i['groupetd'],etud['foto']] 
+                 scolars.getEmail(cnx,etud['etudid']), i['etat'],i['groupetd'],etud['foto'],etud['code_ine'],etud['code_nip']]
             if t[4] == 'I':
                 t[4] = '' # etudiant inscrit, ne l'indique pas dans la liste HTML
             elif t[4] == 'D':
@@ -1184,6 +1224,9 @@ function bodyOnLoad() {
             etat = 'autorisé%s à redoubler le %s (le %s)' % (ne,sem['titre'],lastev['event_date'])
         elif lastev['event_type'] == 'EXCLUS':
             etat = 'exclu%s le %s' % (ne,lastev['event_date'])
+        elif lastev['event_type'] == 'UTIL_COMPENSATION':
+            # XXXX devrait traiter selon l'evenement precedent (recursivement)
+            etat = 'XXX unimplemented'
         else:
             etat = 'code évenement inconnu (%s) !' % lastev['event_type']
         #

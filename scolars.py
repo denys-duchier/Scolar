@@ -283,7 +283,9 @@ def scolar_events_create( cnx, args ):
     _scolar_eventsEditor.create( cnx, args, has_uniq_values=False )
 
 def scolar_get_validated( cnx, etudid, formsemestre_id ):
-    """None ou event si semestre valide, echec, liste de ue_id valides."""
+    """None ou event si semestre valide, echec, liste de ue events valides,
+    id du semestre utilise pour compenser (ou None)
+    """
     events = scolar_events_list(
         cnx, args={'etudid':etudid,
                    'formsemestre_id':formsemestre_id,
@@ -304,11 +306,21 @@ def scolar_get_validated( cnx, etudid, formsemestre_id ):
         cnx, args={'etudid':etudid,
                    'formsemestre_id':formsemestre_id,
                    'event_type' : 'VALID_UE' })
-    #uelist = [ evt['ue_id'] for evt in events ]
-    return evt_valid_sem, evt_echec_sem, events
+    # semestre utilise pour obtenir celui ci par compensation ?
+    comp_events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'comp_formsemestre_id':formsemestre_id,
+                   'event_type' : 'UTIL_COMPENSATION' })
+    if comp_events:
+        comp_semid = comp_events[0]['formsemestre_id']
+    else:
+        comp_semid = None
+    return evt_valid_sem, evt_echec_sem, events, comp_semid
 
 
-def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
+def scolar_validate_sem( cnx, etudid, formsemestre_id,
+                         valid=True,                         
+                         formsemestre_used_to_compensate=None,
                          event_date=None, REQUEST=None ):
     """Si valid==True, valide ce semestre, sinon echec"""
     logdb(REQUEST,cnx,method='valid_sem (valid=%s)'%valid, etudid=etudid)
@@ -318,7 +330,8 @@ def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
         code = 'VALID_SEM'
     else:
         code = 'ECHEC_SEM'
-    # verifie si deja events et les supprime
+    # Vérifie si deja events et les supprime
+    # -- supr. validations
     events = scolar_events_list(
         cnx, args={'etudid':etudid,
                    'formsemestre_id':formsemestre_id,
@@ -327,6 +340,7 @@ def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
         log('scolar_validate_sem: deleting previous VALID_SEM')
         scolar_events_delete(cnx, event['event_id'])
 
+    # -- supr. echecs
     events = scolar_events_list(
         cnx, args={'etudid':etudid,
                    'formsemestre_id':formsemestre_id,
@@ -334,13 +348,31 @@ def scolar_validate_sem( cnx, etudid, formsemestre_id, valid=True,
     for event in events:
         log('scolar_validate_sem: deleting previous ECHEC_SEM')
         scolar_events_delete(cnx, event['event_id'])
+
+    # -- supr. compensations
+    events = scolar_events_list(
+        cnx, args={'etudid':etudid,
+                   'comp_formsemestre_id':formsemestre_id,
+                   'event_type' : 'UTIL_COMPENSATION' })
+    for event in events:
+        log('scolar_validate_sem: deleting previous UTIL_COMPENSATION')
+        scolar_events_delete(cnx, event['event_id'])
     
-    # nouvel event
+    # Nouvel event
     scolar_events_create( cnx, args = {
         'etudid' : etudid,
         'event_date' : event_date,
         'formsemestre_id' : formsemestre_id,
         'event_type' : code } )
+    # Semestre utilise pour compenser:
+    if formsemestre_used_to_compensate:
+        scolar_events_create( cnx, args = {
+        'etudid' : etudid,
+        'event_date' : event_date,
+        'formsemestre_id' : formsemestre_used_to_compensate,
+        'event_type' : 'UTIL_COMPENSATION',
+        'comp_formsemestre_id' : formsemestre_id } )
+        
 
 def scolar_validate_ues( znotes, cnx, etudid, formsemestre_id,
                          ue_ids=[],

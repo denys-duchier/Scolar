@@ -315,7 +315,7 @@ def DateISOtoDMY(isodate):
     arg = isodate # debug
     # si isodate est une instance de DateTime !
     try:
-        isodate = '%s-%s-%s' % (isodate.year, isodate.month, isodate.day)
+        isodate = '%s-%s-%s' % (isodate.year(), isodate.month(), isodate.day())
         #log('DateISOtoDMY: converted isodate to iso !')
     except:
         pass
@@ -347,11 +347,19 @@ def TimefromISO8601(t):
     "convert time string from ISO 8601 to our display format"
     if not t:
         return t
+    # XXX strange bug turnaround...
+    try:
+        t = '%s:%s' % (t.hour(), t.minute())
+        #log('TimefromISO8601: converted isotime to iso !')
+    except:
+        pass
     fs = str(t).split(':') 
     return fs[0] + 'h' + fs[1] # discard seconds
 
 def TimeDuration( heure_debut, heure_fin ):
-    "duree (nb entier de minutes) entre deuxheures a notre format"
+    """duree (nb entier de minutes) entre deux heures a notre format
+    ie 12h23
+    """
     if heure_debut and heure_fin:
         h0, m0 = [ int(x) for x in heure_debut.split('h') ]
         h1, m1 = [ int(x) for x in heure_fin.split('h') ]

@@ -1,8 +1,14 @@
-SCOVERSION = "4.10"
+SCOVERSION = "4.11"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+<h4>Janvier 2007</h4>
+<ul>
+<li>Gestion des compensations inter-semestre DUT (en cours de développement)</li>
+<li>Export trombinoscope en archive zip</li>
+</ul>
+
 <h4>Octobre 2006</h4>
 <ul>
 <li>Réorganisation des pages d'accueil</li>

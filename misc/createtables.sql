@@ -243,7 +243,8 @@ CREATE TABLE notes_formsemestre (
  	nomgroupetd text default 'TD',
  	nomgroupetp text default 'TP',
  	nomgroupeta text default 'langues',
-	bul_show_codemodules integer default 1
+	bul_show_codemodules integer default 1,
+        gestion_compensation integer default 0, -- gestion compensation sem DUT
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre
@@ -336,15 +337,20 @@ CREATE TABLE notes_notes_log (
 --       VALID_SEM   obtention semestre après jury terminal
 --       VALID_UE    obtention UE après jury terminal
 --       ECHEC_SEM   echec a ce semestre
+--       UTIL_COMPENSATION utilise formsemestre_id pour compenser et valider
+--                         comp_formsemestre_id
 CREATE TABLE scolar_events (
 	event_id     text default notes_newid('EVT') PRIMARY KEY,
 	etudid text,
 	event_date timestamp default now(),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
         ue_id text REFERENCES notes_ue(ue_id),
-	event_type text -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 
-                        -- 'AUT_RED', 'EXCLUS', 'VALID_UE', 'VALID_SEM'
-                        -- 'ECHEC_SEM'
+	event_type text, -- 'CREATION', 'INSCRIPTION', 'DEMISSION', 
+                         -- 'AUT_RED', 'EXCLUS', 'VALID_UE', 'VALID_SEM'
+                         -- 'ECHEC_SEM'
+	                 -- 'UTIL_COMPENSATION'
+        comp_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+                         -- semestre compense par formsemestre_id
 );
 
 ---------------------------------------------------------------------

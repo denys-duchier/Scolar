@@ -129,9 +129,18 @@ class NotesTable:
         self._ues = uedict.values()
         self._ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
         T = []
+        self.moy_gen = {} # etudid : moy gen
+        self.moy_ue = {} # ue_id : { etudid : moy ue } 
         for etudid in self.get_etudids():
-            moy_gen = self.get_etud_moy(etudid)[0]
-            moy_ues = [ fmt_note(self.get_etud_moy(etudid, ue_id=ue['ue_id'])[0]) for ue in self._ues ]
+            moy_gen = self.comp_etud_moy(etudid)[0]
+            self.moy_gen[etudid] = moy_gen
+            moy_ues = []
+            for ue in self._ues:
+                moy_ue = self.comp_etud_moy(etudid, ue_id=ue['ue_id'])[0]
+                moy_ues.append(fmt_note(moy_ue))
+                if not self.moy_ue.has_key(ue['ue_id']):
+                    self.moy_ue[ue['ue_id']] = {}
+                self.moy_ue[ue['ue_id']][etudid] = moy_ue
             t = [fmt_note(moy_gen)] + moy_ues
             for ue in self._ues:
                 for modimpl in self._modimpls:
@@ -139,7 +148,7 @@ class NotesTable:
                         val = self.get_etud_mod_moy(modimpl, etudid)
                         t.append(fmt_note(val))
             t.append(etudid)
-            T.append(tuple(t))
+            T.append(tuple(t))            
         # tri par moyennes décroissantes,
         # en laissant les demissionnaires a la fin, par ordre alphabetique
         def cmprows(x,y):
@@ -314,10 +323,11 @@ class NotesTable:
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        
         return self._modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
     
-    def get_etud_moy(self, etudid, ue_id=None):
-        """moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
+    def comp_etud_moy(self, etudid, ue_id=None):
+        """Calcule moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
         Ne prend en compte que les evaluations où toutes les notes sont entrées
         Return: (moy, nb_notes, nb_missing)
+        Si pas de notes, moy == 'NA'
         """
         modimpls = self.get_modimpls(ue_id)
         nb_notes = 0
