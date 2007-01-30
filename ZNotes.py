@@ -694,12 +694,20 @@ class ZNotes(ObjectManager,
             else:
                 initvalues['inscrire_etudslist'] = []
             if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('inscrire_etudslist'):
-                REQUEST.form['inscrire_etudslist'] = []                
+                REQUEST.form['inscrire_etudslist'] = []
             # add associated modules to tf-checked
             ams = self.do_moduleimpl_list( { 'formsemestre_id' : formsemestre_id } )
             initvalues['tf-checked'] = [ x['module_id'] for x in ams ]
             for x in ams:
                 initvalues[str(x['module_id'])] = x['responsable_id']        
+        # Liste des ID de semestres
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute( "select semestre_id from notes_semestres" )
+        semestre_id_list = [ str(x[0]) for x in cursor.fetchall() ]
+        log('userlist=%s' % str(userlist))
+        log('semestre_id_list=%s' % str(semestre_id_list) )
+        log('semestre_id=%s' % str(semestre_id) )
         # Liste des modules  dans ce semestre de cette formation
         # on pourrait faire un simple self.module_list( )
         # mais si on veut l'ordre du PPN (groupe par UE et matieres) il faut:
@@ -710,7 +718,7 @@ class ZNotes(ObjectManager,
             for mat in matlist:
                 modsmat = self.do_module_list( { 'matiere_id' : mat['matiere_id'] })
                 mods = mods + modsmat
-        # Pour regroupement par semestres:
+        # Pour regroupement des modules par semestres:
         semestre_ids = {}
         for mod in mods:
             semestre_ids[mod['semestre_id']] = 1
@@ -720,7 +728,6 @@ class ZNotes(ObjectManager,
         modform = [
             ('formsemestre_id', { 'input_type' : 'hidden' }),
             ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id}),
-            ('semestre_id',  { 'input_type' : 'hidden', 'default' : semestre_id}),
             ('date_debut', { 'title' : 'Date de début (j/m/a)',
                              'size' : 9, 'allow_null' : False }),
             ('date_fin', { 'title' : 'Date de fin (j/m/a)',
@@ -729,11 +736,14 @@ class ZNotes(ObjectManager,
                                  'title' : 'Directeur des études',
                                  'allowed_values' : userlist }),        
             ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre' }),
+            ('semestre_id', { 'input_type' : 'menu',
+                              'title' : 'Semestre dans la formation',
+                              'allowed_values' : semestre_id_list }),  
             ('gestion_absence_lst', { 'input_type' : 'checkbox',
                                       'title' : 'Suivi des absences',
                                       'allowed_values' : ['X'],
                                       'explanation' : 'indiquer les absences sur les bulletins',
-                                       'labels' : [''] }),
+                                      'labels' : [''] }),
             ('bul_show_decision_lst', { 'input_type' : 'checkbox',
                                       'title' : 'Décisions',
                                       'allowed_values' : ['X'],
@@ -1332,7 +1342,7 @@ class ZNotes(ObjectManager,
             if sem['etat'] != '1':
                 raise ScoValueError('desinscription impossible: semestre verrouille')
             return self.confirmDialog(
-                """<p>Confirmer la demande de desinscription ?</p>
+                """<h2>Confirmer la demande de desinscription ?</h2>
                 <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
                 <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
                 Un étudiant réellement inscrit doit le rester, le faire éventuellement <b>démissionner<b>.
