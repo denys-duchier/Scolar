@@ -209,7 +209,11 @@ class NotesTable:
         "groupe de TD de l'etudiant dans ce semestre"
         return self.inscrdict[etudid]['groupetd']
     def get_etud_etat(self, etudid):
-        return self.inscrdict[etudid]['etat']
+        "Etat de l'etudiant: 'I', 'D' ou '' (si pas connu dans ce semestre)"
+        if self.inscrdict.has_key(etudid):
+            return self.inscrdict[etudid]['etat']
+        else:
+            return ''
     def get_etud_etat_html(self, etudid):
         etat = self.inscrdict[etudid]['etat']
         if etat == 'I':
@@ -386,7 +390,7 @@ class NotesTable:
 class CacheNotesTable:
     """gestion rudimentaire de cache pour les NotesTables"""
     def __init__(self):
-        log('new CacheTable')
+        log('new CacheTable (id=%s)' % id(self))
         # Cache des NotesTables
         self.cache = {} # { formsemestre_id : NoteTable instance }
         # Cache des classeur PDF (bulletins)
@@ -394,17 +398,18 @@ class CacheNotesTable:
     
     def get_NotesTable(self, znote, formsemestre_id):
         if self.cache.has_key(formsemestre_id):
-            log('cache hit %s' % formsemestre_id)
+            log('cache hit %s (id=%s)' % (formsemestre_id, id(self)))
             return self.cache[formsemestre_id]
         else:
             nt = NotesTable( znote, formsemestre_id)
             self.cache[formsemestre_id] = nt
-            log('caching formsemestre_id=%s' % formsemestre_id ) 
+            log('caching formsemestre_id=%s (id=%s)' % (formsemestre_id,id(self)) ) 
             return nt
     
     def inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        log('inval_cache, formsemestre_id=%s pdfonly=%s' % (formsemestre_id,pdfonly))
+        log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
+            (formsemestre_id,pdfonly,id(self)))
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
         if formsemestre_id is None:
@@ -420,8 +425,8 @@ class CacheNotesTable:
 
     def store_bulletins_pdf(self, formsemestre_id, version, (filename,pdfdoc) ):
         "cache pdf data"
-        log('caching PDF formsemestre_id=%s version=%s'
-            % (formsemestre_id, version) )
+        log('caching PDF formsemestre_id=%s version=%s (id=%s)'
+            % (formsemestre_id, version, id(self)) )
         self.pdfcache[(formsemestre_id,version)] = (filename,pdfdoc)
 
     def get_bulletins_pdf(self, formsemestre_id, version):

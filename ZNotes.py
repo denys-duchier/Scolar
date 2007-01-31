@@ -705,9 +705,6 @@ class ZNotes(ObjectManager,
         cursor = cnx.cursor()
         cursor.execute( "select semestre_id from notes_semestres" )
         semestre_id_list = [ str(x[0]) for x in cursor.fetchall() ]
-        log('userlist=%s' % str(userlist))
-        log('semestre_id_list=%s' % str(semestre_id_list) )
-        log('semestre_id=%s' % str(semestre_id) )
         # Liste des modules  dans ce semestre de cette formation
         # on pourrait faire un simple self.module_list( )
         # mais si on veut l'ordre du PPN (groupe par UE et matieres) il faut:
@@ -1173,7 +1170,7 @@ class ZNotes(ObjectManager,
                                  page_title='Enseignants du module %s'
                                  % M['module']['titre'])
         footer = self.sco_footer(self,REQUEST)
-        H = [ '<p>Semestre %s, du %s au %s</p>'
+        H = [ '<h2>Semestre %s, du %s au %s</h2>'
               % (sem['titre'], sem['date_debut'], sem['date_fin']),
               '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
               '<ul><li>%s (responsable)</li>' % M['responsable_id']
@@ -1186,7 +1183,7 @@ class ZNotes(ObjectManager,
         saisir et modifier toutes les notes des évaluations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>, accessible uniquement au responsable de la formation (chef de département)"
+        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de département)
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         userlist = self.getZopeUsers()
@@ -3990,7 +3987,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                     ue_must_valid[ue['ue_id']][etudid] = False
         
         # ------- Traitement des données formulaire
-        date_jury = REQUEST.form.get('date_jury','')
+        date_jury = REQUEST.form.get('date_jury', time.strftime('%d/%m/%Y') )
         msg = ''
         semvalid = {} # etudid: 0 ou 1
         semcomp = {} # etudid : id semestre utilise pour compenser, or None
@@ -4085,7 +4082,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             # OK, validation
             return self._do_formsemestre_validation(
                 formsemestre_id, semvalid, semcomp,
-                uevalid_byetud,
+                uevalid_byetud, date_jury,
                 REQUEST=REQUEST)
         
         # --- HTML head
@@ -4383,8 +4380,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         etudids.sort()
         etudids = [ x[1] for x in etudids ]
         for etudid in etudids:
+            cursus = ''
+            if nt1.get_etud_etat(etudid) == 'D' or nt2.get_etud_etat(etudid) == 'D':
+                cursus = 'DEM'
             ident = R[etudid][0]
-            l = [ ident['nom'], ident['prenom'], ident['annee_naissance'], '' ]
+            l = [ ident['nom'], ident['prenom'], ident['annee_naissance'], cursus ]
             for formsemestre_id in (formsemestre_id1, formsemestre_id2):
                 t = R[etudid][1].get(formsemestre_id,None)
                 if not t:
@@ -4410,10 +4410,12 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         "choix semestre precedent pour feuille jury"
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         H = [ self.sco_header(self,REQUEST) ]
-        H.append( """<p>
+        H.append( """
+        <h2>Préparation du Jury</h2>
+        <p>
         Cette fonction va générer une feuille Excel avec les moyennes de deux semestres,
         pour présentation en jury de fin d'année.</p>
-        <p>Le semestre courant est: %s (%s - %s)</p>
+        <p>Le semestre courant est: <b>%s (%s - %s)</b></p>
         <p>Choisissez le semestre "précédent".</p>
         <form method="GET" action="do_feuille_preparation_jury">
         <input type="hidden" name="formsemestre_id2" value="%s"/>

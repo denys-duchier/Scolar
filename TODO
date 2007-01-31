@@ -5,12 +5,7 @@
 
 - optimiser scolar_news_summary
 
-- representation du "niveau" de l'étudant sous son bulletin
-  (barres comme evals CE2)
-
 - version pdf du trombinoscope
-
-- lien "changer responsable" sur tableau bord module (pour admin et dir etud)
 
 BUGS:
 - saisie absence sans date: message erreur (validation formulaire)
