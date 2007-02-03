@@ -29,7 +29,7 @@
 """
 
 import time, string, glob
-import urllib2, xml
+import urllib, urllib2, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
@@ -577,6 +577,19 @@ class ZScolar(ObjectManager,
         
         return H
 
+    def _make_query_groups(self,groupetd,groupetp,groupeanglais,etat):
+        "query string"
+        qs = []
+        if groupetd:
+            qs.append('groupetd=%s' % groupetd)
+        if groupetp:
+            qs.append('groupetp=%s' % groupetp)
+        if groupeanglais:
+            qs.append('groupeanglais=%s' % groupeanglais)
+        if etat:
+            qs.append('etat=%s' % etat)
+        return '&'.join(qs)
+
     security.declareProtected(ScoView, 'listegroupe')
     def listegroupe(self, 
                     formsemestre_id, REQUEST=None,
@@ -586,13 +599,14 @@ class ZScolar(ObjectManager,
         """liste etudiants inscrits dans ce semestre
         format: html, csv, xls, xml (XXX futur: pdf)
         """
+        authuser = REQUEST.AUTHENTICATED_USER
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
                                                    groupetd,groupetp,groupeanglais,etat )
         if not nomgroupe:
             nomgroupe = 'tous'
         #
         if format == 'html':
-            H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre'], ng) ]
+            H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titre'], ng) ]
             H.append('<table class="sortable" id="listegroupe">')
             H.append('<tr><th>Nom</th><th>Prénom</th><th>Groupe</th><th>Mail</th></tr>')
             for t in T:
@@ -603,9 +617,17 @@ class ZScolar(ObjectManager,
                 s = 's'
             else:
                 s = ''
-            H.append('<p>soit %d étudiants inscrits et %d démissionaire%s<br>' % (len(T)-nbdem,nbdem,s))
+            H.append('<p>soit %d étudiants inscrits et %d démissionaire%s</p>' % (len(T)-nbdem,nbdem,s))
             amail=','.join([x[3] for x in T ])
-            H.append('<a class="stdlink" href="mailto:%s">envoyer un mail collectif au groupe %s</a></p>' % (amail,nomgroupe))
+            H.append('<ul>')
+            H.append('<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe %s</a></li>' % (amail,nomgroupe))
+            # Lien pour verif codes INE/NIP
+            if authuser.has_permission(ScoEtudInscrit,self):
+                H.append('<li><a class="stdlink" href="check_group_apogee?formsemestre_id=%s&%s">Vérifier codes Apogée</a></li>'
+                         % (formsemestre_id,
+                            self._make_query_groups(groupetd,groupetp,groupeanglais,etat)))
+            
+            H.append('</ul>')
             return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
         elif format == 'csv':
             Th = [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ]
@@ -1826,10 +1848,10 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         else:
             # edition donnees d'un etudiant existant
             # setup form init values
-            descr.append( ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }) )
-            H.append('<h2>Modification d\'un étudiant</h2>')
             if not etudid:
                 raise ValueError('missing etudid parameter')
+            descr.append( ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }) )
+            H.append('<h2>Modification d\'un étudiant (<a href="ficheEtud?etudid=%s">fiche</a>)</h2>' % etudid)
             initvalues = scolars.etudident_list(cnx, {'etudid' : etudid})
             assert len(initvalues) == 1
             initvalues = initvalues[0]
@@ -1933,7 +1955,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
 
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 submitlabel = submitlabel,
-                                cancelbutton = 'Interroger Apogee',
+                                cancelbutton = 'Re-interroger Apogee',
                                 initvalues = initvalues)
         if tf[0] == 0:
             return '\n'.join(H) + tf[1] + '<p>' + A + F
@@ -1992,12 +2014,44 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         """
         if (not nom) and (not prenom):
             return []
+        # essaie plusieurs codages: tirets, accents
+        infos = self._get_infos_apogee_allaccents(nom, prenom)
+        nom_st = nom.replace('-', ' ')
+        prenom_st = prenom.replace('-', ' ')
+        if nom_st != nom or prenom_st != prenom:
+            infos += self._get_infos_apogee_allaccents(nom_st, prenom_st)
+        # si pas de match et nom ou prenom composé, essaie en coupant
+        if not infos:
+            nom1 = nom.split()[0]
+            prenom1 = prenom.split()[0]
+            if nom != nom1 or prenom != prenom1:
+                infos += self._get_infos_apogee_allaccents(nom1, prenom1)
+        return infos
+    
+    def _get_infos_apogee_allaccents(self, nom, prenom):
+        "essai recup infos avec differents codages des accents"
         from SuppressAccents import suppression_diacritics
         if nom:
-            nom = str(suppression_diacritics( unicode(nom, SCO_ENCODING) ))
+            unom = unicode(nom, SCO_ENCODING)
+            nom_noaccents = str(suppression_diacritics(unom))
+            nom_utf8 = unom.encode('utf-8')            
         if prenom:
-            prenom = str(suppression_diacritics( unicode(prenom, SCO_ENCODING) ))
-        req = 'https://portail.cevif.univ-paris13.fr/getEtud.php?nom=%s&prenom=%s' %(nom,prenom)
+            uprenom = unicode(prenom, SCO_ENCODING)
+            prenom_noaccents = str(suppression_diacritics(uprenom))
+            prenom_utf8 = uprenom.encode('utf-8')
+        # avec accents
+        infos = self._query_apogee_portal(nom, prenom)
+        # sans accents
+        if nom != nom_noaccents or prenom != prenom_noaccents:
+            infos += self._query_apogee_portal(nom_noaccents,prenom_noaccents)
+        # avec accents en UTF-8
+        if nom_utf8 != nom_noaccents or prenom_utf8 != prenom_noaccents:
+            infos += self._query_apogee_portal(nom_utf8,prenom_utf8)
+        return infos
+
+    def _query_apogee_portal(self, nom, prenom):
+        req = 'https://portail.cevif.univ-paris13.fr/getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
+        #log(req)
         try:
             f = urllib2.urlopen(req)
         except:
@@ -2020,12 +2074,119 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         except:
             raise ValueError('invalid XML response from getEtud Web Service\n%s' % req)
         return infos
+
+    
+    security.declareProtected(ScoEtudInscrit, "check_group_apogee")
+    def check_group_apogee(self, formsemestre_id, REQUEST=None,
+                           groupetd=None,groupetp=None,groupeanglais=None, etat=None,
+                           fix=False,
+                           fixmail = False):
+        """Verification des codes Apogee et mail de tout un groupe.
+        Si fix == True, change les codes avec Apogée.
+        """
+        T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
+                                                          groupetd,groupetp,groupeanglais,etat )
+        if not nomgroupe:
+            nomgroupe = 'tous'
+        cnx = self.GetDBConnexion()
+        H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titre'], ng) ]
+        H.append('<table class="sortable" id="listegroupe">')
+        H.append('<tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>')
+        nerrs = 0 # nombre d'anomalies détectées
+        nfix = 0 # nb codes changes
+        nmailmissing = 0 # nb etuds sans mail
+        for t in T:
+            nom, prenom, etudid, email, code_nip = t[0], t[1], t[2], t[3], t[8]
+            infos = self.get_infos_apogee(nom, prenom)
+            if not infos:
+                info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid
+                nerrs += 1
+            else:
+                if len(infos) == 1:
+                    nip_apogee = infos[0]['nip']
+                    if code_nip != nip_apogee:
+                        if fix:
+                            # Update database
+                            scolars.identite_edit(
+                                cnx,
+                                args={'etudid':etudid,'code_nip':nip_apogee})
+                            info_apogee = '<span style="color:green">copié %s</span>' % nip_apogee
+                            nfix += 1
+                        else:
+                            info_apogee = '<span style="color:red">%s</span>' % nip_apogee
+                            nerrs += 1
+                    else:
+                        info_apogee = 'ok'
+                else:
+                    info_apogee = '<b>%d correspondances</b> (<a href="etudident_edit_form?etudid=%s">Choisir</a>)' % (len(infos), etudid)
+                    nerrs += 1
+            # check mail
+            if email:
+                mailstat = 'ok'
+            else:
+                if fixmail and len(infos) == 1:
+                    mail_apogee = infos[0]['mail']
+                    adrs = scolars.adresse_list(cnx, {'etudid' : etudid})
+                    if adrs:
+                        adr = adrs[0] # modif adr existante
+                        args={'adresse_id':adr['adresse_id'],'email':mail_apogee}
+                        scolars.adresse_edit(cnx, args=args)
+                    else:
+                        # creation adresse
+                        args={'etudid': etudid,'email':mail_apogee}
+                        scolars.adresse_create(cnx, args=args)
+                    mailstat = '<span style="color:green">copié</span>'
+                else:
+                    mailstat = 'inconnu'
+                    nmailmissing += 1
+            H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                          (etudid, nom, prenom, mailstat, code_nip, info_apogee) )
+        H.append('</table>')
+        H.append('<ul>')
+        if nfix:
+            H.append('<li><b>%d</b> codes modifiés</li>' % nfix )
+        H.append('<li>Codes NIP: <b>%d</b> anomalies détectées</li>' % nerrs )
+        H.append('<li>Adresse mail: <b>%d</b> étudiants sans adresse</li>' % nmailmissing )
+        H.append('</ul>')
+        H.append("""
+        <form method="get" action="">
+        <input type="hidden" name="formsemestre_id" value="%s"/>
+        <input type="hidden" name="groupetd" value="%s"/>
+        <input type="hidden" name="groupetp" value="%s"/>
+        <input type="hidden" name="groupeanglais" value="%s"/>
+        <input type="hidden" name="etat" value="%s"/>
+        <input type="hidden" name="fix" value="1"/>
+        <input type="submit" value="Mettre à jour les codes NIP depuis Apogée"/>
+        </form>
+        <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
+        """ % (formsemestre_id,strnone(groupetd),strnone(groupetp),
+               strnone(groupeanglais),strnone(etat),formsemestre_id ))
+        H.append("""
+        <form method="get" action="">
+        <input type="hidden" name="formsemestre_id" value="%s"/>
+        <input type="hidden" name="groupetd" value="%s"/>
+        <input type="hidden" name="groupetp" value="%s"/>
+        <input type="hidden" name="groupeanglais" value="%s"/>
+        <input type="hidden" name="etat" value="%s"/>
+        <input type="hidden" name="fixmail" value="1"/>
+        <input type="submit" value="Renseigner les e-mail manquants (adresse institutionnelle)"/>
+        </form>
+        <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
+        """ % (formsemestre_id,strnone(groupetd),strnone(groupetp),
+               strnone(groupeanglais),strnone(etat),formsemestre_id ))
+
+        return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
         
     security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
     def form_students_import_csv(self, REQUEST, formsemestre_id=None):
         "formulaire import csv"
         H = [self.sco_header(self,REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
+             <p>A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
+             premier semestre). Si les étudiants à inscrire sont déjà dans un autre
+             semestre, utiliser le lien "<em>Inscriptions (passage des étudiants) à un
+             autre semestre</em>" à partir du semestre d'origine.
+             </p>
              <p>
              L'opération se déroule en deux étapes. Dans un premier temps,
              vous téléchargez une feuille Excel type. Vous devez remplir

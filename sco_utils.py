@@ -66,6 +66,13 @@ def unescape_html(s):
     return s
 
 
+def strnone(s):
+    "convert s to string, '' if s is false"
+    if s:
+        return str(s)
+    else:
+        return ''
+
 def sendCSVFile(REQUEST,data,filename):
     """publication fichier.
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)

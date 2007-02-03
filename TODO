@@ -14,6 +14,20 @@ BUGS:
 - message erreur si "not OLE file"
 - message erreur si creation utilisateur duplique (duplicate key)
 
+Saisie des notes:
+- lors d'une modif des notes, indiquer (dans le cadre de verif)
+  le nombre de notes MODIFIEES.
+- bug: si note > note_max, indique 1 note invalide (c'est ok), mais
+  aussi 3 notes valides !!!
+- ne pas demander 2x de vérifier les notes.
+- si une note invalide, l'indiquer dans le listing (JS ?)
+
+Validation semestre et UE:
+- Initialisation incorrecte du formulaire: indiquer les décisions
+  déjà prises.
+
+- proposer un recap du parcours: note moy gen, moy UE, moy gen glissantes ...
+
 
 FUTUR:
 - mettre dans les bulletins de notes une valeur ATT se calculant à
