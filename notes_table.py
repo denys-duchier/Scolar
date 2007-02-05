@@ -434,3 +434,9 @@ class CacheNotesTable:
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
         return self.pdfcache.get((formsemestre_id,version), None)
+
+#
+# Cache global: chaque instance, repérée par son URL, a un cache
+# qui est recréé à la demande (voir ZNotes._getNotesCache() )
+#
+GLOBAL_NOTES_CACHE = {} # { URL : CacheNotesTable instance }

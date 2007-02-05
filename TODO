@@ -22,6 +22,7 @@ Saisie des notes:
 - ne pas demander 2x de vérifier les notes.
 - si une note invalide, l'indiquer dans le listing (JS ?)
 
+
 Validation semestre et UE:
 - Initialisation incorrecte du formulaire: indiquer les décisions
   déjà prises.

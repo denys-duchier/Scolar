@@ -1434,7 +1434,7 @@ function tweakmenu( gname ) {
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
               (groupetd,groupeanglais,groupetp,formsemestre_id))
         cnx.commit()
-        self.Notes.CachedNotesTable.inval_cache(formsemestre_id=formsemestre_id)
+        self.Notes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1457,7 +1457,7 @@ function tweakmenu( gname ) {
         
         # --- Infos sur les groupes existants
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
-        nt = self.Notes.CachedNotesTable.get_NotesTable(self.Notes,
+        nt = self.Notes._getNotesCache().get_NotesTable(self.Notes,
                                                         formsemestre_id)
         inscrlist = nt.inscrlist # liste triee par nom
         #open('/tmp/titi','w').write(str(inscrlist))
@@ -1602,7 +1602,7 @@ function tweakmenu( gname ) {
             log('suppressGroup( req=%s, args=%s )' % (req, aa) )
             cursor.execute( req, aa )
             cnx.commit()
-            self.Notes.CachedNotesTable.inval_cache(formsemestre_id=formsemestre_id)
+            self.Notes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
             return REQUEST.RESPONSE.redirect( 'Notes/formsemestre_status?formsemestre_id=%s' % formsemestre_id )
 
     # --- Trombi: gestion photos
@@ -1986,7 +1986,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2])
             # inval all caches
-            self.Notes.CachedNotesTable.inval_cache()
+            self.Notes._getNotesCache().inval_cache()
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
@@ -2005,7 +2005,7 @@ Utiliser ce formulaire en fin de semestre, après le jury.
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
-        self.Notes.CachedNotesTable.inval_cache()
+        self.Notes._getNotesCache().inval_cache()
 
 
     security.declareProtected(ScoView, "get_infos_apogee")
