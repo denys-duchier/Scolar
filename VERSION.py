@@ -1,4 +1,4 @@
-SCOVERSION = "4.13"
+SCOVERSION = "4.15"
 
 SCONAME = "ScoDoc"
 

@@ -266,7 +266,8 @@ _scolar_eventsEditor = EditableTable(
     'scolar_events',
     'event_id',
     ( 'event_id','etudid','event_date',
-      'formsemestre_id', 'ue_id', 'event_type' ),
+      'formsemestre_id', 'ue_id', 'event_type',
+      'comp_formsemestre_id' ),
     sortkey = 'event_date',
     convert_null_outputs_to_empty=True,
     output_formators = { 'event_date' : DateISOtoDMY },
@@ -324,8 +325,8 @@ def scolar_validate_sem( cnx, etudid, formsemestre_id,
                          event_date=None, REQUEST=None ):
     """Si valid==True, valide ce semestre, sinon echec"""
     logdb(REQUEST,cnx,method='valid_sem (valid=%s)'%valid, etudid=etudid)
-    log('scolar_validate_sem: etudid=%s formsemestre_id=%s valid=%s'
-        % (etudid, formsemestre_id, valid))
+    log('scolar_validate_sem: etudid=%s formsemestre_id=%s valid=%s formsemestre_used_to_compensate=%s'
+        % (etudid, formsemestre_id, valid, formsemestre_used_to_compensate))
     if valid:
         code = 'VALID_SEM'
     else:
