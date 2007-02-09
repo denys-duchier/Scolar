@@ -124,19 +124,22 @@ class NotesTable:
             modimpl['mat'] = mat # add matiere dict to moduleimpl 
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
-        #
-        # liste des moyennes de tous, en chaines de car., triées
+        
+        # Liste des moyennes de tous, en chaines de car., triées
         self._ues = uedict.values()
         self._ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
         T = []
         self.moy_gen = {} # etudid : moy gen
-        self.moy_ue = {} # ue_id : { etudid : moy ue } 
+        self.moy_ue = {} # ue_id : { etudid : moy ue }
+        self.etud_moycoef_ue = {} # { etudid : { ue_id : (moy, coef) } }
         for etudid in self.get_etudids():
             moy_gen = self.comp_etud_moy(etudid)[0]
             self.moy_gen[etudid] = moy_gen
+            self.etud_moycoef_ue[etudid] = self.comp_etud_moy_ues(etudid)
+            
             moy_ues = []
             for ue in self._ues:
-                moy_ue = self.comp_etud_moy(etudid, ue_id=ue['ue_id'])[0]
+                moy_ue = self.etud_moycoef_ue[etudid][ue['ue_id']][0]
                 moy_ues.append(fmt_note(moy_ue))
                 if not self.moy_ue.has_key(ue['ue_id']):
                     self.moy_ue[ue['ue_id']] = {}
@@ -224,7 +227,7 @@ class NotesTable:
             return ' <font color="red">(%s)</font> ' % etat
     def get_ues(self, filter_sport=False, etudid=None):
         """liste des ue, ordonnée par numero.
-        Si filter_sport, retire les UE "sport" si etudiant pas inscrit.
+        Si filter_sport, retire les UE où l'etudiant n'a pas de notes.
         """
         if not filter_sport:
             return self._ues
@@ -286,7 +289,7 @@ class NotesTable:
 
     def compute_moy_moy(self):
         """precalcule les moyennes d'UE et generale (moyennes sur tous
-        les etudiants, et les stocke dans self.moy_moy, self.ue['moy']
+        les etudiants), et les stocke dans self.moy_moy, self.ue['moy']
         """
         ues = self.get_ues()
         sum_moy = 0
@@ -330,8 +333,8 @@ class NotesTable:
     def comp_etud_moy(self, etudid, ue_id=None):
         """Calcule moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
         Ne prend en compte que les evaluations où toutes les notes sont entrées
-        Return: (moy, nb_notes, nb_missing)
-        Si pas de notes, moy == 'NA'
+        Return: (moy, nb_notes, nb_missing, sum_coef)
+        Si pas de notes, moy == 'NA' et sum_coefs==0
         """
         modimpls = self.get_modimpls(ue_id)
         nb_notes = 0
@@ -372,8 +375,38 @@ class NotesTable:
                         moy += bonus
         else:
             moy = 'NA'
-        return moy, nb_notes, nb_missing
+        return moy, nb_notes, nb_missing, sum_coefs
 
+    def comp_etud_moy_ues(self, etudid):
+        """Calcule les moyennes d'UE
+        Returns: { ue_id : (moy, coef) }
+        Le coef est la somme des coefs modules ou on a une note dans cette UE.
+        Nota: le coef d'une UE peut ainsi varier, si l'étudiant est
+        absent excusé dans certains modules.
+        """
+        d = {}
+        for ue in self._ues:
+            ue_id = ue['ue_id']
+            moy_ue, junk, junk, sum_coefs = self.comp_etud_moy(etudid, ue_id=ue_id)
+            d[ue_id] = (moy_ue, sum_coefs)
+        return d
+    
+    def get_etud_moycoef_ue(self, etudid, ue_id):
+        "Moyenne et coef de l'etudiant dans cette UE"
+        return self.etud_moycoef_ue[etudid][ue_id]
+
+    def get_etud_moy_gen(self, etudid):
+        "Moyenne generale de cet etudiant dans ce semestre"
+        return self.moy_gen[etudid]
+
+    def etud_has_all_ue_over_threshold(self, etudid, threshold=NOTES_BARRE_UE):
+        "True si moyenne d'UE toutes > à 8"
+        for ue in self._ues:
+            moy, coef = self.get_etud_moycoef_ue(etudid, ue['ue_id'])
+            if coef > 0 and moy < NOTES_BARRE_UE:
+                return False
+        return True
+        
     def get_table_moyennes_triees(self):
         return self.T
     def get_etud_rang(self, etudid):

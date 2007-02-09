@@ -3417,7 +3417,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
                              Color(170/255.,187/255.,204/255.) ))
         # ligne de titres
-        moy = nt.comp_etud_moy(etudid)[0]
+        moy = nt.get_etud_moy_gen(etudid)
         mg = fmt_note(moy)
         etatstr = nt.get_etud_etat_html(etudid)
         if type(moy) != StringType and nt.moy_moy != StringType:
@@ -3435,7 +3435,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         for ue in ues:
             tabline += 1
             # Ligne UE
-            moy_ue = fmt_note(nt.comp_etud_moy(etudid,ue_id=ue['ue_id'])[0])
+            moy_ue = fmt_note(nt.get_etud_moycoef_ue(etudid,ue['ue_id'])[0])
             if ue['type'] == UE_SPORT:
                 moy_ue = '(note spéciale)'
             t = ( ue['acronyme'], moy_ue, '', '', '' ) # xxx sum coef UE TODO
@@ -3713,7 +3713,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         ues = nt.get_ues()
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)
-        mg = fmt_note(nt.comp_etud_moy(etudid)[0])
+        mg = fmt_note(nt.get_etud_moy_gen(etudid))
         doc._push()
         doc.note( value=mg )
         doc._pop()
@@ -3729,7 +3729,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             doc.ue( id=ue['ue_id'], numero=ue['numero'],
                     acronyme=ue['acronyme'], titre=ue['titre'] )            
             doc._push()
-            doc.note( value=fmt_note(nt.comp_etud_moy(etudid,ue_id=ue['ue_id'])[0]) )
+            doc.note( value=fmt_note(nt.get_etud_moycoef_ue(etudid,ue_id=ue['ue_id'])[0]) )
             doc._pop()
             # Liste les modules de l'UE 
             ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]

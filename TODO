@@ -2,6 +2,14 @@
 * TODO: Notes  (modifs prioritaires)
 -------------
 
+- UE capitalisées: donc dispense possible dans semestre redoublé.
+                   traitable en n'inscrivant pas l'etudiant au modules
+                   de cette UE: faire interface utilisateur
+
+- Bulletin semestre avec cas des redoublants ou capitalises:
+   version du bulletin présentant le "meilleur cas" en combinant 
+   des UE de semestres differents.
+
 
 - optimiser scolar_news_summary
 
@@ -24,8 +32,7 @@ Saisie des notes:
 
 
 Validation semestre et UE:
-- Initialisation incorrecte du formulaire: indiquer les décisions
-  déjà prises.
+
 
 - proposer un recap du parcours: note moy gen, moy UE, moy gen glissantes ...
 

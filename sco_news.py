@@ -121,7 +121,18 @@ def scolar_news_summary_html(cnx, n=5, rssicon=None):
     
     for n in news:
         H.append('<li class="newslist"><span class="newsdate">%(formatted_date)s</span><span class="newstext">%(text)s</span></li>' % n )
-    H.append('</ul></div>')
+    H.append('</ul>')
+
+    # Informations générales
+    H.append( """<p>
+    Pour être tenu au courant des évolutions du logiciel,
+    vous pouvez vous
+    <a href="https://www-gtr.iutv.univ-paris13.fr/mailman/listinfo/notes">
+    abonner à la liste de diffusion</a>.
+    </p>
+    """ )
+
+    H.append('</div>')
     return '\n'.join(H)
 
     

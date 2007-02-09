@@ -426,7 +426,7 @@ class ZScolar(ObjectManager,
         cnx = self.GetDBConnexion()
         rssicon = self.img.rssicon_img.tag(title='Flux RSS', border='0') 
         H.append( sco_news.scolar_news_summary_html(cnx, rssicon=rssicon) )
-        
+
         # liste de toutes les sessions
         sems = self.Notes.do_formsemestre_list()
         now = time.strftime( '%Y-%m-%d' )
@@ -892,7 +892,7 @@ class ZScolar(ObjectManager,
                     curi = i
                 sem['ins'] = i
                 sems.append(sem)
-            # tri les semestre par date de debut
+            # tri les semestres par date de debut
             sems.sort( lambda x,y: cmp(y['dateord'], x['dateord']) )
             etud['sems'] = sems
             etud['cursem'] = cursem
@@ -2182,8 +2182,8 @@ Utiliser ce formulaire en fin de semestre, après le jury.
         "formulaire import csv"
         H = [self.sco_header(self,REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
-             <p>A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
-             premier semestre). Si les étudiants à inscrire sont déjà dans un autre
+             <p style="color: red">A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
+             <b>premier semestre</b>). Si les étudiants à inscrire sont déjà dans un autre
              semestre, utiliser le lien "<em>Inscriptions (passage des étudiants) à un
              autre semestre</em>" à partir du semestre d'origine.
              </p>
