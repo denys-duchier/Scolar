@@ -2042,13 +2042,13 @@ class ZNotes(ObjectManager,
         cursor = cnx.cursor()    
         cursor.execute( req % 'groupetd', { 'evaluation_id' : evaluation_id } )
         res = cursor.fetchall()
-        gr_td = [ x[0] for x in res if x[0] != None ]
+        gr_td = [ x[0] for x in res if x[0] ]
         cursor.execute( req % 'groupetp', { 'evaluation_id' : evaluation_id } )
         res = cursor.fetchall()
-        gr_tp = [ x[0] for x in res if x[0] != None ]
+        gr_tp = [ x[0] for x in res if x[0] ]
         cursor.execute( req % 'groupeanglais', { 'evaluation_id' : evaluation_id } )
         res = cursor.fetchall()
-        gr_anglais = [ x[0] for x in res if x[0] != None ]
+        gr_anglais = [ x[0] for x in res if x[0] ]
         return gr_td, gr_tp, gr_anglais
 
     security.declareProtected(ScoView, 'do_evaluation_listeetuds_groups')
@@ -2560,7 +2560,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         note_method = REQUEST.form['note_method']
         okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
-        reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presenté comme "pret a soumettre"
+        #reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presenté comme "pret a soumettre"
         initvalues = {}
         CSV = [] # une liste de liste de chaines: lignes du fichier CSV
         CSV.append( ['Fichier de notes (à enregistrer au format CSV XXX)'])
@@ -2661,19 +2661,21 @@ class ZNotes(ObjectManager,
             filename = 'notes_%s_%s.xls' % (evalname, gr_title_filename)
             xls = sco_excel.Excel_feuille_saisie( E, description, lines=CSV[6:] )
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        if okbefore:
-            submitlabel = 'Entrer ces notes'
-        else:        
-            submitlabel = 'Vérifier ces notes'
+        
         tf =  TF( REQUEST.URL0, REQUEST.form, descr, initvalues=initvalues,
-                  cancelbutton='Annuler', submitlabel=submitlabel )
-        form = tf.getform()
+                  cancelbutton='Annuler', submitlabel='Vérifier ces notes' )
+        junk = tf.getform()  # check and init
         if tf.canceled():
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         elif (not tf.submitted()) or not tf.result:
             # affiche premier formulaire
+            log('form init')
+            tf.formdescription.append(
+                ('okbefore', { 'input_type':'hidden', 'default' : 0 } ) )
+            form = tf.getform()            
             return head + form # + '<p>' + CSV # + '<p>' + str(descr)
         else:
+            log('form submit: okbefore=%s' % okbefore)
             # form submission
             # build list of (etudid, note) and check it
             notes = [ (etudid, tf.result['note_'+etudid]) for etudid in etudids ]
@@ -2696,10 +2698,9 @@ class ZNotes(ObjectManager,
             tf.formdescription.append(
                 ('okbefore', { 'input_type':'hidden', 'default' : oknow } ) )
             tf.values['okbefore'] = oknow        
-            tf.formdescription.append(
-                ('reviewed', { 'input_type':'hidden', 'default' : okbefore } ) )        
-            tf.values['reviewed'] = okbefore
-            if oknow and reviewed:
+            #tf.formdescription.append(
+            # ('reviewed', { 'input_type':'hidden', 'default' : oknow } ) )        
+            if oknow and okbefore:
                 # ok, on rentre ces notes
                 nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
                 if nbchanged > 0 or nbsuppress > 0:
@@ -2710,7 +2711,11 @@ class ZNotes(ObjectManager,
                                  url=Mod['url'])
                 
                 return '<p>OK !<br/>%s notes modifiées (%d supprimées)<br/></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
-            else:            
+            else:
+                if oknow:
+                    tf.submitlabel = 'Entrer ces notes'
+                else:        
+                    tf.submitlabel = 'Vérifier ces notes'
                 return head + '\n'.join(H) + tf.getform()
 
     security.declareProtected(ScoEnsView, 'do_evaluation_upload_csv')
