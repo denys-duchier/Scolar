@@ -2901,6 +2901,7 @@ class ZNotes(ObjectManager,
         for (etudid, note) in notes:
             note = str(note)        
             if note:
+                invalid = False
                 note = note.strip().upper().replace(',','.')
                 if note[:3] == 'ABS':
                     note = None
@@ -2919,7 +2920,9 @@ class ZNotes(ObjectManager,
                             raise ValueError
                     except:
                         invalids.append(etudid)
-                L.append((etudid,note))
+                        invalid = True
+                if not invalid:
+                    L.append((etudid,note))
             else:
                 withoutnotes.append(etudid)
         return L, invalids, withoutnotes, absents, tosuppress

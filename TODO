@@ -24,14 +24,10 @@ BUGS:
 
 Saisie des notes:
 
-- bug: si note > note_max, indique 1 note invalide (c'est ok), mais
-  aussi 3 notes valides !!!
-
 - si une note invalide, l'indiquer dans le listing (JS ?)
 
 
 Validation semestre et UE:
-
 
 - proposer un recap du parcours: note moy gen, moy UE, moy gen glissantes ...
 
