@@ -42,6 +42,16 @@
 
 <ul>
 <dtml-if "can_edit_notes(AUTHENTICATED_USER,eval['moduleimpl_id'],allow_ens=False)">
+
+<li>
+<form action="do_evaluation_set_missing" method="GET">
+Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
+<input type="submit" value="OK"/> 
+<input type="hidden" name="evaluation_id" value="<dtml-var evaluation_id>"/> 
+<em>ABS indique "absent" (zéro), EXC "excusé" (neutralisées)</em>
+</form>
+</li>
+
 <li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=<dtml-var evaluation_id>">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
 </li> 
 </dtml-if>

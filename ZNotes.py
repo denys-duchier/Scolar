@@ -2894,6 +2894,68 @@ class ZNotes(ObjectManager,
                 withoutnotes.append(etudid)
         return L, invalids, withoutnotes, absents, tosuppress
 
+    security.declareProtected(ScoEnsView, 'do_evaluation_set_missing')
+    def do_evaluation_set_missing(self, evaluation_id, value, REQUEST=None, dialog_confirmed=False):
+        """soumission d'un fichier XLS (evaluation_id, notefile)
+        """
+        authuser = REQUEST.AUTHENTICATED_USER
+        evaluation_id = REQUEST.form['evaluation_id']
+        E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+        # Check access
+        # (admin, respformation, and responsable_id)
+        if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
+            # XXX imaginer un redirect + msg erreur
+            raise AccessDenied('Modification des notes impossible pour %s'%authuser)
+        #
+        NotesDB = self._notes_getall(evaluation_id)        
+        etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
+                                                       getallstudents=True,
+                                                       include_dems=False)
+        notes = []
+        for etudid in etudids: # pour tous les inscrits
+            if not NotesDB.has_key(etudid): # pas de note
+                notes.append( (etudid, value) )
+        # Check value
+        L, invalids, withoutnotes, absents, tosuppress = self._check_notes(notes,E)
+        diag = ''
+        if len(invalids):
+            diag = 'Valeur %s invalide' % value
+        if diag:
+            return self.sco_header(self,REQUEST)\
+                   + '<h2>%s</h2><p><a href="notes_eval_selectetuds?evaluation_id=%s">Recommencer</a>'\
+                   % (diag, evaluation_id) \
+                   + self.sco_footer(self,REQUEST)
+        # Confirm action
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                """<h2>Mettre toutes les notes manquantes de l'évaluation
+                à la valeur %s ? (<em>%d étudiants concernés</em>)</h2>
+                <p>(seuls les étudiants pour lesquels aucune note (ni valeur, ni ABS, ni EXC)
+                n'a été rentrée seront affectés)</p>
+                """ % (value, len(L)),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="notes_eval_selectetuds?evaluation_id=%s" % evaluation_id,
+                parameters={'evaluation_id' : evaluation_id, 'value' : value})
+        # ok
+        comment = 'Initialisation notes manquantes'
+        nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
+        # news
+        cnx = self.GetDBConnexion()
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+        mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+        mod['moduleimpl_id'] = M['moduleimpl_id']
+        mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
+        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+                     text='Initialisation notes dans <a href="%(url)s">%(titre)s</a>' % mod,
+                     url = mod['url'])
+        return self.sco_header(self,REQUEST)\
+                   + """<h2>%d notes changées</h2>
+                   <p><a href="moduleimpl_status?moduleimpl_id=%s">
+                   Revenir au tableau de bord du module</a>
+                   </p>
+                   """ % (nb_changed, M['moduleimpl_id']) \
+                   + self.sco_footer(self,REQUEST)
+        
     security.declareProtected(ScoView, 'can_edit_notes')
     def can_edit_notes(self, authuser, moduleimpl_id, allow_ens=True ):
         """True if authuser can enter or edit notes in this module.
@@ -2931,10 +2993,11 @@ class ZNotes(ObjectManager,
             # XXX imaginer un redirect + msg erreur
             raise AccessDenied('Modification des notes impossible pour %s'%authuser)
         if not dialog_confirmed:
-            return self.confirmDialog('<p>Confirmer la suppression des notes ?</p>',
-                                      dest_url="", REQUEST=REQUEST,
-                                      cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
-                                      parameters={'evaluation_id':evaluation_id})
+            return self.confirmDialog(
+                '<p>Confirmer la suppression des notes ?</p>',
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
+                parameters={'evaluation_id':evaluation_id})
         # recupere les etuds ayant une note
         NotesDB = self._notes_getall(evaluation_id)
         notes = [ (etudid, NOTES_SUPPRESS) for etudid in NotesDB.keys() ]

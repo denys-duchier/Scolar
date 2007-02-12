@@ -1,10 +1,11 @@
-SCOVERSION = "4.15"
+SCOVERSION = "4.16"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
 <h4>Janvier 2007</h4>
 <ul>
+<li>Possibilité d'initialiser les notes manquantes d'une évaluation</li>
 <li>Recupération des codes NIP depuis Apogée</li>
 <li>Gestion des compensations inter-semestre DUT (en cours de développement)</li>
 <li>Export trombinoscope en archive zip</li>
