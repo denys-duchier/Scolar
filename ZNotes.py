@@ -2560,6 +2560,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         note_method = REQUEST.form['note_method']
         okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
+        changed = int(REQUEST.form.get('changed',0)) # a ete modifie depuis verif 
         #reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presenté comme "pret a soumettre"
         initvalues = {}
         CSV = [] # une liste de liste de chaines: lignes du fichier CSV
@@ -2605,12 +2606,27 @@ class ZNotes(ObjectManager,
         CSV.append( ['!%s' % evaluation_id ] )
         CSV.append( [ '', 'Nom', 'Prénom', 'Etat', 'Groupe',
                       'Note sur %d'% E['note_max'], 'Remarque' ] )    
+
+        # JS code to monitor changes
+        head += """<script type="text/javascript">
+        function form_change() {
+        var cpar = document.getElementById('changepar');
+        // cpar.innerHTML += '*';
+        document.getElementById('tf').changed.value="1";
+        document.getElementById('tf').tf_submit.value = "Vérifier ces notes";
+        return true;
+        }        
+        </script>
+        <p id="changepar"></p>
+        """
+        
         descr = [
             ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
             ('groupes', { 'default' : glist,  'input_type' : 'hidden', 'type':'list' }),
             ('note_method', { 'default' : note_method, 'input_type' : 'hidden'}),
             ('comment', { 'size' : 44, 'title' : 'Commentaire',
                           'return_focus_next' : True, }),
+            ('changed', {'default':"0", 'input_type' : 'hidden'}), # changed in JS
             ('s2' , {'input_type' : 'separator', 'title': '<br/>'}),
             ]
         el = [] # list de (label, etudid, note_value, explanation )
@@ -2644,6 +2660,7 @@ class ZNotes(ObjectManager,
             descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label,
                                              'explanation':explanation,
                                              'return_focus_next' : True,
+                                             'attributes' : ['onchange="form_change();"'],
                                              } ) )
             grnam = inscr['groupetd']
             if inscr['groupetp'] or inscr['groupeanglais']:
@@ -2661,7 +2678,9 @@ class ZNotes(ObjectManager,
             filename = 'notes_%s_%s.xls' % (evalname, gr_title_filename)
             xls = sco_excel.Excel_feuille_saisie( E, description, lines=CSV[6:] )
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        
+
+        if REQUEST.form.has_key('changed'): # reset
+            del REQUEST.form['changed']
         tf =  TF( REQUEST.URL0, REQUEST.form, descr, initvalues=initvalues,
                   cancelbutton='Annuler', submitlabel='Vérifier ces notes' )
         junk = tf.getform()  # check and init
@@ -2669,38 +2688,44 @@ class ZNotes(ObjectManager,
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         elif (not tf.submitted()) or not tf.result:
             # affiche premier formulaire
-            log('form init')
             tf.formdescription.append(
                 ('okbefore', { 'input_type':'hidden', 'default' : 0 } ) )
             form = tf.getform()            
             return head + form # + '<p>' + CSV # + '<p>' + str(descr)
         else:
-            log('form submit: okbefore=%s' % okbefore)
             # form submission
             # build list of (etudid, note) and check it
             notes = [ (etudid, tf.result['note_'+etudid]) for etudid in etudids ]
             L, invalids, withoutnotes, absents, tosuppress = self._check_notes(notes, E)
-            # demande confirmation
+            oknow = int(not len(invalids))
+            if oknow:
+                nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, do_it=False )
+                msg_chg = ' (%d modifiées, %d supprimées)' % (nbchanged, nbsuppress)
+            else:
+                msg_chg = ''
+            # Affiche infos et messages d'erreur
             H = ['<ul class="tf-msg">']
             if invalids:
                 H.append( '<li class="tf-msg">%d notes invalides !</li>' % len(invalids) )
             if len(L):
-                 H.append( '<li class="tf-msg-notice">%d notes valides</li>' % len(L) )
+                 H.append( '<li class="tf-msg-notice">%d notes valides%s</li>' % (len(L), msg_chg) )
             if withoutnotes:
                 H.append( '<li class="tf-msg-notice">%d étudiants sans notes !</li>' % len(withoutnotes) )
             if absents:
                 H.append( '<li class="tf-msg-notice">%d étudiants absents !</li>' % len(absents) )
             if tosuppress:
                 H.append( '<li class="tf-msg-notice">%d notes à supprimer !</li>' % len(tosuppress) )
+            H.append("""<p class="redboldtext">Les notes ne sont pas enregistrées; n'oubliez pas d'appuyer sur le bouton en bas du formulaire.</p>""")
+
             H.append( '</ul>' )
 
-            oknow = int(not len(invalids))
+
             tf.formdescription.append(
                 ('okbefore', { 'input_type':'hidden', 'default' : oknow } ) )
             tf.values['okbefore'] = oknow        
             #tf.formdescription.append(
             # ('reviewed', { 'input_type':'hidden', 'default' : oknow } ) )        
-            if oknow and okbefore:
+            if oknow and okbefore and not changed:
                 # ok, on rentre ces notes
                 nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
                 if nbchanged > 0 or nbsuppress > 0:
@@ -3027,9 +3052,11 @@ class ZNotes(ObjectManager,
         return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
     
     # not accessible through the web
-    def _notes_add(self, uid, evaluation_id, notes, comment=None ):
+    def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
         """Insert or update notes
         notes is a list of tuples (etudid,value)
+        If do_it is False, simulate the process and returns the number of values that
+        WOULD be changed or suppressed.
         Nota:
         - va verifier si tous les etudiants sont inscrits
         au moduleimpl correspond a cet eval_id.
@@ -3060,10 +3087,11 @@ class ZNotes(ObjectManager,
                 if not NotesDB.has_key(etudid):
                     # nouvelle note
                     if value != NOTES_SUPPRESS:
-                        aa = {'etudid':etudid, 'evaluation_id':evaluation_id,
-                              'value':value, 'comment' : comment, 'uid' : uid}
-                        quote_dict(aa)
-                        cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(uid)s)', aa )
+                        if do_it:
+                            aa = {'etudid':etudid, 'evaluation_id':evaluation_id,
+                                  'value':value, 'comment' : comment, 'uid' : uid}
+                            quote_dict(aa)
+                            cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(uid)s)', aa )
                         nb_changed = nb_changed + 1
                 else:
                     # il y a deja une note
@@ -3077,29 +3105,34 @@ class ZNotes(ObjectManager,
                         changed = True
                     if changed:
                         # recopie l'ancienne note dans notes_notes_log, puis update
-                        cursor.execute('insert into notes_notes_log (etudid,evaluation_id,value,comment,date,uid) select etudid,evaluation_id,value,comment,date,uid from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s',
-                                       { 'etudid':etudid, 'evaluation_id':evaluation_id } )
-                        aa = { 'etudid':etudid, 'evaluation_id':evaluation_id,
-                               'value':value,
-                               'date': apply(DB.Timestamp, time.localtime()[:6]),
-                               'comment' : comment, 'uid' : uid}
-                        quote_dict(aa)
+                        if do_it:
+                            cursor.execute('insert into notes_notes_log (etudid,evaluation_id,value,comment,date,uid) select etudid,evaluation_id,value,comment,date,uid from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s',
+                                           { 'etudid':etudid, 'evaluation_id':evaluation_id } )
+                            aa = { 'etudid':etudid, 'evaluation_id':evaluation_id,
+                                   'value':value,
+                                   'date': apply(DB.Timestamp, time.localtime()[:6]),
+                                   'comment' : comment, 'uid' : uid}
+                            quote_dict(aa)
                         if value != NOTES_SUPPRESS:
-                            cursor.execute('update notes_notes set value=%(value)s, comment=%(comment)s, date=%(date)s, uid=%(uid)s where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
+                            if do_it:
+                                cursor.execute('update notes_notes set value=%(value)s, comment=%(comment)s, date=%(date)s, uid=%(uid)s where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
                         else: # supression ancienne note
-                            log('_notes_add, suppress, evaluation_id=%s, etudid=%s, oldval=%s'
+                            if do_it:
+                                log('_notes_add, suppress, evaluation_id=%s, etudid=%s, oldval=%s'
                                 % (evaluation_id,etudid,oldval) )
-                            cursor.execute('delete from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
+                                cursor.execute('delete from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
                             nb_suppress += 1
                         nb_changed += 1                    
         except:
             log('*** exception in _notes_add')
-            # inval cache
-            self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
-            cnx.rollback() # abort
+            if do_it:
+                # inval cache
+                self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
+                cnx.rollback() # abort
             raise # re-raise exception
-        cnx.commit()
-        self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id']) 
+        if do_it:
+            cnx.commit()
+            self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id']) 
         return nb_changed, nb_suppress
 
     

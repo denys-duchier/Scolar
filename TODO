@@ -23,11 +23,10 @@ BUGS:
 - message erreur si creation utilisateur duplique (duplicate key)
 
 Saisie des notes:
-- lors d'une modif des notes, indiquer (dans le cadre de verif)
-  le nombre de notes MODIFIEES.
+
 - bug: si note > note_max, indique 1 note invalide (c'est ok), mais
   aussi 3 notes valides !!!
-- ne pas demander 2x de vérifier les notes.
+
 - si une note invalide, l'indiquer dans le listing (JS ?)
 
 

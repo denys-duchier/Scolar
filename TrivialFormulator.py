@@ -256,8 +256,10 @@ class TF:
                 lab.append('<input type="checkbox" name="%s:list" value="%s" %s/>' % ('tf-checked', field, checked ) )
             lab.append(title)
             #
+            attribs = ' '.join(descr.get('attributes', []))
+            #
             if input_type == 'text':
-                lem.append( '<input type="text" name="%s" size="%d" ' % (field,size) )
+                lem.append( '<input type="text" name="%s" size="%d" %s' % (field,size,attribs) )
                 if descr.get('return_focus_next',False): # and nextitemname:
                     # JS code to focus on next element on 'enter' key
                     # ceci ne marche que pour desactiver enter sous IE (pas Firefox)
@@ -269,7 +271,7 @@ class TF:
 #                    lem.append('onblur="document.%s.%s.focus()"'%(name,nextitemname))
                 lem.append( ('value="%('+field+')s" />') % values )
             elif input_type == 'password':
-                lem.append( '<input type="password" name="%s" size="%d" ' % (field,size) )
+                lem.append( '<input type="password" name="%s" size="%d" %s' % (field,size,attribs) )
                 lem.append( ('value="%('+field+')s" />') % values )
             elif input_type == 'radio':
                 labels = descr.get('labels', descr['allowed_values'])
@@ -279,10 +281,10 @@ class TF:
                     else:
                         checked=''
                     lem.append(
-                        '<input type="radio" name="%s" value="%s" %s>%s</input>'
-                        % (field, descr['allowed_values'][i], checked, labels[i]) )
+                        '<input type="radio" name="%s" value="%s" %s %s>%s</input>'
+                        % (field, descr['allowed_values'][i], checked, attribs, labels[i]) )
             elif input_type == 'menu':
-                lem.append('<select name="%s">'%field)
+                lem.append('<select name="%s" %s>'%(field,attribs))
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
                     if str(descr['allowed_values'][i]) == str(values[field]):
@@ -302,7 +304,6 @@ class TF:
                         checked='checked="checked"'
                     else:
                         checked=''
-                    attribs = ' '.join(descr.get('attributes', []))
                     if vertical:
                         lem.append('<tr><td>')
                     lem.append('<input type="checkbox" name="%s:list" value="%s" %s %s>%s</input>'
@@ -312,18 +313,18 @@ class TF:
                 if vertical:
                     lem.append('</table>')
             elif input_type == 'textarea':
-                lem.append('<textarea name="%s" rows="%d" cols="%d">%s</textarea>'
-                           % (field,rows,cols,values[field]) )
+                lem.append('<textarea name="%s" rows="%d" cols="%d" %s>%s</textarea>'
+                           % (field,rows,cols,attribs,values[field]) )
             elif input_type == 'hidden':
                 if descr.get('type','') == 'list':
                     for v in values[field]:
-                        lem.append('<input type="hidden" name="%s:list" value="%s" />' % (field,v))
+                        lem.append('<input type="hidden" name="%s:list" value="%s" %s />' % (field,v,attribs))
                 else:
-                    lem.append('<input type="hidden" name="%s" value="%s" />' % (field,values[field]))
+                    lem.append('<input type="hidden" name="%s" value="%s" %s />' % (field,values[field],attribs))
             elif input_type == 'separator':
                 pass
             elif input_type == 'file':
-                lem.append('<input type="file" name="%s" size="%s" value="%s"/>' % (field,size,values[field]))
+                lem.append('<input type="file" name="%s" size="%s" value="%s" %s/>' % (field,size,values[field], attribs))
             else:
                 raise ValueError('unkown input_type for form (%s)!'%input_type)
             explanation = descr.get('explanation', '')
