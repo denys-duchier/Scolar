@@ -30,7 +30,7 @@
 <dtml-if "tf[0] == 0">
  <dtml-var "tf[1]">
 <dtml-elif "tf[0] == -1">
-  <dtml-call "RESPONSE.redirect( REQUEST.REFERER )" >
+  <dtml-call "RESPONSE.redirect( REQUEST.HTTP_REFERER )" >
     <dtml-call "RESPONSE.redirect( URL1 + '/entreprise_correspondant_list?entreprise_id=' + str(F['entreprise_id']) )" >
 <dtml-else>
   <dtml-call "do_entreprise_correspondant_edit( tf[2] )">

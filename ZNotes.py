@@ -1788,7 +1788,7 @@ class ZNotes(ObjectManager,
         sem = self.do_formsemestre_list(
             args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
         if (not authuser.has_permission(ScoEditAllNotes,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
-            raise AccessDenied('Modification évaluation impossible pour %s (%s) (%s)'%(uid,str(M),str(sem)))
+            raise AccessDenied('Modification évaluation impossible pour %s'%(uid,))
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')
     def do_evaluation_create(self, REQUEST, args):
@@ -1934,8 +1934,14 @@ class ZNotes(ObjectManager,
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
         formsemestre_id = M['formsemestre_id']
         if not readonly:
-            self._evaluation_check_write_access( REQUEST,
-                                                 moduleimpl_id=moduleimpl_id )
+            try:
+                self._evaluation_check_write_access( REQUEST,
+                                                     moduleimpl_id=moduleimpl_id )
+            except AccessDenied, detail:
+                return self.sco_header(self,REQUEST)\
+                       + '<h2>Opération non autorisée</h2><p>' + str(detail) + '</p>'\
+                       + '<p><a href="%s">Revenir</a></p>' % (str(REQUEST.HTTP_REFERER), ) \
+                       + self.sco_footer(self,REQUEST)
         if readonly:
             edit=True # montre les donnees existantes
         if not edit:

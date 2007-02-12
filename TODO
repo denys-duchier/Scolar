@@ -17,7 +17,6 @@
 
 BUGS:
 - saisie absence sans date: message erreur (validation formulaire)
-- moduleimpl_status: lien creation evaluation d: ne pas montrer aux charges de TD
 - do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 
 - message erreur si "not OLE file"
 - message erreur si creation utilisateur duplique (duplicate key)
