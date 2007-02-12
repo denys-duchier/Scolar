@@ -410,7 +410,7 @@ class ZAbsences(ObjectManager,
         return cursor.dictfetchall()
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
-    def doSignaleAbsenceGrHebdo(self, abslist, REQUEST):
+    def doSignaleAbsenceGrHebdo(self, abslist=[], REQUEST=None):
         "enregistre absences hebdo"
         H = [ self.sco_header(self,REQUEST,page_title='Absences') + '<h3>Absences ajoutées</h3>' ]
         H.append('<p><a class="stdlink" href="%s">continuer</a></p>'%REQUEST.URL1)
