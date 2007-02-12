@@ -949,7 +949,14 @@ class ZScolar(ObjectManager,
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, args)[0]
+        etuds = scolars.etudident_list(cnx, args)
+        if not etuds:
+            # etudiant non trouvé: message d'erreur en XML
+            doc.etudiant( etudid=etudid, nom='?', prenom='?', sexe='?',
+                          email='?', error='code inconnu')
+            return repr(doc)
+        
+        etud = etuds[0]
         self.fillEtudsInfo([etud])
         doc.etudiant( etudid=etudid,
                       nom=etud['nom'],
