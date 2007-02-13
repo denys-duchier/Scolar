@@ -235,6 +235,10 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'menu_js')
     menu_js = DTMLFile('JavaScripts/menu_js', globals())
 
+    security.declareProtected(ScoView, 'calendarDateInput_js')
+    calendarDateInput_js = DTMLFile('JavaScripts/calendarDateInput_js',
+                                    globals())
+
     security.declareProtected(ScoView, 'menu_css')
     menu_css = DTMLFile('JavaScripts/menu_css', globals())
 

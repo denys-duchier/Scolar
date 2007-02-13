@@ -2560,9 +2560,13 @@ class ZNotes(ObjectManager,
         # Check access
         # (admin, respformation, and responsable_id)
         if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
-            # XXX imaginer un redirect + msg erreur
-            raise AccessDenied('Modification des notes impossible pour %s'%authusername)
-        #
+            return self.sco_header(self,REQUEST)\
+                   + '<h2>Modification des notes impossible pour %s</h2>' % authusername\
+                   + """<p>(vérifiez que le semestre n'est pas verrouillé et que vous
+                   avez l'autorisation d'effectuer cette opération)</p>
+                   <p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>
+                   """ % E['moduleimpl_id']  + self.sco_footer(self,REQUEST)                
+               #
         cnx = self.GetDBConnexion()
         note_method = REQUEST.form['note_method']
         okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
