@@ -246,8 +246,8 @@ class ZAbsences(ObjectManager,
     SignaleAbsenceEtud=DTMLFile('dtml/absences/SignaleAbsenceEtud', globals())
     security.declareProtected(ScoAbsChange, 'doSignaleAbsence')
     doSignaleAbsence=DTMLFile('dtml/absences/doSignaleAbsence', globals())
-    security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
-    SignaleAbsenceGrHebdo = DTMLFile('dtml/absences/SignaleAbsenceGrHebdo', globals())
+    #security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
+    #SignaleAbsenceGrHebdo = DTMLFile('dtml/absences/SignaleAbsenceGrHebdo', globals())
 
     security.declareProtected(ScoAbsChange, 'JustifAbsenceEtud')
     JustifAbsenceEtud=DTMLFile('dtml/absences/JustifAbsenceEtud', globals())
@@ -324,8 +324,25 @@ class ZAbsences(ObjectManager,
         # Invalid cache (nbabs sur bulletins)
         self.Notes._getNotesCache().inval_cache()
 
+    security.declareProtected(ScoAbsChange, 'AnnuleAbsencesPeriodNoJust' )
+    def AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
+        """Supprime les absences entre ces dates (incluses).
+        mais ne supprime pas les justificatifs.
+        """
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        # supr les absences non justifiees
+        cursor.execute("delete from absences where etudid=%(etudid)s and (not estjust) and jour BETWEEN %(datedebut)s AND %(datefin)s",
+                       vars() )
+        # s'assure que les justificatifs ne sont pas "absents"
+        cursor.execute("update absences set estabs=FALSE where  etudid=%(etudid)s and jour BETWEEN %(datedebut)s AND %(datefin)s", vars())
+        logdb(REQUEST, cnx, 'AnnuleAbsencesPeriodNoJust', etudid=etudid,
+              msg='%(datedebut)s - %(datefin)s'%vars())
+        cnx.commit()
+
     security.declareProtected(ScoView, 'CountAbs')
     def CountAbs(self, etudid, debut, fin, matin=None):
+        "CountAbs"
         if matin != None:
             matin = _toboolean(matin)
             ismatin = ' AND A.MATIN = %(matin)s '
@@ -410,8 +427,20 @@ class ZAbsences(ObjectManager,
         return cursor.dictfetchall()
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
-    def doSignaleAbsenceGrHebdo(self, abslist=[], REQUEST=None):
-        "enregistre absences hebdo"
+    def doSignaleAbsenceGrHebdo(self, abslist=[],
+                                datedebut=None, datefin=None, etudids=[], REQUEST=None):
+        """Enregistre absences hebdo. Efface les anciennes absences et
+        signale les nouvelles.
+        abslist : liste etudid:date:ampm des absences signalees
+        etudis : liste des etudids concernes
+        datedebut, datefin: dates (ISO) de la semaine        
+        """
+        etudids = etudids.split(',')
+        # 1- Efface les absences
+        for etudid in etudids:
+            self.AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, REQUEST) 
+        
+        # 2- Ajoute les absences
         H = [ self.sco_header(self,REQUEST,page_title='Absences') + '<h3>Absences ajoutées</h3>' ]
         H.append('<p><a class="stdlink" href="%s">continuer</a></p>'%REQUEST.URL1)
         # H.append('<pre>') # debug
@@ -424,8 +453,10 @@ class ZAbsences(ObjectManager,
             else:
                 raise ValueError, 'invalid ampm !'
             # H.append( str((etudid, jour, matin )) )
-           
-            self.AddAbsence( etudid, jour, matin, 0, REQUEST )
+
+            # ajoute abs si pas deja absent
+            if self.CountAbs( etudid, jour, jour, matin) == 0:                
+                self.AddAbsence( etudid, jour, matin, 0, REQUEST )
         # H.append( '</pre>' ) # debug
 
         return '\n'.join(H) + self.sco_footer(self,REQUEST)
@@ -540,6 +571,88 @@ class ZAbsences(ObjectManager,
                 year = year + 1
         T.append('</table>')
         return string.join(T,'\n')
+
+    # ------------ HTML Interfaces
+    security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
+    def SignaleAbsenceGrHebdo(self, datelundi, semestregroupe, REQUEST=None):
+        "Saisie hebdomadaire des absences"
+        formsemestre_id = semestregroupe.split('!')[0]
+        groupetd = semestregroupe.split('!')[1]
+        groupeanglais = semestregroupe.split('!')[2]
+        groupetp = semestregroupe.split('!')[3]
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        jours=['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
+        # calcule dates jours de cette semaine
+        datessem = [ self.DateDDMMYYYY2ISO(datelundi) ]
+        for jour in jours[1:]:
+            datessem.append( self.NextISODay(datessem[-1]) )
+        #                
+        H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
+                              no_side_bar=1,REQUEST=REQUEST),
+              """<table border="0" cellspacing="16"><tr><td>
+              <h2>Saisie des absences pour le groupe %s %s %s de %s, 
+              semaine du lundi %s</h2>
+
+              <p><a href="index_html">Annuler</a></p>
+
+              <p>
+              <form action="doSignaleAbsenceGrHebdo" method="post">
+              <table rules="cols" frame="box">
+              <tr><td>&nbsp;</td>
+              """ % (groupetd, groupeanglais, groupetp, sem['titre'], datelundi) ]
+        #
+        for jour in jours:
+            H.append('<th colspan="2">' + jour + '</th>')
+        H.append("""</tr>
+<tr><td>&nbsp;</td><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th><th>Matin</th><th>Après midi</th></tr>
+                 """)
+        etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
+        i=1
+        for etud in etuds:
+            log(str(etud))
+            i += 1
+            bgcolor = ('bgcolor="#ffffff"', '')[i%2]
+            H.append('<tr %s><td><b>%s</b></td>' % (bgcolor, etud['nomprenom']))
+            etudid = etud['etudid']
+            for date in datessem:
+                # matin
+                if self.CountAbs( etudid, date, date, True):
+                    checked = 'checked'
+                else:
+                    checked = ''
+                H.append('<td><input type="checkbox" name="abslist:list" value="%s" %s/></td>'
+                         % (etudid+':'+date+':'+'am', checked))
+                # apres midi
+                if self.CountAbs( etudid, date, date, False):
+                    checked = 'checked'
+                else:
+                    checked = ''
+                H.append('<td><input type="checkbox" name="abslist:list" value="%s" %s/></td>'
+                         % (etudid+':'+date+':'+'pm', checked))
+            H.append('</tr>')
+        H.append('</table>')
+        # place la liste des etudiants et les dates pour pouvoir effacer les absences
+        H.append('<input type="hidden" name="etudids" value="%s"/>'
+                 % ','.join( [ etud['etudid'] for etud in etuds ] ) )
+        H.append('<input type="hidden" name="datedebut" value="%s"/>' % datessem[0] )
+        H.append('<input type="hidden" name="datefin" value="%s"/>' % datessem[-1] )
+        #
+        H.append("""
+        <div align="center">
+        <p><input type="submit" value="OK, enregistrer ces absences"></p>
+        </div>
+        </form>        
+        </p>
+        <p><a href="index_html">Annuler</a></p>
+
+        </td></tr></table>
+        <p class="help">Les absences saisies ne sont pas justifiées (sauf si un justificatif a été entré
+        par ailleurs).
+        </p><p class="help">Si vous "décochez" une case,  l'absence correspondante sera supprimée.
+        </p>
+        """)
+        H.append(self.sco_footer(self, REQUEST))
+        return '\n'.join(H)
 
 # ------ HTML Calendar functions (see YearTable method)
 

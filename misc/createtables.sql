@@ -87,10 +87,10 @@ CREATE TABLE admissions (
 
 CREATE TABLE absences (
     etudid text NOT NULL,
-    jour date,
-    estabs boolean,
-    estjust boolean,
-    matin boolean
+    jour date, -- jour de l'absence
+    estabs boolean, -- vrai si absent
+    estjust boolean, -- vrai si justifie
+    matin boolean -- vrai si concerne le matin, faux si apres midi
 );
 
 CREATE TABLE scolog (
