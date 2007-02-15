@@ -598,7 +598,16 @@ class ZScolar(ObjectManager,
             args = { 'formsemestre_id' : formsemestre_id }
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
-            H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a><br/> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
+            H.append("""<li class="listegroupelink">
+            <a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a>
+            (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>)
+            <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a>
+            <br/> (%d étudiants)
+            """ % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
+            H.append("""
+            (<a href="Absences/EtatAbsencesGr?semestregroupe=%(formsemestre_id)s!!!&debut=%(date_debut)s&fin=%(date_fin)s">état des absences</a>)
+            </li>
+            """ % sem )
         H.append('</ul>')
         
         # Si admin, lien changementde groupes
