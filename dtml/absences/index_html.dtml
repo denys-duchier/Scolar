@@ -29,7 +29,7 @@
 <hr>
 
 <form action="SignaleAbsenceGrHebdo" id="formw">
-
+<input type="hidden" name="destination" value="<dtml-var URL0>"/>
 <p>
 <span  style="font-weight: bold; font-size:120%;">
  Saisie par semaine </span> - Choix du groupe:

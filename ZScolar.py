@@ -525,10 +525,14 @@ class ZScolar(ObjectManager,
                                                  self.ScoURL() )
         
     # genere liste html pour acces aux groupes TD/TP/TA de ce semestre
-    def make_listes_sem(self, sem, REQUEST):
+    def make_listes_sem(self, sem, REQUEST=None, with_absences=True):
         authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
         H = []
+        # pas de menu absences si pas autorise:
+        if with_absences and not authuser.has_permission(ScoAbsChange,self):
+            with_absences = False
+
         # -- prevoir si necessaire un moyen de chercher le vrai nom du
         #    responsable de formation.
         sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
@@ -537,41 +541,64 @@ class ZScolar(ObjectManager,
         # cherche les groupes de ce semestre
         formsemestre_id = sem['formsemestre_id']
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
-        #H.append( str(gr_td+gr_tp+gr_anglais) + '<p>')
-        H.append('<ul>')            
-        if gr_td:
-            H.append('<li>Groupes de %s</li>' % sem['nomgroupetd'])
+        # calcule dates 1er jour semaine pour absences
+        if with_absences:
+            first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).next_monday()
+            FormAbs1 = '<form action="Absences/SignaleAbsenceGrSemestre" method="GET">'
+            FA = [] # formulaire avec menu saisi absences
+            FA.append('<input type="hidden" name="datefin" value="%(date_fin)s"/>'
+                             % sem )
+            FA.append('<input type="hidden" name="semestregroupe" value="%s!%%s"/>'
+                     % (formsemestre_id,) )
+            FA.append('<input type="hidden" name="destination" value="%s?%s"/>'
+                     % (REQUEST.URL, REQUEST.QUERY_STRING))
+            FA.append('<input type="submit" value="Saisir absences du" />')
+            FA.append('<select name="datedebut" class="noprint">')
+            date = first_monday
+            for jour in ZAbsences.DAY_NAMES:
+                FA.append('<option value="%s">%s</option>' % (date, jour) )
+                date = date.next()
+            FA.append('</select></form>')
+            FormAbs2 = '\n'.join(FA)
+        else:
+            FormAbs1, FormAbs2 = '', ''
+        #
+        H.append('<ul>')
+        # Genere liste pour chaque categorie de groupes
+        for (groupes, nomgroupe, semnomgroupe, grmask) in (
+            (gr_td, 'groupetd', 'nomgroupetd', '%s!!'),
+            (gr_anglais, 'groupeanglais', 'nomgroupeta', '!%s!'),
+            (gr_tp, 'groupetp', 'nomgroupetp', '!!%s')
+            ):
+            H.append('<li>Groupes de %s</li>' % sem[semnomgroupe])
             H.append('<ul>')
-            for gr in gr_td:
-                args = { 'formsemestre_id' : formsemestre_id, 'groupetd' : gr }
+            for gr in groupes:
+                args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
                 ins = self.Notes.do_formsemestre_inscription_list( args=args )
                 nb = len(ins) # nb etudiants
-                H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s&groupetd=%s">groupe %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&groupetd=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&groupetd=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>'%(r,formsemestre_id,gr,gr,r,formsemestre_id,gr,r,formsemestre_id,gr,nb))
+                H.append('<li class="listegroupelink">')
+                H.append(FormAbs1)
+                H.append("""
+                <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
+                (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
+                <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Trombinoscope</a>
+                (%d étudiants)
+                """ % (r, formsemestre_id, nomgroupe, gr, gr,
+                       r, formsemestre_id, nomgroupe, gr,
+                       r, formsemestre_id, nomgroupe, gr,
+                       nb))
+                if with_absences:
+                    H.append( FormAbs2 % (grmask % gr) )
+                H.append('</li>')
             H.append('</ul>')
-        if gr_anglais: 
-            H.append('<li>Groupes de %s</li>' % sem['nomgroupeta'])
-            H.append('<ul>')
-            for gr in gr_anglais:
-                args = { 'formsemestre_id' : formsemestre_id, 'groupeanglais' : gr }
-                ins = self.Notes.do_formsemestre_inscription_list( args=args )
-                nb = len(ins) # nb etudiants
-                H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s&groupeanglais=%s">groupe %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&groupeanglais=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&groupeanglais=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>'%(r,formsemestre_id,gr,gr,r,formsemestre_id,gr,r,formsemestre_id,gr,nb))
-            H.append('</ul>')
-        if gr_tp: 
-            H.append('<li>Groupes de %s</li>' % sem['nomgroupetp'])
-            H.append('<ul>')
-            for gr in gr_tp:
-                args = { 'formsemestre_id' : formsemestre_id, 'groupetp' : gr }
-                ins = self.Notes.do_formsemestre_inscription_list( args=args )
-                nb = len(ins) # nb etudiants
-                H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s&groupetp=%s">groupe %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&groupetp=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&groupetp=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>'%(r,formsemestre_id,gr,gr,r,formsemestre_id,gr,r,formsemestre_id,gr,nb))
-            H.append('</ul>')
+        
         if len(gr_td) > 1:
             args = { 'formsemestre_id' : formsemestre_id }
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
             H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
         H.append('</ul>')
+        
         # Si admin, lien changementde groupes
         if authuser.has_permission(ScoEtudChangeGroups,self):
             H.append('<p class="listegroupelink">Modifier les groupes de <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a></p>'

@@ -17,6 +17,9 @@
 
 BUGS:
 
+
+- verifier calcul date abs sur bulletins: annuel ou semestriel ?
+
 - do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 
 - message erreur si "not OLE file"
 - message erreur si creation utilisateur duplique (duplicate key)
@@ -32,6 +35,10 @@ Validation semestre et UE:
 
 
 FUTUR:
+
+- EtatAbsences : changer date debut par defaut quand on change le semestre
+  (ne doit pas etre toujours le 1er septembre)
+
 - mettre dans les bulletins de notes une valeur ATT se calculant à
 l'identique de EXC, mais différenciant les décisions provisoires des 
 définitives. 

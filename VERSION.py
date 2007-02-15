@@ -1,11 +1,11 @@
-SCOVERSION = "4.17"
+SCOVERSION = "4.18"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
 <h4>Janvier 2007</h4>
 <ul>
-<li>Amélioration formulaire saisie absences</li>
+<li>Amélioration formulaire saisie absences, saisie absences par semestre.</li>
 <li>Possibilité d'initialiser les notes manquantes d'une évaluation</li>
 <li>Recupération des codes NIP depuis Apogée</li>
 <li>Gestion des compensations inter-semestre DUT (en cours de développement)</li>
