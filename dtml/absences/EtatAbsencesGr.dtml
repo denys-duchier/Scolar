@@ -20,7 +20,7 @@
 
 <h1>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']"></h1>
 
-<p>p&eacute;riode du <dtml-var debut> au <dtml-var fin> (nombre de <b>demi-journ&eacute;es</b>)
+<p>P&eacute;riode du <dtml-var debut> au <dtml-var fin> (nombre de <b>demi-journ&eacute;es</b>)
 
 <style type="text/css">
 <!--

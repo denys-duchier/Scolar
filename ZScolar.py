@@ -558,7 +558,9 @@ class ZScolar(ObjectManager,
             for jour in ZAbsences.DAY_NAMES:
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
-            FA.append('</select></form>')
+            FA.append('</select>')
+            FA.append('<a href="Absences/EtatAbsencesGr?semestregroupe=%(formsemestre_id)s!%%s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
+            FA.append('</form>')
             FormAbs2 = '\n'.join(FA)
         else:
             FormAbs1, FormAbs2 = '', ''
@@ -567,8 +569,8 @@ class ZScolar(ObjectManager,
         # Genere liste pour chaque categorie de groupes
         for (groupes, nomgroupe, semnomgroupe, grmask) in (
             (gr_td, 'groupetd', 'nomgroupetd', '%s!!'),
-            (gr_anglais, 'groupeanglais', 'nomgroupeta', '!%s!'),
-            (gr_tp, 'groupetp', 'nomgroupetp', '!!%s')
+            (gr_anglais, 'groupeanglais', 'nomgroupeta', '!!%s'),
+            (gr_tp, 'groupetp', 'nomgroupetp', '!%s!')
             ):
             H.append('<li>Groupes de %s</li>' % sem[semnomgroupe])
             H.append('<ul>')
@@ -581,14 +583,14 @@ class ZScolar(ObjectManager,
                 H.append("""
                 <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
                 (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
-                <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Trombinoscope</a>
+                <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
                 (%d étudiants)
                 """ % (r, formsemestre_id, nomgroupe, gr, gr,
                        r, formsemestre_id, nomgroupe, gr,
                        r, formsemestre_id, nomgroupe, gr,
                        nb))
                 if with_absences:
-                    H.append( FormAbs2 % (grmask % gr) )
+                    H.append( FormAbs2 % ((grmask % gr),(grmask % gr)) )
                 H.append('</li>')
             H.append('</ul>')
         
@@ -596,7 +598,7 @@ class ZScolar(ObjectManager,
             args = { 'formsemestre_id' : formsemestre_id }
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
-            H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Trombinoscope</a> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
+            H.append('<li class="listegroupelink"><a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a> (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>) <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a><br/> (%d étudiants)</li>' % (r,formsemestre_id,sem['titre'],r,formsemestre_id,r,formsemestre_id,nb))
         H.append('</ul>')
         
         # Si admin, lien changementde groupes
@@ -822,7 +824,8 @@ class ZScolar(ObjectManager,
         Attention: peut etre lent, car plusieurs requetes SQL par etudiant !
         """
         cnx = self.GetDBConnexion()
-        sem = self.Notes.do_formsemestre_list( args={'formsemestre_id':formsemestre_id} )[0]
+        sem = self.Notes.do_formsemestre_list(
+            args={'formsemestre_id':formsemestre_id} )[0]
         args,nomgroupe=self._make_groupes_args(groupetd,groupetp,groupeanglais,
                                                etat)
         args['formsemestre_id'] = formsemestre_id
