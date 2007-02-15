@@ -572,7 +572,7 @@ class ZScolar(ObjectManager,
             (gr_anglais, 'groupeanglais', 'nomgroupeta', '!!%s'),
             (gr_tp, 'groupetp', 'nomgroupetp', '!%s!')
             ):
-            H.append('<li>Groupes de %s</li>' % sem[semnomgroupe])
+            H.append('<li><b>Groupes de %s</b></li>' % sem[semnomgroupe])
             H.append('<table>')
             for gr in groupes:
                 args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
@@ -581,6 +581,7 @@ class ZScolar(ObjectManager,
                 H.append('<tr class="listegroupelink">')
                 H.append("""<td>
                 <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
+                </td><td>
                 (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
                 <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
                 </td><td>(%d étudiants)</td>
