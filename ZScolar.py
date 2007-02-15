@@ -28,7 +28,7 @@
 """Site Scolarite pour département IUT
 """
 
-import time, string, glob
+import time, string, glob, re
 import urllib, urllib2, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
@@ -1561,7 +1561,10 @@ function tweakmenu( gname ) {
         args = { 'REQUEST' : REQUEST, 'redirect' : False }
         for line in groupslists.split('\n'):
             fs = line.split(';')
-            groupName = fs[0].strip();
+            groupName = fs[0].strip()
+            if groupName and not re.match( '^\w+$', groupName ):
+                log('!!! invalid group name: ' + groupName)
+                raise ValueError, 'invalid group name: ' + groupName
             args[grn] = groupName
             for etudid in fs[1:-1]:
                 self.doChangeGroupe( etudid, formsemestre_id, **args )

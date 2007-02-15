@@ -71,7 +71,8 @@ CGroupBox.prototype = {
   initialize: function( groupName, displayName ) {
     groupName = groupName.trim();
     //alert("CGroupBox.initialize " + groupName);
-    if (! groupName) {
+    var regex = /^\w+$/
+    if (! regex.test(groupName) ) {
       alert("Nom de groupe invalide");
       return;
     }
