@@ -544,8 +544,8 @@ class ZScolar(ObjectManager,
         # calcule dates 1er jour semaine pour absences
         if with_absences:
             first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).next_monday()
-            FormAbs1 = '<form action="Absences/SignaleAbsenceGrSemestre" method="GET">'
             FA = [] # formulaire avec menu saisi absences
+            FA.append('<td><form action="Absences/SignaleAbsenceGrSemestre" method="GET">')
             FA.append('<input type="hidden" name="datefin" value="%(date_fin)s"/>'
                              % sem )
             FA.append('<input type="hidden" name="semestregroupe" value="%s!%%s"/>'
@@ -560,10 +560,10 @@ class ZScolar(ObjectManager,
                 date = date.next()
             FA.append('</select>')
             FA.append('<a href="Absences/EtatAbsencesGr?semestregroupe=%(formsemestre_id)s!%%s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
-            FA.append('</form>')
-            FormAbs2 = '\n'.join(FA)
+            FA.append('</form></td>')
+            FormAbs = '\n'.join(FA)
         else:
-            FormAbs1, FormAbs2 = '', ''
+            FormAbs = ''
         #
         H.append('<ul>')
         # Genere liste pour chaque categorie de groupes
@@ -573,26 +573,25 @@ class ZScolar(ObjectManager,
             (gr_tp, 'groupetp', 'nomgroupetp', '!%s!')
             ):
             H.append('<li>Groupes de %s</li>' % sem[semnomgroupe])
-            H.append('<ul>')
+            H.append('<table>')
             for gr in groupes:
                 args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
                 ins = self.Notes.do_formsemestre_inscription_list( args=args )
                 nb = len(ins) # nb etudiants
-                H.append('<li class="listegroupelink">')
-                H.append(FormAbs1)
-                H.append("""
+                H.append('<tr class="listegroupelink">')
+                H.append("""<td>
                 <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
                 (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
                 <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
-                (%d étudiants)
+                </td><td>(%d étudiants)</td>
                 """ % (r, formsemestre_id, nomgroupe, gr, gr,
                        r, formsemestre_id, nomgroupe, gr,
                        r, formsemestre_id, nomgroupe, gr,
                        nb))
                 if with_absences:
-                    H.append( FormAbs2 % ((grmask % gr),(grmask % gr)) )
-                H.append('</li>')
-            H.append('</ul>')
+                    H.append( FormAbs % ((grmask % gr),(grmask % gr)) )
+                H.append('</tr>')
+            H.append('</table>')
         
         if len(gr_td) > 1:
             args = { 'formsemestre_id' : formsemestre_id }
