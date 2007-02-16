@@ -533,11 +533,8 @@ class ZScolar(ObjectManager,
         if with_absences and not authuser.has_permission(ScoAbsChange,self):
             with_absences = False
 
-        # -- prevoir si necessaire un moyen de chercher le vrai nom du
-        #    responsable de formation.
-        sem['responsable_name'] = sem['responsable_id'].lower().capitalize()
         #
-        H.append('<h3>Listes de %(titre)s <span class="infostitresem">(%(mois_debut)s - %(mois_fin)s, %(responsable_name)s)</span></h3>' % sem )
+        H.append('<h3>Listes de %(titre)s <span class="infostitresem">(%(mois_debut)s - %(mois_fin)s)</span></h3>' % sem )
         # cherche les groupes de ce semestre
         formsemestre_id = sem['formsemestre_id']
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
@@ -565,40 +562,41 @@ class ZScolar(ObjectManager,
         else:
             FormAbs = ''
         #
-        H.append('<ul>')
+        H.append('<ul id="grouplists">')
         # Genere liste pour chaque categorie de groupes
         for (groupes, nomgroupe, semnomgroupe, grmask) in (
             (gr_td, 'groupetd', 'nomgroupetd', '%s!!'),
             (gr_anglais, 'groupeanglais', 'nomgroupeta', '!!%s'),
             (gr_tp, 'groupetp', 'nomgroupetp', '!%s!')
             ):
-            H.append('<li><b>Groupes de %s</b></li>' % sem[semnomgroupe])
-            H.append('<table>')
-            for gr in groupes:
-                args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
-                ins = self.Notes.do_formsemestre_inscription_list( args=args )
-                nb = len(ins) # nb etudiants
-                H.append('<tr class="listegroupelink">')
-                H.append("""<td>
-                <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
-                </td><td>
-                (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
-                <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
-                </td><td>(%d étudiants)</td>
-                """ % (r, formsemestre_id, nomgroupe, gr, gr,
-                       r, formsemestre_id, nomgroupe, gr,
-                       r, formsemestre_id, nomgroupe, gr,
-                       nb))
-                if with_absences:
-                    H.append( FormAbs % ((grmask % gr),(grmask % gr)) )
-                H.append('</tr>')
-            H.append('</table>')
+            if groupes:
+                H.append('<li><b>Groupes de %s</b></li>' % sem[semnomgroupe])
+                H.append('<table>')
+                for gr in groupes:
+                    args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
+                    ins = self.Notes.do_formsemestre_inscription_list( args=args )
+                    nb = len(ins) # nb etudiants
+                    H.append('<tr class="listegroupelink">')
+                    H.append("""<td>
+                    <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
+                    </td><td>
+                    (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
+                    <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
+                    </td><td>(%d étudiants)</td>
+                    """ % (r, formsemestre_id, nomgroupe, gr, gr,
+                           r, formsemestre_id, nomgroupe, gr,
+                           r, formsemestre_id, nomgroupe, gr,
+                           nb))
+                    if with_absences:
+                        H.append( FormAbs % ((grmask % gr),(grmask % gr)) )
+                    H.append('</tr>')
+                H.append('</table>')
         
         if len(gr_td) > 1:
             args = { 'formsemestre_id' : formsemestre_id }
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
-            H.append("""<li class="listegroupelink">
+            H.append("""<br/><li class="listegroupelink">
             <a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a>
             (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>)
             <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a>
