@@ -1,4 +1,5 @@
 <dtml-var sco_header>
+<div class="formsemestre_status">
 
 <dtml-var formsemestre_status_head>
 
@@ -119,5 +120,5 @@
 
 </ul>
 
-
+</div>
 <dtml-var sco_footer>
