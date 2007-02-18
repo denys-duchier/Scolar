@@ -64,6 +64,9 @@
  <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
  <dtml-var "nb_evals_completes+nb_evals_en_cours+nb_evals_vides"> prévues,  <dtml-var nb_evals_completes> ok<dtml-if "nb_evals_en_cours > 0">, <dtml-var nb_evals_en_cours> en cours</dtml-if>
  </a>
+ <dtml-if attente>
+ <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">">[en attente]</a></span>
+ </dtml-if attente>
  </dtml-if nb_evals!=0>
 </td>
 </tr>

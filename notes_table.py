@@ -37,6 +37,7 @@ NOTES_MIN = 0.       # valeur minimale admise pour une note
 NOTES_MAX = 100.
 NOTES_NEUTRALISE=-1000. # notes non prises en comptes dans moyennes
 NOTES_SUPPRESS=-1001.   # note a supprimer
+NOTES_ATTENTE=-1002.    # note "en attente" (se calcule comme une note neutralisee)
 
 NOTES_BARRE_GEN = 10. # barre sur moyenne generale
 NOTES_BARRE_UE = 8.   # barre sur UE
@@ -55,7 +56,8 @@ def fmt_note(val, note_max=None, keep_numeric=False):
         return 'ABS'
     if val == NOTES_NEUTRALISE:
         return 'EXC' # excuse, note neutralise
-    
+    if val == NOTES_ATTENTE:
+        return 'ATT' # attente, note neutralisee
     if type(val) == type(0.0) or type(val) == type(1):
         if note_max != None:
             val = val * 20. / note_max
@@ -107,8 +109,9 @@ class NotesTable:
         for i in range(len(self.inscrlist)):
             rangalpha[self.inscrlist[i]['etudid']] = i
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
-        self._modmoys, self._modimpls, valid_evals = znote.do_formsemestre_moyennes(
-            formsemestre_id)
+        self._modmoys, self._modimpls, valid_evals, mods_att =\
+                       znote.do_formsemestre_moyennes(formsemestre_id)
+        self._mods_att = mods_att # liste de smodules avec des notes en attente
         self._valid_evals = {} # { evaluation_id : eval }
         for e in valid_evals:
             self._valid_evals[e['evaluation_id']] = e
@@ -419,6 +422,10 @@ class NotesTable:
         for t in self.T:
             D[t[-1]] = t
         return D
+
+    def get_moduleimpls_attente(self):
+        "Liste des moduleimpls avec des notes en attente"
+        return self._mods_att
 
 class CacheNotesTable:
     """gestion rudimentaire de cache pour les NotesTables"""

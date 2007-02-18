@@ -28,6 +28,12 @@
 <dtml-if last_modif><em>(dernière note saisie le <dtml-var "DateTime(str(last_modif)).strftime('%d/%m/%Y à %Hh%M')">)</em></dtml-if>
 </td></tr>
 
+<dtml-if attente>
+<tr><td class="fichetitre2"></td><td class="redboldtext">
+Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indicative. 
+</td></tr>
+</dtml-if>
+
 </dtml-in do_evaluation_etat_in_sem>
 
 </table>

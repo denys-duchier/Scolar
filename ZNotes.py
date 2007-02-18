@@ -2092,12 +2092,14 @@ class ZNotes(ObjectManager,
 
     def _displayNote(self, val):
         "convert note from DB to viewable string"
-        # utilisé seulement pour I/O vers formulaires (sans perte de precision)
-        # Utliser fmt_note pour les affichages
+        # Utilisé seulement pour I/O vers formulaires (sans perte de precision)
+        # Utiliser fmt_note pour les affichages
         if val is None:
             val = 'ABS'
         elif val == NOTES_NEUTRALISE:
             val = 'EXC' # excuse, note neutralise
+        elif val == NOTES_ATTENTE:
+            val = 'ATT' # attente, note neutralise
         else:
             val = '%g' % val
         return val
@@ -2105,10 +2107,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_evaluation_etat')
     def do_evaluation_etat(self,evaluation_id):
         """donne infos sur l'etat du evaluation
-        { nb_inscrits, nb_notes, nb_abs, nb_neutre, moyenne, mediane,
+        { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
         date_last_modif, gr_complets, gr_incomplets, evalcomplete }
         evalcomplete est vrai si l'eval est complete (tous les inscrits
         à ce module ont des notes)
+        evalattente est vrai s'il ne manque que des notes en attente
         """
         nb_inscrits = len(self.do_evaluation_listeetuds_groups(evaluation_id,getallstudents=True))
         NotesDB = self._notes_getall(evaluation_id) # { etudid : value }
@@ -2116,6 +2119,7 @@ class ZNotes(ObjectManager,
         nb_notes = len(notes)
         nb_abs = len( [ x for x in notes if x is None ] )
         nb_neutre = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
+        nb_att = len( [ x for x in notes if x == NOTES_ATTENTE ] )
         moy, median = notes_moyenne_median(notes)
         if moy is None:
             median, moy = '',''
@@ -2142,50 +2146,62 @@ class ZNotes(ObjectManager,
         insmoddict = {}.fromkeys( [ x['etudid'] for x in insmod ] )
         # retire de insem ceux qui ne sont pas inscrits au module
         ins = [ i for i in insem if insmoddict.has_key(i['etudid']) ]
-        GrNbMissing = {} # groupetd : nb notes manquantes
-        GrNotes = {} # groupetd : liste de notes valides
+        
+        # On considere une note "manquante" lorsqu'elle n'existe pas
+        # ou qu'elle est en attente (ATT)
+        GrNbMissing = DictDefault() # groupetd : nb notes manquantes
+        GrNotes = DictDefault(defaultvalue=[]) # groupetd: liste notes valides
+        TotalNbMissing = 0
+        TotalNbAtt = 0
         for i in ins:
             groupetd = i['groupetd']
+            isMissing = False
             if NotesDB.has_key(i['etudid']):
                 val = NotesDB[i['etudid']]['value']
-                if GrNotes.has_key(groupetd):
-                    GrNotes[groupetd].append( val )
-                else:
-                    GrNotes[groupetd] = [ val ]
+                if val == NOTES_ATTENTE:
+                    isMissing = True
+                    TotalNbAtt += 1
+                GrNotes[groupetd].append( val )
             else:
-                if not GrNotes.has_key(groupetd):
-                    GrNotes[groupetd] = []
-                if GrNbMissing.has_key(groupetd):
-                    GrNbMissing[groupetd] += 1
-                else:
-                    GrNbMissing[groupetd] = 1
+                junk = GrNotes[groupetd] # create group
+                isMissing = True
+            if isMissing:
+                TotalNbMissing += 1
+                GrNbMissing[groupetd] += 1
+        
         gr_incomplets = [ x for x in GrNbMissing.keys() ]
         gr_incomplets.sort()
-        if gr_incomplets:
-            complete = 0
+        if TotalNbMissing > 0:
+            complete = False
         else:
-            complete = 1
+            complete = True            
+        if TotalNbMissing > 0 and TotalNbMissing == TotalNbAtt:
+            evalattente = True
+        else:
+            evalattente = False
         # calcul moyenne dans chaque groupe de TD
         gr_moyennes = [] # groupetd : {moy,median, nb_notes}
+        log("GrNotes=%s"%str(GrNotes))
         for gr in GrNotes.keys():
             notes = GrNotes[gr]
             gr_moy, gr_median = notes_moyenne_median(notes)
             gr_moyennes.append(
                 {'gr':gr, 'gr_moy' : fmt_note(gr_moy),
                  'gr_median':fmt_note(gr_median),
-                 'gr_nb_notes': len(notes)} )
+                 'gr_nb_notes': len(notes),
+                 'gr_nb_att' : len([ x for x in notes if x == NOTES_ATTENTE ])
+                 } )
         # retourne mapping
         return [ {
             'evaluation_id' : evaluation_id,
             'nb_inscrits':nb_inscrits, 'nb_notes':nb_notes,
-            'nb_abs':nb_abs, 'nb_neutre':nb_neutre,
+            'nb_abs':nb_abs, 'nb_neutre':nb_neutre, 'nb_att' : nb_att,
             'moy':moy, 'median':median,
             'last_modif':last_modif,
             'gr_incomplets':gr_incomplets,
             'gr_moyennes' : gr_moyennes,
-            'evalcomplete' : complete } ]
-        #return (nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif,
-        #gr_complets, gr_incomplets)
+            'evalcomplete' : complete,
+            'evalattente' : evalattente } ]
     
     security.declareProtected(ScoView, 'do_evaluation_list_in_sem')
     def do_evaluation_list_in_sem(self, formsemestre_id):
@@ -2230,7 +2246,7 @@ class ZNotes(ObjectManager,
             last_modif = dates[-1] # date de derniere modif d'une note dans un module
         else:
             last_modif = ''
-        #return nb_eval_completes, nb_evals_en_cours, nb_evals_vides, last_modif
+        
         return [ { 'nb_evals_completes':nb_evals_completes,
                    'nb_evals_en_cours':nb_evals_en_cours,
                    'nb_evals_vides':nb_evals_vides,
@@ -2239,9 +2255,14 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_evaluation_etat_in_sem')
     def do_evaluation_etat_in_sem(self, formsemestre_id):
         """-> nb_eval_completes, nb_evals_en_cours, nb_evals_vides,
-        date derniere modif"""
+        date derniere modif, attente"""
         evals = self.do_evaluation_list_in_sem(formsemestre_id)
-        return self._eval_etat(evals)
+        etat = self._eval_etat(evals)
+        # Ajoute information sur notes en attente
+        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+        etat[0]['attente'] = len(nt.get_moduleimpls_attente()) > 0
+        return etat
+    
 
     security.declareProtected(ScoView, 'do_evaluation_etat_in_mod')
     def do_evaluation_etat_in_mod(self, moduleimpl_id):
@@ -2250,7 +2271,15 @@ class ZNotes(ObjectManager,
         R = []
         for evaluation_id in evaluation_ids:
             R.append( self.do_evaluation_etat(evaluation_id)[0] )
-        return self._eval_etat(R)
+        etat = self._eval_etat(R)
+        # Ajoute information sur notes en attente
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id})[0]
+        formsemestre_id = M['formsemestre_id']
+        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+        
+        etat[0]['attente'] = moduleimpl_id in [
+            m['moduleimpl_id'] for m in nt.get_moduleimpls_attente() ]
+        return etat
 
 
     security.declareProtected(ScoView, 'evaluation_liste_notes')
@@ -2371,7 +2400,8 @@ class ZNotes(ObjectManager,
                     {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
                 if NotesDB.has_key(etudid):
                     val = NotesDB[etudid]['value']
-                    if val != None and val != NOTES_NEUTRALISE: # calcul moyenne SANS LES ABSENTS
+                    # calcul moyenne SANS LES ABSENTS
+                    if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE: 
                         valsur20 = val * 20. / E['note_max'] # remet sur 20
                         notes.append(valsur20) # toujours sur 20 pour l'histogramme
                         if note_sur_20:                            
@@ -2606,7 +2636,17 @@ class ZNotes(ObjectManager,
         else:
             evaltitre = 'évaluation du %s' % E['jour']
         description = '%s: %s en %s (%s) resp. %s' % (sem['titre'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
-        head = '<h3>%s</h3>' % description
+        head = """
+        <h4>Codes spéciaux:</h4>
+        <ul>
+        <li>ABS: absent (compte comme un zéro)</li>
+        <li>EXC: excusé (noute neutralisée)</li>
+        <li>SUPR: pour supprimer une note existante</li>
+        <li>ATT: note en attente (permet de publier une évaluation avec des notes manquantes)</li>
+        </ul>
+<h3>%s</h3>
+        """ % description
+        
         CSV.append ( [ description ] )
         head += '<p>Etudiants des groupes %s (%d étudiants)</p>'%(gr_title,len(etudids))
 
@@ -2736,7 +2776,7 @@ class ZNotes(ObjectManager,
             #tf.formdescription.append(
             # ('reviewed', { 'input_type':'hidden', 'default' : oknow } ) )        
             if oknow and okbefore and not changed:
-                # ok, on rentre ces notes
+                # ---------------  ok, on rentre ces notes
                 nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
                 if nbchanged > 0 or nbsuppress > 0:
                     Mod['moduleimpl_id'] = M['moduleimpl_id']
@@ -2744,8 +2784,27 @@ class ZNotes(ObjectManager,
                     sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                                  text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                                  url=Mod['url'])
-                
-                return '<p>OK !<br/>%s notes modifiées (%d supprimées)<br/></p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>' % (nbchanged,nbsuppress,E['moduleimpl_id'])
+                # affiche etat evaluation
+                etat = self.do_evaluation_etat(evaluation_id)[0]             
+                msg = '%d notes / %d inscrits' % (
+                    etat['nb_notes'], etat['nb_inscrits'])
+                if etat['nb_att']:
+                    msg += ' (%d notes en attente)' % etat['nb_att']
+                if etat['evalcomplete'] or etat['evalattente']:
+                    msg += """</p><p class="greenboldtext">Cette évaluation est prise en compte sur les bulletins et dans les calculs de moyennes"""
+                    if etat['nb_att']:
+                        msg += ' (mais il y a des notes en attente !).'
+                    else:
+                        msg += '.'
+                else:
+                    msg += """</p><p class="fontred">Cette évaluation n'est pas encore prise en compte sur les bulletins et dans les calculs de moyennes car il manque des notes."""
+                #
+                return """<h3>%s</h3>
+                <p>%s notes modifiées (%d supprimées)<br/></p>
+                <p>%s</p>
+                <p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a>
+                </p>
+                """ % (description,nbchanged,nbsuppress,msg,E['moduleimpl_id'])
             else:
                 if oknow:
                     tf.submitlabel = 'Entrer ces notes'
@@ -2918,6 +2977,8 @@ class ZNotes(ObjectManager,
                     absents.append(etudid)
                 elif note[:3] == 'NEU' or note[:3] == 'EXC':
                     note = NOTES_NEUTRALISE
+                elif  note[:3] == 'ATT':
+                    note = NOTES_ATTENTE
                 elif note[:3] == 'SUP':
                     note = NOTES_SUPPRESS
                     tosuppress.append(etudid)
@@ -3166,7 +3227,8 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_moduleimpl_moyennes')
     def do_moduleimpl_moyennes(self,moduleimpl_id):
         """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
-        à ce module, et la liste des evaluations "valides" (toutes notes entrées).
+        à ce module, la liste des evaluations "valides" (toutes notes entrées
+        ou en attente), et att (vrai s'il y a des note sen attente dans ce module).
         La moyenne est calculée en utilisant les coefs des évaluations.
         Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
         Les notes ABS sont remplacées par des zéros.
@@ -3178,6 +3240,7 @@ class ZNotes(ObjectManager,
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
         etudids = self.do_moduleimpl_listeetuds(moduleimpl_id)
         evals = self.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
+        attente = False
         # recupere les notes de toutes les evaluations
         for e in evals:
             e['nb_inscrits'] = len(
@@ -3188,10 +3251,14 @@ class ZNotes(ObjectManager,
             e['nb_notes'] = len(notes)
             e['nb_abs'] = len( [ x for x in notes if x is None ] )
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
+            e['nb_att'] = len( [ x for x in notes if x == NOTES_ATTENTE ] )
             e['notes'] = NotesDB
             e['etat'] = self.do_evaluation_etat(e['evaluation_id'])[0]
+            if e['nb_att']:
+                attente = True
         # filtre les evals valides (toutes les notes entrées)        
-        valid_evals = [ e for e in evals if e['etat']['evalcomplete'] ]
+        valid_evals = [ e for e in evals
+                        if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
         # 
         R = {}
         for etudid in etudids:
@@ -3204,7 +3271,7 @@ class ZNotes(ObjectManager,
                     note = e['notes'][etudid]['value']
                     if note == None: # ABSENT
                         note = 0            
-                    if note != NOTES_NEUTRALISE:
+                    if note != NOTES_NEUTRALISE and note != NOTES_ATTENTE:
                         nb_notes += 1
                         sum_notes += (note * 20. / e['note_max']) * e['coefficient']
                         sum_coefs += e['coefficient']
@@ -3219,12 +3286,13 @@ class ZNotes(ObjectManager,
                     R[etudid] = 'na'
             else:
                 R[etudid] = 'NA%d' % nb_missing
-        return R, valid_evals
+        return R, valid_evals, attente
 
     security.declareProtected(ScoView, 'do_formsemestre_moyennes')
     def do_formsemestre_moyennes(self, formsemestre_id):
         """retourne dict { moduleimpl_id : { etudid, note_moyenne_dans_ce_module } },
-        la liste des moduleimpls, la liste des evaluations valides
+        la liste des moduleimpls, la liste des evaluations valides,
+        liste des moduleimpls  avec notes en attente
         """
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         inscr = self.do_formsemestre_inscription_list(
@@ -3234,12 +3302,16 @@ class ZNotes(ObjectManager,
         # recupere les moyennes des etudiants de tous les modules
         D = {}
         valid_evals = []
+        mods_att = []
         for mod in mods:
             assert not D.has_key(mod['moduleimpl_id'])
-            D[mod['moduleimpl_id']], valid_evals_mod = self.do_moduleimpl_moyennes(mod['moduleimpl_id'])
+            D[mod['moduleimpl_id']], valid_evals_mod, attente =\
+                                     self.do_moduleimpl_moyennes(mod['moduleimpl_id'])
             valid_evals += valid_evals_mod
+            if attente:
+                mods_att.append(mod)
         #
-        return D, mods, valid_evals
+        return D, mods, valid_evals, mods_att
 
     security.declareProtected(ScoView, 'notes_formsemestre_recapcomplet')
     def do_formsemestre_recapcomplet(self,REQUEST,formsemestre_id,format='html'):
@@ -3538,8 +3610,16 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             bargraph = '&nbsp;' + htmlutils.horizontal_bargraph(moy*5, nt.moy_moy*5)
         else:
             bargraph = ''
+        
+        if nt.get_moduleimpls_attente():
+            # n'affiche pas le renag sur le bulletin s'il y a des
+            # notes en attente dans ce semestre
+            rang = '(notes en attente)'
+        else:
+            rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
+        
         t = ('Moyenne', mg + etatstr + bargraph,
-             'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds),
+             rang, 
              'Note/20', 'Coef')
         P.append(t)        
         H.append( '<tr><td class="note_bold">' +
@@ -4352,7 +4432,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
 # --------------------------------------------------------------------
 def notes_moyenne_median(notes):
     "calcule moyenne et mediane d'une liste de valeurs (floats)"
-    notes = [ x for x in notes if (x != None) and (x != NOTES_NEUTRALISE) ]
+    notes = [ x for x in notes if (x != None) and (x != NOTES_NEUTRALISE) and (x != NOTES_ATTENTE) ]
     n = len(notes)
     if not n:
         return None, None

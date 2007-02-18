@@ -33,10 +33,6 @@ Validation semestre et UE:
 
 FUTUR:
 
-- mettre dans les bulletins de notes une valeur ATT se calculant à
-l'identique de EXC, mais différenciant les décisions provisoires des 
-définitives. 
-
 - Mettre dans le bilan du semestre un item "compensé par", par défaut
 à 'rien', qui peut être renseigné par un autre semestre (contigu).
 

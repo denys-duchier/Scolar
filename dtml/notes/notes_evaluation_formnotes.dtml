@@ -1,14 +1,6 @@
 <dtml-if _read_only>ACCESS INTERDIT<dtml-else><dtml-let isFile="REQUEST.form.get('note_method','html') in ('csv','xls')"><dtml-if "not isFile">
 <dtml-var sco_header>
 <h2>Saisie des notes</h2>
-<p>
-<em>Utiliser 'ABS' pour dénoter les absents, 'NEUTRE' (ou 'EXC') pour indiquer 
-que la note ne devra pas être prise en compte dans la moyenne, ou 'SUPR'
-pour supprimer une note.
-</em>
-</p>
-<p>
 </dtml-if isFile><dtml-var "do_evaluation_formnotes(REQUEST)"><dtml-if "not isFile">
-</p>
 <dtml-var sco_footer>
 </dtml-if isFile></dtml-let isFile></dtml-if _read_only>

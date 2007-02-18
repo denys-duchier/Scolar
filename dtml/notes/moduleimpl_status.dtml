@@ -70,7 +70,12 @@
 <dtml-elif "evalcomplete">
  <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_green_img.tag(border='0',title='ok')"></a>
 <dtml-else>
- <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_orange_img.tag(border='0',title='il manque des notes')"></a>
+<dtml-if "evalattente">
+<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_greenorange_img.tag(border='0',title='notes en attente')"></a>
+<dtml-else>
+<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "img.status_orange_img.tag(border='0',title='il manque des notes')"></a>
+</dtml-if evalattente>
+
 </dtml-if etat>
 <dtml-if "eval['visibulletin']=='1'"><dtml-var "img.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires')">
 <dtml-else>&nbsp;
@@ -98,7 +103,7 @@
      <td><dtml-if "gr_nb_notes > 0">
 
            <dtml-var gr_moy>
-           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=td<dtml-var gr>"><dtml-var gr_nb_notes></a> notes)
+           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=td<dtml-var gr>"><dtml-var gr_nb_notes></a> notes<dtml-if "gr_nb_att > 0">, <span class="redboldtext"><dtml-var gr_nb_att> en attente</span></dtml-if>)
 
            <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=td<dtml-var gr>"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if gr_incomplets >
 

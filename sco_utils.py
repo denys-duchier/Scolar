@@ -30,7 +30,7 @@
 """
 from VERSION import SCOVERSION
 import VERSION
-import os
+import os, copy
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
@@ -133,3 +133,21 @@ def abbrev_prenom(prenom):
                 abrv += sep + prenom[i].upper() + '.'
         i += 1
     return abrv
+
+#
+class DictDefault(dict):
+    """A dictionnary with default value for all keys
+    Each time a non existent key is requested, it is added to the dict.
+    (used in python 2.4, can't use new __missing__ method)
+    """
+    defaultvalue = 0
+    def __init__(self, defaultvalue=0, kv_dict = {}):
+        dict.__init__(self)
+        self.defaultvalue = defaultvalue
+        self.update(kv_dict)
+    def  __getitem__(self, k):
+        if self.has_key(k):
+            return self.get(k)        
+        value = copy.copy(self.defaultvalue)
+        self[k] = value
+        return value

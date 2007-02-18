@@ -48,7 +48,7 @@
 Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
 <input type="submit" value="OK"/> 
 <input type="hidden" name="evaluation_id" value="<dtml-var evaluation_id>"/> 
-<em>ABS indique "absent" (zéro), EXC "excusé" (neutralisées)</em>
+<em>ABS indique "absent" (zéro), EXC "excusé" (neutralisées), ATT "attente"</em>
 </form>
 </li>
 
