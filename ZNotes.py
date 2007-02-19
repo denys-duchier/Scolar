@@ -2530,7 +2530,25 @@ class ZNotes(ObjectManager,
         formsemestre_id = M['formsemestre_id']
         # description de l'evaluation    
         H = [ self.evaluation_create_form(evaluation_id=evaluation_id,
-                                          REQUEST=REQUEST, readonly=1) ]
+                                          REQUEST=REQUEST, readonly=1),
+              # JS pour desactiver le bouton OK si aucun groupe selectionné
+              """<script type="text/javascript">
+              function gr_change(e) {
+              var boxes = document.getElementsByName("groupes:list");
+              var nbchecked = 0;
+              for (var i=0; i < boxes.length; i++) {
+                  if (boxes[i].checked)
+                     nbchecked++;
+              }
+              if (nbchecked > 0) {
+                  document.getElementsByName('gr_submit')[0].disabled=false;
+              } else {
+                  document.getElementsByName('gr_submit')[0].disabled=true;
+              }
+              }
+              </script>
+              """
+              ]
         # groupes
         gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
         grnams  = ['tous'] + [('td'+x) for x in gr_td ] # noms des checkbox
@@ -2549,11 +2567,15 @@ class ZNotes(ObjectManager,
                              'title' : 'Méthode de saisie des notes :' }) ]
         if not no_group:
             descr += [ 
-                ('groupes', { 'input_type' : 'checkbox', 'title':'Choix du ou des groupes d\'étudiants :',
-                              'allowed_values' : grnams, 'labels' : grlabs }) ]
+                ('groupes', { 'input_type' : 'checkbox',
+                              'title':'Choix du ou des groupes d\'étudiants :',
+                              'allowed_values' : grnams, 'labels' : grlabs,
+                              'attributes' : ['onchange="gr_change(this);"']
+                              }) ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler',
-                                submitlabel = 'OK' )
+                                submitbuttonattributes=['disabled="1"'],
+                                submitlabel = 'OK', formid='gr' )
         if  tf[0] == 0:
             H.append( """<div class="saisienote_etape1">
             <span class="titredivsaisienote">Etape 1 : choix du groupe et de la méthode</span>

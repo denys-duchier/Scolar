@@ -10,8 +10,13 @@
 
 def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
                       method='post', enctype=None,
-                      submitlabel='OK', name=None, formid='tf', cssclass=None,
+                      submitlabel='OK',
+                      name=None,
+                      formid='tf',
+                      cssclass=None,
                       cancelbutton=None,
+                      submitbutton=True,
+                      submitbuttonattributes=[],
                       readonly=False ):
     """
     form_url : URL for this form
@@ -50,7 +55,11 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
     if method == 'get':
         enctype = None
     t = TF(form_url, values, formdescription, initvalues,
-           method, enctype, submitlabel, name, formid, cssclass, cancelbutton, readonly)
+           method, enctype, submitlabel, name, formid, cssclass,
+           cancelbutton=cancelbutton,
+           submitbutton=submitbutton,
+           submitbuttonattributes=submitbuttonattributes,
+           readonly=readonly)
     form = t.getform()
     if t.canceled():
         res = -1
@@ -65,6 +74,8 @@ class TF:
                  method='POST', enctype=None, submitlabel='OK', name=None,
                  formid='tf', cssclass=None,
                  cancelbutton=None,
+                 submitbutton=True,
+                 submitbuttonattributes=[],
                  readonly=False ):
         self.form_url = form_url
         self.values = values
@@ -77,6 +88,8 @@ class TF:
         self.formid = formid
         self.cssclass = cssclass
         self.cancelbutton = cancelbutton
+        self.submitbutton = submitbutton
+        self.submitbuttonattributes = submitbuttonattributes
         self.readonly = readonly
         self.result = None
     def submitted(self):
@@ -333,8 +346,9 @@ class TF:
             R.append( etempl % { 'label' : '\n'.join(lab),
                                  'elem' : '\n'.join(lem) } )
         R.append( '</table>' )
-        R.append('<br/><input type="submit" name="%s_submit" value="%s">'
-                 % (self.formid,self.submitlabel) )
+        if self.submitbutton:
+            R.append('<br/><input type="submit" name="%s_submit" value="%s" %s>'
+                     % (self.formid,self.submitlabel, ' '.join(self.submitbuttonattributes)))
         if self.cancelbutton:
             R.append('<input type="submit" name="%s_cancel" value="%s">'
                      % (self.formid,self.cancelbutton))

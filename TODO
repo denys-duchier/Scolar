@@ -59,9 +59,6 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 - export excel des notes d'evaluation: indiquer date, et autres infos en haut.
 
-- un bout de JS sur notes_eval_selectetuds pour empecher de valider 
-  s'il n'y a pas un groupe selectionné.
-
 - recapitulatif des "nouvelles"
      - dernieres notes
      - changement de statuts (demissions,inscriptions)
