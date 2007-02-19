@@ -3908,11 +3908,17 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         modimpls = nt.get_modimpls()
         nbetuds = len(nt.rangs)
         mg = fmt_note(nt.get_etud_moy_gen(etudid))
+        if nt.get_moduleimpls_attente():
+            # n'affiche pas le renag sur le bulletin s'il y a des
+            # notes en attente dans ce semestre
+            rang = '?'
+        else:
+            rang = str(nt.get_etud_rang(etudid))
         doc._push()
         doc.note( value=mg )
         doc._pop()
         doc._push()
-        doc.rang( value=nt.get_etud_rang(etudid), ninscrits=nbetuds )
+        doc.rang( value=rang, ninscrits=nbetuds )
         doc._pop()
         doc._push()
         doc.note_max( value=20 ) # notes toujours sur 20
