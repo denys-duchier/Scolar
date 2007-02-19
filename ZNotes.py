@@ -2181,7 +2181,6 @@ class ZNotes(ObjectManager,
             evalattente = False
         # calcul moyenne dans chaque groupe de TD
         gr_moyennes = [] # groupetd : {moy,median, nb_notes}
-        log("GrNotes=%s"%str(GrNotes))
         for gr in GrNotes.keys():
             notes = GrNotes[gr]
             gr_moy, gr_median = notes_moyenne_median(notes)
