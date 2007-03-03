@@ -1,9 +1,9 @@
-SCOVERSION = "4.20"
+SCOVERSION = "4.21"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
-<h4>Février 2007>
+<h4>Février 2007</h4>
 <ul>
 <li>Gestion des notes "en attente" (publication d'évaluations avec correction de
 toutes les copies).</li>
