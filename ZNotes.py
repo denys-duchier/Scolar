@@ -2528,9 +2528,37 @@ class ZNotes(ObjectManager,
         E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         formsemestre_id = M['formsemestre_id']
+        # groupes
+        gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
+        grnams  = ['tous'] + [('td'+x) for x in gr_td ] # noms des checkbox
+        grnams += [('tp'+x) for x in gr_tp ]
+        grnams += [('ta'+x) for x in gr_anglais ]
+        grlabs  = ['tous'] + gr_td + gr_tp + gr_anglais # legendes des boutons
+        if len(gr_td) <= 1 and len(gr_tp) <= 1 and len(gr_anglais) <= 1:
+            no_group = True
+        else:
+            no_group = False
         # description de l'evaluation    
         H = [ self.evaluation_create_form(evaluation_id=evaluation_id,
-                                          REQUEST=REQUEST, readonly=1),
+                                          REQUEST=REQUEST, readonly=1) ]
+        #
+        descr = [
+            ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
+            ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
+                             'allowed_values' : [ 'xls', 'form' ],
+                             'labels' : ['fichier tableur', 'formulaire web'],
+                             'title' : 'Méthode de saisie des notes :' }) ]
+        if no_group:
+            submitbuttonattributes = []
+        else:
+            descr += [ 
+                ('groupes', { 'input_type' : 'checkbox',
+                              'title':'Choix du ou des groupes d\'étudiants :',
+                              'allowed_values' : grnams, 'labels' : grlabs,
+                              'attributes' : ['onchange="gr_change(this);"']
+                              }) ]
+            submitbuttonattributes = [ 'disabled="1"' ]
+            H.append(
               # JS pour desactiver le bouton OK si aucun groupe selectionné
               """<script type="text/javascript">
               function gr_change(e) {
@@ -2548,33 +2576,11 @@ class ZNotes(ObjectManager,
               }
               </script>
               """
-              ]
-        # groupes
-        gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
-        grnams  = ['tous'] + [('td'+x) for x in gr_td ] # noms des checkbox
-        grnams += [('tp'+x) for x in gr_tp ]
-        grnams += [('ta'+x) for x in gr_anglais ]
-        grlabs  = ['tous'] + gr_td + gr_tp + gr_anglais # legendes des boutons
-        if len(gr_td) <= 1 and len(gr_tp) <= 1 and len(gr_anglais) <= 1:
-            no_group = True
-        else:
-            no_group = False
-        descr = [
-            ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
-            ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
-                             'allowed_values' : [ 'xls', 'form' ],
-                             'labels' : ['fichier tableur', 'formulaire web'],
-                             'title' : 'Méthode de saisie des notes :' }) ]
-        if not no_group:
-            descr += [ 
-                ('groupes', { 'input_type' : 'checkbox',
-                              'title':'Choix du ou des groupes d\'étudiants :',
-                              'allowed_values' : grnams, 'labels' : grlabs,
-                              'attributes' : ['onchange="gr_change(this);"']
-                              }) ]
+              )
+        
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler',
-                                submitbuttonattributes=['disabled="1"'],
+                                submitbuttonattributes=submitbuttonattributes,
                                 submitlabel = 'OK', formid='gr' )
         if  tf[0] == 0:
             H.append( """<div class="saisienote_etape1">
