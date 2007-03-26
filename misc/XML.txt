@@ -1,7 +1,7 @@
 
 ---- Structure d'un bulletin de note individuel: ----
 
-<bulletinetud etudid="" formsemestre_id="" date="">
+<bulletinetud etudid="" formsemestre_id="" date="" publie="1">
   
   <etudiant nom="" prenom="" sexe="" etudid="" photo_url="" />
   
@@ -39,6 +39,13 @@
   <appreciation date="">
     blah blah
   </appreciation>
+
+</bulletinetud>
+
+Si bulletin non publié, on a:
+<bulletinetud etudid="" formsemestre_id="" date="" publie="0">
+  
+  <etudiant nom="" prenom="" sexe="" etudid="" photo_url="" />
 
 </bulletinetud>
 

@@ -167,6 +167,25 @@ Lorsque le semestre n'est pas validé, l'étudiant est en attente d'une
 décision qui sera prise au semestre suivant.
 
 
+Codes à utiliser:
+- Jury S1:
+ . ADM  (auto) moyenne gen., barres UE, assiduité: sem. validé
+ . ATT  (auto) pas moy., barres UE ok, assiduité: décision en attente de S2
+ . ATB  (auto) pb barre UE (qq soit moy gen), assiduité: décision en attente de S2
+ . ATJ  (manu) pb assiduité. décision en attente de S2
+ . ATJ* (manu) manque note. attente jury "décalé"
+
+- Codes état UEs: (toujours calculé automatiquement)
+ . ADM  moy UE >= 10 (qq soit resultat semestre)
+ . CMP  moy UE < 10 et semestre validé (ADC, ADJ, ADM)
+ . AJ   moy UE < 10 et semestre non validé (ATT, ATB, ATJ, AJ, NAR)
+
+
+- Codes état semestres:
+ . AJ   redoublement
+ . NAR  réorientation (non admis à redoubler)
+ . ADC  admis pas compensation (eg moy(S1, S2) > 10)
+ . 
 
 """
 

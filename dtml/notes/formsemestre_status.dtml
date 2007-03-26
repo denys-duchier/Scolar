@@ -25,6 +25,10 @@
 <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var "sem['formsemestre_id']">">Tableau de toutes les moyennes (et liens bulletins)</a>
 </p>
 
+<dtml-if "sem['bul_hide_xml'] != '0'">
+<p><em>Bulletins non publiés sur le portail</em></p>
+</dtml-if bul_hide_xml>
+
 <h3>Modules</h3>
 
 <table class="formsemestre_status">

@@ -567,7 +567,7 @@ class ZNotes(ObjectManager,
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
          'bul_show_codemodules', 'gestion_compensation',
-         'etat',
+         'etat', 'bul_hide_xml',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta'
          ),
         sortkey = 'date_debut',
@@ -577,8 +577,9 @@ class ZNotes(ObjectManager,
                              'bul_show_decision' : str,
                              'bul_show_uevalid' : str,
                              'bul_show_codemodules' : str,
-                             'gestion_compensation' : str,                             
-                             'etat' : str },
+                             'gestion_compensation' : str,
+                             'etat' : str,
+                             'bul_hide_xml' : str },
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
@@ -587,7 +588,8 @@ class ZNotes(ObjectManager,
                              'bul_show_uevalid' : int,
                              'bul_show_codemodules' : int,
                              'gestion_compensation' : int,
-                             'etat' : int }
+                             'etat' : int,
+                             'bul_hide_xml' : int }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')
@@ -991,6 +993,11 @@ class ZNotes(ObjectManager,
                            'allowed_values' : ['X'],
                            'explanation' : 'semestre "ouvert" (non verrouillé)',
                            'labels' : [''] }),
+            ('bul_publish_xml_lst', { 'input_type' : 'checkbox',
+                                      'title' : 'Accès portail étudiants',
+                                      'allowed_values' : ['X'],
+                                      'explanation' : 'publier le bulletin sur le portail',
+                                      'labels' : [''] }),
             ]
         initvalues = sem
         initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
@@ -1032,6 +1039,15 @@ class ZNotes(ObjectManager,
             initvalues['etat_lst'] = []
         if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('etat_lst'):
             REQUEST.form['etat_lst'] = []
+
+        initvalues['bul_hide_xml'] = initvalues.get('bul_hide_xml','1')
+        if initvalues['bul_hide_xml'] == '0':
+            initvalues['bul_publish_xml_lst'] = ['X']
+        else:
+            initvalues['bul_publish_xml_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_publish_xml_lst'):
+            REQUEST.form['bul_publish_xml_lst'] = []
+        
         
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = 'Modifier',
@@ -1067,6 +1083,11 @@ class ZNotes(ObjectManager,
             else:
                 tf[2]['etat'] = 0                
 
+            if tf[2]['bul_publish_xml_lst']:
+                tf[2]['bul_hide_xml'] = 0
+            else:
+                tf[2]['bul_hide_xml'] = 1 
+            
             # modification du semestre:
             self.do_formsemestre_edit(tf[2])
             return header + ('<h3>Modification effectuées<h3><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
@@ -3917,9 +3938,18 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         if not doc:            
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
+
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        if sem['bul_hide_xml'] == '0':
+            published=1
+        else:
+            published=0
+            
         doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
-                          date=datetime.datetime.now().isoformat() )
-        # infos sur l'etudiant
+                          date=datetime.datetime.now().isoformat(),
+                          publie=published)
+
+        # Infos sur l'etudiant
         etudinfo = self.getEtudInfo(etudid=etudid,filled=1)[0]
         doc._push()
         doc.etudiant( nom=etudinfo['nom'],
@@ -3928,8 +3958,11 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                       photo_url=self.etudfoto_img(etudid).absolute_url()
                       )
         doc._pop()
-        # Note générale
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+
+        # Disponible pour publication ?
+        if not published:
+            return doc # stop !
+
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         ues = nt.get_ues()
         modimpls = nt.get_modimpls()

@@ -245,6 +245,7 @@ CREATE TABLE notes_formsemestre (
  	nomgroupeta text default 'langues',
 	bul_show_codemodules integer default 1,
         gestion_compensation integer default 0, -- gestion compensation sem DUT
+	bul_hide_xml integer default 0 --  ne publie pas le bulletin XML
 );
 
 -- Mise en oeuvre d'un module pour une annee/semestre

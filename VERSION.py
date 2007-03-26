@@ -1,10 +1,12 @@
-SCOVERSION = "4.21"
+SCOVERSION = "4.22"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
 <h4>Février 2007</h4>
+
 <ul>
+<li>Possibilité de ne <em>pas</em> publier les bulletins sur le portail.</li>
 <li>Gestion des notes "en attente" (publication d'évaluations avec correction de
 toutes les copies).</li>
 <li>Amélioration formulaire saisie absences, saisie absences par semestre.</li>

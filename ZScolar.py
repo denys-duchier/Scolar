@@ -985,7 +985,7 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoView, 'XMLgetEtudInfos')
     def XMLgetEtudInfos(self, etudid=None, REQUEST=None):
-        "Donne les informatons sur un etudiant"
+        "Donne les informations sur un etudiant"
         args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
