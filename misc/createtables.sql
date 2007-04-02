@@ -248,6 +248,18 @@ CREATE TABLE notes_formsemestre (
 	bul_hide_xml integer default 0 --  ne publie pas le bulletin XML
 );
 
+-- Mise en page bulletins semestre
+CREATE TABLE notes_formsemestre_pagebulletin (
+	formsemestre_id text PRIMARY KEY REFERENCES notes_formsemestre(formsemestre_id),
+	-- all dimensions in mm
+	left_margin real default 0,
+	top_margin real default 0,
+	right_margin real default 0,
+	bottom_margin real default 0,
+	title text default 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s'
+);
+
+
 -- Mise en oeuvre d'un module pour une annee/semestre
 CREATE TABLE notes_moduleimpl (
 	moduleimpl_id  text default notes_newid('MIP') PRIMARY KEY,

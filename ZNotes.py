@@ -69,7 +69,7 @@ from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
-import sco_formations
+import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation
 import pdfbulletins
 from notes_table import *
@@ -940,11 +940,35 @@ class ZNotes(ObjectManager,
                     msg = ''
                 return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
-    
+
+    def _check_access_diretud(self, formsemestre_id, REQUEST):
+        """Check if access granted: responsable_id or ScoImplement
+        Return True|False, HTML_error_page
+        """
+        authuser = REQUEST.AUTHENTICATED_USER
+        sem = self.do_formsemestre_list(
+            args={ 'formsemestre_id' : formsemestre_id } )[0] 
+        header = self.sco_header(page_title='Accès interdit',
+                                 REQUEST=REQUEST)
+        footer = self.sco_footer(self, REQUEST)
+        if ((sem['responsable_id'] != str(authuser))
+            and not authuser.has_permission(ScoImplement,self)):
+            return False, '\n'.join( [
+                header,
+                '<h2>Opération non autorisée pour %s</h2>' % authuser,
+                '<p>Responsable de ce semestre : <b>%s</b></p>'
+                % sem['responsable_id'],
+                footer ])
+        else:
+            return True, ''
+        
     security.declareProtected(ScoView,'formsemestre_edit_options')
     def formsemestre_edit_options(self, formsemestre_id, REQUEST=None):
         """dialog to change formsemestre options
         (ScoImplement ou dir. etudes"""        
+        ok, err = self._check_access_diretud(formsemestre_id,REQUEST)
+        if not ok:
+            return err
         sem = self.do_formsemestre_list(
             args={ 'formsemestre_id' : formsemestre_id } )[0]
         F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
@@ -955,13 +979,6 @@ class ZNotes(ObjectManager,
               self.formsemestre_status_head(self, REQUEST=REQUEST,
                                             formsemestre_id=formsemestre_id )
               ]
-        if ((sem['responsable_id'] != str(REQUEST.AUTHENTICATED_USER))
-            and not REQUEST.AUTHENTICATED_USER.has_permission(ScoImplement,self)):
-            H.append('<h2>Opération non autorisée pour %s</h2>'
-                     % REQUEST.AUTHENTICATED_USER )
-            H.append('<p>Responsable de ce semestre : <b>%s</b></p>'
-                     % sem['responsable_id']) 
-            return '\n'.join(H) + footer
         H.append("""<h2>Modification du semestre
              <a href="formsemestre_status?formsemestre_id=%s">%s</a>
              (formation %s)</h2>
@@ -1054,7 +1071,7 @@ class ZNotes(ObjectManager,
                                 cancelbutton = 'Annuler',
                                 initvalues = initvalues)
         if tf[0] == 0:
-            return '\n'.join(H) + tf[1] + footer
+            return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formsemestre_pagebulletin_dialog?formsemestre_id=%s">Réglage de la mise en page des bulletins</a>' % formsemestre_id + footer
         elif tf[0] == -1:
             return header + '<h4>annulation</h4>' + footer
         else:
@@ -1092,6 +1109,16 @@ class ZNotes(ObjectManager,
             self.do_formsemestre_edit(tf[2])
             return header + ('<h3>Modification effectuées<h3><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
 
+    security.declareProtected(ScoView,'formsemestre_pagebulletin_dialog')
+    def formsemestre_pagebulletin_dialog(self, REQUEST, formsemestre_id):
+        "Dialogue mise en page bulletin"
+        # Ad-Hoc access control (dir. etud)
+        ok, err = self._check_access_diretud(formsemestre_id,REQUEST)
+        if not ok:
+            return err
+        return sco_pagebulletin.formsemestre_pagebulletin_dialog(
+            self, REQUEST, formsemestre_id )
+    
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
     # dans une formation spécifique, à une date spécifique.
@@ -3788,7 +3815,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 infos, stand_alone=stand_alone, filigranne=filigranne,
                 appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
                 situation=situation,
-                server_name=server_name)
+                server_name=server_name, context=self )
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
             filename = unescape_html(filename).replace(' ','_').replace('&','')
@@ -3823,7 +3850,9 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         else:
             server_name = ''
         pdfdoc = pdfbulletins.pdfassemblebulletins(
-            fragments, sem, infos, bookmarks, server_name = server_name)
+            fragments, sem, infos, bookmarks,
+            server_name=server_name,
+            context=self )
         #
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s.pdf' % (sem['titre'], dt)

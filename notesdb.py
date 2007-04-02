@@ -36,8 +36,13 @@ def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
     #print 'insert into %s (%s) values (%s)' % (table,colnames,fmt)
     oid = None
     try:
-        cursor.execute('insert into %s (%s) values (%s)' % (table,colnames,fmt),
-                       vals )
+        if vals:
+            cursor.execute('insert into %s (%s) values (%s)'
+                           % (table,colnames,fmt),
+                           vals )
+        else:
+            cursor.execute('insert into %s default values'
+                           % table )
         oid = cursor.lastoid()
     except:
         log('DBInsertDict: EXCEPTION !')
@@ -97,7 +102,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
     req = 'select ' +distinct+ ', '.join(what) + ' from '+tables+cond+orderby
     #open('/tmp/select.log','a').write( req % vals + '\n' )
     cursor.execute( req, vals )
-    return [ x[0] for x in cursor.description ], cursor.fetchall()
+    return cursor.dictfetchall()
 
 def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
                   convert_empty_to_nulls=1 ):
@@ -162,9 +167,10 @@ class EditableTable:
         self.callback_on_write = callback_on_write # called after each modification
         self.allow_set_id = allow_set_id
         self.html_quote = html_quote
+        self.sql_default_values = None
 
     def create(self, cnx, args, has_uniq_values=False):
-        "create object in table"        
+        "create object in table"
         vals = dictfilter(args, self.dbfields)        
         if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
@@ -186,8 +192,8 @@ class EditableTable:
         new_id = cursor.fetchone()[0]
         if has_uniq_values: # XXX probably obsolete
             # check  all tuples (without id_name) are UNIQUE !
-            titles, res = DBSelectArgs(cnx,
-                self.table_name, vals, what=[self.id_name] )
+            res = DBSelectArgs(cnx,
+                               self.table_name, vals, what=[self.id_name] )
             if len(res) != 1:
                 # BUG !
                 log('create: BUG table_name=%s args=%s' % (self.table_name,str(args)))
@@ -198,11 +204,7 @@ class EditableTable:
         return new_id
     
     def delete(self, cnx, oid, commit=True ):
-        # get info
-        titles, res = DBSelectArgs( cnx, self.table_name, {self.id_name : oid} )
-        d = {}
-        for i in range(len(titles)):
-            d[titles[i]] = res[0][i]
+        "delete tuple"
         DBDelete(cnx, self.table_name, self.id_name, oid, commit=commit )
         if self.callback_on_write:
             self.callback_on_write()
@@ -213,32 +215,30 @@ class EditableTable:
         vals = dictfilter(args, self.dbfields)
         if not sortkey:
             sortkey = self.sortkey
-        titles, res = DBSelectArgs( cnx, self.table_name, 
-                                    vals, sortkey=sortkey,
-                                    test=test, operator=operator,
-                                    aux_tables=self.aux_tables,
-                                    id_name=self.id_name)
-        R = []
+        res = DBSelectArgs( cnx, self.table_name, 
+                            vals, sortkey=sortkey,
+                            test=test, operator=operator,
+                            aux_tables=self.aux_tables,
+                            id_name=self.id_name)
         for r in res:
-            d = {}
-            for i in range(len(titles)):
-                v = r[i]
-                if self.convert_null_outputs_to_empty:
-                    if v is None:
-                        v = ''
-                # format value
-                if not disable_formatting and self.output_formators.has_key(titles[i]):
-                    try: # XXX debug "isodate"
-                        v = self.output_formators[titles[i]](v)
-                    except:
-                        log('*** list: vars=%s' % str(vars()))
-                        log('*** list: titles=%s i=%s v=%s' % (str(titles),str(i),str(v)))
-                        log('*** list: res=%s' % str(res))
-                        raise
-                d[titles[i]] = v
-            R.append(d)
-        return R
+            self.format_output(r, disable_formatting=disable_formatting)
+        return res
 
+    def format_output(self, r, disable_formatting=False):
+        "Format dict using provided output_formators"
+        for (k,v) in r.items():
+            if v is None and self.convert_null_outputs_to_empty:
+                v = ''                
+            # format value
+            if not disable_formatting and self.output_formators.has_key(k):
+                try: # XXX debug "isodate"
+                    v = self.output_formators[k](v)
+                except:
+                    log('*** list: vars=%s' % str(vars()))
+                    log('*** list: r=%s' % str(r))
+                    raise
+            r[k] = v
+        
     def edit(self, cnx, args):
         """Change fields"""
         vals = dictfilter(args, self.dbfields)
@@ -254,6 +254,42 @@ class EditableTable:
         if self.callback_on_write:
             self.callback_on_write()
 
+    def get_sql_default_values(self, cnx):
+        "return dict with SQL default values for each field"
+        if self.sql_default_values is None: # not cached
+            # We insert a new tuple, get the values and delete it
+            # XXX non, car certaines tables ne peuvent creer de tuples
+            # a default, a cause des references ou contraintes d'intégrité.
+            #oid = self.create(cnx, {})
+            #vals = self.list(cnx, args= {self.id_name : oid})[0]
+            #self.delete(cnx, oid)
+            #self.sql_default_values = vals
+            #
+            # Méthode spécifique à postgresql (>= 7.4)
+            cursor = cnx.cursor()
+            cursor.execute("SELECT column_name, data_type, column_default FROM information_schema.columns WHERE table_name = '%s'" % self.table_name)
+            d = {}
+            for info in cursor.dictfetchall():
+                v = info['column_default']
+                # strip type information if present (eg 'hello'::text)
+                if v:
+                    v = v.split('::')[0]
+                # convert type to Python type
+                if v:
+                    if info['data_type'] == 'text':
+                        if v[0] == v[-1] == "'":
+                            v = v[1:-1] # strip quotes
+                    elif info['data_type'] == 'real':
+                        v = float(v)
+                    elif info['data_type'] == 'integer':
+                        v = int(v)
+                    #elif info['data_type'] == 'date':
+                    #    pass # XXX todo
+                    else:
+                        log('Warning: unhandled SQL type in get_sql_default_values')
+                d[info['column_name']] = v
+            self.sql_default_values = d
+        return self.sql_default_values
 
 def dictfilter( d, fields ):
     # returns a copy of d with only keys listed in "fields" and non null values

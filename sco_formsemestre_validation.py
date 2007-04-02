@@ -184,7 +184,7 @@ Codes à utiliser:
 - Codes état semestres:
  . AJ   redoublement
  . NAR  réorientation (non admis à redoubler)
- . ADC  admis pas compensation (eg moy(S1, S2) > 10)
+ . ADC  admis par compensation (eg moy(S1, S2) > 10)
  . 
 
 """

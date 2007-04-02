@@ -42,6 +42,7 @@ from reportlab.lib import styles
 
 from sco_utils import *
 from notes_log import log
+from sco_pagebulletin import formsemestre_pagebulletin_get
 from VERSION import SCOVERSION, SCONAME
 
 PAGE_HEIGHT=defaultPageSize[1]
@@ -54,7 +55,7 @@ SCOLAR_FONT_SIZE_FOOT = 6
 
 def SU(s):
     "convert s from SCO default encoding to UTF8"
-    # XXX mis en service le 4/11/06, passage à ReportLab 2.0
+    # Mis en service le 4/11/06, passage à ReportLab 2.0
     return unicode(s, SCO_ENCODING, 'replace').encode('utf8')
 
 
@@ -62,6 +63,7 @@ class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""
     def __init__(self, document, pagesbookmarks={},
                  author=None, title=None, subject=None,
+                 margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
                  server_name = '' ):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
@@ -70,9 +72,11 @@ class ScolarsPageTemplate(PageTemplate) :
         self.pdfmeta_subject = subject
         self.server_name = server_name
         # Our doc is made of a single frame
-        content = Frame(0.75 * inch, 0.5 * inch,
-                        document.pagesize[0] - 1.25 * inch,
-                        document.pagesize[1] - (1.5 * inch))
+        log(str(margins))
+        left, top, right, bottom = margins
+        content = Frame(0.75 * inch + left*mm, 0.5 * inch + bottom*mm,
+                        document.pagesize[0] - 1.25 * inch - left*mm-right*mm,
+                        document.pagesize[1] - 1.5 * inch - top*mm - bottom*mm)
         PageTemplate.__init__(self, "ScolarsPageTemplate", [content])
         self.logo = None
         
@@ -136,7 +140,8 @@ def essaipdf(REQUEST):
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
                      filigranne='', appreciations=[], situation='',
-                     server_name=None
+                     server_name=None,
+                     context=None
                      ):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
@@ -148,15 +153,26 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     #log('pdfbulletin_etud: style=' + str(TableStyle))
     objects = []
     StyleSheet = styles.getSampleStyleSheet()
+    # Paramètres de mise en page
+    if context:
+        fmt = formsemestre_pagebulletin_get(context, sem['formsemestre_id'])
+        margins = (fmt['left_margin'], fmt['top_margin'],
+                   fmt['right_margin'], fmt['bottom_margin'])
+        titletmpl = fmt['title']
+    else:
+        margins = (0,0,0,0)
+        titletmpl=''
+
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
     CellStyle.fontSize= SCOLAR_FONT_SIZE
     CellStyle.fontName= SCOLAR_FONT    
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
-    # Build doc using ReportLab's platypus
-    objects.append(Paragraph(SU("Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s" % infos),
-                            StyleSheet["Heading2"]) )
+    # --- Build doc using ReportLab's platypus
+    # Title
+    objects.append(Paragraph(SU(titletmpl % infos),
+                             StyleSheet["Heading2"]) )
     objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne)), StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
     # customize table style
@@ -187,17 +203,27 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         report = cStringIO.StringIO() # in-memory document, no disk file
         document = BaseDocTemplate(report)
         document.addPageTemplates(
-        ScolarsPageTemplate(document,
-                            author='Scolars %s (E. Viennet)' % SCOVERSION,
-                            title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
-                            subject='Bulletin de note',
-                            server_name = server_name))
+            ScolarsPageTemplate(document,
+                                author='Scolars %s (E. Viennet)' % SCOVERSION,
+                                title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
+                                subject='Bulletin de note',
+                                margins=margins,
+                                server_name = server_name))
         document.build(objects)
         data = report.getvalue()
         return data
 
-def pdfassemblebulletins( objects, sem, infos, pagesbookmarks, server_name='' ):
+def pdfassemblebulletins( objects, sem, infos, pagesbookmarks,
+                          top_margin=0, # additional top margin in mm
+                          server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"
+    # Paramètres de mise en page
+    if context:
+        fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
+        margins = (fmt['left_margin'], fmt['top_margin'],
+                   fmt['right_margin'], fmt['bottom_margin'])
+    else:
+        margins = (0,0,0,0)
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
     document.addPageTemplates(
@@ -205,7 +231,8 @@ def pdfassemblebulletins( objects, sem, infos, pagesbookmarks, server_name='' ):
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
                             title='Bulletin %s' % (sem['titre']),
                             subject='Bulletin de note',
-                            server_name = server_name,
+                            server_name=server_name,
+                            margins=margins,
                             pagesbookmarks=pagesbookmarks))
     document.build(objects)
     data = report.getvalue()

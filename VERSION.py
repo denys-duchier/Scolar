@@ -1,14 +1,18 @@
-SCOVERSION = "4.22"
+SCOVERSION = "4.23"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+<h4>Avril 2007</h4>
+<ul>
+<li>Paramètres de mise en page des bulletins en PDF</li>
+</ul>
+
 <h4>Février 2007</h4>
 
 <ul>
-<li>Possibilité de ne <em>pas</em> publier les bulletins sur le portail.</li>
-<li>Gestion des notes "en attente" (publication d'évaluations avec correction de
-toutes les copies).</li>
+<li>Possibilité de ne <em>pas</em> publier les bulletins sur le portail</li>
+<li>Gestion des notes "en attente" (publication d'évaluations sans correction de toutes les copies)</li>
 <li>Amélioration formulaire saisie absences, saisie absences par semestre.</li>
 </ul>
 
