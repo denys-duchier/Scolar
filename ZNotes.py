@@ -3850,6 +3850,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         else:
             server_name = ''
         pdfdoc = pdfbulletins.pdfassemblebulletins(
+            formsemestre_id,
             fragments, sem, infos, bookmarks,
             server_name=server_name,
             context=self )

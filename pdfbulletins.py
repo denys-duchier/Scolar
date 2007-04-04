@@ -213,7 +213,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         data = report.getvalue()
         return data
 
-def pdfassemblebulletins( objects, sem, infos, pagesbookmarks,
+def pdfassemblebulletins( formsemestre_id,
+                          objects, sem, infos, pagesbookmarks,
                           top_margin=0, # additional top margin in mm
                           server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"

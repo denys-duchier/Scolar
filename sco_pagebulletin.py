@@ -84,7 +84,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
         ('bottom_margin', {'size' : 20, 'title' : 'Marge basse' }),
         ('sep', { 'input_type' : 'separator',
                   'title' : '<h3>Titre des bulletins</h3>' }),
-        ('title', {'size' : 70, 'title' : '', 'explanation' : '<tt>%(DeptName)</tt> est remplacé par le nom du département' }),
+        ('title', {'size' : 70, 'title' : '', 'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département' }),
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
                             submitlabel = 'OK',
