@@ -173,7 +173,17 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     # Title
     objects.append(Paragraph(SU(titletmpl % infos),
                              StyleSheet["Heading2"]) )
-    objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s" % (etud['nomprenom'], sem['titre'], sem['date_debut'].split('/')[2], filigranne)), StyleSheet["Heading3"]))
+    annee_debut = sem['date_debut'].split('/')[2]
+    annee_fin = sem['date_fin'].split('/')[2]
+    if annee_debut != annee_fin:
+        annee = '%s - %s' % (annee_debut, annee_fin)
+    else:
+        annee = annee_debut
+    objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s"
+                                % (etud['nomprenom'], sem['titre'],
+                                   annee,
+                                   filigranne)),
+                             StyleSheet["Heading3"]))
     objects.append(Spacer(0, 10))
     # customize table style
     TableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )
