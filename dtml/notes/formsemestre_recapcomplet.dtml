@@ -18,6 +18,7 @@
 (cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
 </form> 
 </dtml-if isFile>
+<dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if>
 <dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat)">
 <dtml-if "not isFile">
 <p>

@@ -445,6 +445,10 @@ class CacheNotesTable:
             self.cache[formsemestre_id] = nt
             log('caching formsemestre_id=%s (id=%s)' % (formsemestre_id,id(self)) ) 
             return nt
+
+    def get_cached_formsemestre_ids(self):
+        "List of currently cached formsemestre_id"
+        return self.cache.keys() 
     
     def inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"

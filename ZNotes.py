@@ -138,11 +138,39 @@ class ZNotes(ObjectManager,
             return GLOBAL_NOTES_CACHE[self.ScoURL()]
         
     security.declareProtected(ScoView, 'clearcache')
-    def clearcache(self):
-        "efface les caches de notes (utile pendant developpement slt)"
+    def clearcache(self, REQUEST=None):
+        "Efface les caches de notes (utile pendant developpement slt)"
         log('*** clearcache request')
-        self._getNotesCache().inval_cache()
-
+        # Debugging code: compare results before and after cache reconstruction
+        # (_should_ be identicals !)
+        # Compare XML representation
+        cache = self._getNotesCache()
+        formsemestre_ids = cache.get_cached_formsemestre_ids()
+        docs_before = []        
+        for formsemestre_id in formsemestre_ids:
+            docs_before.append(
+                self.do_formsemestre_recapcomplet(REQUEST,formsemestre_id, format='xml', xml_nodate=True))
+        #
+        cache.inval_cache()
+        # Rebuild cache (useful only to debug)
+        docs_after = []
+        for formsemestre_id in formsemestre_ids:
+            docs_after.append(
+                self.do_formsemestre_recapcomplet(REQUEST,formsemestre_id, format='xml', xml_nodate=True))
+        if docs_before != docs_after:
+            log('clearcache: inconsistency !')
+            txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
+            log(txt)
+            msg = MIMEMultipart()
+            subj = Header( 'Notes: cache inconsistency !',  SCO_ENCODING )
+            msg['Subject'] = subj
+            msg['From'] = 'noreply'
+            msg['To'] = 'viennet@iutv.univ-paris13.fr'
+            msg.epilogue = ''
+            txt = MIMEText( txt, 'plain', SCO_ENCODING )
+            msg.attach(txt)
+            self.sendEmail(msg)
+        
     # --------------------------------------------------------------------
     #
     #    NOTES (top level)
@@ -2715,7 +2743,7 @@ class ZNotes(ObjectManager,
         <h4>Codes spéciaux:</h4>
         <ul>
         <li>ABS: absent (compte comme un zéro)</li>
-        <li>EXC: excusé (noute neutralisée)</li>
+        <li>EXC: excusé (note neutralisée)</li>
         <li>SUPR: pour supprimer une note existante</li>
         <li>ATT: note en attente (permet de publier une évaluation avec des notes manquantes)</li>
         </ul>
@@ -3389,7 +3417,8 @@ class ZNotes(ObjectManager,
         return D, mods, valid_evals, mods_att
 
     security.declareProtected(ScoView, 'notes_formsemestre_recapcomplet')
-    def do_formsemestre_recapcomplet(self,REQUEST,formsemestre_id,format='html'):
+    def do_formsemestre_recapcomplet(self,REQUEST,formsemestre_id,format='html',
+                                     xml_nodate=False):
         """Grand tableau récapitulatif avec toutes les notes de modules
         pour tous les étudiants, les moyennes par UE et générale,
         trié par moyenne générale décroissante.
@@ -3405,10 +3434,14 @@ class ZNotes(ObjectManager,
             keep_numeric = False
         if format=='xml':
             # XML export: liste tous les bulletins XML
-            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
+            if xml_nodate:
+                docdate = ''
+            else:
+                docdate = datetime.datetime.now().isoformat()
             doc.recapsemestre( formsemestre_id=formsemestre_id,
-                               date=datetime.datetime.now().isoformat() )
+                               date=docdate)
             evals=self.do_evaluation_etat_in_sem(formsemestre_id)[0]
             doc._push()
             doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
@@ -3420,7 +3453,7 @@ class ZNotes(ObjectManager,
                 etudid = t[-1]
                 doc._push()
                 self.make_xml_formsemestre_bulletinetud(
-                    formsemestre_id, etudid, doc=doc )
+                    formsemestre_id, etudid, doc=doc, force_publishing=True, xml_nodate=xml_nodate )
                 doc._pop()
             return repr(doc)
         
@@ -3962,6 +3995,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
     security.declareProtected(ScoView, 'make_xml_formsemestre_bulletinetud')
     def make_xml_formsemestre_bulletinetud( self, formsemestre_id, etudid,
                                             doc=None, # XML document
+                                            force_publishing=False,
+                                            xml_nodate=False,
                                             REQUEST=None):
         "bulletin au format XML"
         if REQUEST:
@@ -3970,13 +4005,16 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
 
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        if sem['bul_hide_xml'] == '0':
+        if sem['bul_hide_xml'] == '0' or force_publishing:
             published=1
         else:
             published=0
-            
+        if xml_nodate:
+            docdate = ''
+        else:
+            docdate = datetime.datetime.now().isoformat()
         doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
-                          date=datetime.datetime.now().isoformat(),
+                          date=docdate,
                           publie=published)
 
         # Infos sur l'etudiant
