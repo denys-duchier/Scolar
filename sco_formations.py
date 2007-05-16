@@ -43,20 +43,24 @@ def formation_export_xml( context, formation_id ):
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
 
     F = context.do_formation_list(args={ 'formation_id' : formation_id})[0]
+    F = dict_quote_xml_attr(F)
     doc.formation( **F )
     doc._push()
 
     ues = context.do_ue_list({ 'formation_id' : formation_id })
     for ue in ues:
         doc._push()
+        ue = dict_quote_xml_attr(ue)
         doc.ue( **ue )
         mats = context.do_matiere_list({ 'ue_id' : ue['ue_id'] })
         for mat in mats:
             doc._push()
+            mat = dict_quote_xml_attr(mat)
             doc.matiere( **mat )
             mods = context.do_module_list({ 'matiere_id' : mat['matiere_id'] })
             for mod in mods:
                 doc._push()
+                mod = dict_quote_xml_attr(mod)
                 doc.module( **mod )
                 doc._pop()
             doc._pop()

@@ -699,6 +699,7 @@ class ZScolar(ObjectManager,
                 a['groupetp'] = groupetp
             if etat:
                 a['etat'] = etat
+            a = dict_quote_xml_attr(a)
             doc.groupe( **a )
             doc._push()
             for t in T:
@@ -706,6 +707,7 @@ class ZScolar(ObjectManager,
                       'nom' : t[0], 'prenom' : t[1], 'groupe' : t[5],
                       'etat' : t[4], 'mail' : t[3] }
                 doc._push()
+                a = dict_quote_xml_attr(a)
                 doc.etudiant(**a)
                 doc._pop()
             doc._pop()
@@ -999,12 +1001,13 @@ class ZScolar(ObjectManager,
         
         etud = etuds[0]
         self.fillEtudsInfo([etud])
+
         doc.etudiant( etudid=etudid,
-                      nom=etud['nom'],
-                      prenom=etud['prenom'],
-                      sexe=etud['sexe'],
-                      nomprenom=etud['nomprenom'],
-                      email=etud['email'])
+                      nom=quote_xml_attr(etud['nom']),
+                      prenom=quote_xml_attr(etud['prenom']),
+                      sexe=quote_xml_attr(etud['sexe']),
+                      nomprenom=quote_xml_attr(etud['nomprenom']),
+                      email=quote_xml_attr(etud['email']))
         doc._push()
         sem = etud['cursem']
         if sem:
@@ -1013,10 +1016,10 @@ class ZScolar(ObjectManager,
                             formsemestre_id=sem['formsemestre_id'],
                             date_debut=DateDMYtoISO(sem['date_debut']),
                             date_fin=DateDMYtoISO(sem['date_fin']),
-                            groupetd=sem['ins']['groupetd'],
-                            groupeta=sem['ins']['groupeanglais'],
-                            groupetp=sem['ins']['groupetp'],
-                            etat=sem['ins']['etat']
+                            groupetd=quote_xml_attr(sem['ins']['groupetd']),
+                            groupeta=quote_xml_attr(sem['ins']['groupeanglais']),
+                            groupetp=quote_xml_attr(sem['ins']['groupetp']),
+                            etat=quote_xml_attr(sem['ins']['etat'])
                             )
             doc._pop()
         for sem in etud['sems']:
@@ -1026,10 +1029,10 @@ class ZScolar(ObjectManager,
                     formsemestre_id=sem['formsemestre_id'],
                     date_debut=DateDMYtoISO(sem['date_debut']),
                     date_fin=DateDMYtoISO(sem['date_fin']),
-                    groupetd=sem['ins']['groupetd'],
-                    groupeta=sem['ins']['groupeanglais'],
-                    groupetp=sem['ins']['groupetp'],
-                    etat=sem['ins']['etat']
+                    groupetd=quote_xml_attr(sem['ins']['groupetd']),
+                    groupeta=quote_xml_attr(sem['ins']['groupeanglais']),
+                    groupetp=quote_xml_attr(sem['ins']['groupetp']),
+                    etat=quote_xml_attr(sem['ins']['etat'])
                     )
                 doc._pop()
         doc._pop()

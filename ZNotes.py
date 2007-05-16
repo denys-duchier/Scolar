@@ -4020,10 +4020,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         # Infos sur l'etudiant
         etudinfo = self.getEtudInfo(etudid=etudid,filled=1)[0]
         doc._push()
-        doc.etudiant( nom=etudinfo['nom'],
-                      prenom=etudinfo['prenom'],
-                      sexe=etudinfo['sexe'],
-                      photo_url=self.etudfoto_img(etudid).absolute_url()
+        doc.etudiant( nom=quote_xml_attr(etudinfo['nom']),
+                      prenom=quote_xml_attr(etudinfo['prenom']),
+                      sexe=quote_xml_attr(etudinfo['sexe']),
+                      photo_url=quote_xml_attr(self.etudfoto_img(etudid).absolute_url())
                       )
         doc._pop()
 
@@ -4054,8 +4054,10 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         # Liste les UE / modules /evals
         for ue in ues:
             doc._push()
-            doc.ue( id=ue['ue_id'], numero=ue['numero'],
-                    acronyme=ue['acronyme'], titre=ue['titre'] )            
+            doc.ue( id=ue['ue_id'],
+                    numero=quote_xml_attr(ue['numero']),
+                    acronyme=quote_xml_attr(ue['acronyme']),
+                    titre=quote_xml_attr(ue['titre']) )            
             doc._push()
             doc.note( value=fmt_note(nt.get_etud_moycoef_ue(etudid,ue_id=ue['ue_id'])[0]) )
             doc._pop()
@@ -4067,8 +4069,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
                             coefficient=mod['coefficient'],
                             numero=mod['numero'],
-                            titre=mod['titre'],
-                            abbrev=mod['abbrev'] )                
+                            titre=quote_xml_attr(mod['titre']),
+                            abbrev=quote_xml_attr(mod['abbrev']) )
                 doc._push()
                 doc.note( value=fmt_note(nt.get_etud_mod_moy(modimpl, etudid)) )
                 doc._pop()
@@ -4080,7 +4082,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                                    heure_debut=TimetoISO8601(e['heure_debut']),
                                    heure_fin=TimetoISO8601(e['heure_fin']),
                                    coefficient=e['coefficient'],
-                                   description=e['description'])
+                                   description=quote_xml_attr(e['description']))
                     val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                     val = fmt_note(val, note_max=e['note_max'] )
                     doc.note( value=val )
@@ -4102,14 +4104,14 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             situation = self.etud_descr_situation_semestre(
                 etudid, formsemestre_id, format='xml',
                 show_uevalid=(sem['bul_show_uevalid']=='1'))
-            doc.situation( situation )
+            doc.situation( quote_xml_attr(situation) )
         # --- Appreciations
         cnx = self.GetDBConnexion() 
         apprecs = scolars.appreciations_list(
             cnx,
             args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
         for app in apprecs:
-            doc.appreciation( app['comment'], date=self.DateDDMMYYYY2ISO(app['date']))
+            doc.appreciation( quote_xml_attr(app['comment']), date=self.DateDDMMYYYY2ISO(app['date']))
         return doc
 
     # -------- Events

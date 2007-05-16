@@ -31,6 +31,7 @@
 from VERSION import SCOVERSION
 import VERSION
 import os, copy
+import xml.sax.saxutils
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
@@ -65,6 +66,14 @@ def unescape_html(s):
     s = s.replace('&gt;','>')
     return s
 
+
+def quote_xml_attr( data ):
+    """Escape &, <, >, quotes and doule quotes"""
+    return xml.sax.saxutils.escape( str(data),
+                                    { "'" : '&apos;', '"' : '&quot;' } )
+
+def dict_quote_xml_attr( d ):
+    return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
 
 def strnone(s):
     "convert s to string, '' if s is false"
