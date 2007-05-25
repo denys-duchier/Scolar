@@ -32,6 +32,9 @@ from VERSION import SCOVERSION
 import VERSION
 import os, copy
 import xml.sax.saxutils
+# XML generation package (apt-get install jaxml)
+import jaxml
+
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
@@ -160,3 +163,5 @@ class DictDefault(dict):
         value = copy.copy(self.defaultvalue)
         self[k] = value
         return value
+
+    

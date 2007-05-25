@@ -1,4 +1,18 @@
 
+---- Fonctions exportant de l'XML:
+rssnews
+listegroupe?format=xml&formsemestre_id=X&groupetd=X
+XMLgetEtudInfos?etudid=X
+XMLgetGroupesTD?formsemestre_id=X&groupType=X
+
+Notes/
+formation_export_xml?formation_id=X
+formsemestre_recapcomplet?format=xml&formsemestre_id=X
+formsemestre_bulletinetud?format=xml&formsemestre_id=X&etudid=X&version=X
+XML_formsemestre_list
+
+
+
 ---- Structure d'un bulletin de note individuel: ----
 
 <bulletinetud etudid="" formsemestre_id="" date="" publie="1">

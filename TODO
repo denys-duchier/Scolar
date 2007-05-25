@@ -15,6 +15,10 @@
 
 - version pdf du trombinoscope
 
+- EtatAbsences : verifier dates (en JS)
+- Exception "Not an OLE file": generer page erreur plus explicite
+
+
 BUGS:
 
 - do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 

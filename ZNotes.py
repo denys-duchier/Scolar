@@ -70,7 +70,8 @@ import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 import sco_formations, sco_pagebulletin
-import sco_formsemestre_validation
+# import sco_formsemestre_validation_old # obsolete
+#import sco_formsemestre_validation FUTUR
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -702,7 +703,20 @@ class ZNotes(ObjectManager,
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
         return sems
-    
+
+    security.declareProtected(ScoView, 'XML_formsemestre_list')
+    def XML_formsemestre_list(self, REQUEST=None):
+        "List all formsemestres, XML format"
+        if REQUEST:
+            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc.formsemestrelist()
+        for sem in self.do_formsemestre_list():
+            doc._push()
+            doc.formsemestre(sem)
+            doc._pop()
+        return repr(doc)
+
     security.declareProtected(ScoImplement, 'do_formsemestre_edit')
     def do_formsemestre_edit(self, *a, **kw ):
         "edit a formsemestre"
@@ -4195,7 +4209,8 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         """formulaire valisation semestre et UE
         Si etudid, traite un seul étudiant !
         """
-        return sco_formsemestre_validation.formsemestre_validation_form(
+        raise NotImplementedError # XXXX
+        return sco_formsemestre_validation_old.formsemestre_validation_form(
             self, formsemestre_id, etudid=etudid, REQUEST=REQUEST )
     
     security.declareProtected(ScoEnsView, 'formsemestre_validation_list')

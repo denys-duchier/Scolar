@@ -366,6 +366,24 @@ CREATE TABLE scolar_events (
                          -- semestre compense par formsemestre_id
 );
 
+-- Stockage des codes d'etat apres jury
+CREATE SEQUENCE notes_idgen_svalid;
+
+CREATE FUNCTION notes_newidsvalid( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen_svalid\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
+
+CREATE TABLE scolar_formsemestre_validation (
+	formsemestre_validation_id text default newidsvalid('VAL') PRIMARY KEY,
+	etudid text NOT NULL,
+	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+	ue_id text REFERENCES notes_ue(ue_id), -- NULL si validation de semestre
+	code text NOT NULL,
+	event_date timestamp default now(),
+);
+
+
 ---------------------------------------------------------------------
 -- NOUVELLES (inutilise pour l'instant)
 --
