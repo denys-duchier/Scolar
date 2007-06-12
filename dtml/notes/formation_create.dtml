@@ -1,7 +1,7 @@
 <dtml-var sco_header>
 <h2>Création d'une formation</h2>
 
-<p class="help">Une "formation" décrit une filière, comme un DUT ou un Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs sessions ou semestres, qui seront mis en palce séparément.
+<p class="help">Une "formation" décrit une filière, comme un DUT ou un Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place séparément.
 </p>
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 

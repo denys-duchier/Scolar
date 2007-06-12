@@ -1,8 +1,16 @@
-SCOVERSION = "4.24"
+SCOVERSION = "5.0b"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+
+<h4>12 Juin 2007: nouvelle version 5.0</h4>
+<ul>
+<li>Suivi des parcours et règles de décision des jurys DUT</li>
+<li>Capitalisation des UE</li>
+<li>Nombreuses petites améliorations</li>
+</ul>
+
 <h4>Avril 2007</h4>
 <ul>
 <li>Paramètres de mise en page des bulletins en PDF</li>

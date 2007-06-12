@@ -1,5 +1,5 @@
 
----- Fonctions exportant de l'XML:
+---- Fonctions (web) exportant de l'XML:
 rssnews
 listegroupe?format=xml&formsemestre_id=X&groupetd=X
 XMLgetEtudInfos?etudid=X
@@ -39,6 +39,13 @@ XML_formsemestre_list
     </module>
   
   </ue>
+
+  <!-- nombre quelconque d'UE capitalisees -->
+  <ue_capitalisee id="" acronyme="" titre="" numero="">
+     <note value="10">
+     <coefficient_ue value="">
+     <date_capitalisation value="">
+  </ue_capitalisee>
 
   <!-- Informations sur l'assiduité (compte en 1/2 journées)
        (n absences dont njust justifiées) -->

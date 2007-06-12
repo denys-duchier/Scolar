@@ -180,7 +180,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     else:
         annee = annee_debut
     objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s"
-                                % (etud['nomprenom'], sem['titre'],
+                                % (etud['nomprenom'], sem['titre_num'],
                                    annee,
                                    filigranne)),
                              StyleSheet["Heading3"]))
@@ -215,7 +215,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         document.addPageTemplates(
             ScolarsPageTemplate(document,
                                 author='Scolars %s (E. Viennet)' % SCOVERSION,
-                                title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
+                                title='Bulletin %s de %s' % (sem['titre_num'],etud['nomprenom']),
                                 subject='Bulletin de note',
                                 margins=margins,
                                 server_name = server_name))
@@ -240,7 +240,7 @@ def pdfassemblebulletins( formsemestre_id,
     document.addPageTemplates(
         ScolarsPageTemplate(document,
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                            title='Bulletin %s' % (sem['titre']),
+                            title='Bulletin %s' % (sem['titre_num']),
                             subject='Bulletin de note',
                             server_name=server_name,
                             margins=margins,
@@ -262,7 +262,7 @@ def pdftrombino( sem, etudfotos, server_name='' ):
     document.addPageTemplates(
     ScolarsPageTemplate(document,
                         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                        title='Bulletin %s de %s' % (sem['titre'],etud['nomprenom']),
+                        title='Bulletin %s de %s' % (sem['titre_num'],etud['nomprenom']),
                         subject='Bulletin de note',
                         server_name = server_name))
     

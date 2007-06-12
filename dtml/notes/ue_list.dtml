@@ -4,7 +4,7 @@
 
 <dtml-call "REQUEST.set( 'locked', formation_has_locked_sems(formation_id) )">
 
-<h2>Formation <dtml-var "F['titre']"> (<dtml-var "F['acronyme']">) [version <dtml-var "F['version']">]
+<h2>Formation <dtml-var "F['titre']"> (<dtml-var "F['acronyme']">) [version <dtml-var "F['version']">] code <dtml-var "F['formation_code']">
 <dtml-if locked><dtml-var "img.lock_img"></dtml-if>
 </h2>
 
@@ -18,7 +18,7 @@
 <ul class="notes_ue_list">
 <dtml-in "do_ue_list( args={ 'formation_id' : formation_id } )">
  <dtml-let UE="_['sequence-item']">
- <li class="notes_ue_list"> <dtml-var "UE['acronyme']"> <dtml-var "UE['titre']">
+ <li class="notes_ue_list"> <dtml-var "UE['acronyme']"> <dtml-var "UE['titre']"> (code <dtml-var "UE['ue_code']">)
       <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
        <a class="stdlink" href="ue_edit?ue_id=<dtml-var "UE['ue_id']">">modifier</a> 
       </dtml-if>
@@ -87,7 +87,7 @@
 <dtml-in "do_formsemestre_list(args={ 'formation_id' : formation_id } )">
 <dtml-let sem="_['sequence-item']">
  <li><a class="stdlink" href="formsemestre_editwithmodules?formation_id=<dtml-var formation_id>&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       Modifier le semestre <dtml-var "sem['titre']"></a></li>
+       Modifier le semestre <dtml-var "sem['titre_num']"></a></li>
 </dtml-let sem>
 </dtml-in>
 </ul>

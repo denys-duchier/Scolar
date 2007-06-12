@@ -173,12 +173,18 @@ CREATE TABLE entreprise_contact (
 
 
 -- Description generique d'un module (eg infos du PPN)
+CREATE SEQUENCE notes_idgen_fcod;
+CREATE FUNCTION notes_newid_fcod( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen_fcod\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
 
 CREATE TABLE notes_formations (
 	formation_id text default notes_newid('FORM') PRIMARY KEY,
 	acronyme text NOT NULL, -- 'DUT R&T', 'LPSQRT', ...	
 	titre text NOT NULL,     -- titre complet
 	version integer default 1, -- version de la formation
+	formation_code text default notes_newid_fcod('FCOD') NOT NULL,
 	UNIQUE(acronyme,titre,version)
 );
 
@@ -188,7 +194,8 @@ CREATE TABLE notes_ue (
 	acronyme text NOT NULL,
 	numero int, -- ordre de presentation
 	titre text,
-	type  int DEFAULT 0 -- 0 normal, 1 "sport"
+	type  int DEFAULT 0, -- 0 normal, 1 "sport"
+	ue_code text default notes_newid_fcod('UCOD') NOT NULL
 	-- XXX manque certainement des infos (semestre?)
 );
 
@@ -205,7 +212,7 @@ CREATE TABLE notes_semestres (
 	-- une bete table 1,2,3,4 pour l'instant fera l'affaire...
 	semestre_id int PRIMARY KEY
 );
-
+INSERT INTO notes_semestres (semestre_id) VALUES (-1); -- denote qu'il n'y a pas de semestres dans ce diplome
 INSERT INTO notes_semestres (semestre_id) VALUES (1);
 INSERT INTO notes_semestres (semestre_id) VALUES (2);
 INSERT INTO notes_semestres (semestre_id) VALUES (3);
@@ -245,7 +252,9 @@ CREATE TABLE notes_formsemestre (
  	nomgroupeta text default 'langues',
 	bul_show_codemodules integer default 1,
         gestion_compensation integer default 0, -- gestion compensation sem DUT
-	bul_hide_xml integer default 0 --  ne publie pas le bulletin XML
+	bul_hide_xml integer default 0, --  ne publie pas le bulletin XML
+	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
+	bul_bgcolor text default 'white' -- couleur fond bulletins HTML
 );
 
 -- Mise en page bulletins semestre
@@ -375,14 +384,25 @@ CREATE FUNCTION notes_newidsvalid( text ) returns text as '
 	' language SQL;
 
 CREATE TABLE scolar_formsemestre_validation (
-	formsemestre_validation_id text default newidsvalid('VAL') PRIMARY KEY,
+	formsemestre_validation_id text default notes_newidsvalid('VAL') PRIMARY KEY,
 	etudid text NOT NULL,
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
 	ue_id text REFERENCES notes_ue(ue_id), -- NULL si validation de semestre
 	code text NOT NULL,
+	assidu integer, -- NULL pour les UE, 0|1 pour les semestres
 	event_date timestamp default now(),
+	compense_formsemestre_id text, -- null sauf si compense un semestre
+	UNIQUE(etudid,formsemestre_id,ue_id) -- une seule decision
 );
 
+CREATE TABLE scolar_autorisation_inscription (
+	autorisation_inscription_id text default notes_newidsvalid('AUT') PRIMARY KEY,
+	etudid text NOT NULL,
+	formation_code text NOT NULL,
+	semestre_id int REFERENCES notes_semestres(semestre_id), -- semestre ou on peut s'inscrire
+	date timestamp default now(),
+	origin_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id)
+);
 
 ---------------------------------------------------------------------
 -- NOUVELLES (inutilise pour l'instant)

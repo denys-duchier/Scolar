@@ -23,6 +23,7 @@
 	       'input_type' : 'menu',
                'allowed_values': ('0','1'),
                'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
+    ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
    ),
    initvalues = U,
    submitlabel = 'Modifier les valeurs'

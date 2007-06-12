@@ -103,20 +103,21 @@
 
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>
- <a class="stdlink" href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisions du jury</a>
+ <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
 </li>
 </dtml-if permission>
 
- <li><a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
+ <li><a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury</a>
  </li>
 
+<dtml-comment> Obsolete
  <li><a class="stdlink" href="feuille_preparation_jury?formsemestre_id=<dtml-var formsemestre_id>">Générer feuille préparation Jury</a>
  </li>
-
+</dtml-comment>
 
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>
- <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) à un autre semestre</a>
+ <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) à un autre semestre</a> [obsolète, ne plus utiliser]
 </li>
 
 <li><a class="stdlink" href="form_students_import_csv?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a></li>

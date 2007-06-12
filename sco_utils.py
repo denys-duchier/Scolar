@@ -31,6 +31,7 @@
 from VERSION import SCOVERSION
 import VERSION
 import os, copy
+import urllib, time, datetime
 import xml.sax.saxutils
 # XML generation package (apt-get install jaxml)
 import jaxml

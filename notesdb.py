@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-
+# -*- coding: iso8859-15 -*-
 
 import pdb,os,sys,psycopg
 from notes_log import log
@@ -315,7 +315,11 @@ def DateDMYtoISO(dmy):
     "convert date string from french format to ISO"
     if not dmy:
         return None
+    if type(dmy) != StringType:
+        return dmy.strftime("%Y-%m-%d")
+
     t = dmy.split('/')
+    
     if len(t) != 3:
         raise ScoValueError('Format de date (j/m/a) invalide: "%s"' % str(dmy))
     day, month, year = t

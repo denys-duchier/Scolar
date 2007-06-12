@@ -27,7 +27,6 @@
 
 """Interface Zope <-> Notes
 """
-import urllib, time, datetime
 
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -69,9 +68,9 @@ from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+import sco_bulletins, sco_recapcomplet
 import sco_formations, sco_pagebulletin
-# import sco_formsemestre_validation_old # obsolete
-#import sco_formsemestre_validation FUTUR
+import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -263,7 +262,7 @@ class ZNotes(ObjectManager,
     _formationEditor = EditableTable(
         'notes_formations',
         'formation_id',
-        ('formation_id', 'acronyme','titre', 'version'),
+        ('formation_id', 'acronyme','titre', 'version', 'formation_code'),
         sortkey='acronyme'
         )
 
@@ -375,7 +374,8 @@ class ZNotes(ObjectManager,
     _ueEditor = EditableTable(
         'notes_ue',
         'ue_id',
-        ('ue_id', 'formation_id', 'acronyme', 'numero', 'titre', 'type'),
+        ('ue_id', 'formation_id', 'acronyme', 'numero', 'titre',
+         'type', 'ue_code' ),
         sortkey='numero',
         input_formators = { 'type' : int_null_is_zero },
         output_formators = { 'numero' : int_null_is_zero },
@@ -430,9 +430,16 @@ class ZNotes(ObjectManager,
     def do_ue_edit(self, *args, **kw ):
         "edit an UE"
         # check
-        ue = self.do_ue_list({ 'ue_id' : args[0]['ue_id'] })[0]
+        ue_id = args[0]['ue_id']
+        ue = self.do_ue_list({ 'ue_id' : ue_id })[0]
         if self.formation_has_locked_sems(ue['formation_id']):
             raise ScoLockedFormError()        
+        # check: acronyme unique dans cette formation
+        if args[0].has_key('acronyme'):
+            new_acro = args[0]['acronyme']
+            ues = self.do_ue_list({'formation_id' : ue['formation_id'], 'acronyme' : new_acro })
+            if ues and ues[0]['ue_id'] != ue_id:
+                raise ScoValueError('UE "%s" déjà existante !' % args[0]['acronyme'])
         
         cnx = self.GetDBConnexion()
         self._ueEditor.edit( cnx, *args, **kw )
@@ -595,8 +602,8 @@ class ZNotes(ObjectManager,
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
-         'bul_show_codemodules', 'gestion_compensation',
-         'etat', 'bul_hide_xml',
+         'bul_show_codemodules', 'gestion_compensation', 'gestion_semestrielle',
+         'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta'
          ),
         sortkey = 'date_debut',
@@ -607,6 +614,7 @@ class ZNotes(ObjectManager,
                              'bul_show_uevalid' : str,
                              'bul_show_codemodules' : str,
                              'gestion_compensation' : str,
+                             'gestion_semestrielle' : str,
                              'etat' : str,
                              'bul_hide_xml' : str },
 
@@ -617,6 +625,7 @@ class ZNotes(ObjectManager,
                              'bul_show_uevalid' : int,
                              'bul_show_codemodules' : int,
                              'gestion_compensation' : int,
+                             'gestion_semestrielle' : int,
                              'etat' : int,
                              'bul_hide_xml' : int }
         )
@@ -679,6 +688,11 @@ class ZNotes(ObjectManager,
         #log( 'sems=%s' % str(sems) )
         # ajoute titre + annee et dateord (pour tris)
         for sem in sems:
+            # Ajoute nom avec numero semestre:
+            sem['titre_num'] = sem['titre']
+            if sem['semestre_id'] != -1:
+                sem['titre_num'] += ' Semestre %s' % sem['semestre_id']
+
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
             try:
                 mois_debut, annee_debut = sem['date_debut'].split('/')[1:]
@@ -688,7 +702,7 @@ class ZNotes(ObjectManager,
                 mois_fin, annee_fin = sem['date_fin'].split('/')[1:]
             except:
                 mois_fin, annee_fin = '', ''
-            sem['titreannee'] = sem['titre'] + ' ' + annee_debut
+            sem['titreannee'] = sem['titre_num'] + ' ' + annee_debut
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
             # et les dates sous la forme "oct 2007 - fev 2008"
@@ -702,6 +716,7 @@ class ZNotes(ObjectManager,
         
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
+
         return sems
 
     security.declareProtected(ScoView, 'XML_formsemestre_list')
@@ -758,6 +773,12 @@ class ZNotes(ObjectManager,
         cursor = cnx.cursor()
         cursor.execute( "select semestre_id from notes_semestres" )
         semestre_id_list = [ str(x[0]) for x in cursor.fetchall() ]
+        semestre_id_labels = []
+        for sid in semestre_id_list:
+            if sid == '-1':
+                semestre_id_labels.append('pas de semestres')
+            else:
+                semestre_id_labels.append(sid)
         # Liste des modules  dans ce semestre de cette formation
         # on pourrait faire un simple self.module_list( )
         # mais si on veut l'ordre du PPN (groupe par UE et matieres) il faut:
@@ -788,7 +809,8 @@ class ZNotes(ObjectManager,
             ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre' }),
             ('semestre_id', { 'input_type' : 'menu',
                               'title' : 'Semestre dans la formation',
-                              'allowed_values' : semestre_id_list }),  
+                              'allowed_values' : semestre_id_list,
+                              'labels' : semestre_id_labels }),  
             ('gestion_absence_lst', { 'input_type' : 'checkbox',
                                       'title' : 'Suivi des absences',
                                       'allowed_values' : ['X'],
@@ -804,10 +826,17 @@ class ZNotes(ObjectManager,
                                       'allowed_values' : ['X'],
                                       'explanation' : 'afficher codes des modules sur les bulletins',
                                        'labels' : [''] }),
+
             ('gestion_compensation_lst',  { 'input_type' : 'checkbox',
                                             'title' : '',
                                             'allowed_values' : ['X'],
-                                            'explanation' : 'proposer compensations de semestres (parcours DUT)',
+                                            'explanation' : '(inutilisé)', # XXX 'proposer compensations de semestres (parcours DUT)', actuellement non pris en compte !
+                                            'labels' : [''] }),
+
+            ('gestion_semestrielle_lst',  { 'input_type' : 'checkbox',
+                                            'title' : '',
+                                            'allowed_values' : ['X'],
+                                            'explanation' : 'formation semestrialisée (jurys avec semestres décalés)',
                                             'labels' : [''] }),
             ('nomgroupetd', { 'size' : 20,
                               'title' : 'Nom des groupes primaires',
@@ -817,7 +846,12 @@ class ZNotes(ObjectManager,
                               'explanation' : 'TP' }),
             ('nomgroupeta', { 'size' : 20,
                               'title' : 'Nom des groupes tertiaires',
-                              'explanation' : 'langues' }),            
+                              'explanation' : 'langues' }),
+
+            ('bul_bgcolor', { 'size' : 8,
+                              'title' : 'Couleur fond des bulletins',
+                              'explanation' : 'version web seulement (ex: #ffeeee)' }),
+            
             ('sep', { 'input_type' : 'separator',
                       'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
 
@@ -862,21 +896,33 @@ class ZNotes(ObjectManager,
             initvalues['bul_show_decision_lst'] = ['X']
         else:
             initvalues['bul_show_decision_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
+            REQUEST.form['bul_show_decision_lst'] = []
 
         initvalues['bul_show_codemodules'] = initvalues.get('bul_show_codemodules','1')
         if initvalues['bul_show_codemodules'] == '1':
             initvalues['bul_show_codemodules_lst'] = ['X']
         else:
             initvalues['bul_show_codemodules_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_codemodules_lst'):
+            REQUEST.form['bul_show_codemodules_lst'] = []
 
         initvalues['gestion_compensation'] = initvalues.get('gestion_compensation','0')
         if initvalues['gestion_compensation'] == '1':
             initvalues['gestion_compensation_lst'] = ['X']
         else:
-            initvalues['gestion_compensation_lst'] = []        
+            initvalues['gestion_compensation_lst'] = []
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_compensation_lst'):
+            REQUEST.form['gestion_compensation_lst'] = []
+        
+        initvalues['gestion_semestrielle'] = initvalues.get('gestion_semestrielle','0')
+        if initvalues['gestion_semestrielle'] == '1':
+            initvalues['gestion_semestrielle_lst'] = ['X']
+        else:
+            initvalues['gestion_semestrielle_lst'] = []        
+        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_semestrielle_lst'):
+            REQUEST.form['gestion_semestrielle_lst'] = []
 
-        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
-            REQUEST.form['bul_show_decision_lst'] = []
         #
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = submitlabel,
@@ -903,6 +949,10 @@ class ZNotes(ObjectManager,
                 tf[2]['gestion_compensation'] = 1
             else:
                 tf[2]['gestion_compensation'] = 0
+            if tf[2]['gestion_semestrielle_lst']:
+                tf[2]['gestion_semestrielle'] = 1
+            else:
+                tf[2]['gestion_semestrielle'] = 0
             if not edit:
                 # creation du semestre                
                 formsemestre_id = self.do_formsemestre_create(tf[2], REQUEST)
@@ -1024,7 +1074,7 @@ class ZNotes(ObjectManager,
         H.append("""<h2>Modification du semestre
              <a href="formsemestre_status?formsemestre_id=%s">%s</a>
              (formation %s)</h2>
-             """ % (formsemestre_id, sem['titre'], F['acronyme']) )        
+             """ % (formsemestre_id, sem['titre_num'], F['acronyme']) )        
         modform = [
             ('formsemestre_id', { 'input_type' : 'hidden' }),
             ('gestion_absence_lst', { 'input_type' : 'checkbox',
@@ -1270,7 +1320,7 @@ class ZNotes(ObjectManager,
                                  % M['module']['titre'])
         footer = self.sco_footer(self,REQUEST)
         H = [ '<h2>Semestre %s, du %s au %s</h2>'
-              % (sem['titre'], sem['date_debut'], sem['date_fin']),
+              % (sem['titre_num'], sem['date_debut'], sem['date_fin']),
               '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
               '<ul><li>%s (responsable)</li>' % M['responsable_id']
               ]
@@ -1443,7 +1493,7 @@ class ZNotes(ObjectManager,
                 <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
                 Un étudiant réellement inscrit doit le rester, le faire éventuellement <b>démissionner<b>.
                 </p>
-                """ % (etud['nomprenom'],sem['titre'],sem['date_debut'],sem['date_fin']),
+                """ % (etud['nomprenom'],sem['titre_num'],sem['date_debut'],sem['date_fin']),
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
@@ -1464,7 +1514,7 @@ class ZNotes(ObjectManager,
         insem = self.do_formsemestre_inscription_list(
             args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
-        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="ficheEtud?etudid=%s">retour à la fiche</a>'%etudid + self.sco_footer(self,REQUEST)
+        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(self,REQUEST)
         
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(
@@ -1563,7 +1613,7 @@ class ZNotes(ObjectManager,
             H.append('<ul>')
             for sem in sems:
                 H.append('<li><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s">%s</a>' %
-                         (etudid,sem['formsemestre_id'],sem['titre']))
+                         (etudid,sem['formsemestre_id'],sem['titre_num']))
             H.append('</ul>')
         else:
             H.append('<p>aucune session de formation !</p>')
@@ -1584,7 +1634,7 @@ class ZNotes(ObjectManager,
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s dans %s</h2>" %
-              (etud['nomprenom'],sem['titre']) ]
+              (etud['nomprenom'],sem['titre_num']) ]
         F = self.sco_footer(self,REQUEST)
         if groupetd:
             # OK, inscription
@@ -1654,7 +1704,7 @@ class ZNotes(ObjectManager,
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s à un module optionnel de %s</h2>" %
-              (etud['nomprenom'],sem['titre']) ]
+              (etud['nomprenom'],sem['titre_num']) ]
         # Cherche les moduleimlps ou il n'est pas deja inscrit
         mods = self.do_moduleimpl_withmodule_list(
             {'formsemestre_id':formsemestre_id} )
@@ -1683,7 +1733,8 @@ class ZNotes(ObjectManager,
             # XXXX manque bouton valider et renvoi vers une fonction faisant l'inscription
             H.append("</select></form>")
         else:
-            H.append('<p>Cet étudiant est déjà inscrit à tous les modules du semestre !</p><p><a class="stdlink" href="ficheEtud?etudid=%(etudid)s">Retour à la fiche de %(nomprenom)s</a></p>' % etud )
+            H.append('<p>Cet étudiant est déjà inscrit à tous les modules du semestre !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%(etudid)s">Retour à la fiche de %(nomprenom)s</a></p>'
+                     % (self.ScoURL(), etud))
         return '\n'.join(H) + self.sco_footer(self,REQUEST)
 
 
@@ -1699,7 +1750,7 @@ class ZNotes(ObjectManager,
         F = self.sco_footer(self,REQUEST)
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s aux modules de %s (%s - %s)</h2>" %
-              (etud['nomprenom'],sem['titre'],
+              (etud['nomprenom'],sem['titre_num'],
                sem['date_debut'],sem['date_fin']) ]
         H.append("""<p>Voici la liste des modules du semestre choisi.</p><p>
         Les modules cochés sont ceux dans lesquels l'étudiant est inscrit. Vous pouvez l'inscrire ou le désincrire d'un ou plusieurs modules.</p>
@@ -1744,7 +1795,7 @@ class ZNotes(ObjectManager,
         if  tf[0] == 0:
             return '\n'.join(H) + '\n' + tf[1] + F
         elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( "ficheEtud?etudid=" + etudid )
+            return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=" %(self.ScoURL(), etudid))
         else:
             # Inscriptions aux modules choisis
             moduleimpls = REQUEST.form['moduleimpls']
@@ -1772,7 +1823,7 @@ class ZNotes(ObjectManager,
             #
             if (not a_inscrire) and (not a_desinscrire):
                 H.append("""<h3>Aucune modification à effectuer</h3>
-                <p><a class="stdlink" href="ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % etudid)
+                <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % (self.ScoURL(), etudid))
                 return '\n'.join(H) + F
             
             H.append("<h3>Confirmer les modifications</h3>")
@@ -1799,9 +1850,9 @@ class ZNotes(ObjectManager,
             <input type="hidden" name="modulesimpls_ainscrire" value="%s"/>
             <input type="hidden" name="modulesimpls_adesinscrire" value="%s"/>
             <input type ="submit" value="Confirmer"/>
-            <input type ="button" value="Annuler" onclick="document.location='ficheEtud?etudid=%s';"/>
+            <input type ="button" value="Annuler" onclick="document.location='%s/ficheEtud?etudid=%s';"/>
             </form>
-            """ % (etudid,modulesimpls_ainscrire,modulesimpls_adesinscrire,etudid))
+            """ % (etudid,modulesimpls_ainscrire,modulesimpls_adesinscrire,self.ScoURL(),etudid))
             return '\n'.join(H) + F
 
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_incription_options')
@@ -1842,9 +1893,9 @@ class ZNotes(ObjectManager,
         if REQUEST:
             H = [ self.sco_header(self,REQUEST),
                   """<h3>Modifications effectuées</h3>
-                  <p><a class="stdlink" href="ficheEtud?etudid=%s">
+                  <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">
                   Retour à la fiche étudiant</a></p>
-                  """ % etudid,
+                  """ % (self.ScoURL(), etudid),
                   self.sco_footer(self, REQUEST)]
             return '\n'.join(H)
 
@@ -2061,7 +2112,7 @@ class ZNotes(ObjectManager,
         #
         H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h3>'
              % (action, moduleimpl_id, Mod['code'], Mod['titre']),
-             '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre']),
+             '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre_num']),
              'du %(date_debut)s au %(date_fin)s' % sem ]
         if readonly:
             E = initvalues
@@ -2752,7 +2803,7 @@ class ZNotes(ObjectManager,
             evaltitre = '%s du %s' % (E['description'],E['jour'])
         else:
             evaltitre = 'évaluation du %s' % E['jour']
-        description = '%s: %s en %s (%s) resp. %s' % (sem['titre'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
+        description = '%s: %s en %s (%s) resp. %s' % (sem['titre_num'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
         head = """
         <h4>Codes spéciaux:</h4>
         <ul>
@@ -3409,7 +3460,7 @@ class ZNotes(ObjectManager,
     def do_formsemestre_moyennes(self, formsemestre_id):
         """retourne dict { moduleimpl_id : { etudid, note_moyenne_dans_ce_module } },
         la liste des moduleimpls, la liste des evaluations valides,
-        liste des moduleimpls  avec notes en attente
+        liste des moduleimpls  avec notes en attente.
         """
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         inscr = self.do_formsemestre_inscription_list(
@@ -3432,193 +3483,14 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'notes_formsemestre_recapcomplet')
     def do_formsemestre_recapcomplet(self,REQUEST,formsemestre_id,format='html',
-                                     xml_nodate=False):
+                                     xml_nodate=False, modejury=False, hidemodules=False):        
         """Grand tableau récapitulatif avec toutes les notes de modules
         pour tous les étudiants, les moyennes par UE et générale,
         trié par moyenne générale décroissante.
         """
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)    
-        modimpls = nt.get_modimpls()
-        ues = nt.get_ues()
-        T = nt.get_table_moyennes_triees()
-        if format == 'xls':
-            keep_numeric = True # pas de conversion des notes en strings
-        else:
-            keep_numeric = False
-        if format=='xml':
-            # XML export: liste tous les bulletins XML
-            # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-            doc = jaxml.XML_document( encoding=SCO_ENCODING )
-            if xml_nodate:
-                docdate = ''
-            else:
-                docdate = datetime.datetime.now().isoformat()
-            doc.recapsemestre( formsemestre_id=formsemestre_id,
-                               date=docdate)
-            evals=self.do_evaluation_etat_in_sem(formsemestre_id)[0]
-            doc._push()
-            doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
-                            nb_evals_en_cours=evals['nb_evals_en_cours'],
-                            nb_evals_vides=evals['nb_evals_vides'],
-                            date_derniere_note=evals['last_modif'])
-            doc._pop()
-            for t in T:
-                etudid = t[-1]
-                doc._push()
-                self.make_xml_formsemestre_bulletinetud(
-                    formsemestre_id, etudid, doc=doc, force_publishing=True, xml_nodate=xml_nodate )
-                doc._pop()
-            return repr(doc)
-        
-        # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
-        F = []
-        h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
-        cod2mod ={} # code : moduleimpl_id
-        for ue in ues:
-            if ue['type'] == UE_STANDARD:            
-                h.append( ue['acronyme'] )
-            elif ue['type'] == UE_SPORT:
-                h.append('') # n'affiche pas la moyenne d'UE dans ce cas
-            else:
-                raise ScoValueError('type UE invalide !')
-            for modimpl in modimpls:
-                if modimpl['module']['ue_id'] == ue['ue_id']:
-                    code = modimpl['module']['code']
-                    h.append( code )
-                    cod2mod[code] = modimpl['moduleimpl_id'] # pour fabriquer le lien
-        F.append(h)
-        ue_index = [] # indices des moy UE dans l (pour appliquer style css)
-        def fmtnum(val): # conversion en nombre pour cellules excel
-            if keep_numeric:
-                try:
-                    return float(val)
-                except:
-                    return val
-            else:
-                return val
-        # 
-        for t in T:
-            etudid = t[-1]
-            if nt.get_etud_etat(etudid) == 'D':
-                gr = 'dem'
-            else:
-                gr = nt.get_groupetd(etudid)
-            l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
-                  gr,
-                  fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
-            i = 0
-            for ue in ues:
-                i += 1
-                if ue['type'] == UE_STANDARD:
-                    l.append( fmtnum(t[i]) ) # moyenne etud dans ue
-                elif ue['type'] == UE_SPORT:
-                    l.append('') # n'affiche pas la moyenne d'UE dans ce cas
-                ue_index.append(len(l)-1)
-                j = 0
-                for modimpl in modimpls:
-                    if modimpl['module']['ue_id'] == ue['ue_id']:
-                        l.append( fmtnum(t[j+len(ues)+1]) ) # moyenne etud dans module
-                    j += 1
-            l.append(etudid) # derniere colonne = etudid
-            F.append(l)
-        # Dernière ligne: moyennes UE et modules
-        l = [ '', 'Moyennes', '', fmt_note(nt.moy_moy) ] 
-        i = 0
-        for ue in ues:
-            i += 1
-            if ue['type'] == UE_STANDARD:
-                l.append( fmt_note(ue['moy']) ) 
-            elif ue['type'] == UE_SPORT:
-                l.append('') # n'affiche pas la moyenne d'UE dans ce cas
-            ue_index.append(len(l)-1)
-            for modimpl in modimpls:
-                if modimpl['module']['ue_id'] == ue['ue_id']:
-                    l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0],
-                                      keep_numeric=keep_numeric)) # moyenne du module
-        F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
-        # Generation table au format demandé
-        if format == 'html':
-            # Table format HTML
-            H = [ '<table class="notes_recapcomplet sortable" id="recapcomplet">' ]
-            cells = '<tr class="recap_row_tit sortbottom">'
-            for i in range(len(F[0])):
-                if i in ue_index:
-                    cls = 'recap_tit_ue'
-                else:
-                    cls = 'recap_tit'
-                if i == 0: # Rang: force tri numerique pour sortable
-                    cls = cls + ' sortnumeric'
-                if cod2mod.has_key(F[0][i]): # lien vers etat module
-                    cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s">%s</a></td>' % (cls,cod2mod[F[0][i]], F[0][i])
-                else:
-                    cells += '<td class="%s">%s</td>' % (cls, F[0][i])
-            ligne_titres = cells + '</tr>'
-            H.append( ligne_titres ) # titres
-
-            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&version=selectedevals">%s</a>'
-            ir = 0
-            nblines = len(F)-1
-            for l in F[1:]:
-                if ir == nblines-1:
-                    el = l[1] # derniere ligne
-                    cells = '<tr class="recap_row_moy sortbottom">'
-                else:
-                    el = etudlink % (formsemestre_id,l[-1],l[1])
-                    if ir % 2 == 0:
-                        cells = '<tr class="recap_row_even">'
-                    else:
-                        cells = '<tr class="recap_row_odd">'
-                ir += 1
-                nsn = [ x.replace('NA0', '-') for x in l[:-1] ] # notes sans le NA0
-                cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
-                cells += '<td class="recap_col">%s</td>' % el # nom etud (lien)
-                cells += '<td class="recap_col">%s</td>' % nsn[2] # groupetd
-                # grise si moyenne generale < barre
-                cssclass = 'recap_col_moy'
-                try:
-                    if float(nsn[3]) < NOTES_BARRE_GEN:
-                        cssclass = 'recap_col_moy_inf'
-                except:
-                    pass
-                cells += '<td class="%s">%s</td>' % (cssclass,nsn[3])
-                for i in range(4,len(nsn)):
-                    if i in ue_index:
-                        cssclass = 'recap_col_ue'
-                        # grise si moy UE < barre
-                        try:
-                            if float(nsn[i]) < NOTES_BARRE_UE:
-                                cssclass = 'recap_col_ue_inf'
-                            elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:
-                                cssclass = 'recap_col_ue_val'
-                        except:
-                            pass
-                    else:
-                        cssclass = 'recap_col'
-                    cells += '<td class="%s">%s</td>' % (cssclass,nsn[i])
-                H.append( cells + '</tr>' )
-                #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')
-            H.append( ligne_titres )
-            H.append('</table>')
-            return '\n'.join(H)
-        elif format == 'csv':
-            CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x[:-1]) for x in F ] )
-            semname = sem['titre'].replace( ' ', '_' )
-            date = time.strftime( '%d-%m-%Y')
-            filename = 'notes_modules-%s-%s.csv' % (semname,date)
-            return sendCSVFile(REQUEST,CSV, filename )
-        elif format == 'xls':
-            semname = sem['titre'].replace( ' ', '_' )
-            date = time.strftime( '%d-%m-%Y')
-            filename = 'notes_modules-%s-%s.xls' % (semname,date)
-            xls = sco_excel.Excel_SimpleTable(
-                titles= F[0],
-                lines = [ x[:-1] for x in F[1:] ], # sup. dern. col (etudid)
-                SheetName = 'notes %s %s' % (semname,date) )
-            return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        else:
-            raise ValueError, 'unknown format %s' % format
-
+        return sco_recapcomplet.do_formsemestre_recapcomplet(
+            self, REQUEST, formsemestre_id, format=format, xml_nodate=xml_nodate,
+            modejury=modejury, hidemodules=hidemodules)
     
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
     def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
@@ -3628,11 +3500,11 @@ class ZNotes(ObjectManager,
                                      nohtml=False):
         if format != 'mailpdf':
             if format == 'xml':
-                bul = repr(self.make_xml_formsemestre_bulletinetud(
-                    formsemestre_id,  etudid, REQUEST=REQUEST ))
+                bul = repr(sco_bulletins.make_xml_formsemestre_bulletinetud(
+                    self, formsemestre_id,  etudid, REQUEST=REQUEST ))
             else:
-                bul, etud, filename = self.make_formsemestre_bulletinetud(
-                    formsemestre_id, etudid,
+                bul, etud, filename = sco_bulletins.make_formsemestre_bulletinetud(
+                    self, formsemestre_id, etudid,
                     version=version,format=format,
                     REQUEST=REQUEST)
             if format == 'pdf':
@@ -3694,181 +3566,6 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
                     % (etud['emaillink'])) + htm
 
-    security.declareProtected(ScoView, 'make_formsemestre_bulletinetud')
-    def make_formsemestre_bulletinetud(
-        self, formsemestre_id, etudid,
-        version='long', # short, long, selectedevals
-        format='html',
-        REQUEST=None):        
-        #
-        if REQUEST:
-            server_name = REQUEST.BASE0
-        else:
-            server_name = ''
-        authuser = REQUEST.AUTHENTICATED_USER
-        if not version in ('short','long','selectedevals'):
-            raise ValueError('invalid version code !')
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-        ues = nt.get_ues( filter_sport=True, etudid=etudid )
-        modimpls = nt.get_modimpls()
-        nbetuds = len(nt.rangs)
-        # Genere le HTML H, une table P pour le PDF
-        H = [ '<table class="notes_bulletin">' ] # elems html
-        P = [] # elems pour gen. pdf
-        LINEWIDTH = 0.5
-        from reportlab.lib.colors import Color
-        PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                     ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)) ]
-        def ueline(i): # met la ligne i du tableau pdf en style 'UE'
-            PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
-            PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
-                             Color(170/255.,187/255.,204/255.) ))
-        # ligne de titres
-        moy = nt.get_etud_moy_gen(etudid)
-        mg = fmt_note(moy)
-        etatstr = nt.get_etud_etat_html(etudid)
-        if type(moy) != StringType and nt.moy_moy != StringType:
-            bargraph = '&nbsp;' + htmlutils.horizontal_bargraph(moy*5, nt.moy_moy*5)
-        else:
-            bargraph = ''
-        
-        if nt.get_moduleimpls_attente():
-            # n'affiche pas le renag sur le bulletin s'il y a des
-            # notes en attente dans ce semestre
-            rang = '(notes en attente)'
-        else:
-            rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
-        
-        t = ('Moyenne', mg + etatstr + bargraph,
-             rang, 
-             'Note/20', 'Coef')
-        P.append(t)        
-        H.append( '<tr><td class="note_bold">' +
-                  '</td><td class="note_bold">'.join(t) + '</td></tr>' )
-        # Contenu table: UE apres UE
-        tabline = 0 # line index in table
-        for ue in ues:
-            tabline += 1
-            # Ligne UE
-            moy_ue = fmt_note(nt.get_etud_moycoef_ue(etudid,ue['ue_id'])[0])
-            if ue['type'] == UE_SPORT:
-                moy_ue = '(note spéciale)'
-            t = ( ue['acronyme'], moy_ue, '', '', '' ) # xxx sum coef UE TODO
-            P.append(t)
-            ueline(tabline)
-            H.append('<tr class="notes_bulletin_row_ue">')
-            H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
-            # Liste les modules de l'UE 
-            ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
-            for modimpl in ue_modimpls:
-                    tabline += 1
-                    H.append('<tr class="notes_bulletin_row_mod">')
-                    # --- module avec moy. dans ce module et coef du module
-                    nom_mod = modimpl['module']['abbrev']
-                    if not nom_mod:
-                        nom_mod = ''                        
-                    t = [ modimpl['module']['code'], nom_mod,
-                          fmt_note(nt.get_etud_mod_moy(modimpl, etudid)), '',
-                          '%.2g' % modimpl['module']['coefficient'] ]
-                    if version == 'short':
-                        t[3], t[2] = t[2], t[3] # deplace colonne note
-                    if sem['bul_show_codemodules'] != '1':
-                        t[0] = '' # pas affichage du code module
-                    P.append(tuple(t))
-                    link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s">' % modimpl['moduleimpl_id']
-                    t[0] = link_mod + t[0] # add html link
-                    t[1] = link_mod + t[1]
-                    H.append('<td>%s</a></td><td>%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>' % tuple(t) )
-                    if version != 'short':
-                        # --- notes de chaque eval:
-                        evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
-                        for e in evals:
-                            if e['visibulletin'] == '1' or version == 'long':
-                                tabline += 1
-                                H.append('<tr class="notes_bulletin_row_eval">')
-                                nom_eval = e['description']
-                                if not nom_eval:
-                                    nom_eval = 'le %s' % e['jour']
-                                link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submitted=1">%s</a>' % (e['evaluation_id'], nom_eval)
-                                val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
-                                val = fmt_note(val, note_max=e['note_max'] )
-                                t = [ '', '', nom_eval, val, '%.2g' % e['coefficient'] ]
-                                P.append(tuple(t))
-                                t[2] = link_eval
-                                H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>' % tuple(t))
-        H.append('</table>')
-        # --- Absences
-        if sem['gestion_absence'] == '1':
-            debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
-            fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
-            nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-            nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
-                                               debut=debut_sem,fin=fin_sem)
-            H.append("""<p>
-        <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
-        <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
-        (pendant ce semestre).
-        </a></p>
-            """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
-        # --- Decision Jury
-        if sem['bul_show_decision'] == '1':
-            situation = self.etud_descr_situation_semestre(
-                etudid, formsemestre_id,
-                format=format,
-                show_uevalid=(sem['bul_show_uevalid']=='1'))
-        else:
-            situation = ''
-        if situation:
-            H.append( """<p class="bull_situation">%s</p>""" % situation )
-        # --- Appreciations
-        # le dir. des etud peut ajouter des appreciation,
-        # mais aussi le chef (perm. ScoEtudInscrit)
-        can_edit_app = ((authuser == sem['responsable_id'])
-                        or (authuser.has_permission(ScoEtudInscrit,self)))
-        cnx = self.GetDBConnexion()   
-        apprecs = scolars.appreciations_list(
-            cnx,
-            args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
-        H.append('<div class="bull_appreciations">')
-        if apprecs:
-            H.append('<p><b>Appréciations</b></p>')
-        for app in apprecs:
-            if can_edit_app:
-                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
-            else:
-                mlink = ''
-            H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
-                         % (app['date'], app['comment'], mlink ) )
-        if can_edit_app:
-            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%s&formsemestre_id=%s">Ajouter une appréciation</a></p>' % (etudid, formsemestre_id))
-        H.append('</div>')
-        # ---------------
-        if format == 'html':
-            return '\n'.join(H), None, None
-        elif format == 'pdf' or format == 'pdfpart':
-            etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-            if sem['gestion_absence'] == '1':
-                etud['nbabs'] = nbabs
-                etud['nbabsjust'] = nbabsjust
-            infos = { 'DeptName' : self.DeptName }
-            stand_alone = (format != 'pdfpart')
-            if nt.get_etud_etat(etudid) == 'D':
-                filigranne = 'DEMISSION'
-            else:
-                filigranne = ''
-            pdfbul = pdfbulletins.pdfbulletin_etud(
-                etud, sem, P, PdfStyle,
-                infos, stand_alone=stand_alone, filigranne=filigranne,
-                appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
-                situation=situation,
-                server_name=server_name, context=self )
-            dt = time.strftime( '%Y-%m-%d' )
-            filename = 'bul-%s-%s-%s.pdf' % (sem['titre'], dt, etud['nom'])
-            filename = unescape_html(filename).replace(' ','_').replace('&','')
-            return pdfbul, etud, filename
-        else:
-            raise ValueError('invalid parameter: format')
 
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
     def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
@@ -3903,7 +3600,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             context=self )
         #
         dt = time.strftime( '%Y-%m-%d' )
-        filename = 'bul-%s-%s.pdf' % (sem['titre'], dt)
+        filename = 'bul-%s-%s.pdf' % (sem['titre_num'], dt)
         filename = unescape_html(filename).replace(' ','_').replace('&','')
         # fill cache
         self._getNotesCache().store_bulletins_pdf(formsemestre_id,version,
@@ -4003,290 +3700,101 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             # ennuyeux mais necessaire (pour le PDF seulement)
             self._getNotesCache().inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
-    # -------- Bulletin en XML
-    # (fonction séparée pour simplifier le code,
-    #  mais attention a la maintenance !)
-    security.declareProtected(ScoView, 'make_xml_formsemestre_bulletinetud')
-    def make_xml_formsemestre_bulletinetud( self, formsemestre_id, etudid,
-                                            doc=None, # XML document
-                                            force_publishing=False,
-                                            xml_nodate=False,
-                                            REQUEST=None):
-        "bulletin au format XML"
-        if REQUEST:
-            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-        if not doc:            
-            doc = jaxml.XML_document( encoding=SCO_ENCODING )
-
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        if sem['bul_hide_xml'] == '0' or force_publishing:
-            published=1
-        else:
-            published=0
-        if xml_nodate:
-            docdate = ''
-        else:
-            docdate = datetime.datetime.now().isoformat()
-        doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
-                          date=docdate,
-                          publie=published)
-
-        # Infos sur l'etudiant
-        etudinfo = self.getEtudInfo(etudid=etudid,filled=1)[0]
-        doc._push()
-        doc.etudiant( nom=quote_xml_attr(etudinfo['nom']),
-                      prenom=quote_xml_attr(etudinfo['prenom']),
-                      sexe=quote_xml_attr(etudinfo['sexe']),
-                      photo_url=quote_xml_attr(self.etudfoto_img(etudid).absolute_url())
-                      )
-        doc._pop()
-
-        # Disponible pour publication ?
-        if not published:
-            return doc # stop !
-
-        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-        ues = nt.get_ues()
-        modimpls = nt.get_modimpls()
-        nbetuds = len(nt.rangs)
-        mg = fmt_note(nt.get_etud_moy_gen(etudid))
-        if nt.get_moduleimpls_attente():
-            # n'affiche pas le renag sur le bulletin s'il y a des
-            # notes en attente dans ce semestre
-            rang = '?'
-        else:
-            rang = str(nt.get_etud_rang(etudid))
-        doc._push()
-        doc.note( value=mg )
-        doc._pop()
-        doc._push()
-        doc.rang( value=rang, ninscrits=nbetuds )
-        doc._pop()
-        doc._push()
-        doc.note_max( value=20 ) # notes toujours sur 20
-        doc._pop()
-        # Liste les UE / modules /evals
-        for ue in ues:
-            doc._push()
-            doc.ue( id=ue['ue_id'],
-                    numero=quote_xml_attr(ue['numero']),
-                    acronyme=quote_xml_attr(ue['acronyme']),
-                    titre=quote_xml_attr(ue['titre']) )            
-            doc._push()
-            doc.note( value=fmt_note(nt.get_etud_moycoef_ue(etudid,ue_id=ue['ue_id'])[0]) )
-            doc._pop()
-            # Liste les modules de l'UE 
-            ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
-            for modimpl in ue_modimpls:
-                mod = modimpl['module']
-                doc._push()
-                doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
-                            coefficient=mod['coefficient'],
-                            numero=mod['numero'],
-                            titre=quote_xml_attr(mod['titre']),
-                            abbrev=quote_xml_attr(mod['abbrev']) )
-                doc._push()
-                doc.note( value=fmt_note(nt.get_etud_mod_moy(modimpl, etudid)) )
-                doc._pop()
-                # --- notes de chaque eval:
-                evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
-                for e in evals:
-                    doc._push()
-                    doc.evaluation(jour=DateDMYtoISO(e['jour']),
-                                   heure_debut=TimetoISO8601(e['heure_debut']),
-                                   heure_fin=TimetoISO8601(e['heure_fin']),
-                                   coefficient=e['coefficient'],
-                                   description=quote_xml_attr(e['description']))
-                    val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
-                    val = fmt_note(val, note_max=e['note_max'] )
-                    doc.note( value=val )
-                    doc._pop()
-                doc._pop()
-            doc._pop()
-        # --- Absences
-        if sem['gestion_absence'] == '1':
-            debut_sem = self.DateDDMMYYYY2ISO(sem['date_debut'])
-            fin_sem = self.DateDDMMYYYY2ISO(sem['date_fin'])
-            nbabs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-            nbabsjust = self.Absences.CountAbsJust(etudid=etudid,
-                                               debut=debut_sem,fin=fin_sem)
-            doc._push()
-            doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
-            doc._pop()
-        # --- Decision Jury
-        if sem['bul_show_decision'] == '1':
-            situation = self.etud_descr_situation_semestre(
-                etudid, formsemestre_id, format='xml',
-                show_uevalid=(sem['bul_show_uevalid']=='1'))
-            doc.situation( quote_xml_attr(situation) )
-        # --- Appreciations
-        cnx = self.GetDBConnexion() 
-        apprecs = scolars.appreciations_list(
-            cnx,
-            args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
-        for app in apprecs:
-            doc.appreciation( quote_xml_attr(app['comment']), date=self.DateDDMMYYYY2ISO(app['date']))
-        return doc
-
-    # -------- Events
-    security.declareProtected(ScoEnsView, 'appreciation_add_form')
-    def etud_descr_situation_semestre(self, etudid, formsemestre_id, ne='',
-                                      format='html',
-                                      show_uevalid=True
-                                      ):
-        """chaine de caractères decrivant la situation de l'étudiant
-        dans ce semestre.
-        Si format == 'html', peut inclure du balisage html"""
-        cnx = self.GetDBConnexion()
-        # semestre et UE validés ?
-        evt_valid_sem, evt_echec_sem, ue_events, comp_semid = \
-                       scolars.scolar_get_validated(
-            cnx, etudid, formsemestre_id )
-        # demission/inscription ?
-        events = scolars.scolar_events_list(
-            cnx, args={'etudid':etudid, 'formsemestre_id':formsemestre_id} )
-        date_inscr = None
-        date_dem = None
-        date_echec = None
-        for event in events:
-            event_type = event['event_type']
-            if event_type == 'INSCRIPTION':
-                if date_inscr:
-                    # plusieurs inscriptions ???
-                    #date_inscr += ', ' +   event['event_date'] + ' (!)'
-                    # il y a eu une erreur qui a laissé un event 'inscription'
-                    # on l'efface:
-                    log('etud_descr_situation_semestre: removing duplicate INSCRIPTION event !')
-                    scolars.scolar_events_delete( cnx, event['event_id'] )
-                else:
-                    date_inscr = event['event_date']
-            elif event_type == 'DEMISSION':
-                assert date_dem == None, 'plusieurs démissions !'
-                date_dem = event['event_date']
-            elif event_type == 'ECHEC_SEM':
-                date_echec = event['event_date']
-        if not date_inscr:
-            inscr = 'Pas inscrit' + ne
-        else:
-            inscr = 'Inscrit%s le %s' % (ne, date_inscr)
-        if date_dem:
-            return inscr + '. Démission le %s.' % date_dem
-        if evt_valid_sem:
-            blah = 'OBTENU le %s' % evt_valid_sem['event_date']
-            if comp_semid:
-                csem = self.do_formsemestre_list(
-                    args={ 'formsemestre_id' : comp_semid } )[0]
-                blah += ' (par compensation avec %s)' % csem['titre'] 
-            if format == 'html':
-                blah = '<b>' + blah + '</b>'            
-            return inscr + ', ' + blah
-        if date_echec:
-            blah = 'ECHEC le %s.' % date_echec
-            if format == 'html':
-                blah = '<b>' + blah + '</b>'
-            inscr += ', ' + blah
-            # indique UE validées            
-            if show_uevalid and ue_events:
-                uelist = []
-                for ue_id in [ evt['ue_id'] for evt in ue_events ]:
-                    ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-                    uelist.append(ue)
-                uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
-                acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-                blah = 'UE validées:' + acros
-                if format == 'html':
-                    blah = '<b>' + blah + '</b>'
-                inscr += ' ' + blah + '. '
-            return inscr
-        else:
-            # ni echec ni valid: en cours ?
-            return inscr + ' (en cours).'
     
     # --- FORMULAIRE POUR VALIDATION DES UE ET SEMESTRES
-    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_form')
-    def formsemestre_validation_form(self, formsemestre_id, etudid=None,
-                                     REQUEST=None):
-        """formulaire valisation semestre et UE
-        Si etudid, traite un seul étudiant !
-        """
-        raise NotImplementedError # XXXX
-        return sco_formsemestre_validation_old.formsemestre_validation_form(
-            self, formsemestre_id, etudid=etudid, REQUEST=REQUEST )
+    security.declareProtected(ScoView, 'formsemestre_validation_etud_form')
+    def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None,
+                                          check=0,
+                                          desturl='', REQUEST=None):
+        "Formulaire choix jury pour un étudiant"
+        return sco_formsemestre_validation.formsemestre_validation_etud_form(
+            self, formsemestre_id, etudid=etudid, check=check, desturl=desturl, REQUEST=REQUEST )
+
+    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_etud')
+    def formsemestre_validation_etud(self, formsemestre_id, etudid=None,
+                                     codechoice=None,
+                                     desturl='', REQUEST=None):
+        "Enregistre choix jury pour un étudiant"
+        return sco_formsemestre_validation.formsemestre_validation_etud(
+            self, formsemestre_id, etudid=etudid, codechoice=codechoice,
+            desturl=desturl, REQUEST=REQUEST )
+
+    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_etud_manu')
+    def formsemestre_validation_etud_manu(self, formsemestre_id, etudid=None,
+                                     code_etat='', new_code_prev='', devenir='',
+                                     desturl='', REQUEST=None):
+        "Enregistre choix jury pour un étudiant"
+        return sco_formsemestre_validation.formsemestre_validation_etud_manu(
+            self, formsemestre_id, etudid=etudid,
+            code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
+            desturl=desturl, REQUEST=REQUEST )
     
     security.declareProtected(ScoEnsView, 'formsemestre_validation_list')
-    def formsemestre_validation_list(self,formsemestre_id, REQUEST):
+    def formsemestre_validation_list(self, formsemestre_id, REQUEST):
         "Liste les UE et semestres validés"
         cnx = self.GetDBConnexion()
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         header = self.sco_header(self,REQUEST)
         footer = self.sco_footer(self, REQUEST)
-        H = [ """<h2>Etudiants validant le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-        <table><tr><th>Nom</th><th>Décision</th><th>UE validées</th><th>Compensation</th></tr>"""
-              % (formsemestre_id, sem['titre']) ]
+        H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
+        <table class="tablegrid"><tr><th>Nom</th><th>Décision</th><th>UE validées</th><th>Autorisations</th></tr>"""
+              % (formsemestre_id, sem['titre_num']) ]
         #
         for e in nt.inscrlist: # ici par ordre alphabetique
             etudid = e['etudid']
-            valid, decision, acros, comp_semstr = self._formsemestre_get_decision_str(cnx, etudid, formsemestre_id)
+            decision, ue_acros = self._formsemestre_get_decision_str(cnx, etudid, formsemestre_id)
             #
-            H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                      % (etudid,self.nomprenom(nt.identdict[etudid]), decision, acros,
-                         comp_semstr ))
-
+            H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td>'
+                      % (self.ScoURL(), etudid, self.nomprenom(nt.identdict[etudid]),
+                         decision, ue_acros) )
+            alist = []
+            for aut in sco_parcours_dut.formsemestre_get_autorisation_inscription(
+                self, etudid, formsemestre_id):
+                alist.append( 'S' + str(aut['semestre_id']) )
+            H.append( '<td>' + ', '.join(alist) + '</td></tr>' )
         H.append('</table>')
         return header + '\n'.join(H) + footer
 
     def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
         """Chaine HTML decrivant la decision du jury pour cet etudiant.
-        Resultat: True/False, decision, description des UE validees,
-        semestre utilise pour compensation
+        Resultat: decision semestre, UE capitalisees
         """
-        sem_d, ue_ids, comp_semid = self._formsemestre_get_decision(cnx, etudid, formsemestre_id )
-        decision = [ '<em>en cours</em>', 'démission', 'validé', 'refusé' ][sem_d]
-        if sem_d == 2:
-            valid = True
+        etat, decision_sem, decisions_ue = self._formsemestre_get_decision(etudid, formsemestre_id )
+        if etat == 'D':
+            decision = 'démission'
         else:
-            valid = False
-        uelist = []
-        acros = ''
-        for ue_id in ue_ids:
-            # XXX a optimiser: chercher les UE en dehors de la boucle !
-            ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-            uelist.append(ue)
-        uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
-        acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-        comp_semstr = ''
-        if comp_semid:
-            comp_sem = self.do_formsemestre_list(
-                args={'formsemestre_id' : comp_semid})
-            if comp_sem:
-                comp_sem = comp_sem[0]
-                comp_semstr = '%s (%s - %s)' % (
-                    comp_sem['titre'], comp_sem['date_debut'], comp_sem['date_fin'])
-        return valid, decision, acros, comp_semstr
+            if decision_sem:
+                cod = decision_sem['code']
+                decision = sco_codes_parcours.CODES_EXPL.get(cod,'') + ' (%s)' % cod
+            else:
+                decision = ''
+
+        if decisions_ue:
+            uelist = []
+            for ue_id in decisions_ue.keys():
+                if decisions_ue[ue_id]['code'] == 'ADM':
+                    ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+                    uelist.append(ue)
+            uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
+            ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
+        else:
+            ue_acros = ''
+        return decision, ue_acros
     
-    def _formsemestre_get_decision(self, cnx, etudid, formsemestre_id ):
+    def _formsemestre_get_decision(self, etudid, formsemestre_id ):
         """Semestre et liste des UE validées
-        Resultat: semestre, [ ue_id ], comp_semid
-        où semestre = 0 si en cours, 1 si démission, 2 si validé, 3 si refusé
-        comp_semid = id du semestre utilise pour compenser et valider celui ci
+        Resultat:
+          etat = I|D  (inscription ou démission)
+          decision_sem = {}
+          decisions_ue = {} 
+        }
         """
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-        evt_valid_sem, evt_echec_sem, ue_events, comp_semid = scolars.scolar_get_validated(
-            cnx, etudid, formsemestre_id)
-        if nt.get_etud_etat(etudid) == 'D':
-            sem_d = 1
-        elif evt_valid_sem:
-            sem_d = 2
-        elif evt_echec_sem:
-            sem_d = 3
-        else:
-            sem_d = 0
-        if not evt_valid_sem and ue_events:
-            ue_ids = [ evt['ue_id'] for evt in ue_events ]
-        else:
-            ue_ids = []
-        return sem_d, ue_ids, comp_semid
+        etat = nt.get_etud_etat(etudid)
+        decision_sem = nt.get_etud_decision_sem(etudid)
+        decisions_ue = nt.get_etud_decision_ues(etudid)
+        return etat, decision_sem, decisions_ue                                                       
 
     # ------------- Feuille excel pour preparation des jurys
     security.declareProtected(ScoView,'do_feuille_preparation_jury')
@@ -4316,7 +3824,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             head += ['Moy', 'Décision Comm.', 'Compensation' ]
         titres_sems = ['','','','']
         for nt in (nt1,nt2):
-            titres_sems += [ '%s du %s au %s'%(unquote(nt.sem['titre']), # export xls, pas html
+            titres_sems += [ '%s du %s au %s'%(unquote(nt.sem['titre_num']), # export xls, pas html
                                                nt.sem['date_debut'], nt.sem['date_fin']) ]
             titres_sems += ['']*(len(ues_sems[nt.sem['formsemestre_id']])+2)
         L = [ titres_sems ]
@@ -4356,15 +3864,15 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         H = [ self.sco_header(self,REQUEST) ]
         H.append( """
-        <h2>Préparation du Jury</h2>
+        <h2>Préparation du Jury (OBSOLETE)</h2>
         <p>
-        Cette fonction va générer une feuille Excel avec les moyennes de deux semestres,
+        Cette fonction OBSOLETE va générer une feuille Excel avec les moyennes de deux semestres,
         pour présentation en jury de fin d'année.</p>
         <p>Le semestre courant est: <b>%s (%s - %s)</b></p>
         <p>Choisissez le semestre "précédent".</p>
         <form method="GET" action="do_feuille_preparation_jury">
         <input type="hidden" name="formsemestre_id2" value="%s"/>
-        """ % (sem['titre'], sem['date_debut'], sem['date_fin'], formsemestre_id) )
+        """ % (sem['titre_num'], sem['date_debut'], sem['date_fin'], formsemestre_id) )
         sems = self.do_formsemestre_list()
         othersems = []
         d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
@@ -4405,6 +3913,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         Permet de (de)selectionner parmi les etudiants inscrits (non demissionnaires).        
         Les etudiants sont places dans le groupe "A"
         """
+        raise NotImplementedError # XXX YYY
         cnx = self.GetDBConnexion()
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
@@ -4429,7 +3938,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 args={  'formsemestre_id' : next_semestre_id, 'etat' : 'I' } )
             next_sem = self.do_formsemestre_list(args={'formsemestre_id':next_semestre_id})[0]
             info = ('<p>Information: <b>%d</b> étudiants déjà inscrits dans le semestre %s</p>'
-                    % (len(ins), next_sem['titre']))
+                    % (len(ins), next_sem['titre_num']))
             for i in ins:
                 already_inscr[i['etudid']] = True
                 
@@ -4482,7 +3991,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
         la suite si nécessaire.
         </p>
         <p><b>Vérifiez soigneusement le <font color="red">semestre de destination</font> !</b></p>
-        """ % (sem['titre'],) ]
+        """ % (sem['titre_num'],) ]
         H.append("""<form method="POST">
         <input type="hidden" name="tf-submitted" value="1"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
@@ -4543,7 +4052,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
                 valid = passe[etudid]
             if already_inscr.has_key(etudid):
                 valid = False # deja inscrit dans semestre destination
-                comment = 'déjà inscrit dans ' + next_sem['titre']
+                comment = 'déjà inscrit dans ' + next_sem['titre_num']
             if valid: 
                 checked, unchecked = 'checked', ''
                 cellfmt = 'greenboldtext'

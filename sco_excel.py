@@ -359,7 +359,7 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     # ligne 1
     li = 0
     ws0.write(li,1, "%s (%s - %s)"
-              % (notesdb.unquote(sem['titre']),
+              % (notesdb.unquote(sem['titre_num']),
                  sem['date_debut'],sem['date_fin']), style2)
     # ligne 2
     li += 1

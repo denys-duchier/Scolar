@@ -1,4 +1,33 @@
 
+A VERIFIER AVANT 5.0:
+
+. Verifier capitalisation sur exemple reel (préparer demo)
+
+. ajouter code semestre_id == -1 avec legende "pas de semestres"
+
+BUGS:
+
+
+ - descr situation en CJ (inscr. multiples ?)
+
+. bulletin: click nom titre -> ficheEtud
+. bulletin: click 'Capitalisée le ...' -> bulletin du semestre correspondant
+
+. mise en page ficheEtud
+
+. mettre "feux" rouge/orange/vert sur recap parcours
+. mettre explication du code en clair sur le bulletin
+
+. notes_table: pouvoir changer decision sans invalider tout le cache
+
+
+.bulletin: deplacer la barre indicateur (cf OLDGEA S2: gêne)
+
+- inscriptions a des semestres en utilisant les autorisations d'inscription
+
+. regles: ok ?
+
+
 * TODO: Notes  (modifs prioritaires)
 -------------
 
@@ -6,10 +35,9 @@
                    traitable en n'inscrivant pas l'etudiant au modules
                    de cette UE: faire interface utilisateur
 
-- Bulletin semestre avec cas des redoublants ou capitalises:
-   version du bulletin présentant le "meilleur cas" en combinant 
-   des UE de semestres differents.
-
+- Absences: lien "saisie du lundi"
+     ne presenter que deux semaines (precedente, courante) et un bouton pour afficher
+     toute l'année.
 
 - optimiser scolar_news_summary
 
@@ -36,9 +64,6 @@ Validation semestre et UE:
 
 
 FUTUR:
-
-- Mettre dans le bilan du semestre un item "compensé par", par défaut
-à 'rien', qui peut être renseigné par un autre semestre (contigu).
 
 - notes invalides: afficher les noms des etudiants concernes 
   dans le message d'erreur
@@ -151,3 +176,29 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 
 
 
+Gestion des Formations et UE pour capitalisation et compensation
+
+Le problème: retrouver les UE qui "se correspondent"
+et peuvent être dans des versions de formation différentes.
+Si la (version de) formation est différente, l'ue_id change.
+
+* Solution 1: 
+  - attribut 'code' dans notes_formation:
+     initialisé auto (CFxxxx)
+     peut se copier ou non lors de la creation d'une nouvelle version.
+
+  - attribut 'code' dans notes_ue
+     copié ou non lors de la creation d'une nouvelle version.
+
+  Pb: si on crée une nouvelle formation ab initio, comment lui
+  attribuer le code d'une formation "compatible" ?
+
+
+* Solution 2: table de formations et d'UE  "equivalentes"
+   notes_formation_equiv
+         formation_id1, formation_id2
+
+   notes_ue_equiv
+         ue_id1, ue_id2
+
+   

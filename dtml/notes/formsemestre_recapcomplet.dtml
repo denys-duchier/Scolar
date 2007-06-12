@@ -1,14 +1,15 @@
-<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')">
-<dtml-if "not isFile">
+<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')"><dtml-if "not isFile">
 <dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
 
 <dtml-call "REQUEST.set('no_side_bar', 1)">
 
-<dtml-var sco_header>
+<dtml-var "sco_header(page_title='Recapitulatif')">
 <dtml-var formsemestre_status_head>
 
 <form name="f" method="GET">
 <input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"></input>
+<dtml-if modejury><input type="hidden" name="modejury" value="<dtml-var modejury>"></input>
+</dtml-if>
 <select name="tabformat" onChange="document.f.submit()" class="noprint">
 <option value="html"<dtml-if "tabformat=='html'"> selected</dtml-if>>HTML</option>
 <option value="xls"<dtml-if "tabformat=='xls'"> selected</dtml-if>>Fichier tableur (Excel)</option>
@@ -16,17 +17,18 @@
 <option value="xml"<dtml-if "tabformat=='xml'"> selected</dtml-if>>Fichier XML</option>
 </select>
 (cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="<dtml-var "ScoURL() + '/Notes/formsemestre_bulletins_pdf?formsemestre_id='+formsemestre_id">">ici avoir le classeur papier</a>)
+
+<input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" <dtml-if hidemodules>checked</dtml-if> >cacher les modules</input>
+
 </form> 
-</dtml-if isFile>
-<dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if>
-<dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat)">
+</dtml-if isFile><dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if><dtml-call "REQUEST.set('hidemodules', REQUEST.get('hidemodules', 0))"><dtml-call "REQUEST.set('modejury', REQUEST.get('modejury', 0))"><dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat, hidemodules=hidemodules, modejury=modejury)">
 <dtml-if "not isFile">
 <p>
  <a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
 </p>
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <p>
- <a class="stdlink" href="formsemestre_validation_form?formsemestre_id=<dtml-var formsemestre_id>">Saisie des décisisions du jury</a>
+ <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
 </p>
 </dtml-if permission>
 

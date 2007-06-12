@@ -12,7 +12,7 @@
 <dtml-call "REQUEST.set( 'Mlist', do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } ))">
 
 
-<h2>Tableau de bord <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre']"></a> (formation <dtml-var "F['acronyme']">)
+<h2>Tableau de bord <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre_num']"></a> (formation <dtml-var "F['acronyme']">, v<dtml-var "F['version']">)
 <dtml-if "sem['etat'] != '1'"><a href="formsemestre_edit_options?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "img.lock_img.tag(border='0',title='Semestre verrouillé')"></a></dtml-if>
 </h2>
 

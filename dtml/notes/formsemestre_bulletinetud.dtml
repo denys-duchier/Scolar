@@ -11,7 +11,7 @@
 <h2><dtml-var nomprenom></h2>
 
 <form name="f" method="GET">
-Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"> <dtml-var "sem['titre']"></a></span> 
+Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"> <dtml-var "sem['titre_num']"></a></span> 
 <br/>
 établi le <dtml-var "DateTime().strftime('%d/%m/%Y à %Hh%M')"> (notes sur 20) 
 <span class="rightjust">
@@ -43,7 +43,7 @@ Version complète</option>
 </span>
 
 </td><td class="bull_photo">
-<a href="ficheEtud?etudid=<dtml-var etudid>"><dtml-var "etudfoto(foto=foto,etudid=etudid,fototitle='fiche de '+nom)"></a>
+<a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>"><dtml-var "etudfoto(foto=foto,etudid=etudid,fototitle='fiche de '+nom)"></a>
 </td></tr>
 </table>
 </dtml-in getEtudInfo>

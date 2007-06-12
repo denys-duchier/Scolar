@@ -662,7 +662,7 @@ class ZAbsences(ObjectManager,
 
               <p>
               <form action="doSignaleAbsenceGrHebdo" method="post">              
-              """ % (groupetd, groupeanglais, groupetp, sem['titre'], datelundi) ]
+              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'], datelundi) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
 
@@ -703,7 +703,7 @@ class ZAbsences(ObjectManager,
               les %s</h2>
               <p>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
-              """ % (groupetd, groupeanglais, groupetp, sem['titre'],
+              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
                      DAY_NAMES[jourdebut.weekday]) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)

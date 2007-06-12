@@ -1,0 +1,559 @@
+# -*- mode: python -*-
+# -*- coding: iso8859-15 -*-
+
+##############################################################################
+#
+# Gestion scolarite IUT
+#
+# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#   Emmanuel Viennet      emmanuel.viennet@viennet.net
+#
+##############################################################################
+
+"""Semestres: gestion parcours DUT (Arreté du 13 août 2005)
+"""
+import urllib, time, datetime
+
+from notesdb import *
+from sco_utils import *
+from notes_log import log
+from scolog import logdb
+from notes_table import *
+import pdb
+
+from sco_codes_parcours import *
+from dutrules import DUTRules # regles generees a partir du CSV
+
+
+class DecisionSem:
+    "Decision prenable pour un semestre"
+    def __init__(self, code_etat=None,
+                 code_etat_ues={}, # { ue_id : code }
+                 new_code_prev='',
+                 explication='', # aide pour le jury
+                 formsemestre_id_utilise_pour_compenser=None, # None si code != ADC
+                 devenir=None, # code devenir
+                 assiduite=1
+                 ):
+        self.code_etat = code_etat
+        self.code_etat_ues = code_etat_ues
+        self.new_code_prev = new_code_prev
+        self.explication = explication
+        self.formsemestre_id_utilise_pour_compenser = formsemestre_id_utilise_pour_compenser
+        self.devenir = devenir
+        self.assiduite = assiduite
+        # code unique utilise pour la gestion du formulaire
+        self.codechoice = str(hash( (code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite)))
+        # xxx debug
+        log('%s: %s %s %s %s %s' % (self.codechoice,code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite) ) 
+
+class SituationEtudParcours:
+    "Semestre dans un parcours"
+    def __init__(self, znotes, etud, formsemestre_id):
+        """
+        etud: dict filled by fillEtudsInfo()
+        """
+        self.znotes = znotes
+        self.etud = etud
+        self.etudid = etud['etudid']
+        self.formsemestre_id = formsemestre_id
+        self.sem= znotes.do_formsemestre_list(
+            args={ 'formsemestre_id' : formsemestre_id } )[0]
+        self.formation = znotes.do_formation_list(args={ 'formation_id' : self.sem['formation_id'] })[0]
+        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id )
+        # Ce semestre est-il le dernier de la formation ? (e.g. semestre 4 du DUT)
+        # pour le DUT, le dernier est toujours S4.
+        # Si on voulait gérer d'autres formations, il faudrait un flag sur les formsemestre
+        # indiquant s'ils sont "terminal" ou non. XXX TODO
+        # Version provisoire pour le DUT en 4 semestres:
+        self.semestre_non_terminal = (self.sem['semestre_id'] != 4) # True | False
+        # Liste des semestres du parcours de cet étudiant:
+        self._comp_semestres()
+        # Determine le semestre "precedent"
+        self.prev_formsemestre_id = self._search_prev()
+        # Verifie barres
+        self._comp_barres()
+        # Verifie compensation
+        if self.prev:
+            self.can_compensate_with_prev = self.prev['can_compensate']
+        else:
+            self.can_compensate_with_prev = False
+    
+    def get_possible_choices(self, assiduite=True):
+        """Donne la liste des décisions possibles en jury
+        (liste d'instances de DecisionSem)
+        assiduite = True si pas de probleme d'assiduité
+        """
+        choices = []
+        if self.prev_decision:
+            prev_code_etat = self.prev_decision['code']
+        else:
+            prev_code_etat = None
+        
+        state = (prev_code_etat, assiduite,
+                 self.barre_moy_ok, self.barres_ue_ok,
+                 self.can_compensate_with_prev, self.semestre_non_terminal)
+        #log('get_possible_choices: state=%s' % str(state) )
+        for rule in DUTRules:
+            # saute regles REDOSEM si pas de semestres decales:
+            if self.sem['gestion_semestrielle'] != '1' and rule.conclusion[3] == 'REDOSEM':
+                continue
+            if rule.match(state):
+                if rule.conclusion[0] == ADC:
+                    # dans les regles on ne peut compenser qu'avec le PRECEDENT:
+                    fiduc = self.prev_formsemestre_id
+                    assert fiduc
+                else:
+                    fiduc = None
+                # Detection d'incoherences (regles BUG)
+                if rule.conclusion[5] == BUG:
+                    log('get_possible_choices: inconsistency: state=%s' % str(state) )
+                # 
+                valid_semestre = code_semestre_validant(rule.conclusion[0])
+                choices.append( DecisionSem(
+                    code_etat = rule.conclusion[0],
+                    new_code_prev = rule.conclusion[2],
+                    devenir = rule.conclusion[3],
+                    formsemestre_id_utilise_pour_compenser=fiduc,
+                    explication = rule.conclusion[5],
+                    assiduite=assiduite))
+        return choices
+
+    def explique_devenir(self, devenir):
+        "Phrase d'explication pour le code devenir"
+        if not devenir:
+            return ''
+        s = self.sem['semestre_id'] # numero semestre courant
+        if s < DUT_NB_SEM:
+            passage = 'Passe en S%s' % (s + 1)
+        else:
+            passage = 'Formation terminée'
+        if devenir == NEXT:
+            return passage
+        elif devenir == REO:
+            return 'Réorienté'
+        elif devenir == REDOANNEE:
+            return 'Redouble année (recommence S%s)' % (s - 1)
+        elif devenir == REDOSEM:
+            return 'Redouble semestre (recommence en S%s)' % (s)
+        elif devenir == 'RA_OR_NEXT':
+            return passage + ', ou redouble année (en S%s)' % (s-1)
+        elif devenir == 'RA_OR_RS':
+            return 'Redouble semestre S%s, ou redouble année (en S%s)' % (s, s-1)
+        elif devenir == 'RS_OR_NEXT':
+            return passage + ', ou semestre S%s' % (s)
+        else:
+            log('explique_devenir: code devenir inconnu: %s' % devenir)
+            return 'Code devenir inconnu !'
+
+
+    def _comp_semestres(self):
+        # etud['sems'] est trie par date decroissante (voir fillEtudsInfo)
+        sems = self.etud['sems'][:] # copy
+        sems.reverse()
+        # Nb max d'UE et acronymes
+        ue_acros = {} # acronyme ue : 1
+        nb_max_ue = 0
+        for sem in sems:
+            nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'] )
+            ues = nt.get_ues(filter_sport=True)
+            for ue in ues:
+                ue_acros[ue['acronyme']] = 1
+            nb_ue = len(ues)
+            if nb_ue > nb_max_ue:
+                nb_max_ue = nb_ue
+            # add formation_code to each sem:
+            sem['formation_code'] = self.znotes.do_formation_list(
+                args={ 'formation_id' : sem['formation_id'] })[0]['formation_code']
+            # si sem peut servir à compenser le semestre courant, positionne
+            #  can_compensate
+            sem['can_compensate'] = check_compensation( self.etudid, self.sem, self.nt, sem, nt )
+        
+        self.ue_acros = ue_acros.keys()
+        self.ue_acros.sort()
+        self.nb_max_ue = nb_max_ue
+        self.sems = sems
+    
+    def get_semestres(self):
+        """Liste des semestres dans lesquels a été inscrit
+        l'étudiant (quelle que soit la formation), le plus ancien en tête"""
+        return self.sems
+
+    def codes_ues(self, valid_semestre):
+        """Calcule les codes a attribuer aux UE de ce semestre
+        suivant qu'on le valide ou pas.
+        Ce code n'est jamais modifié par le jury (AUTO)
+        result: { ue_id : code }
+        """
+        from notes_table import NOTES_BARRE_VALID_UE
+        codes_ues = {}
+        for ue_id in self.ues_status.keys():
+            if self.ues_status[ue_id]['moy_ue'] > NOTES_BARRE_VALID_UE:
+                codes_ues[ue_id] = ADM
+            elif valid_semestre:
+                codes_ues[ue_id] = CMP
+            else:
+                codes_ues[ue_id] = AJ
+        return codes_ues
+    
+    def _comp_barres(self):
+        "calcule barres_ue_ok et barre_moy_ok:  barre moy. gen. et barres UE"
+        from notes_table import NOTES_BARRE_GEN
+        self.nb_ues_under = self.nt.etud_count_ues_under_threshold(self.etudid)
+        self.barres_ue_ok = (self.nb_ues_under == 0)
+        self.moy_gen = self.nt.get_etud_moy_gen(self.etudid)
+        self.barre_moy_ok = self.moy_gen >= NOTES_BARRE_GEN
+        # conserve etat UEs
+        ue_ids = [ x['ue_id'] for x in self.nt.get_ues(etudid=self.etudid, filter_sport=True) ]
+        self.ues_status = {} # ue_id : status
+        for ue_id in ue_ids:
+            self.ues_status[ue_id] = self.nt.get_etud_ue_status(self.etudid, ue_id)
+        
+    def _search_prev(self):
+        """Recherche semestre 'precedent'.
+        return prev_formsemestre_id
+        """
+        self.prev = None
+        self.prev_decision = None
+        if len(self.sems) < 2:
+            return None
+        # Cherche sem courant dans la liste triee par date_debut
+        cur = None
+        icur = -1
+        for cur in self.sems:
+            icur += 1
+            if cur['formsemestre_id'] == self.formsemestre_id:
+                break
+        if not cur or cur['formsemestre_id'] != self.formsemestre_id:
+            log('*** SituationEtudParcours: search_prev: cur not found (formsemestre_id=%s, etudid=%s)'
+                % (formsemestre_id,etudid) )            
+            return None # pas de semestre courant !!!
+        # Cherche semestre antérieur de même formation (code) et semestre_id precedent
+        i = icur - 1 # part du courant, remonte vers le passé
+        prev = None
+        while i >= 0:
+            if self.sems[i]['formation_code'] == self.formation['formation_code'] \
+               and self.sems[i]['semestre_id'] == cur['semestre_id'] - 1:
+                prev = self.sems[i]
+                break
+            i -= 1
+        if not prev:
+            return None # pas de precedent trouvé
+        self.prev = prev
+        # Verifications basiques:
+        # ?
+        # Code etat du semestre precedent:
+        nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, prev['formsemestre_id'] )
+        self.prev_decision = nt.get_etud_decision_sem(self.etudid)
+        self.prev_moy_gen = nt.get_etud_moy_gen(self.etudid)
+        self.prev_barres_ue_ok = nt.etud_has_all_ue_over_threshold(self.etudid)
+        return self.prev['formsemestre_id']
+    
+    def get_next_semestre_ids(self, devenir):
+        "Liste des numeros de semestres autorises avec ce devenir"
+        s = self.sem['semestre_id']
+        if devenir == NEXT:
+            ids = [s+1]
+        elif devenir == REDOANNEE:
+            ids = [s-1]
+        elif devenir == REDOSEM:
+            ids = [s]
+        elif devenir == RA_OR_NEXT:
+            ids = [s-1,s+1]
+        elif devenir == RA_OR_RS:
+            ids = [s-1, s]
+        elif devenir == RS_OR_NEXT:
+            ids = [s, s+1]
+        else:
+            ids = [] # reoriente ou autre: pas de next !
+        # clip [1--4]
+        r=[]
+        for idx in ids:
+            if idx > 0 and idx <= DUT_NB_SEM:
+                r.append(idx)
+        return r
+        
+    def valide_decision(self, decision, REQUEST):
+        """Enregistre la decision (instance de DecisionSem)
+        Enregistre codes semestre et UE, et autorisations inscription.
+        """
+        cnx = self.znotes.GetDBConnexion()
+        # -- check
+        if decision.code_etat == 'ADC':
+            fsid = decision.formsemestre_id_utilise_pour_compenser
+            assert fsid
+            ok = False
+            for sem in self.sems:
+                if sem['formsemestre_id'] == fsid and sem['can_compensate']:
+                    ok = True
+                    break
+            if not ok:
+                raise ScoValueError('valide_decision: compensation impossible')
+        # -- supprime decision precedente et enregistre decision
+        to_invalidate = []
+        if self.nt.get_etud_decision_sem(self.etudid):
+            to_invalidate = formsemestre_update_validation_sem(
+                cnx, self.formsemestre_id, self.etudid,
+                decision.code_etat, decision.assiduite,
+                decision.formsemestre_id_utilise_pour_compenser)
+        else:
+            formsemestre_validate_sem(
+                cnx, self.formsemestre_id, self.etudid,
+                decision.code_etat, decision.assiduite,
+                decision.formsemestre_id_utilise_pour_compenser)
+        logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
+              msg='formsemestre_id=%s code=%s'%(self.formsemestre_id, decision.code_etat))
+        # -- decisions UEs
+        # (les codes UE dépendent de la validation ou non du semestre)
+        if decision.code_etat in ('ADM', 'ADC', 'ADJ'):
+            codes_ues = self.codes_ues(True)
+        else:
+            codes_ues = self.codes_ues(False)
+        
+        for ue_id in codes_ues.keys():
+            formsemestre_validate_ue(cnx, self.formsemestre_id, self.etudid,
+                                     ue_id, codes_ues[ue_id] )
+            logdb(REQUEST, cnx, method='validate_ue', etudid=self.etudid,
+                  msg='ue_id=%s code=%s'%(ue_id, codes_ues[ue_id]))
+        # -- modification du code du semestre precedent
+        # (on ne modifie pas les codes d'UE car les notes n'ont
+        # pas changé XXX ils pourraient passer de AJ à CMP mais c'est sans doute inutile)
+        if self.prev and decision.new_code_prev:
+            to_invalidate += formsemestre_update_validation_sem(
+                cnx, self.prev['formsemestre_id'],
+                self.etudid, decision.new_code_prev)
+            logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
+                  msg='formsemestre_id=%s code=%s'%(self.prev['formsemestre_id'],
+                                                    decision.new_code_prev))
+            self.znotes._getNotesCache().inval_cache(formsemestre_id=self.prev['formsemestre_id'])
+        # -- supprime autorisations venant de ce formsemestre        
+        cursor = cnx.cursor()
+        try:
+            cursor.execute("""delete from scolar_autorisation_inscription
+            where etudid = %(etudid)s and origin_formsemestre_id=%(origin_formsemestre_id)s
+            """, { 'etudid' : self.etudid, 'origin_formsemestre_id' : self.formsemestre_id })
+                        
+            # -- enregistre autorisations inscription
+            next_semestre_ids = self.get_next_semestre_ids(decision.devenir)
+            for next_semestre_id in next_semestre_ids:
+                _scolar_autorisation_inscription_editor.create(
+                    cnx,
+                    {
+                    'etudid' : self.etudid,
+                    'formation_code' : self.formation['formation_code'],
+                    'semestre_id' : next_semestre_id,
+                    'origin_formsemestre_id' : self.formsemestre_id } )
+            cnx.commit()
+        except:
+            cnx.rollback()
+            raise
+        self.znotes._getNotesCache().inval_cache(
+            formsemestre_id=self.formsemestre_id)
+        if decision.formsemestre_id_utilise_pour_compenser:
+            # inval aussi le semestre utilisé pour compenser:
+            self.znotes._getNotesCache().inval_cache(
+                formsemestre_id=decision.formsemestre_id_utilise_pour_compenser)
+        for formsemestre_id in to_invalidate:
+            self.znotes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
+
+
+def check_compensation( etudid, sem, nt, semc, ntc ):
+    """Verifie si le semestre sem peut se compenser en utilisant semc
+    - semc non utilisé par un autre semestre
+    - decision du jury prise  ADM ou ADJ
+    - barres UE (moy ue > 8) dans sem et semc
+    - moyenne des moy_gen > 10
+    Return boolean
+    """
+    from notes_table import NOTES_BARRE_GEN
+    #pdb.set_trace()
+    # -- deja utilise ?
+    decc = ntc.get_etud_decision_sem(etudid)
+    if decc \
+           and decc['compense_formsemestre_id'] \
+           and decc['compense_formsemestre_id'] != sem['formsemestre_id']:
+        return False
+    # -- semestres consecutifs ?
+    if abs(sem['semestre_id'] - semc['semestre_id']) != 1:
+        return False
+    # -- decision jury:
+    if decc and not decc['code'] in ('ADM', 'ADJ'):
+        return False
+    # -- barres UE et moyenne des moyennes:
+    moy_gen = nt.get_etud_moy_gen(etudid)
+    moy_genc= ntc.get_etud_moy_gen(etudid)
+    try:
+        moy_moy = (moy_gen + moy_genc) / 2
+    except: # un des semestres sans aucune note !
+        return False
+    
+    if (nt.etud_has_all_ue_over_threshold(etudid)
+        and ntc.etud_has_all_ue_over_threshold(etudid)
+        and moy_moy >= NOTES_BARRE_GEN):
+        return True
+    else:
+        return False
+
+
+# -------------------------------------------------------------------------------------------
+
+
+_scolar_formsemestre_validation_editor = EditableTable(
+    'scolar_formsemestre_validation',
+    'formsemestre_validation_id',
+    ('etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
+     'compense_formsemestre_id' ),
+    output_formators = { 'event_date' : DateISOtoDMY,
+                         'assidu' : str },
+    input_formators  = { 'event_date' : DateDMYtoISO,
+                         'assidu' : int }
+)
+
+scolar_formsemestre_validation_create = _scolar_formsemestre_validation_editor.create
+scolar_formsemestre_validation_list = _scolar_formsemestre_validation_editor.list
+scolar_formsemestre_validation_delete = _scolar_formsemestre_validation_editor.delete
+
+def formsemestre_validate_sem(cnx, formsemestre_id, etudid, code, assidu=True,
+                              formsemestre_id_utilise_pour_compenser=None):
+    "Ajoute ou change validation semestre"
+    args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid }
+    # delete existing
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("""delete from scolar_formsemestre_validation
+        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id is null""", args )    
+        # insert
+        args['code'] = code
+        args['assidu'] = assidu
+        log('formsemestre_validate_sem: %s' % args )
+        scolar_formsemestre_validation_create(cnx, args)
+        # marque sem. utilise pour compenser:
+        args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
+                  'compense_formsemestre_id' : formsemestre_id,
+                  'etudid' : etudid }
+        cursor.execute("""update scolar_formsemestre_validation
+        set compense_formsemestre_id=%(compense_formsemestre_id)s
+        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
+        and ue_id is null""", args2 )
+    except:
+        cnx.rollback()
+        raise
+
+def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assidu=1,
+                                       formsemestre_id_utilise_pour_compenser=None):
+    "Update validation semestre"
+    args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'code' : code,
+             'assidu': int(assidu)}
+    log('formsemestre_update_validation_sem: %s' % args )
+    cursor = cnx.cursor()
+    to_invalidate = []
+
+    # enleve compensations si necessaire
+    # recupere les semestres auparavant utilisés pour invalider les caches
+    # correspondants:
+    cursor.execute("""select formsemestre_id from scolar_formsemestre_validation
+    where compense_formsemestre_id=%(formsemestre_id)s and etudid = %(etudid)s""",
+                   args )
+    to_invalidate = [ x[0] for x in cursor.fetchall() ]
+    # suppress:
+    cursor.execute("""update scolar_formsemestre_validation set compense_formsemestre_id=NULL
+    where compense_formsemestre_id=%(formsemestre_id)s and etudid = %(etudid)s""",
+                   args )
+    if code == 'ADC':
+        # marque sem. utilise pour compenser:
+        args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
+                  'compense_formsemestre_id' : formsemestre_id,
+                  'etudid' : etudid }
+        cursor.execute("""update scolar_formsemestre_validation
+        set compense_formsemestre_id=%(compense_formsemestre_id)s
+        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
+        and ue_id is null""", args2 ) 
+    
+    cursor.execute("""update scolar_formsemestre_validation
+    set code = %(code)s, event_date=DEFAULT, assidu=%(assidu)s
+    where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
+    and ue_id is null""", args )
+    return to_invalidate
+                   
+def formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
+    "Ajoute ou change validation UE"
+    args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'ue_id' : ue_id }
+    # delete existing
+    cursor = cnx.cursor()
+    try:
+        cursor.execute("""delete from scolar_formsemestre_validation
+        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id=%(ue_id)s""", args )
+        # insert
+        args['code'] = code
+        log('formsemestre_validate_ue: %s' % args)
+        scolar_formsemestre_validation_create(cnx, args)
+    except:
+        cnx.rollback()
+        raise
+
+_scolar_autorisation_inscription_editor = EditableTable(
+    'scolar_autorisation_inscription',
+    'autorisation_inscription_id',
+    ('etudid', 'formation_code', 'semestre_id', 'date', 'origin_formsemestre_id'),
+    output_formators = { 'date' : DateISOtoDMY },
+    input_formators  = { 'date' : DateDMYtoISO }
+)
+scolar_autorisation_inscription_list =_scolar_autorisation_inscription_editor.list
+
+def formsemestre_get_autorisation_inscription(znotes, etudid, origin_formsemestre_id):
+    """Liste des autorisations d'inscription pour cet étudiant
+    émanant du semestre indiqué.
+    """
+    cnx = znotes.GetDBConnexion()
+    #sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    #F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    return scolar_autorisation_inscription_list(
+        cnx,
+        {'origin_formsemestre_id' : origin_formsemestre_id, 'etudid' : etudid } )
+
+def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
+    """Liste des UE capitalisées (ADM) correspondant au semestre sem.
+    Recherche dans les semestres de la même formation (code) avec le même
+    semestre_id et une date de début antérieure à celle du semestre mentionné.
+    Resultat: [ { 'formsemestre_id' :
+                  'ue_id' :
+                  'ue_code' : 
+                  'moy_ue' :
+                  'event_date' :                  
+                  } ]
+    """
+    cnx = znotes.GetDBConnexion()
+    cursor = cnx.cursor()
+    cursor.execute("""select SFV.*, nue.ue_code from notes_ue nue, notes_formations nf, notes_formations nf2,
+    scolar_formsemestre_validation SFV, notes_formsemestre sem
+    where nue.formation_id = nf.formation_id 
+    and nf.formation_code = nf2.formation_code 
+    and nf2.formation_id=%(formation_id)s
+    and SFV.ue_id = nue.ue_id
+    and SFV.code = 'ADM'
+    and sem.formsemestre_id = SFV.formsemestre_id
+    and sem.date_debut < %(date_debut)s
+    and sem.semestre_id = %(semestre_id)s
+    and SFV.etudid = %(etudid)s;
+    """, { 'etudid' : etudid,
+           'formation_id' : sem['formation_id'],
+           'semestre_id' : sem['semestre_id'],
+           'date_debut' : znotes.DateDDMMYYYY2ISO(sem['date_debut'])
+           })
+    
+    return cursor.dictfetchall()
