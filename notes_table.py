@@ -36,6 +36,7 @@ from sco_utils import *
 from sco_exceptions import *
 from notesdb import *
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
+from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
 
 
 NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
@@ -652,22 +653,30 @@ class CacheNotesTable:
         "List of currently cached formsemestre_id"
         return self.cache.keys() 
     
-    def inval_cache(self, formsemestre_id=None, pdfonly=False):
+    def inval_cache(self, znotes, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
         log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
             (formsemestre_id,pdfonly,id(self)))
         if not hasattr(self,'pdfcache'):
             self.pdfcache = {} # fix for old zope instances...
         if formsemestre_id is None:
+            # clear all caches
             if not pdfonly:
                 self.cache = {}
             self.pdfcache = {}
         else:
+            # formsemestre_id modifié:
+            # on doit virer formsemestre_id et tous les semestres
+            # susceptibles d'utiliser des UE capitalisées de ce semestre.
+            to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(znotes, formsemestre_id)
+            log('to_trash: ' + str(to_trash) )
             if not pdfonly:
-                if self.cache.has_key(formsemestre_id):
-                    del self.cache[formsemestre_id]
-            if self.pdfcache.has_key(formsemestre_id):
-                del self.pdfcache[formsemestre_id]
+                for formsemestre_id in to_trash:
+                    if self.cache.has_key(formsemestre_id):
+                        del self.cache[formsemestre_id]
+            for formsemestre_id in to_trash:
+                if self.pdfcache.has_key(formsemestre_id):
+                    del self.pdfcache[formsemestre_id]
 
     def store_bulletins_pdf(self, formsemestre_id, version, (filename,pdfdoc) ):
         "cache pdf data"

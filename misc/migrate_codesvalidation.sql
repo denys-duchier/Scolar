@@ -31,6 +31,12 @@ UPDATE notes_formsemestre set bul_bgcolor = DEFAULT;
 
  +++ mettre a jour les codes des formations compatibles existantes.
 
+-- fix owners
+alter table scolar_autorisation_inscription OWNER to scotest;
+alter table notes_idgen_fcod OWNER to scotest;
+alter table notes_idgen_svalid OWNER to scotest;
+alter table scolar_formsemestre_validation OWNER to scotest;
+
 -- Passage de la table scolar_events a scolar_formsemestre_validation
 
 -- VALID_SEM -> ADM

@@ -7,7 +7,7 @@ SCONEWS = """
 <h4>12 Juin 2007: nouvelle version 5.0</h4>
 <ul>
 <li>Suivi des parcours et règles de décision des jurys DUT</li>
-<li>Capitalisation des UE</li>
+<li>Capitalisation des UEs</li>
 <li>Nombreuses petites améliorations</li>
 </ul>
 

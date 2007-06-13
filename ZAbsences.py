@@ -289,7 +289,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._getNotesCache().inval_cache()
+        self.Notes._inval_cache()
 
     security.declareProtected(ScoAbsChange, 'AddJustif')
     def AddJustif(self, etudid, jour, matin, REQUEST):
@@ -302,7 +302,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._getNotesCache().inval_cache()
+        self.Notes._inval_cache()
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsence')
     def AnnuleAbsence(self, etudid, jour, matin, REQUEST):
@@ -315,7 +315,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._getNotesCache().inval_cache()
+        self.Notes._inval_cache()
 
     security.declareProtected(ScoAbsChange, 'AnnuleJustif')
     def AnnuleJustif(self,etudid, jour, matin, REQUEST):
@@ -328,7 +328,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._getNotesCache().inval_cache()
+        self.Notes._inval_cache()
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesPeriodNoJust' )
     def AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):

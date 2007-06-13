@@ -665,7 +665,7 @@ def _do_formsemestre_validation(
                                     suppress_previously_validated=True,
                                     REQUEST=REQUEST)
     # Inval cache bulletins
-    self._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
+    self._inval_cache(formsemestre_id=formsemestre_id)
     #
     return REQUEST.RESPONSE.redirect(
         'formsemestre_validation_list?formsemestre_id=%s'%formsemestre_id)

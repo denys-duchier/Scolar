@@ -136,7 +136,11 @@ class ZNotes(ObjectManager,
         else:
             GLOBAL_NOTES_CACHE[self.ScoURL()] = CacheNotesTable()
             return GLOBAL_NOTES_CACHE[self.ScoURL()]
-        
+
+    def _inval_cache(self, formsemestre_id=None, pdfonly=False):
+        "expire cache pour un semestre (ou tous si pas d'argument)"
+        self._getNotesCache().inval_cache(self, formsemestre_id=formsemestre_id, pdfonly=pdfonly)
+    
     security.declareProtected(ScoView, 'clearcache')
     def clearcache(self, REQUEST=None):
         "Efface les caches de notes (utile pendant developpement slt)"
@@ -279,7 +283,7 @@ class ZNotes(ObjectManager,
             raise ScoValueError("Formation non unique (%s) !" % str(a))
         #
         r = self._formationEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM,
                      text='Création de la formation %(titre)s (%(acronyme)s)' % args )
         return r
@@ -297,7 +301,7 @@ class ZNotes(ObjectManager,
             self.do_ue_delete(ue['ue_id'], REQUEST)
         
         self._formationEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=oid,
                      text='Suppression de la formation %(acronyme)s' % F )
@@ -316,7 +320,7 @@ class ZNotes(ObjectManager,
             raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         self._formationEditor.edit( cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'formation_export_xml')
     def formation_export_xml(self, formation_id, REQUEST):
@@ -394,7 +398,7 @@ class ZNotes(ObjectManager,
             raise ScoValueError('UE "%s" déjà existante !' % args['acronyme'])
         # create
         r = self._ueEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
@@ -414,7 +418,7 @@ class ZNotes(ObjectManager,
             self.do_matiere_delete(mat['matiere_id'], REQUEST)
         cnx = self.GetDBConnexion()
         self._ueEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
@@ -443,7 +447,7 @@ class ZNotes(ObjectManager,
         
         cnx = self.GetDBConnexion()
         self._ueEditor.edit( cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     # --- Matieres
     _matiereEditor = EditableTable(
@@ -464,7 +468,7 @@ class ZNotes(ObjectManager,
             raise ScoLockedFormError()
         # create matiere
         r = self._matiereEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
@@ -485,7 +489,7 @@ class ZNotes(ObjectManager,
         for mod in mods:
             self.do_module_delete(mod['module_id'],REQUEST)
         self._matiereEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
@@ -508,7 +512,7 @@ class ZNotes(ObjectManager,
             raise ScoLockedFormError() 
         # edit
         self._matiereEditor.edit( cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_matiere_formation_id')
     def do_matiere_formation_id(self, matiere_id):
@@ -546,7 +550,7 @@ class ZNotes(ObjectManager,
         # create
         cnx = self.GetDBConnexion()
         r = self._moduleEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
@@ -562,7 +566,7 @@ class ZNotes(ObjectManager,
         # delete
         cnx = self.GetDBConnexion()
         self._moduleEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :mod['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=mod['formation_id'],
@@ -584,7 +588,7 @@ class ZNotes(ObjectManager,
         # edit
         cnx = self.GetDBConnexion()
         self._moduleEditor.edit(cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     #
     security.declareProtected(ScoView, 'formation_has_locked_sems')
@@ -635,7 +639,7 @@ class ZNotes(ObjectManager,
         "create a formsemestre"
         cnx = self.GetDBConnexion()
         r = self._formsemestreEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         if not args.has_key('titre'):
             args['titre'] = 'sans titre'
@@ -667,7 +671,7 @@ class ZNotes(ObjectManager,
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Destruction du semestre
         self._formsemestreEditor.delete(cnx, formsemestre_id)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         # news
         sco_news.add(REQUEST, cnx, typ=NEWS_SEM, object=formsemestre_id,
                      text='Suppression du semestre %(titre)s' % sem )
@@ -737,7 +741,7 @@ class ZNotes(ObjectManager,
         "edit a formsemestre"
         cnx = self.GetDBConnexion()
         self._formsemestreEditor.edit(cnx, *a, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoImplement, 'do_formsemestre_createwithmodules')
     def do_formsemestre_createwithmodules(self,REQUEST, userlist, edit=False ):
@@ -1231,7 +1235,7 @@ class ZNotes(ObjectManager,
         "create a moduleimpl"
         cnx = self.GetDBConnexion()
         r = self._moduleimplEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         return r
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_delete')
@@ -1246,7 +1250,7 @@ class ZNotes(ObjectManager,
         cursor.execute( "DELETE FROM notes_modules_enseignants WHERE moduleimpl_id=%(moduleimpl_id)s", { 'moduleimpl_id' : oid } )
         # --- destruction du moduleimpl
         self._moduleimplEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_moduleimpl_list')
     def do_moduleimpl_list(self, *args, **kw ):
@@ -1264,7 +1268,7 @@ class ZNotes(ObjectManager,
         "edit a moduleimpl"
         cnx = self.GetDBConnexion()
         self._moduleimplEditor.edit(cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_moduleimpl_withmodule_list')
     def do_moduleimpl_withmodule_list(self,args):
@@ -1441,7 +1445,7 @@ class ZNotes(ObjectManager,
               etudid=args['etudid'], msg='inscription initiale',
               commit=False )
         #
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_delete')
@@ -1449,7 +1453,7 @@ class ZNotes(ObjectManager,
         "delete formsemestre_inscription"
         cnx = self.GetDBConnexion()
         self._formsemestre_inscriptionEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_formsemestre_inscription_list')
     def do_formsemestre_inscription_list(self, *args, **kw ):
@@ -1462,7 +1466,7 @@ class ZNotes(ObjectManager,
         "edit a formsemestre_inscription"
         cnx = self.GetDBConnexion()
         self._formsemestre_inscriptionEditor.edit(cnx, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView,'do_formsemestre_inscription_listegroupes')
     def do_formsemestre_inscription_listegroupes(self, formsemestre_id):
@@ -1529,7 +1533,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         #log('do_moduleimpl_inscription_create: '+ str(args))
         r = self._moduleimpl_inscriptionEditor.create(cnx, args)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
         return r
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_inscription_delete')
@@ -1537,7 +1541,7 @@ class ZNotes(ObjectManager,
         "delete moduleimpl_inscription"
         cnx = self.GetDBConnexion()
         self._moduleimpl_inscriptionEditor.delete(cnx, oid)
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_moduleimpl_inscription_list')
     def do_moduleimpl_inscription_list(self, **kw ):
@@ -1550,7 +1554,7 @@ class ZNotes(ObjectManager,
         "edit a moduleimpl_inscription"
         cnx = self.GetDBConnexion()
         self._moduleimpl_inscriptionEditor.edit(cnx, *args, **kw )
-        self._getNotesCache().inval_cache()
+        self._inval_cache()
 
     security.declareProtected(ScoView, 'do_moduleimpl_listeetuds')
     def do_moduleimpl_listeetuds(self, moduleimpl_id):
@@ -1943,7 +1947,7 @@ class ZNotes(ObjectManager,
         # inval cache pour ce semestre
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         
-        self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
+        self._inval_cache(formsemestre_id=M['formsemestre_id'])
         # news
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
@@ -1992,7 +1996,7 @@ class ZNotes(ObjectManager,
         self._evaluationEditor.delete(cnx, evaluation_id)
         # inval cache pour ce semestre
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-        self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
+        self._inval_cache(formsemestre_id=M['formsemestre_id'])
         # news
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
@@ -2046,7 +2050,7 @@ class ZNotes(ObjectManager,
         self._evaluationEditor.edit(cnx, args )
         # inval cache pour ce semestre
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-        self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
+        self._inval_cache(formsemestre_id=M['formsemestre_id'])
 
     security.declareProtected(ScoEnsView, 'evaluation_edit')
     def evaluation_edit(self, evaluation_id, REQUEST ):
@@ -3369,12 +3373,12 @@ class ZNotes(ObjectManager,
             log('*** exception in _notes_add')
             if do_it:
                 # inval cache
-                self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id'])
+                self._inval_cache(formsemestre_id=M['formsemestre_id'])
                 cnx.rollback() # abort
             raise # re-raise exception
         if do_it:
             cnx.commit()
-            self._getNotesCache().inval_cache(formsemestre_id=M['formsemestre_id']) 
+            self._inval_cache(formsemestre_id=M['formsemestre_id']) 
         return nb_changed, nb_suppress
 
     
@@ -3698,7 +3702,7 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             logdb(REQUEST, cnx, method='appreciation_add',
                   etudid=etudid, msg=tf[2]['comment'])
             # ennuyeux mais necessaire (pour le PDF seulement)
-            self._getNotesCache().inval_cache(pdfonly=True)
+            self._inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
     
     # --- FORMULAIRE POUR VALIDATION DES UE ET SEMESTRES

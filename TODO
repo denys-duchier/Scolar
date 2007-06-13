@@ -1,12 +1,12 @@
 
 A VERIFIER AVANT 5.0:
 
-. Verifier capitalisation sur exemple reel (préparer demo)
-
-. ajouter code semestre_id == -1 avec legende "pas de semestres"
-
 BUGS:
 
+
+ - inscrire a un autre semestre:
+     . choisir modules (options, sport)
+     . donner les dates des semestres !
 
  - descr situation en CJ (inscr. multiples ?)
 

@@ -92,7 +92,6 @@ def make_formsemestre_bulletinetud(
     # Contenu table: UE apres UE
     tabline = 0 # line index in table
     for ue in ues:
-        tabline += 1
         # Ligne UE
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
         moy_ue = fmt_note(ue_status['cur_moy_ue'])
@@ -104,8 +103,8 @@ def make_formsemestre_bulletinetud(
                   'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date']),
                   '', '%.2g' % ue_status['coef_ue'] )
             P.append(t)
-            ueline(tabline)
             tabline += 1
+            ueline(tabline)
             H.append('<tr class="notes_bulletin_row_ue">')
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
             ue_comment = '(en cours, non prise en compte)'
@@ -114,6 +113,7 @@ def make_formsemestre_bulletinetud(
         if (not ue_status['is_capitalized']) or ue_status['cur_moy_ue'] != 'NA':
             t = ( ue['acronyme'], moy_ue, ue_comment, '', '%.2g' % ue_status['cur_coef_ue'] )
             P.append(t)
+            tabline += 1
             ueline(tabline)
             H.append('<tr class="notes_bulletin_row_ue">')
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )

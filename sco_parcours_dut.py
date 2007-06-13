@@ -340,7 +340,7 @@ class SituationEtudParcours:
             logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
                   msg='formsemestre_id=%s code=%s'%(self.prev['formsemestre_id'],
                                                     decision.new_code_prev))
-            self.znotes._getNotesCache().inval_cache(formsemestre_id=self.prev['formsemestre_id'])
+            self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id'])
         # -- supprime autorisations venant de ce formsemestre        
         cursor = cnx.cursor()
         try:
@@ -362,14 +362,12 @@ class SituationEtudParcours:
         except:
             cnx.rollback()
             raise
-        self.znotes._getNotesCache().inval_cache(
-            formsemestre_id=self.formsemestre_id)
+        self.znotes._inval_cache(formsemestre_id=self.formsemestre_id)
         if decision.formsemestre_id_utilise_pour_compenser:
             # inval aussi le semestre utilisé pour compenser:
-            self.znotes._getNotesCache().inval_cache(
-                formsemestre_id=decision.formsemestre_id_utilise_pour_compenser)
+            self.znotes._inval_cache(formsemestre_id=decision.formsemestre_id_utilise_pour_compenser)
         for formsemestre_id in to_invalidate:
-            self.znotes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
+            self.znotes._inval_cache(formsemestre_id=formsemestre_id)
 
 
 def check_compensation( etudid, sem, nt, semc, ntc ):
@@ -557,3 +555,24 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
            })
     
     return cursor.dictfetchall()
+
+def list_formsemestre_utilisateurs_uecap( znotes, formsemestre_id ):
+    """Liste des formsemestres pouvant utiliser une UE capitalisee de ce semestre
+    (et qui doivent donc etre sortis du cache si l'on modifie ce
+    semestre): meme code formation, meme semestre_id, date posterieure"""
+    cnx = znotes.GetDBConnexion()
+    sem = znotes.do_formsemestre_list({'formsemestre_id' : formsemestre_id})[0]
+    F = znotes.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    cursor = cnx.cursor()
+    cursor.execute("""select sem.formsemestre_id
+    from notes_formsemestre sem, notes_formations F
+    where sem.formation_id = F.formation_id
+    and F.formation_code = %(formation_code)s
+    and sem.semestre_id = %(semestre_id)s
+    and sem.date_debut >= %(date_debut)s
+    and sem.formsemestre_id != %(formsemestre_id)s;
+    """, { 'formation_code' : F['formation_code'],
+           'semestre_id' : sem['semestre_id'],
+           'formsemestre_id' : formsemestre_id,
+           'date_debut' : znotes.DateDDMMYYYY2ISO(sem['date_debut']) })
+    return [ x[0] for x in cursor.fetchall() ]

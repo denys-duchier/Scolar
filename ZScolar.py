@@ -1468,7 +1468,7 @@ function tweakmenu( gname ) {
               msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
               (groupetd,groupeanglais,groupetp,formsemestre_id))
         cnx.commit()
-        self.Notes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
+        self.Notes._inval_cache(formsemestre_id=formsemestre_id)
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1639,7 +1639,7 @@ function tweakmenu( gname ) {
             log('suppressGroup( req=%s, args=%s )' % (req, aa) )
             cursor.execute( req, aa )
             cnx.commit()
-            self.Notes._getNotesCache().inval_cache(formsemestre_id=formsemestre_id)
+            self.Notes._inval_cache(formsemestre_id=formsemestre_id)
             return REQUEST.RESPONSE.redirect( 'Notes/formsemestre_status?formsemestre_id=%s' % formsemestre_id )
 
     # --- Trombi: gestion photos
@@ -1958,7 +1958,7 @@ function tweakmenu( gname ) {
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2])
             # inval all caches
-            self.Notes._getNotesCache().inval_cache()
+            self.Notes._inval_cache()
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
@@ -1977,7 +1977,7 @@ function tweakmenu( gname ) {
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
-        self.Notes._getNotesCache().inval_cache()
+        self.Notes._inval_cache()
 
 
     security.declareProtected(ScoView, "get_infos_apogee")
