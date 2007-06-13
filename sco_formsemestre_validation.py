@@ -76,7 +76,7 @@ def formsemestre_validation_etud_form(
     H.append( formsemestre_recap_parcours_table(znotes, Se, etudid, check and not nomodif) )
     if check:
         if not desturl:
-            desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=' + formsemestre_id     
+            desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=%s#etudid%s' % (formsemestre_id, etudid)
         H.append('<p><a href="%s">Continuer</a>' % desturl)
         H.append(znotes.sco_footer(znotes, REQUEST))
         return '\n'.join(H)

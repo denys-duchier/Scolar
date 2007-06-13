@@ -134,7 +134,7 @@ def do_formsemestre_recapcomplet(
     if format == 'html':
         # Table format HTML
         H = [ '<table class="notes_recapcomplet sortable" id="recapcomplet">' ]
-        cells = '<tr class="recap_row_tit sortbottom">'
+        cells = '<tr class="recap_row_tit sortbottom>'
         for i in range(len(F[0])):
             if i in ue_index:
                 cls = 'recap_tit_ue'
@@ -162,9 +162,9 @@ def do_formsemestre_recapcomplet(
             else:
                 el = etudlink % (formsemestre_id,etudid,l[1])
                 if ir % 2 == 0:
-                    cells = '<tr class="recap_row_even">'
+                    cells = '<tr class="recap_row_even" id="etudid%s">' % etudid
                 else:
-                    cells = '<tr class="recap_row_odd">'
+                    cells = '<tr class="recap_row_odd" id="etudid%s">' % etudid
             ir += 1
             nsn = [ x.replace('NA0', '-') for x in l[:-1] ] # notes sans le NA0
             cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
