@@ -34,6 +34,7 @@ from sco_utils import *
 from notes_log import log
 from notes_table import *
 import notes_table
+from ScolarRolesNames import *
 
 import sco_parcours_dut, sco_codes_parcours
 
@@ -47,7 +48,7 @@ def formsemestre_validation_etud_form(
     desturl=None,
     REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
-    if not authuser.has_permission('ScoEtudInscrit', znotes):
+    if not authuser.has_permission(ScoEtudInscrit, znotes):
         # simple read only version
         nomodif = True
         check = True

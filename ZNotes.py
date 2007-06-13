@@ -706,7 +706,7 @@ class ZNotes(ObjectManager,
                 mois_fin, annee_fin = sem['date_fin'].split('/')[1:]
             except:
                 mois_fin, annee_fin = '', ''
-            sem['titreannee'] = sem['titre_num'] + ' ' + annee_debut
+            sem['titreannee'] = sem['titre_num'] + '  ' + annee_debut
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
             # et les dates sous la forme "oct 2007 - fev 2008"

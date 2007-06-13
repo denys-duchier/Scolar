@@ -99,8 +99,12 @@ def make_formsemestre_bulletinetud(
             moy_ue = '(note spéciale)'
         # UE capitalisee ?
         if ue_status['is_capitalized']:
+            sem_origin = znotes.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
             t = ( ue['acronyme'], fmt_note(ue_status['moy_ue']),
-                  'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date']),
+                  '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">Capitalisée le %s</a>'
+                  % (sem_origin['formsemestre_id'], etudid,
+                     sem_origin['titreannee'],
+                     DateISOtoDMY(ue_status['event_date'])),
                   '', '%.2g' % ue_status['coef_ue'] )
             P.append(t)
             tabline += 1

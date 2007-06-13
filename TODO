@@ -1,8 +1,6 @@
 
 A VERIFIER AVANT 5.0:
 
-BUGS:
-
 
  - inscrire a un autre semestre:
      . choisir modules (options, sport)
@@ -30,6 +28,8 @@ BUGS:
 
 * TODO: Notes  (modifs prioritaires)
 -------------
+
+- bulles d'aide avec moyenne des moyennes d'UE dans recap parcours
 
 - UE capitalisées: donc dispense possible dans semestre redoublé.
                    traitable en n'inscrivant pas l'etudiant au modules
