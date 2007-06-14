@@ -2702,7 +2702,10 @@ class ZNotes(ObjectManager,
                               'allowed_values' : grnams, 'labels' : grlabs,
                               'attributes' : ['onchange="gr_change(this);"']
                               }) ]
-            submitbuttonattributes = [ 'disabled="1"' ]
+            if not(REQUEST.form.has_key('groupes') and REQUEST.form['groupes']):
+                submitbuttonattributes = [ 'disabled="1"' ]
+            else:
+                submitbuttonattributes = [] # groupe(s) preselectionnés
             H.append(
               # JS pour desactiver le bouton OK si aucun groupe selectionné
               """<script type="text/javascript">
