@@ -155,7 +155,7 @@ class ZNotes(ObjectManager,
             docs_before.append(
                 self.do_formsemestre_recapcomplet(REQUEST,formsemestre_id, format='xml', xml_nodate=True))
         #
-        cache.inval_cache()
+        cache.inval_cache(self)
         # Rebuild cache (useful only to debug)
         docs_after = []
         for formsemestre_id in formsemestre_ids:

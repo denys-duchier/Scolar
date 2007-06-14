@@ -134,7 +134,7 @@ def do_formsemestre_recapcomplet(
     if format == 'html':
         # Table format HTML
         H = [ '<table class="notes_recapcomplet sortable" id="recapcomplet">' ]
-        cells = '<tr class="recap_row_tit sortbottom>'
+        cells = '<tr class="recap_row_tit sortbottom">'
         for i in range(len(F[0])):
             if i in ue_index:
                 cls = 'recap_tit_ue'
