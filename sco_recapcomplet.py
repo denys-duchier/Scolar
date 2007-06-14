@@ -64,7 +64,11 @@ def do_formsemestre_recapcomplet(
         if ue['type'] == UE_STANDARD:            
             h.append( ue['acronyme'] )
         elif ue['type'] == UE_SPORT:
-            h.append('') # n'affiche pas la moyenne d'UE dans ce cas
+            # n'affiche pas la moyenne d'UE dans ce cas
+            # mais laisse col. vide si modules affichés (pour séparer les UE)
+            if not hidemodules:
+                h.append('')
+            pass
         else:
             raise ScoValueError('type UE invalide !')
         if not hidemodules:
@@ -102,7 +106,9 @@ def do_formsemestre_recapcomplet(
             if ue['type'] == UE_STANDARD:
                 l.append( fmtnum(t[i]) ) # moyenne etud dans ue
             elif ue['type'] == UE_SPORT:
-                l.append('') # n'affiche pas la moyenne d'UE dans ce cas
+                # n'affiche pas la moyenne d'UE dans ce cas
+                if not hidemodules:
+                    l.append('')
             ue_index.append(len(l)-1)
             if not hidemodules:
                 j = 0
@@ -120,7 +126,9 @@ def do_formsemestre_recapcomplet(
         if ue['type'] == UE_STANDARD:
             l.append( fmt_note(ue['moy']) ) 
         elif ue['type'] == UE_SPORT:
-            l.append('') # n'affiche pas la moyenne d'UE dans ce cas
+            # n'affiche pas la moyenne d'UE dans ce cas
+            if not hidemodules:
+                l.append('') 
         ue_index.append(len(l)-1)
         if not hidemodules:
             for modimpl in modimpls:
