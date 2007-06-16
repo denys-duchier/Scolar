@@ -36,7 +36,8 @@ def do_formsemestre_recapcomplet(
     format='html', # html, xml, xls
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
-    modejury=False # saisie décisions jury
+    modejury=False, # saisie décisions jury
+    sortcol=None # indice colonne a trier dans table T
     ):
     """Grand tableau récapitulatif avec toutes les notes de modules
     pour tous les étudiants, les moyennes par UE et générale,
@@ -55,7 +56,6 @@ def do_formsemestre_recapcomplet(
     ues = nt.get_ues() # incluant le(s) UE de sport
     #pdb.set_trace()
     T = nt.get_table_moyennes_triees()
-
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
     h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
@@ -141,8 +141,42 @@ def do_formsemestre_recapcomplet(
     # Generation table au format demandé
     if format == 'html':
         # Table format HTML
-        H = [ '<table class="notes_recapcomplet sortable" id="recapcomplet">' ]
-        cells = '<tr class="recap_row_tit sortbottom">'
+        H = [ """
+        <script type="text/javascript">
+        function va_saisir(formsemestre_id, etudid) {
+        loc = 'formsemestre_validation_etud_form?formsemestre_id='+formsemestre_id+'&etudid='+etudid;
+        if (SORT_COLUMN_INDEX) {
+           loc += '&sortcol=' + SORT_COLUMN_INDEX;
+        }
+        loc += '#etudid' + etudid;   
+        document.location=loc;
+        }
+        </script>        
+        <table class="notes_recapcomplet sortable" id="recapcomplet">
+        """ ]
+        if sortcol: # sort table using JS sorttable
+            H.append("""<script type="text/javascript">
+            function resort_recap() {
+            var clid = %d;
+            // element <a place par sorttable (ligne de titre)
+            lnk = document.getElementById("recap_trtit").childNodes[clid].childNodes[0];
+            ts_resortTable(lnk,clid);
+            // Scroll window:
+            eid = document.location.hash
+            if (eid) {
+              var eid = eid.substring(1); // remove #
+              var e = document.getElementById(eid);
+              if (e) {
+                var y = e.offsetTop + e.offsetParent.offsetTop;            
+                window.scrollTo(0,y);                
+                } 
+              
+            }
+            }
+            addEvent(window, "load", resort_recap);
+            </script>
+            """ % (int(sortcol)) )
+        cells = '<tr class="recap_row_tit sortbottom" id="recap_trtit">'
         for i in range(len(F[0])):
             if i in ue_index:
                 cls = 'recap_tit_ue'
@@ -213,7 +247,8 @@ def do_formsemestre_recapcomplet(
                     act = 'saisir'
                 cells += '<td class="decision">%s' % code
                 if act:
-                    cells += ' <a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">%s</a>' % (formsemestre_id, etudid, act)
+                    #cells += ' <a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">%s</a>' % (formsemestre_id, etudid, act)
+                    cells += ''' <a href="#" onclick="va_saisir('%s', '%s')">%s</a>''' % (formsemestre_id, etudid, act)
                 cells += '</td>'
             H.append( cells + '</tr>' )
             #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')

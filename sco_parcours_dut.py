@@ -80,8 +80,11 @@ class SituationEtudParcours:
         # pour le DUT, le dernier est toujours S4.
         # Si on voulait gérer d'autres formations, il faudrait un flag sur les formsemestre
         # indiquant s'ils sont "terminal" ou non. XXX TODO
-        # Version provisoire pour le DUT en 4 semestres:
-        self.semestre_non_terminal = (self.sem['semestre_id'] != 4) # True | False
+        # Ici: terminal si semestre 4 ou bien semestre_id==-1
+        #        (licences et autres formations en 1 seule session))
+        self.semestre_non_terminal = (self.sem['semestre_id'] != DUT_NB_SEM) # True | False
+        if self.sem['semestre_id'] == NO_SEMESTRE_ID:
+            self.semestre_non_terminal = False
         # Liste des semestres du parcours de cet étudiant:
         self._comp_semestres()
         # Determine le semestre "precedent"
@@ -139,7 +142,7 @@ class SituationEtudParcours:
         if not devenir:
             return ''
         s = self.sem['semestre_id'] # numero semestre courant
-        if s < DUT_NB_SEM:
+        if self.semestre_non_terminal:
             passage = 'Passe en S%s' % (s + 1)
         else:
             passage = 'Formation terminée'

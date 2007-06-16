@@ -1,5 +1,6 @@
 <dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')"><dtml-if "not isFile">
 <dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
+<dtml-unless sortcol><dtml-call "REQUEST.set('sortcol',None)"></dtml-unless>
 
 <dtml-call "REQUEST.set('no_side_bar', 1)">
 
@@ -21,7 +22,7 @@
 <input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" <dtml-if hidemodules>checked</dtml-if> >cacher les modules</input>
 
 </form> 
-</dtml-if isFile><dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if><dtml-call "REQUEST.set('hidemodules', REQUEST.get('hidemodules', 0))"><dtml-call "REQUEST.set('modejury', REQUEST.get('modejury', 0))"><dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat, hidemodules=hidemodules, modejury=modejury)">
+</dtml-if isFile><dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if><dtml-call "REQUEST.set('hidemodules', REQUEST.get('hidemodules', 0))"><dtml-call "REQUEST.set('modejury', REQUEST.get('modejury', 0))"><dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat, hidemodules=hidemodules, modejury=modejury, sortcol=sortcol)">
 <dtml-if "not isFile">
 <p>
  <a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>

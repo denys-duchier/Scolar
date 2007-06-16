@@ -3489,15 +3489,16 @@ class ZNotes(ObjectManager,
         return D, mods, valid_evals, mods_att
 
     security.declareProtected(ScoView, 'notes_formsemestre_recapcomplet')
-    def do_formsemestre_recapcomplet(self,REQUEST,formsemestre_id,format='html',
-                                     xml_nodate=False, modejury=False, hidemodules=False):        
+    def do_formsemestre_recapcomplet(
+        self,REQUEST,formsemestre_id,format='html',
+        xml_nodate=False, modejury=False, hidemodules=False, sortcol=None):
         """Grand tableau récapitulatif avec toutes les notes de modules
         pour tous les étudiants, les moyennes par UE et générale,
         trié par moyenne générale décroissante.
         """
         return sco_recapcomplet.do_formsemestre_recapcomplet(
             self, REQUEST, formsemestre_id, format=format, xml_nodate=xml_nodate,
-            modejury=modejury, hidemodules=hidemodules)
+            modejury=modejury, hidemodules=hidemodules, sortcol=sortcol)
     
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
     def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
@@ -3717,50 +3718,50 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             return True # admin, chef dept
         sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         uid = str(authuser)
-        if uid !=sem['responsable_id']:
+        if uid == sem['responsable_id']:
             return True
         return False
     
     security.declareProtected(ScoView, 'formsemestre_validation_etud_form')
     def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None,
                                           check=0,
-                                          desturl='', REQUEST=None):
+                                          desturl='', sortcol=None, REQUEST=None):
         "Formulaire choix jury pour un étudiant"
         readonly = not self.can_validate_sem(REQUEST, formsemestre_id)
         return sco_formsemestre_validation.formsemestre_validation_etud_form(
             self, formsemestre_id, etudid=etudid,
             check=check, readonly=readonly,
-            desturl=desturl,
+            desturl=desturl, sortcol=sortcol, 
             REQUEST=REQUEST )
     
     security.declareProtected(ScoView, 'formsemestre_validation_etud')
     def formsemestre_validation_etud(self, formsemestre_id, etudid=None,
                                      codechoice=None,
-                                     desturl='', REQUEST=None):
+                                     desturl='', sortcol=None, REQUEST=None):
         "Enregistre choix jury pour un étudiant"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
                 message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
-                REQUEST=REQUEST)
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_validation_etud(
             self, formsemestre_id, etudid=etudid, codechoice=codechoice,
-            desturl=desturl, REQUEST=REQUEST )
+            desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
 
     security.declareProtected(ScoView, 'formsemestre_validation_etud_manu')
     def formsemestre_validation_etud_manu(self, formsemestre_id, etudid=None,
                                      code_etat='', new_code_prev='', devenir='',
-                                     desturl='', REQUEST=None):
+                                     desturl='', sortcol=None, REQUEST=None):
         "Enregistre choix jury pour un étudiant"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
                 message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
-                REQUEST=REQUEST)
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_validation_etud_manu(
             self, formsemestre_id, etudid=etudid,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
-            desturl=desturl, REQUEST=REQUEST )
+            desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
     
     security.declareProtected(ScoEnsView, 'formsemestre_validation_list')
     def formsemestre_validation_list(self, formsemestre_id, REQUEST):

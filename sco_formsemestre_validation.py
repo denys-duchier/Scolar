@@ -46,6 +46,7 @@ def formsemestre_validation_etud_form(
     etudid=None, # required
     check=0, # opt: si true, propose juste une relecture du parcours
     desturl=None,
+    sortcol=None,
     readonly=True,
     REQUEST=None):
     if readonly:
@@ -72,7 +73,10 @@ def formsemestre_validation_etud_form(
     H.append( formsemestre_recap_parcours_table(znotes, Se, etudid, check and not readonly) )
     if check:
         if not desturl:
-            desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=%s#etudid%s' % (formsemestre_id, etudid)
+            desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id='+formsemestre_id
+            if sortcol:
+                desturl += '&sortcol=' + sortcol # pour refaire tri sorttable du tableau de notes
+            desturl += '#etudid%s' % etudid # va a la bonne ligne
         H.append('<p><a href="%s">Continuer</a>' % desturl)
         H.append(znotes.sco_footer(znotes, REQUEST))
         return '\n'.join(H)
@@ -120,10 +124,12 @@ def formsemestre_validation_etud_form(
         <input type="submit" value="Statuer sur le semestre précédent"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
         <input type="hidden" name="etudid" value="%s"/>
-        <input type="hidden" name="desturl" value="formsemestre_validation_etud_form?etudid=%s&formsemestre_id=%s"/>        
-        </form>
-        </div>
+        <input type="hidden" name="desturl" value="formsemestre_validation_etud_form?etudid=%s&formsemestre_id=%s"/>
         """ % (Se.prev['formsemestre_id'], etudid, etudid, formsemestre_id))
+        if sortcol:
+            H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
+        H.append('</form></div>')
+
         H.append(znotes.sco_footer(znotes, REQUEST))
         return '\n'.join(H)
 
@@ -148,6 +154,8 @@ def formsemestre_validation_etud_form(
              (etudid, formsemestre_id) )
     if desturl:
         H.append('<input type="hidden" name="desturl" value="%s"/>' % desturl)
+    if sortcol:
+        H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
     H.append('<h3 class="sfv">Décisions <em>recommandées</em> :</h3>')
     H.append('<table>')
     H.append(decisions_possible_rows(Se, True, subtitle='Etudiant assidu:', trclass='sfv_ass'))
@@ -179,7 +187,7 @@ def formsemestre_validation_etud(
     formsemestre_id=None, # required
     etudid=None, # required
     codechoice=None, # required
-    desturl='',
+    desturl='', sortcol=None,
     REQUEST=None):
     """Enregistre validation"""
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
@@ -196,14 +204,14 @@ def formsemestre_validation_etud(
         raise ScoValueError('code choix invalide ! (%s)' % codechoice)
     #
     Se.valide_decision(choice, REQUEST) # enregistre
-    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, REQUEST)
+    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
 
 def formsemestre_validation_etud_manu(
     znotes, # ZNotes instance
     formsemestre_id=None, # required
     etudid=None, # required
     code_etat='', new_code_prev='', devenir='', # required (la decision manuelle)
-    desturl='',
+    desturl='', sortcol=None,
     REQUEST=None):
     """Enregistre validation"""
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
@@ -221,11 +229,16 @@ def formsemestre_validation_etud_manu(
         formsemestre_id_utilise_pour_compenser = formsemestre_id_utilise_pour_compenser)
     #
     Se.valide_decision(choice, REQUEST) # enregistre
-    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, REQUEST)
+    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
 
 
-def _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, REQUEST):
-    REQUEST.RESPONSE.redirect( 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1&desturl=%s' % (formsemestre_id, etudid, desturl) )
+def _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST):
+    adr = 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1' % (formsemestre_id, etudid)
+    if sortcol:
+        adr += '&sortcol=' + sortcol
+    if desturl:
+        desturl += '&desturl=' + desturl
+    REQUEST.RESPONSE.redirect(adr)
     # Si le precedent a été modifié, demande relecture du parcours.
     # sinon  renvoie au listing general,
 #     if choice.new_code_prev:
@@ -365,7 +378,7 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
     return '\n'.join(H)
 
 
-def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl=''):
+def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sortcol=None):
     """Formulaire pour saisie décision manuelle
     """
     H = [ """
@@ -390,6 +403,9 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl=''):
     """ % (etudid, formsemestre_id) ]
     if desturl:
         H.append('<input type="hidden" name="desturl" value="%s"/>' % desturl)
+    if sortcol:
+        H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
+
     H.append('<h3 class="sfv">Décisions manuelles : <em>(vérifiez bien votre choix !)</em></h3><table>')
 
     # Choix code semestre:
