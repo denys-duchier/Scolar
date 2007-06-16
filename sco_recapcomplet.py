@@ -124,7 +124,7 @@ def do_formsemestre_recapcomplet(
     for ue in ues:
         i += 1
         if ue['type'] == UE_STANDARD:
-            l.append( fmt_note(ue['moy']) ) 
+            l.append( fmt_note(ue['moy'], keep_numeric=keep_numeric) ) 
         elif ue['type'] == UE_SPORT:
             # n'affiche pas la moyenne d'UE dans ce cas
             if not hidemodules:

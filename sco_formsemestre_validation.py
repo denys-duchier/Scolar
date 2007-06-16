@@ -46,14 +46,10 @@ def formsemestre_validation_etud_form(
     etudid=None, # required
     check=0, # opt: si true, propose juste une relecture du parcours
     desturl=None,
+    readonly=True,
     REQUEST=None):
-    authuser = REQUEST.AUTHENTICATED_USER
-    if not authuser.has_permission(ScoEtudInscrit, znotes):
-        # simple read only version
-        nomodif = True
+    if readonly:
         check = True
-    else:
-        nomodif = False
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     if Se.sem['etat'] != '1':
@@ -73,7 +69,7 @@ def formsemestre_validation_etud_form(
              % (znotes.ScoURL(), etudid,
                 znotes.etudfoto(etudid, foto=etud['foto'],
                                 fototitle='fiche de %s'%etud['nom'])))
-    H.append( formsemestre_recap_parcours_table(znotes, Se, etudid, check and not nomodif) )
+    H.append( formsemestre_recap_parcours_table(znotes, Se, etudid, check and not readonly) )
     if check:
         if not desturl:
             desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=%s#etudid%s' % (formsemestre_id, etudid)

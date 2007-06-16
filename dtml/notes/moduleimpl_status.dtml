@@ -7,6 +7,7 @@
 <dtml-call "REQUEST.set( 'ModInscrits', do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
 
 <dtml-call "REQUEST.set( 'ModEvals', do_evaluation_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
+<dtml-unless group_type><dtml-call "REQUEST.set( 'group_type', 'groupetd' )"></dtml-unless>
 
 <dtml-let canedit="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
 
@@ -48,7 +49,7 @@
 
 <dtml-in ModEvals>
 <dtml-let eval="_['sequence-item']">
-<dtml-in "do_evaluation_etat( eval['evaluation_id'])" mapping>
+<dtml-in "do_evaluation_etat( eval['evaluation_id'], group_type=group_type)" mapping>
 
 <tr class="mievr">
  <td class="mievr_tit" colspan="7">

@@ -101,7 +101,7 @@
 
 <li><a class="stdlink" href="stat_bac_fmt?formsemestre_id=<dtml-var formsemestre_id>">Tableau de répartition des bacs</a></li>
 
-<dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
+<dtml-if "can_validate_sem(REQUEST, formsemestre_id)">
 <li>
  <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
 </li>

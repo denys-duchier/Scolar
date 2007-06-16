@@ -2287,7 +2287,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
 
     def confirmDialog(self, message='<p>Confirmer ?</p>',
                       OK='OK', Cancel='Annuler',
-                      dest_url="", cancel_url="",
+                      dest_url= "", cancel_url="",
                       parameters={},
                       REQUEST=None ):
         # dialog de confirmation simple"

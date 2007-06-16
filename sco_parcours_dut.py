@@ -203,7 +203,7 @@ class SituationEtudParcours:
         from notes_table import NOTES_BARRE_VALID_UE
         codes_ues = {}
         for ue_id in self.ues_status.keys():
-            if self.ues_status[ue_id]['moy_ue'] > NOTES_BARRE_VALID_UE:
+            if self.ues_status[ue_id]['moy_ue'] >= NOTES_BARRE_VALID_UE:
                 codes_ues[ue_id] = ADM
             elif valid_semestre:
                 codes_ues[ue_id] = CMP

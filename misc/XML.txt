@@ -11,6 +11,7 @@ formsemestre_recapcomplet?format=xml&formsemestre_id=X
 formsemestre_bulletinetud?format=xml&formsemestre_id=X&etudid=X&version=X
 XML_formsemestre_list
 
+XML_pvjurypassagedut?formsemestre_id=X
 
 
 ---- Structure d'un bulletin de note individuel: ----

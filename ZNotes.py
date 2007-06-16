@@ -2250,7 +2250,7 @@ class ZNotes(ObjectManager,
         return val
 
     security.declareProtected(ScoView, 'do_evaluation_etat')
-    def do_evaluation_etat(self,evaluation_id):
+    def do_evaluation_etat(self, evaluation_id, group_type='groupetd'):
         """donne infos sur l'etat du evaluation
         { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
         date_last_modif, gr_complets, gr_incomplets, evalcomplete }
@@ -2294,25 +2294,25 @@ class ZNotes(ObjectManager,
         
         # On considere une note "manquante" lorsqu'elle n'existe pas
         # ou qu'elle est en attente (ATT)
-        GrNbMissing = DictDefault() # groupetd : nb notes manquantes
+        GrNbMissing = DictDefault() # groupe : nb notes manquantes
         GrNotes = DictDefault(defaultvalue=[]) # groupetd: liste notes valides
         TotalNbMissing = 0
         TotalNbAtt = 0
         for i in ins:
-            groupetd = i['groupetd']
+            group = i[group_type]
             isMissing = False
             if NotesDB.has_key(i['etudid']):
                 val = NotesDB[i['etudid']]['value']
                 if val == NOTES_ATTENTE:
                     isMissing = True
                     TotalNbAtt += 1
-                GrNotes[groupetd].append( val )
+                GrNotes[group].append( val )
             else:
-                junk = GrNotes[groupetd] # create group
+                junk = GrNotes[group] # create group
                 isMissing = True
             if isMissing:
                 TotalNbMissing += 1
-                GrNbMissing[groupetd] += 1
+                GrNbMissing[group] += 1
         
         gr_incomplets = [ x for x in GrNbMissing.keys() ]
         gr_incomplets.sort()
@@ -2325,7 +2325,7 @@ class ZNotes(ObjectManager,
         else:
             evalattente = False
         # calcul moyenne dans chaque groupe de TD
-        gr_moyennes = [] # groupetd : {moy,median, nb_notes}
+        gr_moyennes = [] # group : {moy,median, nb_notes}
         for gr in GrNotes.keys():
             notes = GrNotes[gr]
             gr_moy, gr_median = notes_moyenne_median(notes)
@@ -3523,10 +3523,10 @@ class ZNotes(ObjectManager,
             if nohtml:
                 htm = '' # speed up if html version not needed
             else:
-                htm, junk, junk = self.make_formsemestre_bulletinetud(
+                htm, junk, junk = sco_bulletins.make_formsemestre_bulletinetud(self,
                     formsemestre_id, etudid, version=version,format='html',
                     REQUEST=REQUEST)
-            pdf, etud, filename = self.make_formsemestre_bulletinetud(
+            pdf, etud, filename = sco_bulletins.make_formsemestre_bulletinetud(self,
                 formsemestre_id, etudid, version=version,format='pdf',
                 REQUEST=REQUEST)
             if not etud['email']:
@@ -3709,28 +3709,54 @@ PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
             return REQUEST.RESPONSE.redirect( bull_url )
     
     # --- FORMULAIRE POUR VALIDATION DES UE ET SEMESTRES
+    security.declareProtected(ScoView,'can_validate_sem')
+    def can_validate_sem(self, REQUEST, formsemestre_id):
+        "Vrai si utilisateur peut saisir decision de jury dans ce semestre"
+        authuser = REQUEST.AUTHENTICATED_USER
+        if authuser.has_permission(ScoEtudInscrit, self):
+            return True # admin, chef dept
+        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        uid = str(authuser)
+        if uid !=sem['responsable_id']:
+            return True
+        return False
+    
     security.declareProtected(ScoView, 'formsemestre_validation_etud_form')
     def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None,
                                           check=0,
                                           desturl='', REQUEST=None):
         "Formulaire choix jury pour un étudiant"
+        readonly = not self.can_validate_sem(REQUEST, formsemestre_id)
         return sco_formsemestre_validation.formsemestre_validation_etud_form(
-            self, formsemestre_id, etudid=etudid, check=check, desturl=desturl, REQUEST=REQUEST )
-
-    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_etud')
+            self, formsemestre_id, etudid=etudid,
+            check=check, readonly=readonly,
+            desturl=desturl,
+            REQUEST=REQUEST )
+    
+    security.declareProtected(ScoView, 'formsemestre_validation_etud')
     def formsemestre_validation_etud(self, formsemestre_id, etudid=None,
                                      codechoice=None,
                                      desturl='', REQUEST=None):
         "Enregistre choix jury pour un étudiant"
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                REQUEST=REQUEST)
+        
         return sco_formsemestre_validation.formsemestre_validation_etud(
             self, formsemestre_id, etudid=etudid, codechoice=codechoice,
             desturl=desturl, REQUEST=REQUEST )
 
-    security.declareProtected(ScoEtudInscrit, 'formsemestre_validation_etud_manu')
+    security.declareProtected(ScoView, 'formsemestre_validation_etud_manu')
     def formsemestre_validation_etud_manu(self, formsemestre_id, etudid=None,
                                      code_etat='', new_code_prev='', devenir='',
                                      desturl='', REQUEST=None):
         "Enregistre choix jury pour un étudiant"
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                REQUEST=REQUEST)
+        
         return sco_formsemestre_validation.formsemestre_validation_etud_manu(
             self, formsemestre_id, etudid=etudid,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
