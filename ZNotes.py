@@ -2490,7 +2490,8 @@ class ZNotes(ObjectManager,
         if  tf[0] == 0:
             return '\n'.join(H) + '\n' + tf[1]
         elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+            return REQUEST.RESPONSE.redirect( '%s/Notes/moduleimpl_status?moduleimpl_id=%s'
+                                              % (self.ScoURL(),E['moduleimpl_id']) )
         else:
             liste_format = tf[2]['liste_format']
             anonymous_listing = tf[2]['anonymous_listing']
@@ -2737,7 +2738,8 @@ class ZNotes(ObjectManager,
             """)
             return '\n'.join(H) + '\n' + tf[1] + "\n</div>"
         elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+            return REQUEST.RESPONSE.redirect( '%s/Notes/moduleimpl_status?moduleimpl_id=%s'
+                                              % (self.ScoURL(),E['moduleimpl_id']) )
         else:
             # form submission
             #   get checked groups
@@ -2911,7 +2913,8 @@ class ZNotes(ObjectManager,
                   cancelbutton='Annuler', submitlabel='Vérifier ces notes' )
         junk = tf.getform()  # check and init
         if tf.canceled():
-            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+            return REQUEST.RESPONSE.redirect( '%s/Notes/notes_eval_selectetuds?evaluation_id=%s'
+                                              % (self.ScoURL(), evaluation_id) )
         elif (not tf.submitted()) or not tf.result:
             # affiche premier formulaire
             tf.formdescription.append(
