@@ -76,6 +76,7 @@ import imageresize
 
 import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
+import sco_portal_apogee
 from VERSION import SCOVERSION, SCONEWS
 
 import Products.ZPsycopgDA.DA
@@ -1814,6 +1815,9 @@ function tweakmenu( gname ) {
             initvalues = {}
             submitlabel = 'Ajouter cet étudiant'
             H.append("""<h2>Création d'un étudiant</h2>
+            <p>En général, il est recommandé d'importer les étudiants depuis Apogée.
+            N'utilisez ce formulaire que pour les cas particulier ou si votre établissement
+            n'utilise pas d'autre logiciel de gestion des inscriptions.</p>
             <p><em>L'étudiant créé ne sera pas inscrit.
             Pensez à l'inscrire dans un semestre !</em></p>
             """)
@@ -1839,7 +1843,7 @@ function tweakmenu( gname ) {
             prenom = REQUEST.form.get('prenom','')
             if not prenom:
                 prenom = initvalues.get('prenom','')
-            infos = self.get_infos_apogee(nom, prenom)
+            infos = sco_portal_apogee.get_infos_apogee(nom, prenom)
         if infos:
             formatted_infos = [ """
             <script type="text/javascript">
@@ -1977,76 +1981,7 @@ function tweakmenu( gname ) {
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + self.sco_footer(self,REQUEST)
         # invalid all caches
-        self.Notes._inval_cache()
-
-
-    security.declareProtected(ScoView, "get_infos_apogee")
-    def get_infos_apogee(self, nom, prenom):
-        """recupere les codes Apogee en utilisant le web service CRIT
-        """
-        if (not nom) and (not prenom):
-            return []
-        # essaie plusieurs codages: tirets, accents
-        infos = self._get_infos_apogee_allaccents(nom, prenom)
-        nom_st = nom.replace('-', ' ')
-        prenom_st = prenom.replace('-', ' ')
-        if nom_st != nom or prenom_st != prenom:
-            infos += self._get_infos_apogee_allaccents(nom_st, prenom_st)
-        # si pas de match et nom ou prenom composé, essaie en coupant
-        if not infos:
-            nom1 = nom.split()[0]
-            prenom1 = prenom.split()[0]
-            if nom != nom1 or prenom != prenom1:
-                infos += self._get_infos_apogee_allaccents(nom1, prenom1)
-        return infos
-    
-    def _get_infos_apogee_allaccents(self, nom, prenom):
-        "essai recup infos avec differents codages des accents"
-        from SuppressAccents import suppression_diacritics
-        if nom:
-            unom = unicode(nom, SCO_ENCODING)
-            nom_noaccents = str(suppression_diacritics(unom))
-            nom_utf8 = unom.encode('utf-8')            
-        if prenom:
-            uprenom = unicode(prenom, SCO_ENCODING)
-            prenom_noaccents = str(suppression_diacritics(uprenom))
-            prenom_utf8 = uprenom.encode('utf-8')
-        # avec accents
-        infos = self._query_apogee_portal(nom, prenom)
-        # sans accents
-        if nom != nom_noaccents or prenom != prenom_noaccents:
-            infos += self._query_apogee_portal(nom_noaccents,prenom_noaccents)
-        # avec accents en UTF-8
-        if nom_utf8 != nom_noaccents or prenom_utf8 != prenom_noaccents:
-            infos += self._query_apogee_portal(nom_utf8,prenom_utf8)
-        return infos
-
-    def _query_apogee_portal(self, nom, prenom):
-        req = 'https://portail.cevif.univ-paris13.fr/getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
-        #log(req)
-        try:
-            f = urllib2.urlopen(req)
-        except:
-            log("get_infos_apogee: can't connect to Apogee portal")
-            return []
-        doc = f.read()
-        dom = xml.dom.minidom.parseString(doc)
-        infos = []
-        try:
-            if dom.childNodes[0].nodeName != u'etudiants':
-                raise ValueError
-            etudiants = dom.getElementsByTagName('etudiant')
-            for etudiant in etudiants:
-                d = {}
-                # recupere toutes les valeurs <valeur>XXX</valeur>
-                for e in etudiant.childNodes:
-                    if e.nodeType == e.ELEMENT_NODE:
-                        d[str(e.nodeName)] = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
-                infos.append(d)
-        except:
-            raise ValueError('invalid XML response from getEtud Web Service\n%s' % req)
-        return infos
-
+        self.Notes._inval_cache()    
     
     security.declareProtected(ScoEtudInscrit, "check_group_apogee")
     def check_group_apogee(self, formsemestre_id, REQUEST=None,
@@ -2069,7 +2004,7 @@ function tweakmenu( gname ) {
         nmailmissing = 0 # nb etuds sans mail
         for t in T:
             nom, prenom, etudid, email, code_nip = t[0], t[1], t[2], t[3], t[8]
-            infos = self.get_infos_apogee(nom, prenom)
+            infos = sco_portal_apogee.get_infos_apogee(nom, prenom)
             if not infos:
                 info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid
                 nerrs += 1

@@ -92,7 +92,7 @@ class SituationEtudParcours:
         # Verifie barres
         self._comp_barres()
         # Verifie compensation
-        if self.prev:
+        if self.prev and self.sem['gestion_compensation'] == '1':
             self.can_compensate_with_prev = self.prev['can_compensate']
         else:
             self.can_compensate_with_prev = False

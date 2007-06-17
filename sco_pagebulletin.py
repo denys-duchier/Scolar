@@ -38,7 +38,7 @@ _notes_formsemestre_pagebulletin_editor = EditableTable(
     'formsemestre_id', # meme cle
     ('formsemestre_id',
      'left_margin', 'top_margin', 'right_margin', 'bottom_margin',
-     'title' ),
+     'title', 'intro_mail' ),
     allow_set_id=True # car on utile le formsemestre_id comme clé
     )
 
@@ -85,6 +85,13 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
         ('sep', { 'input_type' : 'separator',
                   'title' : '<h3>Titre des bulletins</h3>' }),
         ('title', {'size' : 70, 'title' : '', 'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département' }),
+        ('sep', { 'input_type' : 'separator',
+                  'title' : '<h3>Envoi des bulletins par e-mail : message d\'accompagnement</h3>' }),
+        ('intro_mail', { 'input_type' : 'textarea',
+                         'title' : '',
+                         'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département, <tt>%(nomprenom)s</tt> par les noms et prénoms de l\'étudiant, <tt>%(dept)s</tt> par le nom du département, et <tt>%(webmaster)s</tt> par l\'adresse mail du Webmaster.',
+                         'rows' : 18,
+                         'cols' : 85 })
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
                             submitlabel = 'OK',
@@ -95,7 +102,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
                                  page_title='Mise en page des bulletins')
         footer = context.sco_footer(context,REQUEST)
         sem = context.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-        H = [ '<p>Ces paramètres affectent les bulletins en PDF ("version papier") du semestre <em>%s</em> uniquement.</p>' % sem['titre_num']
+        H = [ '<h2>Ces paramètres affectent les bulletins en PDF ("version papier") du semestre <em>%s</em> uniquement.</h2>' % sem['titre_num']
               ]
         return header + '\n'.join(H) + tf[1] + footer # formulaire HTML
     elif tf[0] == -1:

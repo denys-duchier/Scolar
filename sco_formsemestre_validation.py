@@ -416,7 +416,7 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
     for cod in codes:
         if cod != 'ADC':
             H.append('<option value="%s">%s (code %s)</option>' % (cod, sco_codes_parcours.CODES_EXPL[cod], cod) )
-        else:
+        elif Se.sem['gestion_compensation'] == '1':
             # traitement spécial pour ADC (compensation)
             # ne propose que les semestres avec lesquels on peut compenser
             # le code transmis est ADC_formsemestre_id

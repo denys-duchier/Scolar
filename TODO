@@ -23,7 +23,9 @@ A VERIFIER AVANT 5.0:
 
 - inscriptions a des semestres en utilisant les autorisations d'inscription
 
-. regles: ok ?
+BUG:
+ - formsemestre_inscription_with_modules
+     si inscription 'un etud deja inscrit, IntegrityError
 
 
 * TODO: Notes  (modifs prioritaires)

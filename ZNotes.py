@@ -68,6 +68,7 @@ from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_bulletins, sco_recapcomplet
 import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
@@ -834,7 +835,7 @@ class ZNotes(ObjectManager,
             ('gestion_compensation_lst',  { 'input_type' : 'checkbox',
                                             'title' : '',
                                             'allowed_values' : ['X'],
-                                            'explanation' : '(inutilisé)', # XXX 'proposer compensations de semestres (parcours DUT)', actuellement non pris en compte !
+                                            'explanation' : 'proposer compensations de semestres (parcours DUT)',
                                             'labels' : [''] }),
 
             ('gestion_semestrielle_lst',  { 'input_type' : 'checkbox',
@@ -1167,7 +1168,7 @@ class ZNotes(ObjectManager,
                                 cancelbutton = 'Annuler',
                                 initvalues = initvalues)
         if tf[0] == 0:
-            return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formsemestre_pagebulletin_dialog?formsemestre_id=%s">Réglage de la mise en page des bulletins</a>' % formsemestre_id + footer
+            return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formsemestre_pagebulletin_dialog?formsemestre_id=%s">Réglage de la mise en page et envoi mail des bulletins</a>' % formsemestre_id + footer
         elif tf[0] == -1:
             return header + '<h4>annulation</h4>' + footer
         else:
@@ -1609,7 +1610,7 @@ class ZNotes(ObjectManager,
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]        
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s</h2>" % etud['nomprenom']
-              + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie.</p>" 
+              + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie (sauf Sport &amp; Culture).</p>" 
               ]
         F = self.sco_footer(self,REQUEST)
         sems = self.do_formsemestre_list( args={ 'etat' : '1' } )
@@ -3536,21 +3537,11 @@ class ZNotes(ObjectManager,
             #
             webmaster = getattr(self,'webmaster_email',"l'administrateur.")
             dept = unescape_html(getattr(self,'DeptName', ''))
-            hea = """%(nomprenom)s,
-
-vous trouverez ci-joint votre relevé de notes au format PDF.
-
-Il s'agit d'un relevé provisoire n'ayant aucune valeur officielle
-et susceptible de modifications.
-Pour toute question sur ce document, contactez votre enseignant
-ou le directeur des études (ne pas répondre à ce message).
-
-Cordialement,
-la scolarité du département %(dept)s.
-
-PS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s
-
-""" % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
+            #pdb.set_trace()
+            fmt = formsemestre_pagebulletin_get(self, formsemestre_id)
+            log(fmt)
+            hea = fmt['intro_mail'] % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
+            
             msg = MIMEMultipart()
             subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
             recipients = [ etud['email'] ] 

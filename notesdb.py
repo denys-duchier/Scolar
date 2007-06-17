@@ -283,6 +283,8 @@ class EditableTable:
                     if info['data_type'] == 'text':
                         if v[0] == v[-1] == "'":
                             v = v[1:-1] # strip quotes
+                        v = v.replace('\\012', '\n') # fix (je ne comprend pas bien pourquoi les valeurs sont ici quotées, ce n'est pas le cas dans les tables ordinaires)
+                        v = v.replace("''", "'") # idem
                     elif info['data_type'] == 'real':
                         v = float(v)
                     elif info['data_type'] == 'integer':
