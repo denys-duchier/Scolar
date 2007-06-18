@@ -37,7 +37,7 @@ import notes_table
 from ScolarRolesNames import *
 
 import sco_parcours_dut, sco_codes_parcours
-
+import sco_pvjury
     
 # ------------------------------------------------------------------------------------
 def formsemestre_validation_etud_form(
@@ -296,8 +296,12 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
     for sem in Se.get_semestres():
         is_prev = Se.prev and (Se.prev['formsemestre_id'] == sem['formsemestre_id'])
         is_cur = (Se.formsemestre_id == sem['formsemestre_id'])        
-        etat, decision_sem, decisions_ue = znotes._formsemestre_get_decision(
-            etudid, sem['formsemestre_id'] )
+        
+        dpv = sco_pvjury.dict_pvjury(znotes, sem['formsemestre_id'], etudids=[etudid])
+        pv = dpv['decisions'][0]
+        decision_sem = pv['decision_sem']
+        decisions_ue = pv['decisions_ue']
+
         nt = znotes._getNotesCache().get_NotesTable(znotes, sem['formsemestre_id'] )
         if is_cur:
             type_sem = '*'

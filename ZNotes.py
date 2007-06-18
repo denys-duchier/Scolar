@@ -72,6 +72,7 @@ from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_bulletins, sco_recapcomplet
 import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
+import sco_pvjury
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -3760,69 +3761,63 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEnsView, 'formsemestre_validation_list')
     def formsemestre_validation_list(self, formsemestre_id, REQUEST):
         "Liste les UE et semestres validés"
-        cnx = self.GetDBConnexion()
-        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+        dpv = sco_pvjury.dict_pvjury(self, formsemestre_id)
+
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         header = self.sco_header(self,REQUEST)
         footer = self.sco_footer(self, REQUEST)
         H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
+        <p>(dernière modif le %s)</p>
         <table class="tablegrid"><tr><th>Nom</th><th>Décision</th><th>UE validées</th><th>Autorisations</th></tr>"""
-              % (formsemestre_id, sem['titre_num']) ]
+              % (formsemestre_id, sem['titre_num'], dpv['date']) ]
         #
-        for e in nt.inscrlist: # ici par ordre alphabetique
-            etudid = e['etudid']
-            decision, ue_acros = self._formsemestre_get_decision_str(cnx, etudid, formsemestre_id)
-            #
-            H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td>'
-                      % (self.ScoURL(), etudid, self.nomprenom(nt.identdict[etudid]),
-                         decision, ue_acros) )
-            alist = []
-            for aut in sco_parcours_dut.formsemestre_get_autorisation_inscription(
-                self, etudid, formsemestre_id):
-                alist.append( 'S' + str(aut['semestre_id']) )
-            H.append( '<td>' + ', '.join(alist) + '</td></tr>' )
+        for e in dpv['decisions']:
+            H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'
+                      % (self.ScoURL(), e['identite']['etudid'], self.nomprenom(e['identite']),
+                         e['decision_sem_descr'], e['decisions_ue_descr'], e['autorisations_descr']) )
         H.append('</table>')
+
         return header + '\n'.join(H) + footer
 
-    def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
-        """Chaine HTML decrivant la decision du jury pour cet etudiant.
-        Resultat: decision semestre, UE capitalisees
-        """
-        etat, decision_sem, decisions_ue = self._formsemestre_get_decision(etudid, formsemestre_id )
-        if etat == 'D':
-            decision = 'démission'
-        else:
-            if decision_sem:
-                cod = decision_sem['code']
-                decision = sco_codes_parcours.CODES_EXPL.get(cod,'') + ' (%s)' % cod
-            else:
-                decision = ''
+#     def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
+#         """Chaine HTML decrivant la decision du jury pour cet etudiant.
+#         Resultat: decision semestre, UE capitalisees
+#         """
+#         etat, decision_sem, decisions_ue = self._formsemestre_get_decision(etudid, formsemestre_id )
+#         if etat == 'D':
+#             decision = 'démission'
+#         else:
+#             if decision_sem:
+#                 cod = decision_sem['code']
+#                 decision = sco_codes_parcours.CODES_EXPL.get(cod,'') + ' (%s)' % cod
+#             else:
+#                 decision = ''
 
-        if decisions_ue:
-            uelist = []
-            for ue_id in decisions_ue.keys():
-                if decisions_ue[ue_id]['code'] == 'ADM':
-                    ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-                    uelist.append(ue)
-            uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
-            ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-        else:
-            ue_acros = ''
-        return decision, ue_acros
+#         if decisions_ue:
+#             uelist = []
+#             for ue_id in decisions_ue.keys():
+#                 if decisions_ue[ue_id]['code'] == 'ADM':
+#                     ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+#                     uelist.append(ue)
+#             uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
+#             ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
+#         else:
+#             ue_acros = ''
+#         return decision, ue_acros
     
-    def _formsemestre_get_decision(self, etudid, formsemestre_id ):
-        """Semestre et liste des UE validées
-        Resultat:
-          etat = I|D  (inscription ou démission)
-          decision_sem = {}
-          decisions_ue = {} 
-        }
-        """
-        nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-        etat = nt.get_etud_etat(etudid)
-        decision_sem = nt.get_etud_decision_sem(etudid)
-        decisions_ue = nt.get_etud_decision_ues(etudid)
-        return etat, decision_sem, decisions_ue                                                       
+#     def _formsemestre_get_decision(self, etudid, formsemestre_id ):
+#         """Semestre et liste des UE validées
+#         Resultat:
+#           etat = I|D  (inscription ou démission)
+#           decision_sem = {}
+#           decisions_ue = {} 
+#         }
+#         """
+#         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+#         etat = nt.get_etud_etat(etudid)
+#         decision_sem = nt.get_etud_decision_sem(etudid)
+#         decisions_ue = nt.get_etud_decision_ues(etudid)
+#         return etat, decision_sem, decisions_ue                                                       
 
     # ------------- Feuille excel pour preparation des jurys
     security.declareProtected(ScoView,'do_feuille_preparation_jury')

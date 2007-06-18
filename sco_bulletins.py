@@ -32,6 +32,8 @@ from notes_table import *
 from ScolarRolesNames import *
 import htmlutils
 import pdfbulletins
+import sco_pvjury
+
 
 def make_formsemestre_bulletinetud(
     znotes, formsemestre_id, etudid,
@@ -417,10 +419,11 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     if date_dem:
         return inscr + '. Démission le %s.' % date_dem
 
-    decision, ue_acros = znotes._formsemestre_get_decision_str(cnx, etudid, formsemestre_id)
+    dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=[etudid])
+    pv = dpv['decisions'][0]
     dec = ''
-    if decision:
-        dec = 'Décision jury: ' + decision + '. '
-    if ue_acros:
-        dec += ' UE acquises: ' + ue_acros
+    if pv['decision_sem_descr']:
+        dec = 'Décision jury: ' + pv['decision_sem_descr'] + '. '
+    if pv['decisions_ue_descr']:
+        dec += ' UE acquises: ' + pv['decisions_ue_descr']
     return inscr + ' ' + dec
