@@ -3758,27 +3758,20 @@ class ZNotes(ObjectManager,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
             desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
     
-    security.declareProtected(ScoEnsView, 'formsemestre_validation_list')
-    def formsemestre_validation_list(self, formsemestre_id, REQUEST):
+    security.declareProtected(ScoEnsView, 'formsemestre_pvjury')
+    def formsemestre_pvjury(self, formsemestre_id, format='html',
+                            REQUEST=None):
         "Liste les UE et semestres validés"
-        dpv = sco_pvjury.dict_pvjury(self, formsemestre_id)
-
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        header = self.sco_header(self,REQUEST)
-        footer = self.sco_footer(self, REQUEST)
-        H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-        <p>(dernière modif le %s)</p>
-        <table class="tablegrid"><tr><th>Nom</th><th>Décision</th><th>UE validées</th><th>Autorisations</th></tr>"""
-              % (formsemestre_id, sem['titre_num'], dpv['date']) ]
-        #
-        for e in dpv['decisions']:
-            H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                      % (self.ScoURL(), e['identite']['etudid'], self.nomprenom(e['identite']),
-                         e['decision_sem_descr'], e['decisions_ue_descr'], e['autorisations_descr']) )
-        H.append('</table>')
-
-        return header + '\n'.join(H) + footer
-
+        dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, with_prev=True)
+        if format=='html':
+            return sco_pvjury.pvjury_html(self, dpv, REQUEST)
+        elif format=='xls':
+            xls = sco_pvjury.pvjury_excel(self, dpv)
+            filename = 'PV ' + dpv['formsemestre']['titreannee'] 
+            return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        else:
+            raise ScoValueError('invalid format : %s' % format )
+        
 #     def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
 #         """Chaine HTML decrivant la decision du jury pour cet etudiant.
 #         Resultat: decision semestre, UE capitalisees

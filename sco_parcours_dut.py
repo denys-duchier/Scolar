@@ -60,7 +60,7 @@ class DecisionSem:
         # code unique utilise pour la gestion du formulaire
         self.codechoice = str(hash( (code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite)))
         # xxx debug
-        log('%s: %s %s %s %s %s' % (self.codechoice,code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite) ) 
+        #log('%s: %s %s %s %s %s' % (self.codechoice,code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite) ) 
 
 class SituationEtudParcours:
     "Semestre dans un parcours"

@@ -107,7 +107,7 @@
 </li>
 </dtml-if permission>
 
- <li><a class="stdlink" href="formsemestre_validation_list?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury</a>
+ <li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury</a>
  </li>
 
 <dtml-comment> Obsolete
