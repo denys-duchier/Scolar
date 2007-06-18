@@ -1,6 +1,5 @@
-<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')"><dtml-if "not isFile">
+<dtml-let isFile="REQUEST.form.get('tabformat','html') in ('csv','xls','xml')"><dtml-unless sortcol><dtml-call "REQUEST.set('sortcol',None)"></dtml-unless><dtml-if "not isFile">
 <dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
-<dtml-unless sortcol><dtml-call "REQUEST.set('sortcol',None)"></dtml-unless>
 
 <dtml-call "REQUEST.set('no_side_bar', 1)">
 
