@@ -3757,6 +3757,27 @@ class ZNotes(ObjectManager,
             self, formsemestre_id, etudid=etudid,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
             desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
+
+    security.declareProtected(ScoView, 'formsemestre_validation_auto')
+    def formsemestre_validation_auto(self, formsemestre_id, REQUEST):
+        "Formulaire saisie automatisee des decisions d'un semestre"
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        
+        return sco_formsemestre_validation.formsemestre_validation_auto(self, formsemestre_id, REQUEST)
+    
+    security.declareProtected(ScoView, 'formsemestre_validation_auto')
+    def do_formsemestre_validation_auto(self, formsemestre_id, REQUEST):
+        "Formulaire saisie automatisee des decisions d'un semestre"
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        
+        return sco_formsemestre_validation.do_formsemestre_validation_auto(self, formsemestre_id, REQUEST)
+
     
     security.declareProtected(ScoEnsView, 'formsemestre_pvjury')
     def formsemestre_pvjury(self, formsemestre_id, format='html',

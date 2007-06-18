@@ -117,7 +117,7 @@ def formsemestre_validation_etud_form(
         H.append("""<div class="sfv_warning"><p>La décision du semestre précédent est en
         <b>attente</b> à cause d\'un <b>problème d\'assiduité<b>.</p>
         <p>Vous devez la corriger avant de continuer ce jury. Soit vous considérez que le
-        problème d'assiuité n'est pas réglé et choisissez de ne pas valider le semestre
+        problème d'assiduité n'est pas réglé et choisissez de ne pas valider le semestre
         précédent (échec), soit vous entrez une décision sans prendre en compte
         l'assiduité.</p>
         <form method="get" action="formsemestre_validation_etud_form">
@@ -204,7 +204,7 @@ def formsemestre_validation_etud(
         raise ScoValueError('code choix invalide ! (%s)' % codechoice)
     #
     Se.valide_decision(choice, REQUEST) # enregistre
-    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
+    _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
 
 def formsemestre_validation_etud_manu(
     znotes, # ZNotes instance
@@ -212,7 +212,8 @@ def formsemestre_validation_etud_manu(
     etudid=None, # required
     code_etat='', new_code_prev='', devenir='', # required (la decision manuelle)
     desturl='', sortcol=None,
-    REQUEST=None):
+    REQUEST=None,
+    redirect=True):
     """Enregistre validation"""
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
@@ -228,11 +229,12 @@ def formsemestre_validation_etud_manu(
         code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
         formsemestre_id_utilise_pour_compenser = formsemestre_id_utilise_pour_compenser)
     #
-    Se.valide_decision(choice, REQUEST) # enregistre
-    _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
+    Se.valide_decision(choice, REQUEST) # enregistre    
+    if redirect:
+        _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
 
 
-def _do_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST):
+def _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST):
     adr = 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1' % (formsemestre_id, etudid)
     if sortcol:
         adr += '&sortcol=' + sortcol
@@ -459,3 +461,48 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
     </form>
     """)
     return '\n'.join(H)
+
+# ----------- 
+def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
+    "Formulaire saisie automatisee des decisions d'un semestre"
+    sem= znotes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    H = [ znotes.sco_header(znotes,REQUEST, page_title='Saisie automatique') ]
+    H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
+    <ul>
+    <li>Seuls les étudiants qui obtiennent le semestre seront affectés (code ADM, moyenne générale et
+    toutes les barres, semestre précédent validé);</li>
+    <li>le semestre précédent, s'il y en a un, doit avoir été validé;</li>
+    <li>les décisions du semestre précédent ne seront pas modifiées;</li>
+    <li>l'assiduité n'est <b>pas</b> prise en compte;</li>
+    </ul>
+    <p>Il est donc vivement conseillé de relire soigneusement les décisions à l'issue
+    de cette procédure !</p>
+    <form action="do_formsemestre_validation_auto">
+    <input type="hidden" name="formsemestre_id" value="%s"/>
+    <input type="submit" value="Calculer automatiquement ces décisions"/>
+    <p><em>Le calcul prend quelques minutes, soyez patients !</em></p>
+    </form>
+    """ % (sem['titreannee'], formsemestre_id))
+    H.append(znotes.sco_footer(znotes, REQUEST))
+    return '\n'.join(H)
+
+def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
+    "Saisie automatisee des decisions d'un semestre"
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    etudids = nt.get_etudids()
+    nb_valid = 0
+    for etudid in etudids:
+        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
+        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+        # Conditions pour validation automatique:
+        if ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
+             and Se.barre_moy_ok and Se.barres_ue_ok ):
+             # ok, valide !
+             formsemestre_validation_etud_manu(znotes, formsemestre_id, etudid,
+                                               code_etat='ADM',
+                                               REQUEST=REQUEST, redirect=False)
+             nb_valid += 1
+    log('do_formsemestre_validation_auto: %d validations' % nb_valid)
+    REQUEST.RESPONSE.redirect('formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1'
+                              % formsemestre_id)
+    

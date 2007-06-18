@@ -23,14 +23,24 @@
 </form> 
 </dtml-if isFile><dtml-if "tabformat == 'xml'"><dtml-call "REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')"></dtml-if><dtml-call "REQUEST.set('hidemodules', REQUEST.get('hidemodules', 0))"><dtml-call "REQUEST.set('modejury', REQUEST.get('modejury', 0))"><dtml-var "do_formsemestre_recapcomplet(REQUEST, formsemestre_id, format=tabformat, hidemodules=hidemodules, modejury=modejury, sortcol=sortcol)">
 <dtml-if "not isFile">
+
 <p>
  <a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
 </p>
+
+
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <p>
+<dtml-if modejury>
+ <a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=<dtml-var formsemestre_id>">Calcul automatique des décisions du jury</a>
+<dtml-else>
  <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
+</dtml-if>
 </p>
 </dtml-if permission>
+
+
+
 
 <p>
  <a class="stdlink" href="clearcache">Forcer le recalcul des moyennes</a>
