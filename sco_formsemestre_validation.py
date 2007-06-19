@@ -426,7 +426,7 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
             # traitement spécial pour ADC (compensation)
             # ne propose que les semestres avec lesquels on peut compenser
             # le code transmis est ADC_formsemestre_id
-            log(str(Se.sems))
+            #log(str(Se.sems))
             for sem in Se.sems:
                 if sem['can_compensate']:
                     H.append('<option value="%s_%s">Admis par compensation avec S%s (%s)</option>' %

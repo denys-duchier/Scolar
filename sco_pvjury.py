@@ -28,9 +28,6 @@
 """Edition des PV de jury
 """
 
-# XML generation package (apt-get install jaxml)
-import jaxml
-
 import sco_parcours_dut
 import sco_codes_parcours
 import sco_excel

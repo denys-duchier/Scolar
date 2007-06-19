@@ -111,7 +111,7 @@ class SituationEtudParcours:
         state = (prev_code_etat, assiduite,
                  self.barre_moy_ok, self.barres_ue_ok,
                  self.can_compensate_with_prev, self.semestre_non_terminal)
-        #log('get_possible_choices: state=%s' % str(state) )
+        # log('get_possible_choices: state=%s' % str(state) )
         for rule in DUTRules:
             # saute regles REDOSEM si pas de semestres decales:
             if self.sem['gestion_semestrielle'] != '1' and rule.conclusion[3] == 'REDOSEM':
@@ -376,7 +376,7 @@ class SituationEtudParcours:
 def check_compensation( etudid, sem, nt, semc, ntc ):
     """Verifie si le semestre sem peut se compenser en utilisant semc
     - semc non utilisé par un autre semestre
-    - decision du jury prise  ADM ou ADJ
+    - decision du jury prise  ADM ou ADJ ou ATT
     - barres UE (moy ue > 8) dans sem et semc
     - moyenne des moy_gen > 10
     Return boolean
@@ -393,7 +393,7 @@ def check_compensation( etudid, sem, nt, semc, ntc ):
     if abs(sem['semestre_id'] - semc['semestre_id']) != 1:
         return False
     # -- decision jury:
-    if decc and not decc['code'] in ('ADM', 'ADJ'):
+    if decc and not decc['code'] in ('ADM', 'ADJ', 'ATT'):
         return False
     # -- barres UE et moyenne des moyennes:
     moy_gen = nt.get_etud_moy_gen(etudid)
@@ -441,7 +441,7 @@ def formsemestre_validate_sem(cnx, formsemestre_id, etudid, code, assidu=True,
         # insert
         args['code'] = code
         args['assidu'] = assidu
-        log('formsemestre_validate_sem: %s' % args )
+        #log('formsemestre_validate_sem: %s' % args )
         scolar_formsemestre_validation_create(cnx, args)
         # marque sem. utilise pour compenser:
         args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
@@ -460,7 +460,7 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     "Update validation semestre"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'code' : code,
              'assidu': int(assidu)}
-    log('formsemestre_update_validation_sem: %s' % args )
+    #log('formsemestre_update_validation_sem: %s' % args )
     cursor = cnx.cursor()
     to_invalidate = []
 
@@ -501,7 +501,7 @@ def formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
         where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id=%(ue_id)s""", args )
         # insert
         args['code'] = code
-        log('formsemestre_validate_ue: %s' % args)
+        # log('formsemestre_validate_ue: %s' % args)
         scolar_formsemestre_validation_create(cnx, args)
     except:
         cnx.rollback()
