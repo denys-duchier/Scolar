@@ -81,6 +81,17 @@ def descr_decision_sem(znotes, etat, decision_sem):
             decision = ''
     return decision
 
+def descr_decision_sem_abbrev(znotes, etat, decision_sem):
+    "résumé textuel tres court (code) de la décision de semestre"
+    if etat == 'D':
+        decision = 'Démission'
+    else:
+        if decision_sem:
+            decision = decision_sem['code']
+        else:
+            decision = ''
+    return decision
+
 def descr_autorisations(znotes, autorisations):
     "résumé texturl des autorisations d'inscription (-> 'S1, S3' )"
     alist = []
@@ -162,10 +173,12 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
             etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
             Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
             if Se.prev and Se.prev_decision:
+                d['prev_decision_sem'] = Se.prev_decision
                 d['prev_code'] = Se.prev_decision['code']
                 d['prev_code_descr'] = descr_decision_sem(znotes, 'I', Se.prev_decision)
                 has_prev = True
             else:
+                d['prev_decision_sem'] = None
                 d['prev_code'] = ''
                 d['prev_code_descr'] = ''
                 
@@ -186,25 +199,27 @@ def pvjury_excel(znotes, dpv):
         id_cur = ' S%s' % sem['semestre_id']
     else:
         id_cur = ''
-    titles = ['Nom', 'Décision' + id_cur, 'UE' + id_cur + ' capitalisées']
+    titles = ['Nom']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         titles += ['Décision S%s' % id_prev]
-    titles += ['Devenir', 'Observations']
+        
+    titles += ['Décision' + id_cur, 'UE' + id_cur + ' capitalisées',
+               'Devenir', 'Observations']
     lines = []
     for e in dpv['decisions']:
         if dpv['has_prev']:
             lines.append( (znotes.nomprenom(e['identite']),
-                           e['decision_sem_descr'],
+                           descr_decision_sem_abbrev(znotes, None, e['prev_decision_sem']),
+                           descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
                            e['decisions_ue_descr'],
-                           e['prev_code_descr'],
                            e['autorisations_descr'],
                            unquote(e['observation'])
                            )
                           )
         else:
             lines.append( (znotes.nomprenom(e['identite']),
-                           e['decision_sem_descr'],
+                           descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
                            e['decisions_ue_descr'],
                            e['autorisations_descr'],
                            unquote(e['observation'])
@@ -228,21 +243,34 @@ def pvjury_html(znotes, dpv, REQUEST):
         id_cur = ''
     
     H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-    <p>(dernière modif le %s)   <a href="formsemestre_pvjury?formsemestre_id=%s&format=xls">Version Excel</a></p>
-    <table class="tablegrid"><tr><th>Nom</th><th>Décision%s</th><th>UE capitalisées</th>"""
-          % (formsemestre_id, sem['titre_num'], dpv['date'], formsemestre_id, id_cur) ]
+    <p>(dernière modif le %s)   <a href="formsemestre_pvjury?formsemestre_id=%s&format=xls">Version Excel</a></p><p>
+    <table class="tablegrid"><tr><th>Nom</th>"""
+          % (formsemestre_id, sem['titre_num'], dpv['date'], formsemestre_id) ]
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         H.append('<th>Décision S%s</th>' % id_prev )
-    H.append('<th>Autorisations</th><th></th></tr>')
+    H.append('<th>Décision%s</th><th>UE capitalisées</th><th>Autorisations</th><th></th></tr>' % id_cur )
     #
     for e in dpv['decisions']:
-        H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td>'
-                  % (znotes.ScoURL(), e['identite']['etudid'], znotes.nomprenom(e['identite']),
-                     e['decision_sem_descr'], e['decisions_ue_descr']) )
+        cod = descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem'])
+        H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td>'
+                  % (znotes.ScoURL(), e['identite']['etudid'],
+                     znotes.nomprenom(e['identite'])))
         if dpv['has_prev']:
-            H.append('<td>%s</td>' % e['prev_code_descr'])
+            H.append('<td>%s</td>' %
+                     descr_decision_sem_abbrev(znotes,None,e['prev_decision_sem']))
+        H.append( '<td>%s</td><td>%s</td>' % (cod, e['decisions_ue_descr']))
+
         H.append('<td>%s</td><td>%s</td></tr>' % (e['autorisations_descr'], e['observation']))
+    H.append('</table></p>')
+
+    # Légende des codes
+    codes = sco_codes_parcours.CODES_EXPL.keys()
+    codes.sort()
+    H.append('<h3>Explication des codes</h3><p><table class="expl_codes">')
+    for code in codes:
+        H.append('<tr><td>%s</td><td>%s</td></tr>' %
+                 (code, sco_codes_parcours.CODES_EXPL[code]))
     H.append('</table>')
 
     return header + '\n'.join(H) + footer
