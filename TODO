@@ -27,6 +27,7 @@ BUG:
  - formsemestre_inscription_with_modules
      si inscription 'un etud deja inscrit, IntegrityError
 
+ - verifier: les acronymes d'UE doivent etre uniques dans une formation
 
 * TODO: Notes  (modifs prioritaires)
 -------------

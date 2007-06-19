@@ -8,6 +8,8 @@ SCONEWS = """
 <ul>
 <li>Suivi des parcours et règles de décision des jurys DUT</li>
 <li>Capitalisation des UEs</li>
+<li>Edition des PV de jurys</li>
+<li>Feuilles (excel) pour préparation jurys</li>
 <li>Nombreuses petites améliorations</li>
 </ul>
 

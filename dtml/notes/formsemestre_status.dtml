@@ -110,10 +110,9 @@
  <li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury</a>
  </li>
 
-<dtml-comment> Obsolete
  <li><a class="stdlink" href="feuille_preparation_jury?formsemestre_id=<dtml-var formsemestre_id>">Générer feuille préparation Jury</a>
  </li>
-</dtml-comment>
+
 
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>

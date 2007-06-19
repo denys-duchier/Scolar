@@ -72,7 +72,7 @@ from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_bulletins, sco_recapcomplet
 import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
-import sco_pvjury
+import sco_pvjury, sco_prepajury
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -3834,114 +3834,10 @@ class ZNotes(ObjectManager,
 #         return etat, decision_sem, decisions_ue                                                       
 
     # ------------- Feuille excel pour preparation des jurys
-    security.declareProtected(ScoView,'do_feuille_preparation_jury')
-    def do_feuille_preparation_jury(self, formsemestre_id1, formsemestre_id2, REQUEST):
-        "Feuille excel pour preparation des jurys"
-        nt1 = self._getNotesCache().get_NotesTable(self, formsemestre_id1)
-        nt2 = self._getNotesCache().get_NotesTable(self, formsemestre_id2)
-        # construit { etudid : [ ident, { formsemestre_id : (moyennes) } ] }
-        # (fusionne les liste d'etudiants qui peuvent differer d'un semestre a l'autre)
-        R = {}
-        Tdict = nt1.get_table_moyennes_dict()
-        for etudid in Tdict.keys():
-            R[etudid] = [ nt1.identdict[etudid], { formsemestre_id1 : Tdict[etudid] } ]
-        Tdict = nt2.get_table_moyennes_dict()
-        for etudid in Tdict.keys():
-            if R.has_key(etudid):
-                R[etudid][1][formsemestre_id2] = Tdict[etudid]
-            else:
-                R[etudid] = [ nt2.identdict[etudid], { formsemestre_id2 : Tdict[etudid] } ]
-        ues_sems = { formsemestre_id1 : nt1.get_ues(), formsemestre_id2 : nt2.get_ues() }
-        # Contruit table pour export excel
-        # Nom, Prenom, Naissance, Cursus (?), moy sem. 1, moy sem 2
-        head = ['Nom', 'Prénom', 'Date Naissance', 'Cursus']
-        for nt in (nt1,nt2):
-            for ue in nt.get_ues():
-                head.append(ue['acronyme'])
-            head += ['Moy', 'Décision Comm.', 'Compensation' ]
-        titres_sems = ['','','','']
-        for nt in (nt1,nt2):
-            titres_sems += [ '%s du %s au %s'%(unquote(nt.sem['titre_num']), # export xls, pas html
-                                               nt.sem['date_debut'], nt.sem['date_fin']) ]
-            titres_sems += ['']*(len(ues_sems[nt.sem['formsemestre_id']])+2)
-        L = [ titres_sems ]
-        # forme la liste des etudids tries par noms
-        etudids = [ (R[k][0]['nom'], k) for k in R.keys() ] # (nom, etudid)
-        etudids.sort()
-        etudids = [ x[1] for x in etudids ]
-        for etudid in etudids:
-            cursus = ''
-            if nt1.get_etud_etat(etudid) == 'D' or nt2.get_etud_etat(etudid) == 'D':
-                cursus = 'DEM'
-            ident = R[etudid][0]
-            l = [ ident['nom'], ident['prenom'], ident['annee_naissance'], cursus ]
-            for formsemestre_id in (formsemestre_id1, formsemestre_id2):
-                t = R[etudid][1].get(formsemestre_id,None)
-                if not t:
-                    l += ['']*(len(ues_sems[formsemestre_id])+3)
-                else:
-                    iue = 0
-                    for ues in ues_sems[formsemestre_id]:
-                        iue += 1
-                        l.append(t[iue])
-                    l.append(t[0])
-                    l += ['',''] # decision com, compensation
-            L.append(l)
-        #
-        L.append( [''] )
-        L.append( ['Préparé par %s le %s sur %s pour %s' %
-                   (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
-                    REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )
-        xls = sco_excel.Excel_SimpleTable( titles=head, lines=L, SheetName='Notes' )
-        return sco_excel.sendExcelFile(REQUEST, xls, 'RecapMoyennesJury.xls' )
-
     security.declareProtected(ScoView,'feuille_preparation_jury')
-    def feuille_preparation_jury(self,formsemestre_id, REQUEST):
-        "choix semestre precedent pour feuille jury"
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-        H = [ self.sco_header(self,REQUEST) ]
-        H.append( """
-        <h2>Préparation du Jury (OBSOLETE)</h2>
-        <p>
-        Cette fonction OBSOLETE va générer une feuille Excel avec les moyennes de deux semestres,
-        pour présentation en jury de fin d'année.</p>
-        <p>Le semestre courant est: <b>%s (%s - %s)</b></p>
-        <p>Choisissez le semestre "précédent".</p>
-        <form method="GET" action="do_feuille_preparation_jury">
-        <input type="hidden" name="formsemestre_id2" value="%s"/>
-        """ % (sem['titre_num'], sem['date_debut'], sem['date_fin'], formsemestre_id) )
-        sems = self.do_formsemestre_list()
-        othersems = []
-        d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
-        date_fin_origine = datetime.date(y,m,d)
-        for s in sems:
-            if s['formsemestre_id'] == formsemestre_id:
-                continue # saute le semestre d'où on vient
-            if s['date_debut']:
-                d,m,y = [ int(x) for x in s['date_debut'].split('/') ]
-                datedebut = datetime.date(y,m,d)
-                if datedebut > date_fin_origine:
-                    continue # ne mentionne pas les semestres situes apres
-            s['titremenu'] = s['titre'] + '&nbsp;&nbsp;(%s - %s)' % (s['date_debut'],s['date_fin'])
-            othersems.append(s)  
-        menulist = []
-        for o in othersems:
-            s = ''
-            menulist.append(
-                '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
-        menulist.append('<option value="%s">Répéter celui-ci</option>' % formsemestre_id)
-        if othersems:
-            H.append( '<p><b>Semestre précédent:</b> <select name="formsemestre_id1">'
-                  + '\n '.join(menulist) + '</select></p>' )
-        else:
-            H.append("""<p>Aucun autre semestre ! (on va répéter le même)</p>
-            <input type="hidden" name="formsemestre_id1" value="%s"/>
-            """ % formsemestre_id)
-        H.append("""<input type="submit" value="Générer feuille"/></form>""")
-        H.append(self.sco_footer(self, REQUEST))
-        return '\n'.join(H)
-
-        
+    def feuille_preparation_jury(self, formsemestre_id, REQUEST):
+        "Feuille excel pour preparation des jurys"
+        return sco_prepajury.feuille_preparation_jury(self, formsemestre_id, REQUEST)        
         
     # ------------- INSCRIPTIONS: PASSAGE D'UN SEMESTRE A UN AUTRE
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscr_passage')
