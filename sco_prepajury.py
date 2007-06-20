@@ -62,7 +62,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             prev_decision = ntp.get_etud_decision_sem(etudid)
             if prev_decision:
                 prev_code[etudid] = prev_decision['code']
-        
+                if prev_decision['compense_formsemestre_id']:
+                    prev_code[etudid] += '+' # indique qu'il a servi a compenser
         moy[etudid] = nt.get_etud_moy_gen(etudid)
         for ue in nt.get_ues(filter_sport=True):
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
@@ -70,6 +71,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         decision = nt.get_etud_decision_sem(etudid)
         if decision:
             code[etudid] = decision['code']
+            if decision['compense_formsemestre_id']:
+                code[etudid] += '+' # indique qu'il a servi a compenser
     # Construit table
     L = [ [] ]
     all_ues =  znotes.do_ue_list(args={ 'formation_id' : sem['formation_id']})
