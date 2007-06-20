@@ -337,9 +337,15 @@ class SituationEtudParcours:
         # (on ne modifie pas les codes d'UE car les notes n'ont
         # pas changé XXX ils pourraient passer de AJ à CMP mais c'est sans doute inutile)
         if self.prev and decision.new_code_prev:
+            if decision.new_code_prev == ADC:
+                # ne compense le prec. qu'avec le sem. courant
+                fsid = self.formsemestre_id
+            else:
+                fsid = None
             to_invalidate += formsemestre_update_validation_sem(
                 cnx, self.prev['formsemestre_id'],
-                self.etudid, decision.new_code_prev)
+                self.etudid, decision.new_code_prev, assidu=1,
+                formsemestre_id_utilise_pour_compenser=fsid)
             logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
                   msg='formsemestre_id=%s code=%s'%(self.prev['formsemestre_id'],
                                                     decision.new_code_prev))
@@ -376,7 +382,7 @@ class SituationEtudParcours:
 def check_compensation( etudid, sem, nt, semc, ntc ):
     """Verifie si le semestre sem peut se compenser en utilisant semc
     - semc non utilisé par un autre semestre
-    - decision du jury prise  ADM ou ADJ ou ATT
+    - decision du jury prise  ADM ou ADJ ou ATT ou ADC
     - barres UE (moy ue > 8) dans sem et semc
     - moyenne des moy_gen > 10
     Return boolean
@@ -393,7 +399,7 @@ def check_compensation( etudid, sem, nt, semc, ntc ):
     if abs(sem['semestre_id'] - semc['semestre_id']) != 1:
         return False
     # -- decision jury:
-    if decc and not decc['code'] in ('ADM', 'ADJ', 'ATT'):
+    if decc and not decc['code'] in ('ADM', 'ADJ', 'ATT', 'ADC'):
         return False
     # -- barres UE et moyenne des moyennes:
     moy_gen = nt.get_etud_moy_gen(etudid)
@@ -441,16 +447,18 @@ def formsemestre_validate_sem(cnx, formsemestre_id, etudid, code, assidu=True,
         # insert
         args['code'] = code
         args['assidu'] = assidu
-        #log('formsemestre_validate_sem: %s' % args )
+        log('formsemestre_validate_sem: %s' % args )
         scolar_formsemestre_validation_create(cnx, args)
         # marque sem. utilise pour compenser:
-        args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
-                  'compense_formsemestre_id' : formsemestre_id,
-                  'etudid' : etudid }
-        cursor.execute("""update scolar_formsemestre_validation
-        set compense_formsemestre_id=%(compense_formsemestre_id)s
-        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
-        and ue_id is null""", args2 )
+        if formsemestre_id_utilise_pour_compenser:
+            assert code == 'ADC'            
+            args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
+                      'compense_formsemestre_id' : formsemestre_id,
+                      'etudid' : etudid }
+            cursor.execute("""update scolar_formsemestre_validation
+            set compense_formsemestre_id=%(compense_formsemestre_id)s
+            where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
+            and ue_id is null""", args2 )
     except:
         cnx.rollback()
         raise
@@ -460,7 +468,7 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     "Update validation semestre"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'code' : code,
              'assidu': int(assidu)}
-    #log('formsemestre_update_validation_sem: %s' % args )
+    log('formsemestre_update_validation_sem: %s' % args )
     cursor = cnx.cursor()
     to_invalidate = []
 
@@ -475,7 +483,8 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     cursor.execute("""update scolar_formsemestre_validation set compense_formsemestre_id=NULL
     where compense_formsemestre_id=%(formsemestre_id)s and etudid = %(etudid)s""",
                    args )
-    if code == 'ADC':
+    if formsemestre_id_utilise_pour_compenser:
+        assert code == 'ADC'
         # marque sem. utilise pour compenser:
         args2 = { 'formsemestre_id' : formsemestre_id_utilise_pour_compenser,
                   'compense_formsemestre_id' : formsemestre_id,
