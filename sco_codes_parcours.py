@@ -67,6 +67,8 @@ CODES_EXPL = {
     NAR : 'Echec, non autorisé à redoubler'
     }
 
+CODES_SEM_VALIDES = { 'ADM' : 1, 'ADC' : 1, 'ADJ' : 1 } # semestre validé
+
 DEVENIR_EXPL = {
     NEXT      : 'Passage au semestre suivant',
     REDOANNEE : 'Redoublement année',

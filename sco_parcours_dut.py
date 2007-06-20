@@ -185,7 +185,7 @@ class SituationEtudParcours:
                 args={ 'formation_id' : sem['formation_id'] })[0]['formation_code']
             # si sem peut servir à compenser le semestre courant, positionne
             #  can_compensate
-            sem['can_compensate'] = check_compensation( self.etudid, self.sem, self.nt, sem, nt )
+            sem['can_compensate'] = check_compensation(self.etudid, self.sem, self.nt, sem, nt)
         
         self.ue_acros = ue_acros.keys()
         self.ue_acros.sort()
@@ -196,23 +196,6 @@ class SituationEtudParcours:
         """Liste des semestres dans lesquels a été inscrit
         l'étudiant (quelle que soit la formation), le plus ancien en tête"""
         return self.sems
-
-    def codes_ues(self, valid_semestre):
-        """Calcule les codes a attribuer aux UE de ce semestre
-        suivant qu'on le valide ou pas.
-        Ce code n'est jamais modifié par le jury (AUTO)
-        result: { ue_id : code }
-        """
-        from notes_table import NOTES_BARRE_VALID_UE
-        codes_ues = {}
-        for ue_id in self.ues_status.keys():
-            if self.ues_status[ue_id]['moy_ue'] >= NOTES_BARRE_VALID_UE:
-                codes_ues[ue_id] = ADM
-            elif valid_semestre:
-                codes_ues[ue_id] = CMP
-            else:
-                codes_ues[ue_id] = AJ
-        return codes_ues
     
     def _comp_barres(self):
         "calcule barres_ue_ok et barre_moy_ok:  barre moy. gen. et barres UE"
@@ -322,20 +305,9 @@ class SituationEtudParcours:
         logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
               msg='formsemestre_id=%s code=%s'%(self.formsemestre_id, decision.code_etat))
         # -- decisions UEs
-        # (les codes UE dépendent de la validation ou non du semestre)
-        if decision.code_etat in ('ADM', 'ADC', 'ADJ'):
-            codes_ues = self.codes_ues(True)
-        else:
-            codes_ues = self.codes_ues(False)
-        
-        for ue_id in codes_ues.keys():
-            formsemestre_validate_ue(cnx, self.formsemestre_id, self.etudid,
-                                     ue_id, codes_ues[ue_id] )
-            logdb(REQUEST, cnx, method='validate_ue', etudid=self.etudid,
-                  msg='ue_id=%s code=%s'%(ue_id, codes_ues[ue_id]))
+        formsemestre_validate_ues(self.znotes, self.formsemestre_id, self.etudid,
+                                  decision.code_etat, REQUEST=REQUEST)
         # -- modification du code du semestre precedent
-        # (on ne modifie pas les codes d'UE car les notes n'ont
-        # pas changé XXX ils pourraient passer de AJ à CMP mais c'est sans doute inutile)
         if self.prev and decision.new_code_prev:
             if decision.new_code_prev == ADC:
                 # ne compense le prec. qu'avec le sem. courant
@@ -349,7 +321,12 @@ class SituationEtudParcours:
             logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
                   msg='formsemestre_id=%s code=%s'%(self.prev['formsemestre_id'],
                                                     decision.new_code_prev))
+            # modifs des codes d'UE (pourraient passer de ADM a CMP, meme sans modif des notes)
+            formsemestre_validate_ues(self.znotes, self.prev['formsemestre_id'], self.etudid,
+                                      decision.new_code_prev, REQUEST=REQUEST)
+            
             self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id'])
+
         # -- supprime autorisations venant de ce formsemestre        
         cursor = cnx.cursor()
         try:
@@ -499,8 +476,33 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s
     and ue_id is null""", args )
     return to_invalidate
-                   
-def formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
+
+
+def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, REQUEST=None):
+    """Enregistre codes UE, selon état semestre.
+    Les codes UE sont toujours calculés ici, et non passés en paramètres
+    car ils ne dépendent que de la note d'UE et de la validation ou non du semestre.
+    """
+    from notes_table import NOTES_BARRE_VALID_UE
+    valid_semestre = CODES_SEM_VALIDES.get(code_etat_sem, False)
+    cnx = znotes.GetDBConnexion()
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id )
+    ue_ids = [ x['ue_id'] for x in nt.get_ues(etudid=etudid, filter_sport=True) ]
+    for ue_id in ue_ids:
+        ue_status = nt.get_etud_ue_status(etudid, ue_id)
+        if ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+            code_ue = ADM
+        elif valid_semestre:
+            code_ue = CMP
+        else:
+            code_ue = AJ
+        do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code_ue)
+        if REQUEST:
+            logdb(REQUEST, cnx, method='validate_ue', etudid=etudid,
+                  msg='ue_id=%s code=%s'%(ue_id, code_ue))
+
+            
+def do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
     "Ajoute ou change validation UE"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'ue_id' : ue_id }
     # delete existing
