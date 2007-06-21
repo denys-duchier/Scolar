@@ -29,7 +29,7 @@
 </p>
 
 
-<dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
+<dtml-if "can_validate_sem(REQUEST, formsemestre_id)">
 <p>
 <dtml-if modejury>
  <a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=<dtml-var formsemestre_id>">Calcul automatique des décisions du jury</a>

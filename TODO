@@ -13,7 +13,6 @@ A VERIFIER AVANT 5.0:
 
 . mise en page ficheEtud
 
-. mettre "feux" rouge/orange/vert sur recap parcours
 . mettre explication du code en clair sur le bulletin
 
 . notes_table: pouvoir changer decision sans invalider tout le cache
@@ -32,6 +31,11 @@ BUG:
 
 * TODO: Notes  (modifs prioritaires)
 -------------
+
+- statistiques durant saisie jury: nombre d'etudiants dans chaque code
+   (26 ADM, 3 AJ, etc) + nombre passant, redoublant année, redoublant semestre.
+
+- URL site auxiliaire (emplois du temps) dans chaque semestre
 
 - bulles d'aide avec moyenne des moyennes d'UE dans recap parcours
 

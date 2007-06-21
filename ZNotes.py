@@ -3708,10 +3708,14 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'can_validate_sem')
     def can_validate_sem(self, REQUEST, formsemestre_id):
         "Vrai si utilisateur peut saisir decision de jury dans ce semestre"
+        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        if sem['etat'] != '1':
+            return False # semestre verrouillé
+
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit, self):
             return True # admin, chef dept
-        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+
         uid = str(authuser)
         if uid == sem['responsable_id']:
             return True
