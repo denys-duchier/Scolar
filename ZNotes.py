@@ -3745,8 +3745,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_validation_etud_manu')
     def formsemestre_validation_etud_manu(self, formsemestre_id, etudid=None,
-                                     code_etat='', new_code_prev='', devenir='',
-                                     desturl='', sortcol=None, REQUEST=None):
+                                          code_etat='', new_code_prev='', devenir='',
+                                          assidu=False,
+                                          desturl='', sortcol=None, REQUEST=None):
         "Enregistre choix jury pour un étudiant"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
@@ -3756,7 +3757,7 @@ class ZNotes(ObjectManager,
         return sco_formsemestre_validation.formsemestre_validation_etud_manu(
             self, formsemestre_id, etudid=etudid,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
-            desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
+            assidu=assidu, desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
 
     security.declareProtected(ScoView, 'formsemestre_validation_auto')
     def formsemestre_validation_auto(self, formsemestre_id, REQUEST):

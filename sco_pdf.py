@@ -38,6 +38,7 @@ from reportlab.rl_config import defaultPageSize
 from reportlab.lib.units import inch, cm, mm
 from reportlab.lib.colors import pink, black, red, blue, green, magenta, red
 from reportlab.lib.colors import Color
+from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER, TA_JUSTIFY
 from reportlab.lib import styles
 
 from sco_utils import *

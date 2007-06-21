@@ -25,7 +25,7 @@
 <dtml-if "not isFile">
 
 <p>
- <a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décision du jury</a>
+ <a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury</a>
 </p>
 
 

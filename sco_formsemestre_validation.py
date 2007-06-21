@@ -211,10 +211,13 @@ def formsemestre_validation_etud_manu(
     formsemestre_id=None, # required
     etudid=None, # required
     code_etat='', new_code_prev='', devenir='', # required (la decision manuelle)
+    assidu=False,
     desturl='', sortcol=None,
     REQUEST=None,
     redirect=True):
-    """Enregistre validation"""
+    """Enregistre validation"""    
+    if assidu:
+        assidu = 1
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     # Si code ADC, extrait le semestre utilisé:
@@ -227,6 +230,7 @@ def formsemestre_validation_etud_manu(
     # Construit le choix correspondant:
     choice = sco_parcours_dut.DecisionSem(
         code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
+        assiduite=assidu,
         formsemestre_id_utilise_pour_compenser = formsemestre_id_utilise_pour_compenser)
     #
     Se.valide_decision(choice, REQUEST) # enregistre    
@@ -443,7 +447,7 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
                 sel='selected'        
             else:
                 sel=''
-            H.append('<option value="%s" %s>%s</option>' % (cod, sel, sco_codes_parcours.CODES_EXPL[cod]) )        
+            H.append('<option value="%s" %s>%s (code %s)</option>' % (cod, sel, sco_codes_parcours.CODES_EXPL[cod], cod) )        
         H.append('</select></td></tr>')
 
     # Choix code devenir
@@ -455,6 +459,8 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
         if Se.sem['gestion_semestrielle'] == '1' or sco_codes_parcours.DEVENIRS_STD.has_key(cod):
             H.append('<option value="%s">%s</option>' % (cod, Se.explique_devenir(cod)))
     H.append('</select></td></tr>')
+
+    H.append('<tr><td><input type="checkbox" name="assidu" checked="checked">assidu</input></td></tr>')
     
     H.append("""</table>
     <input type="submit" value="Valider décision manuelle"/>

@@ -131,7 +131,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         document = BaseDocTemplate(report)
         document.addPageTemplates(
             ScolarsPageTemplate(document,
-                                author='Scolars %s (E. Viennet)' % SCOVERSION,
+                                author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
                                 title='Bulletin %s de %s' % (sem['titre_num'],etud['nomprenom']),
                                 subject='Bulletin de note',
                                 margins=margins,

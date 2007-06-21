@@ -4,7 +4,7 @@ None, ADM, ADC, ADJ	ok	ok	ok	*	*	ADM	ADM		NEXT		Passage normal
 None, ADM, ADC, ADJ	ok	no	ok	*	oui	ATT	ADM		NEXT		Pas moy: attente suivant pour compenser
 None, ADM, ADC, ADJ	ok	*	no	*	*	ATB	ADM, AJ		NEXT		Pas barre UE
 None, ADM, ADC, ADJ	no	*	*	*	oui	ATJ	AJ		NEXT		Pb assiduité, passe sans valider pour l'instant
-ADM, ADJ	ok	no	*	ok	*	ADC	ADM, CMP		NEXT		Compense avec semestre précédent
+ADM, ADJ, ADC	ok	no	*	ok	*	ADC	ADM, CMP		NEXT		Compense avec semestre précédent
 											
 # Semestre prec. ATJ (pb assiduité):											
 ATJ	no	*	*	*	*	NAR	AJ	AJ	REO		Pb assiduité persistant: réorientation
@@ -15,23 +15,24 @@ ATJ	no	*	*	*	*	AJ	AJ	AJ	REDOANNEE		Pb assiduité persistant: redoublement année
 											
 # Semestre prec. ATT (pb moy gen):											
 ATT	ok	ok	ok	ok	*	ADM	ADM	ADC	NEXT		Passage, et compense précédent
-ATT	ok	ok	ok	*	*	ADM	ADJ	ADJ	NEXT		Passage, le jury valide precedent
-ATT	no	ok	ok	*	oui	ATJ	AJ	ADJ	NEXT		Passage, le jury valide précédent, pb assiduité
+ATT	ok	ok	ok	*	*	ADM	ADJ	ADJ	NEXT		Passage, le jury valide le précédent
+ATT	no	ok	ok	*	oui	ATJ	AJ	ADJ	NEXT		Passage, le jury valide le précédent, pb assiduité
 ATT	ok	no	*	*	*	AJ	AJ	AJ	REDOANNEE		Redoublement année
 ATT	*	ok	ok	no	*	AJ	AJ	AJ	REDOANNEE		Pas de compensation ni validation du précédent
 											
 # Semestre prec. ATB (pb barre UE):											
-ATB	*	*	*	*	*	AJ	ADM, AJ	AJ	REDOANNEE		Prev ne peut pas être validé, redoublement année
-ATB	*	*	*	*	*	NAR	ADM, AJ	NAR	REO		Prev ne peut pas être validé, réorientation
-ATB	ok	ok	ok	*	*	ADM	ADM	ADJ			Le jury valide prev
-ATB	ok	no	ok	*	oui	ATT	ADM, AJ	ADJ			Le jury valide prev, pas moyenne gen., attente suivant
-ATB	ok	*	no	*	oui	ATB	ADM, AJ	ADJ			Le jury valide prev, pb barre UE, attente
-ATB	no	*	*	*	oui	ATJ	AJ	ADJ			Le jury valide prev, mais probleme assiduité.
+ATB	*	*	*	*	*	AJ	ADM, AJ	AJ	REDOANNEE		Le précédent ne peut pas être validé, redoublement année
+ATB	*	*	*	*	*	NAR	ADM, AJ	NAR	REO		Le précédent ne peut pas être validé, réorientation
+ATB	ok	ok	ok	*	*	ADM	ADM	ADJ			Le jury valide le précédent
+ATB	ok	no	ok	*	oui	ATT	ADM, AJ	ADJ			Le jury valide le précédent, pas moyenne gen., attente suivant
+ATB	ok	*	no	*	oui	ATB	ADM, AJ	ADJ			Le jury valide le précédent, pb barre UE, attente
+ATB	no	*	*	*	oui	ATJ	AJ	ADJ			Le jury valide le précédent, mais probleme assiduité.
 											
 # Semestre prec. AJ (ajourné):											
-AJ	ok	no	*	*	*	AJ			REDOANNEE		Echec de 2 semestres, redouble année
-AJ	ok	ok	no	*	*	AJ			REDOANNEE		Echec de 2 semestres, redouble année
-NAR	*	*	*	*	*	BUG	BUG		BUG	BUG	Situation impossible !
+AJ	ok	no	*	*	*	AJ		AJ	REDOANNEE		Echec de 2 semestres, redouble année
+AJ	ok	ok	no	*	*	AJ		AJ	REDOANNEE		Echec de 2 semestres, redouble année
+AJ	no	*	*	*	*	NAR			REO		Echec, pas assidu: réorientation
+											
 											
 # Décisions du jury:											
 *	ok	no	*	*	*	ADJ	ADM,CMP		NEXT		Le jury décide de valider
