@@ -178,13 +178,15 @@ def pdf_lettre_individuelle( sem, decision, etud, params ):
     style.leading = 18
     style.alignment = TA_JUSTIFY
 
-    params['prev_semestre_id'] = decision['prev']['semestre_id']
-    params['prev_code_descr']  = decision['prev_code_descr']
     params['semestre_id'] = sem['semestre_id']
     params['decision_sem_descr'] = decision['decision_sem_descr']
     params['t'] = t
     params['s'] = s
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
+    if decision['prev_decision_sem']:
+        params['prev_semestre_id'] = decision['prev']['semestre_id']
+        params['prev_code_descr']  = decision['prev_code_descr']
+    
     # Haut de la lettre:
     objects += makeParas("""
 <para leftindent="%(htab1)s">Villetaneuse, le %(dateJury)s
