@@ -98,7 +98,8 @@ class ZScolar(ObjectManager,
 
     meta_type = 'ZScolar'
     security=ClassSecurityInfo()
-
+    file_path = Globals.package_home(globals())
+    
     # This is the list of the methods associated to 'tabs' in the ZMI
     # Be aware that The first in the list is the one shown by default, so if
     # the 'View' tab is the first, you will never see your tabs by cliquing

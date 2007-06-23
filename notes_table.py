@@ -103,7 +103,7 @@ class NotesTable:
         self.znotes = znotes
         self.formsemestre_id = formsemestre_id
         cnx = znotes.GetDBConnexion()
-        self.sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id})[0]
+        self.sem = znotes.get_formsemestre(formsemestre_id)
         # Infos sur les etudiants
         self.inscrlist = znotes.do_formsemestre_inscription_list(
             args = { 'formsemestre_id' : formsemestre_id })

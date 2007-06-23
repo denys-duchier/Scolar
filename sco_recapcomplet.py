@@ -87,10 +87,15 @@ def do_formsemestre_recapcomplet(
                 return val
         else:
             return val
+    # Compte les decisions de jury
+    codes_nb = DictDefault(defaultvalue=0)
     #
     is_dem = {} # etudid : bool
     for t in T:
         etudid = t[-1]
+        dec = nt.get_etud_decision_sem(etudid)
+        if dec:
+            codes_nb[dec['code']] += 1
         if nt.get_etud_etat(etudid) == 'D':
             gr = 'dem'
             is_dem[etudid] = True
@@ -254,6 +259,14 @@ def do_formsemestre_recapcomplet(
             #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')
         H.append( ligne_titres )
         H.append('</table>')
+        # recap des decisions jury (nombre dans chaque code):
+        if codes_nb:
+            H.append('<h3>Décisions du jury</h3><table>')
+            cods = codes_nb.keys()
+            cods.sort()
+            for cod in cods:
+                H.append('<tr><td>%s</td><td>%d</td></tr>' % (cod, codes_nb[cod]))
+            H.append('</table>')
         return '\n'.join(H)
     elif format == 'csv':
         CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x[:-1]) for x in F ] )

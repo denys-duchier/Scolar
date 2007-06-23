@@ -29,6 +29,7 @@
 """
 import time, cStringIO
 
+import reportlab
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Frame, PageBreak
 from reportlab.platypus import Table, TableStyle, Image, KeepInFrame
 from reportlab.platypus.flowables import Flowable
@@ -58,6 +59,29 @@ def SU(s):
     "convert s from SCO default encoding to UTF8"
     # Mis en service le 4/11/06, passage à ReportLab 2.0
     return unicode(s, SCO_ENCODING, 'replace').encode('utf8')
+
+def _splitPara(txt):
+    "split a string, returns a list of <para > ... </para>"
+    L = []
+    closetag = '</para>'
+    l = len(closetag)
+    start = 0
+    while 1:
+        b = txt.find('<para',start)
+        if b < 0:
+            break
+        e = txt.find(closetag,b)
+        if e < 0:
+            raise ValueError('unbalanced para tags')
+        L.append( txt[b:e+l] )
+        start = e        
+    return L
+
+def makeParas(txt, style):
+    """Returns a list of Paragraph instances from a text
+    with one or more <para> ... </para>
+    """
+    return [ Paragraph( SU(s), style ) for s in _splitPara(txt) ]
 
 
 class ScolarsPageTemplate(PageTemplate) :

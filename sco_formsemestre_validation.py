@@ -105,7 +105,7 @@ def formsemestre_validation_etud_form(
         auts = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             znotes, etudid, formsemestre_id)
         if auts:
-            H.append( '. Autorisé à s\'inscrire en ' )
+            H.append( '. Autorisé%s à s\'inscrire en ' % etud['ne'] )
             alist = []
             for aut in auts:
                 alist.append (str(aut['semestre_id']))
@@ -471,7 +471,7 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
 # ----------- 
 def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     "Formulaire saisie automatisee des decisions d'un semestre"
-    sem= znotes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem= znotes.get_formsemestre(formsemestre_id)
     H = [ znotes.sco_header(znotes,REQUEST, page_title='Saisie automatique') ]
     H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
     <ul>
@@ -494,21 +494,54 @@ def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
 
 def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     "Saisie automatisee des decisions d'un semestre"
+    sem= znotes.get_formsemestre(formsemestre_id)
+    next_semestre_id = sem['semestre_id'] + 1
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
     etudids = nt.get_etudids()
     nb_valid = 0
+    conflicts = [] # liste des etudiants avec decision differente déjà saisie
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
         # Conditions pour validation automatique:
         if ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
              and Se.barre_moy_ok and Se.barres_ue_ok ):
-             # ok, valide !
-             formsemestre_validation_etud_manu(znotes, formsemestre_id, etudid,
-                                               code_etat='ADM',
-                                               REQUEST=REQUEST, redirect=False)
-             nb_valid += 1
-    log('do_formsemestre_validation_auto: %d validations' % nb_valid)
-    REQUEST.RESPONSE.redirect('formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1'
-                              % formsemestre_id)
+            # check: s'il existe une decision ou autorisation et quelle sont differentes,
+            # warning (et ne fait rien)
+            decision_sem = nt.get_etud_decision_sem(etudid)
+            ok = True
+            if decision_sem and decision_sem['code'] != 'ADM':
+                ok = False
+                conflicts.append(etud)
+            autorisations = sco_parcours_dut.formsemestre_get_autorisation_inscription(
+                znotes, etudid, formsemestre_id)
+            if len(autorisations) != 0: # accepte le cas ou il n'y a pas d'autorisation : BUG 23/6/7, A RETIRER ENSUITE
+                if len(autorisations) != 1 or autorisations[0]['semestre_id'] != next_semestre_id:
+                    if ok:
+                        conflicts.append(etud)
+                        ok = False
+                
+            # ok, valide !
+            if ok:
+                formsemestre_validation_etud_manu(znotes, formsemestre_id, etudid,
+                                                  code_etat='ADM',
+                                                  devenir = 'NEXT',
+                                                  REQUEST=REQUEST, redirect=False)
+                nb_valid += 1
+    log('do_formsemestre_validation_auto: %d validations, %d conflicts' % (nb_valid, len(conflicts)))
+    H = [ znotes.sco_header(znotes,REQUEST, page_title='Saisie automatique') ]
+    H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
+    <p>Opération effectuée.</p>
+    <p>%d étudiants validés (sur %s)</p>""" % (sem['titreannee'], nb_valid, len(etudids)))
+    if conflicts:
+        H.append("""<p><b>Attention:</b> %d étudiants non modifiés car décisions différentes
+        déja saisies :<ul>""" % len(conflicts))
+        for etud in conflicts:
+            H.append('<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1">%s</li>'
+                     % (formsemestre_id, etud['etudid'], etud['nomprenom']) )
+        H.append('</ul>')
+    H.append('<a href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">continuer</a>'
+             % formsemestre_id)
+    H.append(znotes.sco_footer(znotes, REQUEST))
+    return '\n'.join(H)
     

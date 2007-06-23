@@ -30,6 +30,7 @@
 """
 from VERSION import SCOVERSION
 import VERSION
+import pdb
 import os, copy
 import urllib, time, datetime
 import xml.sax.saxutils

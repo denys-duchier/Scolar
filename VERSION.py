@@ -1,14 +1,14 @@
-SCOVERSION = "5.0b"
+SCOVERSION = "5.0 béta"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
 
-<h4>12 Juin 2007: nouvelle version 5.0</h4>
+<h4>Juin 2007: version 5.0</h4>
 <ul>
 <li>Suivi des parcours et règles de décision des jurys DUT</li>
 <li>Capitalisation des UEs</li>
-<li>Edition des PV de jurys</li>
+<li>Edition des PV de jurys et courriers aux étudiants</li>
 <li>Feuilles (excel) pour préparation jurys</li>
 <li>Nombreuses petites améliorations</li>
 </ul>

@@ -120,7 +120,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     if etudids is None:
         etudids = nt.get_etudids()
     cnx = znotes.GetDBConnexion()
-    sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem = znotes.get_formsemestre(formsemestre_id)
     max_date = '0000-01-01'
     has_prev = False # vrai si au moins un etudiant a un code prev
     L = []
@@ -145,11 +145,11 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                   'etudid' : etudid })
         for compensator in compensators:
             # nb: il ne devrait y en avoir qu'un !
-            csem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : compensator['formsemestre_id']})[0]
-            obs += 'Compensé par %s.' % csem['titreannee']
+            csem = znotes.get_formsemestre(compensator['formsemestre_id'])
+            obs += 'Compensé par %s' % csem['titreannee']
         
         if d['decision_sem'] and d['decision_sem']['compense_formsemestre_id']:
-            compensed = znotes.do_formsemestre_list(args={ 'formsemestre_id' : d['decision_sem']['compense_formsemestre_id'] } )[0]            
+            compensed = znotes.get_formsemestre(d['decision_sem']['compense_formsemestre_id'])
             obs += ' Compense %s' % compensed['titreannee']
         
         d['observation'] = obs
@@ -173,12 +173,13 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                 d['prev_decision_sem'] = Se.prev_decision
                 d['prev_code'] = Se.prev_decision['code']
                 d['prev_code_descr'] = descr_decision_sem(znotes, 'I', Se.prev_decision)
+                d['prev'] = Se.prev
                 has_prev = True
             else:
                 d['prev_decision_sem'] = None
                 d['prev_code'] = ''
                 d['prev_code_descr'] = ''
-                
+            d['Se'] = Se
         
         L.append(d)
     return { 'date' : DateISOtoDMY(max_date),
@@ -260,6 +261,9 @@ def pvjury_html(znotes, dpv, REQUEST):
 
         H.append('<td>%s</td><td>%s</td></tr>' % (e['autorisations_descr'], e['observation']))
     H.append('</table></p>')
+
+    #
+    H.append('<p><a href="formsemestre_pvjury?formsemestre_id=%s&format=lettrespdf">Courriers individuels (classeur pdf)</a></p>' % formsemestre_id)
 
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()

@@ -72,7 +72,7 @@ from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_bulletins, sco_recapcomplet
 import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
-import sco_pvjury, sco_prepajury
+import sco_pvjury, sco_pvpdf, sco_prepajury
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -656,7 +656,7 @@ class ZNotes(ObjectManager,
     def do_formsemestre_delete(self, formsemestre_id, REQUEST):
         "delete formsemestre, and all its moduleimpls"
         cnx = self.GetDBConnexion()
-        sem = self.do_formsemestre_list({'formsemestre_id' : formsemestre_id})[0]
+        sem = self.get_formsemestre(formsemestre_id)
         # --- Destruction des modules de ce semestre
         mods = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
         for mod in mods:
@@ -725,6 +725,11 @@ class ZNotes(ObjectManager,
 
         return sems
 
+    security.declareProtected(ScoView, 'get_formsemestre')
+    def get_formsemestre(self, formsemestre_id):
+        "list ONE formsemestre"
+        return self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+
     security.declareProtected(ScoView, 'XML_formsemestre_list')
     def XML_formsemestre_list(self, REQUEST=None):
         "List all formsemestres, XML format"
@@ -759,8 +764,7 @@ class ZNotes(ObjectManager,
         else:
             # setup form init values
             formsemestre_id = REQUEST.form['formsemestre_id']
-            initvalues = self.do_formsemestre_list(
-                {'formsemestre_id' : formsemestre_id})[0]
+            initvalues = self.get_formsemestre(formsemestre_id)
             semestre_id = initvalues['semestre_id']
             initvalues['inscrire_etuds'] = initvalues.get('inscrire_etuds','1')
             if initvalues['inscrire_etuds'] == '1':
@@ -1044,8 +1048,7 @@ class ZNotes(ObjectManager,
         Return True|False, HTML_error_page
         """
         authuser = REQUEST.AUTHENTICATED_USER
-        sem = self.do_formsemestre_list(
-            args={ 'formsemestre_id' : formsemestre_id } )[0] 
+        sem = self.get_formsemestre(formsemestre_id)
         header = self.sco_header(page_title='Accès interdit',
                                  REQUEST=REQUEST)
         footer = self.sco_footer(self, REQUEST)
@@ -1067,8 +1070,7 @@ class ZNotes(ObjectManager,
         ok, err = self._check_access_diretud(formsemestre_id,REQUEST)
         if not ok:
             return err
-        sem = self.do_formsemestre_list(
-            args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
         header = self.sco_header(page_title='Modification d\'un semestre',
                                  REQUEST=REQUEST)
@@ -1399,7 +1401,7 @@ class ZNotes(ObjectManager,
         "check if current user can modify ens list (raise exception if not)"
         M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         # -- check lock
-        sem = self.do_formsemestre_list({'formsemestre_id':M['formsemestre_id']})[0]
+        sem = self.get_formsemestre({'formsemestre_id':M['formsemestre_id']})
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         # -- check access
@@ -1488,11 +1490,13 @@ class ZNotes(ObjectManager,
     def do_formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None, dialog_confirmed=False):
         """desinscrit l'etudiant de ce semestre (et donc de tous les modules).
         A n'utiliser qu'en cas d'erreur de saisie"""
+        sem = self.get_formsemestre(formsemestre_id)
+        # -- check lock
+        if sem['etat'] != '1':
+            raise ScoValueError('desinscription impossible: semestre verrouille')
+        
         if not dialog_confirmed:
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-            sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-            if sem['etat'] != '1':
-                raise ScoValueError('desinscription impossible: semestre verrouille')
             return self.confirmDialog(
                 """<h2>Confirmer la demande de desinscription ?</h2>
                 <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
@@ -1503,10 +1507,6 @@ class ZNotes(ObjectManager,
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
-        # -- check lock
-        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-        if sem['etat'] != '1':
-            raise ScoValueError('desinscription impossible: semestre verrouille')
         # -- desinscription de tous les modules
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -1636,7 +1636,7 @@ class ZNotes(ObjectManager,
         """inscription de l'etud dans ce semestre.
         Formulaire avec choix groupe
         """
-        sem = self.do_formsemestre_list( {'formsemestre_id':formsemestre_id} )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s dans %s</h2>" %
@@ -1706,7 +1706,7 @@ class ZNotes(ObjectManager,
     def formsemestre_inscription_optionXXX(self, etudid, formsemestre_id,
                                         REQUEST=None):
         "Dialogue pour inscription a un module optionnel"
-        sem = self.do_formsemestre_list( {'formsemestre_id':formsemestre_id} )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
         H = [ self.sco_header(self,REQUEST)
               + "<h2>Inscription de %s à un module optionnel de %s</h2>" %
@@ -1748,7 +1748,7 @@ class ZNotes(ObjectManager,
     def formsemestre_inscription_option(self, etudid, formsemestre_id,
                                         REQUEST=None):
         "Dialogue pour (des)inscription a des modules optionnels"
-        sem = self.do_formsemestre_list( {'formsemestre_id':formsemestre_id} )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         
@@ -1932,8 +1932,8 @@ class ZNotes(ObjectManager,
         authuser = REQUEST.AUTHENTICATED_USER
         uid = str(authuser)
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-        sem = self.do_formsemestre_list(
-            args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
+        sem = self.get_formsemestre(M['formsemestre_id'])
+        
         if (not authuser.has_permission(ScoEditAllNotes,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
             raise AccessDenied('Modification évaluation impossible pour %s'%(uid,))
     
@@ -1967,7 +1967,7 @@ class ZNotes(ObjectManager,
         jour = args.get('jour', None)
         if jour:
             M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
-            sem = self.do_formsemestre_list(args={ 'formsemestre_id':M['formsemestre_id']})[0]
+            sem = self.get_formsemestre(M['formsemestre_id'])
             d,m,y = [ int(x) for x in sem['date_debut'].split('/') ]
             date_debut = datetime.date(y,m,d)
             d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
@@ -2112,7 +2112,8 @@ class ZNotes(ObjectManager,
                 action = 'Modification d\'une é'
         #    
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-        sem = self.do_formsemestre_list( args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
+        sem = self.self.get_formsemestre(M['formsemestre_id'])
+        
         #F=self.do_formation_list(args={ 'formation_id' : sem['formation_id'] } )[0]
         #ModEvals =self.do_evaluation_list(args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
         #
@@ -2808,7 +2809,7 @@ class ZNotes(ObjectManager,
         #
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-        sem = self.do_formsemestre_list( args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
+        sem = self.get_formsemestre(M['formsemestre_id'])
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
         if E['description']:
             evaltitre = '%s du %s' % (E['description'],E['jour'])
@@ -3247,7 +3248,7 @@ class ZNotes(ObjectManager,
         """
         uid = str(authuser)
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
+        sem = self.get_formsemestre(M['formsemestre_id'])
         if sem['etat'] != '1':
             return False # semestre verrouillé
         if ((not authuser.has_permission(ScoEditAllNotes,self))
@@ -3474,7 +3475,7 @@ class ZNotes(ObjectManager,
         la liste des moduleimpls, la liste des evaluations valides,
         liste des moduleimpls  avec notes en attente.
         """
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         inscr = self.do_formsemestre_inscription_list(
             args = { 'formsemestre_id' : formsemestre_id })
         etudids = [ x['etudid'] for x in inscr ]
@@ -3578,7 +3579,7 @@ class ZNotes(ObjectManager,
         if cached:
             return sendPDFFile(REQUEST,cached[1],cached[0])
         fragments = []
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         # Make each bulletin
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         bookmarks = {}
@@ -3614,7 +3615,7 @@ class ZNotes(ObjectManager,
     def formsemestre_bulletins_mailetuds(self, formsemestre_id, REQUEST,
                                          version='long'):
         "envoi a chaque etudiant (inscrit et ayant un mail) son bulletin"
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         # Make each bulletin
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         for etudid in nt.get_etudids():
@@ -3643,7 +3644,7 @@ class ZNotes(ObjectManager,
             edit = 1
         else:
             edit = 0
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         # check custom access permission
         can_edit_app = ((authuser == sem['responsable_id'])
                         or (authuser.has_permission(ScoEtudInscrit,self)))
@@ -3708,7 +3709,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'can_validate_sem')
     def can_validate_sem(self, REQUEST, formsemestre_id):
         "Vrai si utilisateur peut saisir decision de jury dans ce semestre"
-        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        sem = self.get_formsemestre(formsemestre_id)
         if sem['etat'] != '1':
             return False # semestre verrouillé
 
@@ -3795,6 +3796,13 @@ class ZNotes(ObjectManager,
             xls = sco_pvjury.pvjury_excel(self, dpv)
             filename = 'PV ' + dpv['formsemestre']['titreannee'] 
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        elif format == 'lettrespdf':
+            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id)
+            sem = self.get_formsemestre(formsemestre_id)
+            dt = time.strftime( '%Y-%m-%d' )
+            filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
+            filename = unescape_html(filename).replace(' ','_').replace('&','')
+            return sendPDFFile(REQUEST, pdfdoc, filename)
         else:
             raise ScoValueError('invalid format : %s' % format )
         
@@ -3853,7 +3861,7 @@ class ZNotes(ObjectManager,
         """
         raise NotImplementedError # XXX YYY
         cnx = self.GetDBConnexion()
-        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        sem = self.get_formsemestre(formsemestre_id)
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         T = nt.get_table_moyennes_triees()
         header = self.sco_header(self,REQUEST)
@@ -3874,7 +3882,8 @@ class ZNotes(ObjectManager,
             next_semestre_id = REQUEST.form.get('next_semestre_id',None)
             ins = self.Notes.do_formsemestre_inscription_list(
                 args={  'formsemestre_id' : next_semestre_id, 'etat' : 'I' } )
-            next_sem = self.do_formsemestre_list(args={'formsemestre_id':next_semestre_id})[0]
+            next_sem = self.get_formsemestre(next_formsemestre_id)
+            
             info = ('<p>Information: <b>%d</b> étudiants déjà inscrits dans le semestre %s</p>'
                     % (len(ins), next_sem['titre_num']))
             for i in ins:
