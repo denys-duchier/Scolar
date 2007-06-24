@@ -119,10 +119,15 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
     if etudids is None:
         etudids = nt.get_etudids()
+    if not etudids:
+        return {}
     cnx = znotes.GetDBConnexion()
     sem = znotes.get_formsemestre(formsemestre_id)
     max_date = '0000-01-01'
-    has_prev = False # vrai si au moins un etudiant a un code prev
+    has_prev = False # vrai si au moins un etudiant a un code prev    
+    # construit un Se pour savoir si le semestre est terminal:
+    etud = znotes.getEtudInfo(etudid=etudids[0], filled=True)[0]
+    Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id) 
     L = []
     for etudid in etudids:
         d = {}
@@ -185,6 +190,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     return { 'date' : DateISOtoDMY(max_date),
              'formsemestre' : sem, 
              'has_prev' : has_prev,
+             'semestre_non_terminal' : Se.semestre_non_terminal,
              'decisions' : L }
 
 

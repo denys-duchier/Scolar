@@ -708,9 +708,11 @@ class ZNotes(ObjectManager,
                 mois_fin, annee_fin = sem['date_fin'].split('/')[1:]
             except:
                 mois_fin, annee_fin = '', ''
+            sem['annee'] = annee_debut # 2007 ou 2007-2008
             sem['titreannee'] = sem['titre_num'] + '  ' + annee_debut
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
+                sem['annee'] += '-' + annee_fin
             # et les dates sous la forme "oct 2007 - fev 2008"
             months = scolars.abbrvmonthsnames
             if mois_debut:
@@ -2112,7 +2114,7 @@ class ZNotes(ObjectManager,
                 action = 'Modification d\'une é'
         #    
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-        sem = self.self.get_formsemestre(M['formsemestre_id'])
+        sem = self.get_formsemestre(M['formsemestre_id'])
         
         #F=self.do_formation_list(args={ 'formation_id' : sem['formation_id'] } )[0]
         #ModEvals =self.do_evaluation_list(args={ 'moduleimpl_id' : M['moduleimpl_id'] } )

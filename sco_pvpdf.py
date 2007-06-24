@@ -31,6 +31,7 @@
 from sco_pdf import *
 import sco_pvjury
 
+PV_FONTNAME = 'Times-Roman'
 
 def pageFooter(canvas, doc, logo):
     "Add footer on page"
@@ -125,8 +126,8 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     params = {
         'dateJury' : dpv['date'],
-        'deptName' : "Réseaux et Télécommunications",
-        'nomDirecteur' : 'Joseph CERRATO',
+        'deptName' : znotes.DeptName, 
+        'nomDirecteur' : znotes.DirectorName,
         'htab1' : "10cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
     }
@@ -135,12 +136,13 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     objects = [] # list of PLATYPUS objects
     i = 1
     for e in dpv['decisions']:
-        etud = znotes.getEtudInfo(e['identite']['etudid'], filled=True)[0]
-        params['nomEtud'] = etud['nomprenom']
-        bookmarks[i] = etud['nomprenom']
-        objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params ) 
-        objects.append( PageBreak() )
-        i += 1
+        if e['decision_sem']: # decision prise
+            etud = znotes.getEtudInfo(e['identite']['etudid'], filled=True)[0]
+            params['nomEtud'] = etud['nomprenom']
+            bookmarks[i] = etud['nomprenom']
+            objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params ) 
+            objects.append( PageBreak() )
+            i += 1
     
     # ----- Build PDF
     report = cStringIO.StringIO() # in-memory document, no disk file
@@ -158,23 +160,27 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     return data
 
 
+def _descr_jury(sem, semestre_non_terminal):
+    if semestre_non_terminal:
+        t = "passage de Semestre %d en Semestre %d" % (sem['semestre_id'],sem['semestre_id']+1)
+        s = "passage de semestre"
+    else:
+        t = "délivrance du diplôme"
+        s = t
+    return t, s # titre long, titre court
+
 def pdf_lettre_individuelle( sem, decision, etud, params ):
     """
     Renvoie une liste d'objets PLATYPUS pour intégration
     dans un autre document.
-    """    
+    """
     #
     Se = decision['Se']
-    if Se.semestre_non_terminal:
-        t = "jury de passage de Semestre %d en Semestre %d" % (sem['semestre_id'],sem['semestre_id']+1)
-        s = "jury de passage de semestre"
-    else:
-        t = "jury de délivrance du diplôme"
-        s = t
+    t, s = _descr_jury(sem, Se.semestre_non_terminal)
     objects = []
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 12
-    style.fontName= 'Times-Roman'
+    style.fontName= PV_FONTNAME
     style.leading = 18
     style.alignment = TA_JUSTIFY
 
@@ -198,11 +204,11 @@ def pdf_lettre_individuelle( sem, decision, etud, params ):
 <para leftindent="%(htab1)s" spaceBefore="10mm">à <b>%(nomEtud)s</b>
 </para>
 <para spaceBefore="25mm" fontSize="14">
-<b>Objet : %(t)s 
+<b>Objet : jury de %(t)s 
 du département %(deptName)s</b>
 </para>
 <para spaceBefore="10mm" fontSize="14">
-Le %(s)s du département %(deptName)s
+Le jury de %(s)s du département %(deptName)s
 s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
 </para>""" % params, style )
     # Affichage de la décision du semestre précédent s'il existe:
@@ -255,9 +261,52 @@ Pour le Directeur de l'IUT
 et par délégation
 </para>
 <para leftindent="%(htab1)s">
-Le chef du département
+Le Chef du département
 </para>
     """ % params, style )
     return objects
 
     
+# ----------------------------------------------
+# PV complet, tableau en format paysage
+
+def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
+    """Doc PDF récapitulant les décisions de jury
+    dpv: result of dict_pvjury
+    """
+    formsemestre_id = dpv['formsemestre']['formsemestre_id']
+    sem = dpv['formsemestre']
+    if sem['semestre_id'] >= 0:
+        id_cur = ' S%s' % sem['semestre_id']
+    else:
+        id_cur = ''
+    if dpv['has_prev']:
+        id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
+    for e in dpv['decisions']:
+        cod = descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem'])
+
+    objects = []
+    style = reportlab.lib.styles.ParagraphStyle({})
+    style.fontSize= 12
+    style.fontName= PV_FONTNAME
+    style.leading = 18
+    style.alignment = TA_JUSTIFY
+
+    t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
+    objects += makeParas("""
+    <para ><b>Procès-verbal du %s du département %s</b></para>
+    <para><b>Session %s</b></para>
+    """ % (t, znotes.deptName, sem['annee']), style)
+
+    objects += makeParas("""<para>    
+Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6
+</para>
+<para>
+Vu l'arrêté n° 07 081 905 001 du Président de l'%s
+</para>
+<para>
+Vu la délibération de la commission %s en date du %s présidée par le Chef du département
+</para>
+    """ % (znotes.UnivName, t, dateCommission), BulletStyle )
+    
+    #objects += 
