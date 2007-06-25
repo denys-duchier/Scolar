@@ -194,15 +194,14 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'decisions' : L }
 
 
-def pvjury_excel(znotes, dpv):
-    """Tableau Excel récapitulant les décisions de jury
-    dpv: result of dict_pvjury
-    """
+def pvjury_table(znotes, dpv):
+    """List of tuples"""
     sem = dpv['formsemestre']
     if sem['semestre_id'] >= 0:
         id_cur = ' S%s' % sem['semestre_id']
     else:
         id_cur = ''
+
     titles = ['Nom']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
@@ -229,6 +228,16 @@ def pvjury_excel(znotes, dpv):
                            unquote(e['observation'])
                            )
                           )
+    return titles, lines
+
+
+def pvjury_excel(znotes, dpv):
+    """Tableau Excel récapitulant les décisions de jury
+    dpv: result of dict_pvjury
+    """
+    sem = dpv['formsemestre']
+    
+    titles, lines = pvjury_table(znotes, dpv)
     return sco_excel.Excel_SimpleTable(
         titles=titles, lines=lines,
         SheetName='Jury %s' % unquote(sem['titreannee']) )
@@ -269,8 +278,9 @@ def pvjury_html(znotes, dpv, REQUEST):
     H.append('</table></p>')
 
     #
-    H.append('<p><a href="formsemestre_pvjury?formsemestre_id=%s&format=lettrespdf">Courriers individuels (classeur pdf)</a></p>' % formsemestre_id)
-
+    H.append('<ul><li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s&format=lettrespdf">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
+    H.append('<li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s&format=pvpdf">PV officiel (pdf)</a></li></ul>' % formsemestre_id)
+    
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()
     codes.sort()

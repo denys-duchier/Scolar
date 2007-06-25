@@ -3805,6 +3805,13 @@ class ZNotes(ObjectManager,
             filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
             filename = unescape_html(filename).replace(' ','_').replace('&','')
             return sendPDFFile(REQUEST, pdfdoc, filename)
+        elif format == 'pvpdf':
+            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST, '12 février 1976' ) # XXX form pour date commission
+            sem = self.get_formsemestre(formsemestre_id)
+            dt = time.strftime( '%Y-%m-%d' )
+            filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)
+            filename = unescape_html(filename).replace(' ','_').replace('&','')
+            return sendPDFFile(REQUEST, pdfdoc, filename)
         else:
             raise ScoValueError('invalid format : %s' % format )
         

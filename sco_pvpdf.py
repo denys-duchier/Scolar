@@ -79,10 +79,10 @@ class CourrierIndividuelTemplate(PageTemplate) :
         # Our doc is made of a single frame
         left, top, right, bottom = margins # marge additionnelle en mm
         # marges du Frame principal
-        self.bot_p = 2.5*cm 
+        self.bot_p = 2*cm 
         self.left_p = 2.5*cm
         self.right_p = 2.5*cm
-        self.top_p = 2*cm
+        self.top_p = 0*cm
 
         content = Frame(
             self.left_p + left*mm,
@@ -123,12 +123,16 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     """
 
     dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=etudids, with_prev=True)
+    # Ajoute infos sur etudiants
+    etuds = [ x['identite'] for x in dpv['decisions']]
+    znotes.fillEtudsInfo(etuds)
+    #
     sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     params = {
         'dateJury' : dpv['date'],
         'deptName' : znotes.DeptName, 
         'nomDirecteur' : znotes.DirectorName,
-        'htab1' : "10cm", # lignes à droite (entete, signature)
+        'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
     }
     
@@ -197,12 +201,22 @@ def pdf_lettre_individuelle( sem, decision, etud, params ):
     objects += makeParas("""
 <para leftindent="%(htab1)s">Villetaneuse, le %(dateJury)s
 </para>
-<para leftindent="%(htab1)s" spaceBefore="25mm">%(nomDirecteur)s
+<para leftindent="%(htab1)s" spaceBefore="5mm">%(nomDirecteur)s
 </para>
 <para leftindent="%(htab1)s">Directeur de l'IUT
 </para>
 <para leftindent="%(htab1)s" spaceBefore="10mm">à <b>%(nomEtud)s</b>
-</para>
+</para>""" % params, style)
+    # Adresse étudiant:
+    i = decision['identite']
+    objects += makeParas("""
+    <para leftindent="%s">%s</para>
+    <para leftindent="%s">%s %s</para>
+    """ % (params['htab1'], i['domicile'],
+           params['htab1'], i['codepostaldomicile'], i['villedomicile']),
+           style)
+    #
+    objects += makeParas("""
 <para spaceBefore="25mm" fontSize="14">
 <b>Objet : jury de %(t)s 
 du département %(deptName)s</b>
@@ -274,17 +288,11 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
     """Doc PDF récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
+    if not dpv:
+        return {}
     formsemestre_id = dpv['formsemestre']['formsemestre_id']
     sem = dpv['formsemestre']
-    if sem['semestre_id'] >= 0:
-        id_cur = ' S%s' % sem['semestre_id']
-    else:
-        id_cur = ''
-    if dpv['has_prev']:
-        id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
-    for e in dpv['decisions']:
-        cod = descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem'])
-
+    
     objects = []
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 12
@@ -292,11 +300,25 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
     style.leading = 18
     style.alignment = TA_JUSTIFY
 
+    indent = 1*cm
+    bulletStyle = reportlab.lib.styles.ParagraphStyle({})
+    bulletStyle.fontSize= 12
+    bulletStyle.fontName= PV_FONTNAME
+    bulletStyle.leading = 18
+    bulletStyle.alignment = TA_JUSTIFY
+    bulletStyle.firstLineIndent=0
+    bulletStyle.leftIndent=1.5*indent
+    bulletStyle.bulletIndent=indent
+    bulletStyle.bulletFontName='Symbol'
+    bulletStyle.bulletFontSize=11
+    bulletStyle.spaceBefore=5*mm
+    bulletStyle.spaceAfter=5*mm
+                                   
     t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
     objects += makeParas("""
     <para ><b>Procès-verbal du %s du département %s</b></para>
     <para><b>Session %s</b></para>
-    """ % (t, znotes.deptName, sem['annee']), style)
+    """ % (t, znotes.DeptName, sem['annee']), style)
 
     objects += makeParas("""<para>    
 Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6
@@ -307,6 +329,37 @@ Vu l'arrêté n° 07 081 905 001 du Président de l'%s
 <para>
 Vu la délibération de la commission %s en date du %s présidée par le Chef du département
 </para>
-    """ % (znotes.UnivName, t, dateCommission), BulletStyle )
+    """ % (znotes.UnivName, t, dateCommission), bulletStyle )
     
-    #objects += 
+    objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
+    
+    titles, lines = sco_pvjury.pvjury_table(znotes, dpv)
+
+    # Make a new cell style and put all cells in paragraphs    
+    CellStyle = styles.ParagraphStyle( {} )
+    CellStyle.fontSize= SCOLAR_FONT_SIZE
+    CellStyle.fontName=   PV_FONTNAME
+    CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+    LINEWIDTH = 0.5
+    TableStyle = [ ('FONTNAME', (0,0), (-1,0), PV_FONTNAME),
+                   ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)) ]
+    
+    Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in ([titles] + lines) ]
+    objects.append( Table( Pt,
+                           #colWidths = (1.5*cm, 5*cm, 6*cm, 2*cm, 1*cm),
+                           style=TableStyle ) )
+
+    # ----- Build PDF
+    report = cStringIO.StringIO() # in-memory document, no disk file
+    document = BaseDocTemplate(report)
+    document.pagesize = landscape(A4)
+    document.addPageTemplates( CourrierIndividuelTemplate(
+        document,
+        author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+        title='PV du jury de %s' % sem['titre_num'],
+        subject='PV jury',
+        image_dir = znotes.file_path + '/logos/' ))
+
+    document.build(objects)
+    data = report.getvalue()
+    return data
