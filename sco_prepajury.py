@@ -104,7 +104,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         if prev_moy: # si qq chose dans precedent
             sp = 'S%s' % (sid-1)
     
-    titles = ['Nom', 'Année', 'Parcours']
+    titles = ['', 'Nom', 'Année', 'Parcours']
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += ue_acros + ['Moy %s' % sn]
@@ -120,11 +120,13 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             return float(x)
         except:
             return x
-    
+
+    i = 1 # numero etudiant
     for etudid in etudids:
-        l = [znotes.nomprenom(nt.identdict[etudid]),
+        l = [ str(i), znotes.nomprenom(nt.identdict[etudid]),
              nt.identdict[etudid]['annee_naissance'],
              parcours[etudid]]
+        i += 1
         if prev_moy:
             for ue_acro in ue_prev_acros:
                 l.append(fmt(prev_moy_ue.get(ue_acro, {}).get(etudid,'')))
