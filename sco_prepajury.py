@@ -50,6 +50,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     moy = {} # moyennes gen
     code = {} # decision existantes s'il y en a
     prev_code = {} # decisions sem prec
+    parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
@@ -73,6 +74,13 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             code[etudid] = decision['code']
             if decision['compense_formsemestre_id']:
                 code[etudid] += '+' # indique qu'il a servi a compenser
+        # parcours:
+        sems = Se.get_semestres()
+        p = []
+        for s in sems:
+            p.append( 'S%d' % s['semestre_id'] )
+        parcours[etudid] = ', '.join(p)
+    
     # Construit table
     L = [ [] ]
     all_ues =  znotes.do_ue_list(args={ 'formation_id' : sem['formation_id']})
@@ -93,7 +101,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         if prev_moy: # si qq chose dans precedent
             sp = 'S%s' % (sid-1)
     
-    titles = ['Nom']
+    titles = ['Nom', 'Année', 'Parcours']
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += ue_acros + ['Moy %s' % sn]
@@ -102,7 +110,9 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     L.append(titles)
 
     for etudid in etudids:
-        l = [znotes.nomprenom(nt.identdict[etudid])]
+        l = [znotes.nomprenom(nt.identdict[etudid]),
+             nt.identdict[etudid]['annee_naissance'],
+             parcours[etudid]]
         if prev_moy:
             for ue_acro in ue_prev_acros:
                 l.append(prev_moy_ue.get(ue_acro, {}).get(etudid,''))
@@ -120,6 +130,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
                (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
                 REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )
     xls = sco_excel.Excel_SimpleTable(
-        titles=('Feuille préparation Jury %s' % sem['titreannee'],),
+        titles=('Feuille préparation Jury %s' %
+                unescape_html(sem['titreannee']),),
         lines=L, SheetName='Prepa Jury %s' % sn )
-    return sco_excel.sendExcelFile(REQUEST, xls, 'RecapMoyennesJury%s.xls' % sn )
+    return sco_excel.sendExcelFile(REQUEST, xls, 'PrepaJury%s.xls' % sn )
