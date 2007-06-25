@@ -526,6 +526,7 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
                 formsemestre_validation_etud_manu(znotes, formsemestre_id, etudid,
                                                   code_etat='ADM',
                                                   devenir = 'NEXT',
+                                                  assidu = True,
                                                   REQUEST=REQUEST, redirect=False)
                 nb_valid += 1
     log('do_formsemestre_validation_auto: %d validations, %d conflicts' % (nb_valid, len(conflicts)))

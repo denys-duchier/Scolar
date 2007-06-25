@@ -41,7 +41,7 @@ import sco_parcours_dut, sco_codes_parcours
 def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     "Feuille excel pour preparation des jurys"
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
-    etudids = nt.get_etudids()
+    etudids = nt.get_etudids( sorted=True ) # tri par moy gen
     sem= znotes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
 
     prev_moy_ue = DictDefault(defaultvalue={}) # ue_acro : { etudid : moy ue }
@@ -50,6 +50,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     moy = {} # moyennes gen
     code = {} # decision existantes s'il y en a
     prev_code = {} # decisions sem prec
+    assidu = {}
     parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
@@ -74,6 +75,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             code[etudid] = decision['code']
             if decision['compense_formsemestre_id']:
                 code[etudid] += '+' # indique qu'il a servi a compenser
+            assidu[etudid] = {0 : 'Non', 1 : 'Oui'}.get(decision['assidu'], '')
+
         # parcours:
         sems = Se.get_semestres()
         p = []
@@ -106,23 +109,33 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += ue_acros + ['Moy %s' % sn]
     if code:
-        titles += ['Décision %s' % sn]
+        titles.append('Décision %s' % sn)
+    titles.append('Assidu')
     L.append(titles)
 
+    def fmt(x):
+        "reduit les notes a deux chiffres"
+        x = notes_table.fmt_note(x, keep_numeric=False)
+        try:
+            return float(x)
+        except:
+            return x
+    
     for etudid in etudids:
         l = [znotes.nomprenom(nt.identdict[etudid]),
              nt.identdict[etudid]['annee_naissance'],
              parcours[etudid]]
         if prev_moy:
             for ue_acro in ue_prev_acros:
-                l.append(prev_moy_ue.get(ue_acro, {}).get(etudid,''))
-            l.append(prev_moy.get(etudid,''))
+                l.append(fmt(prev_moy_ue.get(ue_acro, {}).get(etudid,'')))
+            l.append(fmt(prev_moy.get(etudid,'')))
             l.append(prev_code.get(etudid,''))
         for ue_acro in ue_acros:
-            l.append(moy_ue.get(ue_acro, {}).get(etudid,''))
-        l.append(moy.get(etudid,''))
+            l.append(fmt(moy_ue.get(ue_acro, {}).get(etudid,'')))
+        l.append(fmt(moy.get(etudid,'')))
         if code:
             l.append(code.get(etudid, ''))
+        l.append(assidu.get(etudid, ''))
         L.append(l)
     #
     L.append( [''] )

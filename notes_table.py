@@ -236,8 +236,13 @@ class NotesTable:
         #
         self.compute_moy_moy()
         
-    def get_etudids(self):
-        return [ x['etudid'] for x in self.inscrlist ]
+    def get_etudids(self, sorted=False):
+        if sorted:
+            # Tri par moy. generale décroissante
+            return [ x[-1] for x in self.T ]
+        else:
+            # Tri par ordre alphabetique de NOM
+            return [ x['etudid'] for x in self.inscrlist ]
 
     def get_sexnom(self,etudid):
         return self.identdict[etudid]['sexe'] + ' ' + self.identdict[etudid]['nom'].upper()
