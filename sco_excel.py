@@ -33,7 +33,7 @@ from pyExcelerator import *
 
 from notes_log import log
 from scolog import logdb
-from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html
+from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html, suppress_accents
 import notesdb
 
 import time
@@ -51,8 +51,7 @@ def sendExcelFile(REQUEST,data,filename):
     """publication fichier.
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)
     """
-    from sco_utils import unescape_html
-    filename = unescape_html(filename)
+    filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     REQUEST.RESPONSE.setHeader('Content-type', XLS_MIMETYPE)
     REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data

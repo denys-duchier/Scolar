@@ -30,35 +30,48 @@
 
 from sco_pdf import *
 import sco_pvjury
+import sco_codes_parcours
 
 PV_FONTNAME = 'Times-Roman'
 
+LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utiliser PIL pour conaitre la taille de l'image
+LOGO_FOOTER_HEIGHT = 1*cm
+LOGO_FOOTER_WIDTH  = LOGO_FOOTER_HEIGHT*LOGO_FOOTER_ASPECT
+
 def pageFooter(canvas, doc, logo):
     "Add footer on page"
-    width = PAGE_WIDTH - doc.pageTemplate.left_p - doc.pageTemplate.right_p
-    foot = Frame( doc.pageTemplate.left_p, 1.2*cm,
-                  width, 1.3*cm,
+    width = doc.pagesize[0] # - doc.pageTemplate.left_p - doc.pageTemplate.right_p
+    foot = Frame( 0.1*mm, 0.2*cm,
+                  width-1*mm, 2*cm, # xxx 2
                   leftPadding=0, rightPadding=0,
                   topPadding=0, bottomPadding=0,                  
-                  id="monfooter", showBoundary=1 )
+                  id="monfooter", showBoundary=0 )
 
     LeftFootStyle = reportlab.lib.styles.ParagraphStyle({})
     LeftFootStyle.fontName = SCOLAR_FONT
     LeftFootStyle.fontSize = SCOLAR_FONT_SIZE_FOOT
     LeftFootStyle.leftIndent = 0
     LeftFootStyle.firstLineIndent = 0
+    LeftFootStyle.alignment = TA_RIGHT
     RightFootStyle = reportlab.lib.styles.ParagraphStyle({})
     RightFootStyle.fontName = SCOLAR_FONT
     RightFootStyle.fontSize =  SCOLAR_FONT_SIZE_FOOT
     RightFootStyle.alignment = TA_RIGHT 
-    p = Paragraph( SU("Université Paris 13"), LeftFootStyle)
-    # numero page: np = Paragraph( "%d" % doc.page, RightFootStyle)
+
+    p = makeParas( """<para><b>Institut Universitaire de Technologie - Université Paris 13</b></para>
+    <para>Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse</para>""",
+                   LeftFootStyle)
+    
+    np = Paragraph( '<para fontSize="14">%d</para>' % doc.page, RightFootStyle)
     tabstyle = TableStyle( [ ('LEFTPADDING', (0,0), (-1,-1), 0 ),
                              ('RIGHTPADDING',(0,0), (-1,-1), 0 ),
                              ('ALIGN', (0,0), (-1, -1), 'RIGHT'),
-                             ('INNERGRID', (0,0), (-1,-1), 0.25, black),
+                             #('INNERGRID', (0,0), (-1,-1), 0.25, black),
+                             ('LINEABOVE', (0,0), (-1,0), 0.5, black),
+                             ('VALIGN', (1,0), (1,0), 'MIDDLE' ),
+                             ('RIGHTPADDING',(-1,0), (-1,0), 1*cm ),
                              ])
-    tab = Table( [ ( p, logo) ], style=tabstyle )             
+    tab = Table( [ (p, logo, np) ], style=tabstyle, colWidths=(None,LOGO_FOOTER_WIDTH+2*mm, 2*cm) )             
     
     foot.addFromList( [tab], canvas )
 
@@ -92,12 +105,10 @@ class CourrierIndividuelTemplate(PageTemplate) :
         
         PageTemplate.__init__(self, "PVJuryTemplate", [content])
 
-        # self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=0.8*cm, width=1.5*cm )
         self.logo_footer = None
         
     def beforeDrawPage(self, canvas, doc) :
         """Draws a logo and an contribution message on each page."""        
-        canvas.saveState()
         # ---- Add some meta data and bookmarks
         if self.pdfmeta_author:
             canvas.setAuthor(SU(self.pdfmeta_author))
@@ -111,9 +122,23 @@ class CourrierIndividuelTemplate(PageTemplate) :
             txt = SU(bm)
             canvas.bookmarkPage(key)
             canvas.addOutlineEntry(txt,bm)
-        # ---- Footer
-        #pageFooter(canvas, doc, self.logo_footer )
-        #
+
+
+class PVTemplate(CourrierIndividuelTemplate):
+    def __init__(self, document, 
+                 author=None, title=None, subject=None,
+                 margins = (0,0,0,5), # additional margins in mm (left,top,right, bottom)
+                 image_dir = ''):
+        
+        CourrierIndividuelTemplate.__init__(self, document, author=author, title=title, subject=subject,
+                                            margins=margins, image_dir=image_dir)
+        self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
+
+    def beforeDrawPage(self, canvas, doc) :
+        CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
+        # --- Add footer
+        canvas.saveState()
+        pageFooter(canvas, doc, self.logo_footer )
         canvas.restoreState()
 
 def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
@@ -304,30 +329,29 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
     bulletStyle = reportlab.lib.styles.ParagraphStyle({})
     bulletStyle.fontSize= 12
     bulletStyle.fontName= PV_FONTNAME
-    bulletStyle.leading = 18
+    bulletStyle.leading = 12
     bulletStyle.alignment = TA_JUSTIFY
     bulletStyle.firstLineIndent=0
-    bulletStyle.leftIndent=1.5*indent
+    bulletStyle.leftIndent=indent
     bulletStyle.bulletIndent=indent
-    bulletStyle.bulletFontName='Symbol'
+    bulletStyle.bulletFontName='Times-Roman'
     bulletStyle.bulletFontSize=11
     bulletStyle.spaceBefore=5*mm
     bulletStyle.spaceAfter=5*mm
                                    
     t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
     objects += makeParas("""
-    <para ><b>Procès-verbal du %s du département %s</b></para>
-    <para><b>Session %s</b></para>
+    <para ><b>Procès-verbal du %s du département %s - Session %s</b></para>    
     """ % (t, znotes.DeptName, sem['annee']), style)
 
-    objects += makeParas("""<para>    
-Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6
+    objects += makeParas("""<para><bullet>-</bullet>  
+Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
 </para>
-<para>
-Vu l'arrêté n° 07 081 905 001 du Président de l'%s
+<para><bullet>-</bullet>  
+vu l'arrêté n° 07 081 905 001 du Président de l'%s;
 </para>
-<para>
-Vu la délibération de la commission %s en date du %s présidée par le Chef du département
+<para><bullet>-</bullet> 
+vu la délibération de la commission %s en date du %s présidée par le Chef du département;
 </para>
     """ % (znotes.UnivName, t, dateCommission), bulletStyle )
     
@@ -342,21 +366,42 @@ Vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
     LINEWIDTH = 0.5
     TableStyle = [ ('FONTNAME', (0,0), (-1,0), PV_FONTNAME),
-                   ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)) ]
-    
+                   ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
+                   ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
+                   ('VALIGN', (0,0), (-1,-1), 'TOP') ]
+    titles = [ '<para><b>%s</b></para>' % x for x in titles ]
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in ([titles] + lines) ]
-    objects.append( Table( Pt,
-                           #colWidths = (1.5*cm, 5*cm, 6*cm, 2*cm, 1*cm),
+    objects.append( Table( Pt, repeatRows=1,
+                           colWidths = (6*cm, 2.8*cm, 2.8*cm, None, None, None),
                            style=TableStyle ) )
+
+    # Légende des codes
+    codes = sco_codes_parcours.CODES_EXPL.keys()
+    codes.sort()
+    objects += makeParas( """<para spaceBefore="10mm" spaceBefore="5mm" fontSize="14">
+    <b>Codes utilisés :</b></para>""", style )
+    L = []
+    for code in codes:
+        L.append( (code, sco_codes_parcours.CODES_EXPL[code]))
+    TableStyle2 = [ ('FONTNAME', (0,0), (-1,0), PV_FONTNAME),
+                    ('LINEBELOW', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
+                    ('LINEABOVE', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
+                    ('LINEBEFORE', (0,0), (0,-1), LINEWIDTH, Color(0,0,0)),
+                    ('LINEAFTER', (-1,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
+                    ]
+    objects.append( Table( [ [Paragraph(SU(x),CellStyle) for x in line ] for line in L ],
+                           colWidths = (2*cm, None),
+                           style=TableStyle2 ) )
+    
 
     # ----- Build PDF
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
     document.pagesize = landscape(A4)
-    document.addPageTemplates( CourrierIndividuelTemplate(
+    document.addPageTemplates( PVTemplate(
         document,
         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-        title='PV du jury de %s' % sem['titre_num'],
+        title=SU('PV du jury de %s' % sem['titre_num']),
         subject='PV jury',
         image_dir = znotes.file_path + '/logos/' ))
 

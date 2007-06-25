@@ -36,6 +36,7 @@ import urllib, time, datetime
 import xml.sax.saxutils
 # XML generation package (apt-get install jaxml)
 import jaxml
+from SuppressAccents import suppression_diacritics
 
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
@@ -87,11 +88,15 @@ def strnone(s):
     else:
         return ''
 
+def suppress_accents(s):
+    "s is an ordinary string, encoding given by SCO_ENCODING"
+    return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
+
 def sendCSVFile(REQUEST,data,filename):
     """publication fichier.
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)
     """
-    filename = unescape_html(filename)
+    filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     REQUEST.RESPONSE.setHeader('Content-type', CSV_MIMETYPE)
     REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data
@@ -103,7 +108,7 @@ def sendCSVFile(REQUEST,data,filename):
 #    return head + str(data)
 
 def sendPDFFile(REQUEST, data, filename):
-    filename = unescape_html(filename)
+    filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     REQUEST.RESPONSE.setHeader('Content-type', PDF_MIMETYPE)
     REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data

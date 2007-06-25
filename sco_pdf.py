@@ -46,6 +46,7 @@ from reportlab.lib.pagesizes import letter, A4, landscape
 from sco_utils import *
 from notes_log import log
 from sco_pagebulletin import formsemestre_pagebulletin_get
+from SuppressAccents import suppression_diacritics
 from VERSION import SCOVERSION, SCONAME
 
 PAGE_HEIGHT=defaultPageSize[1]

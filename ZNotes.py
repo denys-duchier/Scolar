@@ -3796,24 +3796,42 @@ class ZNotes(ObjectManager,
             return sco_pvjury.pvjury_html(self, dpv, REQUEST)
         elif format=='xls':
             xls = sco_pvjury.pvjury_excel(self, dpv)
-            filename = 'PV ' + dpv['formsemestre']['titreannee'] 
+            filename = 'PV ' + dpv['formsemestre']['titreannee']
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
         elif format == 'lettrespdf':
             pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id)
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
-            filename = unescape_html(filename).replace(' ','_').replace('&','')
-            return sendPDFFile(REQUEST, pdfdoc, filename)
-        elif format == 'pvpdf':
-            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST, '12 février 1976' ) # XXX form pour date commission
-            sem = self.get_formsemestre(formsemestre_id)
-            dt = time.strftime( '%Y-%m-%d' )
-            filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)
-            filename = unescape_html(filename).replace(' ','_').replace('&','')
             return sendPDFFile(REQUEST, pdfdoc, filename)
         else:
             raise ScoValueError('invalid format : %s' % format )
+
+    security.declareProtected(ScoEnsView, 'formsemestre_pvjury_pdf')
+    def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
+        "Generation PV jury en PDF: saisie des paramètres"
+        sem = self.get_formsemestre(formsemestre_id)
+        H = [self.sco_header(self,REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titre_num'] ]
+        F = self.sco_footer(self,REQUEST)
+        descr = [
+            ('dateCommission', {'input_type' : 'text', 'size' : 100, 'title' : 'Date de la commission'}),
+            ('formsemestre_id', {'input_type' : 'hidden' }) ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                                cancelbutton = 'Annuler', method='GET',
+                                submitlabel = 'Générer document', 
+                                name='tf' )
+        if  tf[0] == 0:
+            return '\n'.join(H) + '\n' + tf[1] + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
+        else:
+            # submit
+            dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, with_prev=True)
+            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST, tf[2]['dateCommission'] )
+            sem = self.get_formsemestre(formsemestre_id)
+            dt = time.strftime( '%Y-%m-%d' )
+            filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)
+            return sendPDFFile(REQUEST, pdfdoc, filename)
         
 #     def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
 #         """Chaine HTML decrivant la decision du jury pour cet etudiant.
