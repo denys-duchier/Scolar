@@ -43,7 +43,7 @@ def query_apogee_portal(nom, prenom):
     """
     req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
     try:
-        f = urllib2.urlopen(req)
+        f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
     except:
         log("query_apogee_portal: can't connect to Apogee portal")
         return []

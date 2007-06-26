@@ -38,11 +38,15 @@ LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utiliser PIL pour conaitre
 LOGO_FOOTER_HEIGHT = 1*cm
 LOGO_FOOTER_WIDTH  = LOGO_FOOTER_HEIGHT*LOGO_FOOTER_ASPECT
 
+LOGO_HEADER_ASPECT = 744 / 374. # XXX logo IUTV
+LOGO_HEADER_HEIGHT = 15*mm
+LOGO_HEADER_WIDTH  = LOGO_HEADER_HEIGHT*LOGO_HEADER_ASPECT
+
 def pageFooter(canvas, doc, logo):
     "Add footer on page"
     width = doc.pagesize[0] # - doc.pageTemplate.left_p - doc.pageTemplate.right_p
     foot = Frame( 0.1*mm, 0.2*cm,
-                  width-1*mm, 2*cm, # xxx 2
+                  width-1*mm, 2*cm,
                   leftPadding=0, rightPadding=0,
                   topPadding=0, bottomPadding=0,                  
                   id="monfooter", showBoundary=0 )
@@ -72,9 +76,20 @@ def pageFooter(canvas, doc, logo):
                              ('RIGHTPADDING',(-1,0), (-1,0), 1*cm ),
                              ])
     tab = Table( [ (p, logo, np) ], style=tabstyle, colWidths=(None,LOGO_FOOTER_WIDTH+2*mm, 2*cm) )             
-    
+    canvas.saveState() # is it necessary ?
     foot.addFromList( [tab], canvas )
+    canvas.restoreState()
 
+def pageHeader(canvas, doc, logo):
+    height = doc.pagesize[1]
+    head = Frame( -22*mm, height - 13*mm - LOGO_FOOTER_HEIGHT,
+                  10*cm, LOGO_HEADER_HEIGHT + 2*mm,
+                  leftPadding=0, rightPadding=0,
+                  topPadding=0, bottomPadding=0,                  
+                  id="monheader", showBoundary=0 )
+    canvas.saveState() # is it necessary ?
+    head.addFromList([logo], canvas)
+    canvas.restoreState()
 
 class CourrierIndividuelTemplate(PageTemplate) :
     """Template pour courrier avisant des decisions de jury (1 page /etudiant)
@@ -127,19 +142,20 @@ class CourrierIndividuelTemplate(PageTemplate) :
 class PVTemplate(CourrierIndividuelTemplate):
     def __init__(self, document, 
                  author=None, title=None, subject=None,
-                 margins = (0,0,0,5), # additional margins in mm (left,top,right, bottom)
+                 margins = (0,23,0,5), # additional margins in mm (left,top,right, bottom)
                  image_dir = ''):
         
         CourrierIndividuelTemplate.__init__(self, document, author=author, title=title, subject=subject,
                                             margins=margins, image_dir=image_dir)
         self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
+        self.logo_header = Image( image_dir + '/logo_header.jpg', height=LOGO_HEADER_HEIGHT, width=LOGO_HEADER_WIDTH )
 
     def beforeDrawPage(self, canvas, doc) :
         CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
         # --- Add footer
-        canvas.saveState()
         pageFooter(canvas, doc, self.logo_footer )
-        canvas.restoreState()
+        # --- Add header
+        pageHeader(canvas, doc, self.logo_header )
 
 def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
@@ -340,8 +356,9 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
     bulletStyle.spaceAfter=5*mm
                                    
     t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
+    objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
-    <para ><b>Procès-verbal du %s du département %s - Session %s</b></para>    
+    <para><b>Procès-verbal du %s du département %s - Session %s</b></para>    
     """ % (t, znotes.DeptName, sem['annee']), style)
 
     objects += makeParas("""<para><bullet>-</bullet>  
@@ -356,7 +373,7 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     """ % (znotes.UnivName, t, dateCommission), bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
-    
+    objects += [ Spacer(0,4*mm) ]
     titles, lines = sco_pvjury.pvjury_table(znotes, dpv)
 
     # Make a new cell style and put all cells in paragraphs    
@@ -378,7 +395,7 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()
     codes.sort()
-    objects += makeParas( """<para spaceBefore="10mm" spaceBefore="5mm" fontSize="14">
+    objects += makeParas( """<para spaceBefore="10mm" fontSize="14">
     <b>Codes utilisés :</b></para>""", style )
     L = []
     for code in codes:
