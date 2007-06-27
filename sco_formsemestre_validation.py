@@ -268,8 +268,12 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
     TitlePrev = ''
     if Se.prev:
         TitlePrev = 'S%d' % Se.prev['semestre_id']
-    TitleCur = 'S%d' % Se.sem['semestre_id']
-
+    
+    if Se.sem['semestre_id']:
+        TitleCur = 'S%d' % Se.sem['semestre_id']
+    else:
+        TitleCur = 'Sem'
+    
     H = [ '<tr class="%s titles"><th class="sfv_subtitle">%s</em></th>' % (trclass, subtitle) ]
     if Se.prev:
         H.append('<th>Code %s</th>' % TitlePrev )
@@ -454,9 +458,14 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
     codes = sco_codes_parcours.DEVENIR_EXPL.keys()
     codes.sort() # fortuitement, cet ordre convient aussi bien !
 
+    if Se.sem['semestre_id'] == -1:
+        allowed_codes = sco_codes_parcours.DEVENIRS_MONO
+    else:
+        allowed_codes = sco_codes_parcours.DEVENIRS_STD
+
     H.append('<tr><td>Devenir: </td><td><select name="devenir"><option value="" selected>Choisir...</option>')
     for cod in codes:
-        if Se.sem['gestion_semestrielle'] == '1' or sco_codes_parcours.DEVENIRS_STD.has_key(cod):
+        if Se.sem['gestion_semestrielle'] == '1' or allowed_codes.has_key(cod):
             H.append('<option value="%s">%s</option>' % (cod, Se.explique_devenir(cod)))
     H.append('</select></td></tr>')
 

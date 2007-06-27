@@ -82,6 +82,9 @@ DEVENIR_EXPL = {
 # Devenirs autorises dans les cursus sans semestres décalés:
 DEVENIRS_STD = { NEXT:1, REDOANNEE:1, RA_OR_NEXT:1, REO:1 }
 
+# Devenis autorises dans les cursus en un seul semestre, semestre_id==-1 (licences ?)
+DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
+
 # Nombre max de sem DUT (a placer dans notes_formations ?)
 DUT_NB_SEM = 4
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres

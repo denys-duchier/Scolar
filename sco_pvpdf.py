@@ -275,9 +275,13 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
         """ % params, style )                             
     
     # Décision semestre courant:
+    if sem['semestre_id'] >= 0:
+        params['s'] = 'du semestre S%s' % sem['semestre_id']
+    else:
+        params['s'] = ''
     objects += makeParas("""
     <para leftindent="%(htab2)s" spaceBefore="5mm" fontSize="14">
-    <b>Décision du semestre S%(semestre_id)s :</b> %(decision_sem_descr)s
+    <b>Décision %(s)s :</b> %(decision_sem_descr)s
     </para>""" % params, style )
 
     # UE capitalisées:

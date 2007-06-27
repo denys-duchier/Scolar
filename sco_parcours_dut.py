@@ -142,6 +142,8 @@ class SituationEtudParcours:
         if not devenir:
             return ''
         s = self.sem['semestre_id'] # numero semestre courant
+        if s < 0: # formation sans semestres (eg licence)
+            s = 1
         if self.semestre_non_terminal:
             passage = 'Passe en S%s' % (s + 1)
         else:
