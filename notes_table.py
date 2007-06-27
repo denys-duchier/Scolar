@@ -436,10 +436,11 @@ class NotesTable:
         if with_capitalized_ue:
             # import pdb
             # pdb.set_trace()
-            for ue_status in ues_status.values():
+            for ue_id in ues_status.keys():
+                ue_status = ue_statusues_status[ue_id]
                 if ue_status['is_capitalized']:
                     try:
-                        sum_notes += ue_status['moy_ue'] * ue_status['coef_ue']
+                        sum_notes += ue_status['moy_ue'] * self.ue_coefs[ue_id]
                         sum_coefs += ue_status['coef_ue']            
                     except: # pas de note dans cette UE
                         pass
