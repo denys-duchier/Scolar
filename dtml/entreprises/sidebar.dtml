@@ -14,7 +14,7 @@
 <dtml-var sidebar_dept>
 
 
-<h2 class="insidebar"><a href="<dtml-var ScoURL>/Entreprises" class="sidebar">Entreprises</a></h2>
+<h2 class="insidebar">XXX<a href="<dtml-var ScoURL>/Entreprises" class="sidebar">Entreprises</a></h2>
  <ul class="insidebar">
  <dtml-unless "REQUEST['_read_only']">
  <li class="insidebar"><a href="entreprise_create" class="sidebar">Nouvelle entreprise</a> </li>

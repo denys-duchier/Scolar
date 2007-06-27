@@ -438,8 +438,11 @@ class NotesTable:
             # pdb.set_trace()
             for ue_status in ues_status.values():
                 if ue_status['is_capitalized']:
-                    sum_notes += ue_status['moy_ue'] * ue_status['coef_ue']
-                    sum_coefs += ue_status['coef_ue']            
+                    try:
+                        sum_notes += ue_status['moy_ue'] * ue_status['coef_ue']
+                        sum_coefs += ue_status['coef_ue']            
+                    except: # pas de note dans cette UE
+                        pass
         # Calcul moyenne:
         if sum_coefs > 0:
             moy = sum_notes / sum_coefs

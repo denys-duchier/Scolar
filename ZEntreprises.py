@@ -216,7 +216,7 @@ class ZEntreprises(ObjectManager,
         "common header for all Entreprises pages"
         authuser = REQUEST.AUTHENTICATED_USER
         # _read_only is used to modify pages properties (links, buttons)
-        # Python methods (do_xxx in this calss) are also protected individualy)
+        # Python methods (do_xxx in this class) are also protected individualy)
         if authuser.has_permission(ScoEntrepriseChange,self):
             REQUEST.set( '_read_only', False )
         else:
