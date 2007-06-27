@@ -388,9 +388,11 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]
     titles = [ '<para><b>%s</b></para>' % x for x in titles ]
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in ([titles] + lines) ]
-    objects.append( Table( Pt, repeatRows=1,
-                           colWidths = (6*cm, 2.8*cm, 2.8*cm, None, None, None),
-                           style=TableStyle ) )
+    if dpv['has_prev']:
+        widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None)
+    else:
+        widths = (6*cm, 2.8*cm, None, None, None)
+    objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
 
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()
