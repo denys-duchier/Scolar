@@ -3814,7 +3814,9 @@ class ZNotes(ObjectManager,
         H = [self.sco_header(self,REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titre_num'] ]
         F = self.sco_footer(self,REQUEST)
         descr = [
-            ('dateCommission', {'input_type' : 'text', 'size' : 100, 'title' : 'Date de la commission'}),
+            ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
+            ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+            ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
             ('formsemestre_id', {'input_type' : 'hidden' }) ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler', method='GET',
@@ -3825,9 +3827,15 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
         else:
-            # submit
+            # submit            
             dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, with_prev=True)
-            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST, tf[2]['dateCommission'] )
+            if tf[2]['showTitle']:
+                tf[2]['showTitle'] = True
+            else:
+                tf[2]['showTitle'] = False
+            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
+                                          tf[2]['dateCommission'], tf[2]['dateJury'],
+                                          tf[2]['showTitle'])
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)

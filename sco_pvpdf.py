@@ -325,7 +325,7 @@ Le Chef du département
 # ----------------------------------------------
 # PV complet, tableau en format paysage
 
-def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
+def pvjury_pdf(znotes, dpv, REQUEST, dateCommission, dateJury=None, showTitle=False):
     """Doc PDF récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
@@ -358,8 +358,13 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission):
     t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
-    <para><b>Procès-verbal du %s du département %s - Session %s</b></para>    
+    <para align="center"><b>Procès-verbal du %s du département %s - Session %s</b></para>    
     """ % (t, znotes.DeptName, sem['annee']), style)
+
+    if showTitle:
+        objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
+    if dateJury:
+         objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
 
     objects += makeParas("""<para><bullet>-</bullet>  
 Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
@@ -394,10 +399,16 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
         widths = (6*cm, 2.8*cm, None, None, None)
     objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
 
+    # Signature du directeur
+    objects += makeParas(
+        """<para spaceBefore="10mm" align="right">
+        Le directeur de l'IUT, %s</para>""" % znotes.DirectorName,
+                         style)
+
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()
     codes.sort()
-    objects += makeParas( """<para spaceBefore="10mm" fontSize="14">
+    objects += makeParas( """<para spaceBefore="15mm" fontSize="14">
     <b>Codes utilisés :</b></para>""", style )
     L = []
     for code in codes:
