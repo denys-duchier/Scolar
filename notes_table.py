@@ -437,7 +437,7 @@ class NotesTable:
             # import pdb
             # pdb.set_trace()
             for ue_id in ues_status.keys():
-                ue_status = ue_status[ue_id]
+                ue_status = ues_status[ue_id]
                 if ue_status['is_capitalized']:
                     try:
                         sum_notes += ue_status['moy_ue'] * self.ue_coefs[ue_id]
