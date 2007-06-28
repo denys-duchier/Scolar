@@ -29,6 +29,7 @@ import ZScolar, ZNotes
 
 __version__ = '0.0.0'
 
+
 def initialize(context):
     """initialize the Scolar products"""
 

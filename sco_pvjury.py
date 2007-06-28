@@ -235,6 +235,8 @@ def pvjury_excel(znotes, dpv):
     """Tableau Excel récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
+    if not dpv:
+        return ''
     sem = dpv['formsemestre']
     
     titles, lines = pvjury_table(znotes, dpv)
@@ -246,10 +248,14 @@ def pvjury_html(znotes, dpv, REQUEST):
     """Page HTML récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
-    formsemestre_id = dpv['formsemestre']['formsemestre_id']
-    sem = dpv['formsemestre']
     header = znotes.sco_header(znotes,REQUEST)
     footer = znotes.sco_footer(znotes, REQUEST)
+
+    if not dpv:
+        return header + '<h2>Aucune information disponible !</h2>' + footer
+
+    sem = dpv['formsemestre']
+    formsemestre_id = sem['formsemestre_id']
     if sem['semestre_id'] >= 0:
         id_cur = ' S%s' % sem['semestre_id']
     else:

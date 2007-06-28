@@ -441,7 +441,7 @@ class NotesTable:
                 if ue_status['is_capitalized']:
                     try:
                         sum_notes += ue_status['moy_ue'] * self.ue_coefs[ue_id]
-                        sum_coefs += ue_status['coef_ue']            
+                        sum_coefs += self.ue_coefs[ue_id]
                     except: # pas de note dans cette UE
                         pass
         # Calcul moyenne:

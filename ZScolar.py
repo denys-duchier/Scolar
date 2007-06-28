@@ -28,6 +28,7 @@
 """Site Scolarite pour département IUT
 """
 
+
 import time, string, glob, re
 import urllib, urllib2, xml
 try: from cStringIO import StringIO
@@ -48,13 +49,20 @@ from Globals import Persistent
 from Globals import INSTANCE_HOME
 from Acquisition import Implicit
 
-# where we exist on the file system
-file_path = Globals.package_home(globals())
 
 # ---------------
 from notes_log import log
 log.set_log_directory( INSTANCE_HOME + '/log' )
 log("restarting...")
+
+
+# where we exist on the file system
+file_path = Globals.package_home(globals())
+
+# Hackery to use packages in pour product
+import sys
+log( 'ZScolar home=%s' % file_path )
+#sys.path.append( file_path )
 
 from sco_exceptions import *
 from sco_utils import *
@@ -69,6 +77,8 @@ from scolars import format_telephone, format_pays, make_etud_args
 
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+
+# import sco_header  XXX re-ecriture en Python a terminer
 
 from TrivialFormulator import TrivialFormulator, TF
 import sco_excel
@@ -260,6 +270,8 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoView, 'sco_header')
     sco_header = DTMLFile('dtml/sco_header', globals())
+    # XXX sco_header = sco_header.sco_header
+
     security.declareProtected(ScoView, 'sco_footer')
     sco_footer = DTMLFile('dtml/sco_footer', globals())
     security.declareProtected(ScoView, 'menus_bandeau')
@@ -1175,7 +1187,16 @@ class ZScolar(ObjectManager,
             info['tit_anno'] = '<h4>Annotations</h4>'
         else:
             info['tit_anno'] = '<div style="margin-top: 1em; padding-top: 5px;"></div>'
-        #
+        # Inscriptions
+        if info['sems']:
+            rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
+        else:
+            rcl = ''
+        info['inscriptions_mkup'] = """<div class="ficheinscriptions" id="ficheinscriptions">
+<p class="fichetitre">Inscriptions %s</p>
+</div>""" % info['liste_inscriptions']
+        
+        #        
         tmpl = """
 <script language="javascript" type="text/javascript">
 function bodyOnLoad() {
@@ -1212,11 +1233,7 @@ function bodyOnLoad() {
 
 </div>
 
-<!-- Inscriptions -->
-<div class="ficheinscriptions" id="ficheinscriptions">
-<p class="fichetitre">Inscriptions (<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)</p>
-%(liste_inscriptions)s
-</div>
+%(inscriptions_mkup)s
 
 %(adm_data)s
 
