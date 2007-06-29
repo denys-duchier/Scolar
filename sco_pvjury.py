@@ -284,7 +284,7 @@ def pvjury_html(znotes, dpv, REQUEST):
     H.append('</table></p>')
 
     #
-    H.append('<ul><li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s&format=lettrespdf">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
+    H.append('<ul><li><a class="stdlink" href="formsemestre_lettres_individuelles?formsemestre_id=%s">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
     H.append('<li><a class="stdlink" href="formsemestre_pvjury_pdf?formsemestre_id=%s">PV officiel (pdf)</a></li></ul>' % formsemestre_id)
     
     # Légende des codes

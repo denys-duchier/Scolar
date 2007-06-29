@@ -177,7 +177,7 @@ def make_formsemestre_bulletinetud(
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
     # --- Decision Jury
     if sem['bul_show_decision'] == '1':
-        situation = _etud_descr_situation_semestre(
+        situation, dpv = _etud_descr_situation_semestre(
             znotes, etudid, formsemestre_id,
             format=format,
             show_uevalid=(sem['bul_show_uevalid']=='1'))
@@ -367,10 +367,15 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         doc._pop()
     # --- Decision Jury
     if sem['bul_show_decision'] == '1':
-        situation = _etud_descr_situation_semestre(
+        situation, dpv = _etud_descr_situation_semestre(
             znotes, etudid, formsemestre_id, format='xml',
             show_uevalid=(sem['bul_show_uevalid']=='1'))
         doc.situation( quote_xml_attr(situation) )
+        if dpv:
+            doc.decision( code=dpv['decisions'][0]['decision_sem']['code'],
+                          etat=dpv['decisions'][0]['etat'] )
+        else:
+            doc.decision( code='', etat='DEM' )
     # --- Appreciations
     cnx = znotes.GetDBConnexion() 
     apprecs = scolars.appreciations_list(
@@ -417,7 +422,7 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     else:
         inscr = 'Inscrit%s le %s.' % (ne, date_inscr)
     if date_dem:
-        return inscr + '. Démission le %s.' % date_dem
+        return inscr + '. Démission le %s.' % date_dem, None
 
     dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=[etudid])
     pv = dpv['decisions'][0]
@@ -426,4 +431,4 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
         dec = 'Décision jury: ' + pv['decision_sem_descr'] + '. '
     if pv['decisions_ue_descr']:
         dec += ' UE acquises: ' + pv['decisions_ue_descr']
-    return inscr + ' ' + dec
+    return inscr + ' ' + dec, dpv

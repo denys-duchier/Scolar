@@ -29,6 +29,9 @@ BUG:
 
  - verifier: les acronymes d'UE doivent etre uniques dans une formation
 
+ - ScoLockedForm: ne devrait pas envoyer de mail
+ - dates evaluation: utiliser JS pour calendrier
+
 * TODO: Notes  (modifs prioritaires)
 -------------
 

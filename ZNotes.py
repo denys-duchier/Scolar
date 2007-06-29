@@ -3787,7 +3787,7 @@ class ZNotes(ObjectManager,
         return sco_formsemestre_validation.do_formsemestre_validation_auto(self, formsemestre_id, REQUEST)
 
     
-    security.declareProtected(ScoEnsView, 'formsemestre_pvjury')
+    security.declareProtected(ScoView, 'formsemestre_pvjury')
     def formsemestre_pvjury(self, formsemestre_id, format='html',
                             REQUEST=None):
         "Liste les UE et semestres validés"
@@ -3798,16 +3798,35 @@ class ZNotes(ObjectManager,
             xls = sco_pvjury.pvjury_excel(self, dpv)
             filename = 'PV ' + dpv['formsemestre']['titreannee']
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        elif format == 'lettrespdf':
-            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id)
+        else:
+            raise ScoValueError('invalid format : %s' % format )
+
+    security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
+    def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
+        "Lettres avis jury en PDF"
+        sem = self.get_formsemestre(formsemestre_id)
+        H = [self.sco_header(self,REQUEST) + '<h2>Edition des lettres inviduelles de %s</h2>' % sem['titre_num'] ]
+        F = self.sco_footer(self,REQUEST)
+        descr = [
+            ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+            ('formsemestre_id', {'input_type' : 'hidden' })]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                                cancelbutton = 'Annuler', method='GET',
+                                submitlabel = 'Générer document', 
+                                name='tf' )
+        if  tf[0] == 0:
+            return '\n'.join(H) + '\n' + tf[1] + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
+        else:
+            # submit
+            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id, dateJury=tf[2]['dateJury'])
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
             return sendPDFFile(REQUEST, pdfdoc, filename)
-        else:
-            raise ScoValueError('invalid format : %s' % format )
-
-    security.declareProtected(ScoEnsView, 'formsemestre_pvjury_pdf')
+            
+    security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
     def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
         "Generation PV jury en PDF: saisie des paramètres"
         sem = self.get_formsemestre(formsemestre_id)

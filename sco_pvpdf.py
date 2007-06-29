@@ -157,7 +157,7 @@ class PVTemplate(CourrierIndividuelTemplate):
         # --- Add header
         pageHeader(canvas, doc, self.logo_header )
 
-def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
+def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
     (tous ceux du semestre, ou la liste indiquée par etudids)
     Renvoie pdf data
@@ -170,7 +170,7 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None):
     #
     sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     params = {
-        'dateJury' : dpv['date'],
+        'dateJury' : dateJury,
         'deptName' : znotes.DeptName, 
         'nomDirecteur' : znotes.DirectorName,
         'htab1' : "8cm", # lignes à droite (entete, signature)
