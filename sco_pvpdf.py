@@ -157,7 +157,7 @@ class PVTemplate(CourrierIndividuelTemplate):
         # --- Add header
         pageHeader(canvas, doc, self.logo_header )
 
-def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''):
+def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury='', signature=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
     (tous ceux du semestre, ou la liste indiquée par etudids)
     Renvoie pdf data
@@ -185,7 +185,7 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
             etud = znotes.getEtudInfo(e['identite']['etudid'], filled=True)[0]
             params['nomEtud'] = etud['nomprenom']
             bookmarks[i] = etud['nomprenom']
-            objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params ) 
+            objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params, signature ) 
             objects.append( PageBreak() )
             i += 1
     
@@ -214,7 +214,7 @@ def _descr_jury(sem, semestre_non_terminal):
         s = t
     return t, s # titre long, titre court
 
-def pdf_lettre_individuelle( sem, decision, etud, params ):
+def pdf_lettre_individuelle( sem, decision, etud, params, signature=None ):
     """
     Renvoie une liste d'objets PLATYPUS pour intégration
     dans un autre document.
@@ -323,7 +323,28 @@ et par délégation
 Le Chef du département
 </para>
     """ % params, style )
+    if signature:
+        objects.append( _make_signature_image(signature, params['htab1']) )
+        
     return objects
+
+
+def _make_signature_image(signature, leftindent):
+    "cree un paragraphe avec l'image signature"
+    # cree une image PIL pour avoir la taille (W,H)
+    from PIL import Image as PILImage
+    f = cStringIO.StringIO(signature)
+    im = PILImage.open(f)
+    width, height = im.size
+    pdfheight = 1.1*cm
+    f.seek(0,0)
+
+    style = styles.ParagraphStyle( {} )    
+    style.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+    style.leftIndent=leftindent
+    return Table( [ ('', Image( f, width=width*pdfheight/float(height), height=pdfheight)) ],
+                  colWidths = (9*cm, 7*cm) )
+                  
 
     
 # ----------------------------------------------

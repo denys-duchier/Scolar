@@ -3809,9 +3809,10 @@ class ZNotes(ObjectManager,
         F = self.sco_footer(self,REQUEST)
         descr = [
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+            ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionel: image scannée de la signature'}),
             ('formsemestre_id', {'input_type' : 'hidden' })]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
-                                cancelbutton = 'Annuler', method='GET',
+                                cancelbutton = 'Annuler', method='POST',
                                 submitlabel = 'Générer document', 
                                 name='tf' )
         if  tf[0] == 0:
@@ -3820,12 +3821,17 @@ class ZNotes(ObjectManager,
             return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
         else:
             # submit
-            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id, dateJury=tf[2]['dateJury'])
+            sf = tf[2]['signature']
+            #pdb.set_trace()
+            signature = sf.read() # image of signature
+            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id,
+                                                         dateJury=tf[2]['dateJury'],
+                                                         signature=signature)
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
             return sendPDFFile(REQUEST, pdfdoc, filename)
-            
+        
     security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
     def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
         "Generation PV jury en PDF: saisie des paramètres"
