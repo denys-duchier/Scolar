@@ -1598,8 +1598,7 @@ function tweakmenu( gname ) {
         else:
             default_group = 'aucun'
         #
-        header = self.sco_header(REQUEST,
-                                 page_title='Suppression d\'un groupe' )
+        header = self.sco_header(REQUEST, page_title='Suppression d\'un groupe' )
         H = [ '<h2>Suppression d\'un groupe de %s</h2>' % groupTypeName ]
         if groupType == 'TD':
             if len(gr_td) > 1:

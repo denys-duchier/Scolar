@@ -248,8 +248,8 @@ def pvjury_html(znotes, dpv, REQUEST):
     """Page HTML récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
-    header = znotes.sco_header(znotes,REQUEST)
-    footer = znotes.sco_footer(znotes, REQUEST)
+    header = znotes.sco_header(REQUEST)
+    footer = znotes.sco_footer(REQUEST)
 
     if not dpv:
         return header + '<h2>Aucune information disponible !</h2>' + footer
