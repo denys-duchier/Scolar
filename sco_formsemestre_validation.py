@@ -57,7 +57,7 @@ def formsemestre_validation_etud_form(
         pass # ? autoriser ou pas ? warning ?
         # raise ScoValueError('validation: semestre verrouille')
     
-    H = [ znotes.sco_header(znotes,REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
+    H = [ znotes.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
@@ -481,7 +481,7 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
 def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     "Formulaire saisie automatisee des decisions d'un semestre"
     sem= znotes.get_formsemestre(formsemestre_id)
-    H = [ znotes.sco_header(znotes,REQUEST, page_title='Saisie automatique') ]
+    H = [ znotes.sco_header(REQUEST, page_title='Saisie automatique') ]
     H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
     <ul>
     <li>Seuls les étudiants qui obtiennent le semestre seront affectés (code ADM, moyenne générale et
@@ -539,7 +539,7 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
                                                   REQUEST=REQUEST, redirect=False)
                 nb_valid += 1
     log('do_formsemestre_validation_auto: %d validations, %d conflicts' % (nb_valid, len(conflicts)))
-    H = [ znotes.sco_header(znotes,REQUEST, page_title='Saisie automatique') ]
+    H = [ znotes.sco_header(REQUEST, page_title='Saisie automatique') ]
     H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
     <p>Opération effectuée.</p>
     <p>%d étudiants validés (sur %s)</p>""" % (sem['titreannee'], nb_valid, len(etudids)))

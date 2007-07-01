@@ -38,7 +38,7 @@ from notes_table import *
 
 # XXXXXXXXX HACK: zope 2.7.7 bug turaround ?
 import locale
-locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
+locale.setlocale(locale.LC_ALL, ('en_US', SCO_ENCODING) )
 
 
 abbrvmonthsnames = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
@@ -145,7 +145,15 @@ _identiteEditor = EditableTable(
 
 identite_delete = _identiteEditor.delete
 identite_list   = _identiteEditor.list
-identite_edit   = _identiteEditor.edit
+
+def identite_edit(cnx, args, context=None):
+    """Modifie l'identite d'un étudiant.
+    Si context et notification et difference, envoie message notification.
+    """
+    if context:        
+        pass
+    _identiteEditor.edit(uid, args)
+    
 
 def identite_create( cnx, args ):
     "check unique etudid, then create"
@@ -232,9 +240,9 @@ class EtudIdentEditor:
         # tri par nom
         res.sort( lambda x,y: cmp(x['nom'],y['nom']) )
         return res
-    def edit(self, uid, args):
-        identite_edit( uid, args )
-        admission_edit( uid, args )
+    def edit(self, cnx, args, context=None):
+        identite_edit( cnx, args, context=context )
+        admission_edit( cnx, args )
 
 _etudidentEditor = EtudIdentEditor()
 etudident_list   = _etudidentEditor.list

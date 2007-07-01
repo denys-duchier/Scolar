@@ -79,6 +79,7 @@ def sco_header(context, REQUEST=None,
 <link href="%(maincss_url)s%(maincss_args)s" rel="stylesheet" type="text/css" />
 <link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>
+<script language="javascript" type="text/javascript" src="%(ScoURL)s/sorttable_js"></script>
 """ % params
           ]
     # Feuilles de style additionnelles:

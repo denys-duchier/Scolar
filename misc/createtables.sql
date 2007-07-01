@@ -34,6 +34,12 @@ CREATE FUNCTION notes_newid_etud( text ) returns text as '
 	as result;
 	' language SQL;
 
+-- pas encore en service: pour remplacer les properties de Zope...
+CREATE TABLE scolar_prefs (
+    pref_id  text DEFAULT notes_newid('PREF'::text) UNIQUE NOT NULL,
+    name text UNIQUE NOT NULL,
+    value text
+);
 
 
 CREATE TABLE identite (
