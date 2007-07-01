@@ -1403,7 +1403,7 @@ class ZNotes(ObjectManager,
         "check if current user can modify ens list (raise exception if not)"
         M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         # -- check lock
-        sem = self.get_formsemestre({'formsemestre_id':M['formsemestre_id']})
+        sem = self.get_formsemestre(M['formsemestre_id'])
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         # -- check access
