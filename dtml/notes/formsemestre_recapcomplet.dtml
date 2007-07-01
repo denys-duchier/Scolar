@@ -3,7 +3,7 @@
 
 <dtml-call "REQUEST.set('no_side_bar', 1)">
 
-<dtml-var "sco_header(page_title='Recapitulatif')">
+<dtml-var "sco_header(REQUEST, page_title='Recapitulatif')">
 <dtml-var formsemestre_status_head>
 
 <form name="f" method="GET">
