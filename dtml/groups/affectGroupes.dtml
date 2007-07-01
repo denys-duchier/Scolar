@@ -1,5 +1,5 @@
 <dtml-var "sco_header(page_title='Affectation aux groupes',
-           REQUEST=REQUEST,client=this(),
+           REQUEST=REQUEST,
            javascripts=[ 'prototype_1_4_0_js', 'rico_js', 'groupmgr_js' ],
            bodyOnLoad='javascript:bodyOnLoad()' )">
 

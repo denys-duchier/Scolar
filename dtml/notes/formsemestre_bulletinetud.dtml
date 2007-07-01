@@ -5,7 +5,7 @@
 
 <dtml-in etudinfo mapping>
 
-<dtml-var "sco_header(page_title='Bulletin de '+nomprenom,REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Bulletin de '+nomprenom,REQUEST=REQUEST)">
 <table class="bull_head">
 <TR><TD>
 <h2><dtml-var nomprenom></h2>
