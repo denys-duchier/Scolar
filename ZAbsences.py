@@ -466,8 +466,8 @@ class ZAbsences(ObjectManager,
         datedebut, datefin: dates (ISO) de la semaine        
         """
         etudids = etudids.split(',')
-        H = [ self.sco_header(self,REQUEST,page_title='Absences') ]
-        footer = self.sco_footer(self,REQUEST)
+        H = [ self.sco_header(REQUEST,page_title='Absences') ]
+        footer = self.sco_footer(REQUEST)
         if not etudids:
             return '\n'.join(H) + '<h3>Rien à ajouter !</h3>' + footer
         
@@ -495,8 +495,8 @@ class ZAbsences(ObjectManager,
         """
         etudids = etudids.split(',')
         dates = dates.split(',')
-        H = [ self.sco_header(self,REQUEST,page_title='Absences') ]
-        footer = self.sco_footer(self,REQUEST)
+        H = [ self.sco_header(REQUEST,page_title='Absences') ]
+        footer = self.sco_footer(REQUEST)
         if not etudids or not dates:
             return '\n'.join(H) + '<h3>Rien à ajouter !</h3>' + footer
         # 1- Efface les absences
@@ -668,7 +668,7 @@ class ZAbsences(ObjectManager,
 
         H += self._gen_form_saisie_groupe(etuds, DAY_NAMES, datessem, destination)
 
-        H.append(self.sco_footer(self, REQUEST))
+        H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
 
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrSemestre')
@@ -708,7 +708,7 @@ class ZAbsences(ObjectManager,
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination)
-        H.append(self.sco_footer(self, REQUEST))
+        H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
     
     def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination=''):

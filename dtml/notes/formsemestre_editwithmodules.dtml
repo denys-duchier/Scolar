@@ -1,6 +1,6 @@
 <dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
 <dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0])">
-<dtml-var "sco_header(page_title='Modification d\'un semestre',REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Modification d\'un semestre',REQUEST=REQUEST)">
 
 <h2>Modification du semestre <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre_num']"></a> (formation <dtml-var "F['acronyme']">)</h2>
 

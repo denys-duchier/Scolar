@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="iso-8859-15"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+
+
+
+   OBSOLETE: remplacé par version en Python: html_sco_header.py
+
+
+
+
+
+
+
+
+
+
+
 <html>
 <head>
 <title><dtml-if page_title><dtml-var page_title><dtml-else><dtml-var title_or_id></dtml-if></title>

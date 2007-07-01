@@ -1,4 +1,4 @@
-<dtml-var sco_header>
+<dtml-var "sco_header(REQUEST)">
 <h2><dtml-var title_or_id></h2>
 
 

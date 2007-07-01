@@ -51,6 +51,7 @@ from notes_log import log
 from scolog import logdb
 from sco_exceptions import *
 from sco_utils import *
+import html_sidebar
 
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
@@ -221,12 +222,55 @@ class ZEntreprises(ObjectManager,
             REQUEST.set( '_read_only', False )
         else:
             REQUEST.set( '_read_only', True )
-        return self.sco_header(self,REQUEST)    
+        return self.sco_header(REQUEST, container=self)
 
     security.declareProtected(ScoEntrepriseView, 'entreprise_footer')
     def entreprise_footer(self,REQUEST):
         "common entreprise footer"
-        return self.sco_footer(self,REQUEST) 
+        return self.sco_footer(REQUEST) 
+
+    security.declareProtected(ScoEntrepriseView, 'sidebar')
+    def sidebar(self, REQUEST):
+        "barre gauche (overide std sco sidebar)"
+        # rewritten from legacy DTML code
+        context = self
+        params = {
+            'ScoURL' : context.ScoURL(),
+        }
+        
+        H = [
+            """<div id="sidebar-container">
+            <div class="sidebar">""",
+            html_sidebar.sidebar_common(context, REQUEST),
+            """<h2 class="insidebar"><a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a></h2>
+<ul class="insidebar">""" % params ]
+        if not REQUEST['_read_only']:
+            H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_create" class="sidebar">Nouvelle entreprise</a> </li>""" % params )
+        
+        H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_list" class="sidebar">Contacts</a> </li></ul> """ % params )
+
+        # --- entreprise selectionnée:
+        if REQUEST.form.has_key('entreprise_id'):
+            entreprise_id = REQUEST.form['entreprise_id']
+            E = context.do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0]
+            params.update(E)
+            H.append("""<div class="entreprise-insidebar">
+  <h3 class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_edit?entreprise_id=%(entreprise_id)s" class="sidebar">%(nom)s</a></h2>
+  <ul class="insidebar">
+  <li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_list?entreprise_id=%(entreprise_id)s" class="sidebar">Corresp.</a></li>""" % params ) # """
+            if not REQUEST['_read_only']:
+                H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau Corresp.</a></li>""" % params )
+            H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_list?entreprise_id=%(entreprise_id)s" class="sidebar">Contacts</a></li>""" % params )
+            if not REQUEST['_read_only']:
+                H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau "contact"</a></li>""" % params )
+            H.append('</ul></div>')
+
+        #
+        H.append("""<br><br>%s""" % context.img.entreprise_side_img.tag() )
+        if REQUEST['_read_only']:
+            H.append("""<br><em>(Lecture seule)</em>""")
+        H.append("""</div> </div> <!-- end of sidebar -->""")
+        return ''.join(H)
     
     # --------------------------------------------------------------------
     #
@@ -237,8 +281,8 @@ class ZEntreprises(ObjectManager,
     security.declareProtected(ScoEntrepriseView, 'index_html')
     index_html = DTMLFile('dtml/entreprises/index_html', globals())
 
-    security.declareProtected(ScoEntrepriseView, 'sidebar')
-    sidebar = DTMLFile('dtml/entreprises/sidebar', globals())
+    #security.declareProtected(ScoEntrepriseView, 'sidebar')
+    #sidebar = DTMLFile('dtml/entreprises/sidebar', globals())
   
     security.declareProtected(ScoEntrepriseView, 'entreprise_contact_list')
     entreprise_contact_list = DTMLFile('dtml/entreprises/entreprise_contact_list',globals())

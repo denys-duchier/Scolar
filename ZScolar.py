@@ -78,7 +78,7 @@ from scolars import format_telephone, format_pays, make_etud_args
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
-# import sco_header  XXX re-ecriture en Python a terminer
+import html_sco_header, html_sidebar
 
 from TrivialFormulator import TrivialFormulator, TF
 import sco_excel
@@ -222,7 +222,7 @@ class ZScolar(ObjectManager,
             b += '</p>'
         b += '<p>xxx</p><hr><p>' + str(self.aq_parent.aq_parent)
 
-        return self.sco_header(self,REQUEST)+ str(b) + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST)+ str(b) + self.sco_footer(REQUEST)
         
     # Ajout (dans l'instance) d'un dtml modifiable par Zope
     def defaultDocFile(self,id,title,file):
@@ -269,8 +269,8 @@ class ZScolar(ObjectManager,
 
 
     security.declareProtected(ScoView, 'sco_header')
-    sco_header = DTMLFile('dtml/sco_header', globals())
-    # XXX sco_header = sco_header.sco_header
+    #sco_header = DTMLFile('dtml/sco_header', globals())
+    sco_header = html_sco_header.sco_header
 
     security.declareProtected(ScoView, 'sco_footer')
     sco_footer = DTMLFile('dtml/sco_footer', globals())
@@ -340,7 +340,7 @@ class ZScolar(ObjectManager,
         #g='gonÇalves'
         # 
         #d = "<p>locale=%s, g=%s -> %s</p>"% (locale.getlocale(), g, g.lower() )
-        return self.sco_header(self,REQUEST)+ '\n'.join(H) + d + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST)+ '\n'.join(H) + d + self.sco_footer(REQUEST)
 
     
     security.declareProtected(ScoView, 'raiseScoValueError')
@@ -415,7 +415,8 @@ class ZScolar(ObjectManager,
 
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')
-    sidebar = DTMLFile('dtml/sidebar', globals())
+    #sidebar = DTMLFile('dtml/sidebar', globals())
+    sidebar = html_sidebar.sidebar
     
     security.declareProtected(ScoView, 'showEtudLog')
     showEtudLog = DTMLFile('dtml/showEtudLog', globals())
@@ -527,7 +528,7 @@ class ZScolar(ObjectManager,
             </ul>
             """)
         #
-        return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
 
 
     security.declareProtected(ScoView, 'index_html')
@@ -682,7 +683,7 @@ class ZScolar(ObjectManager,
                             self._make_query_groups(groupetd,groupetp,groupeanglais,etat)))
             
             H.append('</ul>')
-            return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+            return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
         elif format == 'csv':
             Th = [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ]
             fs = [ (t[0], t[1], t[5], t[4], t[3]) for t in T ]
@@ -767,7 +768,7 @@ class ZScolar(ObjectManager,
             if etat:
                 args += '&etat=%s' % etat            
             H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
-            return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+            return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
 
     def _trombino_zip(self, T, REQUEST ):
         "Send photos as zip archive"
@@ -1259,11 +1260,11 @@ function bodyOnLoad() {
 </div>
         """                           
         header = self.sco_header(
-                    self, REQUEST,
+                    REQUEST,
                     #javascripts=[ 'prototype_1_4_0_js', 'rico_js'],
                     #bodyOnLoad='javascript:bodyOnLoad()',
                     page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
-        return header + tmpl % info + self.sco_footer(self,REQUEST)
+        return header + tmpl % info + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView, 'descr_situation_etud')
     def descr_situation_etud(self, etudid, ne=''):
@@ -1333,8 +1334,7 @@ function bodyOnLoad() {
             adr = {} # no data for this student
         H = [ '<h2><font color="#FF0000">Changement des coordonnées de </font> %(prenom)s %(nom)s</h2><p>' % etud ]
         header = self.sco_header(
-            self,REQUEST,
-            page_title='Changement adresse de %(prenom)s %(nom)s'%etud)
+            REQUEST, page_title='Changement adresse de %(prenom)s %(nom)s' % etud )
         
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
@@ -1353,7 +1353,7 @@ function bodyOnLoad() {
             submitlabel = 'Valider le formulaire'
             )
         if  tf[0] == 0:
-            return header + '\n'.join(H) + tf[1] + self.sco_footer(self,REQUEST)
+            return header + '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
@@ -1381,8 +1381,7 @@ function bodyOnLoad() {
         etud['semtitre'] = sem['titre_num']
         H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         header = self.sco_header(
-            self,REQUEST,
-            page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
+            REQUEST, page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
         # Liste des groupes existant (== ou il y a des inscrits)
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         #
@@ -1447,7 +1446,7 @@ function tweakmenu( gname ) {
               sem['nomgroupetd'], sem['nomgroupeta'], sem['nomgroupetp'], 
               REQUEST.URL1) )
         
-        return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return header + '\n'.join(H) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoEtudChangeGroups, 'doChangeGroupe')
     def doChangeGroupe(self, etudid, formsemestre_id, groupetd=None,
@@ -1599,7 +1598,7 @@ function tweakmenu( gname ) {
         else:
             default_group = 'aucun'
         #
-        header = self.sco_header(self, REQUEST,
+        header = self.sco_header(REQUEST,
                                  page_title='Suppression d\'un groupe' )
         H = [ '<h2>Suppression d\'un groupe de %s</h2>' % groupTypeName ]
         if groupType == 'TD':
@@ -1607,7 +1606,7 @@ function tweakmenu( gname ) {
                 H.append( '<p>Les étudiants doivent avoir un groupe de TD. Si vous supprimer ce groupe, il seront affectés au groupe destination choisi (vous pourrez les changer par la suite)</p>'  )
             else:
                 H.append('<p>Il n\'y a qu\'un seul groupe défini, vous ne pouvez pas le supprimer.</p><p><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%s">Revenir au semestre</a>' % formsemestre_id )
-                return  header + '\n'.join(H) + self.sco_footer(self,REQUEST)
+                return  header + '\n'.join(H) + self.sco_footer(REQUEST)
         
         descr = [
             ('formsemestre_id', { 'input_type' : 'hidden' }),
@@ -1630,7 +1629,7 @@ function tweakmenu( gname ) {
                                 submitlabel = 'Supprimer ce groupe',
                                 name='tf' )
         if  tf[0] == 0:
-            return header + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(self,REQUEST)
+            return header + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
@@ -1729,7 +1728,7 @@ function tweakmenu( gname ) {
         etud['nowdmy'] = time.strftime('%d/%m/%Y')
         #
         header = self.sco_header(
-            self,REQUEST,
+            REQUEST,
             page_title='Démission de  %(prenom)s %(nom)s (du semestre %(semtitre)s)'%etud)
         H = [ '<h2><font color="#FF0000">Démission de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         H.append("""<form action="doDemEtudiant" method="GET">
@@ -1740,7 +1739,7 @@ function tweakmenu( gname ) {
 <input type="submit" value="Confirmer la d&eacute;mission">
 
 </form>""" % etud )
-        return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return header + '\n'.join(H) + self.sco_footer(REQUEST)
     
     security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
     def doDemEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
@@ -1822,8 +1821,8 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = [self.sco_header(self,REQUEST)]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST)]
+        F = self.sco_footer(REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)
         cnx = self.GetDBConnexion()
@@ -1993,11 +1992,11 @@ function tweakmenu( gname ) {
             csvfile, file_path, self.Notes, REQUEST,
             formsemestre_id=formsemestre_id )
         if REQUEST:
-            H = [self.sco_header(self,REQUEST, page_title='Import etudiants')]
+            H = [self.sco_header(REQUEST, page_title='Import etudiants')]
             H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
-            return '\n'.join(H) + self.sco_footer(self,REQUEST)
+            return '\n'.join(H) + self.sco_footer(REQUEST)
         # invalid all caches
         self.Notes._inval_cache()    
     
@@ -2100,12 +2099,12 @@ function tweakmenu( gname ) {
         """ % (formsemestre_id,strnone(groupetd),strnone(groupetp),
                strnone(groupeanglais),strnone(etat),formsemestre_id ))
 
-        return self.sco_header(self,REQUEST)+'\n'.join(H)+self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
         
     security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
     def form_students_import_csv(self, REQUEST, formsemestre_id=None):
         "formulaire import csv"
-        H = [self.sco_header(self,REQUEST, page_title='Import etudiants'),
+        H = [self.sco_header(REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
              <p style="color: red">A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
              <b>premier semestre</b>). Si les étudiants à inscrire sont déjà dans un autre
@@ -2144,7 +2143,7 @@ function tweakmenu( gname ) {
         H.append("""Obtenir la feuille excel à remplir</a></li>
         <li>""")
         
-        F = self.sco_footer(self,REQUEST)
+        F = self.sco_footer(REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
@@ -2212,7 +2211,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         Bacs = self.stat_bac(formsemestre_id)
         sem = self.Notes.do_formsemestre_list(
             {'formsemestre_id' : formsemestre_id} )[0]
-        header = self.sco_header(self, REQUEST,
+        header = self.sco_header(REQUEST,
                                  page_title='Statistiques bacs ' + sem['titre_num'])
         H = [ """
         <h2>Origine des étudiants de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> (%(date_debut)s - %(date_fin)s)</h2>
@@ -2223,7 +2222,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         for bac in bacs:
             H.append('<tr><td>%s</td><td>%s</td></tr>' % (Bacs[bac],bac) )
         H.append('</table>')
-        return header + '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return header + '\n'.join(H) + self.sco_footer(REQUEST)
     
     # sendEmail is not used through the web
     def sendEmail(self,msg):
@@ -2256,7 +2255,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             H.append('<input type="hidden" name="%s" value="%s"/>'
                      % (param, parameters[param]))
         H.append('</form>')
-        return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
             
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option

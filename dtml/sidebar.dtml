@@ -8,6 +8,14 @@
   -->
 </dtml-comment>
 
+
+
+
+   OBSOLETE: remplacé par version en Python: html_sidebar.py
+
+
+
+
 <div class="sidebar">
 
 <dtml-var sidebar_dept>

@@ -4,7 +4,7 @@
 
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 
-<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+nomprenom,REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+nomprenom,REQUEST=REQUEST)">
 
 <dtml-in "DateRangeISO( datedebut, datefin )">
 <dtml-let jour=sequence-item><dtml-call "REQUEST.set('jour', jour )">

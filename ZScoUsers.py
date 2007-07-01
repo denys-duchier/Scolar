@@ -155,14 +155,14 @@ class ZScoUsers(ObjectManager,
         else:
             dept = user[0]['dept']
         #
-        H = [self.sco_header(self,REQUEST,page_title='Gestion des utilisateurs')]
+        H = [self.sco_header(REQUEST,page_title='Gestion des utilisateurs')]
         H.append('<h1>Gestion des utilisateurs</h1>')        
         # 
         if authuser.has_permission(ScoAdminUsers,self):
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a></p>')
         #
         H.append( self.list_users( dept ) )
-        F = self.sco_footer(self,REQUEST)
+        F = self.sco_footer(REQUEST)
         return '\n'.join(H) + F
 
     _userEditor = EditableTable(
@@ -261,7 +261,7 @@ class ZScoUsers(ObjectManager,
         # ScoAdminUsers: modif tous les passwd de SON DEPARTEMENT
         # sauf si pas de dept (admin global)
         H = []
-        F = self.sco_footer(self,REQUEST)
+        F = self.sco_footer(REQUEST)
         # Check access permission
         if not self._can_handle_passwd( REQUEST.AUTHENTICATED_USER, user_name):
             # access denied
@@ -310,7 +310,7 @@ class ZScoUsers(ObjectManager,
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
 <body><h1>Mot de passe changé !</h1>
 """ + '\n'.join(H) + '<a href="%s"  class="stdlink">Continuer</a></body></html>' % self.ScoURL()
-        return self.sco_header(self,REQUEST) + '\n'.join(H) + F
+        return self.sco_header(REQUEST) + '\n'.join(H) + F
     
     security.declareProtected(ScoView, 'form_change_password')
     def form_change_password(self, REQUEST, user_name=None):
@@ -319,8 +319,8 @@ class ZScoUsers(ObjectManager,
         authuser = REQUEST.AUTHENTICATED_USER
         if not user_name:
             user_name = str(authuser)
-        H = [self.sco_header(self,REQUEST)]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST)]
+        F = self.sco_footer(REQUEST)
         # check access
         if not self._can_handle_passwd(authuser, user_name):
             return '\n'.join(H)+"<p>Vous n'avez pas la permission de changer ce mot de passe</p>" + F
@@ -345,8 +345,8 @@ class ZScoUsers(ObjectManager,
         # peut on divulguer ces infos ?
         if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, user_name):
             raise AccessDenied("Vous n'avez pas la permission de voir cette page")
-        H = [self.sco_header(self,REQUEST, page_title='Utilisateur %s'%user_name)]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST, page_title='Utilisateur %s'%user_name)]
+        F = self.sco_footer(REQUEST)
         H.append('<h2>Utilisateur: %s</h2>' % user_name )
         info = self._user_list( args= { 'user_name' : user_name })
         if not info:
@@ -404,8 +404,8 @@ class ZScoUsers(ObjectManager,
              user_name = auth_name
          #
          edit = int(edit)
-         H = [self.sco_header(self,REQUEST)]
-         F = self.sco_footer(self,REQUEST)
+         H = [self.sco_header(REQUEST)]
+         F = self.sco_footer(REQUEST)
          if edit:
              H.append("<h1>Modification d'un utilisateur</h1>")
          else:
@@ -571,8 +571,8 @@ class ZScoUsers(ObjectManager,
             r = self._user_list() # all users
             comm = '(tous)'
         if REQUEST:
-            H = [self.sco_header(eslf,REQUEST)]
-            F = self.sco_footer(self,REQUEST)
+            H = [self.sco_header(REQUEST)]
+            F = self.sco_footer(REQUEST)
         else:
             H = []
             F = ''

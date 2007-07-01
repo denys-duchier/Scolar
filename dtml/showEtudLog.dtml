@@ -1,7 +1,7 @@
 <dtml-comment > <!-- -*- mode:html -*- --></dtml-comment>
 
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
-<dtml-var "sco_header(page_title='Opérations (log) sur '+nomprenom,REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Opérations (log) sur '+nomprenom,REQUEST=REQUEST)">
 
 
 <h2>Opérations (log) sur <dtml-var sexe> <dtml-var prenom> <dtml-var nom></h2>

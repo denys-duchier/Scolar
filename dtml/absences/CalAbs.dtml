@@ -6,7 +6,7 @@
   -->
 </dtml-comment>
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
-<dtml-var "sco_header(page_title='Calendrier des absences de '+sexe+' '+nom,REQUEST=REQUEST,client=this(),cssstyles=['Absences/calabs_css'])">
+<dtml-var "sco_header(page_title='Calendrier des absences de '+sexe+' '+nom,REQUEST=REQUEST,cssstyles=['Absences/calabs_css'])">
 
 
 <table>

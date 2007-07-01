@@ -1,4 +1,4 @@
-<dtml-var "sco_header(page_title='Changement de photo',REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Changement de photo',REQUEST=REQUEST)">
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 
 <h2>Changement de la photo <dtml-var nomprenom></h2>

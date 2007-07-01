@@ -1,4 +1,4 @@
-<dtml-var sco_header>
+<dtml-var "sco_header(REQUEST)">
 <div class="formsemestre_status">
 
 <dtml-var formsemestre_status_head>

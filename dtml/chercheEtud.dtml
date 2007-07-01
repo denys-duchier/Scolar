@@ -1,6 +1,6 @@
 <dtml-comment > <!-- -*- mode:html -*- --></dtml-comment>
 
-<dtml-var "sco_header(page_title='R&eacute;sultats de la recherche',REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='R&eacute;sultats de la recherche',REQUEST=REQUEST)">
 
 <dtml-let BGCOLOR1="'#ffffcc'">
 

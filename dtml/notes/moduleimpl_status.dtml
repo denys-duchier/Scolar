@@ -1,4 +1,4 @@
-<dtml-var sco_header>
+<dtml-var "sco_header(REQUEST)">
 <dtml-call "REQUEST.set( 'M', do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0])">
 <dtml-call "REQUEST.set( 'Mod', do_module_list( args={ 'module_id' : M['module_id'] } )[0])">
 

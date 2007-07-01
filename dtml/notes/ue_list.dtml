@@ -1,4 +1,4 @@
-<dtml-var sco_header>
+<dtml-var "sco_header(REQUEST)">
 
 <dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : formation_id } )[0])">
 

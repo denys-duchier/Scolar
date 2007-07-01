@@ -11,7 +11,7 @@
 <dtml-let _formChoixSemestreGroupe=formChoixSemestreGroupe>
 
 <dtml-var "sco_header(page_title='Gestion des absences',
-            REQUEST=REQUEST,client=this(), 
+            REQUEST=REQUEST, 
             cssstyles=['Absences/calabs_css'], javascripts=['Absences/calabs_js'])">
 
 <h2>Gestion des Absences</h2>

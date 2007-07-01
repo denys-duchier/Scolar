@@ -346,7 +346,7 @@ class ZNotes(ObjectManager,
         <p>Création d'une formation (avec UE, matières, modules)
         à partir un fichier XML (réservé aux utilisateurs avertis)</p>
         """]
-        footer = self.sco_footer(self, REQUEST)
+        footer = self.sco_footer(REQUEST)
         tf = TrivialFormulator(REQUEST.URL0, REQUEST.form,
                                ( ('xmlfile',
                                   { 'input_type' : 'file',
@@ -1053,7 +1053,7 @@ class ZNotes(ObjectManager,
         sem = self.get_formsemestre(formsemestre_id)
         header = self.sco_header(page_title='Accès interdit',
                                  REQUEST=REQUEST)
-        footer = self.sco_footer(self, REQUEST)
+        footer = self.sco_footer(REQUEST)
         if ((sem['responsable_id'] != str(authuser))
             and not authuser.has_permission(ScoImplement,self)):
             return False, '\n'.join( [
@@ -1076,7 +1076,7 @@ class ZNotes(ObjectManager,
         F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
         header = self.sco_header(page_title='Modification d\'un semestre',
                                  REQUEST=REQUEST)
-        footer = self.sco_footer(self, REQUEST)
+        footer = self.sco_footer(REQUEST)
         H = [ header,
               self.formsemestre_status_head(self, REQUEST=REQUEST,
                                             formsemestre_id=formsemestre_id )
@@ -1325,10 +1325,9 @@ class ZNotes(ObjectManager,
         "modif liste enseignants/moduleimpl"
         M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
         # --
-        header = self.sco_header(self,REQUEST,
-                                 page_title='Enseignants du module %s'
-                                 % M['module']['titre'])
-        footer = self.sco_footer(self,REQUEST)
+        header = self.sco_header(REQUEST,
+                                 page_title='Enseignants du module %s' % M['module']['titre'])
+        footer = self.sco_footer(REQUEST)
         H = [ '<h2>Semestre %s, du %s au %s</h2>'
               % (sem['titre_num'], sem['date_debut'], sem['date_fin']),
               '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
@@ -1522,7 +1521,7 @@ class ZNotes(ObjectManager,
         insem = self.do_formsemestre_inscription_list(
             args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
-        return self.sco_header(self,REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
         
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(
@@ -1611,11 +1610,11 @@ class ZNotes(ObjectManager,
     def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
         "formulaire inscription de l'etud dans l'une des sessions existantes"
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]        
-        H = [ self.sco_header(self,REQUEST)
+        H = [ self.sco_header(REQUEST)
               + "<h2>Inscription de %s</h2>" % etud['nomprenom']
               + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie (sauf Sport &amp; Culture).</p>" 
               ]
-        F = self.sco_footer(self,REQUEST)
+        F = self.sco_footer(REQUEST)
         sems = self.do_formsemestre_list( args={ 'etat' : '1' } )
         if sems:
             H.append('<ul>')
@@ -1640,10 +1639,10 @@ class ZNotes(ObjectManager,
         """
         sem = self.get_formsemestre(formsemestre_id)
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-        H = [ self.sco_header(self,REQUEST)
+        H = [ self.sco_header(REQUEST)
               + "<h2>Inscription de %s dans %s</h2>" %
               (etud['nomprenom'],sem['titre_num']) ]
-        F = self.sco_footer(self,REQUEST)
+        F = self.sco_footer(REQUEST)
         if groupetd:
             # OK, inscription
             self.do_formsemestre_inscription_with_modules(
@@ -1710,7 +1709,7 @@ class ZNotes(ObjectManager,
         "Dialogue pour inscription a un module optionnel"
         sem = self.get_formsemestre(formsemestre_id)
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-        H = [ self.sco_header(self,REQUEST)
+        H = [ self.sco_header(REQUEST)
               + "<h2>Inscription de %s à un module optionnel de %s</h2>" %
               (etud['nomprenom'],sem['titre_num']) ]
         # Cherche les moduleimlps ou il n'est pas deja inscrit
@@ -1743,7 +1742,7 @@ class ZNotes(ObjectManager,
         else:
             H.append('<p>Cet étudiant est déjà inscrit à tous les modules du semestre !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%(etudid)s">Retour à la fiche de %(nomprenom)s</a></p>'
                      % (self.ScoURL(), etud))
-        return '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return '\n'.join(H) + self.sco_footer(REQUEST)
 
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_option')
@@ -1755,8 +1754,8 @@ class ZNotes(ObjectManager,
             raise ScoValueError('Modification impossible: semestre verrouille')
         
         etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-        F = self.sco_footer(self,REQUEST)
-        H = [ self.sco_header(self,REQUEST)
+        F = self.sco_footer(REQUEST)
+        H = [ self.sco_header(REQUEST)
               + "<h2>Inscription de %s aux modules de %s (%s - %s)</h2>" %
               (etud['nomprenom'],sem['titre_num'],
                sem['date_debut'],sem['date_fin']) ]
@@ -1899,12 +1898,12 @@ class ZNotes(ObjectManager,
             self.do_moduleimpl_inscription_delete(oid)
 
         if REQUEST:
-            H = [ self.sco_header(self,REQUEST),
+            H = [ self.sco_header(REQUEST),
                   """<h3>Modifications effectuées</h3>
                   <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">
                   Retour à la fiche étudiant</a></p>
                   """ % (self.ScoURL(), etudid),
-                  self.sco_footer(self, REQUEST)]
+                  self.sco_footer(REQUEST)]
             return '\n'.join(H)
 
     # --- Evaluations
@@ -2087,10 +2086,10 @@ class ZNotes(ObjectManager,
                 self._evaluation_check_write_access( REQUEST,
                                                      moduleimpl_id=moduleimpl_id )
             except AccessDenied, detail:
-                return self.sco_header(self,REQUEST)\
+                return self.sco_header(REQUEST)\
                        + '<h2>Opération non autorisée</h2><p>' + str(detail) + '</p>'\
                        + '<p><a href="%s">Revenir</a></p>' % (str(REQUEST.HTTP_REFERER), ) \
-                       + self.sco_footer(self,REQUEST)
+                       + self.sco_footer(REQUEST)
         if readonly:
             edit=True # montre les donnees existantes
         if not edit:
@@ -2170,7 +2169,7 @@ class ZNotes(ObjectManager,
 
         dest_url = 'moduleimpl_status?moduleimpl_id=%s' % M['moduleimpl_id']
         if  tf[0] == 0:
-            return self.sco_header(self,REQUEST) + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(self,REQUEST)
+            return self.sco_header(REQUEST) + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( dest_url )
         else:
@@ -2435,9 +2434,9 @@ class ZNotes(ObjectManager,
     def evaluation_listenotes(self, REQUEST ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('liste_format','html')=='html':
-            header = self.sco_header(self,REQUEST, cssstyles=['verticalhisto_css'])
+            header = self.sco_header(REQUEST, cssstyles=['verticalhisto_css'])
             H = header + "<h2>Affichage des notes d'une évaluation</h2>"
-            F = self.sco_footer(self,REQUEST)
+            F = self.sco_footer(REQUEST)
         else:
             H, F = '', ''
         B = self.do_evaluation_listenotes(REQUEST)
@@ -2772,12 +2771,12 @@ class ZNotes(ObjectManager,
         # Check access
         # (admin, respformation, and responsable_id)
         if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
-            return self.sco_header(self,REQUEST)\
+            return self.sco_header(REQUEST)\
                    + '<h2>Modification des notes impossible pour %s</h2>' % authusername\
                    + """<p>(vérifiez que le semestre n'est pas verrouillé et que vous
                    avez l'autorisation d'effectuer cette opération)</p>
                    <p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>
-                   """ % E['moduleimpl_id']  + self.sco_footer(self,REQUEST)                
+                   """ % E['moduleimpl_id']  + self.sco_footer(REQUEST)                
                #
         cnx = self.GetDBConnexion()
         note_method = REQUEST.form['note_method']
@@ -3208,10 +3207,10 @@ class ZNotes(ObjectManager,
         if len(invalids):
             diag = 'Valeur %s invalide' % value
         if diag:
-            return self.sco_header(self,REQUEST)\
+            return self.sco_header(REQUEST)\
                    + '<h2>%s</h2><p><a href="notes_eval_selectetuds?evaluation_id=%s">Recommencer</a>'\
                    % (diag, evaluation_id) \
-                   + self.sco_footer(self,REQUEST)
+                   + self.sco_footer(REQUEST)
         # Confirm action
         if not dialog_confirmed:
             return self.confirmDialog(
@@ -3235,13 +3234,13 @@ class ZNotes(ObjectManager,
         sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                      text='Initialisation notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                      url = mod['url'])
-        return self.sco_header(self,REQUEST)\
+        return self.sco_header(REQUEST)\
                    + """<h2>%d notes changées</h2>
                    <p><a href="moduleimpl_status?moduleimpl_id=%s">
                    Revenir au tableau de bord du module</a>
                    </p>
                    """ % (nb_changed, M['moduleimpl_id']) \
-                   + self.sco_footer(self,REQUEST)
+                   + self.sco_footer(REQUEST)
         
     security.declareProtected(ScoView, 'can_edit_notes')
     def can_edit_notes(self, authuser, moduleimpl_id, allow_ens=True ):
@@ -3306,7 +3305,7 @@ class ZNotes(ObjectManager,
                      text='Suppression des notes d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
                      url= mod['url'])
 
-        return self.sco_header(self,REQUEST) + '\n'.join(H) + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
     
     # not accessible through the web
     def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
@@ -3626,7 +3625,7 @@ class ZNotes(ObjectManager,
                 version=version, 
                 format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
         #
-        return self.sco_header(self,REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(self,REQUEST)
+        return self.sco_header(REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(nt.get_etudids()),formsemestre_id) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
     def appreciation_add_form(self, etudid=None, formsemestre_id=None,
@@ -3665,8 +3664,8 @@ class ZNotes(ObjectManager,
             a='Edition'
         else:
             a='Ajout'
-        H = [self.sco_header(self,REQUEST) + '<h2>%s d\'une appréciation sur %s</h2>' % (a,etud['nomprenom']) ]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST) + '<h2>%s d\'une appréciation sur %s</h2>' % (a,etud['nomprenom']) ]
+        F = self.sco_footer(REQUEST)
         descr = [
             ('edit', {'input_type' : 'hidden', 'default' : edit }),
             ('etudid', {'input_type' : 'hidden' }),
@@ -3805,8 +3804,8 @@ class ZNotes(ObjectManager,
     def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
         "Lettres avis jury en PDF"
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(self,REQUEST) + '<h2>Edition des lettres inviduelles de %s</h2>' % sem['titre_num'] ]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres inviduelles de %s</h2>' % sem['titre_num'] ]
+        F = self.sco_footer(REQUEST)
         descr = [
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
             ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionel: image scannée de la signature'}),
@@ -3836,8 +3835,8 @@ class ZNotes(ObjectManager,
     def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
         "Generation PV jury en PDF: saisie des paramètres"
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(self,REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titre_num'] ]
-        F = self.sco_footer(self,REQUEST)
+        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titre_num'] ]
+        F = self.sco_footer(REQUEST)
         descr = [
             ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
@@ -3924,8 +3923,8 @@ class ZNotes(ObjectManager,
         sem = self.get_formsemestre(formsemestre_id)
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         T = nt.get_table_moyennes_triees()
-        header = self.sco_header(self,REQUEST)
-        footer = self.sco_footer(self, REQUEST)
+        header = self.sco_header(REQUEST)
+        footer = self.sco_footer(REQUEST)
         #
         passe = {} # etudid qui passent
         already_inscr = {} # etudid deja inscrits (pour eviter double sinscriptions)

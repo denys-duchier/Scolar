@@ -7,7 +7,7 @@
   -->
 </dtml-comment>
 
-<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST,client=this())">
+<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST)">
 
 <dtml-call "REQUEST.set('formsemestre_id', semestregroupe.split('!')[0])">
 <dtml-call "REQUEST.set('groupetd', semestregroupe.split('!')[1])">

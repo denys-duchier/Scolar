@@ -1,4 +1,4 @@
-<dtml-var sco_header>
+<dtml-var "sco_header(REQUEST)">
 
 <dtml-call "REQUEST.set( 'M', do_matiere_list( args={'matiere_id' : matiere_id} )[0])">
 <dtml-call "REQUEST.set( 'UE', do_ue_list( args={'ue_id' : M['ue_id']} )[0])">

@@ -8,6 +8,15 @@
   -->
 </dtml-comment>
 
+
+
+
+   OBSOLETE: remplacé par version en Python: ZEntreprises.sidebar
+
+
+
+
+
 <div id="sidebar-container">
 <div class="sidebar">
 
