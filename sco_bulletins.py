@@ -371,7 +371,7 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
             znotes, etudid, formsemestre_id, format='xml',
             show_uevalid=(sem['bul_show_uevalid']=='1'))
         doc.situation( quote_xml_attr(situation) )
-        if dpv:
+        if dpv and dpv['decisions']:
             doc.decision( code=dpv['decisions'][0]['decision_sem']['code'],
                           etat=dpv['decisions'][0]['etat'] )
         else:
