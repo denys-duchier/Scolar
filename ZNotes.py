@@ -3810,7 +3810,7 @@ class ZNotes(ObjectManager,
         F = self.sco_footer(REQUEST)
         descr = [
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
-            ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionel: image scannée de la signature'}),
+            ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature'}),
             ('formsemestre_id', {'input_type' : 'hidden' })]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler', method='POST',
