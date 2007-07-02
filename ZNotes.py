@@ -268,7 +268,7 @@ class ZNotes(ObjectManager,
     _formationEditor = EditableTable(
         'notes_formations',
         'formation_id',
-        ('formation_id', 'acronyme','titre', 'version', 'formation_code'),
+        ('formation_id', 'acronyme','titre', 'titre_officiel', 'version', 'formation_code'),
         sortkey='acronyme'
         )
 
@@ -318,8 +318,10 @@ class ZNotes(ObjectManager,
     def do_formation_edit(self, *args, **kw ):
         "edit a formation"
         log('do_formation_edit( args=%s kw=%s )'%(args,kw))
-        if self.formation_has_locked_sems(args[0]['formation_id']):
-            raise ScoLockedFormError()
+        #if self.formation_has_locked_sems(args[0]['formation_id']):
+        #    raise ScoLockedFormError()
+        # nb: on autorise finalement la modif de la formation meme si elle est verrouillee
+        # car cela ne change que du cosmetique, (sauf eventuellement le code formation ?)
         cnx = self.GetDBConnexion()
         self._formationEditor.edit( cnx, *args, **kw )
         self._inval_cache()
@@ -3804,7 +3806,7 @@ class ZNotes(ObjectManager,
     def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
         "Lettres avis jury en PDF"
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres inviduelles de %s</h2>' % sem['titre_num'] ]
+        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres individuelles de %s</h2>' % sem['titre_num'] ]
         F = self.sco_footer(REQUEST)
         descr = [
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),

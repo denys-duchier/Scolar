@@ -6,8 +6,9 @@
 
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( ('formation_id', { 'default' : formation_id, 'input_type' : 'hidden' }),
-    ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)' }),
-    ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications' }),
+    ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)',  'allow_null' : False }),
+    ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications',  'allow_null' : False }),
+    ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
     ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
    ),
    initvalues = F,

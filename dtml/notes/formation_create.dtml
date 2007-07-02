@@ -4,10 +4,15 @@
 <p class="help">Une "formation" décrit une filière, comme un DUT ou un Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place séparément.
 </p>
 
+<p>Le <tt>titre</tt> est le nom complet, parfois adapté pour mieux distinguer les modalités ou versions de programme pédagogique. Le <tt>titre_officiel</tt> est le nom complet du diplôme, qui apparaitra sur certains PV de jury de délivrance du diplôme.
+</p>
+
 <dtml-call "REQUEST.set('tf', TrivialFormulator( URL0, REQUEST.form, 
   ( 
     ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)', 'allow_null' : False }),
-    ('titre'    , { 'size' : 30, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications)', 'allow_null' : False }),
+    ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications)', 'allow_null' : False }),
+    ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
+    ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
    ),
    cancelbutton = 'Annuler',
    submitlabel = 'Créer cette formation'

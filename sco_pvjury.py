@@ -104,7 +104,8 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     Résultat:
     {
     'date' : date de la decision la plus recente,
-    'formsemestre' : sem, 
+    'formsemestre' : sem,
+    'formation' : { 'acronyme' :, 'titre': ... }
     'decisions' : { [ { 'identite' : {'nom' :, 'prenom':,  ...,},
                         'etat' : I ou D
                         'decision' : {'code':, 'code_prev': },
@@ -191,6 +192,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'formsemestre' : sem, 
              'has_prev' : has_prev,
              'semestre_non_terminal' : Se.semestre_non_terminal,
+             'formation' : znotes.do_formation_list(args={'formation_id':sem['formation_id']})[0],
              'decisions' : L }
 
 

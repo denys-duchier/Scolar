@@ -173,6 +173,7 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
         'dateJury' : dateJury,
         'deptName' : znotes.DeptName, 
         'nomDirecteur' : znotes.DirectorName,
+        'titreFormation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
     }
@@ -288,7 +289,7 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     if decision['decisions_ue'] and decision['decisions_ue_descr']:
         objects += makeParas("""
     <para leftindent="%(htab2)s" spaceBefore="0mm" fontSize="14">
-    <b>Unités d'Enseignement de S%(semestre_id)s capitalisées : </b>%(decisions_ue_descr)s</b>
+    <b>Unités d'Enseignement %(s)s capitalisées : </b>%(decisions_ue_descr)s</b>
     </para>""" % params, style )
     
     # Informations sur compensations
@@ -299,7 +300,7 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     </para>""" % (params['htab2'], decision['observation']), style )
     
     # Autorisations de passage
-    if decision['autorisations']:
+    if decision['autorisations'] and Se.semestre_non_terminal:
         if len(decision['autorisations']) > 1:
             s = 's'
         else:
@@ -309,10 +310,18 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     Vous êtes autorisé%s à continuer dans le%s semestre%s : <b>%s</b>
     </para>""" % (etud['ne'], s, s, decision['autorisations_descr']), style )
 
+    if (not Se.semestre_non_terminal) and decision['decision_sem']:
+        if sco_codes_parcours.CODES_SEM_VALIDES.has_key(decision['decision_sem']['code']):
+            # Semestre terminal validé => diplôme
+            objects += makeParas(""" <para spaceBefore="10mm" fontSize="14">
+            Vous avez donc obtenu le diplôme : <b>%(titreFormation)s</b>
+            </para>""" % params, style ) 
 
-
-    # Signature
-    objects += makeParas("""
+    # Signature:
+    # nota: si semestre terminal, signature par directeur IUT, sinon, signature par
+    # chef de département.
+    if Se.semestre_non_terminal:
+        objects += makeParas("""
 <para leftindent="%(htab1)s" spaceBefore="25mm">
 Pour le Directeur de l'IUT
 </para>
@@ -323,6 +332,11 @@ et par délégation
 Le Chef du département
 </para>
     """ % params, style )
+    else:
+        objects += makeParas("""<para leftindent="%(htab1)s" spaceBefore="25mm">
+Le directeur de l'IUT,</para><para leftindent="%(htab1)s">%(nomDirecteur)s</para>
+</para>""" % params, style )
+        
     if signature:
         objects.append( _make_signature_image(signature, params['htab1']) )
         

@@ -200,7 +200,7 @@ def formsemestre_validation_form(
     cnx = self.GetDBConnexion()
     sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     if sem['etat'] != '1':
-        header = self.sco_header(self,REQUEST,
+        header = self.sco_header(REQUEST,
                                  page_title="Semestre verrouillé")
         footer = self.sco_footer(self, REQUEST)
         return header + '<p>Semestre verrouillé</p>' + footer
@@ -308,7 +308,7 @@ def formsemestre_validation_form(
     footer = self.sco_footer(self, REQUEST)
     if valid_individuelle:
         nomprenom = self.nomprenom(nt.identdict[etudid])
-        header = self.sco_header(self,REQUEST,
+        header = self.sco_header(REQUEST,
                                  page_title='Validation du semestre %s pour %s'
                                  % (sem['titre_num'],nomprenom))
         H = [ """<h2>Validation (Jury) du semestre %s pour %s</h2>
@@ -316,7 +316,7 @@ def formsemestre_validation_form(
         <p>Attention: les décisions prises ici remplacent et annulent les précédentes s'il y en avait !</p>
         """ % (sem['titre_num'],nomprenom)]
     else:
-        header = self.sco_header(self,REQUEST,
+        header = self.sco_header(REQUEST,
                                  page_title="Validation du semestre "+sem['titre_num'])
         H = [ """<h2>Validation (Jury) du semestre %s</h2>
 
