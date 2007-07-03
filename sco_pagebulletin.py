@@ -62,7 +62,7 @@ def formsemestre_pagebulletin_get(context, formsemestre_id):
 def formsemestre_pagebulletin_dialog(context, REQUEST=None,
                                      formsemestre_id=None):
     """
-    If formsemestre_id is None, create a new object, else edit existing
+    If no existing values, create a new object with default, else edit existing
     """
     assert formsemestre_id
     cnx = context.GetDBConnexion()
@@ -77,7 +77,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
     form = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('sep', { 'input_type' : 'separator',
-                  'title' : '<h3>Marges <em>additionnelles</em>, en milimètres</h3><p class="help">Le tableau est toujours redimensionné pour occuper l\'espace disponible entre les marges.</p>' }),
+                  'title' : '<h3>Marges <em>additionnelles</em>, en millimètres</h3><p class="help">Le tableau est toujours redimensionné pour occuper l\'espace disponible entre les marges.</p>' }),
         ('left_margin', {'size' : 20, 'title' : 'Marge gauche' }),
         ('top_margin', {'size' : 20, 'title' : 'Marge haute' }),
         ('right_margin', {'size' : 20, 'title' : 'Marge droite' }),
@@ -114,5 +114,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
             oid = notes_formsemestre_pagebulletin_create(cnx, tf[2])
         else: # edit existing
             notes_formsemestre_pagebulletin_edit(cnx, tf[2])
+        # ceci affecte les PDF cachés:
+        context._inval_cache(formsemestre_id=formsemestre_id,pdfonly=True)
         return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s' % formsemestre_id)
 
