@@ -6,166 +6,115 @@ A VERIFIER AVANT 5.0:
      . choisir modules (options, sport)
      . donner les dates des semestres !
 
- - descr situation en CJ (inscr. multiples ?)
+ - inscriptions a des semestres en utilisant les autorisations d'inscription
 
-. bulletin: click nom titre -> ficheEtud
-. bulletin: click 'Capitalisée le ...' -> bulletin du semestre correspondant
 
-. mise en page ficheEtud
+BUGS
+----
 
-. mettre explication du code en clair sur le bulletin
-
-. notes_table: pouvoir changer decision sans invalider tout le cache
-
-. recapcomplet: revenir avec qq lignes au dessus de l'étudiant en cours
-
-.bulletin: deplacer la barre indicateur (cf OLDGEA S2: gêne)
-
-- inscriptions a des semestres en utilisant les autorisations d'inscription
-
-BUG:
  - formsemestre_inscription_with_modules
      si inscription 'un etud deja inscrit, IntegrityError
 
+ - message erreur si creation utilisateur duplique (duplicate key)
+
  - verifier: les acronymes d'UE doivent etre uniques dans une formation
 
- - ScoLockedForm: ne devrait pas envoyer de mail
- - dates evaluation: utiliser JS pour calendrier
+ - descr situation en CJ (inscr. multiples ?): checks lors des inscriptions
 
-* TODO: Notes  (modifs prioritaires)
--------------
+FEATURES REQUESTS
+-----------------
 
-- statistiques durant saisie jury: nombre d'etudiants dans chaque code
-   (26 ADM, 3 AJ, etc) + nombre passant, redoublant année, redoublant semestre.
+* Bulletins:
+  . Centrer titre bul pdf
+  . logos IUT et Univ sur bull PDF
+  . nom departement: nom abbrégé (CJ) ou complet (Carrière Juridiques)
+  . bulletin: deplacer la barre indicateur (cf OLDGEA S2: gêne)
+  . bulletin: click nom titre -> ficheEtud
 
-- URL site auxiliaire (emplois du temps) dans chaque semestre
+  . formsemestre_pagebulletin_dialog: marges en mm: accepter "2,5" et "2.5" 
+    et valider correctement le form !
 
-- bulles d'aide avec moyenne des moyennes d'UE dans recap parcours
-
-- UE capitalisées: donc dispense possible dans semestre redoublé.
-                   traitable en n'inscrivant pas l'etudiant au modules
-                   de cette UE: faire interface utilisateur
-
-- Absences: lien "saisie du lundi"
-     ne presenter que deux semaines (precedente, courante) et un bouton pour afficher
-     toute l'année.
-
-- optimiser scolar_news_summary
-
-- version pdf du trombinoscope
-
-- EtatAbsences : verifier dates (en JS)
-- Exception "Not an OLE file": generer page erreur plus explicite
+* Jury
+  . statistiques durant saisie jury: nombre d'etudiants dans chaque code
+    (26 ADM, 3 AJ, etc) + nombre passant, redoublant année, redoublant semestre.
+  . bulles d'aide avec moyenne des moyennes d'UE dans recap parcours
+  . recapcomplet: revenir avec qq lignes au dessus de l'étudiant en cours
 
 
-BUGS:
+* Divers
+  . URL site auxiliaire (emplois du temps) dans chaque semestre
+  . ScoLockedForm exception :ne devrait pas envoyer de mail
+  . formsemestre_editwithmodules: confirmer suppression modules
+      (et pour l'instant impossible si evaluations dans le module)
 
-- do_feuille_preparation_jury: ne peut etre preparee si aucun semestre precedent 
-- message erreur si "not OLE file"
-- message erreur si creation utilisateur duplique (duplicate key)
+* Modules et UE optionnelles:
+  . UE capitalisées: donc dispense possible dans semestre redoublé.
+      traitable en n'inscrivant pas l'etudiant au modules
+      de cette UE: faire interface utilisateur
 
-Saisie des notes:
+  . page pour inscription d'un etudiant a un module
+  . page pour visualiser les modules auquel un etudiant est inscrit,
+    et le desinscrire si besoin.
 
-- si une note invalide, l'indiquer dans le listing (JS ?)
+  . ficheEtud  indiquer si inscrit au module sport
 
+* Absences
+  . Absences: lien "saisie du lundi"
+    ne presenter que deux semaines (precedente, courante) et un bouton pour afficher
+    toute l'année.
+  . EtatAbsences : verifier dates (en JS)
+  . Vérifier pas de saisie d'absences dans le FUTUR !
+  . Listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
+  . absences par demi-journées sur EtatAbsencesDate (? à vérifier)
+  . formChoixSemestreGroupe: utilisé par Abscences/index_html
+       a améliorer
 
-Validation semestre et UE:
+* Photos
+  . version pdf du trombinoscope
+  . Version "haute résolution" des photos
 
-- proposer un recap du parcours: note moy gen, moy UE, moy gen glissantes ...
+* Notes et évaluations: 
+  . Exception "Not an OLE file": generer page erreur plus explicite
+  . Dates evaluation: utiliser JS pour calendrier
+  . Saisie des notes: si une note invalide, l'indiquer dans le listing (JS ?)
+  . et/ou: notes invalides: afficher les noms des etudiants concernes 
+    dans le message d'erreur.
 
-
-FUTUR:
-
-- notes invalides: afficher les noms des etudiants concernes 
-  dans le message d'erreur
-
-page pour inscription d'un etudiant a un module
-page pour visualiser les modules auquel un etudiant est inscrit,
-et le desinscrire si besoin.
-
-ficheEtud  indiquer si inscrit au module sport
-
-formsemestre_status ajouter module sport indiquer Sport (note speciale)
-
-- prise en compte des autorisation à redoubler et des exclusions
-  dans validation semestre (formsemestre_validation_form) ???
-
-- ajouter champs code_parcours et suivant dans les formsemestre
-- ajouter parcours sur feuille recap complet.
-
-
-- moy gen et moy UE sur fiche etud ?
-- listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
-
-- export excel des notes d'evaluation: indiquer date, et autres infos en haut.
-
-- recapitulatif des "nouvelles"
-     - dernieres notes
-     - changement de statuts (demissions,inscriptions)
-     - annotations
-     - entreprises
-
-- page recap notes moyennes par groupes (choisir type de groupe?)
-
-- liste des absents à une eval et croisement avec BD absences
-
-- absences par demi-journées sur EtatAbsencesDate
-
-- formsemestre_status: voyants tricolores ?
-                       lignes tableau (rows) en couleur ?
-  
-
-- formChoixSemestreGroupe: utilisé par Abscences/index_html
-    a améliorer
-
-- Génération PDF listes notes
-
-
-
-* FONCTIONNALITES SUPPLEMENTAIRES
----------------------------------
-
-- verifier pas de saisie d'absences dans le FUTUR !
-
-- styles CSS sur les absences (messages d'erreur, ...)
-
-- bulletin semestre:
-    - general (classement des etudiants, notes en colonnes)
+  . recap complet semestre:
        Options:
            - choix groupes
            - critère de tri (moy ou alphab)
            - nb de chiffres a afficher
 
-    + definir des "catégories" d'évaluations (eg "théorie","pratique")
-       afin de n'afficher que des moyennes "de catégorie" dans
-       le bulletin.
+       + definir des "catégories" d'évaluations (eg "théorie","pratique")
+         afin de n'afficher que des moyennes "de catégorie" dans
+         le bulletin.
 
-- notes_evaluation_listenotes
-   - afficher groupes, moyenne, #inscrits, #absents, #manquantes dans l'en-tete.
-   - lien vers modif notes (selon role)
+  . liste des absents à une eval et croisement avec BD absences
 
-- système de publication en lecture seule pour les ETUDIANTS
-   -> flag "published" sur les evaluations ?
+  . notes_evaluation_listenotes
+    - afficher groupes, moyenne, #inscrits, #absents, #manquantes dans l'en-tete.
+    - lien vers modif notes (selon role)
 
-- faire des essais avec sessions Zope pour historique pages
+  . Export excel des notes d'evaluation: indiquer date, et autres infos en haut.
+  . Génération PDF listes notes
+  . Page recap notes moyennes par groupes (choisir type de groupe?)
 
-- formsemestre_editwithmodules: confirmer suppression modules
-      (et pour l'instant impossible si evaluations dans le module)
-
-
-- redefinir les UE du DUT R&T (UE11, UE12, ...)
-
-
-* FONCTIONNALITES DEMANDEES:
-- (GEA) edition tableau notes avec tous les evals d'un module
+  . (GEA) edition tableau notes avec tous les evals d'un module
         (comme notes_evaluation_listenotes mais avec tt les evals)
 
 
-* SCOGTR:
+* Non prioritaire:
+ . optimiser scolar_news_summary
+ . recapitulatif des "nouvelles"
+     - dernieres notes
+     - changement de statuts (demissions,inscriptions)
+     - annotations
+     - entreprises
 
-* Misc:
-- style:
-   listes a puce avec symbole "+" pour creation items   
+ . notes_table: pouvoir changer decision sans invalider tout le cache
+ . navigation: utiliser Session pour montrer historique pages vues ?
+
 
 * TrivialFormulator:
  - clarifier le typage (strings/ints/...)
@@ -186,30 +135,5 @@ formsemestre_status ajouter module sport indiquer Sport (note speciale)
 ------------------------------------------------------------------------
 
 
-
-Gestion des Formations et UE pour capitalisation et compensation
-
-Le problème: retrouver les UE qui "se correspondent"
-et peuvent être dans des versions de formation différentes.
-Si la (version de) formation est différente, l'ue_id change.
-
-* Solution 1: 
-  - attribut 'code' dans notes_formation:
-     initialisé auto (CFxxxx)
-     peut se copier ou non lors de la creation d'une nouvelle version.
-
-  - attribut 'code' dans notes_ue
-     copié ou non lors de la creation d'une nouvelle version.
-
-  Pb: si on crée une nouvelle formation ab initio, comment lui
-  attribuer le code d'une formation "compatible" ?
-
-
-* Solution 2: table de formations et d'UE  "equivalentes"
-   notes_formation_equiv
-         formation_id1, formation_id2
-
-   notes_ue_equiv
-         ue_id1, ue_id2
 
    

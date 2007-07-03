@@ -434,14 +434,12 @@ class NotesTable:
                     raise ScoValueError("type d'UE inconnu (%s)"%modimpl['ue']['type'])
         # Ajoute les UE capitalisées:
         if with_capitalized_ue:
-            # import pdb
-            # pdb.set_trace()
-            for ue_id in ues_status.keys():
-                ue_status = ues_status[ue_id]
+            for ueid in ues_status.keys():
+                ue_status = ues_status[ueid]
                 if ue_status['is_capitalized']:
                     try:
-                        sum_notes += ue_status['moy_ue'] * self.ue_coefs[ue_id]
-                        sum_coefs += self.ue_coefs[ue_id]
+                        sum_notes += ue_status['moy_ue'] * self.ue_coefs[ueid]
+                        sum_coefs += self.ue_coefs[ueid]
                     except: # pas de note dans cette UE
                         pass
         # Calcul moyenne:
