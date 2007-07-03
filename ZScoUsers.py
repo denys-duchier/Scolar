@@ -139,8 +139,9 @@ class ZScoUsers(ObjectManager,
     # --------------------------------------------------------------------
     # used to view content of the object
     security.declareProtected(ScoAdminUsers, 'index_html')
-    def index_html(self, REQUEST):
+    def index_html(self, REQUEST, all=0):
         "gestion utilisateurs..."
+        all = int(all)
         # Controle d'acces
         authuser = REQUEST.AUTHENTICATED_USER
         user_name = str(authuser)
@@ -162,6 +163,8 @@ class ZScoUsers(ObjectManager,
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a></p>')
         #
         H.append( self.list_users( dept ) )
+        #
+        H.append("""<p><form name="f" action="."><input type="checkbox" name="all" value="1" onchange="document.f.submit();">Montrer tous les départements</input></form></p>""")
         F = self.sco_footer(REQUEST)
         return '\n'.join(H) + F
 
@@ -405,7 +408,7 @@ class ZScoUsers(ObjectManager,
          #
          edit = int(edit)
          H = [self.sco_header(REQUEST)]
-         F = self.sco_footer(REQUEST)
+         F = self.sco_footer(REQUEST)             
          if edit:
              H.append("<h1>Modification d'un utilisateur</h1>")
          else:
@@ -455,7 +458,7 @@ class ZScoUsers(ObjectManager,
          # Access control
          zope_roles = authuser.getRolesInContext(self)
          if not authuser_info and not ('Manager' in zope_roles):
-             # not admin, and not in out database
+             # not admin, and not in database
              raise AccessDenied('invalid user (%s)' % auth_name)
          if authuser_info:
              auth_dept = authuser_info[0]['dept']
@@ -477,6 +480,8 @@ class ZScoUsers(ObjectManager,
              can_choose_dept = False
              descr.append(('d', {'input_type' : 'separator',
                                 'title' : 'L\'utilisateur  sera crée dans le département %s' % auth_dept}))
+         descr.append(('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox',
+                        'allowed_values' : ('0','1')}))
          tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                  initvalues = initvalues,
                                  submitlabel = submitlabel )
@@ -489,11 +494,23 @@ class ZScoUsers(ObjectManager,
              for role in vals['roles']:
                  if not role in valid_roles:
                      raise ScoValueError('Invalid role for new user: %s' % role)
-                 
+               
              if REQUEST.form.has_key('edit'):
                  edit = int(REQUEST.form['edit'])
              else:
                  edit = 0
+             if REQUEST.form.has_key('force'):
+                 force = int(REQUEST.form['force'])
+             else:
+                 force = 0
+
+             if not force:
+                 ok, msg = self._check_modif_user(
+                     edit, user_name=vals['user_name'],
+                     nom=vals['nom'], prenom=vals['prenom'], email=vals['email'] )
+                 if not ok:
+                     H.append("""<ul class="tf-msg"><li class="tf-msg">Attention: '+msg+'</li></ul><p>(vous pouvez forcer l'opération en cochant "Ignorer les avertissements")</p>""")
+                     return '\n'.join(H) + '\n' + tf[1] + F
              if edit: # modif utilisateur (mais pas passwd)
                  if (not can_choose_dept) and vals.has_key('dept'):
                      del vals['dept']
@@ -524,6 +541,34 @@ class ZScoUsers(ObjectManager,
                      vals['dept'] = auth_dept
                  # ok, go
                  self.create_user(vals, REQUEST=REQUEST)
+
+    def _check_modif_user(self, edit, user_name='', nom='', prenom='', email=''):
+        """Vérifie que et utilisateur peut etre crée (edit=0) ou modifié (edit=1)
+        Cherche homonymes.
+        returns (ok, msg)
+          - ok : si vrai, peut continuer avec ces parametres
+          - msg: message warning a presenter l'utilisateur
+        """
+        # ce login existe ?
+        users = self._user_list( args={'user_name':user_name} )  
+        if edit and not users: # safety net, le user_name ne devrait pas changer
+            return False, "identifiant %s inexistant" % user_name
+        if not edit and users:
+            return False, "identifiant %s déjà utilisé" % user_name
+
+        # Des noms/prénoms semblables existent ?            
+        cnx = self.GetUsersDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute('select * from sco_users where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;' % { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
+        res = cursor.dictfetchall()
+        if edit:
+            minmatch = 1
+        else:
+            minmatch = 0
+        if len(res) > minmatch:
+            return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s' % (x['prenom'], x['nom']) for x in res ])
+        # ok
+        return True, ''
 
              
     security.declareProtected(ScoAdminUsers, 'create_user')
@@ -562,9 +607,9 @@ class ZScoUsers(ObjectManager,
         REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         
     security.declareProtected(ScoAdminUsers, 'list_users')
-    def list_users(self, dept, REQUEST=None):
+    def list_users(self, dept, all=False, REQUEST=None):
         "liste des utilisateurs"
-        if dept:            
+        if dept and not all:            
             r = self._user_list( args={ 'dept' : dept } )
             comm = '(dept. %s)' % dept
         else:
