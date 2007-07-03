@@ -162,9 +162,13 @@ class ZScoUsers(ObjectManager,
         if authuser.has_permission(ScoAdminUsers,self):
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a></p>')
         #
-        H.append( self.list_users( dept ) )
+        H.append( self.list_users( dept, all=all ) )
         #
-        H.append("""<p><form name="f" action="."><input type="checkbox" name="all" value="1" onchange="document.f.submit();">Montrer tous les départements</input></form></p>""")
+        if all:
+            checked = 'checked'
+        else:
+            checked = ''
+        H.append("""<p><form name="f" action="."><input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Montrer tous les départements</input></form></p>""" % checked)
         F = self.sco_footer(REQUEST)
         return '\n'.join(H) + F
 
@@ -480,8 +484,7 @@ class ZScoUsers(ObjectManager,
              can_choose_dept = False
              descr.append(('d', {'input_type' : 'separator',
                                 'title' : 'L\'utilisateur  sera crée dans le département %s' % auth_dept}))
-         descr.append(('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox',
-                        'allowed_values' : ('0','1')}))
+         descr.append(('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox', 'labels' : ('',), 'allowed_values' : ('1',)}))
          tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                  initvalues = initvalues,
                                  submitlabel = submitlabel )
@@ -499,17 +502,18 @@ class ZScoUsers(ObjectManager,
                  edit = int(REQUEST.form['edit'])
              else:
                  edit = 0
-             if REQUEST.form.has_key('force'):
-                 force = int(REQUEST.form['force'])
-             else:
+             try:
+                 force = int(vals['force'][0])
+             except:
                  force = 0
-
+             log('create_user_form: force=%s, vals=%s' % (force,str(vals)))
              if not force:
                  ok, msg = self._check_modif_user(
                      edit, user_name=vals['user_name'],
-                     nom=vals['nom'], prenom=vals['prenom'], email=vals['email'] )
+                     nom=vals['nom'], prenom=vals['prenom'],
+                     email=vals['email'], roles=vals['roles'] )
                  if not ok:
-                     H.append("""<ul class="tf-msg"><li class="tf-msg">Attention: '+msg+'</li></ul><p>(vous pouvez forcer l'opération en cochant "Ignorer les avertissements")</p>""")
+                     H.append('<ul class="tf-msg"><li class="tf-msg">Attention: '+msg+""" (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>")'</li></ul>""")
                      return '\n'.join(H) + '\n' + tf[1] + F
              if edit: # modif utilisateur (mais pas passwd)
                  if (not can_choose_dept) and vals.has_key('dept'):
@@ -542,7 +546,8 @@ class ZScoUsers(ObjectManager,
                  # ok, go
                  self.create_user(vals, REQUEST=REQUEST)
 
-    def _check_modif_user(self, edit, user_name='', nom='', prenom='', email=''):
+    def _check_modif_user(self, edit, user_name='', nom='', prenom='',
+                          email='', roles=[]):
         """Vérifie que et utilisateur peut etre crée (edit=0) ou modifié (edit=1)
         Cherche homonymes.
         returns (ok, msg)
@@ -559,14 +564,17 @@ class ZScoUsers(ObjectManager,
         # Des noms/prénoms semblables existent ?            
         cnx = self.GetUsersDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('select * from sco_users where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;' % { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
+        cursor.execute('select * from sco_users where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;', { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
         res = cursor.dictfetchall()
         if edit:
             minmatch = 1
         else:
             minmatch = 0
         if len(res) > minmatch:
-            return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s' % (x['prenom'], x['nom']) for x in res ])
+            return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s (pseudo=%s)' % (x['prenom'], x['nom'], x['user_name']) for x in res ])
+        # Roles ?
+        if not roles:
+            return False, "aucun rôle sélectionné, êtes vous sûr ?"
         # ok
         return True, ''
 
