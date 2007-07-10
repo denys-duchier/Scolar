@@ -15,11 +15,11 @@ BUGS
  - formsemestre_inscription_with_modules
      si inscription 'un etud deja inscrit, IntegrityError
 
- - message erreur si creation utilisateur duplique (duplicate key)
-
  - verifier: les acronymes d'UE doivent etre uniques dans une formation
 
  - descr situation en CJ (inscr. multiples ?): checks lors des inscriptions
+
+ - création d'étudiants: vérifier si existant proche...
 
 FEATURES REQUESTS
 -----------------
@@ -66,7 +66,7 @@ FEATURES REQUESTS
   . Vérifier pas de saisie d'absences dans le FUTUR !
   . Listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
   . absences par demi-journées sur EtatAbsencesDate (? à vérifier)
-  . formChoixSemestreGroupe: utilisé par Abscences/index_html
+  . formChoixSemestreGroupe: utilisé par Absences/index_html
        a améliorer
 
 * Photos

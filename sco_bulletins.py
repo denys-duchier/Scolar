@@ -379,6 +379,8 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
             else:
                 code = ''
             doc.decision( code=code, etat=etat)
+            for aut in decision['autorisations']:
+                doc.autorisation_inscription( semestre_id=aut['semestre_id'] )
         else:
             doc.decision( code='', etat='DEM' )
     # --- Appreciations
