@@ -52,7 +52,8 @@ def sco_header(context, REQUEST=None,
         'no_side_bar': no_side_bar,
         'ScoURL' : context.ScoURL(),
         'encoding' : SCO_ENCODING,
-        'maincss_url' : context.gtrintranetstyle.absolute_url(),
+        # 'maincss_url' : context.gtrintranetstyle.absolute_url(), (si style Zope)
+        'maincss_url' : context.ScoURL() + '/' + 'scodoc_css',
         'titrebandeau_mkup' : '<td>' + titrebandeau + '</td>',
         'authuser' : str(REQUEST.AUTHENTICATED_USER),
         'menus_bandeau' : context.menus_bandeau(context, REQUEST)
