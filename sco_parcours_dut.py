@@ -34,7 +34,6 @@ from sco_utils import *
 from notes_log import log
 from scolog import logdb
 from notes_table import *
-import pdb
 
 from sco_codes_parcours import *
 from dutrules import DUTRules # regles generees a partir du CSV

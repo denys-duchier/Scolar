@@ -79,6 +79,12 @@ FEATURES REQUESTS
   . Saisie des notes: si une note invalide, l'indiquer dans le listing (JS ?)
   . et/ou: notes invalides: afficher les noms des etudiants concernes 
     dans le message d'erreur.
+  . upload excel: message erreur peu explicite:
+          * Feuille "Saisie notes", 17 lignes
+          * Erreur: la feuille contient 1 notes invalides
+          * Notes invalides pour les id: ['10500494']
+          (pas de notes modifiées)
+          Notes chargées. <<< CONTRADICTOIRE !!
 
   . recap complet semestre:
        Options:
