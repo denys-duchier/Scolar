@@ -84,7 +84,7 @@ def sco_header(context, REQUEST=None,
           ]
     # Feuilles de style additionnelles:
     for cssstyle in cssstyles:
-        H.append( """<script language="javascript" type="text/javascript" src="%s/%s"></script>"""
+        H.append( """<link type="text/css" rel="stylesheet" href="%s/%s" />"""
                   % (params['ScoURL'], cssstyle) )
     # JS additionels
     for js in javascripts:
