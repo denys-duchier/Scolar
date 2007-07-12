@@ -272,7 +272,7 @@ CREATE TABLE notes_formsemestre_pagebulletin (
 	top_margin real default 0,
 	right_margin real default 0,
 	bottom_margin real default 0,
-	title text default 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s'
+	title text default 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
 	intro_mail text default '%(nomprenom)s,\n\nvous trouverez ci-joint votre relevé de notes au format PDF.\nIl s\'agit d'un relevé indicatif. Seule la version papier signée par le responsable pédagogique de l\'établissement prend valeur officielle.\n\nPour toute question sur ce document, contactez votre enseignant ou le directeur des études (ne pas répondre à ce message).\n\nCordialement,\nla scolarité du département %(dept)s.\n\nPS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s'
 
 );
@@ -349,7 +349,7 @@ CREATE TABLE notes_notes_log (
 	value real,
 	comment text,
 	date timestamp,
-	uid text,
+	uid text
 	-- pas de foreign key, sinon bug lors supression notes (et on 
 	-- veut garder le log)
 	-- FOREIGN KEY (etudid,evaluation_id) REFERENCES notes_notes(etudid,evaluation_id)
@@ -380,7 +380,7 @@ CREATE TABLE scolar_events (
                          -- 'AUT_RED', 'EXCLUS', 'VALID_UE', 'VALID_SEM'
                          -- 'ECHEC_SEM'
 	                 -- 'UTIL_COMPENSATION'
-        comp_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+        comp_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id)
                          -- semestre compense par formsemestre_id
 );
 

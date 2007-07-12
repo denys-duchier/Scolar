@@ -526,7 +526,7 @@ class ZScolar(ObjectManager,
             <h3>Gestion des étudiants</h3>
             <ul>
             <li><a class="stdlink" href="etudident_create_form">créer <em>un</em> nouvel étudiant</a></li>
-            <li><a class="stdlink" href="form_students_import_csv">importer de nouveaux étudiants</a> (ne pas utiliser sauf cas particulier, utilisez plutôt le lien dans
+            <li><a class="stdlink" href="form_students_import_excel">importer de nouveaux étudiants</a> (ne pas utiliser sauf cas particulier, utilisez plutôt le lien dans
             le tableau de bord semestre si vous souhaitez inscrire les
             étudiants importés à un semestre)</li>
             </ul>
@@ -1987,7 +1987,7 @@ function tweakmenu( gname ) {
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
     # ---- inscriptions "en masse"
-    security.declareProtected(ScoEtudInscrit, "students_import_csv")
+    security.declareProtected(ScoEtudInscrit, "students_import_excel")
     def students_import_excel(self, csvfile, REQUEST=None,
                               formsemestre_id=None):
         "import students from Excel file"
@@ -2104,8 +2104,8 @@ function tweakmenu( gname ) {
 
         return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
         
-    security.declareProtected(ScoEtudInscrit, "form_students_import_csv")
-    def form_students_import_csv(self, REQUEST, formsemestre_id=None):
+    security.declareProtected(ScoEtudInscrit, "form_students_import_excel")
+    def form_students_import_excel(self, REQUEST, formsemestre_id=None):
         "formulaire import csv"
         H = [self.sco_header(REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>

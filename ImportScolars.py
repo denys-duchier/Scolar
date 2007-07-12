@@ -91,7 +91,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
         raise ScoValueError("Ficher excel vide ou invalide")
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
-        raise FormatError('check_csv_file: empty file !')
+        raise FormatError('scolars_import_excel_file: empty file !')
     # 1-  --- check title line
     titles = {}
     fmt = sco_import_format(product_file_path)
@@ -99,14 +99,11 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
         tit = l[0].lower() # titles in lowercase
         if (not formsemestre_id) or (tit != 'codesemestre'):
             titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
-    fs = [ x.strip().lower() for x in data[0] ]
+
     #log("titles=%s" % titles)
-    log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     # remove quotes
-    for i in range(len(fs)):
-        if len(fs[i]) > 1:
-            if (fs[i][0] == '"' and fs[i][-1] == '"') or (fs[i][0] == "'" and fs[i][-1] == "'"):
-                fs[i] = fs[i][1:-1]
+    fs = [ stripquotes(s).lower() for s in data[0] ]
+    log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     
     # check columns titles    
     if len(fs) != len(titles):

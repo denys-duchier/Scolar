@@ -88,6 +88,13 @@ def strnone(s):
     else:
         return ''
 
+def stripquotes(s):
+    "strip s from spaces and quotes"
+    s = s.strip()
+    if s and ((s[0] == '"' and s[-1] == '"') or (s[0] == "'" and s[-1] == "'")):
+        s = s[1:-1]
+    return s
+
 def suppress_accents(s):
     "s is an ordinary string, encoding given by SCO_ENCODING"
     return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
