@@ -110,9 +110,9 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     cursor = cnx.cursor()
     cursor.execute('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s', F)
     res = cursor.fetchall()
-    if res:
+    try:
         version = int(res[0][0]) + 1
-    else:
+    except:
         version = 1
     F['version'] = version
     # create formation
