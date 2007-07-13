@@ -67,7 +67,7 @@ def simplesqlquote(s,maxlen=50):
 
 def unescape_html(s):
     """un-escape html entities"""
-    s = s.strip().replace( '&amp;', '&' )
+    s = str(s).strip().replace( '&amp;', '&' )
     s = s.replace('&lt;','<')
     s = s.replace('&gt;','>')
     return s
@@ -78,8 +78,13 @@ def quote_xml_attr( data ):
     return xml.sax.saxutils.escape( str(data),
                                     { "'" : '&apos;', '"' : '&quot;' } )
 
-def dict_quote_xml_attr( d ):
-    return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
+def dict_quote_xml_attr( d, fromhtml=False ):
+    if fromhtml:
+        # passe d'un code HTML a un code XML
+        return dict( [ (k,quote_xml_attr(unescape_html(v))) for (k,v) in d.items() ] )
+    else:
+        # passe d'une chaine non quotée a du XML
+        return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
 
 def strnone(s):
     "convert s to string, '' if s is false"

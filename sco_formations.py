@@ -43,24 +43,35 @@ def formation_export_xml( context, formation_id ):
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
 
     F = context.do_formation_list(args={ 'formation_id' : formation_id})[0]
-    F = dict_quote_xml_attr(F)
+    # del F['formation_id'] laisse l'id de formation
+    F = dict_quote_xml_attr(F, fromhtml=True)
     doc.formation( **F )
     doc._push()
 
     ues = context.do_ue_list({ 'formation_id' : formation_id })
     for ue in ues:
         doc._push()
-        ue = dict_quote_xml_attr(ue)
+        ue_id = ue['ue_id']
+        del ue['ue_id']
+        del ue['formation_id']
+        ue = dict_quote_xml_attr(ue, fromhtml=True)
         doc.ue( **ue )
-        mats = context.do_matiere_list({ 'ue_id' : ue['ue_id'] })
+        mats = context.do_matiere_list({ 'ue_id' : ue_id })
         for mat in mats:
             doc._push()
-            mat = dict_quote_xml_attr(mat)
+            matiere_id = mat['matiere_id']
+            del mat['matiere_id']
+            del mat['ue_id']
+            mat = dict_quote_xml_attr(mat, fromhtml=True)
             doc.matiere( **mat )
-            mods = context.do_module_list({ 'matiere_id' : mat['matiere_id'] })
+            mods = context.do_module_list({ 'matiere_id' : matiere_id })
             for mod in mods:
+                del mod['ue_id']
+                del mod['matiere_id']
+                del mod['module_id']
+                del mod['formation_id']
                 doc._push()
-                mod = dict_quote_xml_attr(mod)
+                mod = dict_quote_xml_attr(mod, fromhtml=True)
                 doc.module( **mod )
                 doc._pop()
             doc._pop()
@@ -133,6 +144,7 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
                 assert mod_info[0] == 'module'
                 mod_info[1]['formation_id'] = formation_id
                 mod_info[1]['matiere_id'] = mat_id
+                mod_info[1]['ue_id'] = ue_id
                 mod_id = context.do_module_create(mod_info[1], REQUEST)
     return formation_id
 
