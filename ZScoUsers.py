@@ -50,7 +50,7 @@ from notes_log import log
 from scolog import logdb
 from sco_exceptions import *
 from sco_utils import *
-#import notes_users
+import sco_import_users, sco_excel
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import string, re
@@ -128,6 +128,7 @@ class ZScoUsers(ObjectManager,
             cnx = self.UsersDB().db 
         except:
             # backward compat: try to use same DB
+            log('warning: ZScoUsers using Sco DB connexion')
             cnx = self.GetDBConnexion() 
         cnx.commit() # sync !
         return cnx
@@ -160,7 +161,8 @@ class ZScoUsers(ObjectManager,
         H.append('<h1>Gestion des utilisateurs</h1>')        
         # 
         if authuser.has_permission(ScoAdminUsers,self):
-            H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a></p>')
+            H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a>')
+            H.append('&nbsp;&nbsp; <a href="import_users_form" class="stdlink">Importer des utilisateurs</a></p>')
         #
         H.append( self.list_users( dept, all=all ) )
         #
@@ -262,6 +264,22 @@ class ZScoUsers(ObjectManager,
         "check if passwd is secure enough"
         return not pwdFascistCheck(passwd)
 
+    def do_change_password(self, user_name, password):
+        user = self._user_list( args={'user_name':user_name} )
+        assert len(user) == 1, 'database insconsistency: len(r)=%d'%len(r)
+        # should not occur, already tested in _can_handle_passwd
+        cnx = self.GetUsersDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute('update sco_users set date_modif_passwd=now() where user_name=%(user_name)s',
+                       { 'user_name' : user_name } )
+        cnx.commit()
+        req = { 'password' : password,
+                'password_confirm' : password,
+                'roles' : [user[0]['roles']] }
+        # Laisse le exUserFolder modifier les donnees
+        self.acl_users.manage_editUser( user_name, req )
+        log("change_password: change ok for %s" % user_name)
+
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
         "change a password"
@@ -292,19 +310,7 @@ class ZScoUsers(ObjectManager,
                 #digest = digest.digest()
                 #md5pwd = string.strip(base64.encodestring(digest))
                 #
-                user = self._user_list( args={'user_name':user_name} )
-                assert len(user) == 1, 'database insconsistency: len(r)=%d'%len(r)
-                # should not occur, already tested in _can_handle_passwd
-                cnx = self.GetUsersDBConnexion()
-                cursor = cnx.cursor()
-                cursor.execute('update sco_users set date_modif_passwd=now() where user_name=%(user_name)s', { 'user_name' : user_name } )
-                cnx.commit()
-                req = { 'password' : password,
-                        'password_confirm' : password,
-                        'roles' : [user[0]['roles']] }
-                # Laisse le exUserFolder modifier les donnees
-                self.acl_users.manage_editUser( user_name, req )
-                log("change_password: change ok for %s" % user_name)
+                self.do_change_password(user_name, password)
                 # 
                 # ici page simplifiee car on peut ne plus avoir
                 # le droit d'acceder aux feuilles de style
@@ -506,7 +512,7 @@ class ZScoUsers(ObjectManager,
                  force = int(vals['force'][0])
              except:
                  force = 0
-             log('create_user_form: force=%s, vals=%s' % (force,str(vals)))
+             #log('create_user_form: force=%s, vals=%s' % (force,str(vals)))
              if not force:
                  ok, msg = self._check_modif_user(
                      edit, user_name=vals['user_name'],
@@ -554,6 +560,8 @@ class ZScoUsers(ObjectManager,
           - ok : si vrai, peut continuer avec ces parametres
           - msg: message warning a presenter l'utilisateur
         """
+        if not user_name or not nom or not prenom:
+            return False, 'champ requis vide'
         # ce login existe ?
         users = self._user_list( args={'user_name':user_name} )  
         if edit and not users: # safety net, le user_name ne devrait pas changer
@@ -578,19 +586,66 @@ class ZScoUsers(ObjectManager,
         # ok
         return True, ''
 
-             
+    security.declareProtected(ScoAdminUsers, 'import_users_form')
+    def import_users_form(self, REQUEST, user_name=None, edit=0):
+        """Import utilisateurs depuis feuille Excel"""
+        head = self.sco_header(REQUEST, page_title='Import utilisateurs')
+        H = [head,
+             """<h2>Téléchargement d'une nouvelle liste d'utilisateurs</h2>
+             <p style="color: red">A utiliser pour importer de <b>nouveaux</b> utilisateurs (enseignants ou secrétaires)
+             </p>
+             <p>
+             L'opération se déroule en deux étapes. Dans un premier temps,
+             vous téléchargez une feuille Excel type. Vous devez remplir
+             cette feuille, une ligne décrivant chaque utilisateur. Ensuite,
+             vous indiquez le nom de votre fichier dans la case "Fichier Excel"
+             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
+             votre liste.
+             </p>
+             """]
+        H.append("""<ol><li><a class="stdlink" href="import_users_generate_excel_sample">
+        Obtenir la feuille excel à remplir</a></li><li>""")
+        F = self.sco_footer(REQUEST)
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            (('xlsfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
+                          'size' : 40 }),
+             ('formsemestre_id', {'input_type' : 'hidden' }), 
+             ), submitlabel = 'Télécharger')
+        if  tf[0] == 0:            
+            return '\n'.join(H) + tf[1] + '</li></ol>' + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            # IMPORT
+            diag = sco_import_users.import_excel_file(tf[2]['xlsfile'],
+                                                      REQUEST=REQUEST, context=self)
+            H = [head]
+            H.append('<p>Import excel: %s</p>'% diag)
+            H.append('<p>OK, import terminé !</p>')
+            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
+            return '\n'.join(H) + F
+    
+    security.declareProtected(ScoAdminUsers, 'import_users_generate_excel_sample')
+    def import_users_generate_excel_sample(self, REQUEST):
+        "une feuille excel pour importation utilisateurs"
+        data = sco_import_users.generate_excel_sample()
+        return sco_excel.sendExcelFile(REQUEST,data,'ImportUtilisateurs.xls')    
+    
     security.declareProtected(ScoAdminUsers, 'create_user')
     def create_user(self, args, REQUEST=None):
         "creation utilisateur zope"
-        cnx = self.GetUsersDBConnexion()
+        cnx = self.GetUsersDBConnexion()        
         passwd = args['passwd']
-        args['passwd'] = 'undefined'        
+        args['passwd'] = 'undefined'
+        log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
         # call exUserFolder to set passwd
         args['password'] = passwd
         args['password_confirm'] = passwd
         args['roles'] = args['roles'].split(',')
-        self.acl_users.manage_editUser( args['user_name'], args )
+        junk = self.acl_users.manage_editUser( args['user_name'], args )
+        #log('create_user: junk=%s\n' % junk )
         if REQUEST:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
 

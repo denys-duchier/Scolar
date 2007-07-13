@@ -512,7 +512,7 @@ class ZScolar(ObjectManager,
                 #H += self.make_listes_sem(sem, REQUEST)
         else:
             # aucun semestre courant: affiche aide
-            H.append("""<h2>Aucun semetre courant !</h2>
+            H.append("""<h2>Aucun semestre courant !</h2>
             <p>Pour ajouter un semestre, aller dans <a href="Programmes">Programmes</a>,
             choisissez une formation, puis suivez le lien "<em>UE, modules, semestres</em>".
             </p><p>
