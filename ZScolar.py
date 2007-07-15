@@ -1134,7 +1134,7 @@ class ZScolar(ObjectManager,
                     ilist.append("""
                     <li><a href="Notes/formsemestre_validation_etud_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Validation du semestre</a></li>
                     <li><a href="Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">Inscrire à un module optionnel (ou au sport)</a></li>
-                    <li><a href="Notes/do_formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">déinscrire (en cas d'erreur)</a></li>
+                    <li><a href="Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s">déinscrire (en cas d'erreur)</a></li>
                     """ % args )
                 if authuser.has_permission(ScoEtudInscrit,self):
                     ilist.append('<li><a href="Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s">Inscrire à un autre semestre</a></li>'%{ 'etudid' : etudid})
@@ -2253,11 +2253,12 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                       OK='OK', Cancel='Annuler',
                       dest_url= "", cancel_url="",
                       parameters={},
+                      add_headers = True, # complete page
                       REQUEST=None ):
         # dialog de confirmation simple"
         parameters['dialog_confirmed'] = 1
         H = [ message,
-              """<form action="%s">
+              """<form action="%s" method="post">
               <input type="submit" value="%s"/>""" % (dest_url, OK) ]
         if cancel_url:
             H.append(
@@ -2267,8 +2268,11 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             H.append('<input type="hidden" name="%s" value="%s"/>'
                      % (param, parameters[param]))
         H.append('</form>')
-        return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
-            
+        if add_headers:
+            return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
+        else:
+            return '\n'.join(H)
+
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab

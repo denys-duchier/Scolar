@@ -1059,8 +1059,8 @@ class ZNotes(ObjectManager,
         gr_anglais.sort()
         return gr_td, gr_tp, gr_anglais
 
-    security.declareProtected(ScoImplement, 'do_formsemestre_desinscription')
-    def do_formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None, dialog_confirmed=False):
+    security.declareProtected(ScoImplement, 'formsemestre_desinscription')
+    def formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None, dialog_confirmed=False):
         """desinscrit l'etudiant de ce semestre (et donc de tous les modules).
         A n'utiliser qu'en cas d'erreur de saisie"""
         sem = self.get_formsemestre(formsemestre_id)
@@ -1080,6 +1080,18 @@ class ZNotes(ObjectManager,
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
+
+        self.do_formsemestre_desinscription(etudid, formsemestre_id)
+        
+        return self.sco_header(REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
+
+
+    def do_formsemestre_desinscription(self, etudid, formsemestre_id):
+        "Deinscription d'un étudiant"
+        sem = self.get_formsemestre(formsemestre_id)
+        # -- check lock
+        if sem['etat'] != '1':
+            raise ScoValueError('desinscription impossible: semestre verrouille')
         # -- desinscription de tous les modules
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -1093,8 +1105,8 @@ class ZNotes(ObjectManager,
         insem = self.do_formsemestre_inscription_list(
             args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
-        return self.sco_header(REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
-        
+
+    
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(
         'notes_moduleimpl_inscription',

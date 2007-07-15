@@ -253,7 +253,7 @@ CREATE TABLE notes_formsemestre (
         gestion_absence integer default 1,
 	bul_show_decision integer default 1,
 	bul_show_uevalid integer default 1,
-        etat integer default 1, -- 1 ouvert, 0 ferme
+        etat integer default 1, -- 1 ouvert, 0 ferme (verrouille)
  	nomgroupetd text default 'TD',
  	nomgroupetp text default 'TP',
  	nomgroupeta text default 'langues',

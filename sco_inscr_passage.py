@@ -32,210 +32,269 @@
 from notesdb import *
 from sco_utils import *
 from notes_log import log
+import sco_codes_parcours
+import sco_pvjury
+from sets import Set
 
-
-def list_authorized_etuds(formsemestre_id, delai=274):
-    """Liste des etudiants autorisés à s'inscrire.
-    delai = nb de jours max entre la date de l'autorisation et celel de debut du semestre cible.
+def list_authorized_etuds_by_sem(context, sem, delai=274):
+    """Liste des etudiants autorisés à s'inscrire dans sem.
+    delai = nb de jours max entre la date de l'autorisation et celle de debut du semestre cible.
     """
-    XXX
-    pass
+    src_sems = list_source_sems(context, sem, delai=delai)
+    inscrits = list_inscrits(context, sem['formsemestre_id'])
+    r = {}
+    candidats = {} # etudid : etud (tous les etudiants candidats)
+    for src in src_sems:
+        liste = list_etuds_from_sem(context, src, sem)
+        for e in liste:
+            candidats[e['etudid']] = e
+        r[src['formsemestre_id']] = { 'sem' : src,
+                                      'etuds' : liste
+                                      }
+        # ajoute attribut inscrit qui indique si l'étudiant est déjà inscrit dans le semestre dest.
+        for e in r[src['formsemestre_id']]['etuds']:
+            e['inscrit'] = inscrits.has_key(e['etudid'])
+    return r, inscrits, candidats
 
-def list_inscrits(formsemestre_id):
+def list_inscrits(context, formsemestre_id):
     """Etudiants déjà inscrits à ce semestre
     { etudid : i }
     """
-    ins = self.Notes.do_formsemestre_inscription_list(
+    ins = context.Notes.do_formsemestre_inscription_list(
         args={  'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
+    inscr={}
     for i in ins:
         etudid = i['etudid']
         inscr[etudid] = context.getEtudInfo(etudid=etudid,filled=1)[0]
     return inscr
 
+def list_etuds_from_sem(context, src, dst):
+    """Liste des etudiants du semestre src qui sont autorisés à passer dans le semestre dst.
+    """
+    target = dst['semestre_id']
+    dpv = sco_pvjury.dict_pvjury(context, src['formsemestre_id'])
+    if not dpv:
+        return []
+    return [ x['identite'] for x in dpv['decisions']
+             if target in [ a['semestre_id'] for a in x['autorisations'] ] ]
 
-def do_inscrit(formsemestre_id, etuds):
+def do_inscrit(context, sem, etudids, REQUEST):
     """Inscrit ces etudiants dans ce semestre
-    Vérifie qu'ils ont l'autorisation
-    Ignore ceux qui sont déjà inscrits
+    (la liste doit avoir été vérifiée au préalable)
     """
-    XXX
+    log('do_inscrit: %s' % etudids)
+    for etudid in etudids:
+        args={ 'formsemestre_id' : sem['formsemestre_id'],
+               'etudid' : etudid,
+               'groupetd' : 'A', # groupe par défaut
+               'etat' : 'I'
+               }
+        context.do_formsemestre_inscription_with_modules(
+            args = args, 
+            REQUEST = REQUEST,
+            method = 'formsemestre_inscr_passage' )
 
-    
+def do_desinscrit(context, sem, etudids, REQUEST):
+    log('do_desinscrit: %s' % etudids)
+    for etudid in etudids:
+        context.do_formsemestre_desinscription(etudid, sem['formsemestre_id'])
 
-def formsemestre_inscr_passage(context, formsemestre_id, REQUEST=None):
-    """Form. pour inscription des etudiants d'un semestre dans un autre.
-    Permet de selectionner parmi les etudiants autorisés à s'inscrire
-    Les etudiants sont places dans le groupe "A"
+
+def list_source_sems(context, sem, delai=None):
+    """Liste des semestres sources
+    sem est le semestre destination
     """
-    cnx = self.GetDBConnexion()
-    sem = self.get_formsemestre(formsemestre_id)
-    header = self.sco_header(REQUEST, page_title='Passage des étudiants')
-    footer = self.sco_footer(REQUEST)
-
-    
-
-
-    nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-    T = nt.get_table_moyennes_triees()
-
-
-    #
-    passe = {} # etudid qui passent
-    already_inscr = {} # etudid deja inscrits (pour eviter double sinscriptions)
-    next_semestre_id = None
-    info = ''
-    if REQUEST.form.get('tf-submitted',False):
-        # --- soumission
-        # - formulaire passage
-        for etudid in [t[-1] for t in T]:
-            v = REQUEST.form.get('pas_%s'%etudid,None)
-            if v != None:
-                passe[etudid] = int(v)
-        # - etudiants dans le semestre selectionne
-        next_semestre_id = REQUEST.form.get('next_semestre_id',None)
-        ins = self.Notes.do_formsemestre_inscription_list(
-            args={  'formsemestre_id' : next_semestre_id, 'etat' : 'I' } )
-        next_sem = self.get_formsemestre(next_formsemestre_id)
-
-        info = ('<p>Information: <b>%d</b> étudiants déjà inscrits dans le semestre %s</p>'
-                % (len(ins), next_sem['titre_num']))
-        for i in ins:
-            already_inscr[i['etudid']] = True
-
-    if REQUEST.form.get('inscrire',False):
-        # --- Inscription de tous les etudiants selectionnes non deja inscrits
-        # - recupere les groupes TD/TP d'origine
-        ins =  self.Notes.do_formsemestre_inscription_list(
-            args={  'formsemestre_id' : formsemestre_id } )
-        gr = {}
-        for i in ins:
-            gr[i['etudid']] = { 'groupetd' : i['groupetd'],
-                                'groupeanglais' : i['groupeanglais'],
-                                'groupetp' : i['groupetp'] }
-        # - inscription de chaque etudiant
-        inscrits = []
-        for t in T:
-            etudid = t[-1]                
-            if passe.has_key(etudid) and passe[etudid] \
-                   and not already_inscr.has_key(etudid):
-                inscrits.append(etudid)
-                args={ 'formsemestre_id' : next_semestre_id,
-                       'etudid' : etudid,
-                       'etat' : 'I' }
-                args.update(gr[etudid])
-                self.do_formsemestre_inscription_with_modules(
-                    args = args, 
-                    REQUEST = REQUEST,
-                    method = 'formsemestre_inscr_passage' )
-        H = '<p>%d étudiants inscrits : <ul><li>' % len(inscrits)            
-        if len(inscrits) > 0:
-            H += '</li><li>'.join(
-                [ self.nomprenom(nt.identdict[eid]) for eid in inscrits ]
-                ) + '</li></ul></p>'
-        return header + H + footer
-    #
-    # --- HTML head
-    H = [ """<h2>Passage suite au semestre %s</h2>
-    <p>Inscription des étudiants du semestre dans un autre.</p>
-    <p>Seuls les étudiants inscrits (non démissionnaires) sont mentionnés.</p>
-    <p>Rappel: d'autres étudiants peuvent être inscrits individuellement par ailleurs
-    (et ceci à tout moment).</p>
-    <p>Le choix par défaut est de proposer le passage à tous les étudiants ayant validé
-    le semestre. Vous devez sélectionner manuellement les autres qui vous voulez faire
-    passer sans qu'ils aient validé le semestre.</p>
-    <p>Les étudiants seront ensuite inscrits à <em>tous les modules</em> constituant le
-    semestre choisi (attention si vous avez des parcours optionnels, vous devrez les désinscrire
-    des modules non désirés ensuite).<p>
-    <p>Les étudiants seront inscrit dans les mêmes <b>groupes de TD</b> et TP
-    que ceux du semestres qu'ils terminent. Pensez à modifier les groupes par
-    la suite si nécessaire.
-    </p>
-    <p><b>Vérifiez soigneusement le <font color="red">semestre de destination</font> !</b></p>
-    """ % (sem['titre_num'],) ]
-    H.append("""<form method="POST">
-    <input type="hidden" name="tf-submitted" value="1"/>
-    <input type="hidden" name="formsemestre_id" value="%s"/>
-    """ % (formsemestre_id,) )
-    # menu avec liste des semestres "ouverts" débutant a moins
+    # liste des semestres débutant a moins
     # de 123 jours (4 mois) de la date de fin du semestre d'origine.
-    sems = self.do_formsemestre_list()
+    sems = context.do_formsemestre_list()
     othersems = []
+    d,m,y = [ int(x) for x in sem['date_debut'].split('/') ]
+    date_debut_dst = datetime.date(y,m,d)
     d,m,y = [ int(x) for x in sem['date_fin'].split('/') ]
-    date_fin_origine = datetime.date(y,m,d)
-    delais = datetime.timedelta(123) # 123 jours ~ 4 mois
+    date_fin_dst = datetime.date(y,m,d)
+    
+    delais = datetime.timedelta(delai)
     for s in sems:
-        if s['etat'] != '1':
-            continue # saute semestres pas ouverts
-        if s['formsemestre_id'] == formsemestre_id:
-            continue # saute le semestre d'où on vient
-        if s['date_debut']:
-            d,m,y = [ int(x) for x in s['date_debut'].split('/') ]
-            datedebut = datetime.date(y,m,d)
-            if abs(date_fin_origine - datedebut) > delais:
-                continue # semestre trop ancien
-        s['titremenu'] = s['titre'] + '&nbsp;&nbsp;(%s - %s)' % (s['date_debut'],s['date_fin'])
+        #pdb.set_trace()
+        #if s['etat'] != '1':
+        #    continue # saute semestres pas ouverts
+        if s['formsemestre_id'] == sem['formsemestre_id']:
+            continue # saute le semestre destination
+        if s['date_fin']:
+            d,m,y = [ int(x) for x in s['date_fin'].split('/') ]
+            date_fin = datetime.date(y,m,d)            
+            if date_debut_dst - date_fin  > delais:
+                continue # semestre trop ancien            
+            if date_fin > date_debut_dst: 
+                continue # semestre trop récent
+        # Elimine les semestres de formations speciales (sans parcours)
+        if s['semestre_id'] == sco_codes_parcours.NO_SEMESTRE_ID:
+            continue
+        #
+        if not sco_codes_parcours.ALLOW_SEM_SKIP:
+            if s['semestre_id'] < (sem['semestre_id']-1):
+                continue
         othersems.append(s)
-    if not othersems:
-        raise ScoValueError('Aucun autre semestre de formation défini !')
-    menulist = []
-    for o in othersems:
-        if o['formsemestre_id'] == next_semestre_id:
-            s = 'selected'
-        else:
-            s = ''
-        menulist.append(
-            '<option value="%s" %s>%s</option>' % (o['formsemestre_id'],s,o['titremenu']) )
+    return othersems
 
-    H.append( '<p><b>Semestre destination:</b> <select name="next_semestre_id">'
-              + '\n '.join(menulist) + '</select></p>' )
-    H.append(info)
-    # --- Liste des etudiants
-    H.append("""<p>Cocher les étudiants à faire passer (à inscrire) :</p>
-    <table class="notes_recapcomplet">
-    <tr class="recap_row_tit"><td class="recap_tit">Nom</td>
-                              <td>Décision jury</td><td>Passage ?</td><td></td>
-    </tr>
-    """)
-    ir = 0
-    for t in T:
-        etudid = t[-1]
-        if ir % 2 == 0:
-            cls = 'recap_row_even'
-        else:
-            cls = 'recap_row_odd'
-        ir += 1
-        valid, decision, acros, comp_sem = self._formsemestre_get_decision_str(cnx, etudid, formsemestre_id)
-        comment = ''
-        if acros:
-            acros = '(%s)' % acros # liste des UE validees
-        if passe.has_key(etudid): # form (prioritaire)
-            valid = passe[etudid]
-        if already_inscr.has_key(etudid):
-            valid = False # deja inscrit dans semestre destination
-            comment = 'déjà inscrit dans ' + next_sem['titre_num']
-        if valid: 
-            checked, unchecked = 'checked', ''
-            cellfmt = 'greenboldtext'
-        else:
-            checked, unchecked = '', 'checked'
-            cellfmt = 'redboldtext'
-        H.append('<tr class="%s"><td class="%s">%s</td><td class="%s">%s %s</td>'
-                 % (cls, cellfmt, self.nomprenom(nt.identdict[etudid]),
-                    cellfmt, decision, acros) )
-        # checkbox pour decision passage
-        H.append("""<td>
-        <input type="radio" name="pas_%s" value="1" %s/>O&nbsp;
-        <input type="radio" name="pas_%s" value="0" %s/>N
-        </td><td>%s</td></tr>
-        """ % (etudid, checked, etudid, unchecked, comment) )
 
+def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
+                               submitted=False, dialog_confirmed=False,
+                               REQUEST=None):
+    """Form. pour inscription des etudiants d'un semestre dans un autre
+    (donné par formsemestre_id).
+    Permet de selectionner parmi les etudiants autorisés à s'inscrire.
+    Principe:
+    - trouver liste d'etud, par semestre
+    - afficher chaque semestre "boites" avec cases à cocher
+    - si l'étudiant est déjà inscrit, le signaler (gras, nom de groupes): il peut être désinscrit
+    - on peut choisir les groupes TD, TP, TA
+    - seuls les etudiants non inscrits changent (de groupe)
+    - les etudiants inscrit qui se trouvent décochés sont désinscrits
+    - Confirmation: indiquer les étudiants inscrits et ceux désinscrits, le total courant.    
+
+    """
+    log('formsemestre_inscr_passage: formsemestre_id=%s submitted=%s, dialog_confirmed=%s'
+        % (formsemestre_id, submitted, dialog_confirmed) )
+    cnx = context.GetDBConnexion()
+    sem = context.get_formsemestre(formsemestre_id)
+    # -- check lock
+    if sem['etat'] != '1':
+        raise ScoValueError('opération impossible: semestre verrouille')
+    header = context.sco_header(REQUEST, page_title='Passage des étudiants')
+    footer = context.sco_footer(REQUEST)
+    H = [header]
+    if type(etuds) == type(''):
+        etuds = etuds.split(',') # vient du form de confirmation
+    
+    sem = context.get_formsemestre(formsemestre_id)
+    auth_etuds_by_sem, inscrits, candidats = list_authorized_etuds_by_sem(context, sem)
+    etuds_set = Set(etuds)
+    candidats_set = Set(candidats)
+    inscrits_set = Set(inscrits)
+    candidats_non_inscrits = candidats_set - inscrits_set
+    if submitted:
+        a_inscrire = etuds_set.intersection(candidats_set) - inscrits_set
+        a_desinscrire = inscrits_set.intersection(candidats_set) - etuds_set
+    else:
+        a_inscrire = a_desinscrire = []    
+    log('formsemestre_inscr_passage: a_inscrire=%s' % str(a_inscrire) )
+    log('formsemestre_inscr_passage: a_desinscrire=%s' % str(a_desinscrire) )
+    
+    if not submitted:
+        H.append( build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits) )
+    else:
+        if not dialog_confirmed:
+            # Confirmation
+            if a_inscrire:
+                H.append('<h3>Etudiants à inscrire</h3><ol>')
+                for etudid in a_inscrire:
+                    H.append('<li>%s</li>' % context.nomprenom(candidats[etudid]))
+                H.append('</ol>')
+            if a_desinscrire:
+                H.append('<h3>Etudiants à désinscrire</h3><ol>')
+                for etudid in a_desinscrire:
+                    H.append('<li>%s</li>' % context.nomprenom(candidats[etudid]))
+                H.append('</ol>')
+            if not a_inscrire and not a_desinscrire:
+                H.append("""<h3>Il n'y a rien à modifier !</h3>""")
+            H.append( context.confirmDialog( dest_url="formsemestre_inscr_passage",
+                                             add_headers=False,
+                                             cancel_url="formsemestre_inscr_passage?formsemestre_id="+formsemestre_id,
+                                             OK = "Effectuer l'opération",
+                                             parameters = {'formsemestre_id' : formsemestre_id,
+                                                           'etuds' : ','.join(etuds),
+                                                           'submitted' : 1, 
+                                                           }) )
+        else:
+            # OK, do it
+            do_inscrit(context, sem, a_inscrire, REQUEST)
+            do_desinscrit(context, sem, a_desinscrire, REQUEST)
+            
+            H.append("""<h3>Opération effectuée</h3>
+            <ul><li><a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=%s">Continuer les inscriptions</a></li>
+                <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>
+                <li><a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">Répartir les groupes de %s</a></li>
+                """ % (formsemestre_id,formsemestre_id,formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd']))
+            
     #
-    H.append("""</table>
-    <p>
-    <input type="submit" name="check" value="Vérifier ces informations" />
-    &nbsp;
-    <input type="submit" name="inscrire" value="Inscrire les étudiants choisis !" />
-    </p></form>""")
-    return header + '\n'.join(H) + footer
+    H.append(footer)
+    return '\n'.join(H)
 
 
+
+def build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits):
+    "code HTML"
+    H = [ """<script type="text/javascript">
+    function sem_select(formsemestre_id, state) {
+    var elems = document.getElementById(formsemestre_id).getElementsByTagName("input");
+    for (var i =0; i < elems.length; i++) { elems[i].checked=state; }
+    }
+    function sem_select_inscrits(formsemestre_id) {
+    var elems = document.getElementById(formsemestre_id).getElementsByTagName("input");
+    for (var i =0; i < elems.length; i++) {
+      if (elems[i].parentNode.className.indexOf('inscrit') >= 0) {
+         elems[i].checked=true;
+      } else {
+         elems[i].checked=false;
+      }      
+    }
+    }
+    </script>""",
+        """<h2>Inscriptions dans le semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>
+    <form method="post">
+    <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
+    <input type="submit" name="submitted" value="Appliquer les modifications"/>
+    &nbsp;<a href="#help">aide</a>
+    """ % sem ] # "
+    # nombre total d'inscrits
+    H.append("""<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
+    et %d candidats supplémentaires
+    </div>""" % (len(inscrits), len(candidats_non_inscrits)) )
+
+    empty_sems = []
+    for src_formsemestre_id in auth_etuds_by_sem.keys():
+        src = auth_etuds_by_sem[src_formsemestre_id]['sem']
+        etuds = auth_etuds_by_sem[src_formsemestre_id]['etuds']
+        if etuds:
+            src['nbetuds'] = len(etuds)
+            H.append("""<div class="pas_sembox" id="%(formsemestre_id)s">
+                <div class="pas_sembox_title"><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></div>
+                <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants) (Select.
+                <a href="#" onclick="sem_select('%(formsemestre_id)s', true);">tous</a>
+                <a href="#" onclick="sem_select('%(formsemestre_id)s', false );">aucun</a>
+                <a href="#" onclick="sem_select_inscrits('%(formsemestre_id)s');">inscrits</a>
+                     )</div>""" % src ) # "
+            for etud in etuds:
+                if etud['inscrit']:
+                    c = ' inscrit'
+                    checked = 'checked="checked"'
+                else:
+                    c = ''
+                    checked = ''
+                H.append("""<div class="pas_etud%s">""" % c )
+                H.append("""<input type="checkbox" name="etuds" value="%s" %s><a class="discretelink" href="ficheEtud?etudid=%s">%s</a></input></div>"""
+                         % (etud['etudid'], checked, etud['etudid'], context.nomprenom(etud)) )
+            H.append('</div>')
+        else:
+            empty_sems.append(src)
+            
+    # Semestres sans etudiants autorisés
+    if empty_sems:
+        H.append("""<div class="pas_empty_sems"><H3>Autres semestres sans candidats :</h3><ul>""")
+        for src in empty_sems:
+            H.append("""<li><a href="formsemestre_status?formsemestre_id=(formsemestre_id)s">
+            %(titreannee)s</a></li>""" % src)
+        H.append("""</ul></div>""")
+    
+    H.append("""</form>""")
+    H.append("""<div class="pas_help"><h3><a name="help">Explications</a></h3>
+    <p>Cette page permet d'inscrire des étudiants dans le semestre destination
+    <a class="stdlink" href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>.</p>
+    <p>Les étudiants sont groupés par semestre d'origine. Ceux qui sont en caractères <b>gras</b> sont
+    déjà inscrits dans le semestre destination.</p>
+    <p>Au départ, les étudiants déjà inscrits sont sélectionnés; vous pouvez ajouter d'autres
+    étudiants à inscrire dans le semestre destination.</p>
+    <p>Si vous dé-selectionnez un étudiant déjà inscrit (en gras), il sera désinscrit.</p>
+    </div>""" % sem )
+    return '\n'.join(H)

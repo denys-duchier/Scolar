@@ -89,6 +89,9 @@ DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
 DUT_NB_SEM = 4
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres
 
+# Passage: autorise-t-on les sauts de semestres ?
+ALLOW_SEM_SKIP = False
+
 # Regles gestion parcours
 class DUTRule:
     def __init__(self, premise, conclusion ):

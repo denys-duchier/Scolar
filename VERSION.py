@@ -4,6 +4,12 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Juillet 2007</h4>
+<ul>
+<li>Import utilisateurs depuis Excel</li>
+<li>Nouvelle gestion des passage d'un semestre à l'autre</li>
+</ul>
+
 <h4>Juin 2007: version 5.0</h4>
 <ul>
 <li>Suivi des parcours et règles de décision des jurys DUT</li>

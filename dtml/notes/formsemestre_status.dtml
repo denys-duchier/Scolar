@@ -116,7 +116,7 @@
 
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
 <li>
- <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) à un autre semestre</a> [obsolète, ne plus utiliser]
+ <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) <em>depuis</em> d'autres semestres</a> 
 </li>
 
 <li><a class="stdlink" href="form_students_import_csv?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a></li>

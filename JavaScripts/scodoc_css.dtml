@@ -445,7 +445,7 @@ td.formsemestre_status_cell {
   white-space: nowrap;
 }
 
-/* Liste des groupes sut tableau bord semestre */
+/* Liste des groupes sur tableau bord semestre */
 .formsemestre_status h3 {
   border: 0px solid black;
   margin-bottom: 5px;
@@ -1022,4 +1022,42 @@ tr.sfv_ass {
 
 tr.sfv_pbass { 
   background-color: rgb(90%,70%,80%);
+}
+
+div.pas_sembox {
+  margin-top: 10px;
+  border: 2px solid yellow;
+  padding: 5px;
+  margin-right: 10px;
+  float: left;
+}
+
+div.pas_empty_sems {
+  float: left;
+}
+
+div.pas_sembox .inscrit {
+  font-weight: bold;
+}
+
+.pas_sembox_title a {
+  font-weight: bold;
+  font-size: 100%;
+  color: #1C721C;
+}
+
+.pas_sembox_subtitle {
+  font-weight: normal;
+  font-size: 100%;
+  color: blue;
+}
+
+.pas_recap {  
+  font-weight: bold;
+  font-size: 110%;
+  margin-top: 10px;
+}
+
+div.pas_help {
+  float: left;
 }
