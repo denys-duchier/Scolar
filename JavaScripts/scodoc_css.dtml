@@ -1036,8 +1036,13 @@ div.pas_empty_sems {
   float: left;
 }
 
-div.pas_sembox .inscrit {
+.inscrit {
   font-weight: bold;
+}
+
+.inscrailleurs {
+  font-weight: bold;
+  color: red !important;
 }
 
 .pas_sembox_title a {

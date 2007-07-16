@@ -78,6 +78,20 @@ def list_etuds_from_sem(context, src, dst):
     return [ x['identite'] for x in dpv['decisions']
              if target in [ a['semestre_id'] for a in x['autorisations'] ] ]
 
+def list_inscrits_date(context, sem):
+    """Liste les etudiants inscrits dans n'importe quel semestre
+    SAUF sem à la date de début de sem.
+    """    
+    cnx = context.GetDBConnexion()
+    cursor = cnx.cursor()
+    cursor.execute("""select I.etudid
+                      from notes_formsemestre_inscription I, notes_formsemestre S
+                      where I.formsemestre_id = S.formsemestre_id
+                      and I.formsemestre_id != %(formsemestre_id)s
+                      and S.date_debut <= %(date_debut)s
+                      and S.date_fin >= %(date_debut)s""", sem)
+    return [ x[0] for x in cursor.fetchall() ]
+                      
 def do_inscrit(context, sem, etudids, REQUEST):
     """Inscrit ces etudiants dans ce semestre
     (la liste doit avoir été vérifiée au préalable)
@@ -173,6 +187,8 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     candidats_set = Set(candidats)
     inscrits_set = Set(inscrits)
     candidats_non_inscrits = candidats_set - inscrits_set
+    inscrits_ailleurs = Set(list_inscrits_date(context, sem))
+
     if submitted:
         a_inscrire = etuds_set.intersection(candidats_set) - inscrits_set
         a_desinscrire = inscrits_set.intersection(candidats_set) - etuds_set
@@ -182,7 +198,9 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     log('formsemestre_inscr_passage: a_desinscrire=%s' % str(a_desinscrire) )
     
     if not submitted:
-        H.append( build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits) )
+        H.append( build_page(context, sem, auth_etuds_by_sem,
+                             inscrits, candidats_non_inscrits,
+                             inscrits_ailleurs) )
     else:
         if not dialog_confirmed:
             # Confirmation
@@ -191,6 +209,12 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
                 for etudid in a_inscrire:
                     H.append('<li>%s</li>' % context.nomprenom(candidats[etudid]))
                 H.append('</ol>')
+            a_inscrire_en_double = inscrits_ailleurs.intersection(a_inscrire)
+            if a_inscrire_en_double:
+                H.append('<h3>dont étudiants déjà inscrits:</h3><ul>')
+                for etudid in a_inscrire_en_double:
+                    H.append('<li class="inscrailleurs">%s</li>' % context.nomprenom(candidats[etudid]))
+                H.append('</ul>')
             if a_desinscrire:
                 H.append('<h3>Etudiants à désinscrire</h3><ol>')
                 for etudid in a_desinscrire:
@@ -223,7 +247,8 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
 
 
 
-def build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits):
+def build_page(context, sem, auth_etuds_by_sem, inscrits,
+               candidats_non_inscrits, inscrits_ailleurs ):
     "code HTML"
     H = [ """<script type="text/javascript">
     function sem_select(formsemestre_id, state) {
@@ -270,11 +295,15 @@ def build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits
                     c = ' inscrit'
                     checked = 'checked="checked"'
                 else:
-                    c = ''
                     checked = ''
+                    if etud['etudid'] in inscrits_ailleurs:
+                        c = ' inscrailleurs'
+                    else:
+                        c = ''
+                    
                 H.append("""<div class="pas_etud%s">""" % c )
-                H.append("""<input type="checkbox" name="etuds" value="%s" %s><a class="discretelink" href="ficheEtud?etudid=%s">%s</a></input></div>"""
-                         % (etud['etudid'], checked, etud['etudid'], context.nomprenom(etud)) )
+                H.append("""<input type="checkbox" name="etuds" value="%s" %s><a class="discretelink %s" href="ficheEtud?etudid=%s">%s</a></input></div>"""
+                         % (etud['etudid'], checked, c, etud['etudid'], context.nomprenom(etud)) )
             H.append('</div>')
         else:
             empty_sems.append(src)
@@ -291,8 +320,10 @@ def build_page(context, sem, auth_etuds_by_sem, inscrits, candidats_non_inscrits
     H.append("""<div class="pas_help"><h3><a name="help">Explications</a></h3>
     <p>Cette page permet d'inscrire des étudiants dans le semestre destination
     <a class="stdlink" href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>.</p>
-    <p>Les étudiants sont groupés par semestre d'origine. Ceux qui sont en caractères <b>gras</b> sont
-    déjà inscrits dans le semestre destination.</p>
+    <p>Les étudiants sont groupés par semestre d'origine. Ceux qui sont en caractères
+    <span class="inscrit">gras</span> sont déjà inscrits dans le semestre destination.
+    Ceux qui sont en <span class"inscrailleurs">gras et en rouge</span> sont inscrits
+    dans un <em>autre</em> semestre.</p>
     <p>Au départ, les étudiants déjà inscrits sont sélectionnés; vous pouvez ajouter d'autres
     étudiants à inscrire dans le semestre destination.</p>
     <p>Si vous dé-selectionnez un étudiant déjà inscrit (en gras), il sera désinscrit.</p>
