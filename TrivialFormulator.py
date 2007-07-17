@@ -41,6 +41,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           withcheckbox: if true, place a checkbox at the left of the input
                         elem. Checked items will be returned in 'tf-checked'
           attributes: a liste of strings to put in the HTML element
+          template: HTML template for element 
           HTML elements:
              input_type : 'text', 'textarea', 'password',
                           'radio', 'menu', 'checkbox',

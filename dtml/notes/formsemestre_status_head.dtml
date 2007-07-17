@@ -19,7 +19,9 @@
 
 <table>
 <tr><td class="fichetitre2">Date :</td><td>du <dtml-var "sem['date_debut']"> au <dtml-var "sem['date_fin']"></td><td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(sem['responsable_id'],REQUEST)['nomprenom']"></td></tr>
-<tr><td class="fichetitre2">Formation: </td><td><dtml-var "F['titre']"><dtml-if "sem['semestre_id'] >= 0">, semestre <dtml-var "sem['semestre_id']"></dtml-if></td></tr>
+<tr><td class="fichetitre2">Formation: </td><td><dtml-var "F['titre']"><dtml-if "sem['semestre_id'] >= 0">, semestre <dtml-var "sem['semestre_id']"></dtml-if>
+<dtml-if "sem['etape_apo']">&nbsp;&nbsp;&nbsp;<b><tt><dtml-var "sem['etape_apo']"></tt></b></dtml-if>
+</td></tr>
 <tr><td class="fichetitre2">Inscrits: </td><td> <dtml-var "len(inscrits)"> étudiants</td></tr>
 
 <dtml-in "do_evaluation_etat_in_sem( formsemestre_id )" mapping>

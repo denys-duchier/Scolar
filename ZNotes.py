@@ -614,7 +614,8 @@ class ZNotes(ObjectManager,
          'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
          'bul_show_codemodules', 'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
-         'nomgroupetd', 'nomgroupetp', 'nomgroupeta'
+         'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
+         'etape_apo'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,

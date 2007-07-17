@@ -104,6 +104,9 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                           'title' : 'Semestre dans la formation',
                           'allowed_values' : semestre_id_list,
                           'labels' : semestre_id_labels }),  
+        ('etape_apo', { 'size' : 12,
+                        'title' : 'Code étape Apogée',
+                        'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' }),
         ('gestion_absence_lst', { 'input_type' : 'checkbox',
                                   'title' : 'Suivi des absences',
                                   'allowed_values' : ['X'],
@@ -145,8 +148,10 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                           'title' : 'Couleur fond des bulletins',
                           'explanation' : 'version web seulement (ex: #ffeeee)' }),
 
-        ('sep', { 'input_type' : 'separator',
-                  'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
+        ('sep', { 'input_type' : 'separator',                  
+                  'title' : '',
+                  'template' : '</table><h3>Sélectionner les modules et leur responsable:</h3><table>'
+                  }) ]
 
     nbmod = 0
     for semestre_id in semestre_ids:

@@ -198,9 +198,9 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     log('formsemestre_inscr_passage: a_desinscrire=%s' % str(a_desinscrire) )
     
     if not submitted:
-        H.append( build_page(context, sem, auth_etuds_by_sem,
-                             inscrits, candidats_non_inscrits,
-                             inscrits_ailleurs) )
+        H += build_page(context, sem, auth_etuds_by_sem,
+                        inscrits, candidats_non_inscrits,
+                        inscrits_ailleurs)
     else:
         if not dialog_confirmed:
             # Confirmation
@@ -246,8 +246,41 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     return '\n'.join(H)
 
 
-
 def build_page(context, sem, auth_etuds_by_sem, inscrits,
+               candidats_non_inscrits, inscrits_ailleurs ):
+    H = [
+        """<h2>Inscriptions dans le semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>
+    <form method="post">
+    <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
+    <input type="submit" name="submitted" value="Appliquer les modifications"/>
+    &nbsp;<a href="#help">aide</a>
+    """ % sem, # "
+        
+        etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
+                           candidats_non_inscrits, inscrits_ailleurs ),
+        
+        formsemestre_inscr_passage_help(sem),
+        """</form>"""
+        ]
+    return H
+
+def formsemestre_inscr_passage_help(sem):
+    return """<div class="pas_help"><h3><a name="help">Explications</a></h3>
+    <p>Cette page permet d'inscrire des étudiants dans le semestre destination
+    <a class="stdlink"
+    href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>.
+    </p>
+    <p>Les étudiants sont groupés par semestre d'origine. Ceux qui sont en caractères
+    <span class="inscrit">gras</span> sont déjà inscrits dans le semestre destination.
+    Ceux qui sont en <span class"inscrailleurs">gras et en rouge</span> sont inscrits
+    dans un <em>autre</em> semestre.</p>
+    <p>Au départ, les étudiants déjà inscrits sont sélectionnés; vous pouvez ajouter d'autres
+    étudiants à inscrire dans le semestre destination.</p>
+    <p>Si vous dé-selectionnez un étudiant déjà inscrit (en gras), il sera désinscrit.</p>
+    </div>""" % sem 
+
+
+def etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
                candidats_non_inscrits, inscrits_ailleurs ):
     "code HTML"
     H = [ """<script type="text/javascript">
@@ -266,12 +299,7 @@ def build_page(context, sem, auth_etuds_by_sem, inscrits,
     }
     }
     </script>""",
-        """<h2>Inscriptions dans le semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>
-    <form method="post">
-    <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
-    <input type="submit" name="submitted" value="Appliquer les modifications"/>
-    &nbsp;<a href="#help">aide</a>
-    """ % sem ] # "
+          ] # "
     # nombre total d'inscrits
     H.append("""<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
     et %d candidats supplémentaires
@@ -310,22 +338,10 @@ def build_page(context, sem, auth_etuds_by_sem, inscrits,
             
     # Semestres sans etudiants autorisés
     if empty_sems:
-        H.append("""<div class="pas_empty_sems"><H3>Autres semestres sans candidats :</h3><ul>""")
+        H.append("""<div class="pas_empty_sems"><h3>Autres semestres sans candidats :</h3><ul>""")
         for src in empty_sems:
             H.append("""<li><a href="formsemestre_status?formsemestre_id=(formsemestre_id)s">
             %(titreannee)s</a></li>""" % src)
         H.append("""</ul></div>""")
     
-    H.append("""</form>""")
-    H.append("""<div class="pas_help"><h3><a name="help">Explications</a></h3>
-    <p>Cette page permet d'inscrire des étudiants dans le semestre destination
-    <a class="stdlink" href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>.</p>
-    <p>Les étudiants sont groupés par semestre d'origine. Ceux qui sont en caractères
-    <span class="inscrit">gras</span> sont déjà inscrits dans le semestre destination.
-    Ceux qui sont en <span class"inscrailleurs">gras et en rouge</span> sont inscrits
-    dans un <em>autre</em> semestre.</p>
-    <p>Au départ, les étudiants déjà inscrits sont sélectionnés; vous pouvez ajouter d'autres
-    étudiants à inscrire dans le semestre destination.</p>
-    <p>Si vous dé-selectionnez un étudiant déjà inscrit (en gras), il sera désinscrit.</p>
-    </div>""" % sem )
     return '\n'.join(H)

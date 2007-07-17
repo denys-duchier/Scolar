@@ -261,7 +261,8 @@ CREATE TABLE notes_formsemestre (
         gestion_compensation integer default 0, -- gestion compensation sem DUT
 	bul_hide_xml integer default 0, --  ne publie pas le bulletin XML
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
-	bul_bgcolor text default 'white' -- couleur fond bulletins HTML
+	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
+	etape_apo text -- code etape Apogée
 );
 
 -- Mise en page bulletins semestre

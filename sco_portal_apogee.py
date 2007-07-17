@@ -37,17 +37,31 @@ from sco_exceptions import *
 from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
+def get_inscrits_etape(code_etape):
+    """Liste des inscrits à une étape Apogée
+    Result = list of dicts
+    """
+    req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('etape', code_etape)))
+    doc = query_portal(req)
+    return xml_to_list_of_dicts(doc)
+
 def query_apogee_portal(nom, prenom):
     """Recupere les infos sur les etudiants nommés
     (nom et prenom matchent des parties de noms)
     """
     req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
+    doc = query_portal(req)
+    return xml_to_list_of_dicts(doc)
+
+def query_portal(req):
     try:
         f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
     except:
         log("query_apogee_portal: can't connect to Apogee portal")
         return []
-    doc = f.read()
+    return f.read()
+
+def xml_to_list_of_dicts(doc):
     dom = xml.dom.minidom.parseString(doc)
     infos = []
     try:
