@@ -901,7 +901,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'nomprenom')
     def nomprenom(self, etud):
         "formatte sexe/nom/prenom pour affichages"
-        return format_sexe(etud['sexe']) + ' ' + format_prenom(etud['prenom']) + ' ' + format_nom(etud['nom'])
+        return ' '.join([ format_sexe(etud['sexe']), format_prenom(etud['prenom']), format_nom(etud['nom'])])
     
     security.declareProtected(ScoView, "chercheEtud")
     chercheEtud = DTMLFile('dtml/chercheEtud', globals())
@@ -2115,14 +2115,24 @@ function tweakmenu( gname ) {
         
     security.declareProtected(ScoEtudInscrit, "form_students_import_excel")
     def form_students_import_excel(self, REQUEST, formsemestre_id=None):
-        "formulaire import csv"
+        "formulaire import xls"
+        if formsemestre_id:
+            sem = self.Notes.get_formsemestre(formsemestre_id)
+        else:
+            sem = None
         H = [self.sco_header(REQUEST, page_title='Import etudiants'),
              """<h2>Téléchargement d\'une nouvelle liste d\'etudiants</h2>
-             <p style="color: red">A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
-             <b>premier semestre</b>). Si les étudiants à inscrire sont déjà dans un autre
-             semestre, utiliser le lien "<em>Inscriptions (passage des étudiants) à un
-             autre semestre</em>" à partir du semestre d'origine.
+             <div style="color: red">
+             <p>A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
+             <b>premier semestre</b>).</p>
+             <p>Si les étudiants à inscrire sont déjà dans un autre
+             semestre, utiliser le lien "<em>Inscriptions (passage des étudiants)
+             depuis d'autres semestres</em> à partir du semestre destination.
              </p>
+             <p>Si vous avez un portail Apogée, il est en général préférable d'importer les
+             étudiants depuis Apogée, via le lien "<em>Synchroniser avec étape Apogée</em>".
+             </p>
+             </div>
              <p>
              L'opération se déroule en deux étapes. Dans un premier temps,
              vous téléchargez une feuille Excel type. Vous devez remplir
@@ -2132,9 +2142,7 @@ function tweakmenu( gname ) {
              votre liste.
              </p>
              """]
-        if formsemestre_id:
-            sem = self.Notes.do_formsemestre_list(
-                args={'formsemestre_id':formsemestre_id} )[0]            
+        if sem:
             H.append("""<p style="color: red">Les étudiants importés seront inscrits dans
             le semestre <b>%s</b></p>""" % sem['titreannee'])
         else:

@@ -152,7 +152,7 @@ def identite_edit(cnx, args, context=None):
     """
     if context:        
         pass
-    _identiteEditor.edit(uid, args)
+    _identiteEditor.edit(cnx, args)
     
 
 def identite_create( cnx, args ):

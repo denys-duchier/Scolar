@@ -174,7 +174,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 # --
                 values[titleslist[i]] = val
             # Insert in DB tables
-            log( 'csv inscription: values=%s' % str(values) ) 
+            log( 'scolars_import_excel_file: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
             etudid = scolars.identite_create(cnx,args)
@@ -199,12 +199,12 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                                                            method='import_csv_file')
     except:
         cnx.rollback()
-        log('csv: aborting transaction !')
+        log('scolars_import_excel_file: aborting transaction !')
         # Nota: db transaction is sometimes partly commited...
         # here we try to remove all created students
         cursor = cnx.cursor()
         for etudid in created_etudids:
-            log('csv: deleting etudid=%s'%etudid)
+            log('scolars_import_excel_file: deleting etudid=%s'%etudid)
             cursor.execute('delete from notes_moduleimpl_inscription where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from notes_formsemestre_inscription where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from scolar_events where etudid=%(etudid)s', { 'etudid':etudid })
@@ -212,9 +212,9 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             cursor.execute('delete from admissions where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })
         cnx.commit()
-        log('csv: re-raising exception')
+        log('scolars_import_excel_file: re-raising exception')
         raise
-    log('csv: completing transaction')
+    log('scolars_import_excel_file: completing transaction')
     
     sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
                  text='Inscription de %d étudiants' # peuvent avoir ete inscrits a des semestres differents

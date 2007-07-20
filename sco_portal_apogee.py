@@ -41,7 +41,7 @@ def get_inscrits_etape(code_etape):
     """Liste des inscrits à une étape Apogée
     Result = list of dicts
     """
-    req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('etape', code_etape)))
+    req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
     return xml_to_list_of_dicts(doc)
 

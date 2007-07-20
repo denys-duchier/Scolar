@@ -74,7 +74,7 @@ import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
 import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
-import sco_inscr_passage
+import sco_inscr_passage, sco_synchro_etuds
 import pdfbulletins
 from notes_table import *
 import VERSION
@@ -2299,6 +2299,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscr_passage')
     formsemestre_inscr_passage = sco_inscr_passage.formsemestre_inscr_passage
 
+    security.declareProtected(ScoEtudInscrit,'formsemestre_synchro_etuds')
+    formsemestre_synchro_etuds = sco_synchro_etuds.synchronize_etuds
+    
+    
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab

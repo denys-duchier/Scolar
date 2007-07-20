@@ -32,6 +32,7 @@
 from notesdb import *
 from sco_utils import *
 from notes_log import log
+from sco_exceptions import *
 import sco_codes_parcours
 import sco_pvjury
 from sets import Set
@@ -48,9 +49,13 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
         liste = list_etuds_from_sem(context, src, sem)
         for e in liste:
             candidats[e['etudid']] = e
-        r[src['formsemestre_id']] = { 'sem' : src,
-                                      'etuds' : liste
-                                      }
+        r[src['formsemestre_id']] = {
+            'etuds' : liste,
+            'infos' : { 'id' : src['formsemestre_id'],
+                        'title' : src['titreannee'],
+                        'title_target' : 'formsemestre_status?formsemestre_id=%s' % src['formsemestre_id']                        
+                        }
+            }
         # ajoute attribut inscrit qui indique si l'étudiant est déjà inscrit dans le semestre dest.
         for e in r[src['formsemestre_id']]['etuds']:
             e['inscrit'] = inscrits.has_key(e['etudid'])
@@ -58,7 +63,7 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
 
 def list_inscrits(context, formsemestre_id):
     """Etudiants déjà inscrits à ce semestre
-    { etudid : i }
+    { etudid : etud }
     """
     ins = context.Notes.do_formsemestre_inscription_list(
         args={  'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
@@ -181,7 +186,6 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation
     
-    sem = context.get_formsemestre(formsemestre_id)
     auth_etuds_by_sem, inscrits, candidats = list_authorized_etuds_by_sem(context, sem)
     etuds_set = Set(etuds)
     candidats_set = Set(candidats)
@@ -255,13 +259,28 @@ def build_page(context, sem, auth_etuds_by_sem, inscrits,
     <input type="submit" name="submitted" value="Appliquer les modifications"/>
     &nbsp;<a href="#help">aide</a>
     """ % sem, # "
+
+        """<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
+        et %d candidats supplémentaires
+        </div>""" % (len(inscrits), len(candidats_non_inscrits)),
         
-        etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
-                           candidats_non_inscrits, inscrits_ailleurs ),
+        etuds_select_boxes(context, auth_etuds_by_sem, inscrits_ailleurs ),
         
         formsemestre_inscr_passage_help(sem),
         """</form>"""
         ]
+
+    # Semestres sans etudiants autorisés
+    empty_sems = []
+    for formsemestre_id in auth_etuds_by_sem.keys():
+        if not auth_etuds_by_sem[formsemestre_id]['etuds']:
+            empty_sems.append(auth_etuds_by_sem[formsemestre_id]['infos'])
+    if empty_sems:
+        H.append("""<div class="pas_empty_sems"><h3>Autres semestres sans candidats :</h3><ul>""")
+        for infos in empty_sems:
+            H.append("""<li><a href="%(title_target)s">%(title)s</a></li>""" % infos)
+        H.append("""</ul></div>""")
+
     return H
 
 def formsemestre_inscr_passage_help(sem):
@@ -280,9 +299,9 @@ def formsemestre_inscr_passage_help(sem):
     </div>""" % sem 
 
 
-def etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
-               candidats_non_inscrits, inscrits_ailleurs ):
-    "code HTML"
+def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_inscrits=True ):
+    """Boites pour selection étudiants par catégorie
+    """
     H = [ """<script type="text/javascript">
     function sem_select(formsemestre_id, state) {
     var elems = document.getElementById(formsemestre_id).getElementsByTagName("input");
@@ -300,26 +319,28 @@ def etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
     }
     </script>""",
           ] # "
-    # nombre total d'inscrits
-    H.append("""<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
-    et %d candidats supplémentaires
-    </div>""" % (len(inscrits), len(candidats_non_inscrits)) )
-
-    empty_sems = []
-    for src_formsemestre_id in auth_etuds_by_sem.keys():
-        src = auth_etuds_by_sem[src_formsemestre_id]['sem']
-        etuds = auth_etuds_by_sem[src_formsemestre_id]['etuds']
+    
+    for src_cat in auth_etuds_by_cat.keys():
+        infos = auth_etuds_by_cat[src_cat]['infos']
+        etuds = auth_etuds_by_cat[src_cat]['etuds']
+        with_checkbox = auth_etuds_by_cat[src_cat]['infos'].get('with_checkbox', True)
+        etud_key = auth_etuds_by_cat[src_cat]['infos'].get('etud_key', 'etudid')
         if etuds:
-            src['nbetuds'] = len(etuds)
-            H.append("""<div class="pas_sembox" id="%(formsemestre_id)s">
-                <div class="pas_sembox_title"><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></div>
-                <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants) (Select.
-                <a href="#" onclick="sem_select('%(formsemestre_id)s', true);">tous</a>
-                <a href="#" onclick="sem_select('%(formsemestre_id)s', false );">aucun</a>
-                <a href="#" onclick="sem_select_inscrits('%(formsemestre_id)s');">inscrits</a>
-                     )</div>""" % src ) # "
+            infos['nbetuds'] = len(etuds)
+            H.append("""<div class="pas_sembox" id="%(id)s">
+                <div class="pas_sembox_title"><a href="%(title_target)s">%(title)s</a></div>
+                <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants)""" % infos )
+            if with_checkbox:
+                H.append(""" (Select.
+                <a href="#" onclick="sem_select('%(id)s', true);">tous</a>
+                <a href="#" onclick="sem_select('%(id)s', false );">aucun</a>""" # "
+                     % infos )
+            if sel_inscrits:
+                H.append("""<a href="#" onclick="sem_select_inscrits('%(id)s');">inscrits</a>"""
+                         % infos)
+            H.append( ')</div>' )
             for etud in etuds:
-                if etud['inscrit']:
+                if etud.get('inscrit', False):
                     c = ' inscrit'
                     checked = 'checked="checked"'
                 else:
@@ -328,20 +349,19 @@ def etuds_select_boxes(context, sem, auth_etuds_by_sem, inscrits,
                         c = ' inscrailleurs'
                     else:
                         c = ''
-                    
+                if etud['etudid']:
+                    elink = """<a class="discretelink %s" href="ficheEtud?etudid=%s">%s</a>""" % (
+                        c, etud['etudid'], context.nomprenom(etud) )
+                else:
+                    elink = context.nomprenom(etud)
                 H.append("""<div class="pas_etud%s">""" % c )
-                H.append("""<input type="checkbox" name="etuds" value="%s" %s><a class="discretelink %s" href="ficheEtud?etudid=%s">%s</a></input></div>"""
-                         % (etud['etudid'], checked, c, etud['etudid'], context.nomprenom(etud)) )
+                if with_checkbox:
+                    H.append("""<input type="checkbox" name="etuds" value="%s" %s>"""
+                             % (etud[etud_key], checked) )
+                H.append(elink)
+                if with_checkbox:
+                     H.append("""</input>""")
+                H.append('</div>')
             H.append('</div>')
-        else:
-            empty_sems.append(src)
-            
-    # Semestres sans etudiants autorisés
-    if empty_sems:
-        H.append("""<div class="pas_empty_sems"><h3>Autres semestres sans candidats :</h3><ul>""")
-        for src in empty_sems:
-            H.append("""<li><a href="formsemestre_status?formsemestre_id=(formsemestre_id)s">
-            %(titreannee)s</a></li>""" % src)
-        H.append("""</ul></div>""")
     
     return '\n'.join(H)

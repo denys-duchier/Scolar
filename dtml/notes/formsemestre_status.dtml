@@ -119,7 +119,12 @@
  <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) <em>depuis</em> d'autres semestres</a> 
 </li>
 
-<li><a class="stdlink" href="form_students_import_csv?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a></li>
+<li>
+ <a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=<dtml-var formsemestre_id>">Synchroniser avec étape Apogée</a> (expérimental)
+</li>
+
+
+<li><a class="stdlink" href="form_students_import_excel?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a> (table Excel)</li>
 
 <li><a class="stdlink" href="etudident_create_form?formsemestre_id=<dtml-var formsemestre_id>">créer <em>un</em> nouvel étudiant</a></li>
 
