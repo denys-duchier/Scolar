@@ -89,7 +89,7 @@ def list_inscrits_date(context, sem):
     """    
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
-    sem['date_debut_iso'] = DateISOtoDMY(sem['date_debut'])
+    sem['date_debut_iso'] = DateDMYtoISO(sem['date_debut'])
     cursor.execute("""select I.etudid
                       from notes_formsemestre_inscription I, notes_formsemestre S
                       where I.formsemestre_id = S.formsemestre_id
