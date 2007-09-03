@@ -89,12 +89,13 @@ def list_inscrits_date(context, sem):
     """    
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
+    sem['date_debut_iso'] = DateISOtoDMY(sem['date_debut'])
     cursor.execute("""select I.etudid
                       from notes_formsemestre_inscription I, notes_formsemestre S
                       where I.formsemestre_id = S.formsemestre_id
                       and I.formsemestre_id != %(formsemestre_id)s
-                      and S.date_debut <= %(date_debut)s
-                      and S.date_fin >= %(date_debut)s""", sem)
+                      and S.date_debut <= %(date_debut_iso)s
+                      and S.date_fin >= %(date_debut_iso)s""", sem)
     return [ x[0] for x in cursor.fetchall() ]
                       
 def do_inscrit(context, sem, etudids, REQUEST):
