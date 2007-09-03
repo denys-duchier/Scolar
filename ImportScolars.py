@@ -30,6 +30,7 @@
 
 import os, sys, time, pdb
 
+from sco_utils import *
 from notesdb import *
 from notes_log import log
 import scolars
