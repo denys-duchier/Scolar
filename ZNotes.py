@@ -1998,12 +1998,22 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_bulletins_mailetuds')
     def formsemestre_bulletins_mailetuds(self, formsemestre_id, REQUEST,
-                                         version='long'):
+                                         version='long',
+                                         dialog_confirmed=False ):
         "envoi a chaque etudiant (inscrit et ayant un mail) son bulletin"
         sem = self.get_formsemestre(formsemestre_id)
-        # Make each bulletin
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-        for etudid in nt.get_etudids():
+        etudids = nt.get_etudids()
+        # Confirmation dialog
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                "<h2>Envoyer les %d bulletins par e-mail aux étudiants ?" % len(etudids),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
+                parameters={'version':version, 'formsemestre_id' : formsemestre_id})
+                                      
+        # Make each bulletin
+        for etudid in etudids:
             self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid,
                 version=version, 
