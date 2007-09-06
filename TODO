@@ -1,4 +1,16 @@
 
+Composants pour Trac:
+
+- Coeur
+- Notes
+- Absences
+- Entreprises
+- Utilisateurs
+- XML
+- Interface
+- JurysEtParcours
+
+
 A VERIFIER AVANT 5.0:
 
 
@@ -25,7 +37,6 @@ FEATURES REQUESTS
 -----------------
 
 * Bulletins:
-  . Centrer titre bul pdf
   . logos IUT et Univ sur bull PDF
   . nom departement: nom abbrégé (CJ) ou complet (Carrière Juridiques)
   . bulletin: deplacer la barre indicateur (cf OLDGEA S2: gêne)
