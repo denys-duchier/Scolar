@@ -1372,7 +1372,7 @@ function bodyOnLoad() {
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
             if adrs:
-                scolars.adresse_edit( cnx, args=tf[2] )
+                scolars.adresse_edit( cnx, args=tf[2], context=self )
             else:
                 scolars.adresse_create( cnx, args=tf[2] )
             logdb(REQUEST,cnx,method='changeCoordonnees', etudid=etudid)
@@ -1837,7 +1837,7 @@ function tweakmenu( gname ) {
                              url=etud['url'])  
             else:
                 # modif d'un etudiant
-                scolars.etudident_edit(cnx, tf[2])
+                scolars.etudident_edit(cnx, tf[2], context=self)
             # inval all caches
             self.Notes._inval_cache()
             #

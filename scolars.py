@@ -40,6 +40,11 @@ from notes_table import *
 import locale
 locale.setlocale(locale.LC_ALL, ('en_US', SCO_ENCODING) )
 
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email.Header import Header
+from email import Encoders
 
 abbrvmonthsnames = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
                      'Aout', 'Sept', 'Oct ', 'Nov ', 'Dec ' ]
@@ -150,10 +155,24 @@ def identite_edit(cnx, args, context=None):
     """Modifie l'identite d'un étudiant.
     Si context et notification et difference, envoie message notification.
     """
-    if context:        
-        pass
+    notify_to = None
+    if context:
+        try:
+            notify_to = context.notify_etud_changes_to
+        except:
+            pass
+    if notify_to:
+        # etat AVANT edition pour envoyer diffs
+        before = identite_list(cnx, {'etudid':args['etudid']})[0]
+
     _identiteEditor.edit(cnx, args)
-    
+
+    # Notification du changement par e-mail:
+    if notify_to:
+        etud = context.getEtudInfo(etudid=args['etudid'],filled=True)[0]
+        after = identite_list(cnx, {'etudid':args['etudid']})[0]
+        notify_etud_change(context, notify_to, etud, before, after,
+                           'Modification identite %(nomprenom)s' % etud)
 
 def identite_create( cnx, args ):
     "check unique etudid, then create"
@@ -163,6 +182,36 @@ def identite_create( cnx, args ):
         if r:
             raise ScoValueError('Code identifiant (etudid) déjà utilisé ! (%s)' % etudid)
     return _identiteEditor.create(cnx, args)
+
+
+def notify_etud_change(context, email_addr, etud, before, after, subject):
+    """Send email notifying changes to etud
+    before and after are two dicts, with values before and after the change.
+    """
+    txt = [
+        'Code NIP:' + etud['code_nip'],
+        'Genre: ' + etud['sexe'],
+        'Nom: ' + etud['nom'],
+        'Prénom: ' + etud['prenom'],
+        'Etudid: ' + etud['etudid'],
+        '\n',
+        'Changements effectués:'
+        ]
+    for key in after.keys():
+        if before[key] != after[key]:
+            txt.append('%s: %s' % (key, after[key]) )
+    txt = '\n'.join(txt)
+    # build mail
+    log('notify_etud_change: sending notification to %s' % email_addr)
+    msg = MIMEMultipart()
+    subj = Header( '[ScoDoc] ' + subject,  SCO_ENCODING )
+    msg['Subject'] = subj
+    msg['From'] = 'scodoc_noreply'
+    msg['To'] = email_addr
+    txt = MIMEText( txt, 'plain', SCO_ENCODING )
+    msg.attach(txt)
+    context.sendEmail(msg)
+    
 
 # --------
 # Note: la table adresse n'est pas dans dans la table "identite"
@@ -180,7 +229,30 @@ _adresseEditor = EditableTable(
 adresse_create = _adresseEditor.create
 adresse_delete = _adresseEditor.delete
 adresse_list   = _adresseEditor.list
-adresse_edit   = _adresseEditor.edit
+
+def adresse_edit(cnx, args, context=None):
+    """Modifie l'adresse d'un étudiant.
+    Si context et notification et difference, envoie message notification.
+    """
+    notify_to = None
+    if context:
+        try:
+            notify_to = context.notify_etud_changes_to
+        except:
+            pass
+    if notify_to:
+        # etat AVANT edition pour envoyer diffs
+        before = adresse_list(cnx, {'etudid':args['etudid']})[0]
+
+    _adresseEditor.edit(cnx, args)
+
+    # Notification du changement par e-mail:
+    if notify_to:
+        etud = context.getEtudInfo(etudid=args['etudid'],filled=True)[0]
+        after = adresse_list(cnx, {'etudid':args['etudid']})[0]
+        notify_etud_change(context, notify_to, etud, before, after,
+                           'Modification adresse %(nomprenom)s' % etud)
+
 
 def getEmail(cnx,etudid):
     "get email etudiant (si plusieurs adresses, prend le premier non null"
