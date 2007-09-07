@@ -71,7 +71,7 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_inscriptions
 import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
-import sco_formations, sco_pagebulletin
+import sco_formations, sco_pagebulletin, sco_formsemestre_custommenu
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -793,6 +793,16 @@ class ZNotes(ObjectManager,
             return err
         return sco_pagebulletin.formsemestre_pagebulletin_dialog(
             self, REQUEST, formsemestre_id )
+
+    security.declareProtected(ScoView,'formsemestre_custommenu_edit')
+    def formsemestre_custommenu_edit(self, REQUEST, formsemestre_id):
+        "Dialogue modif menu"
+        # accessible à tous !
+        return sco_formsemestre_custommenu.formsemestre_custommenu_edit(
+            self, formsemestre_id, REQUEST=REQUEST)
+
+    security.declareProtected(ScoView,'formsemestre_custommenu_html')
+    formsemestre_custommenu_html = sco_formsemestre_custommenu.formsemestre_custommenu_html
     
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module

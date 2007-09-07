@@ -250,7 +250,7 @@ class EditableTable:
         # format value
         for title in vals.keys():
             if self.input_formators.has_key(title):
-                vals[title] = self.input_formators[title](vals[title])                
+                vals[title] = self.input_formators[title](vals[title])
         
         DBUpdateArgs( cnx, self.table_name, vals,
                       where="%s=%%(%s)s" % (self.id_name,self.id_name),
