@@ -28,28 +28,39 @@
 """Liaison avec le portail ENT (qui donne accès aux infos Apogée)
 """
 
-PORTAL_URL='https://portail.cevif.univ-paris13.fr/'
-
-import urllib, urllib2, xml
+import urllib, urllib2, xml, xml.dom.minidom
 
 from notes_log import log
 from sco_exceptions import *
 from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
-def get_inscrits_etape(code_etape):
+def get_portal_url(context):
+    try:
+        return context.portal_url # Zope property
+    except:
+        log('get_portal_url: undefined property "portal_url"')
+        return None
+
+def get_inscrits_etape(context, code_etape):
     """Liste des inscrits à une étape Apogée
     Result = list of dicts
     """
-    req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
+    portal_url = get_portal_url(context)
+    if not portal_url:
+        return []
+    req = portal_url + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
     return xml_to_list_of_dicts(doc)
 
-def query_apogee_portal(nom, prenom):
+def query_apogee_portal(context, nom, prenom):
     """Recupere les infos sur les etudiants nommés
     (nom et prenom matchent des parties de noms)
     """
-    req = PORTAL_URL + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
+    portal_url = get_portal_url(context)
+    if not portal_url:
+        return []
+    req = portal_url + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
     doc = query_portal(req)
     return xml_to_list_of_dicts(doc)
 
@@ -80,7 +91,7 @@ def xml_to_list_of_dicts(doc):
     return infos
 
 
-def get_infos_apogee_allaccents(nom, prenom):
+def get_infos_apogee_allaccents(context, nom, prenom):
     "essai recup infos avec differents codages des accents"
     if nom:
         unom = unicode(nom, SCO_ENCODING)
@@ -99,31 +110,80 @@ def get_infos_apogee_allaccents(nom, prenom):
         prenom_utf8 = prenom
     
     # avec accents
-    infos = query_apogee_portal(nom, prenom)
+    infos = query_apogee_portal(context, nom, prenom)
     # sans accents
     if nom != nom_noaccents or prenom != prenom_noaccents:
-        infos += query_apogee_portal(nom_noaccents,prenom_noaccents)
+        infos += query_apogee_portal(context, nom_noaccents,prenom_noaccents)
     # avec accents en UTF-8
     if nom_utf8 != nom_noaccents or prenom_utf8 != prenom_noaccents:
-        infos += query_apogee_portal(nom_utf8,prenom_utf8)
+        infos += query_apogee_portal(context, nom_utf8,prenom_utf8)
     return infos
 
 
-def get_infos_apogee(nom, prenom):
+def get_infos_apogee(context, nom, prenom):
     """recupere les codes Apogee en utilisant le web service CRIT
     """
     if (not nom) and (not prenom):
         return []
     # essaie plusieurs codages: tirets, accents
-    infos = get_infos_apogee_allaccents(nom, prenom)
+    infos = get_infos_apogee_allaccents(context, nom, prenom)
     nom_st = nom.replace('-', ' ')
     prenom_st = prenom.replace('-', ' ')
     if nom_st != nom or prenom_st != prenom:
-        infos += get_infos_apogee_allaccents(nom_st, prenom_st)
+        infos += get_infos_apogee_allaccents(context, nom_st, prenom_st)
     # si pas de match et nom ou prenom composé, essaie en coupant
     if not infos:
         nom1 = nom.split()[0]
         prenom1 = prenom.split()[0]
         if nom != nom1 or prenom != prenom1:
-            infos += get_infos_apogee_allaccents(nom1, prenom1)
+            infos += get_infos_apogee_allaccents(context, nom1, prenom1)
     return infos
+
+
+def get_etapes_apogee(context):
+    """Liste des etapes apogee
+    { departement : { code_etape : intitule } }
+    """
+    portal_url = get_portal_url(context)
+    if not portal_url:
+        return {}
+    req = portal_url + 'getEtapes.php'
+    doc = query_portal(req)
+    # paser XML
+    dom = xml.dom.minidom.parseString(doc)
+    infos = {}
+    try:
+        if dom.childNodes[0].nodeName != u'etapes':
+            raise ValueError
+        for d in dom.childNodes[0].childNodes:
+            if d.nodeType == d.ELEMENT_NODE:
+                dept = d.nodeName.encode(SCO_ENCODING)
+                for e in d.childNodes:
+                    if e.nodeType == e.ELEMENT_NODE:
+                        intitule = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
+                        code = e.attributes['code'].value.encode(SCO_ENCODING)
+                        if infos.has_key(dept):
+                            infos[dept][code] = intitule
+                        else:
+                            infos[dept] = { code : intitule }
+    except:
+        raise ValueError('invalid XML response from getEtapes Web Service\n%s' % req)
+    return infos
+
+def get_etapes_apogee_dept(context):
+    """Liste des etapes apogee pour ce departement.
+    Utilise la propriete 'portal_dept_name' pour identifier le departement.
+    Returns [ ( code, intitule) ], ordonnee
+    """
+    try:
+        portal_dept_name = context.portal_dept_name
+    except:
+        log('get_etapes_apogee_dept: no portal_dept_name property')
+        return []
+    infos = get_etapes_apogee(context)
+    if not infos.has_key(portal_dept_name):
+        log("get_etapes_apogee_dept: pas de section '%s' dans la reponse portail" %  portal_dept_name)
+        return []
+    etapes = infos[portal_dept_name].items()
+    etapes.sort() # tri sur le code etape
+    return etapes

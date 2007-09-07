@@ -32,7 +32,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
-
+import sco_portal_apogee
 
 def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
@@ -103,10 +103,26 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         ('semestre_id', { 'input_type' : 'menu',
                           'title' : 'Semestre dans la formation',
                           'allowed_values' : semestre_id_list,
-                          'labels' : semestre_id_labels }),  
+                          'labels' : semestre_id_labels })
+        ]
+    etapes = sco_portal_apogee.get_etapes_apogee_dept(context)
+    if etapes:
+        # propose les etapes renvoyées par le portail
+        modform.append(
+        ('etape_apo', {
+            'input_type' : 'menu',
+            'title' : 'Etape Apogée',
+            'allowed_values' : [ e[0] for e in etapes ],
+            'labels' :  [ e[1] for e in etapes ],
+            }))
+    else:
+        # fallback: code etape libre
+        modform.append(
         ('etape_apo', { 'size' : 12,
                         'title' : 'Code étape Apogée',
-                        'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' }),
+                        'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' })
+        )
+    modform += [
         ('gestion_absence_lst', { 'input_type' : 'checkbox',
                                   'title' : 'Suivi des absences',
                                   'allowed_values' : ['X'],

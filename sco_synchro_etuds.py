@@ -150,7 +150,7 @@ def list_synch(context, sem):
             inscrits_without_key[e['etudid']] = e
         else:
             inscrits_set.add(e[EKEY_SCO])
-    etudsapo = sco_portal_apogee.get_inscrits_etape(sem['etape_apo'])
+    etudsapo = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo'])
     etudsapo_set = Set( [ x[EKEY_APO] for x in etudsapo ] )
     etudsapo_ident = dict( [ (x[EKEY_APO], x) for x in etudsapo ] )
     # categories:
