@@ -197,9 +197,13 @@ def notify_etud_change(context, email_addr, etud, before, after, subject):
         '\n',
         'Changements effectués:'
         ]
+    n = 0
     for key in after.keys():
         if before[key] != after[key]:
             txt.append('%s: %s' % (key, after[key]) )
+            n += 1
+    if not n:
+        return # pas de changements
     txt = '\n'.join(txt)
     # build mail
     log('notify_etud_change: sending notification to %s' % email_addr)
