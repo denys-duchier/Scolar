@@ -400,23 +400,37 @@ class ZScolar(ObjectManager,
         nbgroups = 0
         for sem in sems:
             formsemestre_id = sem['formsemestre_id']
-            gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
-            for gr in gr_td:
-                tmpl = '<option value="%s!%s!!">%s: %s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre_num'],sem['nomgroupetd'],gr))
-                nbgroups += 1
-            for gr in gr_anglais:
-                tmpl = '<option value="%s!!!%s">%s: %s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre_num'],sem['nomgroupeta'], gr))
-                nbgroups += 1
-            for gr in gr_tp:
-                tmpl = '<option value="%s!!%s!">%s: %s %s</option>'
-                H.append( tmpl %(formsemestre_id,gr,sem['titre_num'],sem['nomgroupetp'], gr))
-                nbgroups += 1
-        if nbgroups == 0:
-            return '' # aucun groupe, pas de choix
+            H.append( self.formChoixGroupe(formsemestre_id, prefix=formsemestre_id) )
         H.append('</select>')
         return '\n'.join(H)    
+
+    security.declareProtected(ScoView, 'formChoixGroupe')
+    def formChoixGroupe(self, formsemestre_id, prefix=''):
+        """Partie de formulaire pour le choix d'un groupe.
+        Le groupe sera codé comme prefix!x!y!z
+        groupe TD:   td!!, groupe TA !!ta, groupe tp !tp!        
+        """
+        # XXX assez primitif, a ameliorer
+        sem = self.Notes.get_formsemestre(formsemestre_id)
+
+        H = []
+        nbgroups = 0
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        for gr in gr_td:
+            tmpl = '<option value="%s!%s!!">%s: %s %s</option>'
+            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupetd'],gr))
+            nbgroups += 1
+        for gr in gr_anglais:
+            tmpl = '<option value="%s!!!%s">%s: %s %s</option>'
+            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupeta'], gr))
+            nbgroups += 1
+        for gr in gr_tp:
+            tmpl = '<option value="%s!!%s!">%s: %s %s</option>'
+            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupetp'], gr))
+            nbgroups += 1
+        if nbgroups == 0:
+            return '' # aucun groupe, pas de choix
+        return '\n'.join(H) 
 
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')

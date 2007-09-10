@@ -49,13 +49,13 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         formsemestre_id = REQUEST.form['formsemestre_id']
         initvalues = context.get_formsemestre(formsemestre_id)
         semestre_id = initvalues['semestre_id']
-        initvalues['inscrire_etuds'] = initvalues.get('inscrire_etuds','1')
-        if initvalues['inscrire_etuds'] == '1':
-            initvalues['inscrire_etudslist'] = ['X']
-        else:
-            initvalues['inscrire_etudslist'] = []
-        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('inscrire_etudslist'):
-            REQUEST.form['inscrire_etudslist'] = []
+#        initvalues['inscrire_etuds'] = initvalues.get('inscrire_etuds','1')
+#        if initvalues['inscrire_etuds'] == '1':
+#            initvalues['inscrire_etudslist'] = ['X']
+#        else:
+#            initvalues['inscrire_etudslist'] = []
+#        if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('inscrire_etudslist'):
+#            REQUEST.form['inscrire_etudslist'] = []
         # add associated modules to tf-checked
         ams = context.do_moduleimpl_list( { 'formsemestre_id' : formsemestre_id } )
         initvalues['tf-checked'] = [ x['module_id'] for x in ams ]
@@ -122,6 +122,11 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                         'title' : 'Code étape Apogée',
                         'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' })
         )
+    if edit:
+        formtit = "<h3>Sélectionner les modules, leurs responsables et les étudiants à inscrire:</h3>"
+    else:
+        formtit = """<h3>Sélectionner les modules et leurs responsables</h3><p class="help">Si vous avez des parcours (options), ne sélectionnez que les modules du tronc commun.</p>"""
+
     modform += [
         ('gestion_absence_lst', { 'input_type' : 'checkbox',
                                   'title' : 'Suivi des absences',
@@ -166,33 +171,43 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
 
         ('sep', { 'input_type' : 'separator',                  
                   'title' : '',
-                  'template' : '</table><h3>Sélectionner les modules et leur responsable:</h3><table>'
+                  'template' : '</table>%s<table>' % formtit
                   }) ]
 
     nbmod = 0
+    if edit:
+        templ_sep = '<tr><td>%(label)s</td><td><b>Responsable</b></td><td><b>Inscrire</b></td></tr>'
+    else:
+        templ_sep = '<tr><td>%(label)s</td><td><b>Responsable</b></td></tr>'
     for semestre_id in semestre_ids:
         modform.append(('sep',
                         { 'input_type' : 'separator',
-                          'title' :
-                          '<b>Semestre %s</b>' % semestre_id}))
+                          'title' : '<b>Semestre %s</b>' % semestre_id,
+                          'template' : templ_sep}))
         for mod in mods:
             if mod['semestre_id'] == semestre_id:
                 nbmod += 1;
+                if edit:
+                    fcg = '<select name="%s!groupe"><option value="%s!*!*!*">Tous</option><option value="%s!-!-!-">Aucun</option>' % (mod['module_id'],mod['module_id'],mod['module_id'])  + context.formChoixGroupe(formsemestre_id) + '</select>'
+                    itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td><td>""" + fcg + '</td></tr>'
+                else:
+                    itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td></tr>"""
                 modform.append( (str(mod['module_id']),
                                  { 'input_type' : 'menu',
                                    'withcheckbox' : True,
                                    'title' : '%s %s' % (mod['code'],mod['titre']),
-                                   'allowed_values' : userlist }) )
+                                   'allowed_values' : userlist,
+                                   'template' : itemtemplate }) )
     if nbmod == 0:
         modform.append(('sep',
                         { 'input_type' : 'separator',
                           'title' : 'aucun module dans cette formation !!!'}))
     if edit:
-        modform.append( ('inscrire_etudslist',
-                         { 'input_type' : 'checkbox',
-                           'allowed_values' : ['X'], 'labels' : [ '' ],
-                           'title' : '' ,
-                           'explanation' : 'inscrire tous les étudiants du semestre aux modules ajoutés'}) )
+#         modform.append( ('inscrire_etudslist',
+#                          { 'input_type' : 'checkbox',
+#                            'allowed_values' : ['X'], 'labels' : [ '' ],
+#                            'title' : '' ,
+#                            'explanation' : 'inscrire tous les étudiants du semestre aux modules ajoutés'}) )
         submitlabel = 'Modifier ce semestre de formation'
     else:
         submitlabel = 'Créer ce semestre de formation'
@@ -305,13 +320,30 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                 moduleimpl_id = context.do_moduleimpl_create(modargs)
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
                 msg += [ 'création de %s (%s)' % (mod['code'], mod['titre']) ] 
-                if tf[2]['inscrire_etudslist']:
-                    # il faut inscrire les etudiants du semestre
-                    # dans le nouveau module
-                    context.do_moduleimpl_inscrit_tout_semestre(
-                        moduleimpl_id,formsemestre_id)
-                    msg += ['étudiants inscrits à %s (module %s)</p>'
-                            % (moduleimpl_id, mod['code']) ]
+                # INSCRIPTIONS DES ETUDIANTS                
+                log('inscription module: %s = "%s"' % ('%s!groupe'%module_id,tf[2]['%s!groupe'%module_id]))
+                groupetd,groupetp,groupeta = tf[2]['%s!groupe'%module_id].split('!')[1:]
+                args = { 'formsemestre_id' : formsemestre_id,
+                         'etat' : 'I' }
+                if groupetd and groupetd != '*':
+                    args['groupetd'] = groupetd
+                if groupeta and groupeta != '*':
+                    args['groupeanglais'] = groupeta
+                if groupetp and groupetp != '*':
+                    args['groupetp'] = groupetp
+                ins = context.Notes.do_formsemestre_inscription_list( args=args )
+                etudids = [ x['etudid'] for x in ins ]
+                log('inscription module:module_id=%s,moduleimpl_id=%s: %s' % (module_id,moduleimpl_id,etudids) )
+                context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etudids,
+                                                    REQUEST=REQUEST)
+                msg += [ 'inscription de %d étudiants au module %s' % (len(etudids),mod['code'])]
+#                if tf[2]['inscrire_etudslist']:
+#                    # il faut inscrire les etudiants du semestre
+#                    # dans le nouveau module
+#                    context.do_moduleimpl_inscrit_tout_semestre(
+#                        moduleimpl_id,formsemestre_id)
+#                    msg += ['étudiants inscrits à %s (module %s)</p>'
+#                            % (moduleimpl_id, mod['code']) ]
             #
             for module_id in mods_todelete:
                 # get id

@@ -1126,12 +1126,17 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_inscription_create')
-    def do_moduleimpl_inscription_create(self, args):
+    def do_moduleimpl_inscription_create(self, args, REQUEST=None):
         "create a moduleimpl_inscription"
         cnx = self.GetDBConnexion()
-        #log('do_moduleimpl_inscription_create: '+ str(args))
+        log('do_moduleimpl_inscription_create: '+ str(args))
         r = self._moduleimpl_inscriptionEditor.create(cnx, args)
         self._inval_cache()
+        if REQUEST:
+            logdb(REQUEST, cnx, method='moduleimpl_inscription',
+                  etudid=args['etudid'],
+                  msg='inscription module %s' % args['moduleimpl_id'],
+                  commit=False )
         return r
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_inscription_delete')
@@ -1178,6 +1183,20 @@ class ZNotes(ObjectManager,
         args = { 'moduleimpl_id':moduleimpl_id,
                  'formsemestre_id':formsemestre_id }
         cursor.execute( req, args )
+
+    security.declareProtected(ScoEtudInscrit,'do_moduleimpl_inscrit_etuds')
+    def do_moduleimpl_inscrit_etuds(self,
+                                    moduleimpl_id, formsemestre_id, etudids,
+                                    REQUEST=None):
+        "inscrit les etudiants (liste d'etudids) a ce module"
+        # Verifie qu'ils sont tous bien inscrits au semestre
+        for etudid in etudids:
+            insem = self.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )
+            if not insem:
+                raise ScoValueError("%s n'est pas inscrit au semestre !" % etudid)
+        # Inscriptions:
+        for etudid in etudids:
+            self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
         
     # --- Inscriptions
     security.declareProtected(ScoEtudInscrit,'do_formsemestre_inscription_with_modules')

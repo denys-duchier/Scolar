@@ -3,6 +3,11 @@ SCOVERSION = "5.0 béta"
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+<h4>Septembre 2007</h4>
+<ul>
+<li>Inscription de groupes à des modules (options ou parcours)</li>
+<li>Listes de étapes Apogée (importées du portail)</li>
+</ul>
 
 <h4>Juillet 2007</h4>
 <ul>
