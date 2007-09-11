@@ -1223,6 +1223,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_edit')
     moduleimpl_inscriptions_edit = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_edit
 
+    security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_stats')
+    moduleimpl_inscriptions_stats = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_stats
+
     # --- Evaluations
     _evaluationEditor = EditableTable(
         'notes_evaluation',

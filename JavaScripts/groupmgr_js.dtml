@@ -250,8 +250,8 @@ function submitGroups(target) {
     onTimeout  : function(req){ handleError( 'Timeout', 'The request to the server timed out!\nStatus Text = '+req.statusText ); },
     onError    : function(req){ handleError( 'Error', 'an error occured!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
     onFailure  : function(req){ handleError( 'Failure', 'The request to the server failed!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
-    onException: function(req){ handleError( 'Exception', 'The request to the server raised an exception!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); },
-    } );
+    onException: function(req){ handleError( 'Exception', 'The request to the server raised an exception!\nStatus Text = '+req.statusText+'\nServer response = '+req.responseText ); }
+				     } );
   //alert('request sent');
 }
 

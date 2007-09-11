@@ -141,3 +141,152 @@ def _make_menu(context, sem, title='', check='true'):
     H.append('</ul></ul></div>')
     
     return ''.join(H)
+
+
+def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
+    """Affiche quelques informations sur les inscriptions
+    aux modules de ce semestre.
+
+    Inscrits au semestre: <nb>
+
+    Modules communs (tous inscrits): <liste des modules (codes)
+
+    Autres modules: (regroupés par UE)
+    UE 1
+    <code du module>: <nb inscrits> (<description en termes de groupes>)
+    ...
+
+
+    descriptions:
+      groupes de TD A, B et C
+      tous sauf groupe de TP Z (?)
+      tous sauf <liste des noms de  moins de 10% de la promo>
+      
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    set_all = Set( [ x['etudid'] for x in inscrits ] )
+    sets_td, sets_ta, sets_tp = _get_groups_sets(inscrits)
+    # Liste des modules
+    Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
+    # Decrit les inscriptions aux modules:
+    commons = [] # modules communs a tous les etuds du semestre
+    options = [] # modules ou seuls quelques etudiants sont inscrits
+    for mod in Mlist:
+        all, nb_inscrits, descr = descr_inscrs_module(context, sem, mod['moduleimpl_id'], set_all, sets_td, sets_ta, sets_tp)
+        if all:
+            commons.append(mod)
+        else:
+            mod['descri'] = descr
+            mod['nb_inscrits'] = nb_inscrits
+            options.append(mod)
+    # Page HTML:
+    H = [context.sco_header(REQUEST, page_title='Inscriptions aux modules' )]
+    H.append("""<h2>Inscriptions aux modules du semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']))
+
+    H.append("""<p class="help">Cette page décrit les inscriptions actuelles. Vous pouvez changer (si vous en avez le droit) les inscrits dans chaque module via le lien "Gérer les inscriptions" dans le tableau de bord du module.</p>""")
+
+    H.append('<h3>Inscrits au semestre: %d étudiants</h3>' % len(inscrits))
+
+    if options:
+        H.append('<h3>Modules où tous les étudiants ne sont pas inscrits</h3>')
+        H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th><th>Inscrits</th><th></th></tr>')
+        for mod in options:
+            H.append('<tr class="formsemestre_status"><td>%s</td><td class="formsemestre_status_code"><a href="moduleimpl_status?moduleimpl_id=%s">%s</a></td><td class="formsemestre_status_inscrits">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['moduleimpl_id'], mod['module']['code'], mod['nb_inscrits'], mod['descri']))
+        H.append('</table>')
+    else:
+        H.append('<h3>Tous les étudiants sont inscrits à tous les modules</h3>')
+
+    if commons:
+        H.append('<h3>Modules communs (où tous les étudiants sont inscrits)</h3>')
+        H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th></tr>')
+        for mod in commons:
+            H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code']))
+        H.append('</table>')
+
+    H.append(context.sco_footer(REQUEST))
+    return '\n'.join(H)
+
+
+def _get_groups_sets(inscrits):
+    """inscrits: liste d'inscriptions au semestre
+    construit 3 dicts { groupe : set of etudids }
+    """
+    sets_td, sets_ta, sets_tp = {}, {}, {}
+    for ins in inscrits:
+        gr = ins['groupetd']
+        if gr:
+            if sets_td.has_key(gr):
+                sets_td[gr].add(ins['etudid'])
+            else:
+                sets_td[gr] = Set([ins['etudid']])
+        gr = ins['groupeanglais']
+        if gr:
+            if sets_ta.has_key(gr):
+                sets_ta[gr].add(ins['etudid'])
+            else:
+                sets_ta[gr] = Set([ins['etudid']])
+        gr = ins['groupetp']
+        if gr:
+            if sets_tp.has_key(gr):
+                sets_tp[gr].add(ins['etudid'])
+            else:
+                sets_tp[gr] = Set([ins['etudid']])
+    
+    return sets_td, sets_ta, sets_tp
+
+def descr_inscrs_module(context, sem, moduleimpl_id, set_all, sets_td, sets_ta, sets_tp):
+    """returns All, nb_inscrits, descr      All true si tous inscrits
+    """
+    ins = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : moduleimpl_id } )
+    set_m = Set( [ x['etudid'] for x in ins ] )
+    non_inscrits = set_all - set_m
+    if len(non_inscrits) == 0:
+        return True, len(ins), '' # tous inscrits
+    if len(non_inscrits) < (len(set_all)/10): # seuil arbitraire
+        return False, len(ins), 'tous sauf ' + _fmt_etud_set(context,non_inscrits)
+    # Cherche les groupes de TD:
+    if sem['nomgroupetd']:
+        gr_td = []
+        for (gr, set_g) in sets_td.items():
+            if set_g.issubset(set_m):
+                gr_td.append(gr)
+                set_m = set_m - set_g
+    # TA
+    gr_ta = []
+    if sem['nomgroupeta']:
+        for (gr, set_g) in sets_ta.items():
+            if set_g.issubset(set_m):
+                gr_ta.append(gr)
+                set_m = set_m - set_g
+    # TP
+    gr_tp = []
+    if sem['nomgroupetp']:
+        for (gr, set_g) in sets_tp.items():
+            if set_g.issubset(set_m):
+                gr_tp.append(gr)
+                set_m = set_m - set_g
+    #
+    d = []
+    if gr_td:
+        d.append( "groupes de %s: %s" % (sem['nomgroupetd'], ', '.join(gr_td)) )
+    if gr_ta:
+        d.append( "groupes de %s: %s" % (sem['nomgroupeta'], ', '.join(gr_ta)) )
+    if gr_tp:
+        d.append( "groupes de %s: %s" % (sem['nomgroupetp'], ', '.join(gr_tp)) )    
+    r = []
+    if d:
+        r.append(', '.join(d))
+    if set_m:
+        r.append(_fmt_etud_set(context,set_m))
+    #
+    return False, len(ins), ' et '.join(r)
+
+def _fmt_etud_set(context, ins):
+    if len(ins) > 7: # seuil arbitraire
+        return '%d etudiants' % len(ins)
+    etuds = []
+    for etudid in ins:
+        etuds.append(context.getEtudInfo(etudid=etudid,filled=True)[0])
+    etuds.sort( lambda x,y: cmp(x['nom'],y['nom']))
+    return ', '.join( [ etud['nomprenom'] for etud in etuds ] )
