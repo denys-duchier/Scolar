@@ -9,6 +9,8 @@
 <dtml-call "REQUEST.set( 'ModEvals', do_evaluation_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
 <dtml-unless group_type><dtml-call "REQUEST.set( 'group_type', 'groupetd' )"></dtml-unless>
 
+<dtml-let group_type_short="group_type[len('groupe'):]">
+
 <dtml-let canedit="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
 
 
@@ -42,7 +44,16 @@
 <tr><td class="fichetitre2">Evaluations: </td><td> <dtml-var "len(ModEvals)"> évaluations</td></tr>
 </table>
 
-<h3><dtml-var "len(ModEvals)"> évaluations :</h3>
+<p><form name="f"><span style="font-size:120%; font-weight: bold;"><dtml-var "len(ModEvals)"> évaluations :</span>
+<span style="padding-left: 30px;">
+<input type="hidden" name="moduleimpl_id" value="<dtml-var moduleimpl_id>"/>
+Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.submit();">
+<option value="groupetd" <dtml-if "group_type == 'groupetd'">selected</dtml-if>><dtml-var "sem['nomgroupetd']"></option>
+<option value="groupeanglais" <dtml-if "group_type == 'groupeanglais'">selected</dtml-if>><dtml-var "sem['nomgroupeta']"></option>
+<option value="groupetp" <dtml-if "group_type == 'groupetp'">selected</dtml-if>><dtml-var "sem['nomgroupetp']"></option>
+</select></span>
+</form>
+</p>
 
 <table class="moduleimpl_evaluations">
 <tr><th class="moduleimpl_evaluations">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne</th></tr>
@@ -104,13 +115,13 @@
      <td><dtml-if "gr_nb_notes > 0">
 
            <dtml-var gr_moy>
-           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=td<dtml-var gr>"><dtml-var gr_nb_notes></a> notes<dtml-if "gr_nb_att > 0">, <span class="redboldtext"><dtml-var gr_nb_att> en attente</span></dtml-if>)
+           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=<dtml-var group_type_short><dtml-var gr>"><dtml-var gr_nb_notes></a> notes<dtml-if "gr_nb_att > 0">, <span class="redboldtext"><dtml-var gr_nb_att> en attente</span></dtml-if>)
 
-           <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=td<dtml-var gr>"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if gr_incomplets >
+           <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=<dtml-var group_type_short><dtml-var gr>"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if gr_incomplets >
 
          <dtml-else>
 
-         <span class="redboldtext">&nbsp; <dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=td<dtml-var gr>"></dtml-if>pas de notes<dtml-if canedit></a></dtml-if></span>
+         <span class="redboldtext">&nbsp; <dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=<dtml-var group_type_short><dtml-var gr>"></dtml-if>pas de notes<dtml-if canedit></a></dtml-if></span>
 
 
         </dtml-if gr_nb_notes>
@@ -161,5 +172,6 @@
 </p>
 
 </dtml-let canedit>
+</dtml-let group_type_short>
 
 <dtml-var sco_footer>
