@@ -176,7 +176,7 @@ def formsemestre_inscription_option(self, etudid, formsemestre_id,
     Les modules cochés sont ceux dans lesquels l'étudiant est inscrit. Vous pouvez l'inscrire ou le désincrire d'un ou plusieurs modules.</p>
     <p>Attention: cette méthode ne devrait être utilisée que pour les modules <b>optionnels</b> ou les activités culturelles et sportives.</p>
     """)
-    # Cherche les moduleimlps et lesinscriptions
+    # Cherche les moduleimpls et les inscriptions
     mods = self.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
     inscr= self.do_moduleimpl_inscription_list( args={'etudid':etudid} )

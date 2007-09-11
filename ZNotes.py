@@ -37,6 +37,8 @@ from email import Encoders
 # XML generation package (apt-get install jaxml)
 import jaxml
 
+from sets import Set
+
 # Zope stuff
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -70,6 +72,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_inscriptions
+import sco_moduleimpl_inscriptions
 import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
 import sco_formations, sco_pagebulletin, sco_formsemestre_custommenu
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
@@ -1194,9 +1197,12 @@ class ZNotes(ObjectManager,
             insem = self.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )
             if not insem:
                 raise ScoValueError("%s n'est pas inscrit au semestre !" % etudid)
-        # Inscriptions:
+        # Inscriptions au module:
+        inmod_set = Set( [ x['etudid'] for x in self.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : moduleimpl_id } ) ])
         for etudid in etudids:
-            self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
+            # deja inscrit ?
+            if not etudid in inmod_set:
+                self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
         
     # --- Inscriptions
     security.declareProtected(ScoEtudInscrit,'do_formsemestre_inscription_with_modules')
@@ -1213,6 +1219,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_incription_options')
     do_moduleimpl_incription_options = sco_formsemestre_inscriptions.do_moduleimpl_incription_options
+
+    security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_edit')
+    moduleimpl_inscriptions_edit = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_edit
 
     # --- Evaluations
     _evaluationEditor = EditableTable(

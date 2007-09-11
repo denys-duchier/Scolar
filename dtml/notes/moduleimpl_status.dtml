@@ -132,7 +132,12 @@
 <dtml-if "sem['etat'] != '1'">
   <dtml-var "img.lock32_img.tag(border='0')"> semestre verrouillé
 <dtml-else>
-<a class="stdlink" href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">créer nouvelle évaluation</a>
+<a class="stdlink" href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">Créer nouvelle évaluation</a>
+
+<dtml-if "_.SecurityGetUser().has_permission('Sco Inscrire Etud',this())">&nbsp;&nbsp;&nbsp;&nbsp;
+<a class="stdlink" href="moduleimpl_inscriptions_edit?moduleimpl_id=<dtml-var moduleimpl_id>">Gérer les inscriptions à ce module</a>
+</dtml-if inscr>
+
 </dtml-if>
 </td></tr>
 </dtml-if canedit>
