@@ -1895,7 +1895,7 @@ function tweakmenu( gname ) {
         nmailmissing = 0 # nb etuds sans mail
         for t in T:
             nom, prenom, etudid, email, code_nip = t[0], t[1], t[2], t[3], t[8]
-            infos = sco_portal_apogee.get_infos_apogee(context, nom, prenom)
+            infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
             if not infos:
                 info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid
                 nerrs += 1
