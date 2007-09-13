@@ -84,7 +84,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             if s['semestre_id'] >= 0:
                 p.append( 'S%d' % s['semestre_id'] )
             else:
-                p.append( 'A' % s['semestre_id'] )
+                p.append( 'A%d' % s['semestre_id'] )
         parcours[etudid] = ', '.join(p)
     
     # Construit table
