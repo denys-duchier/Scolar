@@ -288,6 +288,9 @@ class ZNotes(ObjectManager,
         F = self.do_formation_list(args=a)
         if len(F) > 0:
             raise ScoValueError("Formation non unique (%s) !" % str(a))
+        # Si pas de formation_code, l'enleve (default SQL)
+        if args.has_key('formation_code') and not args['formation_code']:
+            del args['formation_code']
         #
         r = self._formationEditor.create(cnx, args)
         self._inval_cache()
