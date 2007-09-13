@@ -1707,7 +1707,7 @@ function tweakmenu( gname ) {
             submitlabel = 'Ajouter cet étudiant'
             H.append("""<h2>Création d'un étudiant</h2>
             <p>En général, il est recommandé d'importer les étudiants depuis Apogée.
-            N'utilisez ce formulaire que pour les cas particulier ou si votre établissement
+            N'utilisez ce formulaire que <b>pour les cas particuliers</b> ou si votre établissement
             n'utilise pas d'autre logiciel de gestion des inscriptions.</p>
             <p><em>L'étudiant créé ne sera pas inscrit.
             Pensez à l'inscrire dans un semestre !</em></p>
@@ -1734,7 +1734,7 @@ function tweakmenu( gname ) {
             prenom = REQUEST.form.get('prenom','')
             if not prenom:
                 prenom = initvalues.get('prenom','')
-            infos = sco_portal_apogee.get_infos_apogee(context, nom, prenom)
+            infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
         if infos:
             formatted_infos = [ """
             <script type="text/javascript">
