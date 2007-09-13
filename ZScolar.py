@@ -907,6 +907,17 @@ class ZScolar(ObjectManager,
             self.fillEtudsInfo(etud)
         return etud
 
+    security.declareProtected(ScoView, 'log_unknown_etud')
+    def log_unknown_etud(self, REQUEST=None):
+        """Log request: cas ou getEtudInfo n'a pas ramene de resultat"""
+        etudid = REQUEST.form.get('etudid', '?')
+        code_nip = REQUEST.form.get('code_nip', '?')
+        code_ine = REQUEST.form.get('code_ine', '?')
+        log("unknown student: etudid=%s code_nip=%s code_ine=%s"
+            % (etudid, code_nip, code_ine))
+        REQUEST.RESPONSE.setStatus(404, reason='etudiant inconnu')
+        raise ScoValueError('etudiant inconnu')
+
     security.declareProtected(ScoView, 'ggg')
     def ggg(self,etudid=None,filled=False,REQUEST=None):
         "ggg"

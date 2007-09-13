@@ -1,4 +1,4 @@
-<dtml-let PDF="REQUEST.form.get('format','html')=='pdf'"><dtml-let XML="REQUEST.form.get('format','html')=='xml'"><dtml-unless version><dtml-call "REQUEST.set('version','long')"></dtml-unless><dtml-call "REQUEST.set( 'etudinfo', getEtudInfo(filled=1, REQUEST=REQUEST) )"><dtml-call "REQUEST.set( 'etudid', etudinfo[0]['etudid'] )"><dtml-if "not PDF and not XML">
+<dtml-let PDF="REQUEST.form.get('format','html')=='pdf'"><dtml-let XML="REQUEST.form.get('format','html')=='xml'"><dtml-unless version><dtml-call "REQUEST.set('version','long')"></dtml-unless><dtml-call "REQUEST.set( 'etudinfo', getEtudInfo(filled=1, REQUEST=REQUEST) )"><dtml-try><dtml-call "REQUEST.set( 'etudid', etudinfo[0]['etudid'] )"><dtml-except><dtml-call "log_unknown_etud(REQUEST)"></dtml-try><dtml-if "not PDF and not XML">
 <dtml-unless format><dtml-call "REQUEST.set('format','html')"></dtml-unless>
 
 <dtml-call "REQUEST.set( 'sem', do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
