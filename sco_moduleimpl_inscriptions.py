@@ -119,6 +119,7 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     else: # SUBMISSION
         # inscrit a ce module tous les etuds selectionnes 
         context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etuds,
+                                            reset=True,
                                             REQUEST=REQUEST)
         REQUEST.RESPONSE.redirect( "formsemestre_status?formsemestre_id=%s" %(formsemestre_id))
     #

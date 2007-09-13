@@ -1190,13 +1190,22 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_inscrit_etuds')
     def do_moduleimpl_inscrit_etuds(self,
                                     moduleimpl_id, formsemestre_id, etudids,
+                                    reset=False,
                                     REQUEST=None):
-        "inscrit les etudiants (liste d'etudids) a ce module"
+        """Inscrit les etudiants (liste d'etudids) a ce module.
+        Si reset, desinscrit tous les autres.
+        """
         # Verifie qu'ils sont tous bien inscrits au semestre
         for etudid in etudids:
             insem = self.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )
             if not insem:
                 raise ScoValueError("%s n'est pas inscrit au semestre !" % etudid)
+
+        # Desinscriptions
+        if reset:
+            cnx = self.GetDBConnexion()
+            cursor = cnx.cursor()
+            cursor.execute( "delete from notes_moduleimpl_inscription where moduleimpl_id = %(moduleimpl_id)s", { 'moduleimpl_id' : moduleimpl_id })
         # Inscriptions au module:
         inmod_set = Set( [ x['etudid'] for x in self.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : moduleimpl_id } ) ])
         for etudid in etudids:
