@@ -37,7 +37,7 @@ from ScolarRolesNames import *
 from sco_exceptions import *
 from sets import Set
 
-def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=None,
+def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
                                  submitted=False, REQUEST=None):
     """Formulaire inscription des etudiants a ce module
     * Gestion des inscriptions
