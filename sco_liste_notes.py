@@ -34,6 +34,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 import htmlutils
+import sco_excel
 
 def do_evaluation_listenotes(self, REQUEST):
     """
