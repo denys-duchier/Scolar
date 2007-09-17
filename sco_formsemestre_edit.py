@@ -113,7 +113,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
             'input_type' : 'menu',
             'title' : 'Etape Apogée',
             'allowed_values' : [ e[0] for e in etapes ],
-            'labels' :  [ e[1] for e in etapes ],
+            'labels' :  [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
             }))
     else:
         # fallback: code etape libre
