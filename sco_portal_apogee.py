@@ -56,8 +56,18 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
     doc = query_portal(req)
     etuds = xml_to_list_of_dicts(doc)
     # Filtre sur annee inscription Apogee:
+    def check_inscription(e):
+        if e.has_key('inscription'):
+            if e['inscription'] == anneeapogee:
+                return True
+            else:
+                return False
+        else:
+            log('get_inscrits_etape: pas inscription dans code_etape=%s e=%s' %
+                (code_etape, e))
+            return False # ??? pas d'annee d'inscription dans la réponse
     if anneeapogee != '*':
-        etuds = [ e for e in etuds if e['inscription'] == anneeapogee ]
+        etuds = [ e for e in etuds if check_inscription(e) ]
     return etuds
 
 def query_apogee_portal(context, nom, prenom):
