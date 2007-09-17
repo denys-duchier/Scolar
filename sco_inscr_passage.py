@@ -323,6 +323,7 @@ def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_ins
     
     for src_cat in auth_etuds_by_cat.keys():
         infos = auth_etuds_by_cat[src_cat]['infos']
+        infos['comment'] = infos.get('comment', '') # commentaire dans sous-titre boite
         etuds = auth_etuds_by_cat[src_cat]['etuds']
         with_checkbox = auth_etuds_by_cat[src_cat]['infos'].get('with_checkbox', True)
         etud_key = auth_etuds_by_cat[src_cat]['infos'].get('etud_key', 'etudid')
@@ -330,7 +331,7 @@ def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_ins
             infos['nbetuds'] = len(etuds)
             H.append("""<div class="pas_sembox" id="%(id)s">
                 <div class="pas_sembox_title"><a href="%(title_target)s">%(title)s</a></div>
-                <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants)""" % infos )
+                <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants%(comment)s)""" % infos )
             if with_checkbox:
                 H.append(""" (Select.
                 <a href="#" onclick="sem_select('%(id)s', true);">tous</a>
@@ -339,7 +340,9 @@ def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_ins
             if sel_inscrits:
                 H.append("""<a href="#" onclick="sem_select_inscrits('%(id)s');">inscrits</a>"""
                          % infos)
-            H.append( ')</div>' )
+            if with_checkbox or sel_inscrits:
+                H.append(')')
+            H.append('</div>' )
             for etud in etuds:
                 if etud.get('inscrit', False):
                     c = ' inscrit'

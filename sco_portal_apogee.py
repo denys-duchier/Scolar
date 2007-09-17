@@ -42,16 +42,23 @@ def get_portal_url(context):
         log('get_portal_url: undefined property "portal_url"')
         return None
 
-def get_inscrits_etape(context, code_etape):
+def get_inscrits_etape(context, code_etape, anneeapogee=None):
     """Liste des inscrits à une étape Apogée
     Result = list of dicts
     """
+    if anneeapogee is None:
+        anneeapogee = str(time.localtime()[0])
+    
     portal_url = get_portal_url(context)
     if not portal_url:
         return []
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
-    return xml_to_list_of_dicts(doc)
+    etuds = xml_to_list_of_dicts(doc)
+    # Filtre sur annee inscription Apogee:
+    if anneeapogee != '*':
+        etuds = [ e for e in etuds if e['inscription'] == anneeapogee ]
+    return etuds
 
 def query_apogee_portal(context, nom, prenom):
     """Recupere les infos sur les etudiants nommés
