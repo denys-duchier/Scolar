@@ -54,7 +54,7 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
         return []
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
-    etuds = xml_to_list_of_dicts(doc)
+    etuds = xml_to_list_of_dicts(doc, req=req)
     # Filtre sur annee inscription Apogee:
     def check_inscription(e):
         if e.has_key('inscription'):
@@ -79,7 +79,7 @@ def query_apogee_portal(context, nom, prenom):
         return []
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
     doc = query_portal(req)
-    return xml_to_list_of_dicts(doc)
+    return xml_to_list_of_dicts(doc, req=req)
 
 def query_portal(req):
     try:
@@ -89,7 +89,7 @@ def query_portal(req):
         return []
     return f.read()
 
-def xml_to_list_of_dicts(doc):
+def xml_to_list_of_dicts(doc, req=None):
     dom = xml.dom.minidom.parseString(doc)
     infos = []
     try:
@@ -101,10 +101,15 @@ def xml_to_list_of_dicts(doc):
             # recupere toutes les valeurs <valeur>XXX</valeur>
             for e in etudiant.childNodes:
                 if e.nodeType == e.ELEMENT_NODE:
-                    d[str(e.nodeName)] = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
+                    childs = e.childNodes
+                    if len(childs):
+                        d[str(e.nodeName)] = childs[0].nodeValue.encode(SCO_ENCODING)
             infos.append(d)
     except:
-        raise ValueError('invalid XML response from getEtud Web Service\n%s' % req)
+        log('*** invalid XML response from getEtud Web Service')
+        log('req=%s' % req)
+        log('doc=%s' % doc)
+        raise ValueError('invalid XML response from getEtud Web Service\n%s' % doc)
     return infos
 
 

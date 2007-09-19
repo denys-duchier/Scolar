@@ -331,7 +331,7 @@ def do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, 
                      'codepostaldomicile' : etud['postalcode'].strip(),
                      'villedomicile' : etud['city'].strip(),
                      'paysdomicile' : etud['country'].strip(),
-                     # 'telephone' : XXX pas de telephone dans XML portail
+                     'telephone' :  etud.get('phone', '').strip(),
                      'typeadresse' : 'domicile',
                      'description' : 'infos portail'
                      }
