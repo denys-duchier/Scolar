@@ -74,9 +74,9 @@ def sidebar(context, REQUEST=None):
         etud = context.getEtudInfo(filled=1, etudid=etudid)[0]
         params.update(etud)
         # compte les absences de l'annee scolaire en cours (du 1 sept au 31 juil)
-        annee = str(context.AnneeScolaire())
-        date_debut = annee + '-08-31'
-        date_fin = annee + '-07-31'
+        annee = int(context.AnneeScolaire())
+        date_debut = str(annee) + '-08-31'
+        date_fin = str(annee+1) + '-07-31'
         params['nbabs']= context.Absences.CountAbs(etudid=etudid, debut=date_debut, fin=date_fin)
         params['nbabsjust'] = context.Absences.CountAbsJust(etudid=etudid, debut=date_debut, fin=date_fin)
         params['nbabsnj'] =  params['nbabs'] - params['nbabsjust']
@@ -93,7 +93,7 @@ def sidebar(context, REQUEST=None):
 <li>     <a href="%(ScoURL)s/Absences/AnnuleAbsenceEtud?etudid=%(etudid)s">Supprimer</a>
 """ % params )
         H.append("""
-<li>     <a href="%(ScoURL)s/Absences/CalAbs?etudid=<dtml-var etudid>">Calendrier</a>
+<li>     <a href="%(ScoURL)s/Absences/CalAbs?etudid=%(etudid)s">Calendrier</a>
 </ul>
 """ % params )
     else:
