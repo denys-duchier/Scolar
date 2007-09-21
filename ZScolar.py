@@ -677,10 +677,14 @@ class ZScolar(ObjectManager,
     def listegroupe(self, 
                     formsemestre_id, REQUEST=None,
                     groupetd=None, groupetp=None, groupeanglais=None,
+                    with_codes=False,
+                    all_groups=False,
                     etat=None,
                     format='html' ):
         """liste etudiants inscrits dans ce semestre
         format: html, csv, xls, xml (XXX futur: pdf)
+        Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
+        Si all_groupes, donne les 3 groupes (3 colonnes)
         """
         authuser = REQUEST.AUTHENTICATED_USER
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
@@ -688,20 +692,30 @@ class ZScolar(ObjectManager,
         if not nomgroupe:
             nomgroupe = 'tous'
         #
+        titles = [ 'Nom', 'Prénom' ]
+        if all_groups:
+            titles += [sem['nomgroupetd'],sem['nomgroupeta'],sem['nomgroupetp']]
+        else:
+            titles.append('Groupe')
+        if format != 'html':
+            titles.append('Etat')
+        titles.append('Mail')
+        if with_codes:
+            titles += ['etudid', 'code_nip', 'code_ine']
+        #
         if format == 'html':
             H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titre_num'], ng) ]
             H.append('<table class="sortable" id="listegroupe">')
-            H.append('<tr><th>Nom</th><th>Prénom</th><th>Groupe</th><th>Mail</th></tr>')
+            H.append('<tr><th>' + '</th><th>'.join(titles) + '</th></tr>' )
             for t in T:
-                H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s %s</td><td><a href="mailto:%s">%s</a></td></tr>' %
-                          (t[2],t[0], t[1], t[5], t[4], t[3], t[3]) )
+                H.append( '<tr><td><a href="ficheEtud?etudid=%(etudid)s">%(nom)s</a></td><td>%(prenom)s</td><td>%(groupetd)s %(etath)s</td><td><a href="mailto:%(email)s">%(email)s</a></td></tr>' % t)
             H.append('</table>')
             if nbdem > 1:
                 s = 's'
             else:
                 s = ''
             H.append('<p>soit %d étudiants inscrits et %d démissionaire%s</p>' % (len(T)-nbdem,nbdem,s))
-            amail=','.join([x[3] for x in T ])
+            amail=','.join([x['email'] for x in T ])
             H.append('<ul>')
             H.append('<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe %s</a></li>' % (amail,nomgroupe))
             # Lien pour verif codes INE/NIP
@@ -713,20 +727,22 @@ class ZScolar(ObjectManager,
             H.append('</ul>')
             return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
         elif format == 'csv':
-            Th = [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ]
-            fs = [ (t[0], t[1], t[5], t[4], t[3]) for t in T ]
+            Th = titles
+            fs = [ (t['nom'], t['prenom'], t['groupetd'], t['etat'], t['email']) for t in T ]
             CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in [Th]+fs ] )
             title = 'liste_%s' % nomgroupe
             filename = title + '.csv'
             return sendCSVFile(REQUEST,CSV, filename )
         elif format == 'xls':
             title = 'liste_%s' % nomgroupe
-            lines = [ (t[0], t[1], t[4]) for t in T ]
 #             xls = sco_excel.Excel_SimpleTable(
 #                 titles= [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ],
 #                 lines = lines,
 #                 SheetName = title )
-            xls = sco_excel.Excel_feuille_listeappel(sem, nomgroupe, lines, server_name=REQUEST.BASE0)
+            xls = sco_excel.Excel_feuille_listeappel(sem, nomgroupe, T,
+                                                     all_groups=all_groups,
+                                                     with_codes=with_codes,
+                                                     server_name=REQUEST.BASE0)
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
         elif format == 'xml':
@@ -746,9 +762,14 @@ class ZScolar(ObjectManager,
             doc.groupe( **a )
             doc._push()
             for t in T:
-                a = { 'etudid' : t[2],
-                      'nom' : t[0], 'prenom' : t[1], 'groupe' : t[5],
-                      'etat' : t[4], 'mail' : t[3] }
+                a = { 'etudid' : t['etudid'],
+                      'nom' : t['nom'], 'prenom' : t['prenom'],
+                      'groupe' : t['groupetd'], # backward compat
+                      'groupetd' : t['groupetd'],
+                      'groupeta' : t['groupeta'],
+                      'groupetp' : t['groupetp'],
+                      'etat' : t['etat'], 
+                      'mail' : 'email' }
                 doc._push()
                 a = dict_quote_xml_attr(a)
                 doc.etudiant(**a)
@@ -778,9 +799,10 @@ class ZScolar(ObjectManager,
                 if i % nbcols == 0:
                     H.append('<tr>')
                 H.append('<td align="center">')
-                foto = self.etudfoto(t[2],fototitle='fiche de '+ t[0],foto=t[6] )
-                H.append('<a href="ficheEtud?etudid='+t[2]+'">'+foto+'</a>')
-                H.append('<br>' + t[1] + '<br>' + t[0] )
+                foto = self.etudfoto(t['etudid'],fototitle='fiche de '+ t['nom'],
+                                     foto=t['foto'] )
+                H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
+                H.append('<br>' + t['prenom'] + '<br>' + t['nom'] )
                 H.append('</td>')
                 i += 1
                 if i % nbcols == 0:
@@ -823,7 +845,7 @@ class ZScolar(ObjectManager,
     def _getlisteetud(self, formsemestre_id,
                       groupetd=None, groupetp=None, groupeanglais=None, etat=None ):
         """utilise par listegroupe et trombino
-        ( liste de tuples t,  nomgroupe, ng, sem, nbdem )
+        ( liste de dicts t,  nomgroupe, ng, sem, nbdem )
         """
         cnx = self.GetDBConnexion()
         sem = self.Notes.do_formsemestre_list( args={'formsemestre_id':formsemestre_id} )[0]
@@ -840,15 +862,28 @@ class ZScolar(ObjectManager,
         nbdem = 0 # nombre d'inscrits demissionnaires
         for i in ins:
             etud = scolars.etudident_list(cnx, {'etudid':i['etudid']})[0]
-            t = [format_nom(etud['nom']), format_prenom(etud['prenom']), etud['etudid'],
-                 scolars.getEmail(cnx,etud['etudid']), i['etat'],i['groupetd'],etud['foto'],etud['code_ine'],etud['code_nip']]
-            if t[4] == 'I':
-                t[4] = '' # etudiant inscrit, ne l'indique pas dans la liste HTML
-            elif t[4] == 'D':
-                t[4] = '(dem.)'
+            t = { 'nom' :format_nom(etud['nom']),
+                  'prenom' : format_prenom(etud['prenom']),
+                  'etud' : etud['etudid'],
+                  'email' : scolars.getEmail(cnx,etud['etudid']),
+                  'etat' : i['etat'],
+                  'groupetd' : i['groupetd'],
+                  'groupeta' : i['groupeanglais'],
+                  'groupetp' : i['groupetp'],
+                  'foto' : etud['foto'],
+                  'etudid' : etud['etudid'],
+                  'code_ine' : etud['code_ine'],
+                  'code_nip' : etud['code_nip']
+                  }
+            if t['etat'] == 'I':
+                t['etath'] = '' # etudiant inscrit, ne l'indique pas dans la liste HTML
+            elif t['etat'] == 'D':
+                t['etath'] = '(dem.)'
                 nbdem += 1
             T.append(t)
-        T.sort() # sort by nom
+        def cmpnom(x,y):
+            return cmp( x['nom'], y['nom'] )
+        T.sort(cmpnom) # sort by nom
         return T, nomgroupe, ng, sem, nbdem
     
     def _make_groupes_args(self,groupetd,groupetp,groupeanglais,etat):
@@ -1905,7 +1940,7 @@ function tweakmenu( gname ) {
         nfix = 0 # nb codes changes
         nmailmissing = 0 # nb etuds sans mail
         for t in T:
-            nom, prenom, etudid, email, code_nip = t[0], t[1], t[2], t[3], t[8]
+            nom, prenom, etudid, email, code_nip = t['nom'], t['prenom'], t['etudid'], t['email'], t['code_nip']
             infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
             if not infos:
                 info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid

@@ -292,7 +292,10 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
     return diag, M
 
 #
-def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
+def Excel_feuille_listeappel( sem, groupname, lines,
+                              all_groups=False, # si vrai indique les groupes
+                              with_codes=False, # indique codes etuds
+                              server_name=None ):
     "generation feuille appel"
     SheetName = 'Liste ' + groupname
     wb = Workbook()
@@ -371,18 +374,39 @@ def Excel_feuille_listeappel( sem, groupname, lines, server_name=None ):
     li += 2
     li += 1
     ws0.write(li,1, "Nom", style3)
-    ws0.write(li,2, "Date", style3)
+    if all_groups:
+        ws0.write(li,2, sem['nomgroupetd'], style3)
+        ws0.write(li,3, sem['nomgroupeta'], style3)
+        ws0.write(li,4, sem['nomgroupetp'], style3)
+        co = 5  
+    else:
+        co = 2
+    if with_codes:
+        coc=co
+        ws0.write(li,coc, "etudid", style3)
+        ws0.write(li,coc+1, "code_nip", style3)
+        ws0.write(li,coc+2, "code_ine", style3)
+        co += 3
+    ws0.write(li,co, "Date", style3)
     for i in range(4):
-        ws0.write(li, 3+i, '', style2b)
+        ws0.write(li, co+1+i, '', style2b)
     n = 0
-    for l in lines:
+    for t in lines:
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        ws0.write(li, 1, l[0] + ' ' + l[1], style2t3) # nom, prenom
-        ws0.write(li, 2, '', style2tb) # vide
+        ws0.write(li, 1, t['nom'] + ' ' + t['prenom'], style2t3) 
+        if all_groups:
+            ws0.write(li,2, t['groupetd'], style2t3)
+            ws0.write(li,3, t['groupeta'], style2t3)
+            ws0.write(li,4, t['groupetp'], style2t3)
+        if with_codes:
+            ws0.write(li,coc, t['etudid'], style2t3)
+            ws0.write(li,coc+1, t['code_nip'], style2t3)
+            ws0.write(li,coc+2, t['code_ine'], style2t3)
+        ws0.write(li, co, '', style2tb) # vide
         for i in range(4):
-            ws0.write(li, 3+i, l[2], style2b) # etat
+            ws0.write(li, co+1+i, t['etath'], style2b) # etat
         ws0.row(li).height = 850 # sans effet ?
     #
     li += 2
