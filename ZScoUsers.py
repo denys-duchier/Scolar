@@ -442,12 +442,12 @@ class ZScoUsers(ObjectManager,
                        'size' : 20, 'allow_null' : False }),
              ('prenom', { 'title' : 'Prénom',
                        'size' : 20, 'allow_null' : False }),
-             ('user_name', { 'title' : 'Pseudo (login)',
-                             'size' : 20, 'allow_null' : False,
-                             'explanation' : 'nom utilisé pour la connexion. Doit être unique parmi tous les utilisateurs.'})
              ]
          if not edit:
              descr += [
+                 ('user_name', { 'title' : 'Pseudo (login)',
+                                 'size' : 20, 'allow_null' : False,
+                                 'explanation' : 'nom utilisé pour la connexion. Doit être unique parmi tous les utilisateurs.'}),
                  ('passwd', { 'title' : 'Mot de passe',
                               'input_type' : 'password',
                               'size' : 14, 'allow_null' : False }),
@@ -514,8 +514,12 @@ class ZScoUsers(ObjectManager,
                  force = 0
              #log('create_user_form: force=%s, vals=%s' % (force,str(vals)))
              if not force:
+                 if edit:
+                     user_name = initvalues['user_name']
+                 else:
+                     user_name = vals['user_name']
                  ok, msg = self._check_modif_user(
-                     edit, user_name=vals['user_name'],
+                     edit, user_name=user_name,
                      nom=vals['nom'], prenom=vals['prenom'],
                      email=vals['email'], roles=vals['roles'] )
                  if not ok:
@@ -528,6 +532,8 @@ class ZScoUsers(ObjectManager,
                      del vals['passwd']
                  if vals.has_key('date_modif_passwd'):
                      del vals['date_modif_passwd']
+                 if vals.has_key('user_name'):
+                     del vals['user_name']
                  # traitement des roles: ne doit pas affecter les roles
                  # que l'on en controle pas:
                  orig_roles = initvalues['roles'].split(',')
