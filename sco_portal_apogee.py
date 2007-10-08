@@ -171,10 +171,10 @@ def get_etapes_apogee(context):
         return {}
     req = portal_url + 'getEtapes.php'
     doc = query_portal(req)
-    # paser XML
-    dom = xml.dom.minidom.parseString(doc)
-    infos = {}
+    # parser XML
     try:
+        dom = xml.dom.minidom.parseString(doc)
+        infos = {}
         if dom.childNodes[0].nodeName != u'etapes':
             raise ValueError
         for d in dom.childNodes[0].childNodes:

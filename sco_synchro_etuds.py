@@ -97,10 +97,13 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
         if not dialog_confirmed:
             if not inscrire_non_inscrits:
                 # Confirmation
-                H.append('<h3>Etudiants à importer et inscrire</h3><ol>')
-                for key in etuds_a_importer:
-                    H.append('<li>%(fullname)s</li>' % etudsapo_ident[key] )
-                H.append('</ol>')
+                if etuds_a_importer:
+                    H.append('<h3>Etudiants à importer et inscrire</h3><ol>')
+                    for key in etuds_a_importer:
+                        H.append('<li>%(fullname)s</li>' % etudsapo_ident[key] )
+                    H.append('</ol>')
+                else:
+                    H.append('<h3>Aucun étudiant à importer !</h3>')
             else:
                  H.append("""<h3>Etudiants à inscrire</h3>
                  <p>Ces étudiants sont connus de ScoDoc et inscrits à l'étape Apogée
@@ -170,7 +173,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee):
     return H
 
 def list_synch(context, sem, anneeapogee=None):
-    inscrits = sco_inscr_passage.list_inscrits(context, sem['formsemestre_id']) 
+    inscrits = sco_inscr_passage.list_inscrits(context, sem['formsemestre_id'], with_dems=True)
     # Tous les ensembles d'etudiants sont ici des ensembles de codes NIP (voir EKEY_SCO)
     inscrits_set = Set()
     inscrits_without_key = {} # etudid : etud sans code NIP
@@ -179,6 +182,11 @@ def list_synch(context, sem, anneeapogee=None):
             inscrits_without_key[e['etudid']] = e
         else:
             inscrits_set.add(e[EKEY_SCO])
+#     allinscrits_set = Set() # tous les inscrits scodoc avec code_nip, y compris les demissionnaires
+#     for e in inscrits.values():
+#         if e[EKEY_SCO]:
+#             allinscrits_set.add(e[EKEY_SCO])
+    
     etudsapo = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo'], anneeapogee=anneeapogee)
     etudsapo_set = Set( [ x[EKEY_APO] for x in etudsapo ] )
     etudsapo_ident = dict( [ (x[EKEY_APO], x) for x in etudsapo ] )

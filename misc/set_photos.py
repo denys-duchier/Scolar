@@ -8,17 +8,17 @@ import pdb,os,sys,psycopg
 import csv
 
 
-CSVFILENAME = '/tmp/aaa.csv'
+CSVFILENAME = '/tmp/trombi-rt1-2007.csv'
 #CSVFILENAME = '/tmp/ferhan2.csv'
 
-DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOINFO password=R&Totoro'
+DBCNXSTRING = 'host=localhost user=scoinfo dbname=SCOI password=XXX'
 
-idx_nip = 1
-idx_photo = 0
+idx_nip = 0
+idx_photo = 1
 
 
-#DO_IT =  False
-DO_IT = True
+DO_IT =  False
+#DO_IT = True
 
 # en general, pas d'accents dans le CSV
 SCO_ENCODING = 'iso8859-15'

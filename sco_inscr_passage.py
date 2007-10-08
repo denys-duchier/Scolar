@@ -61,12 +61,14 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
             e['inscrit'] = inscrits.has_key(e['etudid'])
     return r, inscrits, candidats
 
-def list_inscrits(context, formsemestre_id):
+def list_inscrits(context, formsemestre_id, with_dems=False):
     """Etudiants déjà inscrits à ce semestre
     { etudid : etud }
     """
-    ins = context.Notes.do_formsemestre_inscription_list(
-        args={  'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
+    args = {  'formsemestre_id' : formsemestre_id }
+    if not with_dems:
+        args['etat'] = 'I'
+    ins = context.Notes.do_formsemestre_inscription_list(args=args)
     inscr={}
     for i in ins:
         etudid = i['etudid']
