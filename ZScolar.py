@@ -650,14 +650,15 @@ class ZScolar(ObjectManager,
             </p>
             """ % sem )
         H.append('</div>')
-        
+
+        H.append('<p class="listegroupelink"><a class="stdlink" href="%s/listegroupe?formsemestre_id=%s&format=allxls">Table complète</a> ' % (r,formsemestre_id))
         # Si admin, lien changementde groupes
         if authuser.has_permission(ScoEtudChangeGroups,self):
-            H.append('<p class="listegroupelink">Modifier les groupes de <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a></p>'
+            H.append('&nbsp;Modifier les groupes de <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a>'
                      % (formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd'],
                         formsemestre_id,sem['nomgroupeta'],sem['nomgroupeta'],
                         formsemestre_id,sem['nomgroupetp'],sem['nomgroupetp']))
-        
+        H.append('</p>')
         return H
 
     def _make_query_groups(self,groupetd,groupetp,groupeanglais,etat):
@@ -682,7 +683,7 @@ class ZScolar(ObjectManager,
                     etat=None,
                     format='html' ):
         """liste etudiants inscrits dans ce semestre
-        format: html, csv, xls, xml (XXX futur: pdf)
+        format: html, csv, xls, xml, allxls (XXX futur: pdf)
         Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
         Si all_groupes, donne les 3 groupes (3 colonnes)
         """
@@ -745,6 +746,35 @@ class ZScolar(ObjectManager,
                                                      server_name=REQUEST.BASE0)
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        elif format == 'allxls':
+            # feuille Excel avec toutes les infos etudiants
+            Ld = [ self.getEtudInfo(etudid=i['etudid'],filled=True)[0] for i in T ]
+            if not Ld:
+                return ''            
+            cols = Ld[0].keys()
+            def dicttakestr(d, keys):
+                r = []
+                for k in keys:
+                    r.append(str(d[k]))
+                return r
+            keys = ('etudid', 'code_nip', 'etatincursem',
+                    'sexe', 'nom','prenom',
+                    'inscriptionstr', 'groupetd', 'groupeanglais', 'groupetp',
+                    'email', 'domicile', 'villedomicile', 'paysdomicile',
+                    'telephone', 'telephonemobile', 'fax',
+                    'annee_naissance',
+                    'bac', 'specialite', 'annee_bac',
+                    'nomlycee', 'villelycee',
+                    )
+            L = [ dicttakestr(d, keys) for d in Ld ]
+            title = 'etudiants_%s' % nomgroupe
+            xls = sco_excel.Excel_SimpleTable(
+                titles=keys,
+                lines = L,
+                SheetName = title )
+            filename = title + '.xls'
+            return sco_excel.sendExcelFile(REQUEST, xls, filename)
+        
         elif format == 'xml':
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
             if REQUEST:
