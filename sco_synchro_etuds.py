@@ -283,7 +283,7 @@ def synchronize_etuds_help(sem):
     return """<div class="pas_help"><h3><a name="help">Explications</a></h3>
     <p>Cette page permet d'importer dans le semestre destination
     <a class="stdlink"
-    href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>
+    href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>
     les étudiants inscrits dans l'étape Apogée correspondante (<b><tt>%(etape_apo)s</tt></b>) 
     </p>
     <p>Au départ, tous les étudiants d'Apogée sont sélectionnés; vous pouvez 
