@@ -71,12 +71,17 @@ background-color: rgb(176,176,176) ;
 
 .barrenav ul li a.custommenu
 	{
-	background-color:rgb(233,117,0) ;
+	background-color:rgb(150,230,151);
 	color: black;
+	text-decoration: underline;
+        width: 110px;
 	}
 
+
+
 .barrenav ul li ul {
- width:256px;
+ /* width:350px; */
+ white-space: nowrap;
  list-style-type: none ;
   display: none ;
   z-index: 1000;
@@ -111,6 +116,19 @@ background-color: rgb(176,176,176) ;
  display: block ;
  width: 100% ;
  padding: 2px 6px 2px -3px ;
+ background-color: rgb(255,255,255) ;
+
+ border-bottom-style: dotted ;
+ border-bottom-width: 1px ;
+ border-bottom-color: rgb(153,153,153) ;
+}
+.barrenav ul li ul li .disabled_menu_item {
+ margin:0px;
+ padding: 3px 3px 0px 3px;
+ display: block ;
+ width: 100% ;
+ padding: 2px 6px 2px -3px ;
+ color: rgb(128,128,128);
  background-color: rgb(255,255,255) ;
 
  border-bottom-style: dotted ;

@@ -71,10 +71,11 @@ import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
-import sco_formsemestre_edit, sco_formsemestre_inscriptions
+import sco_formsemestre_edit, sco_formsemestre_status
+import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
 import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
-import sco_formations, sco_pagebulletin, sco_formsemestre_custommenu
+import sco_formations, sco_pagebulletin
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -204,6 +205,9 @@ class ZNotes(ObjectManager,
     formsemestre_status_head = DTMLFile('dtml/notes/formsemestre_status_head', globals())
     security.declareProtected(ScoView, 'formsemestre_status')
     formsemestre_status = DTMLFile('dtml/notes/formsemestre_status', globals())
+
+    security.declareProtected(ScoView, 'formsemestre_status_menubar')
+    formsemestre_status_menubar = sco_formsemestre_status.formsemestre_status_menubar
 
     security.declareProtected(ScoEnsView, 'evaluation_delete')
     evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
@@ -1235,7 +1239,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_edit')
     moduleimpl_inscriptions_edit = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_edit
 
-    security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_stats')
+    security.declareProtected(ScoView,'moduleimpl_inscriptions_stats')
     moduleimpl_inscriptions_stats = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_stats
 
     # --- Evaluations

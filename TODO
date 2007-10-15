@@ -154,3 +154,37 @@ FEATURES REQUESTS
 
 
    
+Refonte page formsemestre_status:
+
+menus:
+
+
++ Menu "Semestre"
+Modifier ce semestre [ScoImplementFormation]
+Options du semestre [ScoImplementFormation, responsable]
+
+
++ Menu "Bulletins"
+Tableau de toutes les moyennes (et liens bulletins)
+Classeur PDF des bulletins
+Voir les décisions du jury (et éditer les PV)
+Générer feuille préparation Jury
+Saisie des décisions du jury          [can_validate_sem]
+
+
++ Menu "Inscriptions"
+Voir les inscriptions aux modules
+Modifier les groupes de TD, langues, TP [ScoEtudChangeGroups]
+Inscriptions (passage des étudiants) depuis d'autres semestres [ScoInscrireEtud]
+Synchroniser avec étape Apogée (expérimental) [ScoInscrireEtud]
+Importer de nouveaux étudiants dans ce semestre (table Excel) [ScoInscrireEtud]
+Créer un nouvel étudiant [ScoInscrireEtud]
+Table complète  (liste des etudiants excel)
+
+
++ Menu "Statistiques"
+Tableau de répartition des bacs
+Suivi de cohortes (à implémenter)
+
+
++ Liens (customizable)

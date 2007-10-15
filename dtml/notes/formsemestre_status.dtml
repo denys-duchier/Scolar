@@ -3,34 +3,14 @@
 
 <dtml-var formsemestre_status_head>
 
-<dtml-unless _read_only>
-
-<dtml-comment>Si on voulait autoriser le dir des etud a modifier le semestre,
- il faudrait tester  or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))
- et aussi modifer les permissions sur formsemestre_editwithmodules
-</dtml-comment>
-
-<p>
-
-<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())) and (sem['etat'] == '1')">
-<a class="stdlink" href="formsemestre_editwithmodules?formation_id=<dtml-var "sem['formation_id']">&formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       Modifier ce semestre</a>&nbsp;&nbsp;&nbsp;
-</dtml-if permission>
-<dtml-if "(REQUEST.AUTHENTICATED_USER.has_permission('Sco Implement Formation',this())) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))">
-<a class="stdlink" href="formsemestre_edit_options?formsemestre_id=<dtml-var "sem['formsemestre_id']">">
-       Options du semestre</a><br/>
-</dtml-if permission>
-</dtml-unless>
-
-<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var "sem['formsemestre_id']">">Tableau de toutes les moyennes (et liens bulletins)</a>
-</p>
-
 <dtml-if "sem['bul_hide_xml'] != '0'">
 <p><em>Bulletins non publiés sur le portail</em></p>
 </dtml-if bul_hide_xml>
 
-<h3>Modules</h3>
 
+<dtml-var "formsemestre_status_menubar(sem, REQUEST)">
+<br/>
+<p>
 <table class="formsemestre_status">
 <tr><th class="formsemestre_status">UE</th>
 <th class="formsemestre_status">Code</th><th class="formsemestre_status">Module</th><th class="formsemestre_status">Inscrits</th><th class="formsemestre_status">Responsable</th><th class="formsemestre_status">Evaluations</th></tr>
@@ -79,60 +59,13 @@
 </dtml-let M>
 </dtml-in Mlist>
 </table>
-
+</p>
 
 <!-- LISTE DES ETUDIANTS -->
 <div id="groupes">
 <dtml-var "'\n'.join(make_listes_sem(sem, REQUEST))">
 </div>
 
-<h3>Autres opérations</h3>
-
-<ul>
-<li>Classeur PDF des bulletins: <a class="stdlink" href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=short">version courte</a>,
-    <a class="stdlink" href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=selectedevals">version intermédiaire</a>, <a class="stdlink" href="formsemestre_bulletins_pdf?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=long">version complete</a>
-</li>
-<li>Envoyer à chaque étudiant son bulletin par e-mail: 
-<a class="stdlink" href="formsemestre_bulletins_mailetuds?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=short">version courte</a>, 
-<a class="stdlink" href="formsemestre_bulletins_mailetuds?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=selectedevals">version intermédiaire</a>,
-<a class="stdlink" href="formsemestre_bulletins_mailetuds?formsemestre_id=<dtml-var "sem['formsemestre_id']">&version=long">version complète</a> 
-(<em>cette opération est longue</em>)
-</li>
-
-<li><a class="stdlink" href="stat_bac_fmt?formsemestre_id=<dtml-var formsemestre_id>">Tableau de répartition des bacs</a></li>
-
-<li><a class="stdlink" href="moduleimpl_inscriptions_stats?formsemestre_id=<dtml-var formsemestre_id>">Voir les inscriptions aux modules</a></li>
-
-<dtml-if "can_validate_sem(REQUEST, formsemestre_id)">
-<li>
- <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
-</li>
-</dtml-if permission>
-
- <li><a class="stdlink" href="feuille_preparation_jury?formsemestre_id=<dtml-var formsemestre_id>">Générer feuille préparation Jury</a>
- </li>
-
- <li><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=<dtml-var formsemestre_id>">Voir les décisions du jury (et éditer les PV)</a>
- </li>
-
-
-<dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud', this())">
-<li>
- <a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=<dtml-var formsemestre_id>">Inscriptions (passage des étudiants) <em>depuis</em> d'autres semestres</a> 
-</li>
-
-<li>
- <a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=<dtml-var formsemestre_id>">Synchroniser avec étape Apogée</a> (expérimental)
-</li>
-
-
-<li><a class="stdlink" href="form_students_import_excel?formsemestre_id=<dtml-var formsemestre_id>">importer de nouveaux étudiants dans ce semestre</a> (table Excel)</li>
-
-<li><a class="stdlink" href="etudident_create_form?formsemestre_id=<dtml-var formsemestre_id>">créer <em>un</em> nouvel étudiant</a></li>
-
-</dtml-if permission>
-
-</ul>
 
 </div>
 <dtml-var sco_footer>

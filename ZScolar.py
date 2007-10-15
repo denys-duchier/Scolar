@@ -651,14 +651,6 @@ class ZScolar(ObjectManager,
             """ % sem )
         H.append('</div>')
 
-        H.append('<p class="listegroupelink"><a class="stdlink" href="%s/listegroupe?formsemestre_id=%s&format=allxls">Table complète</a> ' % (r,formsemestre_id))
-        # Si admin, lien changementde groupes
-        if authuser.has_permission(ScoEtudChangeGroups,self):
-            H.append('&nbsp;Modifier les groupes de <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s">%s</a>, <a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s">%s</a>'
-                     % (formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd'],
-                        formsemestre_id,sem['nomgroupeta'],sem['nomgroupeta'],
-                        formsemestre_id,sem['nomgroupetp'],sem['nomgroupetp']))
-        H.append('</p>')
         return H
 
     def _make_query_groups(self,groupetd,groupetp,groupeanglais,etat):
