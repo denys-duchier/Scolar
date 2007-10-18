@@ -137,7 +137,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
     #log("titles=%s" % titles)
     # remove quotes
     fs = [ stripquotes(s).lower() for s in data[0] ]
-    log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
+    #log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     
     # check columns titles    
     if len(fs) != len(titles):
@@ -148,11 +148,11 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 del missing[f]
             else:
                 unknown.append(f)
-        raise ScoValueError('nombre de colonnes incorrect (devrait être %d, et non %d) <br> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
+        raise ScoValueError('Nombre de colonnes incorrect (devrait être %d, et non %d) <br> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
     titleslist = []
     for t in fs:
         if not titles.has_key(t):
-            raise FormatError('check_csv_file: unknown title "%s"' % fs)
+            raise ScoValueError('Colonne invalide: "%s"' % t)
         titleslist.append(t) # 
     # ok, same titles
     # Start inserting data, abort whole transaction in case of error
