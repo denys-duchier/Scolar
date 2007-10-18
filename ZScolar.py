@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 # 
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2071,7 +2071,7 @@ function tweakmenu( gname ) {
              ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
              votre liste.
              </p>
-             """]
+             """] # '
         if sem:
             H.append("""<p style="color: red">Les étudiants importés seront inscrits dans
             le semestre <b>%s</b></p>""" % sem['titreannee'])
@@ -2140,6 +2140,79 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         format = ImportScolars.sco_import_format(file_path)
         data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre)
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
+
+    # --- Données admission
+    security.declareProtected(ScoEtudInscrit, "form_students_import_infos_admissions")
+    def form_students_import_infos_admissions(self, REQUEST, formsemestre_id=None):
+        "formulaire import xls"
+        sem = self.Notes.get_formsemestre(formsemestre_id)
+
+        H = [self.sco_header(REQUEST, page_title='Import données admissions'),
+             """<h2>Téléchargement des informations sur l'admission des d\'etudiants</h2>
+             <div style="color: red">
+             <p>A utiliser pour renseigner les informations sur l'origine des étudiants (lycées, bac, etc). Ces informations sont facultatives mais souvent utiles pour mieux connaitre les étudiants et aussi pour effectuer des statistiques (résultats suivant le type de bac...). Les données sont affichées sur les fiches individuelles des étudiants.</p>
+             </div>
+             <p>
+             L'opération se déroule en trois étapes. <ol><li>Dans un premier temps,
+             vous téléchargez une feuille Excel type.</li>
+             <li> Vous devez remplir
+             cette feuille, une ligne décrivant chaque étudiant.
+             Ne modifiez pas les titres des colonnes !
+             </li>
+             <li>Ensuite,
+             vous indiquez le nom de votre fichier dans la case "Fichier Excel"
+             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
+             votre liste. <em>Seules les données admission seront modifiées (et pas l'identité de l'étudiant).</em>
+             </li></ol></p>
+             """] # '
+
+        H.append("""<ul><li>
+        <a class="stdlink" href="import_generate_admission_sample?formsemestre_id=%s">
+        """ % formsemestre_id)
+        H.append("""Obtenir la feuille excel à remplir</a></li></ul>""")
+        
+        F = self.sco_footer(REQUEST)
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
+                          'size' : 40 }),
+             ('formsemestre_id', {'input_type' : 'hidden' }), 
+             ), submitlabel = 'Télécharger')
+        
+        if  tf[0] == 0:            
+            return '\n'.join(H) + tf[1] + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            return self.students_import_admission(
+                tf[2]['csvfile'],
+                REQUEST=REQUEST, formsemestre_id=formsemestre_id)
+
+    security.declareProtected(ScoEtudInscrit,"sco_import_generate_admission_sample")
+    def import_generate_admission_sample(self, REQUEST, formsemestre_id):
+        "une feuille excel pour importation données admissions"
+        format = ImportScolars.sco_import_format(file_path)
+        data = ImportScolars.sco_import_generate_excel_sample(
+            format, only_tables=['identite', 'admissions'],
+            exclude_cols = ['annee_naissance', 'nationalite', 'foto', 'code_ine' ],
+            formsemestre_id=formsemestre_id,context=self.Notes)
+        return sco_excel.sendExcelFile(REQUEST,data,'AdmissionEtudiants.xls')
+
+    security.declareProtected(ScoEtudInscrit, "students_import_excel")
+    def students_import_admission(self, csvfile, REQUEST=None,
+                                  formsemestre_id=None):
+        "import donnees admission from Excel file"
+        diag = ImportScolars.scolars_import_admission(
+            csvfile, file_path, self.Notes, REQUEST,
+            formsemestre_id=formsemestre_id )
+        if REQUEST:
+            H = [self.sco_header(REQUEST, page_title='Import données admissions')]
+            H.append('<p>Import excel: %s</p>'% diag)
+            H.append('<p>OK, import terminé !</p>')
+            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>'
+                     % 'formsemestre_status?formsemestre_id=%s' % formsemestre_id)
+            return '\n'.join(H) + self.sco_footer(REQUEST)
+        
 
     # --- Statistiques
     security.declareProtected(ScoView, "stat_bac")

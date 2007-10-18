@@ -57,30 +57,63 @@ def sco_import_format( product_file_path, with_codesemestre=True ):
                 r.append( tuple( [x.strip() for x in fs]) )
     return r
 
-def sco_import_generate_excel_sample( format, with_codesemestre=True ):
+def sco_import_generate_excel_sample( format,
+                                      with_codesemestre=True,
+                                      only_tables=None,
+                                      exclude_cols=[],
+                                      formsemestre_id=None,
+                                      context=None):
     """generates an excel document based on format
     (format is the result of sco_import_format())
-    """
+    If not None, only_tables can specify a list of sql table names
+    (only columns from these tables will be generated)
+    If formsemestre_id, indique les codes nom et prenom des etudiants du semestre
+    """    
     style = sco_excel.Excel_MakeStyle(bold=True)
     style_required = sco_excel.Excel_MakeStyle(bold=True, color='red')
     titles = []
     titlesStyles = []
     for l in format:
-        if (not with_codesemestre) and l[0].lower() == 'codesemestre':
+        name = l[0].lower()
+        if (not with_codesemestre) and name == 'codesemestre':
             continue # pas de colonne codesemestre
+        if only_tables is not None and l[2].lower() not in only_tables:
+            continue # table non demandée
+        if name in exclude_cols:
+            continue # colonne exclue
         if int(l[3]):
             titlesStyles.append(style)
         else:
             titlesStyles.append(style_required)
-        titles.append(l[0])
+        titles.append(name)
+    
+    if formsemestre_id and context:
+        nt = context.Notes._getNotesCache().get_NotesTable(context, formsemestre_id)
+        inscrlist = nt.inscrlist
+        titles = [ 'etudid' ] + titles
+        titlesStyles = [ style ] + titlesStyles
+        #log('(%d) titles=%s' %(len(titles), titles))  # XXX
+        # rempli table avec données actuelles 
+        lines = []
+        for i in inscrlist:
+            etud = context.getEtudInfo(etudid=i['etudid'], filled=True)[0]
+            #log('etud=%s' % etud)
+            l = []
+            for field in titles:
+                l.append(etud.get(field.lower(), ''))
+            lines.append(l)
+    else:
+        lines = [[]] # empty content, titles only
+    #log('(%d) lines[0]=%s' % (len(lines[0]),lines[0]))
     return sco_excel.Excel_SimpleTable( titles=titles,
                                         titlesStyles=titlesStyles,
-                                        SheetName="Etudiants" )
+                                        SheetName="Etudiants",
+                                        lines=lines)
 
 
 def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                                formsemestre_id=None):
-    """Importe etudiants depuis fichier CSV
+    """Importe etudiants depuis fichier Excel
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
     log('scolars_import_excel_file: formsemestre_id=%s'%formsemestre_id)
@@ -222,3 +255,33 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                  % len(created_etudids))
     cnx.commit()    
     return diag
+
+
+def scolars_import_admission( datafile, product_file_path, Notes, REQUEST,
+                               formsemestre_id=None):
+    """Importe données admission depuis fichier Excel
+    """
+    log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
+    cnx = Notes.GetDBConnexion()
+    cursor = cnx.cursor()
+    annee_courante = time.localtime()[0]
+    exceldata = datafile.read()
+    if not exceldata:
+        raise ScoValueError("Ficher excel vide ou invalide")
+    diag, data = sco_excel.Excel_to_list(exceldata)
+    if not data: # probably a bug
+        raise FormatError('scolars_import_admission: empty file !')
+    #
+    titles = data[0]
+    ietudid= titles.index('etudid')
+    for line in data[1:]:        
+        args = scolars.admission_list(cnx, args={'etudid':line[ietudid]})
+        if not args:
+            raise ScoValueError('etudiant inconnu: etudid=%s' % line[ietudid])
+        args = args[0]
+        i = 0
+        for tit in titles:
+            args[tit] = line[i]
+            i += 1
+        scolars.admission_edit(cnx, args )
+    

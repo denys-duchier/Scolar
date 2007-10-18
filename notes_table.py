@@ -637,6 +637,7 @@ class NotesTable:
         return self.etud_ues_status[etudid][ue_id]
 
 
+import thread
 class CacheNotesTable:
     """gestion rudimentaire de cache pour les NotesTables"""
     def __init__(self):
@@ -648,7 +649,8 @@ class CacheNotesTable:
     
     def get_NotesTable(self, znotes, formsemestre_id):
         if self.cache.has_key(formsemestre_id):
-            log('cache hit %s (id=%s)' % (formsemestre_id, id(self)))
+            log('cache hit %s (id=%s, thread=%s)'
+                % (formsemestre_id, id(self), thread.get_ident()))
             return self.cache[formsemestre_id]
         else:
             nt = NotesTable( znotes, formsemestre_id)
