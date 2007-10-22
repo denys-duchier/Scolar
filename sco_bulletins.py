@@ -270,7 +270,7 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         nom=quote_xml_attr(etudinfo['nom']),
         prenom=quote_xml_attr(etudinfo['prenom']),
         sexe=quote_xml_attr(etudinfo['sexe']),
-        photo_url=quote_xml_attr(znotes.etudfoto_img(etudid).absolute_url()),
+        photo_url=quote_xml_attr(znotes.etudfoto_url(etudid)),
         email=quote_xml_attr(etudinfo['email']))    
     doc._pop()
 

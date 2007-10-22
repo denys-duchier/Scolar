@@ -1119,7 +1119,7 @@ class ZScolar(ObjectManager,
                       sexe=quote_xml_attr(etud['sexe']),
                       nomprenom=quote_xml_attr(etud['nomprenom']),
                       email=quote_xml_attr(etud['email']),
-                      photo_url=quote_xml_attr(self.etudfoto_img(etudid).absolute_url()))
+                      photo_url=quote_xml_attr(self.etudfoto_url(etudid)))
         doc._push()
         sem = etud['cursem']
         if sem:
@@ -1607,9 +1607,10 @@ function tweakmenu( gname ) {
     #  fotos dans ZODB, folder Fotos, id=identite.foto
     security.declareProtected(ScoView, 'etudfoto')
     def etudfoto(self, etudid, foto=None, fototitle=''):
-        "html foto (taille petite)"
-        img = self.etudfoto_img(etudid, foto)
-        return img.tag(border='0',title=fototitle)
+        "html foto (taille petite)"        
+        url = self.etudfoto_url(etudid, foto=foto)
+        return '<img src="%s" alt="" title="" height="90" border="0" />' % url
+    # XXX la taille devrait etre paramétrable (difficile si lien portail)
 
     def etudfoto_img(self, etudid, foto=None):
         if foto is None:
@@ -1624,7 +1625,39 @@ function tweakmenu( gname ) {
             except:
                 img = getattr(self.Fotos, 'unknown_img')        
         return img
-    
+
+    def etudfoto_url(self, etudid, foto=None):
+        """URL de la photo (petit format):
+        soit sur ScoDoc, soit sur le portail, 
+        soit image 'inconnu'
+        """
+        etud = None
+        if foto is None:    
+            cnx = self.GetDBConnexion()
+            etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
+            foto = etud['foto']
+        if foto:
+            try:
+                img = getattr(self.Fotos, foto)
+                return img.absolute_url()
+            except:
+                try:
+                    img = getattr(self.Fotos, foto + '.h90.jpg' )
+                    return img.absolute_url()
+                except:
+                    pass
+        # Portail ?
+        if not etud:
+            cnx = self.GetDBConnexion()
+            etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
+        portal_url = sco_portal_apogee.get_portal_url(self)
+        if portal_url and etud['code_nip']:
+            return portal_url + '/getPhoto.php?nip=' + etud['code_nip']
+        
+        # fallback: Photo "inconnu"
+        img = getattr(self.Fotos, 'unknown_img')
+        return img.absolute_url()
+        
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     formChangePhoto = DTMLFile('dtml/formChangePhoto', globals())
     security.declareProtected(ScoEtudChangeAdr, 'doChangePhoto')
