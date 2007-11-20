@@ -2420,7 +2420,7 @@ class ZNotes(ObjectManager,
             msg.attach( MIMEText( txt, 'plain', SCO_ENCODING ) )
             self.sendEmail(msg)
         else:
-            msg = 'OK'
+            txt = 'OK'
         return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
