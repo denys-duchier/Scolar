@@ -82,6 +82,7 @@ def query_apogee_portal(context, nom, prenom):
     return xml_to_list_of_dicts(doc, req=req)
 
 def query_portal(req):
+    log('query_portal: %s' % req )
     try:
         f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
     except:

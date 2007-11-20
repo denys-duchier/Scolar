@@ -80,7 +80,12 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     for ue in uelist:
         matlist = context.do_matiere_list( { 'ue_id' : ue['ue_id'] } )
         for mat in matlist:
-            modsmat = context.do_module_list( { 'matiere_id' : mat['matiere_id'] })
+            modsmat = context.do_module_list( { 'matiere_id' : mat['matiere_id'] } )
+            # XXX debug check
+            for m in modsmat:
+                if m['formation_id'] != formation_id:
+                    log('createwithmodules: formation_id=%s\n\tm=%s' % (formation_id,str(m)))
+            #
             mods = mods + modsmat
     # Pour regroupement des modules par semestres:
     semestre_ids = {}

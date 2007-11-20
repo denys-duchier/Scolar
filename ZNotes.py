@@ -2374,7 +2374,23 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_synchro_etuds')
     formsemestre_synchro_etuds = sco_synchro_etuds.synchronize_etuds
-    
+
+    # --------------------------------------------------------------------
+    # DEBUG
+    security.declareProtected(ScoView,'check_sem_integrity')
+    def check_sem_integrity(self, formsemestre_id, REQUEST):
+        "debug"
+        sem = self.get_formsemestre(formsemestre_id)
+        modimpls = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
+        bad = []
+        for modimpl in modimpls:
+            mod = self.do_module_list( {'module_id': modimpl['module_id'] } )[0]
+            ue = self.do_ue_list( {'ue_id' : mod['ue_id']})[0]
+            if ue['formation_id'] != mod['formation_id']:
+                modimpl['mod'] = mod
+                modimpl['ue'] = ue                
+                bad.append(modimpl)                
+        return self.sco_header(REQUEST=REQUEST)+'<br/>'.join([str(x) for x in bad])+self.sco_footer(REQUEST)
     
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
