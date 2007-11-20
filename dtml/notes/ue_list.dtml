@@ -97,6 +97,9 @@
  <ul>
  <li><a class="stdlink" href="formsemestre_createwithmodules?formation_id=<dtml-var formation_id>&semestre_id=1">Mettre en place un nouveau semestre de formation <dtml-var "F['acronyme']"></a>
  </li>
+
+  <li>(debug) <a class="stdlink" href="check_form_integrity?formation_id=<dtml-var formation_id>">Vérifier cohérence</a></li>
+
 </ul>
 </dtml-if ImplementFormation>
 

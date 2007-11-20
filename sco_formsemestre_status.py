@@ -87,6 +87,10 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'helpmsg' : ''
           }
         ]
+    if uid == 'root' or uid[:7] == 'viennet':
+        menuSemestre.append( { 'title' : 'Check integrity',
+                               'url' : 'check_sem_integrity?formsemestre_id=' + formsemestre_id,
+                               'enabled' : True })
 
     menuInscriptions = [
         { 'title' : 'Voir les inscriptions aux modules',

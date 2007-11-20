@@ -2394,7 +2394,34 @@ class ZNotes(ObjectManager,
                 modimpl['ue'] = ue                
                 bad.append(modimpl)                
         return self.sco_header(REQUEST=REQUEST)+'<br/>'.join([str(x) for x in bad])+self.sco_footer(REQUEST)
-    
+
+    security.declareProtected(ScoView,'check_form_integrity')
+    def check_form_integrity(self, formation_id, REQUEST):
+        "debug"
+        F = self.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+        ues = self.do_ue_list( args={ 'formation_id' : formation_id } )
+        bad = []
+        for ue in ues:
+            mats = self.do_matiere_list( args={ 'ue_id' : ue['ue_id'] })
+            for mat in mats:
+                mods = self.do_module_list( {'matiere_id': mat['matiere_id'] } )
+                for mod in mods:
+                    if mod['ue_id'] != ue['ue_id']:
+                        mod['ue'] = ue                        
+                        bad.append( mod )
+        if bad:
+            txt = '<br/>'.join([str(x) for x in bad])
+            # Notify by e-mail
+            msg = MIMEMultipart()
+            msg['Subject'] = Header( 'Notes: formation incoherente !',  SCO_ENCODING )
+            msg['From'] = 'noreply'
+            msg['To'] = 'viennet@lipn.univ-paris13.fr'
+            msg.epilogue = ''
+            msg.attach( MIMEText( txt, 'plain', SCO_ENCODING ) )
+            self.sendEmail(msg)
+        else:
+            msg = 'OK'
+        return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab

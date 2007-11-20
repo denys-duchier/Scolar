@@ -37,6 +37,7 @@ import sco_portal_apogee
 def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
     formation_id = REQUEST.form['formation_id']
+    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
     if not edit:
         initvalues = {
             'nomgroupetd' : 'TD',
@@ -81,11 +82,16 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         matlist = context.do_matiere_list( { 'ue_id' : ue['ue_id'] } )
         for mat in matlist:
             modsmat = context.do_module_list( { 'matiere_id' : mat['matiere_id'] } )
-            # XXX debug check
+            # XXX debug checks
             for m in modsmat:
+                log('checking module %s (ue_id %s)' % (m['module_id'], ue['ue_id']))
+                if m['ue_id'] != ue['ue_id']:
+                    log('XXX createwithmodules: m.ue_id=%s !' % m['ue_id'])
                 if m['formation_id'] != formation_id:
-                    log('createwithmodules: formation_id=%s\n\tm=%s' % (formation_id,str(m)))
-            #
+                    log('XXX createwithmodules: formation_id=%s\n\tm=%s' % (formation_id,str(m)))
+                if m['formation_id'] != ue['formation_id']:
+                    log('XXX createwithmodules: formation_id=%s\n\tue=%s\tm=%s' % (formation_id,str(ue),str(m)))
+            # /debug
             mods = mods + modsmat
     # Pour regroupement des modules par semestres:
     semestre_ids = {}
@@ -263,7 +269,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                             cancelbutton = 'Annuler',
                             initvalues = initvalues)
     if tf[0] == 0:
-        return tf[1] # + '<p>' + str(initvalues)
+        return '<p>Formation %(titre)s (%(acronyme)s), version %(version)d, code %(formation_code)s</p>' % F + tf[1] # + '<p>' + str(initvalues)
     elif tf[0] == -1:
         return '<h4>annulation</h4>'
     else:
