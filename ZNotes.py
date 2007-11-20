@@ -2396,8 +2396,9 @@ class ZNotes(ObjectManager,
         return self.sco_header(REQUEST=REQUEST)+'<br/>'.join([str(x) for x in bad])+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_form_integrity')
-    def check_form_integrity(self, formation_id, REQUEST):
+    def check_form_integrity(self, formation_id, fix=False, REQUEST=None):
         "debug"
+        log("check_form_integrity: formation_id=%s  fix=%s" % (formation_id, fix))
         F = self.do_formation_list( args={ 'formation_id' : formation_id } )[0]
         ues = self.do_ue_list( args={ 'formation_id' : formation_id } )
         bad = []
@@ -2407,8 +2408,13 @@ class ZNotes(ObjectManager,
                 mods = self.do_module_list( {'matiere_id': mat['matiere_id'] } )
                 for mod in mods:
                     if mod['ue_id'] != ue['ue_id']:
+                        if fix:
+                            # fix mod.ue_id
+                            log("fix: mod.ue_id = %s (was %s)" % (ue['ue_id'], mod['ue_id']))
+                            mod['ue_id'] = ue['ue_id']
+                            self.do_module_edit(mod)
                         mod['ue'] = ue                        
-                        bad.append( mod )
+                        bad.append(mod)
         if bad:
             txt = '<br/>'.join([str(x) for x in bad])
             # Notify by e-mail
