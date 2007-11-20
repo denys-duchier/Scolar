@@ -779,6 +779,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'formsemestre_edit_options')
     formsemestre_edit_options = sco_formsemestre_edit.formsemestre_edit_options
 
+    security.declareProtected(ScoView,'formsemestre_change_lock')
+    formsemestre_change_lock = sco_formsemestre_edit.formsemestre_change_lock
+
     def _check_access_diretud(self, formsemestre_id, REQUEST):
         """Check if access granted: responsable_id or ScoImplement
         Return True|False, HTML_error_page

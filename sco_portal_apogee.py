@@ -162,10 +162,23 @@ def get_infos_apogee(context, nom, prenom):
             infos += get_infos_apogee_allaccents(context, nom1, prenom1)
     return infos
 
+def get_default_etapes(context):
+    """XXX liste par défaut: devrait etre lue d'un fichier de config
+    """
+    return { 'rt' : {
+        'V3SQ3' : 'Licence Pro R&T ASSUR (FC)',
+        'V3SQ2' : 'Licence Pro R&T ASSUR (Apprentissage)',
+        'V2RT2' : 'DUT Réseaux et Télécommunications 2',
+        'V1RT'  : 'DUT Réseaux et Télécommunications 1',
+        'V3ON' : 'Licence pro. Electronique, Optique et Nanotechnologies'
+        }
+             }
 
 def get_etapes_apogee(context):
     """Liste des etapes apogee
     { departement : { code_etape : intitule } }
+    Demande la liste au portail, ou si échec utilise liste
+    par défaut
     """
     portal_url = get_portal_url(context)
     if not portal_url:
@@ -190,7 +203,8 @@ def get_etapes_apogee(context):
                         else:
                             infos[dept] = { code : intitule }
     except:
-        raise ValueError('invalid XML response from getEtapes Web Service\n%s' % req)
+        log('invalid XML response from getEtapes Web Service\n%s' % req)
+        return get_default_etapes(context)
     return infos
 
 def get_etapes_apogee_dept(context):

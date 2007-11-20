@@ -62,7 +62,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
     authuser = REQUEST.AUTHENTICATED_USER
     uid = str(authuser)
     formsemestre_id = sem['formsemestre_id']
-
+    if int(sem['etat']):
+        change_lock_msg = 'Verrouiller'
+    else:
+        change_lock_msg = 'Déverrouiller'
+            
     menuSemestre = [
         # Si on voulait autoriser le dir des etud a modifier le semestre,
         # il faudrait ajouter (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))
@@ -76,6 +80,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' :  'formsemestre_edit_options?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           'helpmsg' : 'Change les options'
+          },
+        { 'title' : change_lock_msg,
+          'url' :  'formsemestre_change_lock?formsemestre_id=' + formsemestre_id,
+          'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
+          'helpmsg' : ''
           }
         ]
 

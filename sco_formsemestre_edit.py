@@ -533,3 +533,38 @@ def formsemestre_edit_options(context, formsemestre_id, REQUEST=None):
         # modification du semestre:
         context.do_formsemestre_edit(tf[2])
         return header + ('<h3>Modifications effectuées<h3><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord du semestre</a>' % formsemestre_id)  + footer
+
+
+
+def formsemestre_change_lock(context, formsemestre_id,
+                      REQUEST=None, dialog_confirmed=False):
+    """change etat (verrouille si ouvert, déverrouille si fermé)
+    nota: etat (1 ouvert, 0 fermé)
+    """
+    ok, err = context._check_access_diretud(formsemestre_id,REQUEST)
+    if not ok:
+        return err
+    sem = context.get_formsemestre(formsemestre_id)
+    etat = 1 - int(sem['etat'])
+
+    if REQUEST and not dialog_confirmed:
+        if etat:
+            msg = 'déverrouillage'
+        else:
+            msg = 'verrouillage'
+            return context.confirmDialog(
+                '<p>Confirmer le %s du semestre ?</p>' % msg,
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="formsemestre_status?formsemestre_id=%s"%formsemestre_id,
+                parameters={'etat' : etat,
+                            'formsemestre_id' : formsemestre_id})        
+    
+    if etat not in (0, 1):
+        raise ScoValueError('formsemestre_lock: invalid value for etat (%s)'%etat)
+    args = { 'formsemestre_id' : formsemestre_id,
+             'etat' : etat }
+    context.do_formsemestre_edit(args)
+    if REQUEST:
+        REQUEST.RESPONSE.redirect("formsemestre_status?formsemestre_id=%s"%formsemestre_id)
+    
+
