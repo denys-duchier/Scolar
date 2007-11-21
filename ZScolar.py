@@ -1807,7 +1807,7 @@ function tweakmenu( gname ) {
             initvalues = {}
             submitlabel = 'Ajouter cet étudiant'
             H.append("""<h2>Création d'un étudiant</h2>
-            <p>En général, il est recommandé d'importer les étudiants depuis Apogée.
+            <p>En général, il est <b>recommandé</b> d'importer les étudiants depuis Apogée.
             N'utilisez ce formulaire que <b>pour les cas particuliers</b> ou si votre établissement
             n'utilise pas d'autre logiciel de gestion des inscriptions.</p>
             <p><em>L'étudiant créé ne sera pas inscrit.
@@ -1957,6 +1957,46 @@ function tweakmenu( gname ) {
             self.Notes._inval_cache()
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
+
+    
+    security.declareProtected(ScoEtudInscrit,"etudident_delete")
+    def etudident_delete(self, etudid, dialog_confirmed=False, REQUEST=None):
+        "Delete a student"
+        cnx = self.GetDBConnexion()
+        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        self.fillEtudsInfo([etud])
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                """<p>Confirmer la supression de l'étudiant %(nomprenom)s ?
+                </p>
+                <p>Cette opération <b>irreversible</b> efface toute trace de l'étudiant: inscriptions, notes, absences...</p>
+                <p><a href="ficheEtud?etudid=%(etudid)s">Vérifier la fiche de %(nomprenom)s</a>
+                </p>""" % etud,
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="ficheEtud?etudid=%s"%etudid,
+                OK = "Supprimer définitivement cet étudiant",
+                parameters={'etudid' : etudid})
+        log('etudident_delete: etudid=%(etudid)s nomprenom=%(nomprenom)s' % etud)
+        # delete in all tables !
+        tables = [ 'notes_appreciations', 'scolar_autorisation_inscription',
+                   'scolar_formsemestre_validation',
+                   'scolar_events',
+                   'notes_notes_log',
+                   'notes_notes',
+                   'notes_moduleimpl_inscription',
+                   'notes_formsemestre_inscription',
+                   'entreprise_contact',
+                   'etud_annotations',
+                   'scolog',
+                   'admissions',
+                   'adresse',
+                   'identite' ]
+        cursor = cnx.cursor()
+        for table in tables:
+            cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
+                            etud )            
+        cnx.commit()
+        return REQUEST.RESPONSE.redirect(REQUEST.URL1)
     
     # ---- inscriptions "en masse"
     security.declareProtected(ScoEtudInscrit, "students_import_excel")

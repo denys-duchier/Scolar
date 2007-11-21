@@ -18,6 +18,9 @@
 
 <dtml-if "AUTHENTICATED_USER.has_permission('Sco Inscrire Etud',this())">
  <li><a href="etudident_edit_form?etudid=<dtml-var etudid>">Changer les données identité/admission</a></li>
+
+ <li><a href="etudident_delete?etudid=<dtml-var etudid>">Supprimer cet étudiant...</a></li>
+
 </dtml-if>
 <li><a href="showEtudLog?etudid=<dtml-var etudid>">voir le journal</a></li>
 </ul>
