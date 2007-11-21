@@ -1967,7 +1967,7 @@ function tweakmenu( gname ) {
         self.fillEtudsInfo([etud])
         if not dialog_confirmed:
             return self.confirmDialog(
-                """<p>Confirmer la supression de l'étudiant %(nomprenom)s ?
+                """<p>Confirmer la supression de l'étudiant <b>%(nomprenom)s</b> ?
                 </p>
                 <p>Cette opération <b>irreversible</b> efface toute trace de l'étudiant: inscriptions, notes, absences...</p>
                 <p><a href="ficheEtud?etudid=%(etudid)s">Vérifier la fiche de %(nomprenom)s</a>

@@ -120,10 +120,6 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'form_students_import_excel?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
           },
-        { 'title' : 'Créer un nouvel étudiant',
-          'url' : 'etudident_create_form?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
-          },
         { 'title' : 'Importer données admission',
           'url' : 'form_students_import_infos_admissions?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
