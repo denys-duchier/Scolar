@@ -88,6 +88,7 @@ import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
 import sco_portal_apogee
 import sco_groupes
+from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
 
 import Products.ZPsycopgDA.DA
@@ -805,17 +806,50 @@ class ZScolar(ObjectManager,
     def trombino(self,REQUEST,formsemestre_id,
                  groupetd=None, groupetp=None, groupeanglais=None,
                  etat=None, nbcols=5,
-                 format = 'html' ):
+                 format = 'html', dialog_confirmed=False ):
         """Trombinoscope"""
         T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
                                                           groupetd,groupetp,groupeanglais,etat )
+        args='formsemestre_id=%s' % formsemestre_id
+        if groupetd:
+            args += '&groupetd=%s' % groupetd
+        if groupetp:
+            args += '&groupetp=%s' % groupetp
+        if groupeanglais:
+            args += '&groupeanglais=%s' % groupeanglais
+        if etat:
+            args += '&etat=%s' % etat
         #
         if format == 'zip':
+            if not dialog_confirmed:
+                # check that we have local copies of all images
+                for t in T:
+                    etudid = t['etudid']
+                    if not self.etudfoto_islocal(etudid):
+                        return self.confirmDialog(
+                            """<p>Attention: certaines photos ne sont pas stockées dans ScoDoc et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino_copy_photos?%s">copier les photos du portail dans ScoDoc</a> ou bien <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (args, args),
+                            dest_url = 'trombino_copy_photos?%s' % args,
+                            OK = 'Copier les photos dans ScoDoc',
+                            cancel_url="trombino?%s"%args,
+                            REQUEST=REQUEST,
+                            parameters = { 'formsemestre_id' : formsemestre_id,
+                                           'groupetd' : groupetd, 'groupetp' : groupetp, 'groupeanglais' : groupeanglais,
+                                           'etat' : etat, 'format' : format })
             return self._trombino_zip(T, REQUEST)
         else:
+            menuTrombi = [
+                { 'title' : 'Archive Zip des photos',
+                  'url' : 'trombino?%s&format=zip' % args,
+                  },
+                { 'title' : 'Copier les photos du portail',
+                  'url' : 'trombino_copy_photos?%s' % args,
+                  }
+                ]
             nbcols = int(nbcols)
-            H = [ '<h2>Etudiants de %s %s</h2>' % (sem['titre_num'], ng) ]
-            H.append('<table width="100%">')
+            H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s %s</span></td>' % (sem['titre_num'], ng) ]            
+            H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td></tr></table>' )
+
+            H.append('<div><table width="100%">')
             i = 0
             for t in T:
                 if i % nbcols == 0:
@@ -829,30 +863,22 @@ class ZScolar(ObjectManager,
                 i += 1
                 if i % nbcols == 0:
                     H.append('</tr>')
-            H.append('</table>')
-            args='formsemestre_id=%s&format=zip' % formsemestre_id
-            if groupetd:
-                args += '&groupetd=%s' % groupetd
-            if groupetp:
-                args += '&groupetp=%s' % groupetp
-            if groupeanglais:
-                args += '&groupeanglais=%s' % groupeanglais
-            if etat:
-                args += '&etat=%s' % etat            
-            H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
+            H.append('</table><div>')
+            # H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
             return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
 
     def _trombino_zip(self, T, REQUEST ):
         "Send photos as zip archive"
         data = StringIO()
-        Z = ZipFile( data, 'w' )
+        Z = ZipFile( data, 'w' )                        
+        # assume we have the photos (or the user acknowledged the fact)
         for t in T:
-            fotoimg=self.etudfoto_img(t[2],foto=t[6])
-            code_nip = t[8]
+            fotoimg=self.etudfoto_img(t['etudid'],foto=t['foto'])
+            code_nip = t['code_nip']
             if code_nip:
                 filename = code_nip + '.jpg'
             else:
-                filename = t[0] + '_' + t[1] + '_' + t[2] + '.jpg'
+                filename = t['nom'] + '_' + t['prenom'] + '_' + t['etudid'] + '.jpg'
             Z.writestr( filename, fotoimg.data )
         Z.close()
         size = data.tell()
@@ -886,6 +912,7 @@ class ZScolar(ObjectManager,
             etud = scolars.etudident_list(cnx, {'etudid':i['etudid']})[0]
             t = { 'nom' :format_nom(etud['nom']),
                   'prenom' : format_prenom(etud['prenom']),
+                  'sexe' : etud['sexe'],
                   'etud' : etud['etudid'],
                   'email' : scolars.getEmail(cnx,etud['etudid']),
                   'etat' : i['etat'],
@@ -924,7 +951,55 @@ class ZScolar(ObjectManager,
         if etat:
             args['etat'] = etat
         return args, nomgroupe
-    
+
+    # Copy photos from portal to ScoDoc
+    security.declareProtected(ScoView,'trombino_copy_photos')
+    def trombino_copy_photos(self, formsemestre_id,
+                 groupetd=None, groupetp=None, groupeanglais=None,
+                 etat=None,REQUEST=None):
+        "Copy photos from portal to ScoDoc (only if we don't have a local copy)"
+        T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
+                                                          groupetd,groupetp,groupeanglais,etat )
+        portal_url = sco_portal_apogee.get_portal_url(self)
+        header = self.sco_header(REQUEST, page_title='Chargement des photos') 
+        footer = self.sco_footer(REQUEST)
+        if not portal_url:
+            return header + '<p>portail non configuré</p>' + footer
+        msg = []
+        for etud in T:
+            etudid = etud['etudid']
+            if not self.etudfoto_islocal(etudid):
+                if not etud['code_nip']:
+                    msg.append('%s: pas de code NIP' % self.nomprenom(etud))
+                else:
+                    url = portal_url + '/getPhoto.php?nip=' + etud['code_nip']
+                    f = None
+                    try:
+                        f = urllib2.urlopen( url )
+                    except:
+                        msg.append('%s: erreur chargement de %s' % (self.nomprenom(etud), url))
+                    if f:
+                        # Store file in Zope
+                        buf = StringIO()
+                        buf.write( f.read() )
+                        buf.seek(0)
+                        status, diag = self.doChangePhoto( etudid, buf, REQUEST, suppress=True )
+                        if status == 1:
+                            msg.append('%s: photo chargée' % self.nomprenom(etud))
+                        else:
+                            msg.append('%s: <b>%s</b>' % (self.nomprenom(etud), diag))
+        args='formsemestre_id=%s' % formsemestre_id
+        if groupetd:
+            args += '&groupetd=%s' % groupetd
+        if groupetp:
+            args += '&groupetp=%s' % groupetp
+        if groupeanglais:
+            args += '&groupeanglais=%s' % groupeanglais
+        if etat:
+            args += '&etat=%s' % etat            
+
+        return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="trombino?%s">retour au trombinoscope</a>' % args + footer
+        
     security.declareProtected(ScoView,'getEtudInfoGroupe')
     def getEtudInfoGroupe(self, formsemestre_id,
                          groupetd=None, groupetp=None, groupeanglais=None,
@@ -1626,6 +1701,25 @@ function tweakmenu( gname ) {
                 img = getattr(self.Fotos, 'unknown_img')        
         return img
 
+    security.declareProtected(ScoView, 'etudfoto_islocal')
+    def etudfoto_islocal(self, etudid):
+        "True if ScoDoc has a copy of the photo"
+        cnx = self.GetDBConnexion()
+        etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
+        foto = etud['foto']
+        if not foto:
+            return False # no photo data
+        try:
+            getattr(self.Fotos, foto)
+            return True
+        except:
+            try:
+                getattr(self.Fotos, foto + '.h90.jpg' )
+                return True
+            except:
+                pass
+        return False
+
     def etudfoto_url(self, etudid, foto=None):
         """URL de la photo (petit format):
         soit sur ScoDoc, soit sur le portail, 
@@ -1661,17 +1755,18 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     formChangePhoto = DTMLFile('dtml/formChangePhoto', globals())
     security.declareProtected(ScoEtudChangeAdr, 'doChangePhoto')
-    def doChangePhoto(self, etudid, photofile, REQUEST, suppress=False):
+    def doChangePhoto(self, etudid, photofile, REQUEST, suppress=False, filesize=None):
         """change la photo d'un etudiant
         Si suppress, supprime la photo existante.
         """
         cnx = self.GetDBConnexion() 
         if photofile:
-            # mesure la taille du fichier uploaded
-            filesize = len(photofile.read())
-            photofile.seek(0)         
+            if not filesize:
+                # mesure la taille du fichier uploaded
+                filesize = len(photofile.read())
+                photofile.seek(0)         
             if filesize < 10 or filesize > 800*1024:
-                return 0, 'Fichier image de taille invalide !'
+                return 0, 'Fichier image de taille invalide ! (%d)' % filesize
             # find a free id
             num = 0
             while hasattr( self.Fotos, 'img_n_%05d.h90.jpg' % num):
@@ -1743,7 +1838,7 @@ function tweakmenu( gname ) {
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
     security.declareProtected(ScoEtudInscrit, "doCancelDem")
-    def doCancelDem(self,etudid,formsemestre_id,dialog_confirmed=False,
+    def doCancelDem(self,etudid,formsemestre_id,dialog_confirmed=False, args=None,
                     REQUEST=None):
         "annule une demission"
         # check lock

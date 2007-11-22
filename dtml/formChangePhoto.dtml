@@ -4,7 +4,13 @@
 <h2>Changement de la photo <dtml-var nomprenom></h2>
 
 
-Photo actuelle: <dtml-var "etudfoto(etudid,fototitle='photo actuelle')">
+Photo actuelle
+<dtml-if "etudfoto_islocal(etudid)">
+(dans ScoDoc)
+<dtml-else>
+(externe)
+</dtml-if>
+: <dtml-var "etudfoto(etudid,fototitle='photo actuelle')">
 
 <p>Le fichier ne doit pas dépasser 500Ko (recadrer l'image, format "portrait" de préférence).</p>
 <p>
