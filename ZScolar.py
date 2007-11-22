@@ -826,15 +826,19 @@ class ZScolar(ObjectManager,
                 for t in T:
                     etudid = t['etudid']
                     if not self.etudfoto_islocal(etudid):
+                        parameters = { 'formsemestre_id' : formsemestre_id, 'etat' : etat, 'format' : format }
+                        if groupetd:
+                            parameters['groupetd'] = groupetd
+                        if groupetp:
+                            parameters['groupetp'] = groupetp
+                        if groupeanglais:
+                            parameters['groupeanglais'] = groupeanglais
                         return self.confirmDialog(
                             """<p>Attention: certaines photos ne sont pas stockées dans ScoDoc et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino_copy_photos?%s">copier les photos du portail dans ScoDoc</a> ou bien <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (args, args),
-                            dest_url = 'trombino?%s&format=zip&dialog_confirmed=1' % args,
+                            dest_url = 'trombino',
                             OK = 'Exporter seulement les photos existantes',
                             cancel_url="trombino?%s"%args,
-                            REQUEST=REQUEST,
-                            parameters = { 'formsemestre_id' : formsemestre_id,
-                                           'groupetd' : groupetd, 'groupetp' : groupetp, 'groupeanglais' : groupeanglais,
-                                           'etat' : etat, 'format' : format })
+                            REQUEST=REQUEST, parameters=parameters )
             return self._trombino_zip(T, REQUEST)
         else:
             menuTrombi = [
