@@ -828,8 +828,8 @@ class ZScolar(ObjectManager,
                     if not self.etudfoto_islocal(etudid):
                         return self.confirmDialog(
                             """<p>Attention: certaines photos ne sont pas stockées dans ScoDoc et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino_copy_photos?%s">copier les photos du portail dans ScoDoc</a> ou bien <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (args, args),
-                            dest_url = 'trombino_copy_photos?%s' % args,
-                            OK = 'Copier les photos dans ScoDoc',
+                            dest_url = 'trombino?%s&format=zip&dialog_confirmed=1' % args,
+                            OK = 'Exporter seulement les photos existantes',
                             cancel_url="trombino?%s"%args,
                             REQUEST=REQUEST,
                             parameters = { 'formsemestre_id' : formsemestre_id,
@@ -966,6 +966,7 @@ class ZScolar(ObjectManager,
         if not portal_url:
             return header + '<p>portail non configuré</p>' + footer
         msg = []
+        nok = 0
         for etud in T:
             etudid = etud['etudid']
             if not self.etudfoto_islocal(etudid):
@@ -986,8 +987,10 @@ class ZScolar(ObjectManager,
                         status, diag = self.doChangePhoto( etudid, buf, REQUEST, suppress=True )
                         if status == 1:
                             msg.append('%s: photo chargée' % self.nomprenom(etud))
+                            nok += 1
                         else:
                             msg.append('%s: <b>%s</b>' % (self.nomprenom(etud), diag))
+        msg.append('<b>%d photos correctement chargées</b>' % nok )
         args='formsemestre_id=%s' % formsemestre_id
         if groupetd:
             args += '&groupetd=%s' % groupetd
