@@ -198,9 +198,11 @@ def _trombino_pdf(self, sem, ng, T, REQUEST ):
     # this is necessary because reportlab expects a filename,
     # and our photos are stored in Zope ZODB (this could (or should ?) change in the futur
     tmpdir = tempfile.mkdtemp(dir='/tmp')
+    files = []
     for t in T:
         fotoimg=self.etudfoto_img(t['etudid'],foto=t['foto'])
         filename = tmpdir + '/' + t['etudid'] + '.jpg'
+        files.append(filename)
         f = open(filename, 'w')
         f.write(fotoimg.data)
         f.close()
@@ -245,5 +247,7 @@ def _trombino_pdf(self, sem, ng, T, REQUEST ):
     document.build(objects)
     data = report.getvalue()
     # Clean temporary files
-    
+    for f in files:
+        os.remove(f)
+    os.rmdir(tmpdir)
     return sendPDFFile(REQUEST, data, filename)
