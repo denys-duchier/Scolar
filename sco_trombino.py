@@ -96,7 +96,7 @@ def trombino(self,REQUEST,formsemestre_id,
               }
             ]
         nbcols = int(nbcols)
-        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;"><a href="Notes/formsemestre_status?formsemestre_id=%s">%s %s</a></span></td>' % (formsemestre_id, sem['titre_num'], ng) ]            
+        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;"><a href="Notes/formsemestre_status?formsemestre_id=%s">%s %s</a></span></td>' % (formsemestre_id, sem['titreannee'], ng) ]            
         H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td></tr></table>' )
 
         H.append('<div><table width="100%">')
@@ -211,7 +211,7 @@ def _trombino_pdf(self, sem, ng, T, REQUEST ):
     StyleSheet = styles.getSampleStyleSheet()
     report = StringIO() # in-memory document, no disk file
     filename = ('trombino-%s.pdf' % ng ).replace(' ', '_') # XXX should sanitize this filename
-    objects.append(Paragraph(SU("Trombinoscope " + sem['titre_num'] + ' ' + ng ), StyleSheet["Heading3"]))
+    objects.append(Paragraph(SU("Trombinoscope " + sem['titreannee'] + ' ' + ng ), StyleSheet["Heading3"]))
     PHOTOWIDTH = 3*cm
     COLWIDTH = 3.6*cm
     N_PER_ROW = 5 # XXX should be in ScoDoc preferences

@@ -2264,7 +2264,7 @@ class ZNotes(ObjectManager,
     def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
         "Lettres avis jury en PDF"
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres individuelles de %s</h2>' % sem['titre_num'] ]
+        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres individuelles de %s</h2>' % sem['titreannee'] ]
         F = self.sco_footer(REQUEST)
         descr = [
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
@@ -2295,7 +2295,7 @@ class ZNotes(ObjectManager,
     def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
         "Generation PV jury en PDF: saisie des paramètres"
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titre_num'] ]
+        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titreannee'] ]
         F = self.sco_footer(REQUEST)
         descr = [
             ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),

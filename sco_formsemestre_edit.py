@@ -413,7 +413,7 @@ def formsemestre_edit_options(context, formsemestre_id, REQUEST=None):
     H.append("""<h2>Modification du semestre
          <a href="formsemestre_status?formsemestre_id=%s">%s</a>
          (formation %s)</h2>
-         """ % (formsemestre_id, sem['titre_num'], F['acronyme']) )        
+         """ % (formsemestre_id, sem['titreannee'], F['acronyme']) )        
     modform = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('gestion_absence_lst', { 'input_type' : 'checkbox',

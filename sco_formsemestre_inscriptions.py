@@ -71,11 +71,19 @@ def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
           ]
     F = self.sco_footer(REQUEST)
     sems = self.do_formsemestre_list( args={ 'etat' : '1' } )
+    insem = self.do_formsemestre_inscription_list(
+        args={ 'etudid' : etudid, 'etat' : 'I' } )
     if sems:
         H.append('<ul>')
         for sem in sems:
-            H.append('<li><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s">%s</a>' %
-                     (etudid,sem['formsemestre_id'],sem['titre_num']))
+            # Ne propose que les semestres ou etudid n'est pas déjà inscrit
+            inscrit = False
+            for i in insem:
+                if i['formsemestre_id'] == sem['formsemestre_id']:
+                    inscrit = True
+            if not inscrit:
+                H.append('<li><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s">%s</a>' %
+                         (etudid,sem['formsemestre_id'],sem['titreannee']))
         H.append('</ul>')
     else:
         H.append('<p>aucune session de formation !</p>')
@@ -96,7 +104,7 @@ def formsemestre_inscription_with_modules(
     etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
     H = [ self.sco_header(REQUEST)
           + "<h2>Inscription de %s dans %s</h2>" %
-          (etud['nomprenom'],sem['titre_num']) ]
+          (etud['nomprenom'],sem['titreannee']) ]
     F = self.sco_footer(REQUEST)
     if groupetd:
         # OK, inscription

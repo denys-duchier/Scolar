@@ -14,7 +14,7 @@
 <ul>
 <dtml-in sems>
 <dtml-let sem="_['sequence-item']">
-<li><dtml-var "sem['titre_num']">
+<li><dtml-var "sem['titreannee']">
 </li>
 </dtml-let sem>
 </dtml-in>

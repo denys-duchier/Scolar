@@ -419,15 +419,15 @@ class ZScolar(ObjectManager,
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         for gr in gr_td:
             tmpl = '<option value="%s!%s!!">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupetd'],gr))
+            H.append( tmpl %(prefix,gr,sem['titreannee'],sem['nomgroupetd'],gr))
             nbgroups += 1
         for gr in gr_anglais:
             tmpl = '<option value="%s!!!%s">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupeta'], gr))
+            H.append( tmpl %(prefix,gr,sem['titreannee'],sem['nomgroupeta'], gr))
             nbgroups += 1
         for gr in gr_tp:
             tmpl = '<option value="%s!!%s!">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titre_num'],sem['nomgroupetp'], gr))
+            H.append( tmpl %(prefix,gr,sem['titreannee'],sem['nomgroupetp'], gr))
             nbgroups += 1
         if nbgroups == 0:
             return '' # aucun groupe, pas de choix
@@ -698,7 +698,7 @@ class ZScolar(ObjectManager,
             titles += ['etudid', 'code_nip', 'code_ine']
         #
         if format == 'html':
-            H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titre_num'], ng) ]
+            H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titreannee'], ng) ]
             H.append('<table class="sortable" id="listegroupe">')
             H.append('<tr><th>' + '</th><th>'.join(titles) + '</th></tr>' )
             for t in T:
@@ -996,8 +996,8 @@ class ZScolar(ObjectManager,
             etud['sems'] = sems
             etud['cursem'] = cursem
             if cursem:
-                etud['inscription'] = cursem['titre_num']
-                etud['inscriptionstr'] = 'Inscrit en ' + cursem['titre_num']
+                etud['inscription'] = cursem['titreannee']
+                etud['inscriptionstr'] = 'Inscrit en ' + cursem['titreannee']
                 etud['inscription_formsemestre_id'] = cursem['formsemestre_id']
                 etud['groupetd'] = curi['groupetd']
                 etud['groupeanglais'] = curi['groupeanglais']
@@ -1322,7 +1322,7 @@ function bodyOnLoad() {
             sem = self.Notes.do_formsemestre_list(
                 {'formsemestre_id' : r['formsemestre_id']} )[0]
             if r['etat'] == 'I':
-                situation = 'inscrit%s en %s' % (ne,sem['titre_num'])
+                situation = 'inscrit%s en %s' % (ne,sem['titreannee'])
                 # Cherche la date d'inscription dans scolar_events:
                 events = scolars.scolar_events_list(
                     cnx,
@@ -1335,7 +1335,7 @@ function bodyOnLoad() {
                     date_ins = events[0]['event_date']
                 situation += ' le ' + str(date_ins)
             else:
-                situation = 'démission de %s' % sem['titre_num']
+                situation = 'démission de %s' % sem['titreannee']
                 # Cherche la date de demission dans scolar_events:
                 events = scolars.scolar_events_list(
                     cnx,
@@ -1419,7 +1419,7 @@ function bodyOnLoad() {
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         #
-        etud['semtitre'] = sem['titre_num']
+        etud['semtitre'] = sem['titreannee']
         H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         header = self.sco_header(
             REQUEST, page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
@@ -1664,7 +1664,7 @@ function tweakmenu( gname ) {
             raise ScoValueError('Modification impossible: semestre verrouille')
 
         etud['formsemestre_id']=formsemestre_id
-        etud['semtitre'] = sem['titre_num']
+        etud['semtitre'] = sem['titreannee']
         etud['nowdmy'] = time.strftime('%d/%m/%Y')
         #
         header = self.sco_header(
@@ -1993,7 +1993,7 @@ function tweakmenu( gname ) {
         if not nomgroupe:
             nomgroupe = 'tous'
         cnx = self.GetDBConnexion()
-        H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titre_num'], ng) ]
+        H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titreannee'], ng) ]
         H.append('<table class="sortable" id="listegroupe">')
         H.append('<tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>')
         nerrs = 0 # nombre d'anomalies détectées
@@ -2273,7 +2273,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         sem = self.Notes.do_formsemestre_list(
             {'formsemestre_id' : formsemestre_id} )[0]
         header = self.sco_header(REQUEST,
-                                 page_title='Statistiques bacs ' + sem['titre_num'])
+                                 page_title='Statistiques bacs ' + sem['titreannee'])
         H = [ """
         <h2>Origine des étudiants de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a> (%(date_debut)s - %(date_fin)s)</h2>
         """ % sem,

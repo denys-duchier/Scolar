@@ -310,14 +310,14 @@ def formsemestre_validation_form(
         nomprenom = self.nomprenom(nt.identdict[etudid])
         header = self.sco_header(REQUEST,
                                  page_title='Validation du semestre %s pour %s'
-                                 % (sem['titre_num'],nomprenom))
+                                 % (sem['titreannee'],nomprenom))
         H = [ """<h2>Validation (Jury) du semestre %s pour %s</h2>
         <p>Utiliser ce formulaire après la <b>décision définitive du jury</b>.</p>
         <p>Attention: les décisions prises ici remplacent et annulent les précédentes s'il y en avait !</p>
-        """ % (sem['titre_num'],nomprenom)]
+        """ % (sem['titreannee'],nomprenom)]
     else:
         header = self.sco_header(REQUEST,
-                                 page_title="Validation du semestre "+sem['titre_num'])
+                                 page_title="Validation du semestre "+sem['titreannee'])
         H = [ """<h2>Validation (Jury) du semestre %s</h2>
 
 
@@ -332,7 +332,7 @@ def formsemestre_validation_form(
         <p>Un semestre peut être validé automatiquement, ou sur décision du jury (choisir "Admis"), ou, si le parcours le permet, par compensation avec l'un des semestre proposé dans le menu (<b>vous devez vérifier les notes</b>, car le calcul des moyennes n'est pas pris en compte: on propose ici tous les semestres possibles)</p>
         <p>Attention: les décisions prises ici remplacent et annulent les précédentes s'il y en avait !</p>
         <p>Attention: le formulaire va affecter TOUS LES ETUDIANTS !</p>
-        """ % sem['titre_num'] ]
+        """ % sem['titreannee'] ]
 
     H.append( """
     <form class="formvalidsemestre" method="POST">

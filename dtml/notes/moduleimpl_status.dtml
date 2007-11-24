@@ -15,7 +15,7 @@
 
 
 
-<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titre_num']"></a>, <dtml-var "sem['date_debut']">)
+<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titreannee']"></a>)
 </h2>
 
 <div class="moduleimpl_tableaubord">

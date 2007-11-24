@@ -62,7 +62,7 @@ def formsemestre_validation_etud_form(
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
         H.append("<h2>%s: validation du semestre %s</h2>"
-                 % (etud['nomprenom'], Se.sem['titre_num']))
+                 % (etud['nomprenom'], Se.sem['titreannee']))
     else:
         H.append("<h2>Parcours de %s</h2>" % (etud['nomprenom']) )
     
@@ -330,7 +330,7 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
         H.append('<tr class="%s rcp_l1"><td class="rcp_type_sem" style="background-color:%s;">%s</td>'
                  % (class_sem, bgcolor, type_sem) )
         H.append('<td>%(mois_debut)s</td>' % sem )
-        H.append('<td><a class="formsemestre_status_link" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a></td>' % (sem['formsemestre_id'], etudid,sem['titre_num']))
+        H.append('<td><a class="formsemestre_status_link" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a></td>' % (sem['formsemestre_id'], etudid,sem['titreannee']))
         H.append('<td></td>'*4) # assidu, etat, abs, moy
         # acronymes UEs
         ues = nt.get_ues(filter_sport=True) 

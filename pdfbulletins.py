@@ -132,7 +132,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         document.addPageTemplates(
             ScolarsPageTemplate(document,
                                 author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                                title='Bulletin %s de %s' % (sem['titre_num'],etud['nomprenom']),
+                                title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
                                 subject='Bulletin de note',
                                 margins=margins,
                                 server_name = server_name))
@@ -157,7 +157,7 @@ def pdfassemblebulletins( formsemestre_id,
     document.addPageTemplates(
         ScolarsPageTemplate(document,
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                            title='Bulletin %s' % (sem['titre_num']),
+                            title='Bulletin %s' % (sem['titreannee']),
                             subject='Bulletin de note',
                             server_name=server_name,
                             margins=margins,
@@ -179,7 +179,7 @@ def pdftrombino( sem, etudfotos, server_name='' ):
     document.addPageTemplates(
     ScolarsPageTemplate(document,
                         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                        title='Bulletin %s de %s' % (sem['titre_num'],etud['nomprenom']),
+                        title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
                         subject='Bulletin de note',
                         server_name = server_name))
     

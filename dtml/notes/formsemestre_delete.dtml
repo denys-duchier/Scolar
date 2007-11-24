@@ -2,7 +2,7 @@
 <dtml-call "REQUEST.set( 'F', do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0])">
 <dtml-var "sco_header(page_title='Suppression d\'un semestre',REQUEST=REQUEST)">
 
-<h2>Suppression du semestre <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre_num']"></a> (formation <dtml-var "F['acronyme']">)</h2></h2>
+<h2>Suppression du semestre <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titreannee']"></a> (formation <dtml-var "F['acronyme']">)</h2></h2>
 
 
 

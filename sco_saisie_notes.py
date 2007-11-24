@@ -185,7 +185,7 @@ def do_evaluation_formnotes(self, REQUEST ):
         evaltitre = '%s du %s' % (E['description'],E['jour'])
     else:
         evaltitre = 'évaluation du %s' % E['jour']
-    description = '%s: %s en %s (%s) resp. %s' % (sem['titre_num'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
+    description = '%s: %s en %s (%s) resp. %s' % (sem['titreannee'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
 
     head = """
     <h4>Codes spéciaux:</h4>

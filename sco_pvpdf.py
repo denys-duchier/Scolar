@@ -196,7 +196,7 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
     document.addPageTemplates( CourrierIndividuelTemplate(
         document,
         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-        title='Lettres décision %s' % sem['titre_num'],
+        title='Lettres décision %s' % sem['titreannee'],
         subject='Décision jury',
         pagesbookmarks=bookmarks,
         image_dir = znotes.file_path + '/logos/' ))

@@ -266,7 +266,7 @@ def pvjury_html(znotes, dpv, REQUEST):
     H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
     <p>(dernière modif le %s)   <a href="formsemestre_pvjury?formsemestre_id=%s&format=xls">Version Excel</a></p><p>
     <table class="tablegrid"><tr><th>Nom</th>"""
-          % (formsemestre_id, sem['titre_num'], dpv['date'], formsemestre_id) ]
+          % (formsemestre_id, sem['titreannee'], dpv['date'], formsemestre_id) ]
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         H.append('<th>Décision S%s</th>' % id_prev )
