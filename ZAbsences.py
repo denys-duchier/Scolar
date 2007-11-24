@@ -839,9 +839,11 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
             if day in ('S','D'):
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'
+                attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
                 weekclass = 'wk' + str(monday).replace('/','_')
+                attrs = trattributes
             color = None
             legend = ''
             href = ''
@@ -883,7 +885,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
             if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
                 weekclass += " currentweek"
             T.append( '<tr bgcolor="%s" class="%s" %s><td align="right">%d%s</td>%s</tr>'
-                      % (bgcolor, weekclass, trattributes, d, day, cell) )
+                      % (bgcolor, weekclass, attrs, d, day, cell) )
     else:
         # Calendar with 2 cells / day
         for d in range(1,nbdays+1):
@@ -893,15 +895,17 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
             if day in ('S','D'):
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'
+                attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
                 weekclass = 'wk' + str(monday).replace('/','_')
+                attrs = trattributes
             if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
                 weeknum += " currentweek"
 
             if day == 'D':
                 monday = monday.next(7)
-            T.append( '<tr bgcolor="%s" class="wk%s" %s><td align="right">%d%s</td>' % (bgcolor, weekclass, trattributes, d, day) )
+            T.append( '<tr bgcolor="%s" class="wk%s" %s><td align="right">%d%s</td>' % (bgcolor, weekclass, attrs, d, day) )
             cc = []
             for morning in (1,0):
                 color = None
