@@ -9,7 +9,7 @@
   -->
 </dtml-comment>
 
-<dtml-var "sco_header(page_title='Etat des absences pour un groupe',REQUEST=REQUEST)">
+<dtml-var "sco_header(page_title='Etat des absences pour un groupe',REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
 
 <dtml-call "REQUEST.set('formsemestre_id', semestregroupe.split('!')[0])">
 <dtml-call "REQUEST.set('groupetd', semestregroupe.split('!')[1])">
@@ -63,7 +63,9 @@ ou entrez une date pour visualiser les absents un jour donn&eacute&nbsp;:
 <form action="EtatAbsencesDate" method="GET">
 
 <input type="hidden" name="semestregroupe" value="<dtml-var semestregroupe>">
-<input type="text" name="date" size="10"> (jour/mois/année)
+<dtml-comment><input type="text" name="date" size="10"> (jour/mois/année)</dtml-comment>
+<script>DateInput('date', true, 'DD/MM/YYYY')</script>
+
 
 <input type="submit" name="" 
    value="visualiser les absences">
