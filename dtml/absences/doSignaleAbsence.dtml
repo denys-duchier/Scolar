@@ -27,14 +27,14 @@
   <dtml-if "demijournee=='2'">
    <dtml-call "REQUEST.set('matin', 'false' )">
    <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br>
+<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
    <dtml-call "REQUEST.set('matin', 'true' )">
    <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br>
+<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
   <dtml-else>
    <dtml-call "REQUEST.set( 'matin', _.int(demijournee) )">
    <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br>
+<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
   </dtml-if>
 
 </dtml-let jour>

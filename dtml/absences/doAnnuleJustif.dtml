@@ -8,7 +8,7 @@
 <dtml-var "sco_header(page_title='Annulation d\'une justification pour '+nomprenom,REQUEST=REQUEST)">
 
 
-<dtml-in "DateRangeISO( datedebut, datefin )">
+<dtml-in "DateRangeISO( datedebut0, datefin0 )">
 <dtml-let jour=sequence-item><dtml-call "REQUEST.set('jour', jour )">
 
 <dtml-comment>SUPPRIME MATIN ET APRES MIDI</dtml-comment>
@@ -19,7 +19,7 @@ AnnuleJustif( etudid=<dtml-var etudid>, jour=<dtml-var jour> )<br>
 </dtml-let jour>
 
 <dtml-if sequence-end>
-Annulation de <b><dtml-var sequence-length></b> absence(s) du <dtml-var datedebut><dtml-if datefin>au <dtml-var datefin></dtml-if>.
+Annulation de <b><dtml-var sequence-length></b> absence(s) du <dtml-var datedebut0><dtml-if datefin0>au <dtml-var datefin0></dtml-if>.
 </dtml-if>
 </dtml-in>
 

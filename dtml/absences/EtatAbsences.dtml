@@ -5,7 +5,7 @@
      Description..: Etat des absences: choix du groupe
   -->
 </dtml-comment>
-<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST)">
+<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
 
 <h1>Etat des absences</h1>
 
@@ -17,9 +17,14 @@
 <input type="submit" name="" value=" OK " width=100>
 
 <table><tr><td>Date de début (j/m/aa) : </td><td>
-<input type="text" name="debut" size="10" value="01/09/<dtml-var AnneeScolaire>">
+<dtml-comment><input type="text" name="debut" size="10" value="01/09/<dtml-var AnneeScolaire>"></dtml-comment>
+
+<script>DateInput('debut', true, 'DD/MM/YYYY', '01/09/<dtml-var AnneeScolaire>' )</script>
+
 </td></tr><tr><td>Date de fin : </td><td>
- <input type="text" name="fin" size="10" value="<dtml-var "_.DateTime().strftime('%d/%m/%Y')">">
+<dtml-comment> <input type="text" name="fin" size="10" value="<dtml-var "_.DateTime().strftime('%d/%m/%Y')">"></dtml-comment>
+<script>DateInput('fin', true, 'DD/MM/YYYY', '<dtml-var "_.DateTime().strftime('%d/%m/%Y')">' )</script>
+
 </td></tr></table>
 </form>
 

@@ -7,7 +7,7 @@
 
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 
-<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST)">
+<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
 
 <table><tr><td>
 <h1><font color="#FF0000">Annulation</font> d'une absence pour
@@ -28,8 +28,13 @@
 <form action="doAnnuleAbsence" method="get"> 
 <input type="hidden" name="etudid" value="<dtml-var etudid>">
 <p>
-Date d&eacute;but : <input type="text" name="datedebut" size="12"> 
-&nbsp; Date Fin (optionnel): <input type="text" name="datefin" size="12"> 
+<table><tr>
+<td>Date d&eacute;but :  </td>
+<td><script>DateInput('datedebut', true, 'DD/MM/YYYY')</script></td>
+<td>Date Fin (optionnel):</td>
+<td><script>DateInput('datefin', false, 'DD/MM/YYYY' )</script></td>
+</tr>
+</table>
 
 &nbsp; <select name="demijournee">
        <option value="2">Toute(s) la (ou les) journ&eacute;e(s)</option>
@@ -47,9 +52,13 @@ Date d&eacute;but : <input type="text" name="datedebut" size="12">
 <form action="doAnnuleJustif" method="get"> 
 <input type="hidden" name="etudid" value="<dtml-var etudid>">
 <p>
-Date d&eacute;but : <input type="text" name="datedebut" size="12"> 
-&nbsp; Date Fin (optionnel): <input type="text" name="datefin" size="12"> 
-
+<table><tr>
+<td>Date d&eacute;but :  </td>
+<td><script>DateInput('datedebut0', true, 'DD/MM/YYYY')</script></td>
+<td>Date Fin (optionnel):</td>
+<td><script>DateInput('datefin0', false, 'DD/MM/YYYY' )</script></td>
+</tr>
+</table>
 <p>
 <input type="submit" value="Supprimer les justificatifs"> 
 <i>(utiliser ceci en cas de justificatif erron&eacute; saisi ind&eacute;pendemment d'une absence)</i>

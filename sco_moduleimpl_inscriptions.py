@@ -93,11 +93,11 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         H.append("""
         <form method="post" id="mi_form">
         <input type="hidden" name="moduleimpl_id" value="%(moduleimpl_id)s"/>
-        <input type="submit" name="submitted" value="Appliquer les modifications"/>
+        <input type="submit" name="submitted" value="Appliquer les modifications"/><p></p>
         """ % M )
         H.append(_make_menu(context, sem, 'Ajouter', 'true'))
-        H.append(_make_menu(context, sem, 'Enlever', 'false'))
-        H.append("""
+        H.append(_make_menu(context, sem, 'Enlever', 'false'))        
+        H.append("""<p><br/></p>
         <table class="sortable" id="mi_table"><tr>
         <th>Nom</th>
         <th>%(nomgroupetd)s</th><th>%(nomgroupeta)s</th><th>%(nomgroupetp)s</th></tr>""" % sem )

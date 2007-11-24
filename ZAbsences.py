@@ -673,7 +673,8 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrSemestre')
     def SignaleAbsenceGrSemestre(self, datedebut, datefin, semestregroupe,
-                                 destination, 
+                                 destination,
+                                 nbweeks=4, # ne montre que les nbweeks dernieres semaines
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre
         (ou intervalle de dates) entier"""
@@ -684,6 +685,10 @@ class ZAbsences(ObjectManager,
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         jourdebut = ddmmyyyy(datedebut)
         jourfin = ddmmyyyy(datefin)
+        today = ddmmyyyy(time.strftime('%d/%m/%Y', time.localtime()))
+        today.next()
+        if jourfin > today: # ne propose pas les semaines dans le futur
+            jourfin = today
         #
         if not jourdebut.iswork() or jourdebut > jourfin:
             raise ValueError('date debut invalide')
@@ -693,18 +698,30 @@ class ZAbsences(ObjectManager,
         while d <= jourfin:
             dates.append(d)
             d = d.next(7) # avance d'une semaine
+        #
+        msg = 'Montrer seulement les 4 dernières semaines'
+        nwl = 4
+        if nbweeks:
+            nbweeks = int(nbweeks)
+            if nbweeks > 0:
+                dates = dates[-nbweeks:]
+                msg = 'Montrer toutes les semaines'
+                nwl = 0
+        #
         colnames = [ str(x) for x in dates ]
         dates = [ x.ISO() for x in dates ]
-        #
+        
         H = [ self.sco_header(page_title='Saisie des absences',
                               no_side_bar=1,REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
               <h2>Saisie des absences pour le groupe %s %s %s de %s, 
               les %s</h2>
               <p>
+              <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
               """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
-                     DAY_NAMES[jourdebut.weekday]) ]
+                     DAY_NAMES[jourdebut.weekday],
+                     datedebut, datefin, semestregroupe, destination, nwl, msg) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination)
@@ -727,7 +744,7 @@ class ZAbsences(ObjectManager,
         """]
         # Titres colonnes
         for jour in colnames:
-            H.append('<th colspan="2" width="100px">' + jour + '</th>')
+            H.append('<th colspan="2" width="100px" style="padding-left: 5px; padding-right: 5px;">' + jour + '</th>')
         H.append('</tr><tr><td>&nbsp;</td>')
         H.append('<th>AM</th><th>PM</th>' * len(colnames) )
         H.append('</tr>')
@@ -736,8 +753,8 @@ class ZAbsences(ObjectManager,
         for etud in etuds:
             i += 1
             etudid = etud['etudid']
-            bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%2]
-            matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%2]
+            bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
+            matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
             H.append('<tr %s><td><b><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b></td>'
                      % (bgcolor, etudid, etud['nomprenom']))
             for date in dates:

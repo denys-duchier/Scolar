@@ -3,6 +3,12 @@ SCOVERSION = "5.0 béta"
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+
+<h4>Novembre 2007</h4>
+<ul>
+<li>Import des photos depuis portail, trombinoscopes en PDF.</li>
+</ul>
+
 <h4>Septembre 2007</h4>
 <ul>
 <li>Importation des etudiants depuis étapes Apogée</li>
