@@ -39,7 +39,7 @@ _notes_formsemestre_pagebulletin_editor = EditableTable(
     ('formsemestre_id',
      'left_margin', 'top_margin', 'right_margin', 'bottom_margin',
      'title', 'intro_mail' ),
-    allow_set_id=True # car on utile le formsemestre_id comme clé
+    allow_set_id=True # car on utilise le formsemestre_id comme clé
     )
 
 
