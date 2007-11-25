@@ -139,11 +139,11 @@ class ZNotes(ObjectManager,
     
     def _getNotesCache(self):
         "returns CacheNotesTable instance for us"
-        if GLOBAL_NOTES_CACHE.has_key( self.ScoURL() ):
-            return GLOBAL_NOTES_CACHE[self.ScoURL()]
+        if NOTES_CACHE_INST.has_key( self.ScoURL() ):
+            return NOTES_CACHE_INST[self.ScoURL()]
         else:
-            GLOBAL_NOTES_CACHE[self.ScoURL()] = CacheNotesTable()
-            return GLOBAL_NOTES_CACHE[self.ScoURL()]
+            NOTES_CACHE_INST[self.ScoURL()] = CacheNotesTable()
+            return NOTES_CACHE_INST[self.ScoURL()]
 
     def _inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
@@ -173,15 +173,7 @@ class ZNotes(ObjectManager,
             log('clearcache: inconsistency !')
             txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
             log(txt)
-            msg = MIMEMultipart()
-            subj = Header( 'Notes: cache inconsistency !',  SCO_ENCODING )
-            msg['Subject'] = subj
-            msg['From'] = 'noreply'
-            msg['To'] = 'viennet@iutv.univ-paris13.fr'
-            msg.epilogue = ''
-            txt = MIMEText( txt, 'plain', SCO_ENCODING )
-            msg.attach(txt)
-            self.sendEmail(msg)
+            sendAlarm(self, subj, txt)
         
     # --------------------------------------------------------------------
     #
@@ -2004,7 +1996,7 @@ class ZNotes(ObjectManager,
             msg['Subject'] = subj
             msg['From'] = getattr(self,'mail_bulletin_from_addr', 'noreply' )
             msg['To'] = ' ,'.join(recipients)
-            msg['Bcc'] = 'viennet@iutv.univ-paris13.fr'
+            msg['Bcc'] = 'viennet@iutv.univ-paris13.fr' # XXX
             # Guarantees the message ends in a newline
             msg.epilogue = ''
             # Text
@@ -2418,13 +2410,7 @@ class ZNotes(ObjectManager,
         if bad:
             txt = '<br/>'.join([str(x) for x in bad])
             # Notify by e-mail
-            msg = MIMEMultipart()
-            msg['Subject'] = Header( 'Notes: formation incoherente !',  SCO_ENCODING )
-            msg['From'] = 'noreply'
-            msg['To'] = 'viennet@lipn.univ-paris13.fr'
-            msg.epilogue = ''
-            msg.attach( MIMEText( txt, 'plain', SCO_ENCODING ) )
-            self.sendEmail(msg)
+            sendAlarm( self, 'Notes: formation incoherente !', txt)
         else:
             txt = 'OK'
         return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)

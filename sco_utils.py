@@ -39,7 +39,7 @@ import jaxml
 from SuppressAccents import suppression_diacritics
 
 
-SCO_ENCODING = 'iso8859-15' # used by Excel I/O, but should be used elsewhere !
+SCO_ENCODING = 'iso8859-15' # used by Excel I/O
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 

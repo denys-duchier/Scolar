@@ -2,6 +2,10 @@
 # -*- coding: iso8859-15 -*-
 
 import pdb,os,sys,time
+from sco_utils import SCO_ENCODING
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+
 
 # Simple & stupid file logguer, used only to debug
 # (logging to SQL is done in scolog)
@@ -9,6 +13,8 @@ import pdb,os,sys,time
 
 LOG_FILENAME = 'notes.log' # empty to disable logging
 DEFAULT_LOG_DIR = '/tmp' # clients should call set_log_directory to change this
+
+ALARM_DESTINATION = 'emmanuel.viennet@lipn.univ-paris13.fr' # XXX a mettre en preference
 
 class _logguer:
     def __init__(self):
@@ -37,3 +43,14 @@ class _logguer:
 log = _logguer()
 
 
+# Alarms by email:
+def sendAlarm( context, subj, msg ):
+    msg = MIMEMultipart()
+    subj = Header( subj,  SCO_ENCODING )
+    msg['Subject'] = subj
+    msg['From'] = 'noreply'
+    msg['To'] = ALARM_DESTINATION
+    msg.epilogue = ''
+    txt = MIMEText( txt, 'plain', SCO_ENCODING )
+    msg.attach(txt)
+    context.sendEmail(msg)

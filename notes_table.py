@@ -640,24 +640,54 @@ class NotesTable:
 import thread
 class CacheNotesTable:
     """gestion rudimentaire de cache pour les NotesTables"""
+
     def __init__(self):
         log('new CacheTable (id=%s)' % id(self))
+        #
+        self.lock = thread.allocate_lock()
+        self.owner_thread = None # thread owning this cache
+        self.nref = 0
         # Cache des NotesTables
         self.cache = {} # { formsemestre_id : NoteTable instance }
         # Cache des classeur PDF (bulletins)
         self.pdfcache = {} # { formsemestre_id : (filename, pdfdoc) }
+
+    def acquire(self):
+        "If this thread does not own the cache, acquire the lock"
+        if thread.get_ident() != self.owner_thread:
+            # log('acquire: ident=%s' % thread.get_ident()) # XXX debug
+            self.lock.acquire()
+            self.owner_thread = thread.get_ident()
+            # log('%s got lock' % thread.get_ident()) # XXX debug
+        self.nref += 1
+        # log('nref=%d' % self.nref)
+    
+    def release(self):
+        "Release the lock"
+        if thread.get_ident() != self.owner_thread: # debug
+            log('WARNING: release: ident=%s != owner=%s' % (thread.get_ident(), self.owner_thread))
+            raise NoteProcessError('problem with notes cache')
+        # log('release: ident=%s (nref=%d)' % (thread.get_ident(), self.nref)) 
+        self.nref -= 1
+        if self.nref == 0:
+            self.lock.release()
+            self.owner_thread = None
     
     def get_NotesTable(self, znotes, formsemestre_id):
-        if self.cache.has_key(formsemestre_id):
-            log('cache hit %s (id=%s, thread=%s)'
-                % (formsemestre_id, id(self), thread.get_ident()))
-            return self.cache[formsemestre_id]
-        else:
-            nt = NotesTable( znotes, formsemestre_id)
-            self.cache[formsemestre_id] = nt
-            log('caching formsemestre_id=%s (id=%s)' % (formsemestre_id,id(self)) ) 
-            return nt
-
+        try:
+            self.acquire()
+            if self.cache.has_key(formsemestre_id):
+                log('cache hit %s (id=%s, thread=%s)'
+                    % (formsemestre_id, id(self), thread.get_ident()))
+                return self.cache[formsemestre_id]
+            else:
+                nt = NotesTable( znotes, formsemestre_id)
+                self.cache[formsemestre_id] = nt
+                log('caching formsemestre_id=%s (id=%s)' % (formsemestre_id,id(self)) ) 
+                return nt
+        finally:
+            self.release()
+            
     def get_cached_formsemestre_ids(self):
         "List of currently cached formsemestre_id"
         return self.cache.keys() 
@@ -666,41 +696,53 @@ class CacheNotesTable:
         "expire cache pour un semestre (ou tous si pas d'argument)"
         log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
             (formsemestre_id,pdfonly,id(self)))
-        if not hasattr(self,'pdfcache'):
-            self.pdfcache = {} # fix for old zope instances...
-        if formsemestre_id is None:
-            # clear all caches
-            if not pdfonly:
-                self.cache = {}
-            self.pdfcache = {}
-        else:
-            # formsemestre_id modifié:
-            # on doit virer formsemestre_id et tous les semestres
-            # susceptibles d'utiliser des UE capitalisées de ce semestre.
-            to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(znotes, formsemestre_id)
-            log('to_trash: ' + str(to_trash) )
-            if not pdfonly:
+        try:
+            self.acquire()
+            if not hasattr(self,'pdfcache'):
+                self.pdfcache = {} # fix for old zope instances...
+            if formsemestre_id is None:
+                # clear all caches
+                if not pdfonly:
+                    self.cache = {}
+                self.pdfcache = {}
+            else:
+                # formsemestre_id modifié:
+                # on doit virer formsemestre_id et tous les semestres
+                # susceptibles d'utiliser des UE capitalisées de ce semestre.
+                to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(znotes, formsemestre_id)
+                log('to_trash: ' + str(to_trash) )
+                if not pdfonly:
+                    for formsemestre_id in to_trash:
+                        if self.cache.has_key(formsemestre_id):
+                            del self.cache[formsemestre_id]
                 for formsemestre_id in to_trash:
-                    if self.cache.has_key(formsemestre_id):
-                        del self.cache[formsemestre_id]
-            for formsemestre_id in to_trash:
-                if self.pdfcache.has_key(formsemestre_id):
-                    del self.pdfcache[formsemestre_id]
+                    if self.pdfcache.has_key(formsemestre_id):
+                        del self.pdfcache[formsemestre_id]
+        finally:
+            self.release()
 
     def store_bulletins_pdf(self, formsemestre_id, version, (filename,pdfdoc) ):
         "cache pdf data"
         log('caching PDF formsemestre_id=%s version=%s (id=%s)'
             % (formsemestre_id, version, id(self)) )
-        self.pdfcache[(formsemestre_id,version)] = (filename,pdfdoc)
+        try:
+            self.acquire()
+            self.pdfcache[(formsemestre_id,version)] = (filename,pdfdoc)
+        finally:
+             self.release()
 
     def get_bulletins_pdf(self, formsemestre_id, version):
         "returns cached PDF, or None if not in the cache"
-        if not hasattr(self,'pdfcache'):
-            self.pdfcache = {} # fix for old zope instances...
-        return self.pdfcache.get((formsemestre_id,version), None)
+        try:
+            self.acquire()
+            if not hasattr(self,'pdfcache'):
+                self.pdfcache = {} # fix for old zope instances...
+            return self.pdfcache.get((formsemestre_id,version), None)
+        finally:
+             self.release()
 
 #
 # Cache global: chaque instance, repérée par son URL, a un cache
 # qui est recréé à la demande (voir ZNotes._getNotesCache() )
 #
-GLOBAL_NOTES_CACHE = {} # { URL : CacheNotesTable instance }
+NOTES_CACHE_INST = {} # { URL : CacheNotesTable instance }
