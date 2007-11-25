@@ -1436,9 +1436,11 @@ class ZNotes(ObjectManager,
             # creation nouvel
             if moduleimpl_id is None:
                 raise ValueError, 'missing moduleimpl_id parameter'
-            initvalues = { 'note_max' : 20 }
+            initvalues = { 'note_max' : 20,
+                           'jour' : time.strftime('%d/%m/%Y', time.localtime()) }
             submitlabel = 'Créer cette évaluation'
             action = 'Création d\'une é'
+            
         else:
             # edition donnees existantes
             # setup form init values
@@ -1489,7 +1491,8 @@ class ZNotes(ObjectManager,
             ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
             ('formsemestre_id', { 'default' : formsemestre_id, 'input_type' : 'hidden' }),
             ('moduleimpl_id', { 'default' : moduleimpl_id, 'input_type' : 'hidden' }),
-            ('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
+            #('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
+            ('jour', { 'input_type' : 'date', 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
             ('heure_debut'   , { 'title' : 'Heure de début', 'explanation' : 'heure du début de l\'épreuve',
                                  'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
             ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'épreuve',
@@ -1509,7 +1512,7 @@ class ZNotes(ObjectManager,
 
         dest_url = 'moduleimpl_status?moduleimpl_id=%s' % M['moduleimpl_id']
         if  tf[0] == 0:
-            return self.sco_header(REQUEST) + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, javascripts=['calendarDateInput_js']) + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( dest_url )
         else:

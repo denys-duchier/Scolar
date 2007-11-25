@@ -45,7 +45,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           HTML elements:
              input_type : 'text', 'textarea', 'password',
                           'radio', 'menu', 'checkbox',
-                          'hidden', 'separator', 'file'
+                          'hidden', 'separator', 'file', 'date'
                          (default text)
              size : text field width
              rows, cols: textarea geometry
@@ -339,6 +339,12 @@ class TF:
                 pass
             elif input_type == 'file':
                 lem.append('<input type="file" name="%s" size="%s" value="%s" %s/>' % (field,size,values[field], attribs))
+            elif input_type == 'date': # JavaScript widget for date input
+                if values[field]:
+                    cv = ", '%s'" % values[field]
+                else:
+                    cv = ''
+                lem.append("<script>DateInput( '%s', false, 'DD/MM/YYYY' %s )</script>" % (field,cv))
             else:
                 raise ValueError('unkown input_type for form (%s)!'%input_type)
             explanation = descr.get('explanation', '')
