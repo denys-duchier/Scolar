@@ -378,14 +378,29 @@ class ZScolar(ObjectManager,
         return DateDMYtoISO(dmy)
         
     security.declareProtected(ScoView, 'formChercheEtud')
-    def formChercheEtud(self,REQUEST):
+    def formChercheEtud(self, REQUEST=None, dest_url=None, parameters=None, parameters_keys=None):
         "form recherche par nom"
-        return """<form action="chercheEtud" method="GET">
+        H = [ """<form action="chercheEtud" method="POST">
         <b>Rechercher un &eacute;tudiant par nom&nbsp;: </b>
         <input type="text" name="expnom" width=12 value="">
         <input type="submit" value="Chercher">
         <br>(entrer une partie du nom ou une regexp)
-        </form>"""
+        """ ]
+        if dest_url:
+            H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)
+        if parameters:
+            for param in parameters.keys():
+                H.append('<input type="hidden" name="%s" value="%s"/>'
+                         % (param, parameters[param]))
+            H.append('<input type="hidden" name="parameters_keys" value="%s"/>'%(','.join(parameters.keys())))
+        elif parameters_keys:
+            for key in parameters_keys.split(','):
+                v = REQUEST.form.get(key,False)
+                if v:
+                    H.append('<input type="hidden" name="%s" value="%s"/>'%(key,v))
+            H.append('<input type="hidden" name="parameters_keys" value="%s"/>'%parameters_keys)
+        H.append('</form>')
+        return '\n'.join(H)
     
     security.declareProtected(ScoView, 'formChoixSemestreGroupe')
     def formChoixSemestreGroupe(self, all=False):
@@ -919,12 +934,7 @@ class ZScolar(ObjectManager,
             % (etudid, code_nip, code_ine))
         REQUEST.RESPONSE.setStatus(404, reason='etudiant inconnu')
         raise ScoValueError('etudiant inconnu')
-
-    security.declareProtected(ScoView, 'ggg')
-    def ggg(self,etudid=None,filled=False,REQUEST=None):
-        "ggg"
-        return str(REQUEST.form.has_key('xx')) + '\n<br>' + str(REQUEST.form)
-
+    
     #
     security.declareProtected(ScoView, 'nomprenom')
     def nomprenom(self, etud):
@@ -932,7 +942,67 @@ class ZScolar(ObjectManager,
         return ' '.join([ format_sexe(etud['sexe']), format_prenom(etud['prenom']), format_nom(etud['nom'])])
     
     security.declareProtected(ScoView, "chercheEtud")
-    chercheEtud = DTMLFile('dtml/chercheEtud', globals())
+    #chercheEtud = DTMLFile('dtml/chercheEtud', globals())
+    def chercheEtud(self, expnom=None,
+                    dest_url='ficheEtud',
+                    parameters={},
+                    parameters_keys='',
+                    add_headers = True, # complete page
+                    title=None,
+                    REQUEST=None ):
+        """Page recherche d'un etudiant
+        expnom est un regexp sur le nom
+        dest_url est la page sur laquelle on sera redirigé après choix
+        parameters spécifie des arguments additionnels a passer à l'URL (en plus de etudid)
+        """
+        q = []
+        if parameters:
+            for param in parameters.keys():
+                q.append( '%s=%s' % (param, parameters[param]))
+        elif parameters_keys:
+            for key in parameters_keys.split(','):
+                v = REQUEST.form.get(key,False)
+                if v:
+                    q.append( '%s=%s' % (key,v) )
+        query_string = '&'.join(q)
+        
+        H = []
+        if title:
+            H.append('<h2>%s</h2>'%title)
+        if expnom:
+            etuds = self.chercheEtudsInfo(expnom=expnom,REQUEST=REQUEST)
+            if len(etuds) == 1:
+                # va directement a la destination
+                return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
+
+            if len(etuds) > 0:
+                # Choix dans la liste des résultats:
+                H.append('<h2>%d résultats pour "%s": choisissez un étudiant:</h2>' % (len(etuds),expnom))
+                H.append('<table cellspacing="0" cellpadding ="3" border="0" bgcolor="#ccffff">')
+                i = 0
+                for etud in etuds:
+                    if i % 2 == 0:
+                        bgcolor = '#ffffcc'
+                    else:
+                        bgcolor = '#ccffff'
+                    i += 1
+                    H.append('<tr bgcolor="%s"><td>%s</td><td><a class="discretelink" href="%s"><b>%s</b> %s</a></td><td>%s %s</tr>'
+                             % (bgcolor, format_sexe(etud['sexe']),
+                                dest_url + '?etudid=%s&' % etud['etudid'] + query_string,
+                                format_nom(etud['nom']), format_prenom(etud['prenom']),
+                                etud['inscription'], etud['groupetd']) )
+                H.append('</table>')
+            else:
+                H.append('<h2 style="color: red;">Aucun résultat pour "%s".</h2>' % expnom )
+
+        H.append(self.formChercheEtud(dest_url=dest_url,
+                                      parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST))
+        
+        if add_headers:
+            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=True,) + '\n'.join(H) + self.sco_footer(REQUEST)
+        else:
+            return '\n'.join(H)
+    
     security.declareProtected(ScoView, "chercheEtudsInfo")
     def chercheEtudsInfo(self, expnom, REQUEST):
         """recherche les etudiant correspondant a expnom

@@ -1227,6 +1227,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules_form')
     formsemestre_inscription_with_modules_form = sco_formsemestre_inscriptions.formsemestre_inscription_with_modules_form
+
+    security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules_etud')
+    formsemestre_inscription_with_modules_etud = sco_formsemestre_inscriptions.formsemestre_inscription_with_modules_etud
     
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules')
     formsemestre_inscription_with_modules = sco_formsemestre_inscriptions.formsemestre_inscription_with_modules

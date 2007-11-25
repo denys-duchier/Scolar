@@ -50,6 +50,7 @@ def do_formsemestre_inscription_with_modules(
     formsemestre_id = args['formsemestre_id']
     # inscription au semestre
     self.do_formsemestre_inscription_create( args, REQUEST, method=method )
+    log('do_formsemestre_inscription_with_modules: etudid=%s formsemestre_id=%s' % (etudid,formsemestre_id))
     # inscription a tous les modules de ce semestre
     modimpls = self.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
@@ -60,6 +61,19 @@ def do_formsemestre_inscription_with_modules(
                  'etudid' : etudid} )
 
 
+def formsemestre_inscription_with_modules_etud(self, formsemestre_id, etudid=None,
+                                               groupetd=None, groupeanglais=None, groupetp=None,
+                                               REQUEST=None):
+    """Form. inscription d'un étudiant au semestre.
+    Si etudid n'est pas specifié, form. choix etudiant.
+    """
+    if not etudid:
+        return self.chercheEtud( title="Choix de l'étudiant à inscrire",
+                                 dest_url='formsemestre_inscription_with_modules_etud',
+                                 parameters={ 'formsemestre_id' : formsemestre_id },
+                                 REQUEST=REQUEST )
+    return formsemestre_inscription_with_modules(self, etudid, formsemestre_id, REQUEST=REQUEST,
+                                                 groupetd=groupetd, groupeanglais=groupeanglais, groupetp=groupetp)
 
 def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
     """Formulaire inscription de l'etud dans l'une des sessions existantes
@@ -100,12 +114,26 @@ def formsemestre_inscription_with_modules(
     Inscription de l'etud dans ce semestre.
     Formulaire avec choix groupe.
     """
+    # log( 'formsemestre_inscription_with_modules: etudid=%s groupetd=%s' % (etudid,groupetd))
     sem = self.get_formsemestre(formsemestre_id)
     etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
     H = [ self.sco_header(REQUEST)
           + "<h2>Inscription de %s dans %s</h2>" %
           (etud['nomprenom'],sem['titreannee']) ]
     F = self.sco_footer(REQUEST)
+    # Check: déjà inscrit ?
+    ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
+    already = False
+    for i in ins:
+        if i['formsemestre_id'] == formsemestre_id:
+            already = True
+    if already:
+        H.append('<p class="warning">%s est déjà inscrit dans le semestre %s</p>' % (etud['nomprenom'], sem['titreannee']))
+        H.append("""<ul><li><a href="ficheEtud?etudid=%s">retour à la fiche de %s</a></li>
+        <li><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord de %s</a></li></ul>"""
+                 % (etudid, etud['nomprenom'], formsemestre_id, sem['titreannee']) )
+        return '\n'.join(H) + F
+    #
     if groupetd:
         # OK, inscription
         self.do_formsemestre_inscription_with_modules(

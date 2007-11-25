@@ -116,6 +116,10 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'formsemestre_synchro_etuds?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
           },
+        { 'title' : 'Inscrire un étudiant',
+          'url' : 'formsemestre_inscription_with_modules_etud?formsemestre_id=' + formsemestre_id,
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
+          },
         { 'title' : 'Importer des étudiants dans ce semestre (table Excel)',
           'url' : 'form_students_import_excel?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
