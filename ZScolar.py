@@ -611,7 +611,7 @@ class ZScolar(ObjectManager,
             FA.append('<input type="submit" value="Saisir absences du" />')
             FA.append('<select name="datedebut" class="noprint">')
             date = first_monday
-            for jour in ZAbsences.DAY_NAMES:
+            for jour in self.Absences.day_names():
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
             FA.append('</select>')

@@ -83,11 +83,12 @@ def MonthNbDays(month,year):
 	return 30
     
 
-DAY_NAMES = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
+
 
 class ddmmyyyy:
     """immutable dates"""
-    def __init__(self,date=None,fmt='ddmmyyyy'):
+    def __init__(self,date=None,fmt='ddmmyyyy',work_saturday=False):
+        self.work_saturday = work_saturday
 	if date is None:
 	    return
         if fmt == 'ddmmyyyy':
@@ -120,7 +121,11 @@ class ddmmyyyy:
     
     def iswork(self):
 	"returns true if workable day"
-	if self.weekday >= 0 and self.weekday < 5: # monday-friday
+        if self.work_saturday:
+            nbdays = 6
+        else:
+            nbdays = 5
+	if self.weekday >= 0 and self.weekday < nbdays: # monday-friday or monday-saturday
 	    return 1
 	else:
 	    return 0
@@ -145,7 +150,7 @@ class ddmmyyyy:
             if month > 12:
 		month = 1
 		year = year + 1
-	return self.__class__( '%02d/%02d/%04d' % (day,month,year) )
+	return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
     
     def prev(self,days=1):
         "date for previous day"
@@ -159,7 +164,7 @@ class ddmmyyyy:
                 year = year - 1            
             day = day + MonthNbDays(month,year)
         
-	return self.__class__( '%02d/%02d/%04d' % (day,month,year) )
+	return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
 
     def next_monday(self):
         "date of next monday"
@@ -537,16 +542,34 @@ class ZAbsences(ObjectManager,
 
 
     # --- Misc tools.... ------------------
+    security.declareProtected(ScoView, 'is_work_saturday')
+    def is_work_saturday(self):
+        "Vrai si le samedi est travaillé"
+        try:
+            r = int(self.work_saturday) # preference: Zope property
+        except:
+            r = 0
+        return r
+
+    def day_names(self):
+        """Returns week day names.
+        If work_saturday property is set, include saturday
+        """
+        if self.is_work_saturday():
+            return ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+        else:
+            return ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
+    
     security.declareProtected(ScoView, 'ListMondays')
     def ListMondays(self, year=None):
         """return list of mondays (ISO dates), from september to june
         """
         if not year:
             year = self.AnneeScolaire()
-        d = ddmmyyyy( '1/9/%d' % year )
+        d = ddmmyyyy( '1/9/%d' % year, work_saturday=self.is_work_saturday() )
         while d.weekday != 0:
             d = d.next()
-        end = ddmmyyyy('1/7/%d' % (year+1))
+        end = ddmmyyyy('1/7/%d' % (year+1), work_saturday=self.is_work_saturday())
         L = [ d ]
         while d < end:
             d = d.next(days=7)
@@ -556,7 +579,7 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoView, 'NextISODay')
     def NextISODay(self, date ):
         "return date after date"
-        d = ddmmyyyy(date, fmt='iso')
+        d = ddmmyyyy(date, fmt='iso', work_saturday=self.is_work_saturday())
         return d.next().ISO()
 
     security.declareProtected(ScoView, 'DateRangeISO')
@@ -568,8 +591,8 @@ class ZAbsences(ObjectManager,
         if not date_end:
             date_end = date_beg
         r = []
-        cur = ddmmyyyy( date_beg )
-        end = ddmmyyyy( date_end )
+        cur = ddmmyyyy( date_beg, work_saturday=self.is_work_saturday() )
+        end = ddmmyyyy( date_end, work_saturday=self.is_work_saturday() )
         while cur <= end:
             if (not workable) or cur.iswork():
                 r.append(cur)
@@ -625,7 +648,7 @@ class ZAbsences(ObjectManager,
         while 1:
             T.append( '<td valign="top">' )
             T.append( MonthTableHead( month ) )
-            T.append( MonthTableBody( month, year, events, halfday, dayattributes ) )
+            T.append( MonthTableBody( month, year, events, halfday, dayattributes, self.is_work_saturday() ) )
             T.append( MonthTableTail() )
             T.append( '</td>' )
             if month == lastmonth:
@@ -649,7 +672,7 @@ class ZAbsences(ObjectManager,
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         # calcule dates jours de cette semaine
         datessem = [ self.DateDDMMYYYY2ISO(datelundi) ]
-        for jour in DAY_NAMES[1:]:
+        for jour in self.day_names()[1:]:
             datessem.append( self.NextISODay(datessem[-1]) )
         #                
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
@@ -666,7 +689,7 @@ class ZAbsences(ObjectManager,
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
 
-        H += self._gen_form_saisie_groupe(etuds, DAY_NAMES, datessem, destination)
+        H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination)
 
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
@@ -683,18 +706,18 @@ class ZAbsences(ObjectManager,
         groupeanglais = semestregroupe.split('!')[2]
         groupetp = semestregroupe.split('!')[3]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-        jourdebut = ddmmyyyy(datedebut)
-        jourfin = ddmmyyyy(datefin)
-        today = ddmmyyyy(time.strftime('%d/%m/%Y', time.localtime()))
+        jourdebut = ddmmyyyy(datedebut, work_saturday=self.is_work_saturday())
+        jourfin = ddmmyyyy(datefin, work_saturday=self.is_work_saturday())
+        today = ddmmyyyy(time.strftime('%d/%m/%Y', time.localtime()), work_saturday=self.is_work_saturday())
         today.next()
         if jourfin > today: # ne propose pas les semaines dans le futur
             jourfin = today
         #
         if not jourdebut.iswork() or jourdebut > jourfin:
-            raise ValueError('date debut invalide')
+            raise ValueError('date debut invalide (ouvrable=%d)' % jourdebut.iswork() )
         # calcule dates
         dates = [] # ddmmyyyy instances
-        d = ddmmyyyy(datedebut)
+        d = ddmmyyyy(datedebut, work_saturday=self.is_work_saturday())
         while d <= jourfin:
             dates.append(d)
             d = d.next(7) # avance d'une semaine
@@ -720,7 +743,7 @@ class ZAbsences(ObjectManager,
               <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
               """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
-                     DAY_NAMES[jourdebut.weekday],
+                     self.day_names()[jourdebut.weekday],
                      datedebut, datefin, semestregroupe, destination, nwl, msg) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
@@ -837,23 +860,28 @@ def MonthTableHead( month ):
 def MonthTableTail():
     return '</table>\n'
 
-def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
+def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_saturday=False ):
     firstday, nbdays = calendar.monthrange(year,month)
     localtime = time.localtime()
     current_weeknum = time.strftime( '%U', localtime )
     current_year =  localtime[0]
     T = []
     # cherche date du lundi de la 1ere semaine de ce mois
-    monday = ddmmyyyy( '1/%d/%d' % (month,year) )
+    monday = ddmmyyyy( '1/%d/%d' % (month,year))
     while monday.weekday != 0:
         monday = monday.prev()
+
+    if work_saturday:
+        weekend = ('D',)
+    else:
+        weekend = ('S', 'D')
     
     if not halfday:
         for d in range(1,nbdays+1):
             weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
                                                          '%d/%m/%Y'))
             day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
-            if day in ('S','D'):
+            if day in weekend:
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'
                 attrs = ''
@@ -909,7 +937,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='' ):
             weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
                                                          '%d/%m/%Y'))
             day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
-            if day in ('S','D'):
+            if day in weekend:
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'
                 attrs = ''
