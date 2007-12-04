@@ -8,7 +8,7 @@
 <dtml-var "sco_header(page_title='Bulletin de '+nomprenom,REQUEST=REQUEST)">
 <table class="bull_head">
 <TR><TD>
-<h2><dtml-var nomprenom></h2>
+<h2><a class="discretelink" href="ficheEtud?etudid=<dtml-var etudid>"><dtml-var nomprenom></a></h2>
 
 <form name="f" method="GET">
 Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"> <dtml-var "sem['titreannee']"></a></span> 

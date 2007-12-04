@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1267,6 +1267,11 @@ class ZNotes(ObjectManager,
         )
 
     def _evaluation_check_write_access(self, REQUEST, moduleimpl_id=None):
+        """Vérifie que l'on a le droit de modifier, créer ou détruire une
+        évaluation dans ce module.
+        Sinon, lance une exception.
+        (nb: n'implique pas le droit de saisir ou modifier des notes)
+        """
         # acces pour resp. moduleimpl et resp. form semestre (dir etud)
         if moduleimpl_id is None:
             raise ValueError('no moduleimpl specified') # bug
@@ -1275,7 +1280,7 @@ class ZNotes(ObjectManager,
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         sem = self.get_formsemestre(M['formsemestre_id'])
         
-        if (not authuser.has_permission(ScoEditAllNotes,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
+        if (not authuser.has_permission(ScoEditAllEvals,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
             raise AccessDenied('Modification évaluation impossible pour %s'%(uid,))
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')
@@ -1839,6 +1844,10 @@ class ZNotes(ObjectManager,
         "dummy method, necessary to declare permission ScoEditAllNotes"
         return True
 
+    security.declareProtected(ScoEditAllEvals, 'dummy_ScoEditAllEvals')
+    def dummy_ScoEditAllEvals(self):
+        "dummy method, necessary to declare permission ScoEditAllEvals"
+        return True
     
     def _notes_getall(self, evaluation_id):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}

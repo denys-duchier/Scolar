@@ -9,7 +9,9 @@
 # DTML qui utilisent directement les chaines de caractères...
 
 ScoChangeFormation = "Sco Change Formation"
-ScoEditAllNotes = "Sco Modifier toutes notes" 
+ScoEditAllNotes = "Sco Modifier toutes notes"
+ScoEditAllEvals = "Sco Modifier toutes les evaluations"
+
 ScoImplement    = "Sco Implement Formation"
 
 ScoAbsChange    = "Sco Change Absences"

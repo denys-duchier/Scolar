@@ -163,16 +163,22 @@ def get_infos_apogee(context, nom, prenom):
     return infos
 
 def get_default_etapes(context):
-    """XXX liste par défaut: devrait etre lue d'un fichier de config
+    """Liste par défaut: devrait etre lue d'un fichier de config
     """
-    return { 'rt' : {
-        'V3SQ3' : 'Licence Pro R&T ASSUR (FC)',
-        'V3SQ2' : 'Licence Pro R&T ASSUR (Apprentissage)',
-        'V2RT2' : 'DUT Réseaux et Télécommunications 2',
-        'V1RT'  : 'DUT Réseaux et Télécommunications 1',
-        'V3ON' : 'Licence pro. Electronique, Optique et Nanotechnologies'
-        }
-             }
+    filename = context.file_path + '/config/default-etapes.txt'
+    log('get_default_etapes: reading %s' % filename )
+    f = open( filename )
+    etapes = {}
+    for line in f.readlines():
+        line = line.strip()
+        if line and line[0] != '#':
+            dept, code, intitule = [ x.strip() for x in line.split(':') ]
+            if dept and code:
+                if etapes.has_key(dept):
+                    etapes[dept][code] = intitule
+                else:
+                    etapes[dept] = { code : intitule }
+    return etapes
 
 def get_etapes_apogee(context):
     """Liste des etapes apogee

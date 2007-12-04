@@ -366,6 +366,8 @@ class ZScoUsers(ObjectManager,
             H.append("<p>L' utilisateur '%s' n'est pas défini dans ce module.</p>" % user_name )
             if authuser.has_permission(ScoEditAllNotes,self):
                 H.append("<p>(il peut modifier toutes les notes)</p>")
+            if authuser.has_permission(ScoEditAllEvals,self):
+                H.append("<p>(il peut modifier toutes les évaluations)</p>")                
             if authuser.has_permission(ScoImplement,self):
                 H.append("<p>(il peut creer des formations)</p>")
         else:
