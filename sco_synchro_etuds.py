@@ -85,7 +85,7 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
 
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation
-
+    #log('synchronize_etuds: etuds=%s' % etuds)
     etuds_by_cat, etuds_a_importer, etudsapo_ident = list_synch(context, sem, anneeapogee=anneeapogee)    
 
     H = [ header ]
@@ -119,14 +119,15 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
                 parameters = {'formsemestre_id' : formsemestre_id,
                               'etuds' : ','.join(etuds),
                               'submitted' : 1,
-                              'inscrire_non_inscrits' : inscrire_non_inscrits
+                              'inscrire_non_inscrits' : inscrire_non_inscrits,
+                              'anneeapogee' : anneeapogee
                               }) )            
         else:
             # OK, do it
             if inscrire_non_inscrits:
                 do_synch_inscrits_etuds(context, sem, etuds_by_cat['etuds_noninscrits']['etuds'], REQUEST=REQUEST)
-            do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident,
-                                        REQUEST)
+            do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, REQUEST)
+
             H.append("""<h3>Opération effectuée</h3>
             <ul>
                 <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>
