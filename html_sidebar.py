@@ -88,12 +88,13 @@ def sidebar(context, REQUEST=None):
 <ul>""" % params ) # """
         if REQUEST.AUTHENTICATED_USER.has_permission(ScoAbsChange,context):
             H.append("""
-<li>     <a href="%(ScoURL)s/Absences/SignaleAbsenceEtud?etudid=%(etudid)s">Ajouter</a>
-<li>     <a href="%(ScoURL)s/Absences/JustifAbsenceEtud?etudid=%(etudid)s">Justifier</a>
-<li>     <a href="%(ScoURL)s/Absences/AnnuleAbsenceEtud?etudid=%(etudid)s">Supprimer</a>
+<li>     <a href="%(ScoURL)s/Absences/SignaleAbsenceEtud?etudid=%(etudid)s">Ajouter</a></li>
+<li>     <a href="%(ScoURL)s/Absences/JustifAbsenceEtud?etudid=%(etudid)s">Justifier</a></li>
+<li>     <a href="%(ScoURL)s/Absences/AnnuleAbsenceEtud?etudid=%(etudid)s">Supprimer</a></li>
 """ % params )
         H.append("""
-<li>     <a href="%(ScoURL)s/Absences/CalAbs?etudid=%(etudid)s">Calendrier</a>
+<li>     <a href="%(ScoURL)s/Absences/CalAbs?etudid=%(etudid)s">Calendrier</a></li>
+<li>     <a href="%(ScoURL)s/Absences/ListeAbsEtud?etudid=%(etudid)s">Liste</a></li>
 </ul>
 """ % params )
     else:

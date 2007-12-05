@@ -823,12 +823,24 @@ class ZAbsences(ObjectManager,
         return H
         
     security.declareProtected(ScoView, 'ListeAbsEtud')
-    def ListeAbsEtud(self, etudid, REQUEST=None):
+    def ListeAbsEtud(self, etudid, with_evals=True, REQUEST=None):
         "Liste des absences d'un étudiant sur l'année en cours"
         datedebut = '%s-08-31' % self.AnneeScolaire()
         #datefin = '%s-08-31' % (self.AnneeScolaire()+1)
         absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
         absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
+
+        # examens ces jours là ?
+        if with_evals:
+            cnx = self.GetDBConnexion()
+            cursor = cnx.cursor()
+            for a in absnonjust + absjust:
+                cursor.execute("""select eval.*
+                from notes_evaluation eval, notes_moduleimpl_inscription mi, notes_moduleimpl m
+                where eval.jour = %(jour)s and eval.moduleimpl_id = m.moduleimpl_id
+                and mi.moduleimpl_id = m.moduleimpl_id and mi.etudid = %(etudid)s""",
+                               { 'jour' : a['jour'].strftime('%Y-%m-%d'), 'etudid' : etudid } )
+                a['evals'] = cursor.dictfetchall() 
         # Mise en forme HTML:
         etud = self.getEtudInfo(etudid=etudid,filled=True)[0]
         H = [ self.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) ]
@@ -839,11 +851,25 @@ class ZAbsences(ObjectManager,
                 return 'après midi'
             else:
                 return 'matin'
-        for a in absnonjust:            
-            H.append( '<li>%s (%s)</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin'])) )
+        def descr_exams(a):
+            if not a.has_key('evals'):
+                return ''
+            ex = []
+            for ev in a['evals']:
+                mod = self.Notes.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : ev['moduleimpl_id']})[0]
+                ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
+                           % (mod['moduleimpl_id'], mod['module']['abbrev']))
+            if ex:
+                return ' ce jour: contrôles de: ' + ', '.join(ex)
+            return ''
+        
+        for a in absnonjust:
+            ex = descr_exams(a)
+            H.append( '<li>%s (%s)%s</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin']), ex) )
         H.append( """</ol><h3>%d absences justifiées</h3><ol>""" % len(absjust),)
         for a in absjust:
-            H.append( '<li>%s (%s)</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin'])) )
+            ex = descr_exams(a)
+            H.append( '<li>%s (%s)%s</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin']), ex) )
         H.append('</ol>')
         H.append("""<p style="top-margin: 1cm; font-size: small;">
         Si vous avez besoin d'autres formats pour les listes d'absences,
