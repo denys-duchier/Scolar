@@ -44,6 +44,9 @@ SCO_ENCODING = 'iso8859-15' # used by Excel I/O
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 
 
+SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
+SCO_MAILING_LIST = 'notes@gtr.iutv.univ-paris13.fr'
+
 CSV_FIELDSEP = ';'
 CSV_LINESEP  = '\n'
 CSV_MIMETYPE = 'text/comma-separated-values'

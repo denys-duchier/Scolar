@@ -822,8 +822,35 @@ class ZAbsences(ObjectManager,
         """ % destination)
         return H
         
-        
-
+    security.declareProtected(ScoView, 'ListeAbsEtud')
+    def ListeAbsEtud(self, etudid, REQUEST=None):
+        "Liste des absences d'un étudiant sur l'année en cours"
+        datedebut = '%s-08-31' % self.AnneeScolaire()
+        #datefin = '%s-08-31' % (self.AnneeScolaire()+1)
+        absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
+        absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
+        # Mise en forme HTML:
+        etud = self.getEtudInfo(etudid=etudid,filled=True)[0]
+        H = [ self.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) ]
+        H.append( """<h2>Absences de %s (à partir du %s)</h2>
+        <h3>%d absences non justifiées</h3><ol>""" % (etud['nomprenom'], DateISOtoDMY(datedebut), len(absnonjust)))
+        def matin(x):
+            if x:
+                return 'après midi'
+            else:
+                return 'matin'
+        for a in absnonjust:            
+            H.append( '<li>%s (%s)</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin'])) )
+        H.append( """</ol><h3>%d absences justifiées</h3><ol>""" % len(absjust),)
+        for a in absjust:
+            H.append( '<li>%s (%s)</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin'])) )
+        H.append('</ol>')
+        H.append("""<p style="top-margin: 1cm; font-size: small;">
+        Si vous avez besoin d'autres formats pour les listes d'absences,
+        envoyez un message sur la <a href="mailto:%s">liste</a>
+        ou déclarez un ticket sur <a href="%s">le site web</a>.</p>""" % (SCO_MAILING_LIST, SCO_WEBSITE) )
+        return '\n'.join(H) + self.sco_footer(REQUEST)
+    
 # ------ HTML Calendar functions (see YearTable method)
 
 # MONTH/DAY NAMES:

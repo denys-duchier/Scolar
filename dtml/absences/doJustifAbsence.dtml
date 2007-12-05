@@ -38,7 +38,7 @@ Ajout de <b><dtml-var sequence-length></b> jours de justification du <dtml-var d
 	  justification pour <b><dtml-var sexe> <dtml-var prenom> <dtml-var nom></b></a>
 <LI><a href="<dtml-var ScoURL>/Absences/SignaleAbsenceEtud?etudid=<dtml-var etudid>">Signaler une absence</a>
 <LI><a href="<dtml-var ScoURL>/Absences/CalAbs?etudid=<dtml-var etudid>">Calendrier de ses absences</a>
-<LI><a href="">Liste de ses absences</a>
+<LI><a href="<dtml-var ScoURL>/Absences/ListeAbsEtud?etudid=<dtml-var etudid>">Liste de ses absences</a>
 </UL>
 
 <hr>
