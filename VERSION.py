@@ -6,6 +6,7 @@ SCONEWS = """
 
 <h4>Novembre 2007</h4>
 <ul>
+<li>Vérification des absences aux évaluations.</li>
 <li>Import des photos depuis portail, trombinoscopes en PDF.</li>
 </ul>
 
