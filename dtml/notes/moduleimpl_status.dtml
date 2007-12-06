@@ -102,14 +102,20 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
     </tr>
 
    <dtml-if "nb_notes == 0">
-    <tr class="mievr"><td colspan="3">&nbsp;</td><td colspan="4"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if>saisir groupes <dtml-var "', '.join(gr_incomplets)"><dtml-if canedit></a></dtml-if></td></tr>
+    <tr class="mievr"><td><dtml-if canedit><dtml-var "moduleimpl_evaluation_menu( evaluation_id, nbnotes=nb_notes )"></dtml-if></td>
+      <td colspan="2">&nbsp;</td><td colspan="4"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if>saisir groupes <dtml-var "', '.join(gr_incomplets)"><dtml-if canedit></a></dtml-if></td></tr>
    </dtml-if>
 
    <dtml-if "nb_notes > 0"><!-- MOYENNES PAR GROUPES -->
 
    <dtml-in gr_moyennes mapping sort=gr>
     <tr class="mievr">
-     <td colspan="6" class="mievr_grtit">
+    <dtml-if sequence-start>
+     <td><dtml-if canedit><dtml-var "moduleimpl_evaluation_menu( evaluation_id, nbnotes=nb_notes )"></dtml-if></td>
+    <dtml-else>
+     <td>&nbsp;</td>
+    </dtml-if>
+     <td colspan="5" class="mievr_grtit">
        Groupe <dtml-var gr> &nbsp;
      </td>
      <td><dtml-if "gr_nb_notes > 0">

@@ -460,6 +460,42 @@ class ZAbsences(ObjectManager,
         """, vars() )
         return cursor.dictfetchall()
 
+    security.declareProtected(ScoView, 'ListeAbsJour')
+    def ListeAbsJour(self, date, am=True, pm=True):
+        "Liste des absences ce jour"
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        req = """SELECT DISTINCT etudid, jour, matin FROM ABSENCES A 
+    WHERE A.estabs 
+    AND A.jour = %(date)s
+    """
+        if not am:
+            req += "AND NOT matin "
+        if not pm:
+            req += "AND matin"
+        
+        cursor.execute(req, { 'date' : date } )
+        return cursor.dictfetchall()
+
+    security.declareProtected(ScoView, 'ListeAbsNonJustJour')
+    def ListeAbsNonJustJour(self, date, am=True, pm=True):
+        "Liste des absences non justifiees ce jour"
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        reqa = ''
+        if not am:
+            reqa += " AND NOT matin "
+        if not pm:
+            reqa += " AND matin "
+        req = """SELECT  etudid, jour, matin FROM ABSENCES A 
+    WHERE A.estabs 
+    AND A.jour = %(date)s
+    """ + reqa + """EXCEPT SELECT etudid, jour, matin FROM ABSENCES B 
+    WHERE B.estjust AND B.jour = %(date)s""" + reqa        
+        
+        cursor.execute(req, { 'date' : date } )
+        return cursor.dictfetchall()
+
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
     def doSignaleAbsenceGrHebdo(self, abslist=[],
                                 datedebut=None, datefin=None, etudids=[],

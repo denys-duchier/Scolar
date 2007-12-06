@@ -72,6 +72,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_status
+from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
 import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
@@ -976,6 +977,38 @@ class ZNotes(ObjectManager,
                     return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
             return header + '\n'.join(H) + tf[1] + F + footer
 
+    # menu evaluation dans moduleimpl
+    security.declareProtected(ScoView, 'moduleimpl_evaluation_menu')
+    def moduleimpl_evaluation_menu(self, evaluation_id, nbnotes=0, REQUEST=None):
+        "Menu avec actions sur une evaluation"
+        E = self.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
+        modimpl = self.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
+        
+        menuEval = [
+            { 'title' : 'Saisir notes',
+              'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id },
+            { 'title' : 'Modifier évaluation',
+              'url' : 'evaluation_edit?evaluation_id=' + evaluation_id },
+            { 'title' : 'Afficher les notes',
+              'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
+              'enabled' : nbnotes > 0
+              },
+            { 'title' : 'Supprimer évaluation',
+              'url' : 'evaluation_delete?evaluation_id=' + evaluation_id,
+              'enabled' : nbnotes == 0 },
+            { 'title' : 'Absences ce jour',
+              'url' : 'Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s'
+              % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe='')),
+              'enabled' : E['jour']
+              },
+            { 'title' : 'Vérifier notes des absents',
+              'url' : 'evaluation_check_absences_html?evaluation_id=' + evaluation_id,
+              'enabled' : nbnotes > 0
+              },
+            ]
+            
+        return makeMenu( 'actions', menuEval )
+
     security.declareProtected(ScoView, 'edit_enseignants_form_delete')
     def edit_enseignants_form_delete(self, REQUEST, moduleimpl_id, ens_id):
         "remove ens"
@@ -1792,6 +1825,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'do_evaluation_liste_notes')
     do_evaluation_listenotes = sco_liste_notes.do_evaluation_listenotes
+
+    security.declareProtected(ScoView, 'evaluation_check_absences_html')
+    evaluation_check_absences_html = sco_liste_notes.evaluation_check_absences_html
 
     # --- Saisie des notes
     security.declareProtected(ScoEnsView, 'do_evaluation_selectetuds')

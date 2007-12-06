@@ -36,6 +36,8 @@ from notes_table import *
 import htmlutils
 import sco_excel
 
+from sets import Set
+
 def do_evaluation_listenotes(self, REQUEST):
     """
     Affichage des notes d'une évaluation
@@ -266,3 +268,102 @@ def do_evaluation_listenotes(self, REQUEST):
             return 'conversion PDF non implementée !'
         else:
             raise ScoValueError('invalid value for liste_format (%s)'%liste_format)
+
+
+def evaluation_check_absences(context, evaluation_id):
+    """Vérifie les absences au moment de cette évaluation.
+    Cas incohérents que l'on peut rencontrer pour chaque étudiant:
+      note et absent  
+      ABS et pas noté absent
+      EXC et pas noté absent
+      EXC et pas justifie
+    Ramene 3 listes d'etudid
+    """
+    E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
+    M = context.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
+    formsemestre_id = M['formsemestre_id']
+    etudids = context.do_evaluation_listeetuds_groups(evaluation_id, getallstudents=True)
+    
+    # matin et/ou après-midi ?
+    am, pm = False, False
+    if E['heure_debut'] < '13:00':
+        am = True
+    if E['heure_fin'] > '13:00':
+        pm = True
+    
+    # Liste les absences à ce moment:
+    A = context.Absences.ListeAbsJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
+    As = Set( [ x['etudid'] for x in A ] ) # ensemble des etudiants absents
+    NJ = context.Absences.ListeAbsNonJustJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
+
+    NJs = Set( [ x['etudid'] for x in NJ ] )# ensemble des etudiants absents non justifies
+    # Les notes:
+    NotesDB = context._notes_getall(evaluation_id)
+    ValButAbs = [] # une note mais noté absent
+    AbsNonSignalee = [] # note ABS mais pas noté absent
+    ExcNonSignalee = [] # note EXC mais pas noté absent
+    ExcNonJust = [] #  note EXC mais absent non justifie
+    for etudid in etudids:
+        if NotesDB.has_key(etudid):
+            val = NotesDB[etudid]['value']
+            if (val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE) and etudid in As:
+                # note valide et absent
+                ValButAbs.append(etudid)
+            if val is None and not etudid in As:
+                # absent mais pas signale comme tel
+                AbsNonSignalee.append(etudid)
+            if val == NOTES_NEUTRALISE and not etudid in As:
+                # nbeutralise mais pas signale absent
+                ExcNonSignalee.append(etudid)
+            if val == NOTES_NEUTRALISE and etudid in NJs:
+                # EXC mais pas justifie
+                ExcNonJust.append(etudid)
+
+    return ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust
+
+def evaluation_check_absences_html(context, evaluation_id, REQUEST=None):
+    """Affiche etat verification absences d'une evaluation"""
+    H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluation'),
+          '<h2>Vérification absences à une évaluation</h2>',
+          context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1),
+          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
+
+    ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust = evaluation_check_absences(context, evaluation_id)
+
+    def etudlist(etudids):
+        for etudid in etudids:
+            etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
+            H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></li>' % etud )
+
+    H.append("<h3>Etudiants ayant une note alors qu'ils sont signalés absents:</h3><ul>")
+    if ValButAbs:
+        etudlist(ValButAbs)
+    else:
+        H.append('<li>aucun</li>')
+    H.append('</ul>')
+
+
+    H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents</h3><ul>""")
+    if AbsNonSignalee:
+        etudlist(AbsNonSignalee)
+    else:
+        H.append('<li>aucun</li>')
+    H.append('</ul>')
+    
+    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents</h3><ul>""")
+    if ExcNonSignalee:
+        etudlist(ExcNonSignalee)
+    else:
+        H.append('<li>aucun</li>')
+    H.append('</ul>')
+
+    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em></h3><ul>""")
+    if ExcNonJust:
+        etudlist(ExcNonJust)
+    else:
+        H.append('<li>aucun</li>')
+    H.append('</ul>')
+
+    
+    H.append(context.sco_footer(REQUEST))
+    return '\n'.join(H)
