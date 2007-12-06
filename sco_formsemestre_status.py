@@ -85,6 +85,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' :  'formsemestre_change_lock?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           'helpmsg' : ''
+          },
+        { 'title' : 'Vérifier absences aux évaluations',
+          'url' :  'formsemestre_check_absences_html?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          'helpmsg' : ''
           }
         ]
     if uid == 'root' or uid[:7] == 'viennet':

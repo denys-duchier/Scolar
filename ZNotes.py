@@ -1829,6 +1829,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'evaluation_check_absences_html')
     evaluation_check_absences_html = sco_liste_notes.evaluation_check_absences_html
 
+    security.declareProtected(ScoView, 'formsemestre_check_absences_html')
+    formsemestre_check_absences_html = sco_liste_notes.formsemestre_check_absences_html
+
     # --- Saisie des notes
     security.declareProtected(ScoEnsView, 'do_evaluation_selectetuds')
     do_evaluation_selectetuds = sco_saisie_notes.do_evaluation_selectetuds

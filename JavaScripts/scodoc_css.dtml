@@ -1062,3 +1062,33 @@ div.pas_empty_sems {
 div.pas_help {
   float: left;
 }
+
+/* ---- check absences / evaluations ---- */
+div.module_check_absences h2 { 
+  font-size: 100%;
+  color: blue;
+  margin-bottom:0px;
+}
+
+div.module_check_absences h2.eval_check_absences {  
+  font-size: 80%;
+  color: black;
+  margin-left: 20px;
+  margin-top:0px;
+  margin-bottom:5px;
+}
+
+div.module_check_absences h3 {  
+  font-size: 80%;
+  color: rgb(133,0,0);
+  margin-left: 40px;
+  margin-top:0px;
+  margin-bottom:0px;
+}
+
+div.module_check_absences ul { 
+  margin-left: 60px;
+  font-size: 80%;
+  margin-top:0px;
+  margin-bottom:0px;
+}

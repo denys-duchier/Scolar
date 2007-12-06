@@ -321,49 +321,72 @@ def evaluation_check_absences(context, evaluation_id):
 
     return ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust
 
-def evaluation_check_absences_html(context, evaluation_id, REQUEST=None):
+def evaluation_check_absences_html(context, evaluation_id, with_header=True, show_ok=True, REQUEST=None):
     """Affiche etat verification absences d'une evaluation"""
-    H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluation'),
-          '<h2>Vérification absences à une évaluation</h2>',
-          context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1),
-          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
 
     ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust = evaluation_check_absences(context, evaluation_id)
+    if with_header:
+        H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluation'),
+              '<h2>Vérification absences à une évaluation</h2>',
+              context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1),
+              """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
+    else:
+        # pas de header, mais un titre
+        E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
+        H = [ """<h2 class="eval_check_absences">%s du %s """
+              % (E['description'], E['jour'])
+              ]
+        if not ValButAbs and not AbsNonSignalee and not ExcNonSignalee and not ExcNonJust:
+            H.append(': <span class="eval_check_absences_ok">ok</span>')
+        H.append('</h2>')
 
     def etudlist(etudids):
+        H.append('<ul>')
+        if not etudids and show_ok:
+            H.append('<li>aucun</li>')        
         for etudid in etudids:
             etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
             H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></li>' % etud )
+        H.append('</ul>')
 
-    H.append("<h3>Etudiants ayant une note alors qu'ils sont signalés absents:</h3><ul>")
-    if ValButAbs:
+    if ValButAbs or show_ok:
+        H.append("<h3>Etudiants ayant une note alors qu'ils sont signalés absents:</h3>")
         etudlist(ValButAbs)
-    else:
-        H.append('<li>aucun</li>')
-    H.append('</ul>')
 
-
-    H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents:</h3><ul>""")
-    if AbsNonSignalee:
+    if AbsNonSignalee or show_ok:
+        H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
         etudlist(AbsNonSignalee)
-    else:
-        H.append('<li>aucun</li>')
-    H.append('</ul>')
-    
-    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents:</h3><ul>""")
-    if ExcNonSignalee:
+
+    if ExcNonSignalee or show_ok:
+        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
         etudlist(ExcNonSignalee)
-    else:
-        H.append('<li>aucun</li>')
-    H.append('</ul>')
 
-    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em>:</h3><ul>""")
-    if ExcNonJust:
+    if ExcNonJust or show_ok:
+        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em>:</h3>""")
         etudlist(ExcNonJust)
-    else:
-        H.append('<li>aucun</li>')
-    H.append('</ul>')
 
-    
+    if with_header:
+        H.append(context.sco_footer(REQUEST))
+    return '\n'.join(H)
+
+def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
+    """Affiche etat verification absences pour toutes les evaluations du semestre !
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluations'),
+          '<h2>Vérification absences aux évaluations du semestre %s</h2>' % sem['titreannee'],
+          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées. Sont listés tous les modules avec des évaluations.</p>"""]
+    # Modules, dans l'ordre
+    Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
+    for M in Mlist:
+        evals = context.do_evaluation_list( { 'moduleimpl_id' : M['moduleimpl_id'] } )        
+        if evals:
+            H.append( '<div class="module_check_absences"><h2><a href="moduleimpl_status?moduleimpl_id=%s">%s: %s</a></h2>'
+                      % (M['moduleimpl_id'],M['module']['code'],M['module']['abbrev']) )
+        for E in evals:
+            H.append( evaluation_check_absences_html(context, E['evaluation_id'],
+                                                     with_header=False, show_ok=False, REQUEST=REQUEST) )
+        if evals:
+            H.append('</div>')
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
