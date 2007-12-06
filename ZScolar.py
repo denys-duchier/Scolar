@@ -999,7 +999,7 @@ class ZScolar(ObjectManager,
                                       parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST))
         
         if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=True,) + '\n'.join(H) + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=True) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
             return '\n'.join(H)
     

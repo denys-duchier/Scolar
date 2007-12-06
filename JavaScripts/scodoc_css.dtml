@@ -63,15 +63,6 @@ tr.bandeaugtr {
 }
 
 /* ----- page content ------ */
-.gtrcontent {
-   float: left;
-   <dtml-if no_side_bar>
-   margin-left: 1em;
-   <dtml-else>
-   margin-left: 165px;
-   </dtml-if>
-   /* background-color: rgb(245,245,245); */
-}
 
 div.about-logo {
   text-align: center;

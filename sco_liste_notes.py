@@ -343,21 +343,21 @@ def evaluation_check_absences_html(context, evaluation_id, REQUEST=None):
     H.append('</ul>')
 
 
-    H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents</h3><ul>""")
+    H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents:</h3><ul>""")
     if AbsNonSignalee:
         etudlist(AbsNonSignalee)
     else:
         H.append('<li>aucun</li>')
     H.append('</ul>')
     
-    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents</h3><ul>""")
+    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents:</h3><ul>""")
     if ExcNonSignalee:
         etudlist(ExcNonSignalee)
     else:
         H.append('<li>aucun</li>')
     H.append('</ul>')
 
-    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em></h3><ul>""")
+    H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em>:</h3><ul>""")
     if ExcNonJust:
         etudlist(ExcNonJust)
     else:

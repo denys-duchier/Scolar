@@ -66,7 +66,10 @@ def sco_header(context, REQUEST=None,
         params['bodyOnLoad_mkup'] = """onload="%s" """ % bodyOnLoad
     else:
         params['bodyOnLoad_mkup'] = ''
-    
+    if no_side_bar:
+        params['margin_left'] = "1em"
+    else:
+        params['margin_left'] = "165px"
     H = [ """<?xml version="1.0" encoding="%(encoding)s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -81,6 +84,13 @@ def sco_header(context, REQUEST=None,
 <link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/sorttable_js"></script>
+<style>
+.gtrcontent {
+   float: left;
+   margin-left: %(margin_left)s;
+}
+</style>
+
 """ % params
           ]
     # Feuilles de style additionnelles:

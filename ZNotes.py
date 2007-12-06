@@ -1001,7 +1001,7 @@ class ZNotes(ObjectManager,
               % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe='')),
               'enabled' : E['jour']
               },
-            { 'title' : 'Vérifier notes des absents',
+            { 'title' : 'Vérifier notes vs absents',
               'url' : 'evaluation_check_absences_html?evaluation_id=' + evaluation_id,
               'enabled' : nbnotes > 0
               },
