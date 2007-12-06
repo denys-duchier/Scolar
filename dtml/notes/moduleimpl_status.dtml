@@ -34,7 +34,9 @@
 </td>
 
 </tr>
-<tr><td class="fichetitre2">Semestre: </td><td><dtml-var "sem['semestre_id']">
+<tr><td class="fichetitre2"><dtml-if "sem['semestre_id'] >= 0">Semestre: </td><td><dtml-var "sem['semestre_id']">
+    <dtml-else></td><td>
+    </dtml-if>
     <dtml-if "sem['etat'] != '1'"><dtml-var "img.lock32_img.tag(border='0')"></dtml-if>
    </td>
     <td class="fichetitre2">Coef dans le semestre:</td><td><dtml-var "Mod['coefficient']"></td>
@@ -64,7 +66,7 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 
 <tr class="mievr">
  <td class="mievr_tit" colspan="7">
- Le <dtml-var "eval['jour']">, <em><dtml-var "eval['description']"></em>
+ Le <dtml-var "eval['jour']"><dtml-var "eval['descrheure']">, <em><dtml-var "eval['description']"></em>
  <dtml-if "last_modif">
    <span class="mievr_lastmodif">(dernière modif le <dtml-var "last_modif.strftime('%d/%m/%Y à %Hh%M')">)</span>
  </dtml-if>

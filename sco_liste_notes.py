@@ -270,6 +270,23 @@ def do_evaluation_listenotes(self, REQUEST):
             raise ScoValueError('invalid value for liste_format (%s)'%liste_format)
 
 
+# matin et/ou après-midi ?
+def _eval_demijournee(E):
+    "1 si matin, 0 si apres midi, 2 si toute la journee"
+    am, pm = False, False
+    if E['heure_debut'] < '13:00':
+        am = True
+    if E['heure_fin'] > '13:00':
+        pm = True
+    if am and pm:
+        demijournee = 2
+    elif am:
+        demijournee = 1
+    else:
+        demijournee = 0
+        pm = True
+    return am, pm, demijournee
+
 def evaluation_check_absences(context, evaluation_id):
     """Vérifie les absences au moment de cette évaluation.
     Cas incohérents que l'on peut rencontrer pour chaque étudiant:
@@ -284,12 +301,7 @@ def evaluation_check_absences(context, evaluation_id):
     formsemestre_id = M['formsemestre_id']
     etudids = context.do_evaluation_listeetuds_groups(evaluation_id, getallstudents=True)
     
-    # matin et/ou après-midi ?
-    am, pm = False, False
-    if E['heure_debut'] < '13:00':
-        am = True
-    if E['heure_fin'] > '13:00':
-        pm = True
+    am, pm, demijournee = _eval_demijournee(E)
     
     # Liste les absences à ce moment:
     A = context.Absences.ListeAbsJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
@@ -321,10 +333,15 @@ def evaluation_check_absences(context, evaluation_id):
 
     return ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust
 
+
 def evaluation_check_absences_html(context, evaluation_id, with_header=True, show_ok=True, REQUEST=None):
     """Affiche etat verification absences d'une evaluation"""
 
+    E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
+    am, pm, demijournee = _eval_demijournee(E)
+    
     ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust = evaluation_check_absences(context, evaluation_id)
+
     if with_header:
         H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluation'),
               '<h2>Vérification absences à une évaluation</h2>',
@@ -332,7 +349,6 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
               """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
     else:
         # pas de header, mais un titre
-        E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
         H = [ """<h2 class="eval_check_absences">%s du %s """
               % (E['description'], E['jour'])
               ]
@@ -340,13 +356,17 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
             H.append(': <span class="eval_check_absences_ok">ok</span>')
         H.append('</h2>')
 
-    def etudlist(etudids):
+    def etudlist(etudids, linkabs=False):
         H.append('<ul>')
         if not etudids and show_ok:
             H.append('<li>aucun</li>')        
         for etudid in etudids:
             etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
-            H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></li>' % etud )
+            H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a>' % etud )
+            if linkabs:
+                H.append('<a class="stdlink" href="Absences/doSignaleAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s">signaler cette absence</a>'
+                         % (etud['etudid'],urllib.quote(E['jour']), urllib.quote(E['jour']), demijournee) )
+            H.append('</li>')
         H.append('</ul>')
 
     if ValButAbs or show_ok:
@@ -355,7 +375,7 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
 
     if AbsNonSignalee or show_ok:
         H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
-        etudlist(AbsNonSignalee)
+        etudlist(AbsNonSignalee, linkabs=True)
 
     if ExcNonSignalee or show_ok:
         H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
@@ -375,7 +395,10 @@ def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
     sem = context.get_formsemestre(formsemestre_id)
     H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluations'),
           '<h2>Vérification absences aux évaluations du semestre %s</h2>' % sem['titreannee'],
-          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées. Sont listés tous les modules avec des évaluations.</p>"""]
+          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.
+          Sont listés tous les modules avec des évaluations. Aucune action n'est effectuée:
+          il vous appartient de corriger les erreurs détectées si vous le jugez nécessaire.
+          </p>"""]
     # Modules, dans l'ordre
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     for M in Mlist:

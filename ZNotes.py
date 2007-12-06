@@ -1402,6 +1402,12 @@ class ZNotes(ObjectManager,
                     e['duree'] += '%02d' % m
             else:
                 e['duree'] = ''
+            if heure_debut and (not heure_fin or heure_fin == heure_debut):
+                e['descrheure'] = ' à ' + heure_debut
+            elif heure_debut and heure_fin:
+                e['descrheure'] = ' de %s à %s' % (heure_debut, heure_fin)
+            else:
+                e['descrheure'] = ''
         return evals
 
     security.declareProtected(ScoView, 'do_evaluation_list_in_formsemestre')
