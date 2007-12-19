@@ -52,10 +52,12 @@ from VERSION import SCOVERSION, SCONAME
 PAGE_HEIGHT=defaultPageSize[1]
 PAGE_WIDTH=defaultPageSize[0]
 
-SCOLAR_FONT = 'Helvetica'
-SCOLAR_FONT_SIZE = 10
-SCOLAR_FONT_SIZE_FOOT = 6
+SCOLAR_FONT = CONFIG.SCOLAR_FONT 
+SCOLAR_FONT_SIZE = CONFIG.SCOLAR_FONT_SIZE
+SCOLAR_FONT_SIZE_FOOT = CONFIG.SCOLAR_FONT_SIZE_FOOT
 
+
+DEFAULT_PDF_FOOTER_TEMPLATE = CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE
 
 def SU(s):
     "convert s from SCO default encoding to UTF8"
@@ -91,13 +93,15 @@ class ScolarsPageTemplate(PageTemplate) :
     def __init__(self, document, pagesbookmarks={},
                  author=None, title=None, subject=None,
                  margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
-                 server_name = '' ):
+                 server_name = '',
+                 footer_template = DEFAULT_PDF_FOOTER_TEMPLATE ):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
         self.pdfmeta_author = author
         self.pdfmeta_title = title
         self.pdfmeta_subject = subject
         self.server_name = server_name
+        self.footer_template = footer_template
         # Our doc is made of a single frame
         left, top, right, bottom = margins
         content = Frame(0.75 * inch + left*mm, 0.5 * inch + bottom*mm,
@@ -107,7 +111,18 @@ class ScolarsPageTemplate(PageTemplate) :
         self.logo = None
         
     def beforeDrawPage(self, canvas, doc) :
-        """Draws a logo and an contribution message on each page."""
+        """Draws a logo and an contribution message on each page.
+
+        day   : Day of the month as a decimal number [01,31]
+        month : Month as a decimal number [01,12].
+        year  : Year without century as a decimal number [00,99].
+        Year  : Year with century as a decimal number.
+        hour  : Hour (24-hour clock) as a decimal number [00,23].
+        minute: Minute as a decimal number [00,59].
+
+        server_url: URL du serveur ScoDoc
+        
+        """
         canvas.saveState()
         if self.logo is not None :
             # draws the logo if it exists
@@ -128,11 +143,20 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.addOutlineEntry(txt,bm)
         # ---- Footer
         canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
-        dt = time.strftime('%d/%m/%Y à %Hh%M')
-        if self.server_name:
-            s = ' sur %s' % self.server_name
-        else:
-            s = ''
-        canvas.drawString(2*cm, 0.25 * inch,
-                          SU("Edité par %s le %s%s" % (VERSION.SCONAME,dt,s)) )
+        d = _makeTimeDict()
+        d['scodoc_name'] = VERSION.SCONAME
+        d['server_url'] = self.server_name
+        footer_str = SU( self.footer_template % d )
+        canvas.drawString(2*cm, 0.25 * inch, footer_str )
         canvas.restoreState()
+
+
+def _makeTimeDict():
+    # ... suboptimal but we don't care
+    return { 'day' :  time.strftime('%d' ),
+             'month' :  time.strftime('%m' ),
+             'year' : time.strftime('%y' ),
+             'Year' : time.strftime('%Y' ),
+             'hour' : time.strftime('%H' ),
+             'minute' : time.strftime('%M' )
+             }

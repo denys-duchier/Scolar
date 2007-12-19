@@ -31,12 +31,29 @@
 from VERSION import SCOVERSION
 import VERSION
 import pdb
-import os, copy
+import os, sys, copy
 import urllib, time, datetime
 import xml.sax.saxutils
 # XML generation package (apt-get install jaxml)
 import jaxml
 from SuppressAccents import suppression_diacritics
+
+
+# ----- Lecture du fichier de configuration
+SCO_SRCDIR = os.path.split(VERSION.__file__)[0]
+
+try:
+    _config_filename = SCO_SRCDIR + '/config/scodoc_config.py'
+    _config_text = open(_config_filename).read()
+except:
+    sys.stderr.write('sco_utils: cannot open configuration file %s' %  _config_filename )
+    raise
+
+try:
+    exec( _config_text )
+except:
+    sys.stderr.write('sco_utils: error in configuartion file %s' %  _config_filename )
+    raise
 
 
 SCO_ENCODING = 'iso8859-15' # used by Excel I/O

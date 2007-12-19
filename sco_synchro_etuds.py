@@ -248,7 +248,7 @@ def list_synch(context, sem, anneeapogee=None):
         'etuds_nonapogee' :
         { 'etuds' : set_to_sorted_list(etuds_nonapogee),
           'infos' : { 'id' : 'etuds_nonapogee',
-                      'title' : 'Etudiants ScoDoc inconnus dans Apogée',
+                      'title' : 'Etudiants ScoDoc inconnus dans cette étape Apogée',
                       'title_target' : '',
                       'with_checkbox' : False }
           },
