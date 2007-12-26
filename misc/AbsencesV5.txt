@@ -1,0 +1,135 @@
+
+Idee pour nouveau gestionnaire d'absences "V5"
+
+Buts:
+ - granularité: minute, affiche en unité paramétrable
+ - justifications: idem (intervalles, précision minute)
+ - mémoriser les plages déjà saisies.
+ - mémoriser les types de justificatifs (categorie, description)
+     categorie in (sante, famille, transport, dispense, autre)
+
+Conventions: (heures en heure locale)
+ - journée: de 00:00 à 23:59
+ - demi-journéee: 
+     matin: de 01:00 à 12:59
+     apres midi: de 13:00 à 00:59
+
+ Stockage des heures en TU
+
+
+Unité de compte:
+ - jours, demi-journee
+ - heures : n'a de sens que par référence à un emploi du temps
+
+Affichages (web, bulletins, ...):
+ - paramétrage global: unité de compte (jour, demi, heures)
+ 
+
+
+Relations:
+ absences       (absid,  etudid, datetime_start, datetime_end)
+ presences      (presid, etudid, datetime_start, datetime_end)
+ justifications (justid, etudid, datetime_start, datetime_end, categorie, description)
+
+Objets:
+ Une absence saisie pour un etudiant:
+    AbsEvent( absid, etudid, datetime_start, datetime_end, isJustified )
+ Une plage d'absences:
+    AbsPeriod( etudid, datetime_start, datetime_end, isJustified )
+
+Nouvelle API:
+* Accesseurs:
+ setAbsEvent(etudid, datetime_start, datetime_end)
+   Ajoute une absence, qui peut couvrir une période quelconque (15
+   minutes ou plusieurs jours).
+
+ delAbsEvent(absid)
+    Supprime cette absence
+
+ cancelAbs(etudid, datetime_start, datetime_end)
+   Supprime absences sur la période.
+
+ setPresenceEvent(etudid, datetime_start, datetime_end)
+   Indique que l'étudiant était présent à cette période.
+ delPresence(presid)
+   Supprime cet evenement
+ cancelPres(etudid, datetime_start, datetime_end)
+   Supprime présence sur la période.
+
+ setJustif(etudid, datetime_start, datetime_end, categorie, description )
+ delJustif(justid)
+ cancelJustifs(etudid, datetime_start, datetime_end)
+   Justificatif d'absence pour cette période.
+
+* Comptages:
+ countAbsHalfDays(etudid, datetime_start, datetime_end [,justif=None])
+   Nombre de demi-journées d'absences sur la période.
+   Si justif == None, toutes les absences
+   Si justif True, seulement les absences justifiées
+   Si justif False, seulement les absences non justifiées.
+
+ countAbsHours(etudid, datetime_start, datetime_end [,justif=None])
+   Nombre d'heures d'absences sur la période.
+
+ listAbsHalfDays(etudid, datetime_start, datetime_end [,justif=None])
+   Liste d'absences groupées par demi-journées (s'il existe une
+   absence sur la demi-journée, même de courte durée, elle est considérée).
+   Fonction utile pour afficher le calendrier.
+
+ getAbsEventPeriod(etudid, datetime_start, datetime_end [,justif=None])
+   Liste des absences sur une période (evenement saisis, non fusionnés)
+ getJustifPeriod(etudid, datetime_start, datetime_end)
+ getPresencePeriod(etudid, datetime_start, datetime_end)
+
+--------------
+Interface Utilisateur:
+ Etudiant / Ajouter absence : debut, fin, justification
+                              (afficher si justif, presence, ou absence)
+ Etudiant / Justifier       : debut, fin, categorie, description
+                              (afficher si absent ou present à ce moment)
+ Etudiant / Supprimer absence : afficher liste des absences (events)
+ Etudiant / Annuler absence : afficher calendrier, saisir debut, fin
+
+ Etudiant / Noter présence  : debut, fin
+ Etudiant / Annuler présence:  afficher calendrier, saisir debut, fin
+ Etudiant / Supprimer justificatif : affiche liste des justificatifs
+ 
+ Etudiant / calendrier : indiquer présences (vert), absences (rouge, rose), justifs (bleu)
+
+ Etudiant / liste : liste textuelles des abs, pres, just.
+
+Affichages / étudiant:
+ paramètre global = unité d'affichage: jours, 1/2 journées, heures
+ Calcul nb de jours: countAbsDays
+
+Liste absences date 
++ réduire à heure contrôle
+
+
+countAbsDays:
+ select abs d'etuid entre debut et fin
+ merger celles qui sont sur le même jour
+countAbsHalfDays:
+ merger par demi-journées
+  utiliser heure pivot (matin si fin < 12h30, pm si debut > 12h00)
+
+
+Saisie des absences / groupes:
+ Semestre / groupe / jour semaine => formulaire actuel AM, PM
+   -> heures des plages AM et PM (paramètre global)
+   -> saisie simultannée des présences
+   sur chaque case: défaut rien
+                    click => abs/pres/rien (cycle)
+   tête colonne: présents (ensuite: rien)
+
+ [futur] Semestre / Module / séance (emplois du temps) / groupe 
+   => saisie d'une plage précise
+
+Vérification saisie des présences:
+  pour un semestre: calendrier
+   vert saisie pour tous les etuds (présence ou absence sur cette
+        demi-journée)
+   gris aucune saisie
+   rose saisie partielle (indiquer dans une bulle les groupes non saisis)
+ 
+

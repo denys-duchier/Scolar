@@ -384,7 +384,7 @@ class ZScolar(ObjectManager,
         <b>Rechercher un &eacute;tudiant par nom&nbsp;: </b>
         <input type="text" name="expnom" width=12 value="">
         <input type="submit" value="Chercher">
-        <br>(entrer une partie du nom ou une regexp)
+        <br>(entrer une partie du nom)
         """ ]
         if dest_url:
             H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)

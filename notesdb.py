@@ -1,7 +1,8 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-import pdb,os,sys,psycopg
+import pdb, os, sys, string
+import psycopg
 from notes_log import log
 from sco_exceptions import *
 from types import *
@@ -88,6 +89,12 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         cl.append( 'T0.%s = T%d.%s' % (id_name, i, aux_id) )
         i = i + 1
     cond += ' and '.join(cl)
+    # Traitement des expressions régulières:
+    #  n'autorise pas d'expressions
+    if test == '~':
+        for k in vals.keys():
+            vals[k] = vals[k].translate( string.maketrans('',''), '%*()+=&|[]"`' )
+    
     if vals:
         if aux_tables: # paren
             cond +=  ' AND ( '
