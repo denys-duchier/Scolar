@@ -120,6 +120,35 @@ CREATE TABLE etud_annotations (
     zope_remote_addr text
 );
 
+--  ------------ Nouvelle gestion des absences ------------
+CREATE SEQUENCE abs_idgen;
+CREATE FUNCTION abs_newid( text ) returns text as '
+	select $1 || to_char(  nextval(\'notes_idgen\'), \'FM999999999\' ) 
+	as result;
+	' language SQL;
+
+CREATE TABLE abs_absences (
+    absid text default abs_newid('AB') PRIMARY KEY,
+    etudid character(32),
+    abs_begin timestamp with time zone,
+    abs_end  timestamp with time zone,
+);
+
+CREATE TABLE abs_presences (
+    presid text default abs_newid('PR') PRIMARY KEY,
+    etudid character(32),
+    abs_begin timestamp with time zone,
+    abs_end  timestamp with time zone,
+);
+
+CREATE TABLE abs_justifs (
+    justid text default abs_newid('JU') PRIMARY KEY,
+    etudid character(32),
+    abs_begin timestamp with time zone,
+    abs_end  timestamp with time zone,
+    category text,
+    description text
+);
 
 
 
@@ -203,7 +232,6 @@ CREATE TABLE notes_ue (
 	titre text,
 	type  int DEFAULT 0, -- 0 normal, 1 "sport"
 	ue_code text default notes_newid_fcod('UCOD') NOT NULL
-	-- XXX manque certainement des infos (semestre?)
 );
 
 CREATE TABLE notes_matieres (
@@ -212,7 +240,6 @@ CREATE TABLE notes_matieres (
 	titre text,
 	numero int, -- ordre de presentation
 	UNIQUE(ue_id,titre)
-	-- XXX manque certainement des infos (coef pour gestion absences?)
 );
 
 CREATE TABLE notes_semestres (

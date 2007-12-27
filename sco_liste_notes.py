@@ -51,10 +51,10 @@ def do_evaluation_listenotes(self, REQUEST):
     H = [ self.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) ]
     # groupes
     gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
-    grnams  = ['tous'] + [('td'+x) for x in gr_td ] # noms des checkbox
+    grnams  = [('td'+x) for x in gr_td ] # noms des checkbox
     grnams += [('tp'+x) for x in gr_tp ]
     grnams += [('ta'+x) for x in gr_anglais ]
-    grlabs  = ['tous'] + gr_td + gr_tp + gr_anglais # legendes des boutons
+    grlabs  = gr_td + gr_tp + gr_anglais # legendes des boutons
     descr = [
         ('evaluation_id',
          { 'default' : evaluation_id, 'input_type' : 'hidden' }),
@@ -62,6 +62,7 @@ def do_evaluation_listenotes(self, REQUEST):
          {'input_type' : 'radio', 'default' : 'html', 'allow_null' : False, 
           'allowed_values' : [ 'html', 'pdf', 'xls' ],
           'labels' : ['page HTML', 'fichier PDF', 'fichier tableur' ],
+          'attributes' : ('onclick="document.tf.submit();"',),
           'title' : 'Format' }),
         ('s' ,
          {'input_type' : 'separator',
@@ -84,9 +85,12 @@ def do_evaluation_listenotes(self, REQUEST):
            }),            
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
-                            cancelbutton = 'Annuler', method='GET',
-                            submitlabel = 'OK', cssclass='noprint',
-                            name='tf' )
+                            cancelbutton=None, submitbutton=None,
+                            method='GET',
+                            cssclass='noprint',
+                            name='tf',
+                            is_submitted = True # toujours "soumis" (démarre avec liste complète)
+                            )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1]
     elif tf[0] == -1:
@@ -113,7 +117,7 @@ def do_evaluation_listenotes(self, REQUEST):
             gr_title = 'groupe ' + g[0]
         else:
             gr_title = ''
-        if 'tous' in glist:
+        if not glist:# aucun groupe selectionne: affiche tous les etudiants
             getallstudents = True
             gr_title = 'tous'
             gr_title_filename = 'tous'
@@ -263,7 +267,8 @@ def do_evaluation_listenotes(self, REQUEST):
                 Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + C
             else:
                 Tab = [ '<span class="boldredmsg">aucun groupe sélectionné !</span>' ]
-            return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 
+            # XXX return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 
+            return self.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) + tf[1] + hh + '\n'.join(Tab)
         elif liste_format == 'pdf':
             return 'conversion PDF non implementée !'
         else:

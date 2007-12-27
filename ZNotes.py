@@ -1821,8 +1821,7 @@ class ZNotes(ObjectManager,
     def evaluation_listenotes(self, REQUEST ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('liste_format','html')=='html':
-            header = self.sco_header(REQUEST, cssstyles=['verticalhisto_css'])
-            H = header + "<h2>Affichage des notes d'une évaluation</h2>"
+            H = self.sco_header(REQUEST, cssstyles=['verticalhisto_css']) 
             F = self.sco_footer(REQUEST)
         else:
             H, F = '', ''

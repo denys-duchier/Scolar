@@ -17,18 +17,21 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
                       cancelbutton=None,
                       submitbutton=True,
                       submitbuttonattributes=[],
-                      readonly=False ):
+                      readonly=False,
+                      is_submitted=False ):
     """
     form_url : URL for this form
     initvalues : dict giving default values
     values : dict with all HTML form variables (may start empty)
+    is_submitted:  handle form as if already submitted
+
     Returns (status, HTML form, values)
          status = 0 (html to display),
                   1 (ok, validated values in "values")
                   -1 cancel (if cancelbutton specified)
          HTML form: html string (form to insert in your web page)
          values: None or, when the form is submitted and correctly filled,
-                 a dictionnary with the requeted values.
+                 a dictionnary with the requeted values.                 
     formdescription: sequence [ (field, description), ... ]
         where description is a dict with following (optional) keys:
           default    : default value for this field ('')
@@ -60,7 +63,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
            cancelbutton=cancelbutton,
            submitbutton=submitbutton,
            submitbuttonattributes=submitbuttonattributes,
-           readonly=readonly)
+           readonly=readonly, is_submitted=is_submitted)
     form = t.getform()
     if t.canceled():
         res = -1
@@ -77,7 +80,7 @@ class TF:
                  cancelbutton=None,
                  submitbutton=True,
                  submitbuttonattributes=[],
-                 readonly=False ):
+                 readonly=False, is_submitted=False ):
         self.form_url = form_url
         self.values = values
         self.formdescription = list(formdescription)
@@ -93,9 +96,11 @@ class TF:
         self.submitbuttonattributes = submitbuttonattributes
         self.readonly = readonly
         self.result = None
+        self.is_submitted = is_submitted
     def submitted(self):
         "true if form has been submitted"
-        #return self.values.get('%s_submit'%self.formid,False)
+        if self.is_submitted:
+            return True
         return self.values.get('%s-submitted'%self.formid,False)
     def canceled(self):
         "true if form has been canceled"
