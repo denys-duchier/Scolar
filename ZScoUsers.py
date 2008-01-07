@@ -415,17 +415,18 @@ class ZScoUsers(ObjectManager,
          authuser = REQUEST.AUTHENTICATED_USER
          auth_name = str(authuser)
          authuser_info = self._user_list( args={'user_name':auth_name} )
-         if not user_name:
-             user_name = auth_name
          #
          edit = int(edit)
          H = [self.sco_header(REQUEST)]
          F = self.sco_footer(REQUEST)             
          if edit:
+             if not user_name:
+                 raise ValueError('missing argument: user_name')
              H.append("<h1>Modification d'un utilisateur</h1>")
          else:
              H.append("<h1>Création d'un utilisateur</h1>")
-         # Noms de roles pouvant etre attribues aux nouveaux utilisateurs
+         
+         # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
          # ! NE PAS INCLURE DE ROLES PRIVILEGIES !
          # (normalement: EnsDept, SecrDept)
          valid_roles = [ x.strip()
@@ -435,9 +436,10 @@ class ZScoUsers(ObjectManager,
              initvalues = {}
              submitlabel = 'Créer utilisateur'
          else:
-             # controle d'access
-             initvalues = self._user_list( args={'user_name': user_name})[0]
              submitlabel = 'Modifier utilisateur'
+             initvalues = self._user_list( args={'user_name': user_name})[0]
+             orig_roles = initvalues['roles'].split(',')
+         
          descr = [
              ('edit', {'input_type' : 'hidden', 'default' : edit }),
              ('nom', { 'title' : 'Nom',
@@ -458,7 +460,8 @@ class ZScoUsers(ObjectManager,
                                'size' : 14, 'allow_null' : False }) ]
          else:
              descr += [
-                 ('user_id', {'input_type' : 'hidden', 'default' : initvalues['user_id'] })
+                 ('user_name', {'input_type':'hidden', 'default' : initvalues['user_name'] }),
+                 ('user_id', {'input_type':'hidden', 'default' : initvalues['user_id'] })
                  ]
          descr += [
              ('email', { 'title' : 'e-mail',
@@ -538,7 +541,6 @@ class ZScoUsers(ObjectManager,
                      del vals['user_name']
                  # traitement des roles: ne doit pas affecter les roles
                  # que l'on en controle pas:
-                 orig_roles = initvalues['roles'].split(',')
                  for role in orig_roles:
                      if not role in valid_roles:
                          vals['roles'].append(role)

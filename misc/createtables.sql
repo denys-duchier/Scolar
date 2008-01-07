@@ -123,7 +123,7 @@ CREATE TABLE etud_annotations (
 --  ------------ Nouvelle gestion des absences ------------
 CREATE SEQUENCE abs_idgen;
 CREATE FUNCTION abs_newid( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(\'abs_idgen\'), \'FM999999999\' ) 
 	as result;
 	' language SQL;
 
@@ -131,18 +131,18 @@ CREATE TABLE abs_absences (
     absid text default abs_newid('AB') PRIMARY KEY,
     etudid character(32),
     abs_begin timestamp with time zone,
-    abs_end  timestamp with time zone,
+    abs_end  timestamp with time zone
 );
 
 CREATE TABLE abs_presences (
-    presid text default abs_newid('PR') PRIMARY KEY,
+    absid text default abs_newid('PR') PRIMARY KEY,
     etudid character(32),
     abs_begin timestamp with time zone,
-    abs_end  timestamp with time zone,
+    abs_end  timestamp with time zone
 );
 
 CREATE TABLE abs_justifs (
-    justid text default abs_newid('JU') PRIMARY KEY,
+    absid text default abs_newid('JU') PRIMARY KEY,
     etudid character(32),
     abs_begin timestamp with time zone,
     abs_end  timestamp with time zone,

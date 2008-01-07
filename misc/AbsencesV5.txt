@@ -51,9 +51,9 @@ Nouvelle API:
 
  setPresenceEvent(etudid, datetime_start, datetime_end)
    Indique que l'étudiant était présent à cette période.
- delPresence(presid)
+ delPresenceEvent(presid)
    Supprime cet evenement
- cancelPres(etudid, datetime_start, datetime_end)
+ cancelPresence(etudid, datetime_start, datetime_end)
    Supprime présence sur la période.
 
  setJustif(etudid, datetime_start, datetime_end, categorie, description )
@@ -80,6 +80,10 @@ Nouvelle API:
    Liste des absences sur une période (evenement saisis, non fusionnés)
  getJustifPeriod(etudid, datetime_start, datetime_end)
  getPresencePeriod(etudid, datetime_start, datetime_end)
+
+
+* Caches:
+ justifs[etudid] : intervalles justifies (avec id de la justif)
 
 --------------
 Interface Utilisateur:
