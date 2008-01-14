@@ -450,7 +450,8 @@ def do_evaluation_upload_xls(self, REQUEST):
             if not lines[i]:
                 diag.append('Erreur: format invalide (ligne vide ?)')
                 raise FormatError()
-            if lines[i][0].strip()[0] == '!':
+            f0 = lines[i][0].strip()
+            if f0 and f0[0] == '!':
                 break
             i = i + 1
         if i == n:
