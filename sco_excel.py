@@ -33,6 +33,7 @@ from pyExcelerator import *
 
 from notes_log import log
 from scolog import logdb
+from sco_exceptions import *
 from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html, suppress_accents
 import notesdb
 
@@ -256,7 +257,13 @@ def Excel_feuille_saisie( E, description, lines ):
 
 
 def Excel_to_list( data ): # we may need 'encoding' argument ?
-    P = parse_xls('', SCO_ENCODING, doc=data )
+    try:
+        P = parse_xls('', SCO_ENCODING, doc=data )
+    except:
+        log('Excel_to_list: failure to import document')
+        open('/tmp/last_scodoc_import_failure.xls', 'w').write(data)
+        raise ScoValueError("Fichier illisible: assurez-vous qu'il s'agit bien d'un document Excel !")
+    
     diag = [] # liste de chaines pour former message d'erreur
     # n'utilise que la première feuille
     if len(P) < 1:
