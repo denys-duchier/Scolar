@@ -215,7 +215,8 @@ class ZNotes(ObjectManager,
     formation_list = DTMLFile('dtml/notes/formation_list', globals())
 
     security.declareProtected(ScoView, 'formsemestre_bulletinetud')
-    formsemestre_bulletinetud = DTMLFile('dtml/notes/formsemestre_bulletinetud', globals())
+    #formsemestre_bulletinetud = DTMLFile('dtml/notes/formsemestre_bulletinetud', globals())
+    formsemestre_bulletinetud = sco_bulletins.formsemestre_bulletinetud
     security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
     formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
     security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
@@ -2311,7 +2312,7 @@ class ZNotes(ObjectManager,
         else:
             raise ScoValueError('invalid format : %s' % format )
 
-    security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
+    security.declareProtected(ScoView, 'formsemestre_lettres_individuelles')
     def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
         "Lettres avis jury en PDF"
         sem = self.get_formsemestre(formsemestre_id)
@@ -2343,16 +2344,27 @@ class ZNotes(ObjectManager,
             return sendPDFFile(REQUEST, pdfdoc, filename)
         
     security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
-    def formsemestre_pvjury_pdf(self, formsemestre_id, REQUEST=None):
-        "Generation PV jury en PDF: saisie des paramètres"
+    def formsemestre_pvjury_pdf(self, formsemestre_id, etudid=None, REQUEST=None):
+        """Generation PV jury en PDF: saisie des paramètres
+        Si etudid, PV pour un seul etudiant. Sinon, tout les inscrits au semestre.
+        """
         sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s</h2>' % sem['titreannee'] ]
+        if etudid:
+            etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+            etuddescr = '<a class="discretelink" href="ficheEtud?etudid=%s">%s</a> en' % (etudid,etud['nomprenom'])
+        else:
+            etuddescr = ''
+
+        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s %s</h2>'
+             % (etuddescr, sem['titreannee']) ]
         F = self.sco_footer(REQUEST)
         descr = [
             ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
             ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
             ('formsemestre_id', {'input_type' : 'hidden' }) ]
+        if etudid:
+            descr.append( ('etudid', {'input_type' : 'hidden' }) )
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 cancelbutton = 'Annuler', method='GET',
                                 submitlabel = 'Générer document', 
@@ -2362,8 +2374,12 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
         else:
-            # submit            
-            dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, with_prev=True)
+            # submit
+            if etudid:
+                etudids = [etudid]
+            else:
+                etudids = None
+            dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, etudids=etudids, with_prev=True)
             if tf[2]['showTitle']:
                 tf[2]['showTitle'] = True
             else:

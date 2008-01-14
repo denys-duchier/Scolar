@@ -30,7 +30,7 @@
 
 from notes_table import *
 from ScolarRolesNames import *
-import htmlutils
+import htmlutils, time
 import pdfbulletins
 import sco_pvjury
 
@@ -439,3 +439,100 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     if pv['decisions_ue_descr']:
         dec += ' UE acquises: ' + pv['decisions_ue_descr']
     return inscr + ' ' + dec, dpv
+
+
+# ------ page bulletin (traduite du DTML)
+
+from sco_formsemestre_status import makeMenu
+
+def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None, format='html', version='long', REQUEST=None):
+    "page bulletin de notes"
+    try:
+        etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        etudid = etud['etudid']
+    except:
+        context.log_unknown_etud(REQUEST)
+    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    R = []
+    if format == 'html':
+        R.append( _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
+                                                   formsemestre_id, format, version, REQUEST) )
+    R.append(context.do_formsemestre_bulletinetud(formsemestre_id, etudid,
+                                                  format=format, version=version, REQUEST=REQUEST))
+    if format == 'html':
+        R.append("""<p>Situation actuelle: """)
+        if etud['inscription_formsemestre_id']:
+            R.append("""<a href="formsemestre_status?formsemestre_id=%s">"""
+                     % etud['inscription_formsemestre_id'])
+        R.append(etud['inscriptionstr'] + ' ' + etud['groupetd'])
+        if etud['inscription_formsemestre_id']:
+            R.append("""</a>""")
+        R.append("""</p>""")
+
+    return ''.join(R)
+
+def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
+                                           formsemestre_id=None, format=None, version=None, REQUEST=None):
+    authuser = REQUEST.AUTHENTICATED_USER
+    H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST),
+          """<table class="bull_head"><tr><td>
+          <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>
+          """ % etud,
+          """
+          <form name="f" method="GET">
+          Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">
+          %(titreannee)s</a></span> 
+          <br/>""" % sem,
+          """<table><tr>""",
+          """<td>établi le %s (notes sur 20)</td>""" % time.strftime('%d/%m/%Y à %Hh%M'),
+          """<td><span class="rightjust">
+             <input type="hidden" name="formsemestre_id" value="%s"></input>""" % formsemestre_id,
+          """<input type="hidden" name="etudid" value="%s"></input>""" % etudid,
+          """<input type="hidden" name="format" value="%s"></input>""" % format,
+          """<select name="version" onChange="document.f.submit()" class="noprint">""",
+          ]
+    for (v,e) in ( ('short', 'Version courte'),
+                   ('selectedevals', 'Version intermédiaire'),
+                   ('long', 'Version complète')):
+        if v == version:
+            selected = ' selected'
+        else:
+            selected = ''
+        H.append('<option value="%s"%s>%s</option>' % (v, selected, e))
+    H.append("""</select></td>""")
+    # Menu
+    url = REQUEST.URL0
+    menuBul = [
+        { 'title' : 'Version papier (pdf)',
+          'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s' % (formsemestre_id,etudid,version),
+          },
+        { 'title' : "Envoi par mail à l'étudiant",
+          'url' : url + '?formsemestre_id=%s&etudid=%s&format=mailpdf&version=%s' % (formsemestre_id,etudid,version),
+          'enabled' : etud['email'] # possible slt si on a un mail...
+          },
+        { 'title' : 'Version XML',
+          'url' : url + '?formsemestre_id=%s&etudid=%s&format=xml&version=%s' % (formsemestre_id,etudid,version),
+          },
+        { 'title' : 'Ajouter une appréciation',
+          'url' : 'appreciation_add_form?etudid=%s&formsemestre_id=%s' % (etudid, formsemestre_id),
+          'enabled' : ((authuser == sem['responsable_id'])
+                       or (authuser.has_permission(ScoEtudInscrit,context)))
+          },
+        { 'title' : 'Editer PV jury',
+          'url' : 'formsemestre_pvjury_pdf?formsemestre_id=%s&etudid=%s' % (formsemestre_id,etudid),
+          'enabled' : True
+          }
+        ]
+    
+    H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
+    H.append( makeMenu( 'Autres opérations', menuBul) )
+    H.append("""</div></td></tr></table>""")
+    #
+    H.append("""</form></span></td><td class="bull_photo">
+    <a href="%s/ficheEtud?etudid=%s">%s</a>
+    """ % (context.ScoURL(),etudid, context.etudfoto(foto=etud['foto'],etudid=etudid,fototitle='fiche de '+etud['nom'])))
+    H.append("""</td></tr>
+    </table>
+    """)
+    
+    return ''.join(H)

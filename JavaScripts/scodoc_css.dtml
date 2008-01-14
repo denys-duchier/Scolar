@@ -655,6 +655,9 @@ td.bull_photo {
    text-align: right;
 }
 
+div.bulletin_menubar {
+   padding-left: 25px;
+}
 
 .bull_liensemestre {
    font-weight: bold; 

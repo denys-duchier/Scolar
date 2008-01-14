@@ -53,7 +53,7 @@ def makeMenu( title, items, cssclass='custommenu' ):
             H.append('<li><a href="%(url)s">%(title)s</a></li>' % item)
         else:
             H.append('<li><span class="disabled_menu_item">%(title)s</span></li>' % item)
-    H.append('</ul></ul></div>')
+    H.append('</ul></li></ul></div>')
     return ''.join(H)
 
 
