@@ -290,4 +290,4 @@ def _fmt_etud_set(context, ins):
     for etudid in ins:
         etuds.append(context.getEtudInfo(etudid=etudid,filled=True)[0])
     etuds.sort( lambda x,y: cmp(x['nom'],y['nom']))
-    return ', '.join( [ etud['nomprenom'] for etud in etuds ] )
+    return ', '.join( [ '<a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)ss</a>' % etud for etud in etuds ] )
