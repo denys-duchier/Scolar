@@ -38,3 +38,11 @@ CONFIG.SCOLAR_FONT_SIZE_FOOT = 6
         
 CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE = "Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s sur %(server_url)s"
 
+
+
+#
+#   ------------- Calcul bonus modules optionnels (sport, culture...) -------------
+#
+from bonus_sport import *
+
+CONFIG.compute_bonus = bonus_iutv

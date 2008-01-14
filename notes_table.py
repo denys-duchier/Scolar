@@ -405,8 +405,8 @@ class NotesTable:
         sum_notes = 0.
         sum_coefs = 0.
         nb_missing = 0
-        sum_notes_sport = 0.
-        sum_coef_sport = 0.
+        notes_sport = [] # liste de snotes d esport et culture
+        coef_sport = []
         if with_capitalized_ue:
             ues_status = self.etud_ues_status[etudid] # { ue_id : ... }
         for modimpl in modimpls:
@@ -426,8 +426,8 @@ class NotesTable:
                 elif modimpl['ue']['type'] == UE_SPORT:
                     # la note du module de sport agit directement sur la moyenne gen.
                     try:
-                        sum_notes_sport += val * coef
-                        sum_coef_sport += coef
+                        notes_sport.append(float(val))
+                        coef_sport.append(coef)
                     except:
                         pass
                 else:
@@ -447,12 +447,10 @@ class NotesTable:
             moy = sum_notes / sum_coefs
             # la note de sport n'est prise en compte que sur la moy. gen.
             if not ue_id:
-                if sum_coef_sport > 0:
-                    note_sport = sum_notes_sport / sum_coef_sport
-                    # regle de calcul maison:
-                    if note_sport > 10.:
-                        bonus = (note_sport - 10.) / 20.
-                        moy += bonus
+                if notes_sport:
+                    # regle de calcul maison (configurable, voir bonus_sport.py)
+                    bonus = CONFIG.compute_bonus(notes_sport, coef_sport)
+                    moy += bonus
         else:
             moy = 'NA'
         return moy, nb_notes, nb_missing, sum_coefs
