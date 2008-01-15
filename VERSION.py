@@ -4,6 +4,12 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Janvier 2008</h4>
+<ul>
+<li>Personnalisation des régles de calculs notes d'option (sport, culture)</li>
+<li>Edition de PV de jury individuel</li>
+</ul>
+
 <h4>Novembre 2007</h4>
 <ul>
 <li>Vérification des absences aux évaluations.</li>

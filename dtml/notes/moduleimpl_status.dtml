@@ -11,6 +11,12 @@
 
 <dtml-let group_type_short="group_type[len('groupe'):]">
 
+<dtml-if "group_type_short == 'anglais'">
+  <dtml-call "REQUEST.set( 'group_type_tdtatp', 'ta')">
+<dtml-else>
+  <dtml-call "REQUEST.set( 'group_type_tdtatp', group_type_short)">
+</dtml-if>
+
 <dtml-let canedit="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
 
 
@@ -123,7 +129,7 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
      <td><dtml-if "gr_nb_notes > 0">
 
            <dtml-var gr_moy>
-           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=<dtml-var group_type_short><dtml-var gr>"><dtml-var gr_nb_notes></a> notes<dtml-if "gr_nb_att > 0">, <span class="redboldtext"><dtml-var gr_nb_att> en attente</span></dtml-if>)
+           &nbsp; (<a href="<dtml-var ScoURL>/Notes/evaluation_listenotes?tf-submitted=1&evaluation_id=<dtml-var "eval['evaluation_id']">&liste_format=html&groupes%3Alist=<dtml-var group_type_tdtatp><dtml-var gr>"><dtml-var gr_nb_notes></a> notes<dtml-if "gr_nb_att > 0">, <span class="redboldtext"><dtml-var gr_nb_att> en attente</span></dtml-if>)
 
            <dtml-if "gr in gr_incomplets">[<font color="red"><dtml-if canedit><a class="redlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">&groupes=<dtml-var group_type_short><dtml-var gr>"></dtml-if>incomplet<dtml-if canedit></a></dtml-if></font>]</dtml-if gr_incomplets >
 
