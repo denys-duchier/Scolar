@@ -712,9 +712,9 @@ class ZScoUsers(ObjectManager,
             F = ''
         H.append('<h3>%d utilisateurs %s</h3>' % (len(r), comm))
         H.append('<p>Cliquer sur un nom pour changer son mot de passe</p>')
-        H.append('<table><tr><th>Login</th><th>Nom</th><th>Prénom</th><th>Roles</th><th>Modif. passwd</th><th>email</th><th>Dept.</th></tr>')
+        H.append('<table><tr><th>Login</th><th>Nom</th><th>Prénom</th><th>email</th><th>Dept.</th><th>Roles</th><th>Modif. passwd</th></tr>')
         for u in r:
-            H.append('<tr><td><a class="stdlink" href="userinfo?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td><td>%(email)s</td><td>%(dept)s</td></tr>' % u)
+            H.append('<tr><td><a class="stdlink" href="userinfo?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(email)s</td><td>%(dept)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td></tr>' % u)
         H.append('</table>')
         return '\n'.join(H) + F
 
