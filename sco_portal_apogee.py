@@ -222,11 +222,18 @@ def get_etapes_apogee_dept(context):
         portal_dept_name = context.portal_dept_name
     except:
         log('get_etapes_apogee_dept: no portal_dept_name property')
-        return []
+        portal_dept_name = ''
     infos = get_etapes_apogee(context)
-    if not infos.has_key(portal_dept_name):
+    if portal_dept_name and not infos.has_key(portal_dept_name):
         log("get_etapes_apogee_dept: pas de section '%s' dans la reponse portail" %  portal_dept_name)
         return []
-    etapes = infos[portal_dept_name].items()
+    if portal_dept_name:
+        etapes = infos[portal_dept_name].items()
+    else:
+        # prend toutes les etapes
+        etapes = []
+        for k in infos.keys():
+            etapes += infos[k].items()
+    
     etapes.sort() # tri sur le code etape
     return etapes
