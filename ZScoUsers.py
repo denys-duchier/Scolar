@@ -402,7 +402,7 @@ class ZScoUsers(ObjectManager,
             if str(authuser) == user_name:
                 H.append('<p><b>Se déconnecter: <a class="stdlink" href="acl_users/logout">logout</a></b></p>')
             # Liste des permissions
-            H.append('<div class="permissions">')
+            H.append('<div class="permissions"><p>Permission de cet utilisateur:</p><ul>')
             permissions = self.ac_inherited_permissions(1)
             scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
             thisuser = self.acl_users.getUser(user_name)
@@ -412,8 +412,8 @@ class ZScoUsers(ObjectManager,
                     b = 'oui'
                 else:
                     b = 'non'
-                H.append('%s : %s<br/>' % (permname,b)) 
-            H.append('</div>')
+                H.append('<li>%s : %s<li>/>' % (permname,b)) 
+            H.append('</ul></div>')
         if authuser.has_permission(ScoAdminUsers,self):
             H.append('<p><a class="stdlink" href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
         return '\n'.join(H)+F
