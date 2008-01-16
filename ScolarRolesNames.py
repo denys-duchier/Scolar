@@ -26,6 +26,7 @@ ScoView = 'Sco View'
 ScoEnsView = 'Sco View Ens' # parties visibles par enseignants slt
 
 ScoAdminUsers = 'Sco Administrer utilisateurs'
+ScoSuperAdmin = 'Sco Super Admin'
 
 # Roles:
 # ScoEns, ScoAdmin

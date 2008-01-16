@@ -81,7 +81,7 @@ Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
 <li>seules les notes sont extraites du fichier Excel;</li>
 <li>on peut optionnellement ajouter un commentaire (type "copies corrigées par Dupont", ou "Modif. suite à contestation") dans la case "Commentaire".
 </li>
-<li>le fichier Excel <em>doit impérativement être celui chargé à l'étape 1 pour cette évaluation</em>. Il n'est pas possible d'utiliser un liste d'appel ou autre document Excel téléchargé d'une autre page.</li>
+<li>le fichier Excel <em>doit impérativement être celui chargé à l'étape 1 pour cette évaluation</em>. Il n'est pas possible d'utiliser une liste d'appel ou autre document Excel téléchargé d'une autre page.</li>
 </ul>
 </li>
 </ol>

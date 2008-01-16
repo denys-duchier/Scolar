@@ -56,6 +56,7 @@ from TrivialFormulator import TrivialFormulator, TF
 import string, re
 import time
 import md5, base64
+from sets import Set
 
 # ----------------- password checking
 import crack
@@ -198,6 +199,15 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()
         user_id = self._user_list( args={'user_name':user_name} )[0]['user_id']
         self._userEditor.delete( cnx, user_id )
+
+    def _all_roles(self):
+        "ensemble de tous les roles attribués ou attribuables"
+        roles = Set([x.strip() for x in self.DeptCreatedUsersRoles.split(',') ])
+        cnx = self.GetUsersDBConnexion()
+        L = self._userEditor.list( cnx, {} )
+        for l in L:
+            roles.union( [x.strip() for x in L['roles'].split(',')] )            
+        return roles
 
     security.declareProtected(ScoAdminUsers, 'user_info')
     def user_info(self, user_name, REQUEST):        
@@ -427,10 +437,13 @@ class ZScoUsers(ObjectManager,
              H.append("<h1>Création d'un utilisateur</h1>")
          
          # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
-         # ! NE PAS INCLURE DE ROLES PRIVILEGIES !
+         # N'inclue pas de rôles privilégiés, sauf si l'utilisateur est super admin
          # (normalement: EnsDept, SecrDept)
-         valid_roles = [ x.strip()
-                         for x in self.DeptCreatedUsersRoles.split(',') ]
+         if authuser.has_permission(ScoSuperAdmin,self):
+             valid_roles = list(self._all_roles())
+         else:
+             valid_roles = [ x.strip()
+                             for x in self.DeptCreatedUsersRoles.split(',') ]
          #
          if not edit:
              initvalues = {}
