@@ -206,7 +206,7 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()
         L = self._userEditor.list( cnx, {} )
         for l in L:
-            roles.union( [x.strip() for x in L['roles'].split(',')] )            
+            roles.union( [x.strip() for x in l['roles'].split(',')] )            
         return roles
 
     security.declareProtected(ScoAdminUsers, 'user_info')
@@ -412,7 +412,7 @@ class ZScoUsers(ObjectManager,
                     b = 'oui'
                 else:
                     b = 'non'
-                H.append('<li>%s : %s<li>/>' % (permname,b)) 
+                H.append('<li>%s : %s</li>' % (permname,b)) 
             H.append('</ul></div>')
         if authuser.has_permission(ScoAdminUsers,self):
             H.append('<p><a class="stdlink" href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
