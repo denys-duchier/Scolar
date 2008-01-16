@@ -144,6 +144,15 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         L.append(l)
     #
     L.append( [''] )
+    # Explications des codes
+    codes = sco_codes_parcours.CODES_EXPL.keys()
+    codes.sort()
+    L.append(['Explication des codes'])
+    for code in codes:
+        L.append([ '', code, sco_codes_parcours.CODES_EXPL[code] ])
+    L.append([ '', 'ADM+', 'indique que le semestre a déjà servi à en compenser un autre'])    
+    #
+    L.append( [''] )
     L.append( ['Préparé par %s le %s sur %s pour %s' %
                (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
                 REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )

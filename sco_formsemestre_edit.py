@@ -558,12 +558,18 @@ def formsemestre_change_lock(context, formsemestre_id,
             msg = 'déverrouillage'
         else:
             msg = 'verrouillage'
-            return context.confirmDialog(
-                '<p>Confirmer le %s du semestre ?</p>' % msg,
-                dest_url="", REQUEST=REQUEST,
-                cancel_url="formsemestre_status?formsemestre_id=%s"%formsemestre_id,
-                parameters={'etat' : etat,
-                            'formsemestre_id' : formsemestre_id})        
+        return context.confirmDialog(
+            '<p>Confirmer le %s du semestre ?</p>' % msg,
+            helpmsg = """Les notes d'un semestre verrouillé ne peuvent plus être modifiées.
+            Un semestre verrouillé peut cependant être déverrouillé facilement à tout moment
+            (par son responsable ou un administrateur).
+            <br/>
+            Le programme d'une formation qui a un semestre verrouillé ne peut plus être modifié.
+            """,
+            dest_url="", REQUEST=REQUEST,
+            cancel_url="formsemestre_status?formsemestre_id=%s"%formsemestre_id,
+            parameters={'etat' : etat,
+                        'formsemestre_id' : formsemestre_id})        
     
     if etat not in (0, 1):
         raise ScoValueError('formsemestre_lock: invalid value for etat (%s)'%etat)

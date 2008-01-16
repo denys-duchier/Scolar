@@ -2373,7 +2373,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                       dest_url= "", cancel_url="",
                       parameters={},
                       add_headers = True, # complete page
-                      REQUEST=None ):
+                      REQUEST=None,
+                      helpmsg=None):
         # dialog de confirmation simple"
         parameters['dialog_confirmed'] = 1
         H = [ message,
@@ -2387,6 +2388,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             H.append('<input type="hidden" name="%s" value="%s"/>'
                      % (param, parameters[param]))
         H.append('</form>')
+        if helpmsg:
+            H.append('<p class="help">' + helpmsg + '</p>') 
         if add_headers:
             return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
