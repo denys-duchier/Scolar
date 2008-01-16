@@ -1893,6 +1893,11 @@ class ZNotes(ObjectManager,
     def dummy_ScoEditAllEvals(self):
         "dummy method, necessary to declare permission ScoEditAllEvals"
         return True
+
+    security.declareProtected(ScoSuperAdmin, 'dummy_ScoSuperAdmin')
+    def dummy_ScoSuperAdmin(self):
+        "dummy method, necessary to declare permission ScoSuperAdmin"
+        return True
     
     def _notes_getall(self, evaluation_id):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
