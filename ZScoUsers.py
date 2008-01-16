@@ -435,12 +435,16 @@ class ZScoUsers(ObjectManager,
              H.append("<h1>Modification d'un utilisateur</h1>")
          else:
              H.append("<h1>Création d'un utilisateur</h1>")
+
+         if authuser.has_permission(ScoSuperAdmin,self):
+             H.append("<p>Vous êtes super administrateur !</p>")
          
          # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
          # N'inclue pas de rôles privilégiés, sauf si l'utilisateur est super admin
          # (normalement: EnsDept, SecrDept)
          if authuser.has_permission(ScoSuperAdmin,self):
              valid_roles = list(self._all_roles())
+             log('valid_roles=%s' % valid_roles)
          else:
              valid_roles = [ x.strip()
                              for x in self.DeptCreatedUsersRoles.split(',') ]
@@ -573,7 +577,7 @@ class ZScoUsers(ObjectManager,
                  if not can_choose_dept:
                      vals['dept'] = auth_dept
                  # ok, go
-                 self.create_user(vals, REQUEST=REQUEST)
+                 self.create_user(vals, REQUEST=REQUEST)         
 
     def _check_modif_user(self, edit, user_name='', nom='', prenom='',
                           email='', roles=[]):
