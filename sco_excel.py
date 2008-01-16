@@ -377,6 +377,8 @@ def Excel_feuille_listeappel( sem, groupname, lines,
     li += 1
     ws0.write(li,1, "Enseignant :", style2)
     ws0.write(li,5, "Groupe %s" % groupname, style3)
+    # Avertissement pour ne pas confondre avec listes notes
+    ws0.write(li+1,2, "Ne pas utiliser cette feuille pour saisir les notes !", style1i)
     #
     li += 2
     li += 1

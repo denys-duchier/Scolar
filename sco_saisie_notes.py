@@ -502,14 +502,14 @@ def do_evaluation_upload_xls(self, REQUEST):
                          text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                          url = mod['url'])
 
-            return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
+            return 1, '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
     except FormatError:
         if diag:
             msg = '<ul class="tf-msg"><li class="tf_msg">' + '</li><li class="tf_msg">'.join(diag) + '</li></ul>'
         else:
             msg = '<ul class="tf-msg"><li class="tf_msg">Une erreur est survenue</li></ul>'
-        return msg + '<p>(pas de notes modifiées)</p>'
+        return 0, msg + '<p>(pas de notes modifiées)</p>'
 
 
 def do_evaluation_set_missing(self, evaluation_id, value, REQUEST=None, dialog_confirmed=False):

@@ -29,11 +29,19 @@
 <dtml-elif "nf[0] == -1">
    Annulation
 <dtml-elif "nf[0] == 1">
-   <dtml-var "do_evaluation_upload_xls(REQUEST)">
-   <p>Notes chargées. 
-    <a class="stdlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">
-     Continuer</a>
-   </p>
+   <dtml-let updiag="do_evaluation_upload_xls(REQUEST)">
+    <dtml-if "updiag[0]">
+      <p>Notes chargées. 
+      <a class="stdlink" href="moduleimpl_status?moduleimpl_id=<dtml-var "eval['moduleimpl_id']">">
+      Continuer</a>
+      </p>
+    <dtml-else>
+      <p class="redboldtext">Notes non chargées !</p>
+      <p><a class="stdlink" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">">
+        Reprendre</a>
+      </p>
+    </dtml-if>
+   </dtml-let>
 </dtml-if>
 
 </div>
@@ -66,13 +74,14 @@ Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
     <li>choisir le ou les groupes;</li>
 </ol>
 </li>
-<li>Cadre vert (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel téléchargé à l'étape 1 et dans lequel on a saisi des notes. Remarques:
+<li>Cadre vert (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel <em>téléchargé à l'étape 1</em> et dans lequel on a saisi des notes. Remarques:
 <ul>
 <li>le fichier Excel ne doit pas forcément être complet: on peut ne saisir que quelques notes et répéter l'opération (en téléchargeant un nouveau fichier) plus tard;</li>
 <li>seules les valeurs des notes modifiées sont prises en compte;</li>
 <li>seules les notes sont extraites du fichier Excel;</li>
 <li>on peut optionnellement ajouter un commentaire (type "copies corrigées par Dupont", ou "Modif. suite à contestation") dans la case "Commentaire".
 </li>
+<li>le fichier Excel <em>doit impérativement être celui chargé à l'étape 1 pour cette évaluation</em>. Il n'est pas possible d'utiliser un liste d'appel ou autre document Excel téléchargé d'une autre page.</li>
 </ul>
 </li>
 </ol>
