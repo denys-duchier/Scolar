@@ -206,7 +206,7 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()
         L = self._userEditor.list( cnx, {} )
         for l in L:
-            roles.union( [x.strip() for x in l['roles'].split(',')] )            
+            roles.update( [x.strip() for x in l['roles'].split(',')] )            
         return roles
 
     security.declareProtected(ScoAdminUsers, 'user_info')
@@ -444,7 +444,6 @@ class ZScoUsers(ObjectManager,
          # (normalement: EnsDept, SecrDept)
          if authuser.has_permission(ScoSuperAdmin,self):
              valid_roles = list(self._all_roles())
-             log('valid_roles=%s' % valid_roles)
          else:
              valid_roles = [ x.strip()
                              for x in self.DeptCreatedUsersRoles.split(',') ]
