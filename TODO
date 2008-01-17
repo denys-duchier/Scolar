@@ -74,7 +74,6 @@ FEATURES REQUESTS
     ne presenter que deux semaines (precedente, courante) et un bouton pour afficher
     toute l'année.
   . EtatAbsences : verifier dates (en JS)
-  . Vérifier pas de saisie d'absences dans le FUTUR !
   . Listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
   . absences par demi-journées sur EtatAbsencesDate (? à vérifier)
   . formChoixSemestreGroupe: utilisé par Absences/index_html

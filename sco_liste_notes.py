@@ -41,6 +41,9 @@ from sets import Set
 def do_evaluation_listenotes(self, REQUEST):
     """
     Affichage des notes d'une évaluation
+
+
+    args: evaluation_id 
     """        
     cnx = self.GetDBConnexion()
     evaluation_id = REQUEST.form['evaluation_id']

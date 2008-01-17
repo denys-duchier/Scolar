@@ -285,6 +285,8 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoAbsChange, 'AddAbsence')
     def AddAbsence(self, etudid, jour, matin, estjust, REQUEST):
         "Ajoute une absence dans la bd"
+        if self._isFarFutur(jour):
+            raise ScoValueError('date absence trop loin dans le futur !')
         estjust = _toboolean(estjust)
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
@@ -299,6 +301,8 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoAbsChange, 'AddJustif')
     def AddJustif(self, etudid, jour, matin, REQUEST):
         "Ajoute un justificatif dans la base"
+        if self._isFarFutur(jour):
+            raise ScoValueError('date justificatif trop loin dans le futur !')
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -578,6 +582,16 @@ class ZAbsences(ObjectManager,
 
 
     # --- Misc tools.... ------------------
+
+    def _isFarFutur(self, jour):
+        # check si jour est dans le futur "lointain"
+        # pour autoriser les saisies dans le futur mais pas a plus de 6 mois
+        y,m,d = [int(x) for x in jour.split('-')]
+        j = datetime.date(y,m,d)
+        # 6 mois ~ 182 jours:
+        return j - datetime.date.today() > datetime.timedelta(182) 
+            
+        
     security.declareProtected(ScoView, 'is_work_saturday')
     def is_work_saturday(self):
         "Vrai si le samedi est travaillé"
