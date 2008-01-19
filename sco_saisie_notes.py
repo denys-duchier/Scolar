@@ -135,7 +135,10 @@ def do_evaluation_formnotes(self, REQUEST ):
     """
     authuser = REQUEST.AUTHENTICATED_USER
     authusername = str(authuser)
-    evaluation_id = REQUEST.form['evaluation_id']
+    try:
+        evaluation_id = REQUEST.form['evaluation_id']
+    except:        
+        raise ScoValueError("Formulaire incomplet ! Vous avez sans doute attendu trop longtemps, veuillez vous reconnecter. Si le problème persiste, contacter l'administrateur. Merci.")
     E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     # Check access
     # (admin, respformation, and responsable_id)

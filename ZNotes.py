@@ -2156,7 +2156,10 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         authuser = REQUEST.AUTHENTICATED_USER
         if id: # edit mode
-            app = scolars.appreciations_list( cnx, args={'id':id} )[0]
+            apps = scolars.appreciations_list( cnx, args={'id':id} )
+            if not apps:
+                raise ScoValueError("id d'appreciation invalide !") 
+            app = apps[0]
             formsemestre_id = app['formsemestre_id']
             etudid = app['etudid']
         if REQUEST.form.has_key('edit'):
