@@ -629,6 +629,15 @@ class ZScoUsers(ObjectManager,
              votre liste.
              </p>
              """]
+        help = """<p class="help">
+        Lors de la creation des utilisateurs, les operations suivantes sont effectuees:
+        </p>
+        <ol class="help">
+        <li>verification dees donnees;</li>
+        <li>generation d'un mot de passe aleatoire pour chaque utilisateur;</li>
+        <li>creer chaque utilisateur;</li>
+        <li>envoyer a chaque utilisateur son mot de passe initial par mail.</li>
+        </ol>"""
         H.append("""<ol><li><a class="stdlink" href="import_users_generate_excel_sample">
         Obtenir la feuille excel à remplir</a></li><li>""")
         F = self.sco_footer(REQUEST)
@@ -639,7 +648,7 @@ class ZScoUsers(ObjectManager,
              ('formsemestre_id', {'input_type' : 'hidden' }), 
              ), submitlabel = 'Télécharger')
         if  tf[0] == 0:            
-            return '\n'.join(H) + tf[1] + '</li></ol>' + F
+            return '\n'.join(H) + tf[1] + '</li></ol>' + help + F
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
@@ -650,7 +659,7 @@ class ZScoUsers(ObjectManager,
             H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
-            return '\n'.join(H) + F
+            return '\n'.join(H) + help + F
     
     security.declareProtected(ScoAdminUsers, 'import_users_generate_excel_sample')
     def import_users_generate_excel_sample(self, REQUEST):

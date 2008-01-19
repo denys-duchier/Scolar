@@ -116,6 +116,7 @@ def import_users(U, auth_dept='', context=None):
                 u['dept'] = auth_dept
             #
             context.create_user(u.copy())
+	    created.append(u['user_name'])
     except:
         log('import_users: exception: deleting %s' % str(created))
         # delete created users
