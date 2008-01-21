@@ -58,7 +58,7 @@ file_path = Globals.package_home(globals())
 # ---------------
 
 from notesdb import *
-from notes_log import log
+from notes_log import log, sendAlarm
 from scolog import logdb
 from sco_exceptions import *
 from sco_utils import *
@@ -174,7 +174,7 @@ class ZNotes(ObjectManager,
             log('clearcache: inconsistency !')
             txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
             log(txt)
-            self.sendAlarm(self, subj, txt)
+            sendAlarm(self, subj, txt)
         
     # --------------------------------------------------------------------
     #
@@ -1923,7 +1923,7 @@ class ZNotes(ObjectManager,
     def do_moduleimpl_moyennes(self,moduleimpl_id):
         """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
         à ce module, la liste des evaluations "valides" (toutes notes entrées
-        ou en attente), et att (vrai s'il y a des note sen attente dans ce module).
+        ou en attente), et att (vrai s'il y a des notes en attente dans ce module).
         La moyenne est calculée en utilisant les coefs des évaluations.
         Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
         Les notes ABS sont remplacées par des zéros.
@@ -1933,7 +1933,10 @@ class ZNotes(ObjectManager,
         Le résultat est une note sur 20
         """
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
-        etudids = self.do_moduleimpl_listeetuds(moduleimpl_id)
+        etudids = self.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
+        # Inscrits au semestre (pour traiter les demissions):
+        inssem_set = Set( [x['etudid'] for x in
+                           self.do_formsemestre_inscription_list(args={ 'formsemestre_id' : M['formsemestre_id'], 'etat' : 'I' })])
         evals = self.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
         attente = False
         # recupere les notes de toutes les evaluations
@@ -1941,8 +1944,9 @@ class ZNotes(ObjectManager,
             e['nb_inscrits'] = len(
                 self.do_evaluation_listeetuds_groups(e['evaluation_id'],
                                                      getallstudents=True))
-            NotesDB = self._notes_getall(e['evaluation_id'])
-            notes = [ x['value'] for x in NotesDB.values() ]
+            NotesDB = self._notes_getall(e['evaluation_id']) # toutes, y compris demissions
+            # restreint aux étudiants encore inscrits à ce module            
+            notes = [ NotesDB[etudid]['value'] for etudid in NotesDB if etudid in inssem_set ]
             e['nb_notes'] = len(notes)
             e['nb_abs'] = len( [ x for x in notes if x is None ] )
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
