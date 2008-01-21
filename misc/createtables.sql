@@ -292,6 +292,16 @@ CREATE TABLE notes_formsemestre (
 	etape_apo text -- code etape Apogée
 );
 
+-- Coef des UE capitalisees arrivant dans ce semestre:
+CREATE TABLE notes_formsemestre_uecoef (
+	formsemestre_uecoef_id text default notes_newid('SEM') PRIMARY KEY,
+	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+	ue_id  text REFERENCES notes_ue(ue_id),
+	coefficient real NOT NULL,
+	UNIQUE(formsemestre_id, ue_id)
+);
+
+
 -- Mise en page bulletins semestre
 CREATE TABLE notes_formsemestre_pagebulletin (
 	formsemestre_id text PRIMARY KEY REFERENCES notes_formsemestre(formsemestre_id),

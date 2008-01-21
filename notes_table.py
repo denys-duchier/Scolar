@@ -37,7 +37,7 @@ from sco_exceptions import *
 from notesdb import *
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
 from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
-
+from sco_formsemestre_edit import formsemestre_uecoef_list
 
 NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
 NOTES_MIN = 0.       # valeur minimale admise pour une note
@@ -150,7 +150,7 @@ class NotesTable:
         self._ues = uedict.values()
         self._ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
         T = []
-        self.comp_ue_coefs()
+        self.comp_ue_coefs(cnx)
         self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)
         self.moy_ue = {} # ue_id : { etudid : moy ue }
         self._etud_moycoef_ue = {} # { etudid : { ue_id : (moy, coef) } }
@@ -273,7 +273,7 @@ class NotesTable:
     def get_ues(self, filter_sport=False, filter_empty=False, etudid=None):
         """liste des ue, ordonnée par numero.
         Si filter_empty, retire les UE où l'etudiant n'a pas de notes.
-        Si filter_sport, retire les UE de tupe SPORT
+        Si filter_sport, retire les UE de type SPORT
         """
         if not filter_sport and not filter_empty:
             return self._ues
@@ -566,21 +566,30 @@ class NotesTable:
             for ue_capital in capital:
                 self.ue_capitalisees[etudid].append(ue_capital)
     
-    def comp_ue_coefs(self):
+    def comp_ue_coefs(self, cnx):
         """Les coefficients sont attribués aux modules, pas aux UE.
         Cependant, pour insérer une UE capitalisée dans un autre semestre,
         il faut lui attribuer un coefficient.
         Le coef. d'une UE est ici calculé comme la somme des coefs des
-        modules qui la composent dans le programme.
+        modules qui la composent dans le programme,
+        sauf si un coefficient a été explicitement déclaré dans
+        la table notes_formsemestre_uecoef.
+        
         Calcule l'attribut: ue_coefs = { ue_id : coef }
         """
         self.ue_coefs = {}
         for ue_id in [ ue['ue_id'] for ue in self.get_ues()]:
-            self.ue_coefs[ue_id] = sum(
-                [ mod['module']['coefficient']
-                  for mod in self._modimpls
-                  if mod['module']['ue_id'] == ue_id ] )
-
+            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : self.formsemestre_id, 'ue_id' : ue_id })
+            if not coefs:
+                # calcul automatique du coef en sommant les modules du ce semestre:
+                self.ue_coefs[ue_id] = sum(
+                    [ mod['module']['coefficient']
+                      for mod in self._modimpls
+                      if mod['module']['ue_id'] == ue_id ] )
+            else:
+                # utilisation du coef manuel
+                self.ue_coefs[ue_id] = coefs[0]['coefficient']
+                
     def comp_etud_ues_status(self, etudid):
         """Calcule des moyennes d'UE "capitalisees".
         Prend en compte dans chaque UE la moyenne la plus favorable.

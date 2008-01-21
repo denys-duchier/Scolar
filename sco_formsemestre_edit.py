@@ -134,7 +134,10 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                         'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' })
         )
     if edit:
-        formtit = "<h3>Sélectionner les modules, leurs responsables et les étudiants à inscrire:</h3>"
+        formtit = """
+        <p><a href="formsemestre_edit_uecoefs?formsemestre_id=%s">Modifier les coefficients des UE capitalisées</a></p>
+        <h3>Sélectionner les modules, leurs responsables et les étudiants à inscrire:</h3>
+        """ % formsemestre_id
     else:
         formtit = """<h3>Sélectionner les modules et leurs responsables</h3><p class="help">Si vous avez des parcours (options), ne sélectionnez que les modules du tronc commun.</p>"""
 
@@ -578,5 +581,121 @@ def formsemestre_change_lock(context, formsemestre_id,
     context.do_formsemestre_edit(args)
     if REQUEST:
         REQUEST.RESPONSE.redirect("formsemestre_status?formsemestre_id=%s"%formsemestre_id)
-    
 
+
+# ----------------------  Coefs des UE
+
+
+_formsemestre_uecoef_editor = EditableTable(
+    'notes_formsemestre_uecoef',
+    'formsemestre_uecoef_id',
+    ('formsemestre_uecoef_id', 'formsemestre_id', 'ue_id', 'coefficient')
+    )
+
+formsemestre_uecoef_create = _formsemestre_uecoef_editor.create
+formsemestre_uecoef_edit   = _formsemestre_uecoef_editor.edit
+formsemestre_uecoef_list   = _formsemestre_uecoef_editor.list
+formsemestre_uecoef_delete = _formsemestre_uecoef_editor.delete
+
+def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
+    """Changement manuel des coefficients des UE capitalisées.
+    """
+    ok, err = context._check_access_diretud(formsemestre_id,REQUEST)
+    if not ok:
+        return err
+    sem = context.get_formsemestre(formsemestre_id)
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    header = context.sco_header(page_title="Modification des coefficients d'UE capitalisées",
+                                REQUEST=REQUEST)
+    footer = context.sco_footer(REQUEST)
+    help = """<p class="help">
+    Seuls les modules ont un coefficient. Cependant, il est nécessaire d'affecter un coefficient aux UE capitalisée pour pouvoir les prendre en compte dans la moyenne générale.
+    </p>
+    <p class="help">ScoDoc calcule normalement le coefficient d'une UE comme la somme des
+    coefficients des modules qui la composent.
+    </p>
+    <p class="help">Dans certains cas, on n'a pas les mêmes modules dans le semestre antérieur
+    (capitalisé) et dans le semestre courant, et le coefficient d'UE est alors variable.
+    Il est alors possible de forcer la valeur du coefficient d'UE.
+    </p>
+    <p class="help">
+    Indiquez "auto" (ou laisser vide) pour que ScoDoc calcule automatiquement le coefficient,
+    ou bien entrez une valeur (nombre réel).
+    </p>
+    """
+    H = [ header,
+          context.formsemestre_status_head(context, REQUEST=REQUEST,
+                                           formsemestre_id=formsemestre_id ),
+          """<h2>Coefficients des UE du semestre
+          <a href="formsemestre_status?formsemestre_id=%s">%s</a>
+          (formation %s)</h2>"""
+          % (formsemestre_id, sem['titreannee'], F['acronyme']),
+          help
+          ]
+    #
+    cnx = context.GetDBConnexion()
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    ues = nt.get_ues()
+    for ue in ues:
+        ue['coef_auto'] = nt.ue_coefs[ue['ue_id']]
+    initvalues = {
+        'formsemestre_id' : formsemestre_id
+        }
+    form = [
+        ('formsemestre_id', { 'input_type' : 'hidden' }),
+        ]
+    for ue in ues:
+        coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id']})
+        if coefs:
+            initvalues['ue_' + ue['ue_id']] = coefs[0]['coefficient']
+        else:
+            initvalues['ue_' + ue['ue_id']] = 'auto'
+        form.append( ('ue_' + ue['ue_id'], { 'size': 10, 'title' : ue['acronyme'],
+                                             'explanation' : 'coef. actuel = %s' % ue['coef_auto']
+                                             } ) )
+
+    
+    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
+                            submitlabel = 'Changer les coefficients',
+                            cancelbutton = 'Annuler',
+                            initvalues = initvalues)
+    if tf[0] == 0:
+        return '\n'.join(H) + tf[1] + footer
+    elif tf[0] == -1:
+        return '<h4>annulation</h4>' # XXX
+    else:
+        # change values
+        # 1- supprime les coef qui ne sont plus forcés
+        # 2- modifie ou cree les coefs
+        ue_deleted = []
+        ue_modified=[]
+        for ue in ues:
+            ue_id = ue['ue_id']
+            val = tf[2]['ue_' + ue_id]
+            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id})
+            try:
+                val = float(val)
+                # modifie ou cree le coef
+                if coefs:
+                    formsemestre_uecoef_edit(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id,
+                                                        'coefficient' : val})
+                else:
+                    formsemestre_uecoef_create(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id,
+                                                          'coefficient' : val})
+                ue['coef'] = val
+                ue_modified.append(ue)
+            except:
+                # pas de valeur: supprime
+                ue_deleted.append(ue)
+                if coefs:
+                    formsemestre_uecoef_delete(cnx, coefs[0]['formsemestre_uecoef_id'])
+        z = [ """<h3>Modification effectuées</h3><h4>Coefs modifiés dans les UE:<h4><ul>""" ]
+        for ue in ue_modified:
+            z.append('<li>%(acronyme)s : %(coef)s</li>' % ue )
+        z.append("""</ul><h4>Coefs supprimés dans les UE:<h4><ul>""")
+        for ue in ue_deleted:
+            z.append('<li>%(acronyme)s</li>' % ue )
+        z.append("""</ul>""")
+        return header + '\n'.join(z) + footer
+        
+    

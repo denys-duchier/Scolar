@@ -174,7 +174,7 @@ class ZNotes(ObjectManager,
             log('clearcache: inconsistency !')
             txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
             log(txt)
-            sendAlarm(self, subj, txt)
+            self.sendAlarm(self, subj, txt)
         
     # --------------------------------------------------------------------
     #
@@ -772,6 +772,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'do_formsemestre_createwithmodules')
     do_formsemestre_createwithmodules = sco_formsemestre_edit.do_formsemestre_createwithmodules
+
+    security.declareProtected(ScoView,'formsemestre_edit_uecoefs')
+    formsemestre_edit_uecoefs = sco_formsemestre_edit.formsemestre_edit_uecoefs
 
     security.declareProtected(ScoView,'formsemestre_edit_options')
     formsemestre_edit_options = sco_formsemestre_edit.formsemestre_edit_options
