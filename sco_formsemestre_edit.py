@@ -696,6 +696,9 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
         for ue in ue_deleted:
             z.append('<li>%(acronyme)s</li>' % ue )
         z.append("""</ul>""")
+
+        context._inval_cache(formsemestre_id=formsemestre_id)
+        
         return header + '\n'.join(z) + footer
         
     
