@@ -36,7 +36,11 @@
                     (semestre <dtml-var "Mod['semestre_id']">) (<dtml-var "int(Mod['heures_cours'])">/<dtml-var "int(Mod['heures_td'])">/<dtml-var "int(Mod['heures_tp'])">, coef. <dtml-var "Mod['coefficient']">)
                     <dtml-if "_.SecurityGetUser().has_permission('Sco Change Formation',this())">
                      <a class="stdlink" href="module_edit?module_id=<dtml-var "Mod['module_id']">">modifier</a>
-                     <a class="stdlink" href="module_delete?module_id=<dtml-var "Mod['module_id']">">supprimer ce module</a>
+		     <dtml-if "module_count_moduleimpls(Mod['module_id']) > 0">
+                      <a class="stdlink" href="module_delete?module_id=<dtml-var "Mod['module_id']">">supprimer ce module</a>
+                     <dtml-else>
+                      (utilisé)
+                     </dtml-if>
                     </dtml-if>
              </li>
            </dtml-let>

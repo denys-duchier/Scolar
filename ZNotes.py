@@ -619,6 +619,19 @@ class ZNotes(ObjectManager,
             args={ 'formation_id' : formation_id,
                    'etat' : '0'} )
         return len(sems) > 0
+
+    security.declareProtected(ScoView, 'formation_count_sems')
+    def formation_count_sems(self, formation_id):
+        "Number of formsemestre in this formation (locked or not)"
+        sems = self.do_formsemestre_list(
+            args={ 'formation_id' : formation_id } )
+        return len(sems)
+
+    security.declareProtected(ScoView, 'module_count_moduleimpls')
+    def module_count_moduleimpls(self, module_id):
+        "Number of moduleimpls using this module"
+        mods = self.do_moduleimpl_list({'module_id' : module_id })
+        return len(mods)
     
     # --- Semestres de formation
     _formsemestreEditor = EditableTable(
