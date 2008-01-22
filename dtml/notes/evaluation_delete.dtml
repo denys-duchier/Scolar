@@ -20,7 +20,7 @@
  <dtml-var "tf[1]">
 <dtml-else>
  <dtml-if "tf[0] == -1">
-    <dtml-call "RESPONSE.redirect( URL1 )">
+    <dtml-call "RESPONSE.redirect( ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+F['moduleimpl_id'] )">
  <dtml-else>
     <dtml-call "do_evaluation_delete( REQUEST, F['evaluation_id'] )">
     <p>OK, évaluation supprimée.</p>

@@ -573,6 +573,17 @@ class ZNotes(ObjectManager,
         mod = self.do_module_list({ 'module_id' : oid})[0]
         if self.formation_has_locked_sems(mod['formation_id']):
             raise ScoLockedFormError()
+
+        # S'il y a des moduleimpls, on ne peut pas detruire le module !
+        mods = self.do_moduleimpl_list({'module_id' : oid })
+        if mods:
+            err_page = self.confirmDialog(
+                message="""<h3>Destruction du module impossible car il est utilisé dans des semestres existants !</h3>""",
+                helpmsg="""Il faut d'abord supprimer le semestre. Mais il est peut être préférable de laisser ce programme intact et d'en créer une nouvelle version pour la modifier.""",
+                dest_url='ue_list',
+                parameters = { 'formation_id' : mod['formation_id'] },
+                REQUEST=REQUEST )
+            raise ScoGenError(err_page)
         # delete
         cnx = self.GetDBConnexion()
         self._moduleEditor.delete(cnx, oid)
