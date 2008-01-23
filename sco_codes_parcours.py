@@ -42,7 +42,7 @@ NAR='NAR'
 
 def code_semestre_validant(code):
     "Vrai si ce CODE entraine la validation du semestre"
-    return code[:2] == 'AD'
+    return code and code[:2] == 'AD'
 
 # codes actions
 REDOANNEE = 'REDOANNEE'

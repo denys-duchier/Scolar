@@ -142,9 +142,11 @@ class SituationEtudParcours:
             return ''
         s = self.sem['semestre_id'] # numero semestre courant
         if s < 0: # formation sans semestres (eg licence)
-            s = 1
+            next = 1
+        else:
+            next = self._get_next_semestre_id()
         if self.semestre_non_terminal:
-            passage = 'Passe en S%s' % (s + 1)
+            passage = 'Passe en S%s' % next
         else:
             passage = 'Formation terminée'
         if devenir == NEXT:
@@ -261,17 +263,17 @@ class SituationEtudParcours:
         "Liste des numeros de semestres autorises avec ce devenir"
         s = self.sem['semestre_id']
         if devenir == NEXT:
-            ids = [s+1]
+            ids = [self._get_next_semestre_id()]
         elif devenir == REDOANNEE:
             ids = [s-1]
         elif devenir == REDOSEM:
             ids = [s]
         elif devenir == RA_OR_NEXT:
-            ids = [s-1,s+1]
+            ids = [s-1,self._get_next_semestre_id()]
         elif devenir == RA_OR_RS:
             ids = [s-1, s]
         elif devenir == RS_OR_NEXT:
-            ids = [s, s+1]
+            ids = [s, self._get_next_semestre_id()]
         else:
             ids = [] # reoriente ou autre: pas de next !
         # clip [1--4]
@@ -280,6 +282,25 @@ class SituationEtudParcours:
             if idx > 0 and idx <= DUT_NB_SEM:
                 r.append(idx)
         return r
+
+    def _get_next_semestre_id(self):
+        """Indice du semestre suivant non validé.
+        S'il n'y en a pas, ramène DUT_NB_SEM+1
+        """
+        s = self.sem['semestre_id']
+        validated = True
+        while validated and (s < DUT_NB_SEM):
+            s = s + 1
+            # semestre s validé ?
+            validated = False
+            for sem in self.sems:
+                if sem['formation_code'] == self.formation['formation_code'] \
+                   and sem['semestre_id'] == s:
+                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
+                    decision = nt.get_etud_decision_sem(self.etudid)
+                    if decision and code_semestre_validant(decision['code']):
+                        validated = True
+        return s
         
     def valide_decision(self, decision, REQUEST):
         """Enregistre la decision (instance de DecisionSem)

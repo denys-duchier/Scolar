@@ -91,7 +91,10 @@ import sco_groupes, sco_trombino
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
 
-import Products.ZPsycopgDA.DA
+try:
+    import Products.ZPsycopgDA.DA as ZopeDA
+except:
+    import ZPsycopgDA.DA as ZopeDA # interp.py
 
 # XML generation package (apt-get install jaxml)
 import jaxml
@@ -145,7 +148,7 @@ class ZScolar(ObjectManager,
         
         # --- add DB connector
         id = 'DB'
-        da = Products.ZPsycopgDA.DA.Connection(
+        da = ZopeDA.Connection(
             id, 'DB connector', db_cnx_string, False,
             check=1, tilevel=2, encoding='iso8859-15')
         self._setObject(id, da)
