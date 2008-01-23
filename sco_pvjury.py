@@ -204,7 +204,7 @@ def pvjury_table(znotes, dpv):
     else:
         id_cur = ''
 
-    titles = ['Nom']
+    titles = ['etudid', 'Nom']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         titles += ['Décision S%s' % id_prev]
@@ -214,7 +214,8 @@ def pvjury_table(znotes, dpv):
     lines = []
     for e in dpv['decisions']:
         if dpv['has_prev']:
-            lines.append( (znotes.nomprenom(e['identite']),
+            lines.append( (e['identite']['etudid'],
+                           znotes.nomprenom(e['identite']),
                            descr_decision_sem_abbrev(znotes, None, e['prev_decision_sem']),
                            descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
                            e['decisions_ue_descr'],
@@ -223,7 +224,8 @@ def pvjury_table(znotes, dpv):
                            )
                           )
         else:
-            lines.append( (znotes.nomprenom(e['identite']),
+            lines.append( (e['identite']['etudid'],
+                           znotes.nomprenom(e['identite']),
                            descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
                            e['decisions_ue_descr'],
                            e['autorisations_descr'],
