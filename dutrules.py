@@ -61,6 +61,8 @@ DUTRules = [ DUTRule(p, c) for (p,c) in (
   (AJ, (), AJ, REDOANNEE, None, 'Echec de 2 semestres, redouble année') ),
 ( ((AJ,), False, ALL, ALL, ALL, ALL),
   (NAR, (), None, REO, None, 'Echec, pas assidu: réorientation') ),
+( ((AJ,), True, True, True, ALL, ALL),
+  (ADM, (ADM,), None, REDOANNEE, None, 'Valide, mais manque le précédent: redouble') ),
 # Décisions du jury:
 ( ((ALL,), True, False, ALL, ALL, ALL),
   (ADJ, (ADM,CMP), None, NEXT, None, 'Le jury décide de valider') ),

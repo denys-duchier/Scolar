@@ -33,7 +33,7 @@ ATB	no	*	*	*	oui	ATJ	AJ	ADJ	NEXT		Le jury valide le précédent, mais probleme ass
 AJ	ok	no	*	*	*	AJ		AJ	REDOANNEE		Echec de 2 semestres, redouble année
 AJ	ok	ok	no	*	*	AJ		AJ	REDOANNEE		Echec de 2 semestres, redouble année
 AJ	no	*	*	*	*	NAR			REO		Echec, pas assidu: réorientation
-											
+AJ	ok	ok	ok	*	*	ADM	ADM		REDOANNEE		Valide, mais manque le précédent: redouble
 											
 # Décisions du jury:											
 *	ok	no	*	*	*	ADJ	ADM,CMP		NEXT		Le jury décide de valider

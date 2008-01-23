@@ -234,7 +234,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_absence_lst'):
         REQUEST.form['gestion_absence_lst'] = []
 
-    initvalues['bul_show_decision'] = initvalues.get('bul_show_decision','1')
+    initvalues['bul_show_decision'] = initvalues.get('bul_show_decision','0')
     if initvalues['bul_show_decision'] == '1':
         initvalues['bul_show_decision_lst'] = ['X']
     else:
