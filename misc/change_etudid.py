@@ -23,8 +23,8 @@ import pdb,os,sys,psycopg
 
 DBCNXSTRING = 'host=localhost user=XXX dbname=XXX password=XXX'
 
-OLD_ETUDID = 'GEAEID7308'
-NEW_ETUDID = '10501711'
+OLD_ETUDID = 'EID1512'
+NEW_ETUDID = '10500686'
 
 cnx = psycopg.connect( DBCNXSTRING )
 

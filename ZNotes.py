@@ -2349,7 +2349,7 @@ class ZNotes(ObjectManager,
             return sco_pvjury.pvjury_html(self, dpv, REQUEST)
         elif format=='xls':
             xls = sco_pvjury.pvjury_excel(self, dpv)
-            filename = 'PV ' + dpv['formsemestre']['titreannee']
+            filename = 'PV ' + dpv['formsemestre']['titreannee'] + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
         else:
             raise ScoValueError('invalid format : %s' % format )

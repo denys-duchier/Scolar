@@ -210,6 +210,10 @@ class SituationEtudParcours:
         self.ues_status = {} # ue_id : status
         for ue_id in ue_ids:
             self.ues_status[ue_id] = self.nt.get_etud_ue_status(self.etudid, ue_id)
+
+    def could_be_compensated(self):
+        "true si ce semestre pourrait etre compensé par un autre (barres UE > 8)"
+        return (self.nb_ues_under == 0)
         
     def _search_prev(self):
         """Recherche semestre 'precedent'.
@@ -231,7 +235,9 @@ class SituationEtudParcours:
                 % (formsemestre_id,etudid) )            
             return None # pas de semestre courant !!!
         # Cherche semestre antérieur de même formation (code) et semestre_id precedent
-        i = icur - 1 # part du courant, remonte vers le passé
+        # 
+        #i = icur - 1 # part du courant, remonte vers le passé
+        i = len(self.sems) - 1 # par du dernier, remonte vers le passé
         prev = None
         while i >= 0:
             if self.sems[i]['formation_code'] == self.formation['formation_code'] \
@@ -283,14 +289,14 @@ class SituationEtudParcours:
         # -- check
         if decision.code_etat == 'ADC':
             fsid = decision.formsemestre_id_utilise_pour_compenser
-            assert fsid
-            ok = False
-            for sem in self.sems:
-                if sem['formsemestre_id'] == fsid and sem['can_compensate']:
-                    ok = True
-                    break
-            if not ok:
-                raise ScoValueError('valide_decision: compensation impossible')
+            if fsid:
+                ok = False
+                for sem in self.sems:
+                    if sem['formsemestre_id'] == fsid and sem['can_compensate']:
+                        ok = True
+                        break
+                if not ok:
+                    raise ScoValueError('valide_decision: compensation impossible')
         # -- supprime decision precedente et enregistre decision
         to_invalidate = []
         if self.nt.get_etud_decision_sem(self.etudid):

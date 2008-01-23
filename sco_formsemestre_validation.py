@@ -223,6 +223,8 @@ def formsemestre_validation_etud_manu(
     # Si code ADC, extrait le semestre utilisé:
     if code_etat[:3] == 'ADC':
         formsemestre_id_utilise_pour_compenser = code_etat.split('_')[1]
+        if not formsemestre_id_utilise_pour_compenser:
+            formsemestre_id_utilise_pour_compenser = None # compense avec semestre hors ScoDoc
         code_etat = 'ADC'
     else:
         formsemestre_id_utilise_pour_compenser = None
@@ -434,11 +436,15 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
             # traitement spécial pour ADC (compensation)
             # ne propose que les semestres avec lesquels on peut compenser
             # le code transmis est ADC_formsemestre_id
+            # on propose aussi une compensation sans utiliser de semestre, pour les cas ou le semestre
+            # précédent n'est pas géré dans ScoDoc (code ADC_)
             #log(str(Se.sems))
             for sem in Se.sems:
                 if sem['can_compensate']:
                     H.append('<option value="%s_%s">Admis par compensation avec S%s (%s)</option>' %
                              (cod, sem['formsemestre_id'], sem['semestre_id'], sem['date_debut']) )
+            if Se.could_be_compensated():
+                H.append('<option value="ADC_">Admis par compensation (avec un semestre hors ScoDoc)</option>' )
     H.append('</select></td></tr>')
 
     # Choix code semestre precedent:

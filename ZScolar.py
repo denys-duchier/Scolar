@@ -1868,7 +1868,7 @@ function tweakmenu( gname ) {
             infos = []
         else:
             prenom = REQUEST.form.get('prenom','')
-            if not prenom:
+            if REQUEST.form.get('tf-submitted', False) and not prenom:
                 prenom = initvalues.get('prenom','')
             infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
         if infos:
