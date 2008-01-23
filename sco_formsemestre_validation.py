@@ -518,8 +518,10 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+        ins = znotes.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
+        
         # Conditions pour validation automatique:
-        if ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
+        if ins['etat'] == 'I' and ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
              and Se.barre_moy_ok and Se.barres_ue_ok ):
             # check: s'il existe une decision ou autorisation et quelle sont differentes,
             # warning (et ne fait rien)
