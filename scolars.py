@@ -151,10 +151,42 @@ _identiteEditor = EditableTable(
 identite_delete = _identiteEditor.delete
 identite_list   = _identiteEditor.list
 
-def identite_edit(cnx, args, context=None):
+
+def _check_duplicate_code(cnx, args, code_name, context, REQUEST=None):
+    etudid = args.get('etudid', None)        
+    if args.get(code_name, None):
+        etuds = identite_list(cnx, {code_name : args[code_name]})
+        log('etuds=%s'%etuds)
+        if len(etuds) and (not etudid or (len(etuds) > 1 or etuds[0]['etudid'] != etudid)):
+            listh = [] # liste des doubles
+            for e in etuds:
+                listh.append( """Autre étudiant: <a href="ficheEtud?etudid=%(etudid)s">%(nom)s %(prenom)s</a>""" % e )
+            if etudid:
+                OK = 'retour à la fiche étudiant'
+                dest_url='ficheEtud'
+                parameters = { 'etudid' : etudid }
+            else:
+                if args.has_key('tf-submitted'):
+                    del args['tf-submitted']
+                    OK = 'Continuer'
+                    dest_url = 'etudident_create_form'
+                    parameters = args
+            if context:
+                err_page = context.confirmDialog(
+                    message="""<h3>Code étudiant (%s) dupliqué !</h3>""" % code_name,
+                    helpmsg="""Le %s %s est déjà utilisé: un seul étudiant peut avoir ce code. Vérifier votre valeur ou supprimer l'autre étudiant avec cette valeur.<p><ul><li>""" % (code_name, args[code_name])+ '</li><li>'.join(listh) + '</li></ul><p>',
+                    OK=OK, dest_url=dest_url, parameters=parameters,
+                    REQUEST=REQUEST )
+            else:
+                err_page = """<h3>Code étudiant (%s) dupliqué !</h3>""" % code_name
+            raise ScoGenError(err_page)
+
+def identite_edit(cnx, args, context=None, REQUEST=None):
     """Modifie l'identite d'un étudiant.
     Si context et notification et difference, envoie message notification.
     """
+    _check_duplicate_code(cnx, args, 'code_nip', context, REQUEST)
+    _check_duplicate_code(cnx, args, 'code_ine', context, REQUEST)
     notify_to = None
     if context:
         try:
@@ -174,8 +206,11 @@ def identite_edit(cnx, args, context=None):
         notify_etud_change(context, notify_to, etud, before, after,
                            'Modification identite %(nomprenom)s' % etud)
 
-def identite_create( cnx, args ):
+def identite_create( cnx, args, context=None, REQUEST=None ):
     "check unique etudid, then create"
+    _check_duplicate_code(cnx, args, 'code_nip', context, REQUEST)
+    _check_duplicate_code(cnx, args, 'code_ine', context, REQUEST)
+
     if args.has_key('etudid'):
         etudid = args['etudid']
         r = identite_list(cnx, {'etudid' : etudid})
@@ -290,8 +325,8 @@ admission_edit   = _admissionEditor.edit
 
 # Edition simultanee de identite et admission
 class EtudIdentEditor:
-    def create(self, cnx, args ):
-        etudid = identite_create( cnx, args )        
+    def create(self, cnx, args, context=None, REQUEST=None ):
+        etudid = identite_create( cnx, args, context, REQUEST )        
         args['etudid'] = etudid
         admission_create( cnx, args )
         return etudid
@@ -316,8 +351,8 @@ class EtudIdentEditor:
         # tri par nom
         res.sort( lambda x,y: cmp(x['nom'],y['nom']) )
         return res
-    def edit(self, cnx, args, context=None):
-        identite_edit( cnx, args, context=context )
+    def edit(self, cnx, args, context=None, REQUEST=None):
+        identite_edit( cnx, args, context, REQUEST )
         admission_edit( cnx, args )
 
 _etudidentEditor = EtudIdentEditor()

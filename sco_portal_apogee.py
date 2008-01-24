@@ -156,8 +156,14 @@ def get_infos_apogee(context, nom, prenom):
         infos += get_infos_apogee_allaccents(context, nom_st, prenom_st)
     # si pas de match et nom ou prenom composé, essaie en coupant
     if not infos:
-        nom1 = nom.split()[0]
-        prenom1 = prenom.split()[0]
+        if nom:
+            nom1 = nom.split()[0]
+        else:
+            nom1 = nom
+        if prenom:
+            prenom1 = prenom.split()[0]
+        else:
+            prenom1 = prenom
         if nom != nom1 or prenom != prenom1:
             infos += get_infos_apogee_allaccents(context, nom1, prenom1)
     return infos

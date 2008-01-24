@@ -1972,7 +1972,7 @@ function tweakmenu( gname ) {
             # form submission
             if not edit:
                 # creation d'un etudiant
-                etudid = scolars.etudident_create(cnx, tf[2])
+                etudid = scolars.etudident_create(cnx, tf[2], context=self, REQUEST=REQUEST)
                 # event
                 scolars.scolar_events_create( cnx, args = {
                     'etudid' : etudid,
@@ -1990,7 +1990,7 @@ function tweakmenu( gname ) {
                              url=etud['url'])  
             else:
                 # modif d'un etudiant
-                scolars.etudident_edit(cnx, tf[2], context=self)
+                scolars.etudident_edit(cnx, tf[2], context=self, REQUEST=REQUEST)
             # inval all caches
             self.Notes._inval_cache()
             #
@@ -2086,7 +2086,8 @@ function tweakmenu( gname ) {
                             # Update database
                             scolars.identite_edit(
                                 cnx,
-                                args={'etudid':etudid,'code_nip':nip_apogee})
+                                args={'etudid':etudid,'code_nip':nip_apogee},
+                                context=self)
                             info_apogee = '<span style="color:green">copié %s</span>' % nip_apogee
                             nfix += 1
                         else:
@@ -2393,7 +2394,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         H.append('</form>')
         if helpmsg:
             H.append('<p class="help">' + helpmsg + '</p>') 
-        if add_headers:
+        if add_headers and REQUEST:
             return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
             return '\n'.join(H)

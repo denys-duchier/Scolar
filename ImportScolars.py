@@ -211,7 +211,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             log( 'scolars_import_excel_file: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
-            etudid = scolars.identite_create(cnx,args)
+            etudid = scolars.identite_create(cnx,args, context=Notes)
             
             created_etudids.append(etudid)
             # Admissions
