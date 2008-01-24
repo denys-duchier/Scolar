@@ -1209,8 +1209,12 @@ class ZScolar(ObjectManager,
             data.update(sem['ins'])
             locked = (sem['etat'] != '1')
             i = sem['ins']
+            if data['etat'] == 'D':
+                data['grlink'] = '(démission)'
+            else:                
+                data['grlink'] = '<a class="discretelink" href="listegroupe?formsemestre_id=%(formsemestre_id)s&groupetd=%(groupetd)s">groupe %(groupetd)s</a>' % data
             ilist.append("""<table><tr>
-            <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a> [%(etat)s] groupe %(groupetd)s
+            <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a> %(grlink)s
             </td><td><div class="barrenav">
             <ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
             </div></td>"""

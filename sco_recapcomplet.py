@@ -279,8 +279,8 @@ def do_formsemestre_recapcomplet(
         date = time.strftime( '%d-%m-%Y')
         filename = 'notes_modules-%s-%s.xls' % (semname,date)
         xls = sco_excel.Excel_SimpleTable(
-            titles= F[0],
-            lines = [ x[:-1] for x in F[1:] ], # sup. dern. col (etudid)
+            titles= ['etudid'] + F[0],
+            lines = [ [x[-1]] + x[:-1] for x in F[1:] ], # reordonne cols (etudid en 1er)
             SheetName = 'notes %s %s' % (semname,date) )
         return sco_excel.sendExcelFile(REQUEST, xls, filename )
     else:
