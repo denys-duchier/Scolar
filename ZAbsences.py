@@ -55,6 +55,7 @@ from sco_utils import *
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import scolars
+import sco_excel
 import string, re
 import time, calendar 
 
@@ -248,8 +249,7 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoView, 'EtatAbsences')
     EtatAbsences = DTMLFile('dtml/absences/EtatAbsences', globals())
-    security.declareProtected(ScoView, 'EtatAbsencesGr')
-    EtatAbsencesGr = DTMLFile('dtml/absences/EtatAbsencesGr', globals())
+
     security.declareProtected(ScoView, 'EtatAbsencesDate')
     EtatAbsencesDate = DTMLFile('dtml/absences/EtatAbsencesDate', globals())
     security.declareProtected(ScoView, 'CalAbs')
@@ -926,7 +926,70 @@ class ZAbsences(ObjectManager,
         envoyez un message sur la <a href="mailto:%s">liste</a>
         ou déclarez un ticket sur <a href="%s">le site web</a>.</p>""" % (SCO_MAILING_LIST, SCO_WEBSITE) )
         return '\n'.join(H) + self.sco_footer(REQUEST)
-    
+
+    security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
+    def EtatAbsencesGr(self, semestregroupe, debut, fin, format='html', REQUEST=None): 
+        """Liste les absences d'un groupe
+        """
+        formsemestre_id =  semestregroupe.split('!')[0]
+        groupetd = semestregroupe.split('!')[1]
+        groupeanglais = semestregroupe.split('!')[2]
+        groupetp = semestregroupe.split('!')[3]
+        datedebut = self.DateDDMMYYYY2ISO(debut)
+        datefin = self.DateDDMMYYYY2ISO(fin)
+        #
+        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        # Construit tableau (etudid, statut, nomprenom, nbJust, nbNonJust, NbTotal)
+        etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
+        T = []
+        for etud in etuds:
+            nbabs = self.CountAbs(etudid=etud['etudid'],debut=datedebut,fin=datefin)
+            nbabsjust = self.CountAbsJust(etudid=etud['etudid'],debut=datedebut,fin=datefin)
+            T.append( { 'etudid' : etud['etudid'], 'etatincursem' : etud['etatincursem'],
+                        'nomprenom' : etud['nomprenom'],
+                        'nbabsjust' : nbabsjust, 'nbabsnonjust' : nbabs-nbabsjust, 'nbabs' : nbabs} )
+        # Format
+        if format == 'xls':
+            # export excel:
+            xls = sco_excel.Excel_SimpleTable(
+                titles=('etudid', 'Etat', 'Nom', 'Nb Abs. Just.', 'Nb Abs. Non Just.', 'Nb Abs.'),
+                lines= [ (t['etudid'], t['etatincursem'], t['nomprenom'],
+                          str(t['nbabsjust']), str(t['nbabsnonjust']), str(t['nbabs'])) for t in T ],
+                SheetName='Etat Absences groupe %s %s %s' % (groupetd, groupeanglais, groupetp))
+            filename = 'Absences_%s' % sem['titreannee'] + '.xls'
+            return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        elif format == 'html':
+            H = [ self.sco_header(REQUEST, page_title='Etat des absences pour un groupe',
+                                  javascripts=['calendarDateInput_js']),
+                  """<h1>Etat des absences du groupe %s %s %s de %s</h1>"""
+                  % (groupetd, groupeanglais, groupetp, sem['titreannee']),
+                  """<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>"""
+                  % (debut, fin),
+                  """<a href="EtatAbsencesGr?semestregroupe=%s&debut=%s&fin=%s&format=xls">export excel</a></p>""" % (semestregroupe, debut, fin),
+                  """<table border="0" cellspacing="4" cellpadding="0">
+                  <tr><td>Statut</td><td align="center">&nbsp;</td><td>Justifiées</td>
+                  <td>Non justifiées</td><td>Total<td></td></tr>"""
+                  ]
+            for t in T:
+                H.append("""<tr bgcolor="white"><td>%(etatincursem)s</td><td>%(nomprenom)s</td>
+                <td align="center">%(nbabsjust)s</td><td align="center">%(nbabsnonjust)s</td>
+                <td align="center">%(nbabs)s</td></tr>""" % t )
+            H.append("""</table>
+            <p class="help">
+            Cliquez sur un nom pour afficher le calendrier des absences<br/>
+            ou entrez une date pour visualiser les absents un jour donné&nbsp;:
+            </p>
+            <form action="EtatAbsencesDate" method="get">
+            <input type="hidden" name="semestregroupe" value="<dtml-var semestregroupe>">            
+            <script>DateInput('date', true, 'DD/MM/YYYY')</script>
+            <input type="submit" name="" value="visualiser les absences">
+            </form>
+            """)
+            H.append(self.sco_footer(REQUEST))
+            return '\n'.join(H)                              
+        else:
+            raise ScoValueError('format invalide: %s' % format)
+
 # ------ HTML Calendar functions (see YearTable method)
 
 # MONTH/DAY NAMES:
