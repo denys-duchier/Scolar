@@ -431,7 +431,7 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
                    ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]
     titles = [ '<para><b>%s</b></para>' % x for x in titles ]
-    Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in ([titles] + lines) ]
+    Pt = [ [Paragraph(SU(x),CellStyle) for x in line[1:] ] for line in ([titles] + lines) ]
     if dpv['has_prev']:
         widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None)
     else:
