@@ -55,6 +55,7 @@ def formsemestre_validation_etud_form(
     if not etudid and not etud_index:
         raise ValueError('formsemestre_validation_etud_form: missing argument etudid')
     if etud_index:
+        etud_index = int(etud_index)
         # cherche l'etudid correspondant
         if etud_index < 0 or etud_index >= len(T):
             raise ValueError('formsemestre_validation_etud_form: invalid etud_index value')
@@ -102,7 +103,14 @@ def formsemestre_validation_etud_form(
             if sortcol:
                 desturl += '&sortcol=' + sortcol # pour refaire tri sorttable du tableau de notes
             desturl += '#etudid%s' % etudid # va a la bonne ligne
-        H.append('<p><a href="%s">Continuer</a>' % desturl)
+        H.append('<ul><li><a href="%s">Continuer</a></li>' % desturl)
+        if etud_index_prev != None:
+            etud = znotes.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
+            H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant précédent (%s)</a></li>""" % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
+        if etud_index_next != None:
+            etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
+            H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant suivant (%s)</a></li>""" % (formsemestre_id,etud_index_next, etud['nomprenom']) )
+        H.append('</ul>')
         H.append(znotes.sco_footer(znotes, REQUEST))
         return '\n'.join(H)
 
@@ -203,7 +211,16 @@ def formsemestre_validation_etud_form(
         H.append('avec semestres décalés</p>' )
     else:
         H.append('sans semestres décalés</p>' )
-    
+
+    # navigation suivant/precedent
+    H.append('<p>')
+    if etud_index_prev != None:
+        etud = znotes.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
+        H.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
+    if etud_index_next != None:
+        etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
+        H.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud['nomprenom']) )
+    H.append('</p>')
     H.append(znotes.sco_footer(znotes, REQUEST))
     return '\n'.join(H)
 

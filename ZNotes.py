@@ -1563,7 +1563,7 @@ class ZNotes(ObjectManager,
             if E['jour']:
                 H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
             H.append( '<br/>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
-            return '<div class="eval_description">' + '\n'.join(H) + '</div>' + help
+            return '<div class="eval_description">' + '\n'.join(H) + '</div>'
 
         heures = [ '%02dh%02d' % (h,m) for h in range(8,19) for m in (0,30) ]
         #
@@ -2305,13 +2305,13 @@ class ZNotes(ObjectManager,
         return False
     
     security.declareProtected(ScoView, 'formsemestre_validation_etud_form')
-    def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None,
+    def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None, etud_index=None,
                                           check=0,
                                           desturl='', sortcol=None, REQUEST=None):
         "Formulaire choix jury pour un étudiant"
         readonly = not self.can_validate_sem(REQUEST, formsemestre_id)
         return sco_formsemestre_validation.formsemestre_validation_etud_form(
-            self, formsemestre_id, etudid=etudid,
+            self, formsemestre_id, etudid=etudid, etud_index=etud_index,
             check=check, readonly=readonly,
             desturl=desturl, sortcol=sortcol, 
             REQUEST=REQUEST )
