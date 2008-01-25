@@ -219,6 +219,12 @@ def list_synch(context, sem, anneeapogee=None):
         etuds.sort( lambda x,y: cmp(x['nom'], y['nom']) )
         return etuds    
     #
+    if etuds_noninscrits:
+        inscr_link = """<br/>
+                      <a href="formsemestre_synchro_etuds?formsemestre_id=%s&submitted=1&inscrire_non_inscrits=1" style="color:red; font-weight:bold">inscrire ces étudiants</a>
+                      """ % sem['formsemestre_id']
+    else:
+        inscr_link = ''
     r = {
         'etuds_ok' :
         { 'etuds' : set_to_sorted_list(etuds_ok),
@@ -234,9 +240,7 @@ def list_synch(context, sem, anneeapogee=None):
                       'title' : 'Etudiants non inscrits dans ce semestre',
                       'help' : """Ces étudiants sont déjà connus par ScoDoc, sont inscrits dans cette étape Apogée mais ne sont pas inscrits à ce semestre ScoDoc. Suivez le lien 'inscrire ces étudiants' pour les inscrire maintenant.""",
                       'comment' : """ dans ScoDoc et Apogée, <br/>mais pas inscrits
-                      dans ce semestre<br/>
-                      <a href="formsemestre_synchro_etuds?formsemestre_id=%s&submitted=1&inscrire_non_inscrits=1" style="color:red; font-weight:bold">inscrire ces étudiants</a>
-                      """ % sem['formsemestre_id'],
+                      dans ce semestre""" + inscr_link,
                       'title_target' : '',
                       'with_checkbox' : False }
           },
