@@ -45,11 +45,11 @@ def code_semestre_validant(code):
     return code and code[:2] == 'AD'
 
 # codes actions
-REDOANNEE = 'REDOANNEE'
-REDOSEM   = 'REDOSEM'
-RA_OR_NEXT= 'RA_OR_NEXT'
-RA_OR_RS  = 'RA_OR_RS'
-RS_OR_NEXT= 'RS_OR_NEXT'
+REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
+REDOSEM   = 'REDOSEM'    # redouble semestre (va en Sn)
+RA_OR_NEXT= 'RA_OR_NEXT' # redouble annee ou passe en Sn+1
+RA_OR_RS  = 'RA_OR_RS'   # redouble annee ou semestre
+RS_OR_NEXT= 'RS_OR_NEXT' # redouble semestre ou passe en Sn+1
 NEXT='NEXT'
 REO='REO'
 BUG='BUG'

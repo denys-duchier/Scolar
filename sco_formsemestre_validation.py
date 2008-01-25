@@ -243,7 +243,7 @@ def formsemestre_validation_etud(
             found=True
             break
     if not found:
-        raise ScoValueError('code choix invalide ! (%s)' % codechoice)
+        raise ValueError('code choix invalide ! (%s)' % codechoice)
     #
     Se.valide_decision(choice, REQUEST) # enregistre
     _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)

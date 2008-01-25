@@ -28,6 +28,7 @@ ATB	ok	ok	ok	*	*	ADM	ADM	ADJ	NEXT		Le jury valide le précédent
 ATB	ok	no	ok	*	oui	ATT	ADM, AJ	ADJ	NEXT		Le jury valide le précédent, pas moyenne gen., attente suivant
 ATB	ok	*	no	*	oui	ATB	ADM, AJ	ADJ	NEXT		Le jury valide le précédent, pb barre UE, attente
 ATB	no	*	*	*	oui	ATJ	AJ	ADJ	NEXT		Le jury valide le précédent, mais probleme assiduité.
+ATB,ATT	*	ok	ok	*	*	ADJ		AJ	REDOANNEE		Le jury valide ce semestre, et fait recommencer le précédent.
 											
 # Semestre prec. AJ (ajourné):											
 AJ	ok	no	*	*	*	AJ		AJ	REDOANNEE		Echec de 2 semestres, redouble année
@@ -48,6 +49,11 @@ ATT,ATB	no	no	ok	*	oui	ATT	ADM, AJ	ADJ	NEXT		Pb moy: attente, mais le jury valid
 None, ADM, ADC, ADJ	ok	no	*	no	*	AJ			REDOSEM		Pas moy: redouble ce semestre
 None, ADM, ADC, ADJ	ok	ok	no	no	*	AJ			REDOSEM		Pas barre UE: redouble ce semestre
 None, ADM, ADC, ADJ	no	*	*	*	*	AJ			REDOSEM		Pb assiduité: redouble ce semestre
+# Nouvelles regles avec plusieurs devenirs en semestres decales:											
+ATT,ATB	*	no	*	no	*	AJ			RA_OR_RS		Deux semestres ratés, choix de recommencer le premier ou le second
+ATT,ATB	*	ok	no	no	*	AJ			RA_OR_RS		Deux semestres ratés, choix de recommencer le premier ou le second
+ADM,ADJ,ADC	*	no	ok	no	*	ATT			RS_OR_NEXT		Semestre raté, choix de redoubler le semestre ou de continuer pour éventuellement compenser.
+ADM,ADJ,ADC	*	*	no	no	*	ATB			RS_OR_NEXT		Semestre raté, choix de redoubler ou de s'en remettre au jury du semestre suivant.
 											
 # Exclusion (art. 22): si precedent non valide et pas les barres dans le courant, on peut ne pas autoriser a redoubler:											
 # (le cas ATB est couvert plus haut)											
