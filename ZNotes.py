@@ -1530,11 +1530,24 @@ class ZNotes(ObjectManager,
                 action = 'Modification d\'une é'
         #    
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-        sem = self.get_formsemestre(M['formsemestre_id'])
-        
-        #F=self.do_formation_list(args={ 'formation_id' : sem['formation_id'] } )[0]
-        #ModEvals =self.do_evaluation_list(args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
+        sem = self.get_formsemestre(M['formsemestre_id'])        
         #
+        help = """<div class="help"><p class="help">
+        Le coefficient d'une évaluation n'est utilisé que pour pondérer les évaluations au sein d'un module.
+        Il est fixé librement par l'enseignant pour refléter l'importance de ses différentes notes
+        (examens, projets, travaux pratiques...). Ce coefficient est utilisé pour calculer la note
+        moyenne de chaque étudiant dans ce module.
+        </p><p class="help">
+        Ne pas confondre ce coefficient avec le coefficient du module, qui est lui fixé par le programme
+        pédagogique (par exemple le PPN pour les DUT) et pondère les moyennes de chaque module pour obtenir
+        les moyennes d'UE et la moyenne générale.
+        </p><p class="help">
+        L'option <em>Visible sur bulletins</em> indique que la note sera reportée sur les bulletins
+        en version dite "intermédiaire" (dans cette version, on peut ne faire apparaitre que certaines
+        notes, en sus des moyennes de modules. Attention, cette option n'empêche pas la publication sur
+        les bulletins en version "longue" (la note est donc visible par les étudiants sur le portail).
+        </p>
+        """
         H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h3>'
              % (action, moduleimpl_id, Mod['code'], Mod['titre']),
              '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre_num']),
@@ -1550,7 +1563,7 @@ class ZNotes(ObjectManager,
             if E['jour']:
                 H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
             H.append( '<br/>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
-            return '<div class="eval_description">' + '\n'.join(H) + '</div>'
+            return '<div class="eval_description">' + '\n'.join(H) + '</div>' + help
 
         heures = [ '%02dh%02d' % (h,m) for h in range(8,19) for m in (0,30) ]
         #
@@ -1587,7 +1600,7 @@ class ZNotes(ObjectManager,
 
         dest_url = 'moduleimpl_status?moduleimpl_id=%s' % M['moduleimpl_id']
         if  tf[0] == 0:
-            return self.sco_header(REQUEST, javascripts=['calendarDateInput_js']) + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, javascripts=['calendarDateInput_js']) + '\n'.join(H) + '\n' + tf[1] + help + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( dest_url )
         else:
@@ -2259,6 +2272,20 @@ class ZNotes(ObjectManager,
             # ennuyeux mais necessaire (pour le PDF seulement)
             self._inval_cache(pdfonly=True)
             return REQUEST.RESPONSE.redirect( bull_url )
+
+    security.declareProtected(ScoView,'can_change_groups')
+    def can_change_groups(self, REQUEST, formsemestre_id):
+        "Vrai si utilisateur peut changer les groupes dans ce semestre"
+        sem = self.get_formsemestre(formsemestre_id)
+        if sem['etat'] != '1':
+            return False # semestre verrouillé
+        authuser = REQUEST.AUTHENTICATED_USER
+        if authuser.has_permission(ScoEtudChangeGroups, self):
+            return True # admin, chef dept
+        uid = str(authuser)
+        if uid == sem['responsable_id']:
+            return True
+        return False
     
     # --- FORMULAIRE POUR VALIDATION DES UE ET SEMESTRES
     security.declareProtected(ScoView,'can_validate_sem')

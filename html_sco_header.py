@@ -84,13 +84,16 @@ def sco_header(context, REQUEST=None,
 <link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/sorttable_js"></script>
+<script language="javascript" type="text/javascript" src="%(ScoURL)s/bubble_js"></script>
+<script type="text/javascript">
+window.onload=function(){enableTooltips("gtrcontent")};
+</script>
 <style>
 .gtrcontent {
    float: left;
    margin-left: %(margin_left)s;
 }
 </style>
-
 """ % params
           ]
     # Feuilles de style additionnelles:
@@ -112,7 +115,7 @@ def sco_header(context, REQUEST=None,
     #
     if not no_side_bar:
         H.append( context.sidebar(REQUEST) )
-    H.append("""<div class="gtrcontent">""")
+    H.append("""<div class="gtrcontent" id="gtrcontent">""")
     #
     return ''.join(H)
 

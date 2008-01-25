@@ -252,6 +252,9 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'menu_js')
     menu_js = DTMLFile('JavaScripts/menu_js', globals())
 
+    security.declareProtected(ScoView, 'bubble_js')
+    bubble_js = DTMLFile('JavaScripts/bubble_js', globals())
+
     security.declareProtected(ScoView, 'calendarDateInput_js')
     calendarDateInput_js = DTMLFile('JavaScripts/calendarDateInput_js',
                                     globals())
@@ -519,14 +522,6 @@ class ZScolar(ObjectManager,
                 sem['groupicon'] = groupicon
             else:
                 sem['groupicon'] = emptygroupicon
-# # selection basee sur la date courante        
-#        for sem in sems:
-#            debut = DateDMYtoISO(sem['date_debut'])
-#            fin = DateDMYtoISO(sem['date_fin'])
-#            if debut <= now and now <= fin:
-#                cursems.append(sem)
-#            else:
-#                othersems.append(sem)
         
         # liste des fomsemestres "courants"
         tmpl = """<tr>%(tmpcode)s
@@ -1482,10 +1477,12 @@ function bodyOnLoad() {
             logdb(REQUEST,cnx,method='changeCoordonnees', etudid=etudid)
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
-    security.declareProtected(ScoEtudChangeGroups, 'formChangeGroupe')
+    security.declareProtected(ScoView, 'formChangeGroupe')
     def formChangeGroupe(self, formsemestre_id, etudid, REQUEST):
         "changement groupe etudiant dans semestre"
-        cnx = self.GetDBConnexion()    
+        if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+            raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+        cnx = self.GetDBConnexion()
         etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         ins = self.Notes.do_formsemestre_inscription_list(
@@ -1566,11 +1563,15 @@ function tweakmenu( gname ) {
         
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
 
-    security.declareProtected(ScoEtudChangeGroups, 'doChangeGroupe')
+    security.declareProtected(ScoView, 'doChangeGroupe')
     def doChangeGroupe(self, etudid, formsemestre_id, groupetd=None,
                        groupeanglais=None, groupetp=None, REQUEST=None,
                        redirect=1):
-        "Change le groupe. Si la valeur du groupe est '' (vide) ou 'None', le met à NULL (aucun groupe)"
+        """Change le groupe. Si la valeur du groupe est '' (vide) ou 'None',
+        le met à NULL (aucun groupe).
+        """
+        if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+            raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
         cnx = self.GetDBConnexion()
         log('doChangeGroupe(etudid=%s,formsemestre_id=%s) len=%d'%(etudid,formsemestre_id, len(formsemestre_id)))
         
@@ -1609,19 +1610,19 @@ function tweakmenu( gname ) {
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
     # --- Affectation initiale des groupes
-    security.declareProtected(ScoEtudChangeGroups, 'affectGroupes')
+    security.declareProtected(ScoView, 'affectGroupes')
     affectGroupes = DTMLFile('dtml/groups/affectGroupes', globals()) 
 
     security.declareProtected(ScoView, 'XMLgetGroupesTD')
     XMLgetGroupesTD = sco_groupes.XMLgetGroupesTD
 
-    security.declareProtected(ScoEtudChangeGroups, 'setGroupes')
+    security.declareProtected(ScoView, 'setGroupes')
     setGroupes = sco_groupes.setGroupes
 
-    security.declareProtected(ScoEtudChangeGroups, 'suppressGroup')
+    security.declareProtected(ScoView, 'suppressGroup')
     suppressGroup = sco_groupes.suppressGroup
 
-    security.declareProtected(ScoEtudChangeGroups, 'groupes_auto_repartition')
+    security.declareProtected(ScoView, 'groupes_auto_repartition')
     groupes_auto_repartition = sco_groupes.groupes_auto_repartition
     
     # --- Trombi: gestion photos

@@ -166,7 +166,9 @@ def build_page(context, sem, etuds_by_cat, anneeapogee):
         &nbsp;<a href="#help">aide</a>
         """ % sem, # "
           
-        sco_inscr_passage.etuds_select_boxes(context, etuds_by_cat, sel_inscrits=False),
+        sco_inscr_passage.etuds_select_boxes(context, etuds_by_cat,
+                                             sel_inscrits=False,
+                                             show_empty_boxes=True),
 
         synchronize_etuds_help(sem),
         """</form>""",          
@@ -222,6 +224,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(etuds_ok),
           'infos' : { 'id' : 'etuds_ok',
                       'title' : 'Etudiants dans Apogée et déjà inscrits',
+                      'help' : 'Ces etudiants sont inscrits dans le semestre ScoDoc et sont présents dans Apogée: tout est donc correct.',
                       'title_target' : '',
                       'with_checkbox' : False }
           },
@@ -229,6 +232,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(etuds_noninscrits), 
           'infos' : { 'id' : 'etuds_noninscrits',
                       'title' : 'Etudiants non inscrits dans ce semestre',
+                      'help' : """Ces étudiants sont déjà connus par ScoDoc, sont inscrits dans cette étape Apogée mais ne sont pas inscrits à ce semestre ScoDoc. Suivez le lien 'inscrire ces étudiants' pour les inscrire maintenant.""",
                       'comment' : """ dans ScoDoc et Apogée, <br/>mais pas inscrits
                       dans ce semestre<br/>
                       <a href="formsemestre_synchro_etuds?formsemestre_id=%s&submitted=1&inscrire_non_inscrits=1" style="color:red; font-weight:bold">inscrire ces étudiants</a>
@@ -240,6 +244,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(etuds_a_importer, valid_etudid=False),
           'infos' : { 'id' : 'etuds_a_importer',
                       'title' : 'Etudiants dans Apogée à importer',
+                      'help' : """Ces étudiants sont inscrits dans cette étape Apogée mais ne sont pas connus par ScoDoc: cocher les noms à importer et inscrire puis appuyer sur le bouton en haut de la page.""",
                       'title_target' : '',
                       'etud_key' : EKEY_APO # clé a stocker dans le formulaire html
                       },
@@ -249,6 +254,8 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(etuds_nonapogee),
           'infos' : { 'id' : 'etuds_nonapogee',
                       'title' : 'Etudiants ScoDoc inconnus dans cette étape Apogée',
+                      'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, ont un code NIP, mais ne sont pas inscrits dans cette étape Apogée. Soit ils sont en retard pour leur inscription, soit il s'agit d'une erreur: vérifiez avec le service Scolarité de votre établissement. Autre possibilité: votre code étape semestre (%s) est incorrect ou vous n'avez pas choisi la bonne année d'inscription.""" % sem['etape_apo'],
+                      'comment' : ' à vérifier avec la Scolarité',
                       'title_target' : '',
                       'with_checkbox' : False }
           },
@@ -256,6 +263,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : inscrits_without_key.values(),
           'infos' : { 'id' : 'inscrits_without_key',
                       'title' : 'Etudiants ScoDoc sans clé Apogée (NIP)',
+                      'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, mais n'ont pas de code NIP: on ne peut pas les mettre en correspondance avec Apogée. Utiliser le lien 'Changer les données identité' dans le menu 'Etudiant' sur leur fiche pour ajouter cette information.""",
                       'title_target' : '',
                       'with_checkbox' : False }
         }

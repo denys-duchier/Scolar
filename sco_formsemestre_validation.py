@@ -43,14 +43,39 @@ import sco_pvjury
 def formsemestre_validation_etud_form(
     znotes, # ZNotes instance
     formsemestre_id=None, # required
-    etudid=None, # required
+    etudid=None, # one of etudid or etud_index is required
+    etud_index=None,
     check=0, # opt: si true, propose juste une relecture du parcours
     desturl=None,
     sortcol=None,
     readonly=True,
     REQUEST=None):
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    T = nt.get_table_moyennes_triees()
+    if not etudid and not etud_index:
+        raise ValueError('formsemestre_validation_etud_form: missing argument etudid')
+    if etud_index:
+        # cherche l'etudid correspondant
+        if etud_index < 0 or etud_index >= len(T):
+            raise ValueError('formsemestre_validation_etud_form: invalid etud_index value')
+        etudid = T[etud_index][-1]        
+    else:
+        # cherche index pour liens navigation
+        etud_index = len(T) - 1
+        while etud_index >= 0 and T[etud_index][-1] != etudid:
+            etud_index -= 1
+        if etud_index < 0:
+            raise ValueError("formsemestre_validation_etud_form: can't retreive etud_index !")
+    # prev, next pour liens navigation
+    etud_index_next = etud_index + 1
+    if etud_index_next >= len(T):
+        etud_index_next = None
+    etud_index_prev = etud_index - 1
+    if etud_index_prev < 0:
+        etud_index_prev = None
     if readonly:
         check = True
+    
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     if Se.sem['etat'] != '1':

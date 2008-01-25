@@ -1,3 +1,4 @@
+<dtml-if "Notes.can_change_groups(REQUEST,formsemestre_id)">
 <dtml-var "sco_header(page_title='Affectation aux groupes',
            REQUEST=REQUEST,
            javascripts=[ 'prototype_1_4_0_js', 'rico_js', 'groupmgr_js' ],
@@ -73,3 +74,6 @@ un groupe, <a href="suppressGroup?formsemestre_id=<dtml-var formsemestre_id>&gro
 </div>
 
 <dtml-var sco_footer>
+<dtml-else>
+<h2>Vous n'avez pas la permission d'effectuer cette operation</h2>
+</dtml-if permission>

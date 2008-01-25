@@ -302,7 +302,9 @@ def formsemestre_inscr_passage_help(sem):
     </div>""" % sem 
 
 
-def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_inscrits=True ):
+def etuds_select_boxes(context, auth_etuds_by_cat,
+                       inscrits_ailleurs={}, sel_inscrits=True,
+                       show_empty_boxes=False ):
     """Boites pour selection étudiants par catégorie
     """
     H = [ """<script type="text/javascript">
@@ -326,13 +328,17 @@ def etuds_select_boxes(context, auth_etuds_by_cat, inscrits_ailleurs={}, sel_ins
     for src_cat in auth_etuds_by_cat.keys():
         infos = auth_etuds_by_cat[src_cat]['infos']
         infos['comment'] = infos.get('comment', '') # commentaire dans sous-titre boite
+        help = infos.get('help', '')
         etuds = auth_etuds_by_cat[src_cat]['etuds']
         with_checkbox = auth_etuds_by_cat[src_cat]['infos'].get('with_checkbox', True)
         etud_key = auth_etuds_by_cat[src_cat]['infos'].get('etud_key', 'etudid')
-        if etuds:
+        if etuds or show_empty_boxes: 
             infos['nbetuds'] = len(etuds)
             H.append("""<div class="pas_sembox" id="%(id)s">
-                <div class="pas_sembox_title"><a href="%(title_target)s">%(title)s</a></div>
+                <div class="pas_sembox_title"><a href="%(title_target)s" """ % infos)
+            if help: # bubble
+                H.append('title="%s"' % help)
+            H.append(""">%(title)s</a></div>
                 <div class="pas_sembox_subtitle">(%(nbetuds)d étudiants%(comment)s)""" % infos )
             if with_checkbox:
                 H.append(""" (Select.

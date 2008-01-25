@@ -100,6 +100,9 @@ def XMLgetGroupesTD(self, formsemestre_id, groupType, REQUEST):
 def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
                REQUEST=None):
     "affect groups (Ajax request)"
+    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+    
     log('***setGroupes\nformsemestre_id=%s' % formsemestre_id)
     log('groupType=%s' % groupType )
     log(groupslists)
@@ -130,6 +133,9 @@ def suppressGroup(self, REQUEST, formsemestre_id=None,
     (ne desisncrit pas les etudiants, change juste leur
     affectation aux groupes)
     """
+    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+
     gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
     if groupType == 'TD':
         groupes = gr_td
@@ -221,6 +227,8 @@ def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST
     """Reparti les etudiants dans des groupes, en respectant le niveau
     et la mixité.
     """
+    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
     sem = self.Notes.get_formsemestre(formsemestre_id)
     groupTypeName = getGroupTypeName(sem, groupType)
     if groupType == 'TD':

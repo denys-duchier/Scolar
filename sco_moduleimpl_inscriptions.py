@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -200,9 +200,9 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
 
     if commons:
         H.append('<h3>Modules communs (où tous les étudiants sont inscrits)</h3>')
-        H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th></tr>')
+        H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th><th>Module</th></tr>')
         for mod in commons:
-            H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code']))
+            H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code'], mod['module']['titre']))
         H.append('</table>')
 
     H.append(context.sco_footer(REQUEST))

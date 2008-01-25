@@ -103,15 +103,15 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Modifier les groupes de ' + sem['nomgroupetd'],
           'url' : 'affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s'% (formsemestre_id,sem['nomgroupetd']),
-          'enabled' :  authuser.has_permission(ScoEtudChangeGroups, context)
+          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
           },
         { 'title' : 'Modifier les groupes de ' + sem['nomgroupeta'],
           'url' : 'affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s'% (formsemestre_id,sem['nomgroupeta']),
-          'enabled' :  authuser.has_permission(ScoEtudChangeGroups, context)
+          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
           },
         { 'title' : 'Modifier les groupes de ' + sem['nomgroupetp'],
           'url' : 'affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s'% (formsemestre_id,sem['nomgroupetp']),
-          'enabled' :  authuser.has_permission(ScoEtudChangeGroups, context)
+          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
           },        
         { 'title' : 'Passage des étudiants depuis d\'autres semestres',
           'url' : 'formsemestre_inscr_passage?formsemestre_id=' + formsemestre_id,
