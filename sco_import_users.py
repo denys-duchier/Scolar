@@ -175,7 +175,7 @@ Le logiciel est accessible sur: %(url)s
 Vous êtes invité à changer ce mot de passe au plus vite (cliquez sur
 votre nom en haut à gauche de la page d'accueil).
 
-Pour plus d'informations sur ce logiciel, voir https://www-gtr.iutv.univ-paris13.fr/ScoDoc
+Pour plus d'informations sur ce logiciel, voir https://www-rt.iutv.univ-paris13.fr/ScoDoc
 
 """ % u
     msg = MIMEMultipart()
