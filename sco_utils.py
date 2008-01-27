@@ -124,6 +124,10 @@ def suppress_accents(s):
     "s is an ordinary string, encoding given by SCO_ENCODING"
     return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
 
+def make_filename(name):
+    "try to convert name to a reasonnable filename"""
+    return suppress_accents(name).replace(' ', '_')
+
 def sendCSVFile(REQUEST,data,filename):
     """publication fichier.
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)
@@ -184,6 +188,11 @@ def abbrev_prenom(prenom):
                 abrv += sep + prenom[i].upper() + '.'
         i += 1
     return abrv
+
+#
+def timedate_human_repr():
+    "representation du temps courant pour utilisatuer: a localiser"
+    return time.strftime('%d/%m/%Y à %Hh%M')
 
 #
 class DictDefault(dict):

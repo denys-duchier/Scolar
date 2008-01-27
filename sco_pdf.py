@@ -160,3 +160,23 @@ def _makeTimeDict():
              'hour' : time.strftime('%H' ),
              'minute' : time.strftime('%M' )
              }
+
+def pdf_basic_page( objects, title='' ):
+    """Simple convenience fonction: build a page from a list of platypus objects,
+    adding a title if specified.
+    """
+    StyleSheet = styles.getSampleStyleSheet()
+    report = cStringIO.StringIO() # in-memory document, no disk file
+    document = BaseDocTemplate(report)
+    document.addPageTemplates(
+        ScolarsPageTemplate(document,
+                            title=title,
+                            author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+                            footer_template="Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s"
+                            ))
+    if title:
+        head = Paragraph(SU(title), StyleSheet["Heading3"])
+        objects = [ head ] + objects
+    document.build(objects)
+    data = report.getvalue()
+    return data

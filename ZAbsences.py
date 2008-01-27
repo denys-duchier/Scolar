@@ -980,11 +980,11 @@ class ZAbsences(ObjectManager,
             ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             </p>
             <form action="EtatAbsencesDate" method="get">
-            <input type="hidden" name="semestregroupe" value="<dtml-var semestregroupe>">            
+            <input type="hidden" name="semestregroupe" value="%s">
             <script>DateInput('date', true, 'DD/MM/YYYY')</script>
             <input type="submit" name="" value="visualiser les absences">
             </form>
-            """)
+            """ % semestregroupe)
             H.append(self.sco_footer(REQUEST))
             return '\n'.join(H)                              
         else:

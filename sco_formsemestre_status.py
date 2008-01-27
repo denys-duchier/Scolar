@@ -178,8 +178,10 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           }
         ]
     menuStats = [
-        { 'title' : 'Tableau de répartition des bacs',
-          'url' : 'stat_bac_fmt?formsemestre_id=' + formsemestre_id,
+        { #'title' : 'Tableau de répartition des bacs',
+          #'url' : 'stat_bac_fmt?formsemestre_id=' + formsemestre_id,
+        'title' : 'Résultats par bacs',
+        'url' : 'formsemestre_report_bacs?formsemestre_id=' + formsemestre_id,
           },
         { 'title' : 'Suivi de cohortes (à implémenter)',
           'url' : '',

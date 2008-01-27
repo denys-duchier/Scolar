@@ -76,7 +76,7 @@ from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
 import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
-import sco_formations, sco_pagebulletin
+import sco_formations, sco_pagebulletin, sco_report
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -2513,6 +2513,10 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_synchro_etuds')
     formsemestre_synchro_etuds = sco_synchro_etuds.synchronize_etuds
+
+    # ------------- RAPPORTS STATISTIQUES
+    security.declareProtected(ScoView, "formsemestre_report_bacs")
+    formsemestre_report_bacs = sco_report.formsemestre_report_bacs
 
     # --------------------------------------------------------------------
     # DEBUG

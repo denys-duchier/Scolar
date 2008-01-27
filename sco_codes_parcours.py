@@ -40,10 +40,6 @@ AJ ='AJ'
 CMP='CMP' # utile pour UE seulement
 NAR='NAR'
 
-def code_semestre_validant(code):
-    "Vrai si ce CODE entraine la validation du semestre"
-    return code and code[:2] == 'AD'
-
 # codes actions
 REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
 REDOSEM   = 'REDOSEM'    # redouble semestre (va en Sn)
@@ -67,7 +63,11 @@ CODES_EXPL = {
     NAR : 'Echec, non autorisé à redoubler'
     }
 
-CODES_SEM_VALIDES = { 'ADM' : 1, 'ADC' : 1, 'ADJ' : 1 } # semestre validé
+CODES_SEM_VALIDES = { 'ADM' : True, 'ADC' : True, 'ADJ' : True } # semestre validé
+
+def code_semestre_validant(code):
+    "Vrai si ce CODE entraine la validation du semestre"
+    return CODES_SEM_VALIDES.get(code, False)
 
 DEVENIR_EXPL = {
     NEXT      : 'Passage au semestre suivant',

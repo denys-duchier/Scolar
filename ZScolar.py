@@ -2345,6 +2345,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             typebac = '%(bac)s %(specialite)s' % etud
             Bacs[typebac] = Bacs.get(typebac, 0) + 1
         return Bacs
+    
     security.declareProtected(ScoView, "stat_bac_fmt")
     def stat_bac_fmt(self,formsemestre_id, format='html', REQUEST=None):
         "Statistiques sur nb d'etudiants par bac"

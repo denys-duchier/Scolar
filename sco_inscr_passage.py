@@ -45,20 +45,32 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
     inscrits = list_inscrits(context, sem['formsemestre_id'])
     r = {}
     candidats = {} # etudid : etud (tous les etudiants candidats)
+    nb=0 # debug
     for src in src_sems:
         liste = list_etuds_from_sem(context, src, sem)
+        liste_filtree = []
         for e in liste:
-            candidats[e['etudid']] = e
+            # Filtre ceux qui se sont déjà inscrit dans un semestre APRES le semestre src
+            auth_used = False # autorisation deja utilisée ?
+            etud = context.getEtudInfo(etudid=e['etudid'], filled=True)[0]
+            for isem in etud['sems']:
+                if DateDMYtoISO(isem['date_debut']) >= DateDMYtoISO(src['date_fin']):
+                    auth_used = True
+            if not auth_used:
+                candidats[e['etudid']] = e
+                liste_filtree.append(e)
+                nb+=1
         r[src['formsemestre_id']] = {
-            'etuds' : liste,
+            'etuds' : liste_filtree,
             'infos' : { 'id' : src['formsemestre_id'],
                         'title' : src['titreannee'],
-                        'title_target' : 'formsemestre_status?formsemestre_id=%s' % src['formsemestre_id']                        
+                        'title_target' : 'formsemestre_status?formsemestre_id=%s' % src['formsemestre_id']
                         }
             }
         # ajoute attribut inscrit qui indique si l'étudiant est déjà inscrit dans le semestre dest.
         for e in r[src['formsemestre_id']]['etuds']:
             e['inscrit'] = inscrits.has_key(e['etudid'])
+    log('nb=%d'%nb)
     return r, inscrits, candidats
 
 def list_inscrits(context, formsemestre_id, with_dems=False):
