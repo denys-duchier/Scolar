@@ -97,7 +97,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
     """
     def __init__(self, document, pagesbookmarks={},
                  author=None, title=None, subject=None,
-                 margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
+                 margins = CONFIG.INDIVIDUAL_LETTER_MARGINS, # additional margins in mm (left,top,right, bottom)
                  image_dir = ''):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
@@ -236,13 +236,14 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None ):
     params['t'] = t
     params['s'] = s
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
+    params['city'] = CONFIG.INSTITUTION_CITY
     if decision['prev_decision_sem']:
         params['prev_semestre_id'] = decision['prev']['semestre_id']
         params['prev_code_descr']  = decision['prev_code_descr']
     
     # Haut de la lettre:
     objects += makeParas("""
-<para leftindent="%(htab1)s">Villetaneuse, le %(dateJury)s
+<para leftindent="%(htab1)s">%(city)s, le %(dateJury)s
 </para>
 <para leftindent="%(htab1)s" spaceBefore="5mm">%(nomDirecteur)s
 </para>

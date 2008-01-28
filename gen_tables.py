@@ -230,7 +230,8 @@ class GenTable:
         return Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
 
     def make_page(self, context, title='', format='html', page_title='',
-                  filename=None, REQUEST=None ):
+                  filename=None, REQUEST=None,
+                  with_html_headers=True ):
         """
         Build page at given format
         This is a simple page with only a title and the table.
@@ -238,11 +239,14 @@ class GenTable:
         if not filename:
             filename = self.filename
         if format == 'html':
-            H = [
-                context.sco_header(REQUEST, page_title=page_title),
-                title,
-                self.html(),
-                context.sco_footer(REQUEST) ]
+            H = []
+            if with_html_headers:
+                H.append(context.sco_header(REQUEST, page_title=page_title))
+            if title:
+                H.append(title)
+            H.append(self.html())
+            if with_html_headers:
+                H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
         elif format == 'pdf':
             tpdf = self.pdf()

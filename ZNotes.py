@@ -2518,6 +2518,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, "formsemestre_report_bacs")
     formsemestre_report_bacs = sco_report.formsemestre_report_bacs
 
+    security.declareProtected(ScoView, "formsemestre_report_counts")
+    formsemestre_report_counts = sco_report.formsemestre_report_counts
+
     # --------------------------------------------------------------------
     # DEBUG
     security.declareProtected(ScoView,'check_sem_integrity')

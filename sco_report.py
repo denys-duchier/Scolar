@@ -66,6 +66,19 @@ def formsemestre_etuds_stats(context, sem):
         etuds.append(etud)
     return etuds
 
+
+def _categories_and_results(etuds, category, result):
+    categories = {}
+    results = {}
+    for etud in etuds:
+        categories[etud[category]] = True
+        results[etud[result]] = True
+    categories = categories.keys()
+    categories.sort()
+    results = results.keys()
+    results.sort()
+    return categories, results
+
 def _results_by_category(etuds, category='', result='', category_name=None):
     """Construit table: categories (eg types de bacs) en ligne, décisions jury en colonnes
 
@@ -74,16 +87,11 @@ def _results_by_category(etuds, category='', result='', category_name=None):
     if category_name is None:
         category_name = category
     # types de bacs differents:
-    categories = {}
-    for etud in etuds:
-        categories[etud[category]] = True
-    categories = categories.keys()
-    categories.sort()
+    categories, results = _categories_and_results(etuds, category, result)
     #
     Count = {} # { bac : { decision : nb_avec_ce_bac_et_ce_code } }
     results = {} # { result_value : True }
     for etud in etuds:
-        results[etud[result]] = True
         if Count.has_key(etud[category]):
             Count[etud[category]][etud[result]] += 1
         else:            
@@ -121,14 +129,13 @@ def _results_by_category(etuds, category='', result='', category_name=None):
 
 
 # pages
-def formsemestre_report(context, formsemestre_id, REQUEST=None,
+def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
                         category='bac', result='codedecision',
                         category_name='', title='Statistiques'):    
     """
     Tableau sur résultats (result) par type de category bac
     """
     sem = context.get_formsemestre(formsemestre_id)
-    etuds = formsemestre_etuds_stats(context, sem)
     if not category_name:
         category_name = category
     #
@@ -151,7 +158,8 @@ def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=No
     """
     sem = context.get_formsemestre(formsemestre_id)
     title = 'Statistiques bacs ' + sem['titreannee']
-    tab = formsemestre_report(context, formsemestre_id, REQUEST=REQUEST,
+    etuds = formsemestre_etuds_stats(context, sem)
+    tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
                               category='bac', result='codedecision',
                               category_name='Bac',
                               title=title)
@@ -160,4 +168,50 @@ def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=No
         title =  """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
         format=format, page_title = title, REQUEST=REQUEST )
 
-        
+def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=None,
+                               category='bac', result='codedecision'):
+    """
+    Tableau comptage avec choix des categories
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    title = "Comptages XXX"
+    etuds = formsemestre_etuds_stats(context, sem)
+    tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
+                              category=category, result=result,
+                              category_name='XXX',
+                              title=title)
+    if etuds:
+        keys = etuds[0].keys()
+        keys.sort()
+        F = [ """<form method="get"><p>
+              Colonnes: <select name="result">""" ]
+        for k in keys:
+            if k == result:
+                selected = ' selected'
+            else:
+                selected = ''
+            F.append('<option value="%s">%s</option>' % (k,selected,k))
+        F.append('</select>')
+        F.append(' Lignes: <select name="category">')
+        for k in keys:
+            if k == category:
+                selected = ' selected'
+            else:
+                selected = ''
+            F.append('<option value="%s">%s</option>' % (k,selected,k))
+        F.append('</select>')
+        F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)        
+        F.append('<input type="submit" value="OK"/>')
+        F.append('</p></form>')
+
+    t = tab.make_page(
+        context, 
+        title =  """<h2>Statistiques de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+        format=format, page_title = title, REQUEST=REQUEST, with_html_headers=False)
+    if format!='html':
+        return t    
+    H = [ context.sco_header(REQUEST, page_title=page_title),
+          t,
+           context.sco_footer(REQUEST)
+          ]
+    return '\n'.join(H)
