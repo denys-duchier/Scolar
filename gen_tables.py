@@ -52,6 +52,7 @@ class GenTable:
 
                  base_url = None,
                  origin=None, # string added to excel version
+                 filename='table', # filename, without extension
 
                  xls_sheet_name='feuille',
                  pdf_table_style=None,
@@ -64,6 +65,7 @@ class GenTable:
         self.lines_titles = lines_titles
         self.origin = origin
         self.base_url = base_url
+        self.filename = filename
         # HTML parameters:
         self.html_id = html_id
         self.html_class = html_class
@@ -226,3 +228,28 @@ class GenTable:
         Pt = [ [Paragraph(SU(str(x)),CellStyle) for x in line ]
                for line in (self.get_data_list(with_titles=True))]
         return Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
+
+    def make_page(self, context, title='', format='html', page_title='',
+                  filename=None, REQUEST=None ):
+        """
+        Build page at given format
+        This is a simple page with only a title and the table.
+        """
+        if not filename:
+            filename = self.filename
+        if format == 'html':
+            H = [
+                context.sco_header(REQUEST, page_title=page_title),
+                title,
+                self.html(),
+                context.sco_footer(REQUEST) ]
+            return '\n'.join(H)
+        elif format == 'pdf':
+            tpdf = self.pdf()
+            doc = pdf_basic_page( [tpdf], title=title )
+            return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
+        elif format == 'xls':
+            xls = self.excel()
+            return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
+        else:
+            raise ValueError('_make_page: invalid format')

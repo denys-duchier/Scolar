@@ -688,9 +688,11 @@ class CacheNotesTable:
                     % (formsemestre_id, id(self), thread.get_ident()))
                 return self.cache[formsemestre_id]
             else:
+                t0 = time.time()
                 nt = NotesTable( znotes, formsemestre_id)
+                dt = time.time() - t0
                 self.cache[formsemestre_id] = nt
-                log('caching formsemestre_id=%s (id=%s)' % (formsemestre_id,id(self)) ) 
+                log('caching formsemestre_id=%s (id=%s) (%gs)' % (formsemestre_id,id(self),dt) ) 
                 return nt
         finally:
             self.release()

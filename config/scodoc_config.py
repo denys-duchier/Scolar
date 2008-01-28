@@ -24,6 +24,21 @@ CONFIG.SCOLAR_FONT = 'Helvetica'
 CONFIG.SCOLAR_FONT_SIZE = 10
 CONFIG.SCOLAR_FONT_SIZE_FOOT = 6
 
+# Pour pieds de pages Procès verbaux:
+#  (markup leger reportlab supporté, par ex. <b>blah blah</b>)
+CONFIG.INSTITUTION_NAME="<b>Institut Universitaire de Technologie - Université Paris 13</b>"
+CONFIG.INSTITUTION_ADDRESS="Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse"
+
+# Le logo en pied des PV
+CONFIG.PV_FONTNAME = 'Times-Roman'
+# Taille du l'image logo: largeur/hauteur  (ne pas oublier le . !!!)
+CONFIG.LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utilisera PIL pour connaitre la taille de l'image
+CONFIG.LOGO_FOOTER_HEIGHT = 10 # taille dans le document en millimetres
+
+CONFIG.LOGO_HEADER_ASPECT = 744 / 374. # XXX logo IUTV
+CONFIG.LOGO_HEADER_HEIGHT = 15 # taille verticale dans le document en millimetres
+
+
 # Pied de page PDF : un format Python, %(xxx)s est remplacé par la variable xxx.
 # Les variables définies sont:
 #   day   : Day of the month as a decimal number [01,31]

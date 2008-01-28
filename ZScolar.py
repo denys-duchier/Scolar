@@ -746,7 +746,7 @@ class ZScolar(ObjectManager,
 #                 titles= [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ],
 #                 lines = lines,
 #                 SheetName = title )
-            xls = sco_excel.Excel_feuille_listeappel(sem, nomgroupe, T,
+            xls = sco_excel.Excel_feuille_listeappel(self, sem, nomgroupe, T,
                                                      all_groups=all_groups,
                                                      with_codes=with_codes,
                                                      server_name=REQUEST.BASE0)

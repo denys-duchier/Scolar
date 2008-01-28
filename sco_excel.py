@@ -299,7 +299,7 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
     return diag, M
 
 #
-def Excel_feuille_listeappel( sem, groupname, lines,
+def Excel_feuille_listeappel(context, sem, groupname, lines,
                               all_groups=False, # si vrai indique les groupes
                               with_codes=False, # indique codes etuds
                               server_name=None ):
@@ -367,8 +367,8 @@ def Excel_feuille_listeappel( sem, groupname, lines,
     
     # ligne 1
     li = 0
-    ws0.write(li,1, "%s (%s - %s)"
-              % (notesdb.unquote(sem['titre_num']),
+    ws0.write(li,1, "%s %s (%s - %s)"
+              % (context.DeptName, notesdb.unquote(sem['titre_num']),
                  sem['date_debut'],sem['date_fin']), style2)
     # ligne 2
     li += 1

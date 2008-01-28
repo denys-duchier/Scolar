@@ -31,16 +31,17 @@
 from sco_pdf import *
 import sco_pvjury
 import sco_codes_parcours
+from sco_utils import *
 
-PV_FONTNAME = 'Times-Roman'
+PV_FONTNAME = CONFIG.PV_FONTNAME
 
-LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utiliser PIL pour conaitre la taille de l'image
-LOGO_FOOTER_HEIGHT = 1*cm
-LOGO_FOOTER_WIDTH  = LOGO_FOOTER_HEIGHT*LOGO_FOOTER_ASPECT
+LOGO_FOOTER_ASPECT = CONFIG.LOGO_FOOTER_ASPECT # XXX A AUTOMATISER
+LOGO_FOOTER_HEIGHT = CONFIG.LOGO_FOOTER_HEIGHT * mm
+LOGO_FOOTER_WIDTH  = LOGO_FOOTER_HEIGHT*CONFIG.LOGO_FOOTER_ASPECT
 
-LOGO_HEADER_ASPECT = 744 / 374. # XXX logo IUTV
-LOGO_HEADER_HEIGHT = 15*mm
-LOGO_HEADER_WIDTH  = LOGO_HEADER_HEIGHT*LOGO_HEADER_ASPECT
+LOGO_HEADER_ASPECT = CONFIG.LOGO_HEADER_ASPECT # XXX logo IUTV (A AUTOMATISER)
+LOGO_HEADER_HEIGHT = CONFIG.LOGO_HEADER_HEIGHT * mm
+LOGO_HEADER_WIDTH  = LOGO_HEADER_HEIGHT*CONFIG.LOGO_HEADER_ASPECT
 
 def pageFooter(canvas, doc, logo):
     "Add footer on page"
@@ -62,8 +63,8 @@ def pageFooter(canvas, doc, logo):
     RightFootStyle.fontSize =  SCOLAR_FONT_SIZE_FOOT
     RightFootStyle.alignment = TA_RIGHT 
 
-    p = makeParas( """<para><b>Institut Universitaire de Technologie - Université Paris 13</b></para>
-    <para>Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse</para>""",
+    p = makeParas( """<para>%s</para><para>%s</para>"""
+                   % (CONFIG.INSTITUTION_NAME, CONFIG.INSTITUTION_ADDRESS),
                    LeftFootStyle)
     
     np = Paragraph( '<para fontSize="14">%d</para>' % doc.page, RightFootStyle)

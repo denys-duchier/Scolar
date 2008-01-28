@@ -55,6 +55,14 @@ def formsemestre_etuds_stats(context, sem):
             etud['codedecision'] = 'DEM'
         if not etud.has_key('codedecision'):
             etud['codedecision'] = '(nd)' # pas de decision jury
+        # Ajout clé 'bac-specialite'
+        bs = []
+        if etud['bac']:
+            bs.append(etud['bac'])
+        if etud['specialite']:
+            bs.append(etud['specialite'])
+        etud['bac-specialite'] = ' '.join(bs)
+        #
         etuds.append(etud)
     return etuds
 
@@ -113,38 +121,43 @@ def _results_by_category(etuds, category='', result='', category_name=None):
 
 
 # pages
+def formsemestre_report(context, formsemestre_id, REQUEST=None,
+                        category='bac', result='codedecision',
+                        category_name='', title='Statistiques'):    
+    """
+    Tableau sur résultats (result) par type de category bac
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    etuds = formsemestre_etuds_stats(context, sem)
+    if not category_name:
+        category_name = category
+    #
+    tab = _results_by_category(etuds, category=category, category_name=category_name,
+                               result=result)
+    #
+    tab.filename = make_filename('stats ' + sem['titreannee'])
+    
+    tab.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+    tab.caption = 'Répartition des résultats par %s, semestre %s' % (category_name, sem['titreannee'])
+    tab.html_caption = "Répartition des résultats par %s." % category_name
+    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    return tab
+
+
+
 def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=None):
     """
     Tableau sur résultats par type de bac
     """
     sem = context.get_formsemestre(formsemestre_id)
-    etuds = formsemestre_etuds_stats(context, sem)
-    #
-    tab_dec_par_bacs = _results_by_category(etuds, category='bac', category_name='Bac',
-                                            result='codedecision')
-    #
     title = 'Statistiques bacs ' + sem['titreannee']
-    filename = make_filename('stats ' + sem['titreannee'])
-    
-    tab_dec_par_bacs.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
-    tab_dec_par_bacs.caption = 'Répartition des résultats par bac, semestre %s' % sem['titreannee']
-    tab_dec_par_bacs.html_caption = "Répartition des résultats par type de bac."
-    tab_dec_par_bacs.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    tab = formsemestre_report(context, formsemestre_id, REQUEST=REQUEST,
+                              category='bac', result='codedecision',
+                              category_name='Bac',
+                              title=title)
+    return tab.make_page(
+        context, 
+        title =  """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+        format=format, page_title = title, REQUEST=REQUEST )
 
-    if format == 'html':
-        H = [
-            context.sco_header(REQUEST, page_title=title),
-            """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
-            tab_dec_par_bacs.html(),
-            context.sco_footer(REQUEST) ]
-        return '\n'.join(H)
-    elif format == 'pdf':
-        tpdf = tab_dec_par_bacs.pdf()
-        doc = sco_pdf.pdf_basic_page( [tpdf], title=title )
-        return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
-    elif format == 'xls':
-        xls = tab_dec_par_bacs.excel()
-        return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
-    else:
-        raise ValueError('formsemestre_report_bacs: invalid format')
-
+        
