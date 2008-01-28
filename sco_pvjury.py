@@ -32,6 +32,7 @@ import sco_parcours_dut
 import sco_codes_parcours
 import sco_excel
 from notesdb import *
+from sco_utils import *
 
 """PV Jury IUTV 2006: on détaillait 8 cas:
 Jury de semestre n
@@ -52,18 +53,19 @@ Jury de semestre n
     8. non validation de Sn-1 et Sn et non redoublement
 """
 
-def descr_decisions_ues(znotes, decisions_ue):
+def descr_decisions_ues(znotes, decisions_ue, decision_sem):
     "résumé textuel des décisions d'UE"
     if not decisions_ue:
         return ''
     uelist = []
     for ue_id in decisions_ue.keys():
-        if decisions_ue[ue_id]['code'] == 'ADM':
+        if decisions_ue[ue_id]['code'] == 'ADM' \
+           or (CONFIG.CAPITALIZE_ALL_UES and sco_codes_parcours.code_semestre_validant(decision_sem['code'])):
             ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
             uelist.append(ue)
     uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
     ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-    
+    log('ue_acros=%s'% ue_acros)
     return ue_acros
 
 def descr_decision_sem(znotes, etat, decision_sem):
@@ -137,7 +139,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
         # Versions "en français":
-        d['decisions_ue_descr'] = descr_decisions_ues(znotes, d['decisions_ue'])
+        d['decisions_ue_descr'] = descr_decisions_ues(znotes, d['decisions_ue'], d['decision_sem'])
         d['decision_sem_descr'] = descr_decision_sem(znotes, d['etat'], d['decision_sem'])
 
         d['autorisations'] = sco_parcours_dut.formsemestre_get_autorisation_inscription(

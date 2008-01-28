@@ -46,3 +46,13 @@ CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE = "Edité par %(scodoc_name)s le %(day)s/%(mon
 from bonus_sport import *
 
 CONFIG.compute_bonus = bonus_iutv
+
+#
+#   ------------- Capitalisation des UEs -------------
+# Deux écoles:
+#   - règle "DUT": capitalisation uniquement des UE obtenues avec moyenne UE >= 10 ET des de toutes les UE
+#                   des semestres validés (ADM, ADC, AJ). (conforme à l'arrêté d'août 2005
+#
+#   - règle "LMD": capitalisation uniquement des UE avec moy. > 10
+
+CONFIG.CAPITALIZE_ALL_UES = True # si vrai, capitalise toutes les UE des semestres validés (règle "LMD").
