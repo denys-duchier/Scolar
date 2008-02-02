@@ -187,18 +187,18 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
               Colonnes: <select name="result">""" ]
         for k in keys:
             if k == result:
-                selected = ' selected'
+                selected = 'selected'
             else:
                 selected = ''
-            F.append('<option value="%s">%s</option>' % (k,selected,k))
+            F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
         F.append(' Lignes: <select name="category">')
         for k in keys:
             if k == category:
-                selected = ' selected'
+                selected = 'selected'
             else:
                 selected = ''
-            F.append('<option value="%s">%s</option>' % (k,selected,k))
+            F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
         F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)        
         F.append('<input type="submit" value="OK"/>')
@@ -207,11 +207,11 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     t = tab.make_page(
         context, 
         title =  """<h2>Statistiques de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
-        format=format, page_title = title, REQUEST=REQUEST, with_html_headers=False)
+        format=format, REQUEST=REQUEST, with_html_headers=False)
     if format!='html':
         return t    
-    H = [ context.sco_header(REQUEST, page_title=page_title),
-          t,
-           context.sco_footer(REQUEST)
+    H = [ context.sco_header(REQUEST, page_title=title),
+          t, F,
+          context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)

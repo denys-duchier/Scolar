@@ -390,8 +390,9 @@ def do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, 
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })
         cnx.commit()
         log('do_import_etuds_from_portal: re-raising exception')
+        context._inval_cache()
         raise
-        
+
     sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
                  text='Import Apogée de %d étudiants' % len(created_etudids) )
     

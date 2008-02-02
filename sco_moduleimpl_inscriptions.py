@@ -70,8 +70,7 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     </p>
     """ % (moduleimpl_id, mod['titre'], mod['code'], formsemestre_id, sem['titreannee'])]
     # Liste des inscrits à ce semestre
-    inscrits = context.Notes.do_formsemestre_inscription_list(
-        args={  'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
+    inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
     in_m = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     in_module= Set( [ x['etudid'] for x in in_m ] )
     log('in_module=%s' % in_module)

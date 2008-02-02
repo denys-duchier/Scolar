@@ -149,10 +149,8 @@ def DBDelete(cnx, table, colid, val, commit=False ):
 
 # --------------------------------------------------------------------
 
-class AccessDenied(Exception):
-    pass
-
-GrantAccess = None
+# REQLOG = open('/tmp/req.log', 'w') # DEBUG
+# REQN = 0
 
 class EditableTable:
     """ --- generic class: SQL table with create/edit/list/delete
@@ -175,7 +173,7 @@ class EditableTable:
         self.output_formators = output_formators
         self.input_formators = input_formators
         self.convert_null_outputs_to_empty = convert_null_outputs_to_empty
-        self.callback_on_write = callback_on_write # called after each modification
+        self.callback_on_write = callback_on_write # called after each modification (USELESS and unused)
         self.allow_set_id = allow_set_id
         self.html_quote = html_quote
         self.sql_default_values = None
@@ -211,7 +209,7 @@ class EditableTable:
                 assert len(res) == 1, 'len(res) = %d != 1 !' % len(res)
         if self.callback_on_write:
             self.callback_on_write()
-
+        
         return new_id
     
     def delete(self, cnx, oid, commit=True ):
@@ -223,6 +221,10 @@ class EditableTable:
     def list(self, cnx, args={}, operator = 'and', test='=', sortkey=None,
              disable_formatting=False ):
         "returns list of dicts"
+        # REQLOG.write('%s: %s by %s (%s) %d\n'%(self.table_name,args,sys._getframe(1).f_code.co_name, sys._getframe(2).f_code.co_name, REQN))
+        # REQLOG.flush()
+        # global REQN
+        # REQN = REQN + 1
         vals = dictfilter(args, self.dbfields)
         if not sortkey:
             sortkey = self.sortkey

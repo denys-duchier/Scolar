@@ -77,10 +77,11 @@ def list_inscrits(context, formsemestre_id, with_dems=False):
     """Etudiants déjà inscrits à ce semestre
     { etudid : etud }
     """
-    args = {  'formsemestre_id' : formsemestre_id }
     if not with_dems:
-        args['etat'] = 'I'
-    ins = context.Notes.do_formsemestre_inscription_list(args=args)
+        ins = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id) # optimized
+    else:
+        args = {  'formsemestre_id' : formsemestre_id }        
+        ins = context.Notes.do_formsemestre_inscription_list(args=args)
     inscr={}
     for i in ins:
         etudid = i['etudid']

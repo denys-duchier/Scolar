@@ -67,6 +67,7 @@ import sco_excel
 #import notes_users
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
+import sco_cache
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
@@ -83,6 +84,12 @@ import sco_inscr_passage, sco_synchro_etuds
 import pdfbulletins
 from notes_table import *
 import VERSION
+
+#
+# Cache global: chaque instance, repérée par son URL, a un cache
+# qui est recréé à la demande
+#
+CACHE_formsemestre_inscription = {}
 
 # ---------------
 
@@ -149,6 +156,8 @@ class ZNotes(ObjectManager,
     def _inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
         self._getNotesCache().inval_cache(self, formsemestre_id=formsemestre_id, pdfonly=pdfonly)
+        # Affecte aussi cache inscriptions
+        self.get_formsemestre_inscription_cache().inval_cache(key=formsemestre_id)
     
     security.declareProtected(ScoView, 'clearcache')
     def clearcache(self, REQUEST=None):
@@ -1121,9 +1130,21 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_inscription_list')
     def do_formsemestre_inscription_list(self, *args, **kw ):
         "list formsemestre_inscriptions"
-        cnx = self.GetDBConnexion()
+        cnx = self.GetDBConnexion()        
         return self._formsemestre_inscriptionEditor.list(cnx, *args, **kw)
 
+    security.declareProtected(ScoView, 'do_formsemestre_inscription_listinscrits')
+    def do_formsemestre_inscription_listinscrits(self, formsemestre_id):
+        """Liste les inscrits (état I) à ce semestre et cache le résultat"""
+        cache = self.get_formsemestre_inscription_cache()
+        r = cache.get(formsemestre_id)
+        if r != None:
+            return r
+        # retreive list
+        r = self.do_formsemestre_inscription_list(args={ 'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
+        cache.set(formsemestre_id,r)
+        return r
+    
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_edit')
     def do_formsemestre_inscription_edit(self, **kw ):
         "edit a formsemestre_inscription"
@@ -1144,6 +1165,17 @@ class ZNotes(ObjectManager,
         gr_tp.sort()
         gr_anglais.sort()
         return gr_td, gr_tp, gr_anglais
+
+    # Cache inscriptions semestres
+    def get_formsemestre_inscription_cache(self):
+        url = self.ScoURL()
+        if CACHE_formsemestre_inscription.has_key(url):
+            return CACHE_formsemestre_inscription[url]
+        else:
+            log('get_formsemestre_inscription_cache: new simpleCache')
+            CACHE_formsemestre_inscription[url] = sco_cache.simpleCache()
+            return CACHE_formsemestre_inscription[url]
+
 
     security.declareProtected(ScoImplement, 'formsemestre_desinscription')
     def formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None, dialog_confirmed=False):
@@ -1719,8 +1751,7 @@ class ZNotes(ObjectManager,
         # il faut considerer les inscription au semestre
         # (pour avoir l'etat et le groupe) et aussi les inscriptions
         # au module (pour gerer les modules optionnels correctement)
-        insem = self.do_formsemestre_inscription_list(
-            args={ 'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
+        insem = self.do_formsemestre_inscription_listinscrits(formsemestre_id)
         insmod = self.do_moduleimpl_inscription_list(
             args={ 'moduleimpl_id' : E['moduleimpl_id'] } )
         insmoddict = {}.fromkeys( [ x['etudid'] for x in insmod ] )
@@ -1973,7 +2004,7 @@ class ZNotes(ObjectManager,
         etudids = self.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
         # Inscrits au semestre (pour traiter les demissions):
         inssem_set = Set( [x['etudid'] for x in
-                           self.do_formsemestre_inscription_list(args={ 'formsemestre_id' : M['formsemestre_id'], 'etat' : 'I' })])
+                           self.do_formsemestre_inscription_listinscrits(M['formsemestre_id'])])
         evals = self.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
         attente = False
         # recupere les notes de toutes les evaluations

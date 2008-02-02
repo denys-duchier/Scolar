@@ -44,8 +44,6 @@ def do_formsemestre_inscription_with_modules(
     """Inscrit cet etudiant a ce semestre et TOUS ses modules STANDARDS
     (donc sauf le sport)
     """
-    cnx = self.GetDBConnexion()
-    cursor = cnx.cursor()
     etudid = args['etudid']
     formsemestre_id = args['formsemestre_id']
     # inscription au semestre

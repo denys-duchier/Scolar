@@ -938,7 +938,7 @@ class ZAbsences(ObjectManager,
         datedebut = self.DateDDMMYYYY2ISO(debut)
         datefin = self.DateDDMMYYYY2ISO(fin)
         #
-        sem = self.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         # Construit tableau (etudid, statut, nomprenom, nbJust, nbNonJust, NbTotal)
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
         T = []
