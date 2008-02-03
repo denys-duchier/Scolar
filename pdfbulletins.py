@@ -85,7 +85,13 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     CellStyle.fontSize= SCOLAR_FONT_SIZE
     CellStyle.fontName= SCOLAR_FONT    
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
-    Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
+    try:
+        Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
+    except:
+        # enquête sur exception intermittente...
+        log('*** bug in pdfbulletin_etud:')
+        log('P=%s' % P )
+        raise
     # --- Build doc using ReportLab's platypus
     # Title
     objects.append(Paragraph(SU(titletmpl % infos),

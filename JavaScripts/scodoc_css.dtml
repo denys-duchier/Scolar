@@ -314,7 +314,7 @@ a.discretelink:hover {
     text-align: center;
 }
 
-p.help {
+.help {
   font-style: italic; 
 }
 
