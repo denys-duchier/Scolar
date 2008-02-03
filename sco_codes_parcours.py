@@ -94,7 +94,8 @@ ALLOW_SEM_SKIP = False
 
 # Regles gestion parcours
 class DUTRule:
-    def __init__(self, premise, conclusion ):
+    def __init__(self, rule_id, premise, conclusion ):
+        self.rule_id = rule_id
         self.premise = premise
         self.conclusion = conclusion
         #self.code, self.codes_ue, self.devenir, self.action, self.explication = conclusion

@@ -11,8 +11,8 @@ import pdb,os,sys,psycopg
 
 DBCNXSTRING = 'host=localhost user=XXX dbname=XXX password=XXX'
 
-OLD_ID = 'CLARC'
-NEW_ID = 'larcher'
+OLD_ID = 'pariente'
+NEW_ID = 'MPARI'
 
 cnx = psycopg.connect( DBCNXSTRING )
 
@@ -32,7 +32,7 @@ tables_attr = {
     }
 
 for (table, attr) in tables_attr.items():
-    cursor.execute(req, args)
+    cursor.execute(req % (table, attr, attr), args)
     print 'table %s:  %s' % (table, cursor.statusmessage)
 
 cnx.commit()

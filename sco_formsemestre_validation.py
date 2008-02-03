@@ -323,8 +323,8 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
         H.append('<th>Code %s</th>' % TitlePrev )
     H.append('<th>Code %s</th><th>Devenir</th></tr>' % TitleCur )
     for ch in choices:
-        H.append("""<tr class="%s"><td><input type="radio" name="codechoice" value="%s" onClick="document.getElementById('subut').disabled=false;">"""
-                 % (trclass, ch.codechoice) )
+        H.append("""<tr class="%s"><td title="règle %s"><input type="radio" name="codechoice" value="%s" onClick="document.getElementById('subut').disabled=false;">"""
+                 % (trclass, ch.rule_id, ch.codechoice) )
         H.append('%s </input></td>' % ch.explication)
         if Se.prev:
             H.append('<td class="centercell">%s</td>' % _dispcode(ch.new_code_prev) )

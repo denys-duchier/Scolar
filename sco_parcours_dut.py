@@ -47,7 +47,8 @@ class DecisionSem:
                  explication='', # aide pour le jury
                  formsemestre_id_utilise_pour_compenser=None, # None si code != ADC
                  devenir=None, # code devenir
-                 assiduite=1
+                 assiduite=1,
+                 rule_id=None # id regle correspondante
                  ):
         self.code_etat = code_etat
         self.code_etat_ues = code_etat_ues
@@ -56,6 +57,7 @@ class DecisionSem:
         self.formsemestre_id_utilise_pour_compenser = formsemestre_id_utilise_pour_compenser
         self.devenir = devenir
         self.assiduite = assiduite
+        self.rule_id = rule_id
         # code unique utilise pour la gestion du formulaire
         self.codechoice = str(hash( (code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite)))
         # xxx debug
@@ -133,7 +135,7 @@ class SituationEtudParcours:
                     devenir = rule.conclusion[3],
                     formsemestre_id_utilise_pour_compenser=fiduc,
                     explication = rule.conclusion[5],
-                    assiduite=assiduite))
+                    assiduite=assiduite, rule_id=rule.rule_id))
         return choices
 
     def explique_devenir(self, devenir):
@@ -288,6 +290,8 @@ class SituationEtudParcours:
         S'il n'y en a pas, ramène DUT_NB_SEM+1
         """
         s = self.sem['semestre_id']
+        if s >= DUT_NB_SEM:
+            return DUT_NB_SEM+1
         validated = True
         while validated and (s < DUT_NB_SEM):
             s = s + 1
@@ -352,7 +356,7 @@ class SituationEtudParcours:
             # modifs des codes d'UE (pourraient passer de ADM a CMP, meme sans modif des notes)
             formsemestre_validate_ues(self.znotes, self.prev['formsemestre_id'], self.etudid,
                                       decision.new_code_prev,
-                                      decision.assiduite, # XXX attention: en toute rigueur il faudrait utiliser une indication de l'assiduite au sem. precedent, que nou sn'avons pas...
+                                      decision.assiduite, # XXX attention: en toute rigueur il faudrait utiliser une indication de l'assiduite au sem. precedent, que nous n'avons pas...
                                       REQUEST=REQUEST)
             
             self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id'])

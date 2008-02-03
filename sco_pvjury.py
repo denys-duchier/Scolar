@@ -65,7 +65,6 @@ def descr_decisions_ues(znotes, decisions_ue, decision_sem):
             uelist.append(ue)
     uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
     ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-    log('ue_acros=%s'% ue_acros)
     return ue_acros
 
 def descr_decision_sem(znotes, etat, decision_sem):

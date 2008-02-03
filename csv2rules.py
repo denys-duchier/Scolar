@@ -63,8 +63,9 @@ def _fmt(s):
         return ALL
     return s
 
-colidx_code_sem = 6 # index colonne 'code_sem' dans feuille CSV
+colidx_code_sem = 7 # index colonne 'code_sem' dans feuille CSV
 iue = colidx_code_sem + 1
+icodeprev = 1 # idex col "Prev"
 
 def genrules( csv ):
     r = []
@@ -77,8 +78,8 @@ def genrules( csv ):
                     r.append(line)
                 else:
                     fs = [ _fmt(s) for s in line.split('\t') ]
-                    if not ',' in fs[0]:
-                        fs[0] = fs[0] + ',' # liste codes prev
+                    if not ',' in fs[icodeprev]:
+                        fs[icodeprev] = fs[icodeprev] + ',' # liste codes prev
                     if fs[iue] and not ',' in fs[iue]:
                         fs[iue] = fs[iue] + ',' # liste codes UE
                     if fs[iue]:
@@ -86,13 +87,13 @@ def genrules( csv ):
                     else:
                         fs[iue] = '()'
                     fs[-1] = "'" + fs[-1].replace("'", "\\'") + "'"
-                    r.append("( ((%s), %s, %s, %s, %s, %s)," % tuple(fs[:colidx_code_sem]) )
+                    r.append("( '%s', ((%s), %s, %s, %s, %s, %s)," % tuple(fs[:colidx_code_sem]) )
                     r.append("  (%s, %s, %s, %s, %s, %s) )," % tuple(fs[colidx_code_sem:]) )
             linenum += 1
     except:
         sys.stderr.write('error line %d on\n%s\n' % (linenum, csv[linenum]))
         raise
-    return HEAD + "DUTRules = [ DUTRule(p, c) for (p,c) in (\n" + '\n'.join(r) + "\n)]"
+    return HEAD + "DUTRules = [ DUTRule(rid, p, c) for (rid, p,c) in (\n" + '\n'.join(r) + "\n)]"
 
 print genrules( open(sourcefile).readlines() )
                 
