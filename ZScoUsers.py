@@ -405,7 +405,11 @@ class ZScoUsers(ObjectManager,
             H.append('<div class="permissions"><p>Permission de cet utilisateur:</p><ul>')
             permissions = self.ac_inherited_permissions(1)
             scoperms = [ p for p in permissions if p[0][:3] == 'Sco' ]
-            thisuser = self.acl_users.getUser(user_name)
+            try:
+                thisuser = self.acl_users.getUser(user_name)
+            except:
+                # expired from cache ? retry...
+                thisuser = self.acl_users.getUser(user_name)
             for p in scoperms:
                 permname, value = p[:2]
                 if thisuser.has_permission(permname,self):

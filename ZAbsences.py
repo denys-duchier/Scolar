@@ -374,8 +374,16 @@ class ZAbsences(ObjectManager,
             cursor.execute(
                 "update absences set estabs=FALSE where  etudid=%(etudid)s and jour=%(date)s",
                 vars())
+        if dates:
+            date0 = dates[0]
+        else:
+            date0 = None
+        if len(dates) > 1:
+            date1 = dates[1]
+        else:
+            date1 = None
         logdb(REQUEST, cnx, 'AnnuleAbsencesDatesNoJust', etudid=etudid,
-              msg='%s - %s' % (dates[0],dates[1]) )
+              msg='%s - %s' % (date0,date1) )
         cnx.commit()
 
     security.declareProtected(ScoView, 'CountAbs')
