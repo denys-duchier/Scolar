@@ -32,9 +32,12 @@
 
 from notesdb import *
 from notes_log import log
-from sco_utils import SCO_ENCODING
+from sco_utils import *
 from ScolarRolesNames import *
 from sco_formsemestre_custommenu import formsemestre_custommenu_html
+from gen_tables import GenTable
+import VERSION
+
 
 def makeMenu( title, items, cssclass='custommenu' ):
     """HTML snippet to render a simple drop down menu.
@@ -84,6 +87,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         { 'title' : change_lock_msg,
           'url' :  'formsemestre_change_lock?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
+          'helpmsg' : ''
+          },
+        { 'title' : 'Description du semestre',
+          'url' :  'formsemestre_description?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
           'helpmsg' : ''
           },
         { 'title' : 'Vérifier absences aux évaluations',
@@ -200,3 +208,53 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         '</div>'
           ]
     return '\n'.join(H)
+
+
+
+# Description du semestre sous forme de table exportable
+def formsemestre_description_table(context, formsemestre_id, REQUEST):
+    """Description du semestre sous forme de table exportable
+    Liste des modules et de leurs coefficients
+    """
+    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
+    
+    R = []
+    for M in Mlist:
+        ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] })
+        l = { 'UE' : M['ue']['acronyme'],
+              'Code' : M['module']['code'],
+              'Module' : M['module']['abbrev'] or M['module']['titre'],
+              'Inscrits' : len(ModInscrits),
+              'Responsable' : context.Users.user_info(M['responsable_id'],REQUEST)['nomprenom'],
+              'Coef.' : M['module']['coefficient']
+              }
+        R.append(l)
+    
+    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
+    titles = columns_ids
+    titles = {}
+    # on veut { id : id }, peu elegant en python 2.3:
+    map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
+    
+    title = 'Semestre %s' % (sem['titreannee'])
+    
+    return GenTable(
+        columns_ids=columns_ids, rows=R, titles=titles,
+        origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+        caption = title,
+        html_caption = title,
+        base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
+        page_title = title,
+        html_title = """<h2>Semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']),
+        pdf_title = title
+        )
+
+def formsemestre_description(context, formsemestre_id, format='html', REQUEST=None):
+    """Description du semestre sous forme de table exportable
+    Liste des modules et de leurs coefficients
+    """
+    tab = formsemestre_description_table(context, formsemestre_id, REQUEST)
+    return tab.make_page(context, format=format, REQUEST=REQUEST)                          

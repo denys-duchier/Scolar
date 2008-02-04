@@ -82,7 +82,10 @@ def _categories_and_results(etuds, category, result):
 def _results_by_category(etuds, category='', result='', category_name=None):
     """Construit table: categories (eg types de bacs) en ligne, décisions jury en colonnes
 
-    etuds est une liste d'etuds (dicts) et category doit etre une cle de etud
+    etuds est une liste d'etuds (dicts).
+    category et result sont des clés de etud (category définie les lignes, result les colonnes).
+
+    Retourne une table.
     """
     if category_name is None:
         category_name = category
@@ -92,6 +95,7 @@ def _results_by_category(etuds, category='', result='', category_name=None):
     Count = {} # { bac : { decision : nb_avec_ce_bac_et_ce_code } }
     results = {} # { result_value : True }
     for etud in etuds:
+        results[etud[result]] = True
         if Count.has_key(etud[category]):
             Count[etud[category]][etud[result]] += 1
         else:            
@@ -106,26 +110,31 @@ def _results_by_category(etuds, category='', result='', category_name=None):
     for l in C:
         l['sum'] = sum(l.values())
         tot += l['sum']
-    
-    if C:
+    # pourcentages sur chaque total de ligne
+    for l in C:
+        l['sumpercent'] = '%2.1f%%' % ((100. * l['sum']) / tot)
+    if C: # ligne du bas avec totaux:
         s = {}
         for code in codes:
             s[code] = sum([ l[code] for l in C])
         s['sum'] = tot
+        s['sumpercent'] = '100%'
         C.append(s)
     #
     codes.append('sum')
+    codes.append('sumpercent')
     titles = {}
     # on veut { 'ADM' : 'ADM' }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(codes,codes) )
     titles['sum'] = 'Total'
+    titles['sumpercent'] = '%'
     titles['DEM'] = 'Dém.' # démissions
     for i in range(len(categories)):
         if categories[i] == '':
             categories[i] = '?'
     lines_titles = [category_name] + categories + ['Total']
     return GenTable( titles=titles, columns_ids=codes, rows=C, lines_titles=lines_titles,
-                     html_col_width='4em' )
+                     html_col_width='4em', html_sortable=True )
 
 
 # pages

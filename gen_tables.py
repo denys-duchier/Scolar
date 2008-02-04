@@ -30,6 +30,7 @@
 
 import sco_excel
 from sco_pdf import *
+import random
 
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
@@ -41,13 +42,16 @@ class GenTable:
                  titles={},  # titres (1ere ligne)
                  bottom_titles={}, # titres derniere ligne (optionnel)
                  lines_titles=[], # liste de titres de ligne (1ere colonne) (incluant titres top et bottom)
-
+                 
                  caption=None,
+                 page_title='', # titre fenetre html
 
                  html_id=None,
                  html_class='gt_table',
+                 html_sortable=False,
                  html_highlight_n=2, # une ligne sur 2 de classe "gt_hl"
                  html_col_width=None, # force largeur colonne
+                 html_title = '', # avant le tableau en html
                  html_caption=None, # override caption if specified
 
                  base_url = None,
@@ -55,6 +59,7 @@ class GenTable:
                  filename='table', # filename, without extension
 
                  xls_sheet_name='feuille',
+                 pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
                  pdf_col_widths=None
                  ):
@@ -66,9 +71,17 @@ class GenTable:
         self.origin = origin
         self.base_url = base_url
         self.filename = filename
+        self.caption = caption
+        self.page_title = page_title
         # HTML parameters:
-        self.html_id = html_id
+        if not html_id: # random id
+            self.html_id = 'gt_' + str(random.randint(0, 1000000))
+        else:
+            self.html_id = html_id
+        self.html_title = html_title
+        self.html_caption = html_caption
         self.html_class = html_class
+        self.sortable = html_sortable
         self.html_highlight_n = html_highlight_n
         self.html_col_width = html_col_width
         # XLS parameters
@@ -76,6 +89,7 @@ class GenTable:
         # PDF parameters
         self.pdf_table_style = pdf_table_style
         self.pdf_col_widths = pdf_col_widths
+        self.pdf_title = pdf_title
 
     def get_nb_cols(self):
         return len(self.columns_ids)
@@ -129,14 +143,17 @@ class GenTable:
 
     def html(self):
         "Simple HTML representation of the table"
-        if self.html_id:
-            hid = ' id="%s"' % self.html_id
-        else:
-            hid = ''
+        hid = ' id="%s"' % self.html_id
+        tablclasses = []
         if self.html_class:
-            cls = ' class="%s"' % self.html_class
+            tablclasses.append(self.html_class)
+        if self.sortable:
+            tablclasses.append("sortable")
+        if tablclasses:
+            cls = ' class="%s"' % ' '.join(tablclasses)
         else:
             cls = ''
+        
         if self.html_col_width:
             std = ' style="width:%s;"' % self.html_col_width
         else:
@@ -176,9 +193,7 @@ class GenTable:
         
         H.append('</table>')
 
-        caption = self.html_caption
-        if not caption:
-            caption = self.caption
+        caption = self.html_caption or self.caption
         if caption or self.base_url:
             H.append('<p class="gt_caption">')
             if caption:
@@ -227,8 +242,15 @@ class GenTable:
         titles = [ '<para><b>%s</b></para>' % x for x in self.get_titles_list() ]
         Pt = [ [Paragraph(SU(str(x)),CellStyle) for x in line ]
                for line in (self.get_data_list(with_titles=True))]
-        return Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
+        T = Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
 
+        objects = []
+        if self.pdf_title:
+            StyleSheet = styles.getSampleStyleSheet()
+            objects.append(Paragraph(SU(self.pdf_title), StyleSheet["Heading3"]))
+        objects.append(T)
+        return objects
+    
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
                   with_html_headers=True ):
@@ -238,19 +260,21 @@ class GenTable:
         """
         if not filename:
             filename = self.filename
+        page_title = page_title or self.page_title
+        html_title = title or self.html_title
         if format == 'html':
             H = []
             if with_html_headers:
                 H.append(context.sco_header(REQUEST, page_title=page_title))
-            if title:
-                H.append(title)
+            if html_title:
+                H.append(html_title)
             H.append(self.html())
             if with_html_headers:
                 H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
         elif format == 'pdf':
-            tpdf = self.pdf()
-            doc = pdf_basic_page( [tpdf], title=title )
+            objects = self.pdf()
+            doc = pdf_basic_page( objects, title=title )
             return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
         elif format == 'xls':
             xls = self.excel()

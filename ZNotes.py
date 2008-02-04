@@ -207,6 +207,8 @@ class ZNotes(ObjectManager,
     formsemestre_status_head = DTMLFile('dtml/notes/formsemestre_status_head', globals())
     security.declareProtected(ScoView, 'formsemestre_status')
     formsemestre_status = DTMLFile('dtml/notes/formsemestre_status', globals())
+    security.declareProtected(ScoView, 'formsemestre_description')
+    formsemestre_description = sco_formsemestre_status.formsemestre_description
 
     security.declareProtected(ScoView, 'formsemestre_status_menubar')
     formsemestre_status_menubar = sco_formsemestre_status.formsemestre_status_menubar
