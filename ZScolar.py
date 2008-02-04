@@ -597,7 +597,7 @@ class ZScolar(ObjectManager,
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         # calcule dates 1er jour semaine pour absences
         if with_absences:
-            first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).next_monday()
+            first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).prev_monday()
             FA = [] # formulaire avec menu saisi absences
             FA.append('<td><form action="Absences/SignaleAbsenceGrSemestre" method="GET">')
             FA.append('<input type="hidden" name="datefin" value="%(date_fin)s"/>'

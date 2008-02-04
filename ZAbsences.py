@@ -114,7 +114,7 @@ class ddmmyyyy:
 	
 	if self.day < 1 or self.day > MonthNbDays(self.month,self.year):
 	    raise ValueError, 'invalid day (%s)' % self.day
-
+        
         # weekday in 0-6, where 0 is monday
 	self.weekday = calendar.weekday(self.year,self.month,self.day)
         
@@ -166,10 +166,17 @@ class ddmmyyyy:
             day = day + MonthNbDays(month,year)
         
 	return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
-
+    
     def next_monday(self):
         "date of next monday"
         return self.next((7-self.weekday) % 7)
+
+    def prev_monday(self):
+        "date of last monday, but on sunday, pick next monday"
+        if self.weekday == 6:
+            return self.next_monday()
+        else:
+            return self.prev(self.weekday)
     
     def __cmp__ (self, other):
 	"""return a negative integer if self < other, 
@@ -768,8 +775,10 @@ class ZAbsences(ObjectManager,
         jourfin = ddmmyyyy(datefin, work_saturday=self.is_work_saturday())
         today = ddmmyyyy(time.strftime('%d/%m/%Y', time.localtime()), work_saturday=self.is_work_saturday())
         today.next()
-        if jourfin > today: # ne propose pas les semaines dans le futur
+        if jourfin > today: # ne propose jamais les semaines dans le futur
             jourfin = today
+        if jourdebut > today:
+            raise ScoValueError('date de début dans le futur (%s) !' % jourdebut)
         #
         if not jourdebut.iswork() or jourdebut > jourfin:
             raise ValueError('date debut invalide (%s, ouvrable=%d)' % (str(jourdebut), jourdebut.iswork()) )
