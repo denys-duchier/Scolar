@@ -772,7 +772,7 @@ class ZAbsences(ObjectManager,
             jourfin = today
         #
         if not jourdebut.iswork() or jourdebut > jourfin:
-            raise ValueError('date debut invalide (ouvrable=%d)' % jourdebut.iswork() )
+            raise ValueError('date debut invalide (%s, ouvrable=%d)' % (str(jourdebut), jourdebut.iswork()) )
         # calcule dates
         dates = [] # ddmmyyyy instances
         d = ddmmyyyy(datedebut, work_saturday=self.is_work_saturday())

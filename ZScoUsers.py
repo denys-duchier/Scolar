@@ -234,8 +234,8 @@ class ZScoUsers(ObjectManager,
                 n = info['nom'].lower().capitalize()
             else:
                 n = user_name
-            info['nomprenom'] = (abbrev_prenom(p) + ' ' + n).strip()
-
+            # noimprenom est le nom capitalisé suivai de l'initiale du prénom
+            info['nomprenom'] = (n + ' ' + abbrev_prenom(p)).strip()
             return info
 
     def _can_handle_passwd(self, authuser, user_name):
