@@ -35,6 +35,7 @@ from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 import htmlutils
 import sco_excel
+from gen_tables import GenTable
 
 from sets import Set
 
@@ -421,3 +422,67 @@ def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
             H.append('</div>')
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
+
+# ------------------------------------------------------------------------------
+
+
+def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
+    """Tableau avec toutes les notes saisies dans un module.
+    """
+    M = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
+    formsemestre_id = M['formsemestre_id']
+    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    
+    # [ { etudid: etudid, nom : nom, prenom : prenom, evaluation1_id : note, evaluation2_id : note, ... } ]
+    R = []
+    # Get liste de tous les etudiants inscrits a ce module
+    etudids = context.do_moduleimpl_listeetuds(moduleimpl_id)
+    for etudid in etudids:
+        R.append( context.getEtudInfo(etudid=etudid, filled=True)[0] )
+    
+    # Rempli les notes de chaque eval:
+    evals = context.do_evaluation_list( {'moduleimpl_id' : moduleimpl_id})
+    for e in evals:
+        NotesDB = context._notes_getall(e['evaluation_id'])
+        for r in R:
+            n = NotesDB.get(r['etudid'],None)
+            if n:
+                val = fmt_note( n['value'], keep_numeric=False) # keep numeric ?
+            else:
+                val = 'NA'
+            r[e['evaluation_id']] = val
+    #
+    titles = {}
+    if format == 'xls' or format == 'xml':
+        columns_ids = [ 'etudid' ]
+        titles['etudid'] = 'etudid'
+    else:
+        columns_ids = []
+    columns_ids += [ 'nom', 'prenom' ]
+    titles['nom'] = 'Nom'
+    titles['prenom'] = 'Prénom'
+    for e in evals:
+        columns_ids.append( e['evaluation_id'] )
+        titles[e['evaluation_id']] = '%(description)s (%(jour)s)' % e
+
+    title = 'Toutes les notes du module %(code)s %(titre)s' % M['module']
+    title += ' (semestre %(titreannee)s)' % sem
+    tab = GenTable(
+        columns_ids=columns_ids, rows=R, titles=titles,
+        origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+        caption = title,
+        html_caption = title,
+        html_sortable=True,
+        base_url = '%s?moduleimpl_id=%s' % (REQUEST.URL0, moduleimpl_id),
+        page_title = title,
+        html_title = """<h2>Notes du module <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>, semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
+        <p class="help">Attention: toutes ces notes ne sont pas forcément déjà prise en compte dans le moyennes
+        (seules les évaluations complètes le sont).
+        </p>
+        """ % (moduleimpl_id, M['module']['code'], M['module']['titre'], formsemestre_id, sem['titreannee']),
+        pdf_title = title
+        )
+    return tab.make_page(context, format=format, REQUEST=REQUEST)      
+
+
+    

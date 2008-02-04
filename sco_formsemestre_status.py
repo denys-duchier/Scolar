@@ -36,8 +36,6 @@ from sco_utils import *
 from ScolarRolesNames import *
 from sco_formsemestre_custommenu import formsemestre_custommenu_html
 from gen_tables import GenTable
-import VERSION
-
 
 def makeMenu( title, items, cssclass='custommenu' ):
     """HTML snippet to render a simple drop down menu.

@@ -59,7 +59,12 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 <option value="groupetd" <dtml-if "group_type == 'groupetd'">selected</dtml-if>><dtml-var "sem['nomgroupetd']"></option>
 <option value="groupeanglais" <dtml-if "group_type == 'groupeanglais'">selected</dtml-if>><dtml-var "sem['nomgroupeta']"></option>
 <option value="groupetp" <dtml-if "group_type == 'groupetp'">selected</dtml-if>><dtml-var "sem['nomgroupetp']"></option>
-</select></span>
+</select>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a class="stdlink" href="moduleimpl_listenotes?moduleimpl_id=<dtml-var moduleimpl_id>">Voir toutes les notes</a>
+
+</span>
 </form>
 </p>
 
@@ -162,8 +167,8 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 <dtml-if "_.SecurityGetUser().has_permission('Sco Inscrire Etud',this())">&nbsp;&nbsp;&nbsp;&nbsp;
 <a class="stdlink" href="moduleimpl_inscriptions_edit?moduleimpl_id=<dtml-var moduleimpl_id>">Gérer les inscriptions à ce module</a>
 </dtml-if inscr>
+</dtml-if etat>
 
-</dtml-if>
 </td></tr>
 </dtml-if canedit>
 </table>
