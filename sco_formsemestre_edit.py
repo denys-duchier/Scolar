@@ -36,6 +36,15 @@ import sco_portal_apogee
 
 def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
+    # forme liste des enseignanst avec noms et prenoms
+    iii = []
+    for user in userlist: # XXX may be slow on large user base ?
+        info = context.Users.user_info(user,REQUEST)
+        iii.append( (info['nom'].upper(), info['nomprenom'], user) )
+    iii.sort()
+    nomprenoms = [ x[1] for x in iii ]
+    userlist =  [ x[2] for x in iii ]
+    #
     formation_id = REQUEST.form['formation_id']
     F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
     if not edit:
@@ -109,7 +118,8 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                          'size' : 9, 'allow_null' : False }),
         ('responsable_id', { 'input_type' : 'menu',
                              'title' : 'Directeur des études',
-                             'allowed_values' : userlist }),        
+                             'allowed_values' : userlist,
+                             'labels' : nomprenoms }),        
         ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre' }),
         ('semestre_id', { 'input_type' : 'menu',
                           'title' : 'Semestre dans la formation',
@@ -211,6 +221,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                                    'withcheckbox' : True,
                                    'title' : '%s %s' % (mod['code'],mod['titre']),
                                    'allowed_values' : userlist,
+                                   'labels' : nomprenoms,
                                    'template' : itemtemplate }) )
     if nbmod == 0:
         modform.append(('sep',
