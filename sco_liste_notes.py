@@ -458,8 +458,8 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
                 val = 'NA'
             r[e['evaluation_id']] = val
     # Ajoutes lignes en tête:
-    coefs = { 'nom' : 'Coefficient' }
-    note_max = { 'nom' : 'Note sur' }
+    coefs = { 'nom' : 'Coefficient', '_css_row_class' : 'sorttop fontitalic' }
+    note_max = { 'nom' : 'Note sur', '_css_row_class' : 'sorttop fontitalic' }
     for e in evals:
         coefs[e['evaluation_id']] = e['coefficient']
         note_max[e['evaluation_id']] = e['note_max']
@@ -479,8 +479,6 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         columns_ids.append( e['evaluation_id'] )
         titles[e['evaluation_id']] = '%(description)s (%(jour)s)' % e
 
-    css_row_classes = { 1 : 'sorttop', 2 : 'sorttop' } # ligne 1 non sortable (coefs)
-
     title = 'Toutes les notes du module %(code)s %(titre)s' % M['module']
     title += ' (semestre %(titreannee)s)' % sem
     tab = GenTable(
@@ -489,11 +487,10 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         caption = title,
         html_caption = title,
         html_sortable=True,
-        css_row_classes = css_row_classes,
         base_url = '%s?moduleimpl_id=%s' % (REQUEST.URL0, moduleimpl_id),
         page_title = title,
         html_title = """<h2>Notes du module <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>, semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-        <p class="help">Attention: toutes ces notes ne sont pas forcément déjà prise en compte dans le moyennes
+        <p class="help">Attention: toutes ces notes ne sont pas forcément déjà prises en compte dans les moyennes
         (seules les évaluations complètes le sont).
         </p>
         """ % (moduleimpl_id, M['module']['code'], M['module']['titre'], formsemestre_id, sem['titreannee']),

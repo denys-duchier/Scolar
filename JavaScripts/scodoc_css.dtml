@@ -273,7 +273,7 @@ a.stdlink:hover {
 
 .fontred { color: red; }
 .fontorange { color: rgb(215, 90, 0); }
-
+.fontitalic { font-style: italic;  }
 .redboldtext {
    font-weight: bold;
    color: red;

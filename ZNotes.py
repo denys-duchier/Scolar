@@ -2551,9 +2551,6 @@ class ZNotes(ObjectManager,
     formsemestre_synchro_etuds = sco_synchro_etuds.synchronize_etuds
 
     # ------------- RAPPORTS STATISTIQUES
-    security.declareProtected(ScoView, "formsemestre_report_bacs")
-    formsemestre_report_bacs = sco_report.formsemestre_report_bacs
-
     security.declareProtected(ScoView, "formsemestre_report_counts")
     formsemestre_report_counts = sco_report.formsemestre_report_counts
 

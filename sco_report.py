@@ -119,6 +119,7 @@ def _results_by_category(etuds, category='', result='', category_name=None):
             s[code] = sum([ l[code] for l in C])
         s['sum'] = tot
         s['sumpercent'] = '100%'
+        s['_css_row_class'] = 'sortbottom'
         C.append(s)
     #
     codes.append('sum')
@@ -139,14 +140,19 @@ def _results_by_category(etuds, category='', result='', category_name=None):
 
 # pages
 def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
-                        category='bac', result='codedecision',
-                        category_name='', title='Statistiques'):    
+                        category='bac', result='codedecision', 
+                        category_name='', result_name='',
+                        title='Statistiques'):    
     """
     Tableau sur résultats (result) par type de category bac
     """
     sem = context.get_formsemestre(formsemestre_id)
     if not category_name:
         category_name = category
+    if not result_name:
+        result_name = result
+    if result_name == 'codedecision':
+        result_name = 'résultats'
     #
     tab = _results_by_category(etuds, category=category, category_name=category_name,
                                result=result)
@@ -161,39 +167,45 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
 
 
 
-def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=None):
-    """
-    Tableau sur résultats par type de bac
-    """
-    sem = context.get_formsemestre(formsemestre_id)
-    title = 'Statistiques bacs ' + sem['titreannee']
-    etuds = formsemestre_etuds_stats(context, sem)
-    tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
-                              category='bac', result='codedecision',
-                              category_name='Bac',
-                              title=title)
-    return tab.make_page(
-        context, 
-        title =  """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
-        format=format, page_title = title, REQUEST=REQUEST )
+# def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=None):
+#     """
+#     Tableau sur résultats par type de bac
+#     """
+#     sem = context.get_formsemestre(formsemestre_id)
+#     title = 'Statistiques bacs ' + sem['titreannee']
+#     etuds = formsemestre_etuds_stats(context, sem)
+#     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
+#                               category='bac', result='codedecision',
+#                               category_name='Bac',
+#                               title=title)
+#     return tab.make_page(
+#         context, 
+#         title =  """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+#         format=format, page_title = title, REQUEST=REQUEST )
 
 def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=None,
-                               category='bac', result='codedecision'):
+                               category='bac', result='codedecision', allkeys=False):
     """
     Tableau comptage avec choix des categories
     """
     sem = context.get_formsemestre(formsemestre_id)
-    title = "Comptages XXX"
+    category_name = category.capitalize()
+    title = "Comptages " + category_name
     etuds = formsemestre_etuds_stats(context, sem)
     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
                               category=category, result=result,
-                              category_name='XXX',
+                              category_name=category_name,
                               title=title)
     if etuds:
-        keys = etuds[0].keys()
+        if allkeys:
+            keys = etuds[0].keys()
+        else:
+            # clés présentées à l'utilisateur:
+            keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
+                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee' ]
         keys.sort()
-        F = [ """<form method="get"><p>
-              Colonnes: <select name="result">""" ]
+        F = [ """<form name="f" method="get"><p>
+              Colonnes: <select name="result" onChange="document.f.submit()">""" ]
         for k in keys:
             if k == result:
                 selected = 'selected'
@@ -201,7 +213,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                 selected = ''
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
-        F.append(' Lignes: <select name="category">')
+        F.append(' Lignes: <select name="category" onChange="document.f.submit()">')
         for k in keys:
             if k == category:
                 selected = 'selected'
@@ -220,7 +232,27 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     if format!='html':
         return t    
     H = [ context.sco_header(REQUEST, page_title=title),
-          t, F,
+          t, '\n'.join(F),
           context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)
+
+# --------------------------------------------------------------------------
+def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=None):
+    """
+    Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
+    Etat     date_debut_Sn     date_fin_Sn  date_debut2 date_fin2 ...
+    S_n       #inscrits en Sn
+    S_n+1
+    ...
+    S_last
+    Diplome
+    Sorties
+
+    Determination des dates:
+    on suit chaque etudiant (parcours): liste [Sn, Sp, Sq, ...]
+    on obtient alors une liste des semestres "suivant" Sn: {Sp tq Sp suit Sn pour un etudiant}
+
+    Etat d'un etudiant à une date t ?
+    """
+    raise NotImplementedError
