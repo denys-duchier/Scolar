@@ -49,6 +49,7 @@ class GenTable:
                  html_id=None,
                  html_class='gt_table',
                  html_sortable=False,
+                 css_row_classes={}, # idx ligne : class (ligne titre indice 0)
                  html_highlight_n=2, # une ligne sur 2 de classe "gt_hl"
                  html_col_width=None, # force largeur colonne
                  html_title = '', # avant le tableau en html
@@ -61,7 +62,7 @@ class GenTable:
                  xls_sheet_name='feuille',
                  pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
-                 pdf_col_widths=None
+                 pdf_col_widths=None,
                  ):
         self.rows = rows # [ { col_id : value } ]
         self.columns_ids = columns_ids # ordered list of col_id
@@ -82,6 +83,7 @@ class GenTable:
         self.html_caption = html_caption
         self.html_class = html_class
         self.sortable = html_sortable
+        self.css_row_classes = css_row_classes
         self.html_highlight_n = html_highlight_n
         self.html_col_width = html_col_width
         # XLS parameters
@@ -162,7 +164,8 @@ class GenTable:
 
         line_num = 0
         if self.titles:
-            H.append('<tr class="gt_firstrow">')
+            style = self.css_row_classes.get(line_num, '')
+            H.append('<tr class="gt_firstrow %s">' % style)
             if self.lines_titles:
                 H.append('<th>%s</th>' % self.lines_titles[line_num])
             H.append( '<th>' + '</th><th>'.join([
@@ -170,10 +173,14 @@ class GenTable:
         
         for row in self.rows:
             line_num += 1
+            cla = self.css_row_classes.get(line_num, '')
             if line_num % self.html_highlight_n:
-                cls = ' class="gt_hl"'
+                cls = ' class="gt_hl %s"' % cla
             else:
-                cls = ''
+                if cla:
+                    cls = ' class="%s"' % cla
+                else:
+                    cls = ''
             H.append('<tr%s>' % cls)
             if self.lines_titles:
                 H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])

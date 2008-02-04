@@ -438,7 +438,13 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
     # Get liste de tous les etudiants inscrits a ce module
     etudids = context.do_moduleimpl_listeetuds(moduleimpl_id)
     for etudid in etudids:
-        R.append( context.getEtudInfo(etudid=etudid, filled=True)[0] )
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        # Ajoute groupes
+        ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
+        etud.update(ins)
+        R.append(etud)
+    # Tri par nom
+    R.sort(lambda x,y: cmp(x['nom'], y['nom']))
     
     # Rempli les notes de chaque eval:
     evals = context.do_evaluation_list( {'moduleimpl_id' : moduleimpl_id})
@@ -451,6 +457,13 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
             else:
                 val = 'NA'
             r[e['evaluation_id']] = val
+    # Ajoutes lignes en tête:
+    coefs = { 'nom' : 'Coefficient' }
+    note_max = { 'nom' : 'Note sur' }
+    for e in evals:
+        coefs[e['evaluation_id']] = e['coefficient']
+        note_max[e['evaluation_id']] = e['note_max']
+    R = [coefs, note_max] + R
     #
     titles = {}
     if format == 'xls' or format == 'xml':
@@ -458,12 +471,15 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         titles['etudid'] = 'etudid'
     else:
         columns_ids = []
-    columns_ids += [ 'nom', 'prenom' ]
+    columns_ids += [ 'nom', 'prenom', 'groupetd' ]
     titles['nom'] = 'Nom'
     titles['prenom'] = 'Prénom'
+    titles['groupetd'] = 'Groupe TD'
     for e in evals:
         columns_ids.append( e['evaluation_id'] )
         titles[e['evaluation_id']] = '%(description)s (%(jour)s)' % e
+
+    css_row_classes = { 1 : 'sorttop', 2 : 'sorttop' } # ligne 1 non sortable (coefs)
 
     title = 'Toutes les notes du module %(code)s %(titre)s' % M['module']
     title += ' (semestre %(titreannee)s)' % sem
@@ -473,6 +489,7 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         caption = title,
         html_caption = title,
         html_sortable=True,
+        css_row_classes = css_row_classes,
         base_url = '%s?moduleimpl_id=%s' % (REQUEST.URL0, moduleimpl_id),
         page_title = title,
         html_title = """<h2>Notes du module <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>, semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
