@@ -416,7 +416,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     else:
         pplink = '<p><a href="%s?formsemestre_id=%s&percent=1">Afficher les résultats en pourcentages</a></p>' % (REQUEST.URL0, formsemestre_id)
     help = pplink + """    
-    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> de semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
+    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
           t, help, expl,

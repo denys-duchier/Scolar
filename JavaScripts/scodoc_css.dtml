@@ -731,7 +731,7 @@ ul.tf-msg {
 }
 
 li.tf-msg {  
-  list-style-image: url("<dtml-var BASE0>/img/warning16_img");
+  list-style-image: url("/scodoc_img/warning16_img");
   padding-top: 5px;
   padding-bottom: 5px;
 }
@@ -740,7 +740,7 @@ p.warning {
   font-weight: bold;
   color: red;
 }
-/* ---- ? ne fonctionne pas :  p.warning:before { url("<dtml-var BASE0>/img/warning16_img"); } */
+/* ---- ? ne fonctionne pas :  p.warning:before { url("/scodoc_img/warning16_img"); } */
 
 
 td.tf-ro-fieldlabel { 
@@ -855,18 +855,18 @@ h2.entreprise {
 }
 
 h2.entreprise_contact:before { 
-  content: url("<dtml-var BASE0>/img/contact_img");
+  content: url("/scodoc_img/contact_img");
   vertical-align: -80%;  
   padding-right: 1em; 
 }
 h2.entreprise_correspondant:before { 
-  content: url("<dtml-var BASE0>/img/correspondant_img");
+  content: url("/scodoc_img/correspondant_img");
   vertical-align: -80%;  
   padding-right: 1em; 
 }
 
 h2.entreprise_new:before { 
-  content: url("<dtml-var BASE0>/img/entreprise_img");
+  content: url("/scodoc_img/entreprise_img");
   vertical-align: -80%; 
   padding-right: 2em; 
 }
@@ -877,15 +877,15 @@ p.entreprise_warning, p.gtr_warning, p.gtr_interdit, p.gtr_devel {
   margin-top: -1em;
 }
 P.entreprise_warning:before { 
-  content: url("<dtml-var BASE0>/img/warning_img");
+  content: url("/scodoc_img/warning_img");
   vertical-align: -80%;  
 }
 P.gtr_interdit:before {
-  content: url("<dtml-var BASE0>/img/interdit_img");
+  content: url("/scodoc_img/interdit_img");
   vertical-align: -80%;  
 }
 P.gtr_devel:before {
-  content: url("<dtml-var BASE0>/img/devel_img");
+  content: url("/scodoc_img/devel_img");
   vertical-align: -80%;  
 }
 div.entreprise-insidebar { 
@@ -1109,13 +1109,13 @@ div.module_check_absences ul {
 
 .tooltip span.top{
   padding: 30px 8px 0;
-  background: url(/img/bt_gif) no-repeat top;
+  background: url("/scodoc_img/bt_gif") no-repeat top;
 }
 
 .tooltip b.bottom{
   padding:3px 8px 15px;
   color: #548912;
-  background: url("<dtml-var BASE0>/img/bt_gif") no-repeat bottom;
+  background: url("/scodoc_img/bt_gif") no-repeat bottom;
 }
 /* ----------------------------------------------- */
 
