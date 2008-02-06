@@ -345,7 +345,7 @@ class ZScolar(ObjectManager,
         """ % (SCOVERSION, get_svn_version(file_path)) ]
         H.append('<p>Logiciel écrit en <a href="http://www.python.org">Python</a> pour la plate-forme <a href="http://www.zope.org">Zope</a>.</p><p>Utilise <a href="http://reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
         H.append( "<h2>Dernières évolutions</h2>" + SCONEWS )
-        H.append( '<div class="about-logo">' + self.img.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
+        H.append( '<div class="about-logo">' + self.scodoc_img.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
         d = ''
         # debug
         #import locale
@@ -484,7 +484,7 @@ class ZScolar(ObjectManager,
         H = []
         # news
         cnx = self.GetDBConnexion()
-        rssicon = self.img.rssicon_img.tag(title='Flux RSS', border='0') 
+        rssicon = self.scodoc_img.rssicon_img.tag(title='Flux RSS', border='0') 
         H.append( sco_news.scolar_news_summary_html(cnx, rssicon=rssicon) )
 
         # liste de toutes les sessions
@@ -494,11 +494,11 @@ class ZScolar(ObjectManager,
         cursems = []   # semestres "courants"
         othersems = [] # autres (anciens ou futurs)
         # icon image:
-        groupicon = self.img.groupicon_img.tag(title="Listes et groupes",
+        groupicon = self.scodoc_img.groupicon_img.tag(title="Listes et groupes",
                                                border='0') 
-        emptygroupicon = self.img.emptygroupicon_img.tag(title="Pas d'inscrits",
+        emptygroupicon = self.scodoc_img.emptygroupicon_img.tag(title="Pas d'inscrits",
                                                          border='0')
-        lockicon = self.img.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = self.scodoc_img.lock32_img.tag(title="verrouillé", border='0')
         # selection sur l'etat du semestre
         for sem in sems:
             if sem['etat'] == '1':
