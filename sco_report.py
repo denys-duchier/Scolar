@@ -409,7 +409,8 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     tab, expl = table_suivi_cohorte(context, formsemestre_id, percent=percent)
     tab.base_url = '%s?formsemestre_id=%s&percent=%s' % (REQUEST.URL0, formsemestre_id, percent)
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
-
+    if format != 'html':
+        return t
     if percent:
         pplink = '<p><a href="%s?formsemestre_id=%s&percent=0">Afficher les résultats bruts</a></p>' % (REQUEST.URL0, formsemestre_id)
     else:
