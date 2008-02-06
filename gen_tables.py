@@ -183,8 +183,16 @@ class GenTable:
             if self.lines_titles:
                 H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])
             if row:
-                H.append( '<td%s>'%std + ('</td><td%s>'%std).join([
-                    str(row.get(cid,'')) for cid in self.columns_ids ]) + '</td></tr>' )
+                #H.append( '<td%s>'%std + ('</td><td%s>'%std).join([
+                #    str(row.get(cid,'')) for cid in self.columns_ids ]) + '</td></tr>' )
+                r = []
+                for cid in self.columns_ids:
+                    content = str(row.get(cid,''))
+                    help = row.get('_%s_help'%cid, None)
+                    if help:
+                        content = '<a class="discretelink" href="" title="%s">%s</a>' % (help, content)
+                    r.append( '<td%s %s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''),content))
+                H.append(''.join(r))
             elif not self.lines_titles:
                 H.append('<tr></tr>') # empty row
             

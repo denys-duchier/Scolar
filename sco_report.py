@@ -317,31 +317,49 @@ def table_suivi_cohorte(context, formsemestre_id):
     indices_sems = list(Set([s['semestre_id'] for s in sems]))
     indices_sems.sort()
     for p in P:
+        p.nb_etuds = 0 # nombre total d'etudiants dans la periode
         p.sems_by_id = DictDefault(defaultvalue=[])
         for s in p.sems:
             p.sems_by_id[s['semestre_id']].append(s)
+            p.nb_etuds += len(s['members'])
     
     # 5-- Contruit table
     lines_titles=['', 'Origine: S%s' % sem['semestre_id'] ]
-    L = [{ porigin.datedebut : len(sem['members']) }]
+    L = [{ porigin.datedebut : len(sem['members']),  '_css_row_class' : 'sorttop' }]
     for idx_sem in indices_sems:
-        lines_titles.append('S%s' % idx_sem)
+        if idx_sem >= 0:
+            lines_titles.append('S%s' % idx_sem)
+        else:
+            lines_titles.append('Autre semestre')
         d = {}
         for p in P:
-            nbetuds = 0
+            etuds_period = Set()
             for s in p.sems:
                 if s['semestre_id'] == idx_sem:
-                    nbetuds += len(s['members'])
+                    etuds_period = etuds_period.union(s['members'])
+            nbetuds = len(etuds_period)
             d[p.datedebut] = nbetuds or '' # laisse case vide au lieu de 0
+            if nbetuds and nbetuds < 10: # si peu d'etudiants, indique la liste
+                etud_descr = _descr_etud_set(context, etuds_period)
+                d['_%s_help' % p.datedebut] = etud_descr
         L.append(d)
-    # derniere ligne: nombre de diplomes
+    # nombre total d'etudiants par periode
+    lines_titles.append('Inscrits')
+    l = {'_css_row_class':'sortbottom', porigin.datedebut : len(sem['members']) }
+    for p in P:
+        l[p.datedebut] = p.nb_etuds
+    L.append(l)
+    # derniere ligne: nombre et pourcentage de diplomes
     lines_titles.append('Diplômes')
     NbDipl = {}
     for p in P:
         nb_dipl = 0
         for s in p.sems:
             nb_dipl += s['nb_dipl']
-        NbDipl[p.datedebut] = nb_dipl
+        if nb_dipl:
+            NbDipl[p.datedebut] = '%s (%2.1f%%)' % (nb_dipl, 100. * nb_dipl / len(sem['members']))
+    
+    NbDipl['_css_row_class'] = 'sortbottom' # reste en bas de la table
     L.append(NbDipl)
     
     columns_ids = [porigin.datedebut] + [ p.datedebut for p in P ]
@@ -377,8 +395,22 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=
     tab, expl = table_suivi_cohorte(context, formsemestre_id)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+
+    help = """<p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> de semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
+    
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
-          t, expl,
+          t, help, expl,
           context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)
+
+def _descr_etud_set(context, etudids):
+    "textual html description of a set of etudids"
+    etuds = []
+    for etudid in etudids:
+        etuds.append(context.getEtudInfo(etudid=etudid, filled=True)[0])
+    # sort by name
+    etuds.sort( lambda x,y: cmp(x['nom'],y['nom']) )
+    return ', '.join( [ e['nomprenom'] for e in etuds ] )
+
+                   

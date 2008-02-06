@@ -1,4 +1,6 @@
-/* JavaScript for Help Bubbles (aka tooltips) */
+/* -*- mode: javascript -*-
+ *                 JavaScript for Help Bubbles (aka tooltips) 
+ */
 
 function enableTooltips(id){
 var links,i,h;
