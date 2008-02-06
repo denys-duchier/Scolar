@@ -192,7 +192,7 @@ class GenTable:
             line_num += 1
             H.append('<tr class="gt_lastrow">')
             if self.lines_titles:
-                H.append('<thclass="gt_linetit">%s</th>' % self.lines_titles[line_num])
+                H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])
             H.append( '<th>' + '</th><th>'.join([
                 str(self.bottom_titles.get(cid,'')) for cid in self.columns_ids ]) + '</th></tr>' )
         

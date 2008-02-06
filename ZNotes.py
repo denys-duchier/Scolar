@@ -2554,6 +2554,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, "formsemestre_report_counts")
     formsemestre_report_counts = sco_report.formsemestre_report_counts
 
+    security.declareProtected(ScoView, "formsemestre_suivi_cohorte")
+    formsemestre_suivi_cohorte = sco_report.formsemestre_suivi_cohorte
+
     # --------------------------------------------------------------------
     # DEBUG
     security.declareProtected(ScoView,'check_sem_integrity')

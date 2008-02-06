@@ -4,6 +4,12 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Février 2008</h4>
+<ul>
+<li>Statistiques et suivis de cohortes</li>
+<li>Nombreuses petites corrections suites aux jurys de janvier</li>
+</ul>
+
 <h4>Janvier 2008</h4>
 <ul>
 <li>Personnalisation des régles de calculs notes d'option (sport, culture)</li>
@@ -12,8 +18,8 @@ SCONEWS = """
 
 <h4>Novembre 2007</h4>
 <ul>
-<li>Vérification des absences aux évaluations.</li>
-<li>Import des photos depuis portail, trombinoscopes en PDF.</li>
+<li>Vérification des absences aux évaluations</li>
+<li>Import des photos depuis portail, trombinoscopes en PDF</li>
 </ul>
 
 <h4>Septembre 2007</h4>

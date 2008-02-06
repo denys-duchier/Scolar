@@ -35,7 +35,9 @@ from notes_log import log
 from gen_tables import GenTable
 import sco_excel, sco_pdf
 import sco_codes_parcours
-import VERSION
+from sets import Set
+from mx.DateTime import DateTime as mxDateTime
+import mx.DateTime
 
 def formsemestre_etuds_stats(context, sem):
     """Récupère liste d'etudiants avec etat et decision.
@@ -238,10 +240,10 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     return '\n'.join(H)
 
 # --------------------------------------------------------------------------
-def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=None):
+def table_suivi_cohorte(context, formsemestre_id):
     """
     Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
-    Etat     date_debut_Sn     date_fin_Sn  date_debut2 date_fin2 ...
+    Etat     date_debut_Sn   date1  date2 ...
     S_n       #inscrits en Sn
     S_n+1
     ...
@@ -249,10 +251,134 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=
     Diplome
     Sorties
 
-    Determination des dates:
-    on suit chaque etudiant (parcours): liste [Sn, Sp, Sq, ...]
-    on obtient alors une liste des semestres "suivant" Sn: {Sp tq Sp suit Sn pour un etudiant}
+    Determination des dates: on regroupe les semestres commençant à des dates proches
 
-    Etat d'un etudiant à une date t ?
     """
-    raise NotImplementedError
+    sem = context.get_formsemestre(formsemestre_id) # sem est le semestre origine
+    # 1-- Liste des semestres posterieurs dans lesquels ont été les etudiants de sem
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    etudids = nt.get_etudids()
+    
+    S = {} # set of formsemestre_id
+    for etudid in etudids:
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        for s in etud['sems']:
+            if DateDMYtoISO(s['date_debut']) > DateDMYtoISO(sem['date_debut']):
+                S[s['formsemestre_id']] = s
+    sems = S.values()
+    # tri les semestres par date de debut
+    for s in sems:
+        d,m,y = [int(x) for x in s['date_debut'].split('/')]
+        s['date_debut_mx'] = mxDateTime(y,m,d)
+    sems.sort( lambda x,y: cmp( x['date_debut_mx'], y['date_debut_mx'] ) )
+    
+    # 2-- Pour chaque semestre, trouve l'ensemble des etudiants venant de sem
+    orig_set = Set(etudids)
+    sem['members'] = orig_set
+    for s in sems:
+        ins = context.do_formsemestre_inscription_listinscrits(s['formsemestre_id'])
+        inset = Set([ i['etudid'] for i in ins ] )
+        s['members'] = orig_set.intersection(inset)
+        nb_dipl = 0             # combien de diplomes dans ce semestre ?
+        if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
+            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+            for etudid in s['members']:
+                dec = nt.get_etud_decision_sem(etudid)
+                if dec and dec['code'] == 'ADM':
+                    nb_dipl += 1
+        s['nb_dipl'] = nb_dipl
+    
+    # 3-- Regroupe les semestres par date de debut
+    P = [] #  liste de periodsem
+    class periodsem:
+        pass
+    # semestre de depart:
+    porigin = periodsem()
+    d,m,y = [int(x) for x in sem['date_debut'].split('/')]
+    porigin.datedebut = mxDateTime(y,m,d)
+    porigin.sems = [sem]
+    
+    #
+    tolerance = mx.DateTime.DateTimeDelta(45) # 45 days
+    for s in sems:
+        merged=False
+        for p in P:
+            if abs(s['date_debut_mx']-p.datedebut) < tolerance:
+                p.sems.append(s)
+                merged=True
+                break
+        if not merged:
+            p = periodsem()
+            p.datedebut = s['date_debut_mx']
+            p.sems = [s]
+            P.append(p)
+    
+    # 4-- regroupe par indice de semestre S_i
+    indices_sems = list(Set([s['semestre_id'] for s in sems]))
+    indices_sems.sort()
+    for p in P:
+        p.sems_by_id = DictDefault(defaultvalue=[])
+        for s in p.sems:
+            p.sems_by_id[s['semestre_id']].append(s)
+    
+    # 5-- Contruit table
+    lines_titles=['', 'Origine: S%s' % sem['semestre_id'] ]
+    L = [{ porigin.datedebut : len(sem['members']) }]
+    for idx_sem in indices_sems:
+        lines_titles.append('S%s' % idx_sem)
+        d = {}
+        for p in P:
+            nbetuds = 0
+            for s in p.sems:
+                if s['semestre_id'] == idx_sem:
+                    nbetuds += len(s['members'])
+            d[p.datedebut] = nbetuds or '' # laisse case vide au lieu de 0
+        L.append(d)
+    # derniere ligne: nombre de diplomes
+    lines_titles.append('Diplômes')
+    NbDipl = {}
+    for p in P:
+        nb_dipl = 0
+        for s in p.sems:
+            nb_dipl += s['nb_dipl']
+        NbDipl[p.datedebut] = nb_dipl
+    L.append(NbDipl)
+    
+    columns_ids = [porigin.datedebut] + [ p.datedebut for p in P ]
+    titles = dict( [ (p.datedebut, p.datedebut.strftime('%d/%m/%y')) for p in P ] )
+    titles[porigin.datedebut] = porigin.datedebut.strftime('%d/%m/%y')
+    tab = GenTable( titles=titles, columns_ids=columns_ids,
+                    rows=L, lines_titles=lines_titles,
+                    html_col_width='4em', html_sortable=True,
+                    filename=make_filename('cohorte ' + sem['titreannee']),
+                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    caption = 'Suivi cohorte ' + sem['titreannee'],
+                    page_title = 'Suivi cohorte ' + sem['titreannee'],
+                    html_title =  """<h2>Suivi cohorte de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem
+                    )
+    # Explication: liste des semestres associés à chaque date
+    if not P:
+        expl = ['<p class="help">(aucun étudiant trouvé dans un semestre ultérieur)</p>']
+    else:
+        expl = [ '<h3>Semestres associés à chaque date:</h3><ul>' ]
+        for p in P:        
+            expl.append( '<li><b>%s</b>:' %  p.datedebut.strftime('%d/%m/%y'))
+            ls = []
+            for s in p.sems:
+                ls.append('<a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>' % s )
+            expl.append(', '.join(ls) + '</li>')
+        expl.append('</ul>')
+    return tab, '\n'.join(expl)
+
+def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=None):
+    """Affiche suivi cohortes par numero de semestre
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    tab, expl = table_suivi_cohorte(context, formsemestre_id)
+    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title),
+          t, expl,
+          context.sco_footer(REQUEST)
+          ]
+    return '\n'.join(H)
