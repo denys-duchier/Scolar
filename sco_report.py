@@ -240,7 +240,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     return '\n'.join(H)
 
 # --------------------------------------------------------------------------
-def table_suivi_cohorte(context, formsemestre_id):
+def table_suivi_cohorte(context, formsemestre_id, percent=False):
     """
     Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
     Etat     date_debut_Sn   date1  date2 ...
@@ -324,8 +324,13 @@ def table_suivi_cohorte(context, formsemestre_id):
             p.nb_etuds += len(s['members'])
     
     # 5-- Contruit table
-    lines_titles=['', 'Origine: S%s' % sem['semestre_id'] ]
-    L = [{ porigin.datedebut : len(sem['members']),  '_css_row_class' : 'sorttop' }]
+    nb_initial = len(sem['members'])
+    if percent:
+        o = '%'
+    else:
+        o = ''
+    lines_titles=[o, 'Origine: S%s' % sem['semestre_id'] ]
+    L = [{ porigin.datedebut : nb_initial,  '_css_row_class' : 'sorttop' }]
     for idx_sem in indices_sems:
         if idx_sem >= 0:
             lines_titles.append('S%s' % idx_sem)
@@ -338,14 +343,18 @@ def table_suivi_cohorte(context, formsemestre_id):
                 if s['semestre_id'] == idx_sem:
                     etuds_period = etuds_period.union(s['members'])
             nbetuds = len(etuds_period)
-            d[p.datedebut] = nbetuds or '' # laisse case vide au lieu de 0
-            if nbetuds and nbetuds < 10: # si peu d'etudiants, indique la liste
-                etud_descr = _descr_etud_set(context, etuds_period)
-                d['_%s_help' % p.datedebut] = etud_descr
+            if nbetuds:
+                if percent:
+                    d[p.datedebut] = '%2.1f%%' % (100. * nbetuds / nb_initial)
+                else:
+                    d[p.datedebut] = nbetuds
+                if nbetuds < 10: # si peu d'etudiants, indique la liste
+                    etud_descr = _descr_etud_set(context, etuds_period)
+                    d['_%s_help' % p.datedebut] = etud_descr
         L.append(d)
     # nombre total d'etudiants par periode
     lines_titles.append('Inscrits')
-    l = {'_css_row_class':'sortbottom', porigin.datedebut : len(sem['members']) }
+    l = {'_css_row_class':'sortbottom', porigin.datedebut : nb_initial }
     for p in P:
         l[p.datedebut] = p.nb_etuds
     L.append(l)
@@ -357,7 +366,7 @@ def table_suivi_cohorte(context, formsemestre_id):
         for s in p.sems:
             nb_dipl += s['nb_dipl']
         if nb_dipl:
-            NbDipl[p.datedebut] = '%s (%2.1f%%)' % (nb_dipl, 100. * nb_dipl / len(sem['members']))
+            NbDipl[p.datedebut] = '%s (%2.1f%%)' % (nb_dipl, 100. * nb_dipl / nb_initial)
     
     NbDipl['_css_row_class'] = 'sortbottom' # reste en bas de la table
     L.append(NbDipl)
@@ -365,12 +374,16 @@ def table_suivi_cohorte(context, formsemestre_id):
     columns_ids = [porigin.datedebut] + [ p.datedebut for p in P ]
     titles = dict( [ (p.datedebut, p.datedebut.strftime('%d/%m/%y')) for p in P ] )
     titles[porigin.datedebut] = porigin.datedebut.strftime('%d/%m/%y')
+    if percent:
+        pp = '(en % de la population initiale) '
+    else:
+        pp = ''
     tab = GenTable( titles=titles, columns_ids=columns_ids,
                     rows=L, lines_titles=lines_titles,
                     html_col_width='4em', html_sortable=True,
                     filename=make_filename('cohorte ' + sem['titreannee']),
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-                    caption = 'Suivi cohorte ' + sem['titreannee'],
+                    caption = 'Suivi cohorte ' + pp + sem['titreannee'],
                     page_title = 'Suivi cohorte ' + sem['titreannee'],
                     html_title =  """<h2>Suivi cohorte de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem
                     )
@@ -388,15 +401,21 @@ def table_suivi_cohorte(context, formsemestre_id):
         expl.append('</ul>')
     return tab, '\n'.join(expl)
 
-def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=1, REQUEST=None):
     """Affiche suivi cohortes par numero de semestre
     """
+    percent = int(percent)
     sem = context.get_formsemestre(formsemestre_id)
-    tab, expl = table_suivi_cohorte(context, formsemestre_id)
-    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    tab, expl = table_suivi_cohorte(context, formsemestre_id, percent=percent)
+    tab.base_url = '%s?formsemestre_id=%s&percent=%s' % (REQUEST.URL0, formsemestre_id, percent)
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
 
-    help = """<p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> de semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
+    if percent:
+        pplink = '<p><a href="%s?formsemestre_id=%s&percent=0">Afficher les résultats bruts</a></p>' % (REQUEST.URL0, formsemestre_id)
+    else:
+        pplink = '<p><a href="%s?formsemestre_id=%s&percent=1">Afficher les résultats en pourcentages</a></p>' % (REQUEST.URL0, formsemestre_id)
+    help = pplink + """    
+    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> de semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
           t, help, expl,
