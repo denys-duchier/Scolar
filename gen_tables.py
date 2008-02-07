@@ -99,24 +99,33 @@ class GenTable:
         T = []
         line_num = 0
         if with_titles and self.titles:
-            if with_lines_titles and self.lines_titles:
-                l = [ self.lines_titles[line_num] ]
+            if with_lines_titles:
+                if self.titles.has_key('row_title'):
+                    l = [ self.titles['row_title'] ]
+                elif self.lines_titles:
+                    l = [ self.lines_titles[line_num] ]
             else:
                 l = []
             T.append( l + [self.titles.get(cid,'') for cid in self.columns_ids ] )
 
         for row in self.rows:
             line_num += 1
-            if with_lines_titles and self.lines_titles:
-                l = [ self.lines_titles[line_num] ]
+            if with_lines_titles:
+                if row.has_key('row_title'):
+                    l = [ row['row_title'] ]
+                elif self.lines_titles:
+                    l = [ self.lines_titles[line_num] ]
             else:
                 l = []
             T.append( l + [ row.get(cid,'') for cid in self.columns_ids ])
 
         if with_bottom_titles and self.bottom_titles:
             line_num += 1
-            if with_lines_titles and self.lines_titles:
-                l = [ self.lines_titles[line_num] ]
+            if with_lines_titles:
+                if self.bottom_titles.has_key('row_title'):
+                    l = [ self.bottom_titles['row_title'] ]
+                elif self.lines_titles:
+                    l = [ self.lines_titles[line_num] ]
             else:
                 l = []
             T.append( l + [self.bottom_titles.get(cid,'') for cid in self.columns_ids ] )
@@ -248,7 +257,7 @@ class GenTable:
                                     ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                                     ('VALIGN', (0,0), (-1,-1), 'TOP') ]
         nb_cols = len(self.columns_ids)
-        if self.lines_titles:
+        if self.lines_titles or (self.rows and self.rows[0].has_key('row_title')):
             nb_cols += 1
         if not self.pdf_col_widths:
             self.pdf_col_widths = (None,) * nb_cols
