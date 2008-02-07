@@ -317,9 +317,12 @@ def formsemestre_inscr_passage_help(sem):
 
 def etuds_select_boxes(context, auth_etuds_by_cat,
                        inscrits_ailleurs={}, sel_inscrits=True,
-                       show_empty_boxes=False ):
+                       show_empty_boxes=False,
+                       export_cat_xls=None):
     """Boites pour selection étudiants par catégorie
     """
+    if export_cat_xls:
+        return etuds_select_box_xls(context,auth_etuds_by_cat[export_cat_xls])
     H = [ """<script type="text/javascript">
     function sem_select(formsemestre_id, state) {
     var elems = document.getElementById(formsemestre_id).getElementsByTagName("input");
@@ -390,3 +393,7 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
             H.append('</div>')
     
     return '\n'.join(H)
+
+def etuds_select_box_xls(context, src_cat):
+    "export a box to excel"
+    raise NotImplementedError # XXXXXXXXXXXXx

@@ -124,7 +124,7 @@ PIVOT_YEAR = 70
 def pivot_year(y):
     if y == '' or y is None:
         return None
-    y = int(y)
+    y = int(round(float(y)))
     if y >= 0 and y < 100:
         if y < PIVOT_YEAR:
             y = y + 2000
