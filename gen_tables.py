@@ -212,7 +212,7 @@ class GenTable:
             if caption:
                 H.append(caption)
             if self.base_url:
-                H.append(' <a href="%s&format=xls">export tableur</a>&nbsp;&nbsp;<a href="%s&format=pdf">version pdf</a>' % (self.base_url,self.base_url))
+                H.append(' <a href="%s&format=xls">%s</a>&nbsp;&nbsp;<a href="%s&format=pdf">%s</a>' % (self.base_url,ICON_XLS,self.base_url,ICON_PDF))
             H.append('</p>')
         return '\n'.join(H)
         

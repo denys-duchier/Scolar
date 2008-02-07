@@ -71,6 +71,10 @@ XLS_MIMETYPE = 'application/vnd.ms-excel'
 PDF_MIMETYPE = 'application/pdf'
 XML_MIMETYPE = 'text/xml'
 
+
+ICON_PDF = '<img src="/scodoc_img/pdficon16x20_img" border="0" title="Version PDF"/>'
+ICON_XLS = '<img src="/scodoc_img/xlsicon_img" border="0" title="Version tableur"/>'
+
 """ Simple python utilities
 """
 

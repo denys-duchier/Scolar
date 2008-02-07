@@ -35,7 +35,7 @@ from sco_exceptions import *
 import sco_portal_apogee
 import sco_inscr_passage
 import scolars
-import sco_news
+import sco_news, sco_excel
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
 from sets import Set
@@ -49,6 +49,7 @@ EKEY_NAME = 'code NIP'
 def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
                       inscrire_non_inscrits=False, # declenche inscription des "aposco" non inscrits
                       submitted=False, dialog_confirmed=False,
+                      export_cat_xls=None,
                       REQUEST=None):
     """Synchronise les étudiants de ce semestre avec ceux d'Apogée.
     On a plusieurs cas de figure: L'étudiant peut être
@@ -82,15 +83,24 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
         """ % sem )
     header = context.sco_header(REQUEST, page_title='Synchronisation étudiants')
     footer = context.sco_footer(REQUEST)
+    base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    if anneeapogee:
+        base_url += '&anneeapogee=%s' % anneeapogee
 
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation
-    #log('synchronize_etuds: etuds=%s' % etuds)
+    
     etuds_by_cat, etuds_a_importer, etudsapo_ident = list_synch(context, sem, anneeapogee=anneeapogee)    
 
+    if export_cat_xls:
+        filename = export_cat_xls
+        xls = build_page(context, sem, etuds_by_cat, anneeapogee,
+                         export_cat_xls=export_cat_xls, base_url=base_url )
+        return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
+    
     H = [ header ]
     if not submitted:
-        H += build_page(context, sem, etuds_by_cat, anneeapogee)
+        H += build_page(context, sem, etuds_by_cat, anneeapogee, base_url=base_url)
     else:
         etuds_set = Set(etuds)
         etuds_a_importer = etuds_a_importer.intersection(etuds_set)
@@ -138,7 +148,12 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
     return '\n'.join(H)
 
 
-def build_page(context, sem, etuds_by_cat, anneeapogee):
+def build_page(context, sem, etuds_by_cat, anneeapogee,
+               export_cat_xls=None, base_url=''):
+    if export_cat_xls:
+        return sco_inscr_passage.etuds_select_boxes(context, etuds_by_cat,
+                                                    export_cat_xls=export_cat_xls,
+                                                    base_url=base_url)
     year = time.localtime()[0]
     years_lab = ( str(year), str(year-1), 'tous' )
     years_vals = ( str(year), str(year-1), '' )
@@ -168,7 +183,8 @@ def build_page(context, sem, etuds_by_cat, anneeapogee):
           
         sco_inscr_passage.etuds_select_boxes(context, etuds_by_cat,
                                              sel_inscrits=False,
-                                             show_empty_boxes=True),
+                                             show_empty_boxes=True,
+                                             base_url=base_url),
 
         synchronize_etuds_help(sem),
         """</form>""",          
