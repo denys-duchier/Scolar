@@ -41,13 +41,13 @@ class GenTable:
                  columns_ids=[], # id des colonnes a afficher, dans l'ordre
                  titles={},  # titres (1ere ligne)
                  bottom_titles={}, # titres derniere ligne (optionnel)
-                 lines_titles=[], # liste de titres de ligne (1ere colonne) (incluant titres top et bottom)
+                 lines_titles=[], # DEPRECATED liste de titres de ligne (1ere colonne) (incluant titres top et bottom)
                  
                  caption=None,
                  page_title='', # titre fenetre html
 
                  html_id=None,
-                 html_class='gt_table',
+                 html_class='gt_table', # class de l'element <table>
                  html_sortable=False,
                  html_highlight_n=2, # une ligne sur 2 de classe "gt_hl"
                  html_col_width=None, # force largeur colonne
@@ -164,8 +164,10 @@ class GenTable:
         if self.titles:
             cla = self.titles.get('_css_row_class', '')
             H.append('<tr class="gt_firstrow %s">' % cla)
-            if self.lines_titles:
+            if self.lines_titles: # deprecated
                 H.append('<th>%s</th>' % self.lines_titles[line_num])
+            if self.titles.has_key('row_title'):
+                H.append('<th>%s</th>' % self.titles['row_title'])
             H.append( '<th>' + '</th><th>'.join([
                 str(self.titles.get(cid,'')) for cid in self.columns_ids ]) + '</th></tr>' )
         
@@ -180,11 +182,16 @@ class GenTable:
                 else:
                     cls = ''
             H.append('<tr%s>' % cls)
-            if self.lines_titles:
+            if self.lines_titles: # deprecated: prefer 'row_title'
                 H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])
             if row:
-                #H.append( '<td%s>'%std + ('</td><td%s>'%std).join([
-                #    str(row.get(cid,'')) for cid in self.columns_ids ]) + '</td></tr>' )
+                # titre ligne
+                if row.has_key('row_title'):
+                    content = str(row['row_title'])
+                    help = row.get('row_title_help', None)
+                    if help:
+                        content = '<a class="discretelink" href="" title="%s">%s</a>' % (help, content)
+                    H.append('<th class="gt_linetit">' + content + '</th>')
                 r = []
                 for cid in self.columns_ids:
                     content = str(row.get(cid,''))

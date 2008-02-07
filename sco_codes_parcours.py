@@ -65,6 +65,8 @@ CODES_EXPL = {
 
 CODES_SEM_VALIDES = { 'ADM' : True, 'ADC' : True, 'ADJ' : True } # semestre validé
 
+CODES_SEM_REO = { 'NAR':1 } # reorientation
+
 def code_semestre_validant(code):
     "Vrai si ce CODE entraine la validation du semestre"
     return CODES_SEM_VALIDES.get(code, False)

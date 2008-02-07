@@ -1150,5 +1150,8 @@ table.gt_table td {
  padding-right: 4px;
 }
 
+table.table_cohorte tr.sortbottom { 
+  background-color: rgb(85%,90%,100%);
+}
 
 /* ----------------------------- */
