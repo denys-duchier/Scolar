@@ -2404,19 +2404,8 @@ class ZNotes(ObjectManager,
 
     
     security.declareProtected(ScoView, 'formsemestre_pvjury')
-    def formsemestre_pvjury(self, formsemestre_id, format='html',
-                            REQUEST=None):
-        "Liste les UE et semestres validés"
-        dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, with_prev=True)
-        if format=='html':
-            return sco_pvjury.pvjury_html(self, dpv, REQUEST)
-        elif format=='xls':
-            xls = sco_pvjury.pvjury_excel(self, dpv)
-            filename = 'PV ' + dpv['formsemestre']['titreannee'] + '.xls'
-            return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        else:
-            raise ScoValueError('invalid format : %s' % format )
-
+    formsemestre_pvjury = sco_pvjury.formsemestre_pvjury
+    
     security.declareProtected(ScoView, 'formsemestre_lettres_individuelles')
     def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
         "Lettres avis jury en PDF"
@@ -2556,6 +2545,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, "formsemestre_suivi_cohorte")
     formsemestre_suivi_cohorte = sco_report.formsemestre_suivi_cohorte
+
+    security.declareProtected(ScoView, "formsemestre_suivi_parcours")
+    formsemestre_suivi_parcours = sco_report.formsemestre_suivi_parcours
 
     # --------------------------------------------------------------------
     # DEBUG

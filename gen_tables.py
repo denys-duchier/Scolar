@@ -53,7 +53,8 @@ class GenTable:
                  html_col_width=None, # force largeur colonne
                  html_title = '', # avant le tableau en html
                  html_caption=None, # override caption if specified
-
+                 html_next_section='', # html fragment to put after the table
+                 html_with_td_classes=False, # put class=column_id in each <td>
                  base_url = None,
                  origin=None, # string added to excel version
                  filename='table', # filename, without extension
@@ -80,6 +81,8 @@ class GenTable:
             self.html_id = html_id
         self.html_title = html_title
         self.html_caption = html_caption
+        self.html_next_section = html_next_section
+        self.html_with_td_classes = html_with_td_classes
         self.html_class = html_class
         self.sortable = html_sortable
         self.html_highlight_n = html_highlight_n
@@ -99,24 +102,22 @@ class GenTable:
         T = []
         line_num = 0
         if with_titles and self.titles:
+            l = []
             if with_lines_titles:
                 if self.titles.has_key('row_title'):
                     l = [ self.titles['row_title'] ]
                 elif self.lines_titles:
                     l = [ self.lines_titles[line_num] ]
-            else:
-                l = []
             T.append( l + [self.titles.get(cid,'') for cid in self.columns_ids ] )
 
         for row in self.rows:
             line_num += 1
+            l = []
             if with_lines_titles:
                 if row.has_key('row_title'):
                     l = [ row['row_title'] ]
                 elif self.lines_titles:
                     l = [ self.lines_titles[line_num] ]
-            else:
-                l = []
             T.append( l + [ row.get(cid,'') for cid in self.columns_ids ])
 
         if with_bottom_titles and self.bottom_titles:
@@ -197,24 +198,29 @@ class GenTable:
                 # titre ligne
                 if row.has_key('row_title'):
                     content = str(row['row_title'])
-                    help = row.get('row_title_help', None)
+                    help = row.get('row_title_help', '')
                     if help:
                         content = '<a class="discretelink" href="" title="%s">%s</a>' % (help, content)
                     H.append('<th class="gt_linetit">' + content + '</th>')
                 r = []
                 for cid in self.columns_ids:
                     content = str(row.get(cid,''))
-                    help = row.get('_%s_help'%cid, None)
-                    if help:
-                        content = '<a class="discretelink" href="" title="%s">%s</a>' % (help, content)
-                    r.append( '<td%s %s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''),content))
+                    help = row.get('_%s_help'%cid, '')
+                    target=row.get('_%s_target'%cid, '')
+                    if help or target:                        
+                        content = '<a class="discretelink" href="%s" title="%s">%s</a>' % (target,help, content)
+                    if self.html_with_td_classes:
+                        c = ' class="%s"' % cid
+                    else:
+                        c = ''
+                    r.append( '<td%s %s%s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''), c, content))
                 H.append(''.join(r))
             elif not self.lines_titles:
                 H.append('<tr></tr>') # empty row
             
         if self.bottom_titles:
             line_num += 1
-            H.append('<tr class="gt_lastrow">')
+            H.append('<tr class="gt_lastrow sortbottom">')
             if self.lines_titles:
                 H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])
             H.append( '<th>' + '</th><th>'.join([
@@ -230,6 +236,8 @@ class GenTable:
             if self.base_url:
                 H.append(' <a href="%s&format=xls">%s</a>&nbsp;&nbsp;<a href="%s&format=pdf">%s</a>' % (self.base_url,ICON_XLS,self.base_url,ICON_PDF))
             H.append('</p>')
+            
+        H.append(self.html_next_section)
         return '\n'.join(H)
         
     def excel(self):
@@ -274,10 +282,12 @@ class GenTable:
         T = Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
 
         objects = []
+        StyleSheet = styles.getSampleStyleSheet()
         if self.pdf_title:
-            StyleSheet = styles.getSampleStyleSheet()
             objects.append(Paragraph(SU(self.pdf_title), StyleSheet["Heading3"]))
         objects.append(T)
+        if self.caption:
+            objects.append(Paragraph(SU(self.caption), StyleSheet["Normal"]))
         return objects
     
     def make_page(self, context, title='', format='html', page_title='',

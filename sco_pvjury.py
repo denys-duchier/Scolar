@@ -33,6 +33,7 @@ import sco_codes_parcours
 import sco_excel
 from notesdb import *
 from sco_utils import *
+from gen_tables import GenTable
 
 """PV Jury IUTV 2006: on détaillait 8 cas:
 Jury de semestre n
@@ -198,99 +199,75 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
 
 
 def pvjury_table(znotes, dpv):
-    """List of tuples"""
+    """idem mais rend list de dicts
+    """
     sem = dpv['formsemestre']
     if sem['semestre_id'] >= 0:
         id_cur = ' S%s' % sem['semestre_id']
     else:
         id_cur = ''
-
-    titles = ['etudid', 'Nom']
+    titles = {'etudid' : 'etudid', 'nomprenom' : 'Nom',
+              'decision' : 'Décision' + id_cur,
+              'ue_cap' : 'UE' + id_cur + ' capitalisées',
+              'devenir' : 'Devenir', 'observations' : 'Observations'
+              }
+    columns_ids = ['nomprenom', 'decision', 'ue_cap', 'devenir', 'observations']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
-        titles += ['Décision S%s' % id_prev]
-        
-    titles += ['Décision' + id_cur, 'UE' + id_cur + ' capitalisées',
-               'Devenir', 'Observations']
+        titles['prev_decision'] = 'Décision S%s' % id_prev
+        columns_ids[1:1] = ['prev_decision']
     lines = []
     for e in dpv['decisions']:
+        l = { 'etudid' : e['identite']['etudid'],
+              'nomprenom' : znotes.nomprenom(e['identite']),
+              '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (znotes.ScoURL(),e['identite']['etudid']),
+              'decision' : descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
+              'ue_cap' : e['decisions_ue_descr'],
+              'devenir' : e['autorisations_descr'],
+              'observations' : unquote(e['observation']) }        
         if dpv['has_prev']:
-            lines.append( (e['identite']['etudid'],
-                           znotes.nomprenom(e['identite']),
-                           descr_decision_sem_abbrev(znotes, None, e['prev_decision_sem']),
-                           descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
-                           e['decisions_ue_descr'],
-                           e['autorisations_descr'],
-                           unquote(e['observation'])
-                           )
-                          )
-        else:
-            lines.append( (e['identite']['etudid'],
-                           znotes.nomprenom(e['identite']),
-                           descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
-                           e['decisions_ue_descr'],
-                           e['autorisations_descr'],
-                           unquote(e['observation'])
-                           )
-                          )
-    return titles, lines
+            l['prev_decision'] = descr_decision_sem_abbrev(znotes, None, e['prev_decision_sem'])
+        lines.append(l)
+    return lines, titles, columns_ids
 
-
-def pvjury_excel(znotes, dpv):
-    """Tableau Excel récapitulant les décisions de jury
+    
+def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
+    """Page récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
-    if not dpv:
-        return ''
-    sem = dpv['formsemestre']
-    
-    titles, lines = pvjury_table(znotes, dpv)
-    return sco_excel.Excel_SimpleTable(
-        titles=titles, lines=lines,
-        SheetName='Jury %s' % unquote(sem['titreannee']) )
-    
-def pvjury_html(znotes, dpv, REQUEST):
-    """Page HTML récapitulant les décisions de jury
-    dpv: result of dict_pvjury
-    """
-    header = znotes.sco_header(REQUEST)
-    footer = znotes.sco_footer(REQUEST)
-
+    header = context.sco_header(REQUEST)
+    footer = context.sco_footer(REQUEST)
+    dpv = dict_pvjury(context, formsemestre_id, with_prev=True)
     if not dpv:
         return header + '<h2>Aucune information disponible !</h2>' + footer
 
     sem = dpv['formsemestre']
     formsemestre_id = sem['formsemestre_id']
-    if sem['semestre_id'] >= 0:
-        id_cur = ' S%s' % sem['semestre_id']
-    else:
-        id_cur = ''
-    
-    H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-    <p>(dernière modif le %s)   <a href="formsemestre_pvjury?formsemestre_id=%s&format=xls">Version Excel</a></p><p>
-    <table class="tablegrid"><tr><th>Nom</th>"""
-          % (formsemestre_id, sem['titreannee'], dpv['date'], formsemestre_id) ]
-    if dpv['has_prev']:
-        id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
-        H.append('<th>Décision S%s</th>' % id_prev )
-    H.append('<th>Décision%s</th><th>UE capitalisées</th><th>Autorisations</th><th></th></tr>' % id_cur )
-    #
-    for e in dpv['decisions']:
-        cod = descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem'])
-        H.append( '<tr><td><a href="%s/ficheEtud?etudid=%s">%s</a></td>'
-                  % (znotes.ScoURL(), e['identite']['etudid'],
-                     znotes.nomprenom(e['identite'])))
-        if dpv['has_prev']:
-            H.append('<td>%s</td>' %
-                     descr_decision_sem_abbrev(znotes,None,e['prev_decision_sem']))
-        H.append( '<td>%s</td><td>%s</td>' % (cod, e['decisions_ue_descr']))
 
-        H.append('<td>%s</td><td>%s</td></tr>' % (e['autorisations_descr'], e['observation']))
-    H.append('</table></p>')
+    rows, titles, columns_ids = pvjury_table(context, dpv)
+    if format != 'html' and format != 'pdf':
+        columns_ids=['etudid'] + columns_ids
+    
+    tab = GenTable(rows=rows, titles=titles,
+                   columns_ids=columns_ids,
+                   filename=make_filename('decisions ' + sem['titreannee']),
+                   origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                   caption = 'Décisions jury pour ' + sem['titreannee'],
+                   html_class='gt_table table_pvjury',
+                   html_sortable=True
+                   )
+    if format != 'html':
+        return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
+    <p>(dernière modif le %s)</p>""" 
+          % (formsemestre_id, sem['titreannee'], dpv['date']) ]
 
     #
     H.append('<ul><li><a class="stdlink" href="formsemestre_lettres_individuelles?formsemestre_id=%s">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
     H.append('<li><a class="stdlink" href="formsemestre_pvjury_pdf?formsemestre_id=%s">PV officiel (pdf)</a></li></ul>' % formsemestre_id)
+
+    H.append( tab.html() )
     
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()

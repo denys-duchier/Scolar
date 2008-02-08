@@ -242,7 +242,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 # --------------------------------------------------------------------------
 def table_suivi_cohorte(context, formsemestre_id, percent=False,
                         bac='', # selection sur type de bac
-                        bacspecialite=''
+                        bacspecialite='', sexe=''
                         ):
     """
     Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
@@ -258,20 +258,28 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
 
     """
     sem = context.get_formsemestre(formsemestre_id) # sem est le semestre origine
+    t0 = time.time()
+    def logt(op):
+        if 0: # debug, set to 0 in production
+            log('%s: %s' % (op, time.time()-t0))
+    logt('table_suivi_cohorte: start')
     # 1-- Liste des semestres posterieurs dans lesquels ont été les etudiants de sem
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
-    
+
+    logt('A: orig etuds set')
     S = {} # ensemble de formsemestre_id
     orig_set = Set() # ensemble d'etudid du semestre d'origine
     bacs = Set()
     bacspecialites = Set()
+    sexes = Set()
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         bacspe = etud['bac'] + ' / ' + etud['specialite']
         # sélection sur bac:
         if ((not bac or (bac == etud['bac']))
-            and (not bacspecialite or (bacspecialite == bacspe))):        
+            and (not bacspecialite or (bacspecialite == bacspe))
+            and (not sexe or (sexe == etud['sexe'])) ):
             orig_set.add(etudid)
             # semestres suivants:
             for s in etud['sems']:
@@ -279,7 +287,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     S[s['formsemestre_id']] = s
         bacs.add(etud['bac'])
         bacspecialites.add(bacspe)
-    
+        sexes.add(etud['sexe'])
     sems = S.values()
     # tri les semestres par date de debut
     for s in sems:
@@ -288,6 +296,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     sems.sort( lambda x,y: cmp( x['date_debut_mx'], y['date_debut_mx'] ) )
     
     # 2-- Pour chaque semestre, trouve l'ensemble des etudiants venant de sem
+    logt('B: etuds sets')
     sem['members'] = orig_set
     for s in sems:
         ins = context.do_formsemestre_inscription_list(
@@ -339,6 +348,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             p.nb_etuds += len(s['members'])
     
     # 5-- Contruit table
+    logt('C: build table')
     nb_initial = len(sem['members'])
     def fmtval(x):
         if not x:
@@ -372,6 +382,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     d['_%s_help' % p.datedebut] = etud_descr
         L.append(d)
     # Compte nb de démissions et de ré-orientation par période
+    logt('D: cout dems reos')
     sem['dems'], sem['reos'] = _count_dem_reo(context, formsemestre_id, sem['members'])
     for p in P:
         p.dems = Set()
@@ -442,7 +453,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         dbac = ''
     if bacspecialite:
         dbac += ' (spécialité %s)' % bacspecialite
-    
+    if sexe:
+        dbac += ' genre: %s' % sexe
     tab = GenTable( titles=titles, columns_ids=columns_ids,
                     rows=L, 
                     html_col_width='4em', html_sortable=True,
@@ -464,19 +476,20 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                 ls.append('<a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>' % s )
             expl.append(', '.join(ls) + '</li>')
         expl.append('</ul>')
-    return tab, '\n'.join(expl), bacs, bacspecialites
+    logt('Z: table_suivi_cohorte done')
+    return tab, '\n'.join(expl), bacs, bacspecialites, sexes
 
 def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=1,
-                               bac='', bacspecialite='',
+                               bac='', bacspecialite='', sexe='',
                                REQUEST=None):
     """Affiche suivi cohortes par numero de semestre
     """
     percent = int(percent)
     sem = context.get_formsemestre(formsemestre_id)
-    tab, expl, bacs, bacspecialites = table_suivi_cohorte(
+    tab, expl, bacs, bacspecialites, sexes = table_suivi_cohorte(
         context, formsemestre_id, percent=percent,
-        bac=bac, bacspecialite=bacspecialite)
-    tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite)
+        bac=bac, bacspecialite=bacspecialite, sexe=sexe)
+    tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
@@ -485,9 +498,11 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     bacs.sort()
     bacspecialites = list(bacspecialites)
     bacspecialites.sort()
+    sexes = list(sexes)
+    sexes.sort()
 
-    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s' % (
-        REQUEST.URL0, formsemestre_id, bac, bacspecialite)
+    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s' % (
+        REQUEST.URL0, formsemestre_id, bac, bacspecialite, sexe)
     if percent:
         pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
     else:
@@ -520,6 +535,16 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     """ % selected)
     for b in bacspecialites:
         if bacspecialite == b:
+            selected = 'selected'
+        else:
+            selected = ''
+        F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
+    F.append('</select>')
+    F.append("""&nbsp; Genre: <select name="sexe" onChange="document.f.submit()">
+    <option value="" %s>tous</option>
+    """ % selected)
+    for b in sexes:
+        if sexe == b:
             selected = 'selected'
         else:
             selected = ''
@@ -559,3 +584,107 @@ def _count_dem_reo(context, formsemestre_id, etudids):
         if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
             reos.add(etudid)
     return dems, reos
+
+"""OLDGEA:
+27s pour  S1 F.I. classique Semestre 1 2006-2007
+B 2.3s
+C 5.6s
+D 5.9s
+Z 27s  => cache des semestres pour nt
+
+à chaud: 3s
+B: etuds sets: 2.4s => lent: N x getEtudInfo (non caché)
+"""
+
+def _codeparcoursetud(context, etud):
+    """calcule un code de parcours pour un etudiant
+    exemples:
+       1234A pour un etudiant ayant effectué S1, S2, S3, S4 puis diplome
+       12D   pour un étudiant en S1, S2 puis démission en S2
+       12R   pour un etudiant en S1, S2 réorienté en fin de S2    
+    """
+    p = []
+    # élimine les semestres spéciaux sans parcours (LP...)
+    sems = [ s for s in etud['sems'] if s['semestre_id'] >= 0 ]
+    i = len(sems)-1
+    while i >= 0:
+        s = sems[i] # 'sems' est a l'envers, du plus recent au plus ancien        
+        nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+        idx = s['semestre_id']
+        # semestre décalé ?
+        # les semestres pairs normaux commencent entre janvier et mars
+        # les impairs normaux entre aout et decembre
+        d = ''
+        if idx and idx > 0 and s['date_debut']:
+            mois_debut = int(s['date_debut'].split('/')[1])
+            if (idx % 2 and mois_debut < 3) or (idx % 2 == 0 and mois_debut >= 8):
+                d = 'd'
+        if idx == -1:
+            idx = 'Autre '
+        p.append( '%s%s' % (idx, d) )
+        # code etat sur dernier semestre seulement
+        if i == 0:
+            # Démission
+            if nt.get_etud_etat(etud['etudid']) == 'D':
+                p.append( ':D' )
+            else:
+                dec = nt.get_etud_decision_sem(etud['etudid'])
+                if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
+                    p.append(':R')
+                if dec and idx == sco_codes_parcours.DUT_NB_SEM and dec['code'] == 'ADM':
+                    p.append(':A')
+        i -= 1
+    return ''.join(p)
+
+def table_suivi_parcours(context, formsemestre_id):
+    """Tableau recapitulant tous les parcours
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    etudids = nt.get_etudids()
+    codes_etuds = DictDefault(defaultvalue=[])
+    for etudid in etudids:
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        etud['codeparcours'] = _codeparcoursetud(context, etud)
+        codes_etuds[etud['codeparcours']].append(etud)
+
+    parcours = codes_etuds.keys()
+    parcours.sort()
+    L = []
+    for p in parcours:
+        nb = len(codes_etuds[p])
+        l = { 'parcours' : p, 'nb' : nb }
+        if nb < 10:
+            l['_nb_help'] = _descr_etud_set(context,
+                                            [e['etudid'] for e in codes_etuds[p]])
+        L.append(l)
+                
+    # tri par effectifs décroissants
+    L.sort( lambda x,y: cmp(y['nb'], x['nb']) )
+    tab = GenTable( columns_ids=('parcours', 'nb'), rows=L,
+                    titles={ 'parcours' : 'Code parcours',
+                             'nb' : "Nombre d'étudiants" },
+                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    caption = 'Parcours suivis, étudiants passés dans le semestre ' + sem['titreannee'],
+                    page_title = 'Parcours ' + sem['titreannee'],
+                    html_title = '<h2>Parcours suivis, semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>' % sem,
+                    html_next_section="""<table class="help">
+                    <tr><td><tt>1, 2, ...</tt></td><td> numéros de semestres</td></tr>
+                    <tr><td><tt>1d, 2d, ...</tt></td><td>semestres "décalés"</td></tr>
+                    <tr><td><tt>:A</tt></td><td> étudiants diplômés</td></tr>
+                    <tr><td><tt>:R</tt></td><td> étudiants réorientés</td></tr>
+                    <tr><td><tt>:D</tt></td><td> étudiants démissionnaires</td></tr>
+                    </table>""",
+                    bottom_titles =  { 'parcours' : 'Total', 'nb' : len(etudids) }
+                    )
+    return tab
+
+def formsemestre_suivi_parcours(context, formsemestre_id, format='html', REQUEST=None):
+    """Effectifs dans les differents parcours possibles.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    tab = table_suivi_parcours(context, formsemestre_id)
+    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    t = tab.make_page(context, format=format, with_html_headers=True, REQUEST=REQUEST)
+    return t
+

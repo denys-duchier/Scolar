@@ -189,10 +189,15 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         'title' : 'Statistiques...',
         'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
           },
-        { 'title' : 'Suivi de cohortes (expérimental)',
+        { 'title' : 'Suivi de cohortes',
           'url' : 'formsemestre_suivi_cohorte?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
+          },
+        { 'title' : 'Suivi des parcours (expérimental)',
+          'url' : 'formsemestre_suivi_parcours?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
           }
+
         ]
 
     H = [

@@ -420,8 +420,11 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
-    titles, lines = sco_pvjury.pvjury_table(znotes, dpv)
-
+    lines, titles, columns_ids = sco_pvjury.pvjury_table(znotes, dpv)
+    # convert to lists of tuples:
+    columns_ids=['etudid'] + columns_ids
+    lines = [ [ line.get(x,'') for x in columns_ids ] for line in lines ]
+    titles = [ titles.get(x,'') for x in columns_ids ]
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
     CellStyle.fontSize= SCOLAR_FONT_SIZE
