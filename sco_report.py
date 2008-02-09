@@ -35,7 +35,6 @@ from notes_log import log
 from gen_tables import GenTable
 import sco_excel, sco_pdf
 import sco_codes_parcours
-from sets import Set
 from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
 

@@ -125,7 +125,7 @@ def scolar_news_summary_html(cnx, n=5, rssicon=None):
 
     # Informations générales
     H.append( """<p>
-    Pour être tenu au courant des évolutions du logiciel,
+    Pour être informé des évolutions de ScoDoc,
     vous pouvez vous
     <a href="https://www-gtr.iutv.univ-paris13.fr/mailman/listinfo/notes">
     abonner à la liste de diffusion</a>.

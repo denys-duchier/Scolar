@@ -139,6 +139,21 @@ div.logo-insidebar {
 }
 
 
+table.listesems th { 
+  text-align: left;  
+  padding-top: 0.5em;
+  padding-left: 0.5em;
+}
+
+table.listesems td.semicon { 
+  padding-left: 1.5em;
+}
+
+h2.listesems { 
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+
 /* ----- Liste des news ----- */
 
 div.news {
@@ -1138,7 +1153,7 @@ table.gt_table tr {
 table.gt_table tr.gt_hl {
  background-color: rgb(90%,95%,90%);
 }
-table.gt_table td, th {
+table.gt_table td, table.gt_table th {
  border: 1px solid rgb(80%,80%,80%);
 }
 table.gt_table th {

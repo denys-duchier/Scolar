@@ -657,7 +657,7 @@ class ZNotes(ObjectManager,
          'bul_show_codemodules', 'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
-         'etape_apo'
+         'etape_apo', 'modalite'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
@@ -765,7 +765,8 @@ class ZNotes(ObjectManager,
             except:
                 mois_fin, annee_fin = '', ''
             sem['annee'] = annee_debut # 2007 ou 2007-2008
-            sem['titreannee'] = sem['titre_num'] + '  ' + annee_debut
+            
+            sem['titreannee'] = '%s %s  %s' % (sem['titre_num'], sem.get('modalite',''), annee_debut)
             if annee_fin != annee_debut:
                 sem['titreannee'] += '-' + annee_fin
                 sem['annee'] += '-' + annee_fin

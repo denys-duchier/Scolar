@@ -333,9 +333,7 @@ class ZScolar(ObjectManager,
     #    SCOLARITE (top level)
     #
     # --------------------------------------------------------------------
-    # used to view content of the object
-    #security.declareProtected(ScoView, 'index_html')
-    #index_html = DTMLFile('dtml/index_html', globals())
+    
     security.declareProtected(ScoView, 'about')
     def about(self, REQUEST):
         "version info"
@@ -479,8 +477,9 @@ class ZScolar(ObjectManager,
 
     # ----------  PAGE ACCUEIL (listes) --------------
     security.declareProtected(ScoView, 'index_html')
-    def index_html(self,REQUEST=None, showcodes=0):
+    def index_html(self,REQUEST=None, showcodes=0, showlocked=0):
         "page accueil sco"
+        showlocked=int(showlocked)
         H = []
         # news
         cnx = self.GetDBConnexion()
@@ -494,7 +493,7 @@ class ZScolar(ObjectManager,
         cursems = []   # semestres "courants"
         othersems = [] # autres (anciens ou futurs)
         # icon image:
-        groupicon = self.scodoc_img.groupicon_img.tag(title="Listes et groupes",
+        groupicon = self.scodoc_img.groupicon_img.tag(title="Inscrits",
                                                border='0') 
         emptygroupicon = self.scodoc_img.emptygroupicon_img.tag(title="Pas d'inscrits",
                                                          border='0')
@@ -524,39 +523,28 @@ class ZScolar(ObjectManager,
                 sem['groupicon'] = emptygroupicon
         
         # liste des fomsemestres "courants"
-        tmpl = """<tr>%(tmpcode)s
-        <td>%(lockimg)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s#groupes">%(groupicon)s</a></td>        
-        <td class="datesem">%(mois_debut)s - %(mois_fin)s</td>
-        <td><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a>
-        <span class="respsem">(%(responsable_name)s)</span>
-        </td>
-        </tr>
-        """
-        # " (this quote fix a font lock bug)
         if cursems:
-            H.append('<h2>Semestres en cours</h2><table class="listesems">')
-            for sem in cursems:
-                H.append( tmpl % sem )
-            H.append('</table>')
-                #H += self.make_listes_sem(sem, REQUEST)
+            H.append('<h2 class="listesems">Semestres en cours</h2>')
+            H.append(self._sem_table(cursems))
+        
         else:
             # aucun semestre courant: affiche aide
-            H.append("""<h2>Aucun semestre courant !</h2>
+            H.append("""<h2 class="listesems">Aucun semestre courant !</h2>
             <p>Pour ajouter un semestre, aller dans <a href="Notes">Programmes</a>,
             choisissez une formation, puis suivez le lien "<em>UE, modules, semestres</em>".
             </p><p>
             Là, en bas de page, suivez le lien
             "<em>Mettre en place un nouveau semestre de formation...</em>"
             </p>""")
-        if othersems:
+        
+        if othersems and showlocked:
             H.append("""<hr/>
             <h2>Semestres terminés (non modifiables)</h2>
-            <table class="listesems">""")
-            
-            for sem in othersems:
-                H.append( tmpl % sem )
-                #H += self.make_listes_sem(sem, REQUEST)
+            """)            
+            H.append(self._sem_table(othersems))
             H.append('</table>')
+        if not showlocked:
+            H.append('<hr/><p><a href="%s?showlocked=1">Montrer les semestres verrouillés</a></p>' % REQUEST.URL0)
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit,self):
@@ -572,7 +560,39 @@ class ZScolar(ObjectManager,
         #
         return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
 
-
+    def _sem_table(self, sems):
+        tmpl = """<tr>%(tmpcode)s
+        <td class="semicon">%(lockimg)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s#groupes">%(groupicon)s</a></td>        
+        <td class="datesem">%(mois_debut)s - %(mois_fin)s</td>
+        <td><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a>
+        <span class="respsem">(%(responsable_name)s)</span>
+        </td>
+        </tr>
+        """
+        # " (this quote fix a font lock bug)
+        H = ['<table class="listesems">']
+        # différentes modalités ?
+        modalites = list(Set([s['modalite'] for s in sems]))
+        # tri selon un ordre fixé:
+        modalites.sort( lambda x,y: cmp(MODALITY_ORDER[x],MODALITY_ORDER[y]))
+        sems_by_mod = DictDefault(defaultvalue=[])
+        for modalite in modalites:
+            for sem in sems:
+                if sem['modalite'] == modalite:
+                    sems_by_mod[modalite].append(sem)
+        
+        for modalite in modalites:
+            if len(modalites) > 1:
+                H.append('<tr><th colspan="3">%s</th></tr>' % MODALITY_NAMES[modalite])
+            # tri dans chaque modalité par indice de semestre et date debut
+            sems_by_mod[modalite].sort(
+                lambda x,y: cmp((x['semestre_id'],x['dateord']),
+                                (y['semestre_id'],y['dateord'])))
+            for sem in sems_by_mod[modalite]:
+                H.append( tmpl % sem )
+        H.append('</table>')
+        return '\n'.join(H)
+    
     security.declareProtected(ScoView, 'index_html')
     def rssnews(self,REQUEST=None):
         "rss feed"

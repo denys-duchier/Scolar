@@ -33,6 +33,7 @@ import VERSION
 import pdb
 import os, sys, copy
 import urllib, time, datetime
+from sets import Set
 import xml.sax.saxutils
 # XML generation package (apt-get install jaxml)
 import jaxml
@@ -74,6 +75,35 @@ XML_MIMETYPE = 'text/xml'
 
 ICON_PDF = '<img src="/scodoc_img/pdficon16x20_img" border="0" title="Version PDF"/>'
 ICON_XLS = '<img src="/scodoc_img/xlsicon_img" border="0" title="Version tableur"/>'
+
+class DictDefault(dict):
+    """A dictionnary with default value for all keys
+    Each time a non existent key is requested, it is added to the dict.
+    (used in python 2.4, can't use new __missing__ method)
+    """
+    defaultvalue = 0
+    def __init__(self, defaultvalue=0, kv_dict = {}):
+        dict.__init__(self)
+        self.defaultvalue = defaultvalue
+        self.update(kv_dict)
+    def  __getitem__(self, k):
+        if self.has_key(k):
+            return self.get(k)        
+        value = copy.copy(self.defaultvalue)
+        self[k] = value
+        return value
+
+
+MODALITY_NAMES = DictDefault(
+    kv_dict = { 'FI' : 'Formations Initiales',
+                'FC' : 'Formations Continues',
+                'FAP': 'Formations en Apprentissage',
+                },
+    defaultvalue = 'Autres formations' )
+
+MODALITY_ORDER = DictDefault(
+    kv_dict={ 'FI':10, 'FAP' : 20, 'FC' : 30 }, defaultvalue = 100 )
+
 
 """ Simple python utilities
 """
@@ -198,22 +228,5 @@ def timedate_human_repr():
     "representation du temps courant pour utilisatuer: a localiser"
     return time.strftime('%d/%m/%Y à %Hh%M')
 
-#
-class DictDefault(dict):
-    """A dictionnary with default value for all keys
-    Each time a non existent key is requested, it is added to the dict.
-    (used in python 2.4, can't use new __missing__ method)
-    """
-    defaultvalue = 0
-    def __init__(self, defaultvalue=0, kv_dict = {}):
-        dict.__init__(self)
-        self.defaultvalue = defaultvalue
-        self.update(kv_dict)
-    def  __getitem__(self, k):
-        if self.has_key(k):
-            return self.get(k)        
-        value = copy.copy(self.defaultvalue)
-        self[k] = value
-        return value
 
     

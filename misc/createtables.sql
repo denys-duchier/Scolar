@@ -289,7 +289,8 @@ CREATE TABLE notes_formsemestre (
 	bul_hide_xml integer default 0, --  ne publie pas le bulletin XML
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
-	etape_apo text -- code etape Apogée
+	etape_apo text, -- code etape Apogée
+	modalite text   -- FI, FC, APP, ''
 );
 
 -- Coef des UE capitalisees arrivant dans ce semestre:
