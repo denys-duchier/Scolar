@@ -578,6 +578,10 @@ class ZScolar(ObjectManager,
         sems_by_mod = DictDefault(defaultvalue=[])
         for modalite in modalites:
             for sem in sems:
+                if sem['semestre_id'] < 0:
+                    sem['sortkey'] = (-100*sem['semestre_id'],sem['dateord'])
+                else:
+                    sem['sortkey'] = (sem['semestre_id'],sem['dateord'])
                 if sem['modalite'] == modalite:
                     sems_by_mod[modalite].append(sem)
         
@@ -586,8 +590,7 @@ class ZScolar(ObjectManager,
                 H.append('<tr><th colspan="3">%s</th></tr>' % MODALITY_NAMES[modalite])
             # tri dans chaque modalité par indice de semestre et date debut
             sems_by_mod[modalite].sort(
-                lambda x,y: cmp((x['semestre_id'],x['dateord']),
-                                (y['semestre_id'],y['dateord'])))
+                lambda x,y: cmp(x['sortkey'],y['sortkey']))
             for sem in sems_by_mod[modalite]:
                 H.append( tmpl % sem )
         H.append('</table>')
