@@ -121,7 +121,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                              'allowed_values' : userlist,
                              'labels' : nomprenoms }),        
         ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre',
-                    'explanation' : "n'indiquez pas les dates ou la modalité dans le titre, elles seront automatiquement ajoutées" }),
+                    'explanation' : "n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés" }),
         ('modalite', { 'input_type' : 'menu',
                           'title' : 'Modalité',
                           'allowed_values' : ('', 'FI', 'FC', 'FAP'),

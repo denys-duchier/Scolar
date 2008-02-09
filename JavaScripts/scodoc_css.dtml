@@ -1170,8 +1170,13 @@ table.table_cohorte tr.sortbottom {
   background-color: rgb(85%,90%,100%);
 }
 
-table.table_pvjury tr td {  
+table.table_leftalign tr td {  
   text-align: left;
+}
+
+table.table_listegroupe tr td { 
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 /* ----------------------------- */

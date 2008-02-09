@@ -45,6 +45,9 @@ class GenTable:
                  
                  caption=None,
                  page_title='', # titre fenetre html
+                 pdf_link=True,
+                 xls_link=True,
+                 xml_link=False,
 
                  html_id=None,
                  html_class='gt_table', # class de l'element <table>
@@ -74,6 +77,9 @@ class GenTable:
         self.filename = filename
         self.caption = caption
         self.page_title = page_title
+        self.pdf_link=pdf_link
+        self.xls_link=xls_link
+        self.xml_link=xml_link
         # HTML parameters:
         if not html_id: # random id
             self.html_id = 'gt_' + str(random.randint(0, 1000000))
@@ -234,7 +240,12 @@ class GenTable:
             if caption:
                 H.append(caption)
             if self.base_url:
-                H.append(' <a href="%s&format=xls">%s</a>&nbsp;&nbsp;<a href="%s&format=pdf">%s</a>' % (self.base_url,ICON_XLS,self.base_url,ICON_PDF))
+                if self.xls_link:
+                    H.append(' <a href="%s&format=xls">%s</a>'%(self.base_url,ICON_XLS))
+                if self.xls_link and self.pdf_link:
+                    H.append('&nbsp;&nbsp;')
+                if self.pdf_link:
+                    H.append(' <a href="%s&format=pdf">%s</a>'%(self.base_url,ICON_PDF))
             H.append('</p>')
             
         H.append(self.html_next_section)

@@ -81,6 +81,7 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 import html_sco_header, html_sidebar
 
 from TrivialFormulator import TrivialFormulator, TF
+from gen_tables import GenTable
 import sco_excel
 import imageresize
 
@@ -706,9 +707,9 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'listegroupe')
     def listegroupe(self, 
                     formsemestre_id, REQUEST=None,
-                    groupetd=None, groupetp=None, groupeanglais=None,
-                    with_codes=False,
-                    all_groups=False,
+                    groupetd='', groupetp='', groupeanglais='',
+                    with_codes=0,
+                    all_groups=0,
                     etat=None,
                     format='html' ):
         """liste etudiants inscrits dans ce semestre
@@ -721,32 +722,57 @@ class ZScolar(ObjectManager,
                                                    groupetd,groupetp,groupeanglais,etat )
         if not nomgroupe:
             nomgroupe = 'tous'
+
+        with_codes = int(with_codes)
+        all_groups = int(all_groups)
+        base_url = '%s?formsemestre_id=%s&groupetd=%s&groupetp=%s&groupeanglais=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,formsemestre_id,groupetd,groupetp,groupeanglais,with_codes,all_groups)
+        
         #
-        titles = [ 'Nom', 'Prénom' ]
+        columns_ids=['nom', 'prenom', 'groupetd']
         if all_groups:
-            titles += [sem['nomgroupetd'],sem['nomgroupeta'],sem['nomgroupetp']]
-        else:
-            titles.append('Groupe')
+            columns_ids += ['groupeta','groupetp']
         if format != 'html':
-            titles.append('Etat')
-        titles.append('Mail')
+            columns_ids.append('etat')
+        columns_ids.append('email')
         if with_codes:
-            titles += ['etudid', 'code_nip', 'code_ine']
+            columns_ids += ['etudid', 'code_nip', 'code_ine']
+        # ajoute liens
+        for t in T:
+            t['_email_target'] = 'mailto:' + t['email']
+            t['_nom_target'] = 'ficheEtud?etudid=' + t['etudid']
+            t['_prenom_target'] = 'ficheEtud?etudid=' + t['etudid']
+        if nbdem > 1:
+            s = 's'
+        else:
+            s = ''
+        
+        tab = GenTable( rows=T, columns_ids=columns_ids, 
+                        titles={ 'nom' : 'Nom', 'prenom' : 'Prénom',
+                                 'groupetd' : sem['nomgroupetd'],
+                                 'groupeta' : sem['nomgroupeta'],
+                                 'groupetp' : sem['nomgroupetp'],
+                                 'email' : 'Mail',
+                                 'etat':'Etat',
+                                 'etudid':'etudid',
+                                 'code_nip':'code_nip', 'code_ine':'code_ine'
+                                 },
+                        caption='soit %d étudiants inscrits et %d démissionaire%s.' % (len(T)-nbdem,nbdem,s),
+                        base_url=base_url,
+                        pdf_link=False, # pas d'export pdf
+                        html_sortable=True,
+                        html_class='gt_table table_leftalign table_listegroupe')
         #
         if format == 'html':
             H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titreannee'], ng) ]
-            H.append('<table class="sortable" id="listegroupe">')
-            H.append('<tr><th>' + '</th><th>'.join(titles) + '</th></tr>' )
-            for t in T:
-                H.append( '<tr><td><a href="ficheEtud?etudid=%(etudid)s">%(nom)s</a></td><td>%(prenom)s</td><td>%(groupetd)s %(etath)s</td><td><a href="mailto:%(email)s">%(email)s</a></td></tr>' % t)
-            H.append('</table>')
-            if nbdem > 1:
-                s = 's'
-            else:
-                s = ''
-            H.append('<p>soit %d étudiants inscrits et %d démissionaire%s</p>' % (len(T)-nbdem,nbdem,s))
+            
+            H.append(tab.html())
+            
             amail=','.join([x['email'] for x in T ])
             H.append('<ul>')
+            H.append("""<li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
+                     % base_url)
+            H.append("""<li><a class="stdlink" href="trombino?formsemestre_id=%s&groupetd=%s&groupetp=%s&groupeanglais=%s&etat=I">Photos</a></li>"""
+                     % (formsemestre_id,groupetd,groupetp,groupeanglais))
             H.append('<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe %s</a></li>' % (amail,nomgroupe))
             # Lien pour verif codes INE/NIP
             if authuser.has_permission(ScoEtudInscrit,self):
@@ -755,14 +781,20 @@ class ZScolar(ObjectManager,
                             self._make_query_groups(groupetd,groupetp,groupeanglais,etat)))
             
             H.append('</ul>')
+            
             return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
+        
+        elif format=='pdf':
+            return tab.make_page(self, format=format, REQUEST=REQUEST)
+        
         elif format == 'csv':
-            Th = titles
+            Th = [ x[k] for k in columns_ids ]
             fs = [ (t['nom'], t['prenom'], t['groupetd'], t['etat'], t['email']) for t in T ]
             CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in [Th]+fs ] )
             title = 'liste_%s' % nomgroupe
             filename = title + '.csv'
             return sendCSVFile(REQUEST,CSV, filename )
+        
         elif format == 'xls':
             title = 'liste_%s' % nomgroupe
 #             xls = sco_excel.Excel_SimpleTable(

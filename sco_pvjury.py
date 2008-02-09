@@ -253,7 +253,7 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
                    filename=make_filename('decisions ' + sem['titreannee']),
                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                    caption = 'Décisions jury pour ' + sem['titreannee'],
-                   html_class='gt_table table_pvjury',
+                   html_class='gt_table table_leftalign',
                    html_sortable=True
                    )
     if format != 'html':
