@@ -73,6 +73,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_status
+import sco_edit_ue
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
@@ -226,8 +227,8 @@ class ZNotes(ObjectManager,
     formation_list = DTMLFile('dtml/notes/formation_list', globals())
 
     security.declareProtected(ScoView, 'formsemestre_bulletinetud')
-    #formsemestre_bulletinetud = DTMLFile('dtml/notes/formsemestre_bulletinetud', globals())
     formsemestre_bulletinetud = sco_bulletins.formsemestre_bulletinetud
+    
     security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
     formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
     security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
@@ -238,13 +239,13 @@ class ZNotes(ObjectManager,
     formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
 
     security.declareProtected(ScoChangeFormation, 'ue_create')
-    ue_create = DTMLFile('dtml/notes/ue_create', globals(), title='Création d\'une UE')
+    ue_create = sco_edit_ue.ue_create
     security.declareProtected(ScoChangeFormation, 'ue_delete')
-    ue_delete = DTMLFile('dtml/notes/ue_delete', globals(), title='Suppression d\'une UE')
+    ue_delete = sco_edit_ue.ue_delete
     security.declareProtected(ScoChangeFormation, 'ue_edit')
-    ue_edit = DTMLFile('dtml/notes/ue_edit', globals(), title='Modification d\'une UE')
+    ue_edit = sco_edit_ue.ue_edit
     security.declareProtected(ScoView, 'ue_list')
-    ue_list = DTMLFile('dtml/notes/ue_list', globals(), title='Liste des matières (dans une formation)')
+    ue_list = sco_edit_ue.ue_list
 
     security.declareProtected(ScoChangeFormation, 'matiere_create')
     matiere_create = DTMLFile('dtml/notes/matiere_create', globals(), title='Création d\'une matière')
