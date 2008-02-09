@@ -73,7 +73,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_status
-import sco_edit_ue
+import sco_edit_ue, sco_edit_formation
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
@@ -218,13 +218,11 @@ class ZNotes(ObjectManager,
     evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
 
     security.declareProtected(ScoChangeFormation, 'formation_create')
-    formation_create = DTMLFile('dtml/notes/formation_create', globals())
+    formation_create = sco_edit_formation.formation_create
     security.declareProtected(ScoChangeFormation, 'formation_delete')
-    formation_delete = DTMLFile('dtml/notes/formation_delete', globals())
+    formation_delete = sco_edit_formation.formation_delete
     security.declareProtected(ScoChangeFormation, 'formation_edit')
-    formation_edit = DTMLFile('dtml/notes/formation_edit', globals())
-    security.declareProtected(ScoView, 'formation_list')
-    formation_list = DTMLFile('dtml/notes/formation_list', globals())
+    formation_edit = sco_edit_formation.formation_edit
 
     security.declareProtected(ScoView, 'formsemestre_bulletinetud')
     formsemestre_bulletinetud = sco_bulletins.formsemestre_bulletinetud
