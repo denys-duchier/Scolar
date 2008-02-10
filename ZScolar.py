@@ -465,7 +465,7 @@ class ZScolar(ObjectManager,
     sidebar = html_sidebar.sidebar
     
     security.declareProtected(ScoView, 'showEtudLog')
-    def showEtudLog(self, etudid, REQUEST=None):
+    def showEtudLog(self, etudid, format='html', REQUEST=None):
         """Display log of operations on this student"""
         etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
 
@@ -477,13 +477,14 @@ class ZScolar(ObjectManager,
                         columns_ids=('date', 'authenticated_user', 'remote_addr', 'method', 'msg'),
                         rows=ops,
                         html_sortable=True,
+                        html_class='gt_table table_leftalign',
                         base_url = '%s?etudid=%s' % (REQUEST.URL0, etudid),
                         page_title='Opérations sur %(nomprenom)s' % etud,
                         html_title="<h2>Opérations effectuées sur l'étudiant %(nomprenom)s</h2>" % etud,
                         filename='log_'+make_filename(etud['nomprenom']),
                         html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud)
         
-        return tab.make_page(self, REQUEST=REQUEST)
+        return tab.make_page(self, format=format, REQUEST=REQUEST)
 
                                  
 

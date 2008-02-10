@@ -54,6 +54,7 @@ from sco_utils import *
 #import notes_users
 from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
+from gen_tables import GenTable
 import scolars
 import sco_excel
 import string, re
@@ -890,13 +891,14 @@ class ZAbsences(ObjectManager,
         return H
         
     security.declareProtected(ScoView, 'ListeAbsEtud')
-    def ListeAbsEtud(self, etudid, with_evals=True, REQUEST=None):
+    def ListeAbsEtud(self, etudid, with_evals=True, format='html',
+                     absjust_only=0, REQUEST=None):
         "Liste des absences d'un étudiant sur l'année en cours"
         datedebut = '%s-08-31' % self.AnneeScolaire()
         #datefin = '%s-08-31' % (self.AnneeScolaire()+1)
         absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
         absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
-
+        absjust_only = int(absjust_only) # si vrai, table absjust seule (export xls ou pdf)
         # examens ces jours là ?
         if with_evals:
             cnx = self.GetDBConnexion()
@@ -911,33 +913,67 @@ class ZAbsences(ObjectManager,
         # Mise en forme HTML:
         etud = self.getEtudInfo(etudid=etudid,filled=True)[0]
         H = [ self.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) ]
-        H.append( """<h2>Absences de %s (à partir du %s)</h2>
-        <h3>%d absences non justifiées</h3><ol>""" % (etud['nomprenom'], DateISOtoDMY(datedebut), len(absnonjust)))
+        H.append( """<h2>Absences de %s (à partir du %s)</h2>"""
+                  % (etud['nomprenom'], DateISOtoDMY(datedebut)))
+        
         def matin(x):
             if x:
-                return 'après midi'
-            else:
                 return 'matin'
+            else:
+                return 'après midi'
         def descr_exams(a):
             if not a.has_key('evals'):
                 return ''
             ex = []
             for ev in a['evals']:
                 mod = self.Notes.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : ev['moduleimpl_id']})[0]
-                ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
+                if format == 'html':
+                    ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
                            % (mod['moduleimpl_id'], mod['module']['abbrev']))
+                else:
+                    ex.append(mod['module']['abbrev'])
             if ex:
                 return ' ce jour: contrôles de: ' + ', '.join(ex)
             return ''
-        
-        for a in absnonjust:
-            ex = descr_exams(a)
-            H.append( '<li>%s (%s)%s</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin']), ex) )
-        H.append( """</ol><h3>%d absences justifiées</h3><ol>""" % len(absjust),)
-        for a in absjust:
-            ex = descr_exams(a)
-            H.append( '<li>%s (%s)%s</li>' % (a['jour'].strftime('%d/%m/%Y'), matin(a['matin']), ex) )
-        H.append('</ol>')
+
+        # ajoute date formattee et exams
+        for L in (absnonjust, absjust):
+            for a in L:
+                if with_evals:
+                    a['exams'] = descr_exams(a)
+                a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
+                a['matin'] = matin(a['matin'])
+        #
+        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens'}
+        columns_ids=['datedmy', 'matin']
+        if with_evals:
+            columns_ids.append('exams')
+
+        if len(absnonjust):
+            H.append('<h3>%d absences non justifiées:</h3>' % len(absnonjust))
+            tab = GenTable( titles=titles, columns_ids=columns_ids, rows = absnonjust,
+                            html_class='gt_table table_leftalign',
+                            base_url = '%s?etudid=%s&absjust_only=0' % (REQUEST.URL0, etudid),
+                            filename='abs_'+make_filename(etud['nomprenom']),
+                            caption='Absences non justifiées de %(nomprenom)s' % etud)
+            if format != 'html' and absjust_only == 0:
+                return tab.make_page(self, format=format, REQUEST=REQUEST)
+            H.append( tab.html() )
+        else:
+            H.append( """<h3>Pas d'absences non justifiées</h3>""")
+            
+        if len(absjust):
+            H.append( """<h3>%d absences justifiées:</h3>""" % len(absjust),)
+            tab = GenTable( titles=titles, columns_ids=columns_ids, rows = absjust,
+                            html_class='gt_table table_leftalign',
+                            base_url = '%s?etudid=%s&absjust_only=1' % (REQUEST.URL0, etudid),
+                            filename='absjust_'+make_filename(etud['nomprenom']),
+                            caption='Absences justifiées de %(nomprenom)s' % etud)
+            if format != 'html' and absjust_only:
+                return tab.make_page(self, format=format, REQUEST=REQUEST)
+            H.append( tab.html() )
+        else:
+            H.append( """<h3>Pas d'absences justifiées</h3>""")
         H.append("""<p style="top-margin: 1cm; font-size: small;">
         Si vous avez besoin d'autres formats pour les listes d'absences,
         envoyez un message sur la <a href="mailto:%s">liste</a>
