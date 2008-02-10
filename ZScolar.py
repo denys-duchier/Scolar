@@ -465,7 +465,28 @@ class ZScolar(ObjectManager,
     sidebar = html_sidebar.sidebar
     
     security.declareProtected(ScoView, 'showEtudLog')
-    showEtudLog = DTMLFile('dtml/showEtudLog', globals())
+    def showEtudLog(self, etudid, REQUEST=None):
+        """Display log of operations on this student"""
+        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+
+        ops = self.listScoLog(etudid)
+        
+        tab = GenTable( titles={ 'date' : 'Date', 'authenticated_user' : 'Utilisateur',
+                                 'remote_addr' : 'IP', 'method' : 'Opération',
+                                 'msg' : 'Message'},
+                        columns_ids=('date', 'authenticated_user', 'remote_addr', 'method', 'msg'),
+                        rows=ops,
+                        html_sortable=True,
+                        base_url = '%s?etudid=%s' % (REQUEST.URL0, etudid),
+                        page_title='Opérations sur %(nomprenom)s' % etud,
+                        html_title="<h2>Opérations effectuées sur l'étudiant %(nomprenom)s</h2>" % etud,
+                        filename='log_'+make_filename(etud['nomprenom']),
+                        html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud)
+        
+        return tab.make_page(self, REQUEST=REQUEST)
+
+                                 
+
     security.declareProtected(ScoView, 'listScoLog')
     def listScoLog(self,etudid):
         "liste des operations effectuees sur cet etudiant"
