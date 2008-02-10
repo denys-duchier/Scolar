@@ -1,4 +1,5 @@
 <dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
+<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 #vhist-q-graph {
 /* Ceci est la classe du UL principal qui contient toute les autres données */

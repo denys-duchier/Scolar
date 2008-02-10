@@ -121,6 +121,7 @@ def ue_delete(context, ue_id=None, REQUEST=None):
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
+        context.do_ue_delete( ue_id, REQUEST )
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(F['formation_id']))
 
 
@@ -143,14 +144,14 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
           """<h2>Formation %(titre)s (%(acronyme)s) [version %(version)s] code %(formation_code)s""" % F,
           lockicon, '</h2>' ]
     if locked:
-        H.append( """<p class="help">Cette formation est verrouillée car un ou plusieurs semestres verrouillés s'y réferent.
+        H.append( """<p class="help">Cette formation est verrouillée car %d semestres verrouillés s'y réferent.
 Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module), vous devez:
 </p>
 <ul class="help">
 <li>soit créer une nouvelle version de cette formation pour pouvoir l'éditer librement;</li>
 <li>soit déverrouiler le ou les semestres qui s'y réfèrent (attention, en principe ces semestres sont archivés 
     et ne devraient pas être modifiés).</li>
-</ul>""")
+</ul>""" % len(locked))
     if msg:
         H.append('<p class="msg">' + msg + '</p>' )
 

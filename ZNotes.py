@@ -73,7 +73,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_status
-import sco_edit_ue, sco_edit_formation
+import sco_edit_ue, sco_edit_formation, sco_edit_matiere
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
@@ -244,16 +244,14 @@ class ZNotes(ObjectManager,
     ue_edit = sco_edit_ue.ue_edit
     security.declareProtected(ScoView, 'ue_list')
     ue_list = sco_edit_ue.ue_list
-
+    
     security.declareProtected(ScoChangeFormation, 'matiere_create')
-    matiere_create = DTMLFile('dtml/notes/matiere_create', globals(), title='Création d\'une matière')
+    matiere_create = sco_edit_matiere.matiere_create
     security.declareProtected(ScoChangeFormation, 'matiere_delete')
-    matiere_delete = DTMLFile('dtml/notes/matiere_delete', globals(), title='Suppression d\'une matière')
+    matiere_delete = sco_edit_matiere.matiere_delete
     security.declareProtected(ScoChangeFormation, 'matiere_edit')
-    matiere_edit = DTMLFile('dtml/notes/matiere_edit', globals(), title='Modification d\'une matière')
-    security.declareProtected(ScoView, 'matiere_list')
-    matiere_list = DTMLFile('dtml/notes/matiere_list', globals(), title='Liste des matières (dans une UE)')
-
+    matiere_edit = sco_edit_matiere.matiere_edit
+    
     security.declareProtected(ScoChangeFormation, 'module_create')
     module_create = DTMLFile('dtml/notes/module_create', globals(), title='Création d\'une module')
     security.declareProtected(ScoChangeFormation, 'module_delete')
@@ -505,7 +503,11 @@ class ZNotes(ObjectManager,
         # check
         mat = self.do_matiere_list({ 'matiere_id' : oid })[0]
         ue = self.do_ue_list({ 'ue_id' : mat['ue_id'] })[0]
-        if self.formation_has_locked_sems(ue['formation_id']):
+        locked = self.formation_has_locked_sems(ue['formation_id'])
+        if locked:
+            log('do_matiere_delete: mat=%s' % mat)
+            log('do_matiere_delete: ue=%s' % ue)
+            log('do_matiere_delete: locked sems: %s' % locked)
             raise ScoLockedFormError()  
         # delete all modules in this matiere
         mods = self.do_module_list({ 'matiere_id' : oid })
@@ -631,7 +633,7 @@ class ZNotes(ObjectManager,
         sems = self.do_formsemestre_list(
             args={ 'formation_id' : formation_id,
                    'etat' : '0'} )
-        return len(sems) > 0
+        return sems
 
     security.declareProtected(ScoView, 'formation_count_sems')
     def formation_count_sems(self, formation_id):

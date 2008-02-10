@@ -289,6 +289,12 @@ class ZScolar(ObjectManager,
     sco_footer = DTMLFile('dtml/sco_footer', globals())
     security.declareProtected(ScoView, 'menus_bandeau')
     menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
+
+    security.declareProtected(ScoView, 'http_expiration_date')
+    def http_expiration_date(self):
+        "http expiration date for cachable elements (css, ...)"
+        d = datetime.timedelta(minutes=10)
+        return (datetime.datetime.utcnow() + d).strftime("%a, %d %b %Y %H:%M:%S GMT")
     
     # --------------------------------------------------------------------
     #

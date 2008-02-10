@@ -1,3 +1,4 @@
+<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 /**
   *
   *  Copyright 2005 Sabre Airline Solutions

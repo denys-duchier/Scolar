@@ -1,3 +1,7 @@
+/* -*- mode: javascript -*-
+ */
+<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
+
 function getMouseXY(e) // works on IE6,FF,Moz,Opera7
 { 
   if (!e) e = window.event; // works on IE, but not NS (we rely on NS passing us the event)

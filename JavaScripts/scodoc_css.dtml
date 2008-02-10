@@ -2,6 +2,8 @@
            ScoDoc, (c) Emmanuel Viennet 1998 - 2007
  */
 <dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
+<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
+
 
 html,body {
   margin:0;
