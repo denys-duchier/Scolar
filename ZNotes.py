@@ -73,7 +73,7 @@ import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_pagebulletin import formsemestre_pagebulletin_get
 import sco_formsemestre_edit, sco_formsemestre_status
-import sco_edit_ue, sco_edit_formation, sco_edit_matiere
+import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
@@ -253,13 +253,13 @@ class ZNotes(ObjectManager,
     matiere_edit = sco_edit_matiere.matiere_edit
     
     security.declareProtected(ScoChangeFormation, 'module_create')
-    module_create = DTMLFile('dtml/notes/module_create', globals(), title='Création d\'une module')
+    module_create = sco_edit_module.module_create
     security.declareProtected(ScoChangeFormation, 'module_delete')
-    module_delete = DTMLFile('dtml/notes/module_delete', globals(), title='Suppression d\'une module')
+    module_delete = sco_edit_module.module_delete
     security.declareProtected(ScoChangeFormation, 'module_edit')
-    module_edit = DTMLFile('dtml/notes/module_edit', globals(), title='Modification d\'un module')
+    module_edit = sco_edit_module.module_edit
     security.declareProtected(ScoView, 'module_list')
-    module_list = DTMLFile('dtml/notes/module_list', globals(), title='Liste des modules (dans une formation)')
+    module_list = sco_edit_module.module_list
     
     security.declareProtected(ScoView,'moduleimpl_status')
     moduleimpl_status = DTMLFile('dtml/notes/moduleimpl_status', globals(), title='Tableau de bord module')

@@ -202,8 +202,8 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 <p>
 <ul>
 <li><a class="stdlink" href="formation_create_new_version?formation_id=%(formation_id)s">Créer une nouvelle version (non verrouillée)</a></li>
-<li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> </li>
-<li><a class="stdlink" href="formation_export_xml?formation_id=%(formation_id)s">Export XML de la formation</a> </li>
+<li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
+<li><a class="stdlink" href="formation_export_xml?formation_id=%(formation_id)s">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
 </ul>
 </p>""" % F )
     if perm_change:
