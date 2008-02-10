@@ -191,10 +191,6 @@ class ZNotes(ObjectManager,
     #    NOTES (top level)
     #
     # --------------------------------------------------------------------
-    # used to view content of the object
-    security.declareProtected(ScoView, 'index_html')
-    index_html = DTMLFile('dtml/notes/index_html', globals())
-
     # XXX essai
     security.declareProtected(ScoView, 'gloups')
     def gloups(self, REQUEST): 
@@ -271,6 +267,35 @@ class ZNotes(ObjectManager,
     notes_eval_selectetuds = DTMLFile('dtml/notes/notes_eval_selectetuds', globals(), title='Choix groupe avant saisie notes')
     security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
     notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
+
+    # used to view content of the object
+    security.declareProtected(ScoView, 'index_html')
+    def index_html(self, REQUEST=None):
+        "Page accueil formations"
+        lockicon = self.scodoc_img.lock32_img.tag(title="formation verrouillé", border='0')
+        editable = REQUEST.AUTHENTICATED_USER.has_permission(ScoChangeFormation,self)
+
+        H = [ self.sco_header(REQUEST, page_title="Programmes formations"),
+              """<h2>Programmes des formations</h2>
+              <ul class="notes_formation_list">""" ]
+
+        for F in self.do_formation_list():
+            H.append('<li class="notes_formation_list">%(acronyme)s: %(titre)s (version %(version)s)' % F )
+            locked = self.formation_has_locked_sems(F['formation_id'])
+            if locked:
+                H.append(lockicon)
+            elif editable:
+                H.append("""<a class="stdlink" href="formation_edit?formation_id=%(formation_id)s">modifier</a>
+ 	     <a class="stdlink" href="formation_delete?formation_id=%(formation_id)s">supprimer</a>""" % F )
+            H.append("""<a class="stdlink" href="ue_list?formation_id=%(formation_id)s">programme détaillé et semestres</a>""" % F )
+            H.append('</li>')
+        H.append('</ul>')
+        if editable:
+            H.append("""<p><a class="stdlink" href="formation_create">Créer une formation</a></p>
+ 	 <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>""")
+
+        H.append(self.sco_footer(REQUEST))
+        return '\n'.join(H)
 
     # --------------------------------------------------------------------
     #
