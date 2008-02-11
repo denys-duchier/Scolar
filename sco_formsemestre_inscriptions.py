@@ -192,7 +192,7 @@ def formsemestre_inscription_with_modules(
         """ % sem['nomgroupetd'])
         return '\n'.join(H) + F
 
-def formsemestre_inscription_option(self, etudid, formsemestre_id,
+def formsemestre_inscription_option(self, etudid, formsemestre_id, moduleimpls=[],
                                     REQUEST=None):
     """Dialogue pour (des)inscription a des modules optionnels
     """
@@ -249,10 +249,10 @@ def formsemestre_inscription_option(self, etudid, formsemestre_id,
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1] + F
     elif tf[0] == -1:
-        return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=" %(self.ScoURL(), etudid))
+        return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=%s" %(self.ScoURL(), etudid))
     else:
         # Inscriptions aux modules choisis
-        moduleimpls = REQUEST.form['moduleimpls']
+        # xxx moduleimpls = REQUEST.form['moduleimpls']
         # il faut desinscrire des modules qui ne figurent pas
         # et inscrire aux autres, sauf si deja inscrit
         a_desinscrire = {}.fromkeys( [ x['moduleimpl_id'] for x in mods ] )
