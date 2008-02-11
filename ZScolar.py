@@ -485,10 +485,7 @@ class ZScolar(ObjectManager,
                         html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud)
         
         return tab.make_page(self, format=format, REQUEST=REQUEST)
-
                                  
-
-    security.declareProtected(ScoView, 'listScoLog')
     def listScoLog(self,etudid):
         "liste des operations effectuees sur cet etudiant"
         cnx = self.GetDBConnexion()

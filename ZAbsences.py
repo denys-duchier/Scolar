@@ -998,50 +998,48 @@ class ZAbsences(ObjectManager,
         for etud in etuds:
             nbabs = self.CountAbs(etudid=etud['etudid'],debut=datedebut,fin=datefin)
             nbabsjust = self.CountAbsJust(etudid=etud['etudid'],debut=datedebut,fin=datefin)
-            T.append( { 'etudid' : etud['etudid'], 'etatincursem' : etud['etatincursem'],
+            # retrouve sem dans etud['sems']
+            s = None
+            for s in etud['sems']:
+                if s['formsemestre_id'] == formsemestre_id:
+                    break
+            if not s or s['formsemestre_id'] != formsemestre_id:
+                raise ValueError("EtatAbsencesGr: can't retreive sem") # bug or malicious arg
+            T.append( { 'etudid' : etud['etudid'],
+                        'etatincursem' : s['ins']['etat'],
                         'nomprenom' : etud['nomprenom'],
-                        'nbabsjust' : nbabsjust, 'nbabsnonjust' : nbabs-nbabsjust, 'nbabs' : nbabs} )
-        # Format
-        if format == 'xls':
-            # export excel:
-            xls = sco_excel.Excel_SimpleTable(
-                titles=('etudid', 'Etat', 'Nom', 'Nb Abs. Just.', 'Nb Abs. Non Just.', 'Nb Abs.'),
-                lines= [ (t['etudid'], t['etatincursem'], t['nomprenom'],
-                          str(t['nbabsjust']), str(t['nbabsnonjust']), str(t['nbabs'])) for t in T ],
-                SheetName='Etat Absences groupe %s %s %s' % (groupetd, groupeanglais, groupetp))
-            filename = 'Absences_%s' % sem['titreannee'] + '.xls'
-            return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        elif format == 'html':
-            H = [ self.sco_header(REQUEST, page_title='Etat des absences pour un groupe',
-                                  javascripts=['calendarDateInput_js']),
-                  """<h1>Etat des absences du groupe %s %s %s de %s</h1>"""
-                  % (groupetd, groupeanglais, groupetp, sem['titreannee']),
-                  """<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>"""
-                  % (debut, fin),
-                  """<a href="EtatAbsencesGr?semestregroupe=%s&debut=%s&fin=%s&format=xls">export excel</a></p>""" % (semestregroupe, debut, fin),
-                  """<table border="0" cellspacing="4" cellpadding="0">
-                  <tr><td>Statut</td><td align="center">&nbsp;</td><td>Justifiées</td>
-                  <td>Non justifiées</td><td>Total<td></td></tr>"""
-                  ]
-            for t in T:
-                H.append("""<tr bgcolor="white"><td>%(etatincursem)s</td><td>%(nomprenom)s</td>
-                <td align="center">%(nbabsjust)s</td><td align="center">%(nbabsnonjust)s</td>
-                <td align="center">%(nbabs)s</td></tr>""" % t )
-            H.append("""</table>
-            <p class="help">
-            Cliquez sur un nom pour afficher le calendrier des absences<br/>
-            ou entrez une date pour visualiser les absents un jour donné&nbsp;:
-            </p>
-            <form action="EtatAbsencesDate" method="get">
-            <input type="hidden" name="semestregroupe" value="%s">
-            <script>DateInput('date', true, 'DD/MM/YYYY')</script>
-            <input type="submit" name="" value="visualiser les absences">
-            </form>
-            """ % semestregroupe)
-            H.append(self.sco_footer(REQUEST))
-            return '\n'.join(H)                              
-        else:
-            raise ScoValueError('format invalide: %s' % format)
+                        'nbabsjust' : nbabsjust, 'nbabsnonjust' : nbabs-nbabsjust, 'nbabs' : nbabs,
+                        '_nomprenom_target' : 'CalAbs?etudid=%s' % etud['etudid'],
+                        } )
+
+        columns_ids = ['etatincursem', 'nomprenom', 'nbabsjust', 'nbabsnonjust', 'nbabs']
+        title = 'Etat des absences du groupe %s %s %s' % (groupetd, groupeanglais, groupetp)
+        if format == 'xls' or format == 'xml':
+            columns_ids = ['etudid'] + columns_ids
+        tab = GenTable( columns_ids=columns_ids, rows=T,                        
+                        titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'Justifiées',
+                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
+                        html_sortable=True,
+                        html_class='gt_table table_leftalign',
+                        html_header=self.sco_header(REQUEST, page_title=title,
+                                                    javascripts=['calendarDateInput_js']),
+                        html_title="""<h2>%s de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (title, sem['formsemestre_id'], sem['titreannee']) + '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
+                        base_url = '%s?semestregroupe=%s&debut=%s&fin=%s' % (REQUEST.URL0, semestregroupe,debut, fin),
+                        filename='etat_abs__'+make_filename('%s %s %s de %s'%(groupetd, groupeanglais, groupetp, sem['titreannee'])),
+                        caption=title,
+                        html_next_section="""</table>
+<p class="help">
+Cliquez sur un nom pour afficher le calendrier des absences<br/>
+ou entrez une date pour visualiser les absents un jour donné&nbsp;:
+</p>
+<form action="EtatAbsencesDate" method="get">
+<input type="hidden" name="semestregroupe" value="%s">
+<script>DateInput('date', true, 'DD/MM/YYYY')</script>
+<input type="submit" name="" value="visualiser les absences">
+</form>
+                        """ % semestregroupe)
+        return tab.make_page(self, format=format, REQUEST=REQUEST)
+                        
 
 # ------ HTML Calendar functions (see YearTable method)
 

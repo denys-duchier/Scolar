@@ -56,6 +56,7 @@ class GenTable:
                  html_col_width=None, # force largeur colonne
                  html_title = '', # avant le tableau en html
                  html_caption=None, # override caption if specified
+                 html_header=None,
                  html_next_section='', # html fragment to put after the table
                  html_with_td_classes=False, # put class=column_id in each <td>
                  base_url = None,
@@ -76,6 +77,7 @@ class GenTable:
         self.base_url = base_url
         self.filename = filename
         self.caption = caption
+        self.html_header=html_header
         self.page_title = page_title
         self.pdf_link=pdf_link
         self.xls_link=xls_link
@@ -314,8 +316,8 @@ class GenTable:
         html_title = title or self.html_title
         if format == 'html':
             H = []
-            if with_html_headers:
-                H.append(context.sco_header(REQUEST, page_title=page_title))
+            if with_html_headers:                
+                H.append(self.html_header or context.sco_header(REQUEST, page_title=page_title))
             if html_title:
                 H.append(html_title)
             H.append(self.html())
