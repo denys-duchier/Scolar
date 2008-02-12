@@ -30,6 +30,7 @@
 from sco_pdf import *
 
 def essaipdf(REQUEST):
+    PDFLOCK.acquire()
     filename = 'essai.pdf'
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
@@ -51,6 +52,7 @@ def essaipdf(REQUEST):
     # generation du document PDF
     document.build(objects)
     data = report.getvalue()
+    PDFLOCK.release()
     return sendPDFFile(REQUEST, data, filename)
 
 

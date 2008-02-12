@@ -33,7 +33,7 @@ from ScolarRolesNames import *
 import htmlutils, time
 import pdfbulletins
 import sco_pvjury
-
+from sco_pdf import PDFLOCK
 
 def make_formsemestre_bulletinetud(
     znotes, formsemestre_id, etudid,
@@ -221,12 +221,16 @@ def make_formsemestre_bulletinetud(
             filigranne = 'DEMISSION'
         else:
             filigranne = ''
-        pdfbul = pdfbulletins.pdfbulletin_etud(
-            etud, sem, P, PdfStyle,
-            infos, stand_alone=stand_alone, filigranne=filigranne,
-            appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
-            situation=situation,
-            server_name=server_name, context=znotes )
+        try:
+            PDFLOCK.acquire()
+            pdfbul = pdfbulletins.pdfbulletin_etud(
+                etud, sem, P, PdfStyle,
+                infos, stand_alone=stand_alone, filigranne=filigranne,
+                appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
+                situation=situation,
+                server_name=server_name, context=znotes )
+        finally:
+            PDFLOCK.release()
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, etud['nom'])
         filename = unescape_html(filename).replace(' ','_').replace('&','')

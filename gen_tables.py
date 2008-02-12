@@ -271,6 +271,14 @@ class GenTable:
     
     def pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
+        try:
+            PDFLOCK.acquire()
+            self._pdf()
+        except:
+            PDFLOCK.release()
+    
+    def _pdf(self):
+        "PDF representation: returns a ReportLab's platypus Table instance"
         if not self.pdf_table_style:
             LINEWIDTH = 0.5
             self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), SCOLAR_FONT),

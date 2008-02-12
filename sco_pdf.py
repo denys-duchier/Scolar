@@ -25,7 +25,11 @@
 #
 ##############################################################################
 
-"""Generation de PDF: définitions diverses
+"""Generation de PDF: définitions diverses et gestion du verro
+
+    reportlab n'est pas réentrante: il ne faut qu'une seule opération PDF au même moment.
+    Tout accès à ReportLab doit donc être précédé d'un PDFLOCK.acquire()
+    et terminé par un PDFLOCK.release()
 """
 import time, cStringIO
 
@@ -180,3 +184,40 @@ def pdf_basic_page( objects, title='' ):
     document.build(objects)
     data = report.getvalue()
     return data
+
+# Gestion du lock pdf
+import threading, time, Queue, thread
+
+class PDFLock:
+    def __init__(self, timeout=15):
+        self.Q = Queue.Queue(1)
+        self.timeout = timeout
+        self.current_thread = None
+        self.nref = 0
+    
+    def release(self):        
+        "Release lock. Raise Empty if not acquired first"
+        if self.current_thread == thread.get_ident():
+            self.nref -= 1
+            if self.nref == 0:
+                log('PDFLock: release from %s' % self.current_thread)
+                self.current_thread = None
+                self.Q.get(False)
+            return
+        else:
+            self.Q.get(False)
+    
+    def acquire(self): 
+        "Acquire lock. Raise ScoGenError if can't lock after timeout."
+        if self.current_thread == thread.get_ident():
+            self.nref += 1
+            return # deja lock pour ce thread
+        try:
+            self.Q.put(1, True, self.timeout )
+        except Queue.Full:
+            raise ScoGenError(msg="Traitement PDF occupé: ré-essayez")
+        self.current_thread = thread.get_ident()
+        self.nref = 1
+        log('PDFLock: granted to %s' % self.current_thread)
+
+PDFLOCK = PDFLock()

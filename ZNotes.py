@@ -83,6 +83,7 @@ import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
 import pdfbulletins
+from sco_pdf import PDFLOCK
 from notes_table import *
 import VERSION
 
@@ -2215,11 +2216,15 @@ class ZNotes(ObjectManager,
             server_name = REQUEST.BASE0
         else:
             server_name = ''
-        pdfdoc = pdfbulletins.pdfassemblebulletins(
-            formsemestre_id,
-            fragments, sem, infos, bookmarks,
-            server_name=server_name,
-            context=self )
+        try:
+            PDFLOCK.acquire()
+            pdfdoc = pdfbulletins.pdfassemblebulletins(
+                formsemestre_id,
+                fragments, sem, infos, bookmarks,
+                server_name=server_name,
+                context=self )
+        finally:
+            PDFLOCK.release()
         #
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s.pdf' % (sem['titre_num'], dt)
@@ -2456,9 +2461,13 @@ class ZNotes(ObjectManager,
             sf = tf[2]['signature']
             #pdb.set_trace()
             signature = sf.read() # image of signature
-            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id,
-                                                         dateJury=tf[2]['dateJury'],
-                                                         signature=signature)
+            try:
+                PDFLOCK.acquire()
+                pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id,
+                                                             dateJury=tf[2]['dateJury'],
+                                                             signature=signature)
+            finally:
+                PDFLOCK.release()
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
@@ -2505,9 +2514,13 @@ class ZNotes(ObjectManager,
                 tf[2]['showTitle'] = True
             else:
                 tf[2]['showTitle'] = False
-            pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
-                                          tf[2]['dateCommission'], tf[2]['dateJury'],
-                                          tf[2]['showTitle'])
+            try:
+                PDFLOCK.acquire()
+                pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
+                                              tf[2]['dateCommission'], tf[2]['dateJury'],
+                                              tf[2]['showTitle'])
+            except:
+                PDFLOCK.release()
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)

@@ -32,6 +32,7 @@ from sco_pdf import *
 import sco_pvjury
 import sco_codes_parcours
 from sco_utils import *
+from sco_pdf import PDFLOCK
 
 PV_FONTNAME = CONFIG.PV_FONTNAME
 
