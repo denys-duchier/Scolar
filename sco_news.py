@@ -74,11 +74,12 @@ def resultset(cursor):
         yield row
         row = cursor.dictfetchone()
         
-def scolar_news_summary(cnx, n=5):
+def scolar_news_summary(context, n=5):
     """Return last n news.
     News are "compressed", ie redondant events are joined.
     """
     # XXX mauvais algo: oblige a extraire toutes les news pour faire le resume
+    cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     cursor.execute( 'select * from scolar_news order by date asc' )
     selected_news = {} # (type,object) : news dict
@@ -107,11 +108,23 @@ def scolar_news_summary(cnx, n=5):
         j, m = n['date'].split('/')[:2]
         mois = abbrvmonthsnames[int(m)-1]
         n['formatted_date'] = '%s %s %s' % (j,mois,n['hm'])
+        # indication semestre si ajout notes:
+        if n['type'] == NEWS_NOTE:
+            moduleimpl_id = n['object']
+            mod = context.Notes.do_moduleimpl_list({'moduleimpl_id' : moduleimpl_id})[0]
+            sem = context.Notes.get_formsemestre(mod['formsemestre_id'])
+            if sem['semestre_id'] > 0:
+                descr_sem = 'S%d' % sem['semestre_id']
+            else:
+                descr_sem = ''
+            if sem['modalite']:
+                descr_sem += ' ' + sem['modalite']
+            n['text'] += ' ('+descr_sem+')'
     return news
 
-def scolar_news_summary_html(cnx, n=5, rssicon=None):
+def scolar_news_summary_html(context, n=5, rssicon=None):
     """News summary, formated in HTML"""
-    news = scolar_news_summary(cnx,n=n)
+    news = scolar_news_summary(context,n=n)
     if not news:
         return ''
     H= ['<div class="news"><span class="newstitle">Dernières opérations']
@@ -136,9 +149,9 @@ def scolar_news_summary_html(cnx, n=5, rssicon=None):
     return '\n'.join(H)
 
     
-def scolar_news_summary_rss(cnx, title, sco_url, n=5):
+def scolar_news_summary_rss(context, title, sco_url, n=5):
     """rss feed for scolar news"""
-    news = scolar_news_summary(cnx,n=n)
+    news = scolar_news_summary(context,n=n)
     items = []
     for n in news:
         text = html2text(n['text'])

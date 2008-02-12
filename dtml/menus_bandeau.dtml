@@ -38,7 +38,7 @@
 <li><a href="Absences/SignaleAbsenceEtud?etudid=<dtml-var etudid>">Signaler une absence</a></li>
 <li><a href"Absences/JustifAbsenceEtud?etudid=<dtml-var etudid>">Justifier une absence</a></li>
 <li><a href="Absences/AnnuleAbsenceEtud?etudid=<dtml-var etudid>">Supprimer une absence</a>
-<li><a href="showEtudLog?etudid=<dtml-var etudid>">voir le journal</a></li>
+<li><a href="showEtudLog?etudid=<dtml-var etudid>">Voir le journal</a></li>
 </ul>
 
 </dtml-if permission>

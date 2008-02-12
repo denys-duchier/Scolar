@@ -249,6 +249,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
         origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
         caption = title,
         html_caption = title,
+        html_class='gt_table table_leftalign',
         base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
         page_title = title,
         html_title = """<h2>Semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']),

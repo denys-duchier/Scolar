@@ -87,10 +87,12 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
     try:
         Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
-    except:
+    except:        
         # enquête sur exception intermittente...
         log('*** bug in pdfbulletin_etud:')
         log('P=%s' % P )
+        # compris: reportlab is not thread safe !
+        #   see http://two.pairlist.net/pipermail/reportlab-users/2006-June/005037.html
         raise
     # --- Build doc using ReportLab's platypus
     # Title

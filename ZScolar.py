@@ -28,7 +28,6 @@
 """Site Scolarite pour département IUT
 """
 
-
 import time, string, glob, re
 import urllib, urllib2, xml
 try: from cStringIO import StringIO
@@ -508,9 +507,8 @@ class ZScolar(ObjectManager,
         showlocked=int(showlocked)
         H = []
         # news
-        cnx = self.GetDBConnexion()
         rssicon = self.scodoc_img.rssicon_img.tag(title='Flux RSS', border='0') 
-        H.append( sco_news.scolar_news_summary_html(cnx, rssicon=rssicon) )
+        H.append( sco_news.scolar_news_summary_html(self, rssicon=rssicon) )
 
         # liste de toutes les sessions
         sems = self.Notes.do_formsemestre_list()
@@ -626,8 +624,7 @@ class ZScolar(ObjectManager,
     def rssnews(self,REQUEST=None):
         "rss feed"
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-        cnx = self.GetDBConnexion()
-        return sco_news.scolar_news_summary_rss( cnx, 'Nouvelles de ' + self.DeptName,
+        return sco_news.scolar_news_summary_rss(self, 'Nouvelles de ' + self.DeptName,
                                                  self.ScoURL() )
         
     # genere liste html pour acces aux groupes TD/TP/TA de ce semestre
