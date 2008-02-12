@@ -276,6 +276,7 @@ class GenTable:
             return self._pdf()
         except:
             PDFLOCK.release()
+            return []
     
     def _pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
