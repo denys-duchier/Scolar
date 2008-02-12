@@ -65,6 +65,7 @@ def add(REQUEST, cnx, typ, object=None, text='', url=None ):
              'text' : text,
              'url' : url
              }
+    log('news: %s' % args)
     return scolar_news_create(cnx,args,has_uniq_values=False)
 
 def resultset(cursor):
