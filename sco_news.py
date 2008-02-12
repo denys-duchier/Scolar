@@ -119,7 +119,7 @@ def scolar_news_summary(context, n=5):
                 descr_sem = ''
             if sem['modalite']:
                 descr_sem += ' ' + sem['modalite']
-            n['text'] += ' ('+descr_sem+')'
+            n['text'] += ' (<a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a>)' % (mod['formsemestre_id'], descr_sem)
     return news
 
 def scolar_news_summary_html(context, n=5, rssicon=None):
