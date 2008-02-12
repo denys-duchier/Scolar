@@ -273,7 +273,7 @@ class GenTable:
         "PDF representation: returns a ReportLab's platypus Table instance"
         try:
             PDFLOCK.acquire()
-            self._pdf()
+            return self._pdf()
         except:
             PDFLOCK.release()
     
