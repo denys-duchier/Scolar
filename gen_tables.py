@@ -271,12 +271,13 @@ class GenTable:
     
     def pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
+        r = []
         try:
             PDFLOCK.acquire()
-            return self._pdf()
-        except:
+            r = self._pdf()
+        finally:
             PDFLOCK.release()
-            return []
+        return r
     
     def _pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
