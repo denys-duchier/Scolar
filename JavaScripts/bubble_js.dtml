@@ -29,11 +29,14 @@ function Prepare(el){
   s=CreateEl("span","top");
   s.appendChild(document.createTextNode(t));
   tooltip.appendChild(s);
+
   b=CreateEl("b","bottom");
+  /* url du lien:
   l=el.getAttribute("href");
   if(l.length>30) 
     l=l.substr(0,27)+"...";
   b.appendChild(document.createTextNode(l));
+  */
   tooltip.appendChild(b);
   setOpacity(tooltip);
   el.tooltip=tooltip;

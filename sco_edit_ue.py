@@ -170,11 +170,15 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
             H.append('<ul class="notes_module_list">')
             Modlist = context.do_module_list( args={ 'matiere_id' : Mat['matiere_id'] } )
             for Mod in Modlist:
-                H.append('<li class="notes_module_list"> %(code)s %(titre)s (semestre %(semestre_id)s) (%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s)' % Mod)
+                Mod['nb_moduleimpls'] = context.module_count_moduleimpls(Mod['module_id'])
+                H.append('<li class="notes_module_list">')
                 if editable:
-                    H.append('<a class="stdlink" href="module_edit?module_id=%(module_id)s">modifier</a>' % Mod)
-                    if context.module_count_moduleimpls(Mod['module_id']) == 0:
-                        H.append('<a class="stdlink" href="module_delete?module_id=%(module_id)s">supprimer ce module</a> (inutilisé)' % Mod)
+                    H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)
+                H.append('%(code)s %(titre)s (semestre %(semestre_id)s) (%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s)' % Mod)
+                if editable:
+                    H.append('</a>')
+                    if Mod['nb_moduleimpls'] == 0:
+                        H.append(' <a class="discretelink" href="module_delete?module_id=%(module_id)s">supprimer ce module</a> (inutilisé)' % Mod)
                 
                 H.append('</li>')
             if not Modlist:
