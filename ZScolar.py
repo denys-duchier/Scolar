@@ -2388,7 +2388,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         format = ImportScolars.sco_import_format(file_path)
         data = ImportScolars.sco_import_generate_excel_sample(
             format, only_tables=['identite', 'admissions'],
-            exclude_cols = ['annee_naissance', 'nationalite', 'foto', 'code_ine' ],
+            exclude_cols = ['nationalite', 'foto', 'code_ine' ],
             formsemestre_id=formsemestre_id,context=self.Notes)
         return sco_excel.sendExcelFile(REQUEST,data,'AdmissionEtudiants.xls')
 

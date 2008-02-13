@@ -41,6 +41,14 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 # format description (relative to Product directory))
 FORMAT_FILE = "misc/format_import_etudiants.txt"
 
+# Champs modifiables via "Import données admission"
+ADMISSION_MODIFIABLE_FIELDS = (
+    'annee_naissance',
+    'bac', 'specialite', 'annee_bac',
+    'math', 'physique', 'anglais', 'francais',
+    'qualite', 'rapporteur', 'score', 'commentaire',
+    'nomlycee', 'villelycee')
+
 # ----
 
 def sco_import_format( product_file_path, with_codesemestre=True ):
@@ -274,6 +282,9 @@ def scolars_import_admission( datafile, product_file_path, Notes, REQUEST,
     #
     titles = data[0]
     ietudid= titles.index('etudid')
+
+    modifiable_fields = Set( ADMISSION_MODIFIABLE_FIELDS )
+    
     for line in data[1:]:        
         args = scolars.admission_list(cnx, args={'etudid':line[ietudid]})
         if not args:
@@ -281,7 +292,8 @@ def scolars_import_admission( datafile, product_file_path, Notes, REQUEST,
         args = args[0]
         i = 0
         for tit in titles:
-            args[tit] = line[i]
+            if tit in modifiable_fields:
+                args[tit] = line[i]
             i += 1
-        scolars.admission_edit(cnx, args )
-    
+        scolars.etudident_edit(cnx, args )
+
