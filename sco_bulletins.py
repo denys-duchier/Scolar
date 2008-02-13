@@ -126,15 +126,16 @@ def make_formsemestre_bulletinetud(
             # Liste les modules de l'UE 
             ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
             for modimpl in ue_modimpls:
+                mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
+                if mod_moy != 'NI': # ne montre pas les modules 'non inscrit'
                     tabline += 1
                     H.append('<tr class="notes_bulletin_row_mod">')
                     # --- module avec moy. dans ce module et coef du module
                     nom_mod = modimpl['module']['abbrev']
                     if not nom_mod:
                         nom_mod = ''                        
-                    t = [ modimpl['module']['code'], nom_mod,
-                          fmt_note(nt.get_etud_mod_moy(modimpl, etudid)), '',
-                          '%.2g' % modimpl['module']['coefficient'] ]
+                    t = [ modimpl['module']['code'], nom_mod, mod_moy, '',
+                      '%.2g' % modimpl['module']['coefficient'] ]
                     if version == 'short':
                         t[3], t[2] = t[2], t[3] # deplace colonne note
                     if sem['bul_show_codemodules'] != '1':
@@ -316,6 +317,9 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         # Liste les modules de l'UE 
         ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
         for modimpl in ue_modimpls:
+            mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
+            if mod_moy == 'NI': # ne mentionne pa sles modules ou n'est pas inscrit
+                continue
             mod = modimpl['module']
             doc._push()
             doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
@@ -324,7 +328,7 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
                         titre=quote_xml_attr(mod['titre']),
                         abbrev=quote_xml_attr(mod['abbrev']) )
             doc._push()
-            doc.note( value=fmt_note(nt.get_etud_mod_moy(modimpl, etudid)) )
+            doc.note( value=mod_moy )
             doc._pop()
             # --- notes de chaque eval:
             evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
