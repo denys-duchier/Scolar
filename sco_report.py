@@ -727,12 +727,12 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n = g.get_node(s['formsemestre_id'])
         n.set( 'label', 'S%s\\n%d/%s - %d/%s\\n%d' %
                (_codesem(s),
-                s['mois_debut_ord'], s['annee_debut'],
-                s['mois_fin_ord'], s['annee_fin'],
+                s['mois_debut_ord'], s['annee_debut'][2:],
+                s['mois_fin_ord'], s['annee_fin'][2:],
                 len(effectifs[s['formsemestre_id']])))
         n.set_fontname('Helvetica')
         n.set_fontsize(9.0)
-        n.set_width(1.4)
+        n.set_width(1.2)
         n.set_shape('note')
         n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
     # semestre de depart en vert
