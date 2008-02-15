@@ -10,5 +10,5 @@ def HTML2SafeHTML( text, convert_br=True ):
         return text
 
 def newline_to_br( text ):
-    return text.replace( '\n', '<br>' )
+    return text.replace( '\n', '<br/>' )
 

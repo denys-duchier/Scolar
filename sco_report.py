@@ -37,6 +37,9 @@ import sco_excel, sco_pdf
 import sco_codes_parcours
 from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
+import tempfile, urllib
+import sco_formsemestre_status
+
 
 def formsemestre_etuds_stats(context, sem):
     """Récupère liste d'etudiants avec etat et decision.
@@ -595,6 +598,22 @@ Z 27s  => cache des semestres pour nt
 B: etuds sets: 2.4s => lent: N x getEtudInfo (non caché)
 """
 
+
+def _codesem(sem):
+    "code semestre: S1 ou S1d"
+    idx = sem['semestre_id']
+    # semestre décalé ?
+    # les semestres pairs normaux commencent entre janvier et mars
+    # les impairs normaux entre aout et decembre
+    d = ''
+    if idx and idx > 0 and sem['date_debut']:
+        mois_debut = int(sem['date_debut'].split('/')[1])
+        if (idx % 2 and mois_debut < 3) or (idx % 2 == 0 and mois_debut >= 8):
+            d = 'd'
+    if idx == -1:
+        idx = 'Autre '
+    return '%s%s' % (idx, d)
+
 def _codeparcoursetud(context, etud):
     """calcule un code de parcours pour un etudiant
     exemples:
@@ -609,18 +628,7 @@ def _codeparcoursetud(context, etud):
     while i >= 0:
         s = sems[i] # 'sems' est a l'envers, du plus recent au plus ancien        
         nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
-        idx = s['semestre_id']
-        # semestre décalé ?
-        # les semestres pairs normaux commencent entre janvier et mars
-        # les impairs normaux entre aout et decembre
-        d = ''
-        if idx and idx > 0 and s['date_debut']:
-            mois_debut = int(s['date_debut'].split('/')[1])
-            if (idx % 2 and mois_debut < 3) or (idx % 2 == 0 and mois_debut >= 8):
-                d = 'd'
-        if idx == -1:
-            idx = 'Autre '
-        p.append( '%s%s' % (idx, d) )
+        p.append( _codesem(s) )
         # code etat sur dernier semestre seulement
         if i == 0:
             # Démission
@@ -630,7 +638,7 @@ def _codeparcoursetud(context, etud):
                 dec = nt.get_etud_decision_sem(etud['etudid'])
                 if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
                     p.append(':R')
-                if dec and idx == sco_codes_parcours.DUT_NB_SEM and dec['code'] == 'ADM':
+                if dec and s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec['code'] == 'ADM':
                     p.append(':A')
         i -= 1
     return ''.join(p)
@@ -687,3 +695,88 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html', REQUEST
     t = tab.make_page(context, format=format, with_html_headers=True, REQUEST=REQUEST)
     return t
 
+# -------------
+def graph_parcours(context, formsemestre_id, format='svg'):
+    """
+    """
+    if not WITH_PYDOT:
+        raise ScoValueError('pydot module is not installed')
+    sem = context.get_formsemestre(formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    etudids = nt.get_etudids()
+    edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
+    sems = {}
+    effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
+    for etudid in etudids:
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        next = None
+        for s in etud['sems']: # du plus recent au plus ancien
+            if next:
+                edges[(s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
+            sems[s['formsemestre_id']] = s
+            effectifs[s['formsemestre_id']].add(etudid)
+            next = s
+    #
+    g = pydot.graph_from_edges(edges.keys())
+    g.set('rankdir', 'LR') # left to right
+    g.set_fontname('Helvetica')
+    if format == 'svg':
+        g.set_bgcolor('#e5f2e5') # 'transparent'
+    # titres des semestres:
+    for s in sems.values():
+        n = g.get_node(s['formsemestre_id'])
+        n.set( 'label', 'S%s\\n%d/%s - %d/%s\\n%d' %
+               (_codesem(s),
+                s['mois_debut_ord'], s['annee_debut'],
+                s['mois_fin_ord'], s['annee_fin'],
+                len(effectifs[s['formsemestre_id']])))
+        n.set_fontname('Helvetica')
+        n.set_fontsize(9.0)
+        n.set_width(1.4)
+        n.set_shape('note')
+        n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
+    # semestre de depart en vert
+    n = g.get_node(formsemestre_id)
+    n.set_color('green')    
+    # Arètes:
+    for (src_id,dst_id) in edges.keys():
+        e = g.get_edge(src_id, dst_id)
+        e.set('arrowhead','normal')
+        e.set( 'arrowsize', 1 )
+        e.set_label(len(edges[(src_id,dst_id)]))
+        e.set_fontname('Helvetica')
+        e.set_fontsize(8.0)
+    # Genere graphe    
+    f, path = tempfile.mkstemp('.gr')
+    g.write(path=path, format=format)
+    data = open(path,'r').read()
+    log('dot generated %d bytes in %s format' % (len(data),format))
+    os.unlink(path)
+    if format == 'svg':
+        # dot génère un document XML complet, il faut enlever l'en-tête
+        data = '<svg' + '<svg'.join( data.split('<svg')[1:])
+    return data
+
+def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
+    """Graphe suivi cohortes
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    if format == 'pdf':
+        doc = graph_parcours(context, formsemestre_id, format='pdf')
+        filename = make_filename('flux ' + sem['titreannee'])
+        return sco_pdf.sendPDFFile(REQUEST, doc, filename + '.pdf' )
+    url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format=pdf"%sem)
+    H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
+          """<h2>Parcours de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+          '<div>',
+          sco_formsemestre_status.makeMenu( 'Statistiques',
+                                            sco_formsemestre_status.defMenuStats(context,formsemestre_id)),
+          '<br/></div>',
+          graph_parcours(context, formsemestre_id),
+          """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
+          """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
+          context.sco_footer(REQUEST)
+          ]
+    REQUEST.RESPONSE.setHeader('Content-type', 'application/xhtml+xml' )
+    return '\n'.join(H)
+          

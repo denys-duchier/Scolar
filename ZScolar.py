@@ -179,7 +179,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'essai')
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
-        b = '<p>Hello, World !</p><br>'
+        b = '<p>Hello, World !</p><br/>'
         #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
         cnx = self.GetDBConnexion()
         b += str(dir(cnx))
@@ -394,7 +394,7 @@ class ZScolar(ObjectManager,
         <b>Rechercher un &eacute;tudiant par nom&nbsp;: </b>
         <input type="text" name="expnom" width=12 value="">
         <input type="submit" value="Chercher">
-        <br>(entrer une partie du nom)
+        <br/>(entrer une partie du nom)
         """ ]
         if dest_url:
             H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)
@@ -1136,7 +1136,8 @@ class ZScolar(ObjectManager,
                     curi = i
                 sem['ins'] = i
                 sems.append(sem)
-            # tri les semestres par date de debut
+            # trie les semestres par date de debut, le plus recent d'abord
+            # (important, ne pas changer (suivi cohortes))
             sems.sort( lambda x,y: cmp(y['dateord'], x['dateord']) )
             etud['sems'] = sems
             etud['cursem'] = cursem
@@ -1165,7 +1166,7 @@ class ZScolar(ObjectManager,
                 etud['ilycee'] = 'Lycée ' + format_lycee(etud['nomlycee'])
                 if etud['villelycee']:
                     etud['ilycee'] += ' (%s)' % etud['villelycee']
-                etud['ilycee'] += '<br>'
+                etud['ilycee'] += '<br/>'
             else:
                 etud['ilycee'] = ''
             if etud['rapporteur'] or etud['commentaire']:
@@ -1264,7 +1265,7 @@ class ZScolar(ObjectManager,
             else:
                 info['paysdomicile'] = ''
         if info['telephone'] or info['telephonemobile']:
-            info['telephones'] = '<br>%s &nbsp;&nbsp; %s' % (info['telephonestr'],
+            info['telephones'] = '<br/>%s &nbsp;&nbsp; %s' % (info['telephonestr'],
                                                              info['telephonemobilestr']) 
         else:
             info['telephones'] = ''
@@ -1341,7 +1342,7 @@ class ZScolar(ObjectManager,
             else:
                 a['bgcolor'] = "#DEDEDE"
             i += 1
-            alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br>%(comment)s</td></tr>' % a )
+            alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br/>%(comment)s</td></tr>' % a )
         info['liste_annotations'] = '\n'.join(alist)
         # fiche admission
         has_adm_notes = info['math'] or info['physique'] or info['anglais'] or info['francais']
@@ -1437,7 +1438,7 @@ function bodyOnLoad() {
 <b>Ajouter une annotation sur %(nomprenom)s: </b>
 <table><tr>
 <tr><td><textarea name="comment" rows="4" cols="50" value=""></textarea>
-<br><font size=-1><i>Balises HTML autorisées: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrétariat.</i></font>
+<br/><font size=-1><i>Balises HTML autorisées: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrétariat.</i></font>
 </td></tr>
 <tr><td>Auteur : <input type="text" name="author" width=12 value="%(authuser)s">&nbsp;
 <input type="submit" value="Ajouter annotation"></td></tr>
@@ -2401,10 +2402,11 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             formsemestre_id=formsemestre_id )
         if REQUEST:
             H = [self.sco_header(REQUEST, page_title='Import données admissions')]
-            H.append('<p>Import excel: %s</p>'% diag)
-            H.append('<p>OK, import terminé !</p>')
+            H.append('<p>Import terminé !</p>')
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>'
                      % 'formsemestre_status?formsemestre_id=%s' % formsemestre_id)
+            if diag:
+                H.append('<p>diagnostic: <tt>%s</tt></p>' % diag)
             return '\n'.join(H) + self.sco_footer(REQUEST)
         
 

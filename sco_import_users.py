@@ -80,7 +80,7 @@ def import_excel_file(datafile, REQUEST=None, context=None):
         else:
             del cols[tit]
     if cols or unknown:
-        raise ScoValueError('colonnes incorrectes (on attend %d, et non %d) <br> (colonnes manquantes: %s, colonnes invalides: %s)'
+        raise ScoValueError('colonnes incorrectes (on attend %d, et non %d) <br/> (colonnes manquantes: %s, colonnes invalides: %s)'
                             %(len(TITLES),len(fs),cols.keys(),unknown ) )
     # ok, same titles...
     U = []

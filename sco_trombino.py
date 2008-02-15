@@ -108,7 +108,7 @@ def trombino(self,REQUEST,formsemestre_id,
             foto = self.etudfoto(t['etudid'],fototitle='fiche de '+ t['nom'],
                                  foto=t['foto'] )
             H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
-            H.append('<br>' + t['prenom'] + '<br>' + t['nom'] )
+            H.append('<br/>' + t['prenom'] + '<br/>' + t['nom'] )
             H.append('</td>')
             i += 1
             if i % nbcols == 0:

@@ -791,6 +791,11 @@ class ZNotes(ObjectManager,
                 mois_fin, annee_fin = sem['date_fin'].split('/')[1:]
             except:
                 mois_fin, annee_fin = '', ''
+            sem['annee_debut'] = annee_debut
+            sem['annee_fin'] = annee_fin
+            sem['mois_debut_ord'] = int(mois_debut)
+            sem['mois_fin_ord'] = int(mois_fin)
+            
             sem['annee'] = annee_debut # 2007 ou 2007-2008
             
             sem['titreannee'] = '%s %s  %s' % (sem['titre_num'], sem.get('modalite',''), annee_debut)
@@ -2589,6 +2594,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, "formsemestre_suivi_parcours")
     formsemestre_suivi_parcours = sco_report.formsemestre_suivi_parcours
+
+    security.declareProtected(ScoView, "formsemestre_graph_parcours")
+    formsemestre_graph_parcours = sco_report.formsemestre_graph_parcours
 
     # --------------------------------------------------------------------
     # DEBUG

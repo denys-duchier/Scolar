@@ -156,7 +156,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 del missing[f]
             else:
                 unknown.append(f)
-        raise ScoValueError('Nombre de colonnes incorrect (devrait être %d, et non %d) <br> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
+        raise ScoValueError('Nombre de colonnes incorrect (devrait être %d, et non %d) <br/> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
     titleslist = []
     for t in fs:
         if not titles.has_key(t):

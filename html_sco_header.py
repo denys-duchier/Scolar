@@ -104,6 +104,7 @@ window.onload=function(){enableTooltips("gtrcontent")};
     for js in javascripts:
         H.append( """<script language="javascript" type="text/javascript" src="%s/%s"></script>"""
                   % (params['ScoURL'], js) )
+    H.append('</head>')
     # Body et bandeau haut:
     H.append("""<body %(bodyOnLoad_mkup)s><table class="bandeaugtr"><tr class="bandeaugtr">
 %(titrebandeau_mkup)s

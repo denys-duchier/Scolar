@@ -229,4 +229,9 @@ def timedate_human_repr():
     return time.strftime('%d/%m/%Y à %Hh%M')
 
 
-    
+# Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
+try:
+    import pydot
+    WITH_PYDOT = True
+except:
+    WITH_PYDOT = False

@@ -58,6 +58,29 @@ def makeMenu( title, items, cssclass='custommenu' ):
     return ''.join(H)
 
 
+def defMenuStats(context,formsemestre_id):
+    "Définition du menu 'Statistiques' "
+    return [
+        { #'title' : 'Tableau de répartition des bacs',
+          #'url' : 'stat_bac_fmt?formsemestre_id=' + formsemestre_id,
+        'title' : 'Statistiques...',
+        'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
+          },
+        { 'title' : 'Suivi de cohortes',
+          'url' : 'formsemestre_suivi_cohorte?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          },
+        { 'title' : 'Graphe des parcours',
+          'url' : 'formsemestre_graph_parcours?formsemestre_id=' + formsemestre_id,
+          'enabled' : WITH_PYDOT,
+          },
+        { 'title' : 'Codes des parcours',
+          'url' : 'formsemestre_suivi_parcours?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          }
+        ]
+
+
 def formsemestre_status_menubar(context, sem, REQUEST):
     """HTML to render menubar"""
     authuser = REQUEST.AUTHENTICATED_USER
@@ -183,22 +206,8 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           }
         ]
-    menuStats = [
-        { #'title' : 'Tableau de répartition des bacs',
-          #'url' : 'stat_bac_fmt?formsemestre_id=' + formsemestre_id,
-        'title' : 'Statistiques...',
-        'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
-          },
-        { 'title' : 'Suivi de cohortes',
-          'url' : 'formsemestre_suivi_cohorte?formsemestre_id=' + formsemestre_id,
-          'enabled' : True,
-          },
-        { 'title' : 'Suivi des parcours (expérimental)',
-          'url' : 'formsemestre_suivi_parcours?formsemestre_id=' + formsemestre_id,
-          'enabled' : True,
-          }
-
-        ]
+    
+    menuStats = defMenuStats(context,formsemestre_id)
 
     H = [
         '<div class="formsemestre_menubar">',

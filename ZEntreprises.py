@@ -266,9 +266,9 @@ class ZEntreprises(ObjectManager,
             H.append('</ul></div>')
 
         #
-        H.append("""<br><br>%s""" % context.scodoc_img.entreprise_side_img.tag() )
+        H.append("""<br/><br/>%s""" % context.scodoc_img.entreprise_side_img.tag() )
         if REQUEST['_read_only']:
-            H.append("""<br><em>(Lecture seule)</em>""")
+            H.append("""<br/><em>(Lecture seule)</em>""")
         H.append("""</div> </div> <!-- end of sidebar -->""")
         return ''.join(H)
     

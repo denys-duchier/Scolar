@@ -309,7 +309,7 @@ class ZScoUsers(ObjectManager,
             <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>""" % user_name )
         else:
             if not self._is_valid_passwd(password):
-                H.append( """<p><b>ce mot de passe n\'est pas assez compliqué !</b><br>(oui, il faut un mot de passe vraiment compliqué !)</p>
+                H.append( """<p><b>ce mot de passe n\'est pas assez compliqué !</b><br/>(oui, il faut un mot de passe vraiment compliqué !)</p>
                 <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>
                 """ % user_name )
             else:
@@ -382,12 +382,12 @@ class ZScoUsers(ObjectManager,
                 H.append("<p>(il peut creer des formations)</p>")
         else:
             H.append("""<p>
-            <b>Login :</b> %(user_name)s<br>
-            <b>Nom :</b> %(nom)s<br>
-            <b>Prénom :</b> %(prenom)s<br>
-            <b>Mail :</b> %(email)s<br>
-            <b>Roles :</b> %(roles)s<br>
-            <b>Dept :</b> %(dept)s<br>
+            <b>Login :</b> %(user_name)s</br>
+            <b>Nom :</b> %(nom)s</br>
+            <b>Prénom :</b> %(prenom)s</br>
+            <b>Mail :</b> %(email)s</br>
+            <b>Roles :</b> %(roles)s</br>
+            <b>Dept :</b> %(dept)s</br>
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             <p><ul>
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
