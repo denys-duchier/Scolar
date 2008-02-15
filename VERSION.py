@@ -6,7 +6,7 @@ SCONEWS = """
 
 <h4>Février 2008</h4>
 <ul>
-<li>Statistiques et suivis de cohortes</li>
+<li>Statistiques et suivis de cohortes (chiffres et graphes)</li>
 <li>Nombreuses petites corrections suites aux jurys de janvier</li>
 </ul>
 

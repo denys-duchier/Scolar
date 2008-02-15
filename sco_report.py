@@ -37,7 +37,7 @@ import sco_excel, sco_pdf
 import sco_codes_parcours
 from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
-import tempfile, urllib
+import tempfile, urllib, re
 import sco_formsemestre_status
 
 
@@ -739,6 +739,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     n = g.get_node(formsemestre_id)
     n.set_color('green')    
     # Arètes:
+    bubbles = {} # substitue titres pour bulle aides: src_id:dst_id : etud_descr
     for (src_id,dst_id) in edges.keys():
         e = g.get_edge(src_id, dst_id)
         e.set('arrowhead','normal')
@@ -746,6 +747,11 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         e.set_label(len(edges[(src_id,dst_id)]))
         e.set_fontname('Helvetica')
         e.set_fontsize(8.0)
+        # bulle avec liste etudiants
+        if len(edges[(src_id, dst_id)]) < 10:
+            etud_descr = _descr_etud_set(context, edges[(src_id, dst_id)])
+            bubbles[src_id+':'+dst_id] = etud_descr
+            e.set_URL('__xxxetudlist__?' + src_id+':'+dst_id)
     # Genere graphe    
     f, path = tempfile.mkstemp('.gr')
     g.write(path=path, format=format)
@@ -755,6 +761,11 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     if format == 'svg':
         # dot génère un document XML complet, il faut enlever l'en-tête
         data = '<svg' + '<svg'.join( data.split('<svg')[1:])
+        # Substitution des titres des URL des aretes pour bulles aide
+        def repl(m):
+            return '<a title="%s">' % bubbles[m.group('sd')]
+        exp = re.compile(r'<a.*?href="__xxxetudlist__\?(?P<sd>\w*:\w*).*?".*?xlink:title=".*?"', re.M)
+        data = exp.sub(repl, data)
     return data
 
 def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
@@ -775,6 +786,15 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
           graph_parcours(context, formsemestre_id),
           """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
           """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
+
+          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes.</p>""",
+
+          """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
+          sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
+          pour afficher son tableau de bord). Les flèches indiquent le nombre d'étudiants passant
+          d'un semestre à l'autre (s'il y en a moins de 10, vous pouvez visualiser leurs noms en
+          passant la souris sur le chiffre).
+          </p>""",
           context.sco_footer(REQUEST)
           ]
     REQUEST.RESPONSE.setHeader('Content-type', 'application/xhtml+xml' )
