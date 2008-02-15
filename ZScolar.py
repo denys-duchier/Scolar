@@ -63,7 +63,6 @@ import sys
 log( 'ZScolar home=%s' % file_path )
 #sys.path.append( file_path )
 
-from sco_exceptions import *
 from sco_utils import *
 from ScolarRolesNames import *
 from notesdb import *

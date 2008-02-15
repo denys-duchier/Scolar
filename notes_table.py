@@ -33,7 +33,6 @@ import pdb
 import scolars
 from notes_log import log
 from sco_utils import *
-from sco_exceptions import *
 from notesdb import *
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
 from sco_parcours_dut import list_formsemestre_utilisateurs_uecap

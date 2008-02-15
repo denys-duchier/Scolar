@@ -31,7 +31,6 @@
 
 from sco_utils import *
 from notes_log import log
-from sco_exceptions import *
 import sco_portal_apogee
 import sco_inscr_passage
 import scolars

@@ -60,7 +60,6 @@ file_path = Globals.package_home(globals())
 from notesdb import *
 from notes_log import log, sendAlarm
 from scolog import logdb
-from sco_exceptions import *
 from sco_utils import *
 import htmlutils
 import sco_excel

@@ -35,7 +35,6 @@ import urllib, urllib2, xml
 import tempfile
 
 from notes_log import log
-from sco_exceptions import *
 from sco_utils import *
 from scolars import format_nom, format_prenom, format_sexe
 

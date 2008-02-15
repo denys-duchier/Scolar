@@ -38,7 +38,7 @@ import xml.sax.saxutils
 # XML generation package (apt-get install jaxml)
 import jaxml
 from SuppressAccents import suppression_diacritics
-
+from sco_exceptions import *
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]

@@ -32,7 +32,6 @@
 from notesdb import *
 from sco_utils import *
 from notes_log import log
-from sco_exceptions import *
 import sco_codes_parcours
 import sco_pvjury
 from sets import Set

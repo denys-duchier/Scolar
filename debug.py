@@ -1,7 +1,6 @@
 
 import time, os, sys, pdb
 
-from sco_exceptions import *
 from sco_utils import *
 from ScolarRolesNames import *
 from notesdb import *

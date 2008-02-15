@@ -31,7 +31,6 @@
 import urllib, urllib2, xml, xml.dom.minidom
 
 from notes_log import log
-from sco_exceptions import *
 from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
