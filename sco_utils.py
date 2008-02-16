@@ -61,6 +61,9 @@ SCO_ENCODING = 'iso8859-15' # used by Excel I/O
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 
+#def to_utf8(s):
+#    return unicode(s, SCO_ENCODING).encode('utf-8')
+
 
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_MAILING_LIST = 'notes@gtr.iutv.univ-paris13.fr'

@@ -733,7 +733,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n.set_fontname('Helvetica')
         n.set_fontsize(9.0)
         n.set_width(1.2)
-        n.set_shape('note')
+        n.set_shape('box')
         n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
     # semestre de depart en vert
     n = g.get_node(formsemestre_id)
@@ -763,9 +763,15 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         data = '<svg' + '<svg'.join( data.split('<svg')[1:])
         # Substitution des titres des URL des aretes pour bulles aide
         def repl(m):
-            return '<a title="%s">' % bubbles[m.group('sd')]
+            return '<a title="%s"' % bubbles[m.group('sd')]
         exp = re.compile(r'<a.*?href="__xxxetudlist__\?(?P<sd>\w*:\w*).*?".*?xlink:title=".*?"', re.M)
         data = exp.sub(repl, data)
+        # Substitution des titres des boites (semestres)
+        exp1 = re.compile(r'<a xlink:href="formsemestre_status\?formsemestre_id=(?P<fid>\w*).*?".*?xlink:title="(?P<title>.*?)"', re.M|re.DOTALL)
+        def repl_title(m):            
+            return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (m.group('fid'), suppress_accents(sems[m.group('fid')]['titreannee'])) # evite accents car svg utf-8 vs page en latin1...
+        data = exp1.sub(repl_title, data)
+
     return data
 
 def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
@@ -787,7 +793,7 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
           """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
           """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
 
-          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes.</p>""",
+          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes (par exemple Firefox).</p>""",
 
           """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
           sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
