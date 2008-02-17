@@ -1,3 +1,6 @@
+# -*- mode: python -*-
+# -*- coding: iso8859-15 -*-
+
 SCOVERSION = "5"
 
 SCONAME = "ScoDoc"

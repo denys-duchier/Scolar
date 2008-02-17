@@ -522,10 +522,13 @@ class ZAbsences(ObjectManager,
         """Enregistre absences hebdo. Efface les anciennes absences et
         signale les nouvelles.
         abslist : liste etudid:date:ampm des absences signalees
-        etudis : liste des etudids concernes
+        etudids : liste des etudids concernes
         datedebut, datefin: dates (ISO) de la semaine        
         """
-        etudids = etudids.split(',')
+        if etudids:
+            etudids = etudids.split(',')
+        else:
+            etudids = []
         H = [ self.sco_header(REQUEST,page_title='Absences') ]
         footer = self.sco_footer(REQUEST)
         if not etudids:
