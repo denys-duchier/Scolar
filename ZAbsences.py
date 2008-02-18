@@ -51,7 +51,6 @@ from notes_log import log
 from scolog import logdb
 from sco_utils import *
 #import notes_users
-from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
 import scolars

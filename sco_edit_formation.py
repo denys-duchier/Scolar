@@ -31,7 +31,6 @@
 from notesdb import *
 from sco_utils import *
 from notes_log import log
-from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 
 def formation_create(context, REQUEST=None):

@@ -64,7 +64,6 @@ log( 'ZScolar home=%s' % file_path )
 #sys.path.append( file_path )
 
 from sco_utils import *
-from ScolarRolesNames import *
 from notesdb import *
 from scolog import logdb
 
@@ -141,9 +140,9 @@ class ZScolar(ObjectManager,
         self._cnx = None
         self.mail_host = mail_host
         # --- add editable DTML documents:
-        self.defaultDocFile('sidebar_dept',
-                            'barre gauche (partie haute)',
-                            'sidebar_dept')
+        #self.defaultDocFile('sidebar_dept',
+        #                    'barre gauche (partie haute)',
+        #                    'sidebar_dept')
         
         # --- add DB connector
         id = 'DB'
@@ -280,13 +279,11 @@ class ZScolar(ObjectManager,
 
 
     security.declareProtected(ScoView, 'sco_header')
-    #sco_header = DTMLFile('dtml/sco_header', globals())
     sco_header = html_sco_header.sco_header
-
     security.declareProtected(ScoView, 'sco_footer')
-    sco_footer = DTMLFile('dtml/sco_footer', globals())
+    sco_footer = html_sco_header.sco_footer
     security.declareProtected(ScoView, 'menus_bandeau')
-    menus_bandeau = DTMLFile('dtml/menus_bandeau', globals())
+    menus_bandeau = html_sco_header.menus_bandeau
 
     security.declareProtected(ScoView, 'http_expiration_date')
     def http_expiration_date(self):
@@ -459,13 +456,14 @@ class ZScolar(ObjectManager,
 
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')
-    #sidebar = DTMLFile('dtml/sidebar', globals())
     sidebar = html_sidebar.sidebar
+    security.declareProtected(ScoView, 'sidebar_dept')
+    sidebar_dept = html_sidebar.sidebar_dept
     
     security.declareProtected(ScoView, 'showEtudLog')
     def showEtudLog(self, etudid, format='html', REQUEST=None):
         """Display log of operations on this student"""
-        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        etud = self.getEtudInfo(filled<=1, REQUEST=REQUEST)[0]
 
         ops = self.listScoLog(etudid)
         
@@ -1016,7 +1014,6 @@ class ZScolar(ObjectManager,
         return ' '.join([ format_sexe(etud['sexe']), format_prenom(etud['prenom']), format_nom(etud['nom'])])
     
     security.declareProtected(ScoView, "chercheEtud")
-    #chercheEtud = DTMLFile('dtml/chercheEtud', globals())
     def chercheEtud(self, expnom=None,
                     dest_url='ficheEtud',
                     parameters={},
@@ -1778,10 +1775,45 @@ function tweakmenu( gname ) {
         return img.absolute_url()
         
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
-    formChangePhoto = DTMLFile('dtml/formChangePhoto', globals())
+    def formChangePhoto(self, etudid=None, REQUEST=None):
+        """Formulaire changement photo étudiant
+        """
+        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        if self.etudfoto_islocal(etudid):
+            etud['photoloc'] = 'dans ScoDoc'
+        else:
+            etud['photoloc'] = 'externe'
+        H = [self.sco_header(REQUEST, page_title='Changement de photo'),
+             """<h2>Changement de la photo de %(nomprenom)s</h2>
+             <p>Photo actuelle (%(photoloc)s):             
+             """ % etud,
+             self.etudfoto(etudid,fototitle='photo actuelle'),
+             """</p><p>Le fichier ne doit pas dépasser 500Ko (recadrer l'image, format "portrait" de préférence).</p>
+             <p>L'image sera automagiquement réduite pour obtenir une hauteur de 90 pixels.</p>
+             """ ]
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            ( ('etudid',  { 'default' : etudid, 'input_type' : 'hidden' }),
+              ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
+              ('suppress', {'input_type' : 'checkbox', 'default': 0, 'title' : 'supprimer la photo actuelle', 'allowed_values' : ('1','0'), 'labels' : ('',) })
+              ),
+            submitlabel = 'Valider', cancelbutton='Annuler'
+            )
+        if  tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ficheEtud?etudid=' + etud['etudid'] )
+        else:
+            r = self.doChangePhoto(tf[2]['etudid'],  tf[2]['photofile'], REQUEST, suppress=tf[2]['suppress'])
+            if r != 0:
+                return REQUEST.RESPONSE.redirect( self.ScoURL() + '/ficheEtud?etudid=' + etud['etudid'] )
+            else:
+                H.append('<p>Erreur:' + r[1] + '</p>')
+        return '\n'.join(H) + self.sco_footer(REQUEST)
+
     security.declareProtected(ScoEtudChangeAdr, 'doChangePhoto')
     def doChangePhoto(self, etudid, photofile, REQUEST, suppress=False, filesize=None):
-        """change la photo d'un etudiant
+        """Change la photo d'un etudiant
         Si suppress, supprime la photo existante.
         """
         cnx = self.GetDBConnexion() 

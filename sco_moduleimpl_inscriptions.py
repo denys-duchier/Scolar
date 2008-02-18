@@ -33,7 +33,6 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from notes_table import *
-from ScolarRolesNames import *
 from sets import Set
 
 def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],

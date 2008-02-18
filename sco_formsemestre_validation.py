@@ -34,7 +34,6 @@ from sco_utils import *
 from notes_log import log
 from notes_table import *
 import notes_table
-from ScolarRolesNames import *
 
 import sco_parcours_dut, sco_codes_parcours
 import sco_pvjury

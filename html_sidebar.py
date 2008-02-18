@@ -26,7 +26,6 @@
 ##############################################################################
 
 from sco_utils import *
-from ScolarRolesNames import *
 
 """
 
@@ -39,7 +38,7 @@ def sidebar_common(context, REQUEST=None):
         'ScoURL' : context.ScoURL(),
         }
     H = [
-        context.sidebar_dept(context, REQUEST),
+        context.sidebar_dept(REQUEST),
         """<h2 class="insidebar">Scolarit&eacute;</h2>
  <a href="%(ScoURL)s" class="sidebar">Semestres</a> <br/> 
  <a href="%(ScoURL)s/Notes" class="sidebar">Programmes</a> <br/> 
@@ -109,8 +108,26 @@ def sidebar(context, REQUEST=None):
 </div>
 
 </div> <!-- end of sidebar -->
-""" % params )
+""" % params ) # '
     #
     return ''.join(H)
+
+
+def sidebar_dept(context, REQUEST=None):
+    """COLONNE DE GAUCHE: A ADAPTER A VOS BESOINS
+    XXX prevoir mécanisme de configuration 
+    """
+    
+    return """<h2 class="insidebar">Dépt. %(DeptName)s</h2>
+ <a href="%(BASE0)s" class="sidebar">Accueil</a> <br/> 
+ <a href="%(DeptIntranetURL)s/Scolarite" class="sidebar">Intranet</a> <br/>
+ <br/>
+ <a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a> <br/>""" % {
+                'BASE0' : REQUEST.BASE0,
+                'DeptIntranetURL' : context.DeptIntranetURL,
+                'DeptName' : context.DeptName,
+                'ScoURL' : context.ScoURL }
+
+
 
     

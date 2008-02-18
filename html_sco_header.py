@@ -56,7 +56,7 @@ def sco_header(context, REQUEST=None,
         'maincss_url' : context.ScoURL() + '/' + 'scodoc_css',
         'titrebandeau_mkup' : '<td>' + titrebandeau + '</td>',
         'authuser' : str(REQUEST.AUTHENTICATED_USER),
-        'menus_bandeau' : context.menus_bandeau(context, REQUEST)
+        'menus_bandeau' : context.menus_bandeau(REQUEST)
         }
     if no_side_bar:
         params['maincss_args'] = '?no_side_bar=1'
@@ -121,3 +121,46 @@ window.onload=function(){enableTooltips("gtrcontent")};
     return ''.join(H)
 
     
+def sco_footer(context, REQUEST=None):
+    """Main HTMl pages footer
+    """
+    return """</div> <!-- gtr-content -->
+</body></html>"""
+
+
+def menus_bandeau(context, REQUEST=None):
+    """Menus barre du haut (dépendent des droits de l'utilisateur)
+    """
+    authuser = REQUEST.AUTHENTICATED_USER
+    
+    H = [ """<div class="barrenav"><ul class="nav">
+<li><a href="%s" class="menu accueil">ScoDoc %s</a></li>
+""" % (context.DeptIntranetURL, context.DeptName)          
+          ]
+    if REQUEST.form.has_key('etudid'):
+        # menu Etudiant
+        etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        H.append("""<li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#"
+        class="menu etudiant">Etudiant</a>
+        <ul><li><a href="ficheEtud?etudid=%(etudid)s">%(sexe)s %(prenom)s %(nom)s</a></li>""" % etud ) # "
+        if authuser.has_permission(ScoEtudChangeAdr,context):
+            H.append('<li><a href="formChangePhoto?etudid=%(etudid)s">Changer la photo</a></li>' % etud )
+        if authuser.has_permission(ScoEtudInscrit, context):
+             H.append("""<li><a href="etudident_edit_form?etudid=%(etudid)s">Changer les données identité/admission</a></li>
+                       <li><a href="etudident_delete?etudid=%(etudid)s">Supprimer cet étudiant...</a></li>
+                       """ % etud)
+        H.append('<li><a href="showEtudLog?etudid=%(etudid)s">voir le journal</a></li></ul>' % etud )
+
+        # menu SECRETARIAT
+        if authuser.has_permission(ScoAbsChange,context):
+            H.append("""<li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#"
+class="menu secretariat">Secr&eacute;tariat</a>
+<ul>
+<li><a href="Absences/SignaleAbsenceEtud?etudid=%(etudid)s">Signaler une absence</a></li>
+<li><a href"Absences/JustifAbsenceEtud?etudid=%(etudid)s">Justifier une absence</a></li>
+<li><a href="Absences/AnnuleAbsenceEtud?etudid=%(etudid)s">Supprimer une absence</a>
+<li><a href="showEtudLog?etudid=%(etudid)s">Voir le journal</a></li>
+</ul>""" % etud ) # "
+
+    H.append('</ul></div>')
+    return ''.join(H)

@@ -50,7 +50,6 @@ from notes_log import log
 from scolog import logdb
 from sco_utils import *
 import sco_import_users, sco_excel
-from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import string, re
 import time
@@ -633,13 +632,13 @@ class ZScoUsers(ObjectManager,
              </p>
              """]
         help = """<p class="help">
-        Lors de la creation des utilisateurs, les operations suivantes sont effectuees:
+        Lors de la creation des utilisateurs, les opérations suivantes sont effectuées:
         </p>
         <ol class="help">
-        <li>verification dees donnees;</li>
-        <li>generation d'un mot de passe aleatoire pour chaque utilisateur;</li>
-        <li>creer chaque utilisateur;</li>
-        <li>envoyer a chaque utilisateur son mot de passe initial par mail.</li>
+        <li>vérification des données;</li>
+        <li>génération d'un mot de passe alétoire pour chaque utilisateur;</li>
+        <li>création de chaque utilisateur;</li>
+        <li>envoie à chaque utilisateur de son <b>mot de passe initial par mail</b>.</li>
         </ol>"""
         H.append("""<ol><li><a class="stdlink" href="import_users_generate_excel_sample">
         Obtenir la feuille excel à remplir</a></li><li>""")

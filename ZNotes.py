@@ -64,7 +64,6 @@ from sco_utils import *
 import htmlutils
 import sco_excel
 #import notes_users
-from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import sco_cache
 import scolars

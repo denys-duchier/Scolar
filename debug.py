@@ -2,7 +2,6 @@
 import time, os, sys, pdb
 
 from sco_utils import *
-from ScolarRolesNames import *
 from notesdb import *
 from notes_log import log
 from scolog import logdb

@@ -52,7 +52,6 @@ from scolog import logdb
 from sco_utils import *
 import html_sidebar
 
-from ScolarRolesNames import *
 from TrivialFormulator import TrivialFormulator, TF
 import scolars
 import string, re

@@ -33,7 +33,6 @@
 from notesdb import *
 from notes_log import log
 from sco_utils import *
-from ScolarRolesNames import *
 from sco_formsemestre_custommenu import formsemestre_custommenu_html
 from gen_tables import GenTable
 

@@ -29,7 +29,6 @@
 """
 
 from notes_table import *
-from ScolarRolesNames import *
 import htmlutils, time
 import pdfbulletins
 import sco_pvjury

@@ -34,8 +34,6 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
-from ScolarRolesNames import *
-
 
 def do_formsemestre_inscription_with_modules(
     self, args=None, REQUEST=None,
