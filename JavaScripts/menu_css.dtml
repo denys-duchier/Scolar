@@ -79,7 +79,7 @@ background-color: rgb(176,176,176) ;
 	}
 
 .barrenav ul li a.custommenu:after {
-     content:url(<dtml-var "img.menuarrow1_img.absolute_url()">);
+     content:url(<dtml-var "scodoc_img.menuarrow1_img.absolute_url()">);
 }
 
 

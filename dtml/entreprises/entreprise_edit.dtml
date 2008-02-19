@@ -48,7 +48,7 @@
  <dtml-call "REQUEST.set( 'Cts', do_entreprise_contact_list( args={ 'entreprise_id' : F['entreprise_id'] }))">
 
  <dtml-unless "REQUEST['_read_only']">
- <p><dtml-var "img.delete_img">&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=<dtml-var "F['entreprise_id']">">Supprimer cette entreprise</a> </p>
+ <p><dtml-var "scodoc_img.delete_img">&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=<dtml-var "F['entreprise_id']">">Supprimer cette entreprise</a> </p>
  </dtml-unless>
 
 <dtml-if "len(Cl)">

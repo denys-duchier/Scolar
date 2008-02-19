@@ -13,7 +13,7 @@
 
 
 <h2>Tableau de bord <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titreannee']"></a> (formation <dtml-var "F['acronyme']">, v<dtml-var "F['version']">)
-<dtml-if "sem['etat'] != '1'"><a href="formsemestre_edit_options?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "img.lock_img.tag(border='0',title='Semestre verrouillé')"></a></dtml-if>
+<dtml-if "sem['etat'] != '1'"><a href="formsemestre_edit_options?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "scodoc_img.lock_img.tag(border='0',title='Semestre verrouillé')"></a></dtml-if>
 </h2>
 
 

@@ -7,7 +7,7 @@
 
 
 <dtml-if "sem['etat'] != '1'">
-<p><dtml-var "img.lock_img"><b>Ce semestre est verrouillé.</b>
+<p><dtml-var "scodoc_img.lock_img"><b>Ce semestre est verrouillé.</b>
 </p>
 <dtml-else>
 <dtml-var "do_formsemestre_createwithmodules(REQUEST, getZopeUsers(), edit=1 )">

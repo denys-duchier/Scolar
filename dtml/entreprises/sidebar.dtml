@@ -51,7 +51,7 @@
  
 
 <br><br>
-<dtml-var "img.entreprise_side_img">
+<dtml-var "scodoc_img.entreprise_side_img">
 <dtml-if "REQUEST['_read_only']"><br><em>(Lecture seule)</em></dtml-if>
 </div> 
 </div> <!-- end of sidebar -->
