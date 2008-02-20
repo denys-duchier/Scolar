@@ -463,7 +463,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'showEtudLog')
     def showEtudLog(self, etudid, format='html', REQUEST=None):
         """Display log of operations on this student"""
-        etud = self.getEtudInfo(filled<=1, REQUEST=REQUEST)[0]
+        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
 
         ops = self.listScoLog(etudid)
         
