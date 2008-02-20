@@ -138,12 +138,12 @@ def scolar_news_summary_html(context, n=5, rssicon=None):
     H.append('</ul>')
 
     # Informations générales
-    H.append( """<p>
+    H.append( """<div>
     Pour être informé des évolutions de ScoDoc,
     vous pouvez vous
-    <a href="https://www-gtr.iutv.univ-paris13.fr/mailman/listinfo/notes">
+    <a class="stdlink" href="https://www-gtr.iutv.univ-paris13.fr/mailman/listinfo/notes">
     abonner à la liste de diffusion</a>.
-    </p>
+    </div>
     """ )
 
     H.append('</div>')

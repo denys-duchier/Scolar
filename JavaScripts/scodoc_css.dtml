@@ -161,10 +161,13 @@ h2.listesems {
 div.news {
    margin-top: 1em;
    margin-bottom: 0px;
-   padding: 2px;
-   padding-bottom: 0px;
-   background-color: #F4F4B2;
+   padding:  0.5em;
+   background-color: #ffff93;
+   -moz-border-radius: 8px;
+   -khtml-border-radius: 8px;
+   border-radius: 8px;
 }
+
 span.newstitle {
    font-family : arial, verdana, sans-serif ;
    font-weight: bold;
@@ -196,7 +199,7 @@ div.scoinfos {
 /* ----- fiches etudiants ------ */
 
 div.ficheEtud {
-   background-color: rgb(255,240,128);
+   background-color: #f5edc8; /* rgb(255,240,128); */
    border: 1px solid gray;
    width: 800px;
    padding: 10px;
@@ -208,48 +211,49 @@ div.code_nip {
    font-family: "Andale Mono", "Courier";
 }
 
-div.ficheadmission, div.fichesituation {
-   background-color: rgb( 231, 234, 218 ); /* E7EADA */ 
-   /* rgb(238,238,221); */
-   /* border-width: 1px;
-      border-style: dotted;
-      border-color: rgb(17,51,85);
-    */
+div.fichesituation {
+  background-color: rgb( 231, 234, 218 ); /* E7EADA */   
+  margin: 0.5em 0 0.5em 0;
+  padding: 0.5em;
+  -moz-border-radius: 8px;
+  -khtml-border-radius: 8px;
+  border-radius: 8px;
+}
+
+div.ficheadmission { 
+  background-color: rgb( 231, 234, 218 ); /* E7EADA */   
+  margin: 0.5em 0 0.5em 0;
+  padding: 0.5em;
+  -moz-border-radius: 8px;
+  -khtml-border-radius: 8px;
+  border-radius: 8px;
 }
 
 div.ficheinscriptions {
-   background-color: rgb(234,221,218); /* EADDDA */
-  /* rgb(200,238,221); */
-   margin-bottom: 0px;
-   padding-bottom: 0px;
+   background-color: #eae3e2; /* was EADDDA */
+   margin: 0.5em 0 0.5em 0;
+   padding: 0.5em;
+   -moz-border-radius: 8px;
+   -khtml-border-radius: 8px;
+   border-radius: 8px;
 }
 
-.ficheinscriptions a {
+.ficheinscriptions a.sem {
    text-decoration: none;
    font-weight: bold;
    color: blue;
 }
 
-.ficheinscriptions a:hover {
+.ficheinscriptions a.sem:hover {
    color: red;
 }
 
-div.fichetablesitu {
-   border: 1px solid gray;
-}
-
-div.ficheadresse {
-   border-right: 1px solid gray;
-   border-left: 1px solid gray;
-   border-bottom: 1px solid gray;
-   padding-left: 5px;
-}
 
 td.photocell {
    padding-left: 32px;
 }
 
-p.fichetitre {
+div.fichetitre {
    font-weight: bold;
 }
 
@@ -260,7 +264,12 @@ td.fichetitre2 {
 
 
 .ficheannotations {
-   background-color: rgb(170,187,204);
+  background-color: #ddffdd; 
+  margin: 0.5em 0 0.5em 0;
+  padding: 0.5em;
+  -moz-border-radius: 8px;
+  -khtml-border-radius: 8px;
+  border-radius: 8px;
 }
 
 /* Page accueil Sco */

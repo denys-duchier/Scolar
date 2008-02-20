@@ -1282,8 +1282,8 @@ class ZScolar(ObjectManager,
                 data['grlink'] = '(démission)'
             else:                
                 data['grlink'] = '<a class="discretelink" href="listegroupe?formsemestre_id=%(formsemestre_id)s&groupetd=%(groupetd)s">groupe %(groupetd)s</a>' % data
-            ilist.append("""<table><tr>
-            <td>%(mois_debut)s - %(mois_fin)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a> %(grlink)s
+            ilist.append("""<tr>
+            <td>%(mois_debut)s - %(mois_fin)s</td><td><a class="sem" href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a></td><td>%(grlink)s
             </td><td><div class="barrenav">
             <ul class="nav"><li><a href="Notes/formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" class="menu bulletin">bulletin</a></li></ul>
             </div></td>"""
@@ -1315,8 +1315,10 @@ class ZScolar(ObjectManager,
                 ilist.append('</ul></ul>')
                 
                 ilist.append('</div></td>')
-            ilist.append('</tr></table>')
-        if not ilist:
+            ilist.append('</tr>')
+        if ilist:
+            ilist = ['<table>'] + ilist + ['</table>']
+        else:
             ilist.append('<p><b>Etudiant%s non inscrit%s'%(info['ne'],info['ne']))
             if authuser.has_permission(ScoEtudInscrit,self):
                 ilist.append('<a href="%s/Notes/formsemestre_inscription_with_modules_form?etudid=%s">inscrire</a></li>'%(self.ScoURL(),etudid))
@@ -1347,24 +1349,24 @@ class ZScolar(ObjectManager,
             if has_adm_notes:
                 adm_tmpl = """<!-- Donnees admission -->
 <div class="ficheadmission">
-<p class="fichetitre">Informations admission</p>
+<div class="fichetitre">Informations admission</div>
 <table>
-<tr><th>Bac</th><th>An. Bac</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Francais</th></tr>
+<tr><th>Bac</th><th>Année</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Français</th></tr>
 <tr>
 <td>%(bac)s (%(specialite)s)</td>
 <td>%(annee_bac)s </td>
 <td>%(math)s</td><td>%(physique)s</td><td>%(anglais)s</td><td>%(francais)s</td>
 </tr>
 </table>
-<p>%(ilycee)s %(rap)s
+<div>%(ilycee)s <em>%(rap)s</em></div>
 </div>
 """
             else:
                 adm_tmpl = """<!-- Donnees admission (pas de notes) -->
 <div class="ficheadmission">
-<p class="fichetitre">Informations admission</p>
-<p>Bac %(bac)s (%(specialite)s) obtenu en %(annee_bac)s </p>
-<p>%(ilycee)s %(rap)s
+<div class="fichetitre">Informations admission</div>
+<div>Bac %(bac)s (%(specialite)s) obtenu en %(annee_bac)s </div>
+<div>%(ilycee)s <em>%(rap)s</em></div>
 </div>
 """
         else:
@@ -1372,26 +1374,20 @@ class ZScolar(ObjectManager,
         info['adm_data'] = adm_tmpl % info
         #
         if info['liste_annotations']:
-            info['tit_anno'] = '<h4>Annotations</h4>'
+            info['tit_anno'] = '<div class="fichetitre">Annotations</div'
         else:
-            info['tit_anno'] = '<div style="margin-top: 1em; padding-top: 5px;"></div>'
+            info['tit_anno'] = ''
         # Inscriptions
         if info['sems']:
             rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
         else:
             rcl = ''
         info['inscriptions_mkup'] = """<div class="ficheinscriptions" id="ficheinscriptions">
-<p class="fichetitre">Inscriptions %s</p>
+<div class="fichetitre">Inscriptions</div>%s
 </div>""" % info['liste_inscriptions']
         
         #        
         tmpl = """
-<script language="javascript" type="text/javascript">
-function bodyOnLoad() {
-    //Rico.Corner.round('tota');
-}
-</script>
-
 <div class="ficheEtud" id="ficheEtud"><table>
 <tr><td>
 <h2>%(nomprenom)s (%(inscription)s)</h2>
@@ -1408,7 +1404,7 @@ function bodyOnLoad() {
 <tr><td class="fichetitre2">Groupe :</td><td>%(groupes)s</td></tr>
 <tr><td class="fichetitre2">Né%(ne)s en :</td><td>%(annee_naissance)s</td></tr>
 </table>
-</div>
+
 
 <!-- Adresse -->
 <div class="ficheadresse" id="ficheadresse">
@@ -1418,7 +1414,7 @@ function bodyOnLoad() {
 %(telephones)s
 </td></tr></table>
 </div>
-
+</div>
 </div>
 
 %(inscriptions_mkup)s
