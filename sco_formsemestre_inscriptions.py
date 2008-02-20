@@ -352,3 +352,60 @@ def do_moduleimpl_incription_options(
               """ % (self.ScoURL(), etudid),
               self.sco_footer(REQUEST)]
         return '\n'.join(H)
+
+
+def est_inscrit_ailleurs(context, etudid, formsemestre_id):
+    """Vrai si l'étudiant est inscrit dans un semestre en même
+    temps que celui indiqué (par formsemestre_id).
+    Retourne la liste des semestres concernés (ou liste vide).
+    """
+    etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+    sem = context.get_formsemestre(formsemestre_id)
+    debut_s = sem['dateord']
+    fin_s = DateDMYtoISO(sem['date_fin'])
+    r = []
+    for s in etud['sems']:
+        if s['formsemestre_id'] != formsemestre_id:
+            debut = s['dateord']
+            fin = DateDMYtoISO(s['date_fin'])
+            if debut < fin_s and fin > debut_s:
+                r.append(s) # intersection
+    return r
+
+def list_inscrits_ailleurs(context, formsemestre_id):
+    """Liste des etudiants inscrits ailleurs en même temps que formsemestre_id.
+    Pour chacun, donne la liste des semestres.
+    { etudid : [ liste de sems ] }
+    """
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    etudids = nt.get_etudids()
+    d = {}
+    for etudid in etudids:
+        d[etudid] = est_inscrit_ailleurs(context, etudid, formsemestre_id)
+    return d
+
+def formsemestre_inscrits_ailleurs(context,formsemestre_id, REQUEST=None):
+    """Page listant les étudiants inscrits dans un autre semestre
+    dont les dates recouvrent le semestre indiqué.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [ context.sco_header(REQUEST, page_title="Inscriptions multiples"),
+          """<h2>Inscriptions multiples parmi les étudiants de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+          ]
+    insd = list_inscrits_ailleurs(context, formsemestre_id)
+    # liste ordonnée par nom
+    etudlist = [ context.getEtudInfo(etudid=etudid,filled=1)[0] for etudid in insd.keys() if insd[etudid] ]
+    etudlist.sort(key=lambda x:x['nom'])
+    if etudlist:
+        H.append('<ul>')
+        for etud in etudlist:
+            H.append('<li><a href="ficheEtud?etudid=%(etudid)s" class="discretelink">%(nomprenom)s</a> : ' % etud )
+            l = []
+            for s in insd[etud['etudid']]:
+                l.append('<a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>'%s)
+            H.append( ', '.join(l))
+            H.append('</li>')
+        H.append('</ul>')
+    else:
+        H.append('<p>Aucun étudiant en inscription multiple !</p>')
+    return '\n'.join(H) + context.sco_footer(REQUEST)

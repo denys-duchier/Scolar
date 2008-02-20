@@ -328,7 +328,7 @@ def DateDMYtoISO(dmy):
         return None
     if type(dmy) != StringType:
         return dmy.strftime("%Y-%m-%d")
-
+    
     t = dmy.split('/')
     
     if len(t) != 3:

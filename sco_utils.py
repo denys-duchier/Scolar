@@ -229,7 +229,7 @@ def abbrev_prenom(prenom):
 
 #
 def timedate_human_repr():
-    "representation du temps courant pour utilisatuer: a localiser"
+    "representation du temps courant pour utilisateur: a localiser"
     return time.strftime('%d/%m/%Y à %Hh%M')
 
 

@@ -1373,6 +1373,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_incription_options')
     do_moduleimpl_incription_options = sco_formsemestre_inscriptions.do_moduleimpl_incription_options
 
+    security.declareProtected(ScoView, 'formsemestre_inscrits_ailleurs')
+    formsemestre_inscrits_ailleurs = sco_formsemestre_inscriptions.formsemestre_inscrits_ailleurs
+
     security.declareProtected(ScoEtudInscrit,'moduleimpl_inscriptions_edit')
     moduleimpl_inscriptions_edit = sco_moduleimpl_inscriptions.moduleimpl_inscriptions_edit
 
