@@ -402,10 +402,12 @@ def formsemestre_inscrits_ailleurs(context,formsemestre_id, REQUEST=None):
             H.append('<li><a href="ficheEtud?etudid=%(etudid)s" class="discretelink">%(nomprenom)s</a> : ' % etud )
             l = []
             for s in insd[etud['etudid']]:
-                l.append('<a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>'%s)
+                l.append('<a class="discretelink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>'%s)
             H.append( ', '.join(l))
             H.append('</li>')
         H.append('</ul>')
+        H.append('<p>Total: %d étudiants concernés.</p>' % len(etudlist))
+        H.append("""<p class="help">Ces étudiants sont inscrits dans le semestre sélectionné et aussi dans d'autres semestres qui se déroulent en même temps ! <br/>Sauf exception, cette situation est anormale et doit être réglée en désinscrivant l'étudiant de l'un des semestres (via sa fiche individuelle).</p>""")
     else:
-        H.append('<p>Aucun étudiant en inscription multiple !</p>')
+        H.append("""<p>Aucun étudiant en inscription multiple (c'est normal) !</p>""")
     return '\n'.join(H) + context.sco_footer(REQUEST)

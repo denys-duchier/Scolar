@@ -110,7 +110,7 @@ def formsemestre_validation_etud_form(
             etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
             H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant suivant (%s)</a></li>""" % (formsemestre_id,etud_index_next, etud['nomprenom']) )
         H.append('</ul>')
-        H.append(znotes.sco_footer(znotes, REQUEST))
+        H.append(znotes.sco_footer(REQUEST))
         return '\n'.join(H)
 
     # Infos si pas de semestre précédent
@@ -122,7 +122,7 @@ def formsemestre_validation_etud_form(
     else:
         if not Se.prev_decision:
             H.append('<ul class="tf-msg"><li class="tf-msg">Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)</li></ul>' % (Se.prev['formsemestre_id'], etudid))
-            H.append(znotes.sco_footer(znotes, REQUEST))
+            H.append(znotes.sco_footer(REQUEST))
             return '\n'.join(H)
 
     # Infos sur decisions déjà saisies
@@ -162,7 +162,7 @@ def formsemestre_validation_etud_form(
             H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
         H.append('</form></div>')
 
-        H.append(znotes.sco_footer(znotes, REQUEST))
+        H.append(znotes.sco_footer(REQUEST))
         return '\n'.join(H)
 
     # Explication sur barres actuelles
@@ -220,7 +220,7 @@ def formsemestre_validation_etud_form(
         etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
         H.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud['nomprenom']) )
     H.append('</p>')
-    H.append(znotes.sco_footer(znotes, REQUEST))
+    H.append(znotes.sco_footer(REQUEST))
     return '\n'.join(H)
 
 def formsemestre_validation_etud(
@@ -545,7 +545,7 @@ def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     <p><em>Le calcul prend quelques minutes, soyez patients !</em></p>
     </form>
     """ % (sem['titreannee'], formsemestre_id))
-    H.append(znotes.sco_footer(znotes, REQUEST))
+    H.append(znotes.sco_footer(REQUEST))
     return '\n'.join(H)
 
 def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
@@ -601,6 +601,6 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
         H.append('</ul>')
     H.append('<a href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">continuer</a>'
              % formsemestre_id)
-    H.append(znotes.sco_footer(znotes, REQUEST))
+    H.append(znotes.sco_footer(REQUEST))
     return '\n'.join(H)
     
