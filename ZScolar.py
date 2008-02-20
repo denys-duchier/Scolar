@@ -710,7 +710,7 @@ class ZScolar(ObjectManager,
 
         return H
 
-    def _make_query_groups(self,groupetd,groupetp,groupeanglais,etat):
+    def make_query_groups(self,groupetd,groupetp,groupeanglais,etat=None):
         "query string"
         qs = []
         if groupetd:
@@ -797,7 +797,7 @@ class ZScolar(ObjectManager,
             if authuser.has_permission(ScoEtudInscrit,self):
                 H.append('<li><a class="stdlink" href="check_group_apogee?formsemestre_id=%s&%s">Vérifier codes Apogée</a></li>'
                          % (formsemestre_id,
-                            self._make_query_groups(groupetd,groupetp,groupeanglais,etat)))
+                            self.make_query_groups(groupetd,groupetp,groupeanglais,etat)))
             
             H.append('</ul>')
             

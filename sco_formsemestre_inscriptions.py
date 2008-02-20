@@ -105,19 +105,22 @@ def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
 def formsemestre_inscription_with_modules(
     self, etudid, formsemestre_id,
     groupetd=None, groupeanglais=None, groupetp=None,
+    multiple_ok=False,
     REQUEST=None):
     """
     Inscription de l'etud dans ce semestre.
     Formulaire avec choix groupe.
     """
     # log( 'formsemestre_inscription_with_modules: etudid=%s groupetd=%s' % (etudid,groupetd))
+    if multiple_ok:
+        multiple_ok = int(multiple_ok)
     sem = self.get_formsemestre(formsemestre_id)
     etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
     H = [ self.sco_header(REQUEST)
           + "<h2>Inscription de %s dans %s</h2>" %
           (etud['nomprenom'],sem['titreannee']) ]
     F = self.sco_footer(REQUEST)
-    # Check: déjà inscrit ?
+    # Check 1: déjà inscrit ici ?
     ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
     already = False
     for i in ins:
@@ -128,6 +131,22 @@ def formsemestre_inscription_with_modules(
         H.append("""<ul><li><a href="ficheEtud?etudid=%s">retour à la fiche de %s</a></li>
         <li><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord de %s</a></li></ul>"""
                  % (etudid, etud['nomprenom'], formsemestre_id, sem['titreannee']) )
+        return '\n'.join(H) + F
+    # Check 2: déjà inscrit dans un semestre recouvrant les même dates ?
+    # Informe et propose dé-inscriptions
+    others = est_inscrit_ailleurs(self, etudid, formsemestre_id)
+    if others and not multiple_ok:
+        l = []
+        for s in others:
+            l.append('<a class="discretelink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>'%s)
+        
+        H.append('<p class="warning">Attention: %s est déjà inscrit sur la même période dans: %s.</p>'
+                 % (etud['nomprenom'], ', '.join(l)))
+        H.append('<ul>')
+        for s in others:
+            H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&etudid=%s">déinscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
+        H.append('</ul>')
+        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, self.make_query_groups(groupetd, groupetp, groupeanglais)))
         return '\n'.join(H) + F
     #
     if groupetd:
@@ -143,7 +162,7 @@ def formsemestre_inscription_with_modules(
         return REQUEST.RESPONSE.redirect(self.ScoURL()+'/ficheEtud?etudid='+etudid)
     else:
         # formulaire choix groupe
-        # Liste des groupes existant (== ou il y a des inscrits)
+        # Liste des groupes existant (== où il y a des inscrits)
         gr_td,gr_tp,gr_anglais = self.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         if not gr_td:
             gr_td = ['A']
