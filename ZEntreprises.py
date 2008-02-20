@@ -211,7 +211,7 @@ class ZEntreprises(ObjectManager,
         self.manage_addDTMLMethod(id,title,file)
 
     security.declareProtected(ScoEntrepriseView, 'entreprise_header')
-    def entreprise_header(self,REQUEST):
+    def entreprise_header(self,REQUEST=None,page_title=''):
         "common header for all Entreprises pages"
         authuser = REQUEST.AUTHENTICATED_USER
         # _read_only is used to modify pages properties (links, buttons)
@@ -220,7 +220,7 @@ class ZEntreprises(ObjectManager,
             REQUEST.set( '_read_only', False )
         else:
             REQUEST.set( '_read_only', True )
-        return self.sco_header(REQUEST, container=self)
+        return self.sco_header(REQUEST, container=self, page_title=page_title)
 
     security.declareProtected(ScoEntrepriseView, 'entreprise_footer')
     def entreprise_footer(self,REQUEST):
@@ -279,9 +279,6 @@ class ZEntreprises(ObjectManager,
     security.declareProtected(ScoEntrepriseView, 'index_html')
     index_html = DTMLFile('dtml/entreprises/index_html', globals())
 
-    #security.declareProtected(ScoEntrepriseView, 'sidebar')
-    #sidebar = DTMLFile('dtml/entreprises/sidebar', globals())
-  
     security.declareProtected(ScoEntrepriseView, 'entreprise_contact_list')
     entreprise_contact_list = DTMLFile('dtml/entreprises/entreprise_contact_list',globals())
     security.declareProtected(ScoEntrepriseView, 'entreprise_correspondant_list')
@@ -292,8 +289,6 @@ class ZEntreprises(ObjectManager,
     entreprise_contact_edit = DTMLFile('dtml/entreprises/entreprise_contact_edit',globals())
     security.declareProtected(ScoEntrepriseView, 'entreprise_correspondant_edit')
     entreprise_correspondant_edit = DTMLFile('dtml/entreprises/entreprise_correspondant_edit',globals())
-    security.declareProtected(ScoEntrepriseView, 'entreprise_edit')
-    entreprise_edit = DTMLFile('dtml/entreprises/entreprise_edit',globals())
     
     # Acces en modification:
     security.declareProtected(ScoEntrepriseChange, 'entreprise_contact_create')
@@ -304,8 +299,6 @@ class ZEntreprises(ObjectManager,
     entreprise_correspondant_create = DTMLFile('dtml/entreprises/entreprise_correspondant_create',globals())
     security.declareProtected(ScoEntrepriseChange, 'entreprise_correspondant_delete')
     entreprise_correspondant_delete = DTMLFile('dtml/entreprises/entreprise_correspondant_delete',globals())
-    security.declareProtected(ScoEntrepriseChange, 'entreprise_create')
-    entreprise_create = DTMLFile('dtml/entreprises/entreprise_create',globals())
     security.declareProtected(ScoEntrepriseChange, 'entreprise_delete')
     entreprise_delete = DTMLFile('dtml/entreprises/entreprise_delete',globals())
 
@@ -467,6 +460,136 @@ class ZEntreprises(ObjectManager,
             R.append(d)
         return R
 
+    # -------- Formulaires: traductions du DTML
+    security.declareProtected(ScoEntrepriseChange, 'entreprise_create')
+    def entreprise_create(self, REQUEST=None):
+        """Form. création entreprise"""
+        context = self
+        H = [ self.entreprise_header(REQUEST, page_title="Création d'une entreprise"),
+              """<h2 class="entreprise_new">Création d'une entreprise</h2>""" ]
+        tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
+            ('nom',       { 'size' : 25, 'title' : 'Nom de l\'entreprise' }),
+            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numéro, rue)' }),
+            ('codepostal',   { 'size' : 8, 'title' : 'Code Postal', }),
+            ('ville',     { 'size' : 30, 'title' : 'Ville' }),
+            ('pays',      { 'size' : 30, 'title' : 'Pays', 'default' : 'France' }),
+            ('localisation', { 'input_type' : 'menu', 
+                               'labels' : ['Ile de France', 'Province', 'Etranger'],
+                               'allowed_values' : ['IDF', 'Province', 'Etranger'] }),
+            
+            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activités' }),
+            ('privee',   { 'input_type' : 'menu', 'title' : 'Statut',
+                           'labels' : ['Entreprise privee', 'Entreprise Publique', 'Association' ],
+                           'allowed_values' : ['privee', 'publique', 'association'] }),
+    
+            ('plus10salaries',  { 'title' : 'Masse salariale', 'type' : 'integer','input_type' : 'menu',
+                                  'labels' : ['10 salariés ou plus', 'Moins de 10 salariés', 'Inconnue' ],
+                                  'allowed_values' : [ 1, 0, -1 ] }),
+            ('qualite_relation', { 'title' : 'Qualité relation IUT/Entreprise',
+                                   'input_type' : 'menu', 'default' : '-1',
+                                   'labels' : ['Très bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
+                                   'allowed_values' : [ '100', '75', '50', '25', '-1' ] }),
+            ('contact_origine',     { 'size' : 30, 'title' : 'Origine du contact' }),
+            ('note',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Note' }),
+            ),
+                               cancelbutton='Annuler',
+                               submitlabel = 'Ajouter cette entreprise', readonly = REQUEST['_read_only']
+                               )
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + context.entreprise_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            self.do_entreprise_create( tf[2] )
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+
+    security.declareProtected(ScoEntrepriseView, 'entreprise_edit')
+    def entreprise_edit(self, entreprise_id,  REQUEST=None, start=1):
+        """Form. edit entreprise"""
+        context = self
+        authuser = REQUEST.AUTHENTICATED_USER
+        readonly = not authuser.has_permission(ScoEntrepriseChange,self)
+        F = self.do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0]
+        H = [ self.entreprise_header(REQUEST, page_title="Entreprise"),
+              """<h2 class="entreprise">%(nom)s</h2>""" % F ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
+            ('entreprise_id', { 'default' : entreprise_id, 'input_type' : 'hidden' }),
+            ('start', { 'default' : 1, 'input_type' : 'hidden' }),
+
+            ('date_creation', { 'default' : time.strftime( '%Y-%m-%d' ), 'input_type' : 'hidden' }),
+
+            ('nom',       { 'size' : 25, 'title' : 'Nom de l\'entreprise' }),
+            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numéro, rue)' }),
+            ('codepostal',   { 'size' : 8, 'title' : 'Code Postal', }),
+            ('ville',     { 'size' : 30, 'title' : 'Ville' }),
+            ('pays',      { 'size' : 30, 'title' : 'Pays', 'default' : 'France' }),
+            ('localisation', { 'input_type' : 'menu', 
+                               'labels' : ['Ile de France', 'Province', 'Etranger'],
+                               'allowed_values' : ['IDF', 'Province', 'Etranger'] }),
+
+            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activités' }),
+            ('privee',   { 'input_type' : 'menu', 'title' : 'Statut',
+                           'labels' : ['Entreprise privee', 'Entreprise Publique', 'Association' ],
+                           'allowed_values' : ['privee', 'publique', 'association'] }),
+
+            ('plus10salaries',  { 'title' : 'Masse salariale', 'input_type' : 'menu',
+                                  'labels' : ['10 salariés ou plus', 'Moins de 10 salariés', 'Inconnue' ],
+                                  'allowed_values' : [ '1', '0', '-1' ] }),
+            ('qualite_relation', { 'title' : 'Qualité relation IUT/Entreprise',
+                                   'input_type' : 'menu', 
+                                   'labels' : ['Très bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
+                                   'allowed_values' : [ '100', '75', '50', '25', '-1' ] }),
+            ('contact_origine',     { 'size' : 30, 'title' : 'Origine du contact' }),
+            ('note',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Note' }),                ),
+            cancelbutton = 'Annuler',
+            initvalues = F,
+            submitlabel = 'Modifier les valeurs', 
+            readonly = readonly )
+    
+        if tf[0] == 0:
+            H.append(tf[1])
+            Cl = self.do_entreprise_correspondant_list(
+                args={ 'entreprise_id' : F['entreprise_id'] })
+            Cts = self.do_entreprise_contact_list( args={ 'entreprise_id' : F['entreprise_id'] })
+            if not readonly:
+                H.append("""<p>%s&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=%s">Supprimer cette entreprise</a> </p>""" % (self.scodoc_img.delete_img.tag(title='delete', border='0'), F['entreprise_id']))
+            if len(Cl):
+                H.append("""<h3>%d correspondants dans l'entreprise %s (<a href="entreprise_correspondant_list?entreprise_id=%s">liste complète</a>) :</h3>
+<ul>""" % (len(Cl), F['nom'], F['entreprise_id']))
+                for c in Cl:
+                    H.append("""<li><a href="entreprise_correspondant_edit?entreprise_corresp_id=%s">""" % c['entreprise_corresp_id'])
+                    if c['nom']:
+                        nom = c['nom'].lower().capitalize()
+                    else:
+                        nom = ''
+                    if c['prenom']:
+                        prenom = c['prenom'].lower().capitalize()
+                    else:
+                        prenom = ''
+                    H.append("""%s %s</a>&nbsp;(%s)</li>""" % (nom,prenom,c['fonction']))
+                H.append('</ul>')
+            if len(Cts):
+                H.append("""<h3>%d contacts avec l'entreprise %s (<a href="entreprise_contact_list?entreprise_id=%s">liste complète</a>) :</h3><ul>""" % (len(Cts),F['nom'],F['entreprise_id']))
+                for c in Cts:
+                    H.append("""<li><a href="entreprise_contact_edit?entreprise_contact_id=%s">%s</a>&nbsp;&nbsp;&nbsp;""" % (c['entreprise_contact_id'],c['date']))
+                    if c['type_contact']:
+                        H.append(c['type_contact'])
+                    if c['etudid']:
+                        etud = self.getEtudInfo(etudid=c['etudid'], filled=1)
+                        if etud:
+                            etud = etud[0]
+                            H.append("""<a href="%s/ficheEtud?etudid=%">%s</a>"""%(self.ScoURL(), c['etudid'], etud['nomprenom']))
+                    if c['description']:
+                        H.append('(%s)' % c['description'])
+                    H.append('</li>')
+                H.append('</ul>')                
+            return '\n'.join(H) + context.entreprise_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect(REQUEST.URL1+'?start='+start)
+        else:
+            self.do_entreprise_edit(tf[2])
+            return REQUEST.RESPONSE.redirect(REQUEST.URL1+'?start='+start)
+    
     # --- Misc tools.... ------------------
     security.declareProtected(ScoEntrepriseView, 'str_abbrev')
     def str_abbrev(self, s, maxlen):

@@ -126,7 +126,7 @@ def sidebar_dept(context, REQUEST=None):
                 'BASE0' : REQUEST.BASE0,
                 'DeptIntranetURL' : context.DeptIntranetURL,
                 'DeptName' : context.DeptName,
-                'ScoURL' : context.ScoURL }
+                'ScoURL' : context.ScoURL() }
 
 
 

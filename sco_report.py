@@ -793,7 +793,7 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
           """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
           """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
 
-          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes (par exemple Firefox).</p>""",
+          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes (par exemple Firefox). Attention: il semble que l'affichage sur Macintosh soit incorrect !</p>""",
 
           """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
           sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
