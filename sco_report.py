@@ -707,17 +707,27 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
+    isolated_nodes = []
+    connected_nodes = Set()
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         next = None
         for s in etud['sems']: # du plus recent au plus ancien
             if next:
                 edges[(s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
+                connected_nodes.add(s['formsemestre_id'])
+                connected_nodes.add(next['formsemestre_id'])
+            else:
+                isolated_nodes.append(s['formsemestre_id'])
             sems[s['formsemestre_id']] = s
             effectifs[s['formsemestre_id']].add(etudid)
             next = s
     #
     g = pydot.graph_from_edges(edges.keys())
+    for fid in isolated_nodes:
+        if not fid in connected_nodes:
+            n = pydot.Node(name=fid)
+            g.add_node(n)
     g.set('rankdir', 'LR') # left to right
     g.set_fontname('Helvetica')
     if format == 'svg':
