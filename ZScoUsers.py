@@ -27,6 +27,10 @@
 
 """ Gestion des utilisateurs (table SQL pour Zope User Folder)
 """
+import string, re
+import time
+import md5, base64
+from sets import Set
 
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -51,10 +55,7 @@ from scolog import logdb
 from sco_utils import *
 import sco_import_users, sco_excel
 from TrivialFormulator import TrivialFormulator, TF
-import string, re
-import time
-import md5, base64
-from sets import Set
+from gen_tables import GenTable
 
 # ----------------- password checking
 import crack
@@ -139,7 +140,7 @@ class ZScoUsers(ObjectManager,
     # --------------------------------------------------------------------
     # used to view content of the object
     security.declareProtected(ScoAdminUsers, 'index_html')
-    def index_html(self, REQUEST, all=0):
+    def index_html(self, REQUEST, all=0, format='html'):
         "gestion utilisateurs..."
         all = int(all)
         # Controle d'acces
@@ -163,7 +164,10 @@ class ZScoUsers(ObjectManager,
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a>')
             H.append('&nbsp;&nbsp; <a href="import_users_form" class="stdlink">Importer des utilisateurs</a></p>')
         #
-        H.append( self.list_users( dept, all=all ) )
+        L = self.list_users( dept, all=all, format=format, REQUEST=REQUEST )
+        if format != 'html':
+            return L
+        H.append(L) 
         #
         if all:
             checked = 'checked'
@@ -380,12 +384,12 @@ class ZScoUsers(ObjectManager,
                 H.append("<p>(il peut creer des formations)</p>")
         else:
             H.append("""<p>
-            <b>Login :</b> %(user_name)s</br>
-            <b>Nom :</b> %(nom)s</br>
-            <b>Prénom :</b> %(prenom)s</br>
-            <b>Mail :</b> %(email)s</br>
-            <b>Roles :</b> %(roles)s</br>
-            <b>Dept :</b> %(dept)s</br>
+            <b>Login :</b> %(user_name)s<br/>
+            <b>Nom :</b> %(nom)s<br/>
+            <b>Prénom :</b> %(prenom)s<br/>
+            <b>Mail :</b> %(email)s<br/>
+            <b>Roles :</b> %(roles)s<br/>
+            <b>Dept :</b> %(dept)s<br/>
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             <p><ul>
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
@@ -443,21 +447,23 @@ class ZScoUsers(ObjectManager,
          
          # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
          # N'inclue pas de rôles privilégiés, sauf si l'utilisateur est super admin
-         # (normalement: EnsDept, SecrDept)
+         # (normalement: EnsDept, SecrDept + rôles existants)
          if authuser.has_permission(ScoSuperAdmin,self):
-             valid_roles = list(self._all_roles())
+             valid_roles = Set(self._all_roles())
          else:
-             valid_roles = [ x.strip()
-                             for x in self.DeptCreatedUsersRoles.split(',') ]
+             valid_roles = Set([ x.strip()
+                             for x in self.DeptCreatedUsersRoles.split(',') ])
          #
          if not edit:
              initvalues = {}
              submitlabel = 'Créer utilisateur'
+             orig_roles = Set()
          else:
              submitlabel = 'Modifier utilisateur'
              initvalues = self._user_list( args={'user_name': user_name})[0]
-             orig_roles = initvalues['roles'].split(',')
-         
+             orig_roles = Set(initvalues['roles'].split(','))
+         # add existing user roles
+         valid_roles = list(valid_roles.union(orig_roles))
          descr = [
              ('edit', {'input_type' : 'hidden', 'default' : edit }),
              ('nom', { 'title' : 'Nom',
@@ -484,8 +490,9 @@ class ZScoUsers(ObjectManager,
          descr += [
              ('email', { 'title' : 'e-mail',
                          'input_type' : 'text',
+                         'explanation' : "vivement recommandé: utilisé pour contacter l'utilisateur",
                          'size' : 20, 'allow_null' : True }),
-             ('roles', {'title' : 'Roles', 'input_type' : 'checkbox',
+             ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox',
                         'allowed_values' : valid_roles})
              ]
          # Access control
@@ -502,7 +509,7 @@ class ZScoUsers(ObjectManager,
              # propose de choisir le dept du nouvel utilisateur
              # sinon, il sera créé dans le même département que auth
              descr.append(('dept',
-                          { 'title' : 'Dept',
+                          { 'title' : 'Département',
                             'input_type' : 'text',
                             'size' : 12,
                             'allow_null' : True,
@@ -564,6 +571,10 @@ class ZScoUsers(ObjectManager,
                          vals['roles'].append(role)
                  vals['roles'] = ','.join(vals['roles'])
                  # ok, edit
+                 log('sco_users: by %s' % auth_name )
+                 log('sco_users: editing %s' % user_name)
+                 log('sco_users: previous_values=%s' % initvalues)                 
+                 log('sco_users: new_values=%s' % vals)
                  self._user_edit(vals)
                  return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
              else: # creation utilisateur
@@ -578,6 +589,8 @@ class ZScoUsers(ObjectManager,
                  if not can_choose_dept:
                      vals['dept'] = auth_dept
                  # ok, go
+                 log('sco_users: by %s' % auth_name )
+                 log('sco_users: new_user=%s' % vals)
                  self.create_user(vals, REQUEST=REQUEST)         
 
     def _check_modif_user(self, edit, user_name='', nom='', prenom='',
@@ -706,30 +719,37 @@ class ZScoUsers(ObjectManager,
         self._user_delete(user_name)
         REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         
-    security.declareProtected(ScoAdminUsers, 'list_users')
-    def list_users(self, dept, all=False, REQUEST=None):
-        "liste des utilisateurs"
+    def list_users(self, dept, all=False, format='html', REQUEST=None):
+        "List users"
         if dept and not all:            
             r = self._user_list( args={ 'dept' : dept } )
             comm = '(dept. %s)' % dept
         else:
             r = self._user_list() # all users
             comm = '(tous)'
-        if REQUEST:
-            H = [self.sco_header(REQUEST)]
-            F = self.sco_footer(REQUEST)
-        else:
-            H = []
-            F = ''
-        H.append('<h3>%d utilisateurs %s</h3>' % (len(r), comm))
-        H.append('<p>Cliquer sur un nom pour changer son mot de passe</p>')
-        H.append('<table><tr><th>Login</th><th>Nom</th><th>Prénom</th><th>email</th><th>Dept.</th><th>Roles</th><th>Modif. passwd</th></tr>')
+        # add links
         for u in r:
-            H.append('<tr><td><a class="stdlink" href="userinfo?user_name=%(user_name)s">%(user_name)s</a></td><td>%(nom)s</td><td>%(prenom)s</td><td>%(email)s</td><td>%(dept)s</td><td>%(roles)s</td><td>%(date_modif_passwd)s</td></tr>' % u)
-        H.append('</table>')
-        return '\n'.join(H) + F
+            target = 'userinfo?user_name=%(user_name)s' % u
+            u['_user_name_target'] = target
+            u['_nom_target'] = target
+            u['_prenom_target'] = target
 
-    
+        title = 'Utilisateurs définis dans ScoDoc'
+        tab = GenTable(
+            rows = r,
+            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd'),
+            titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
+                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' },
+            caption = title, page_title = 'title',
+            html_title = """<h2>%d utilisateurs %s</h2>
+            <p class="help">Cliquer sur un nom pour changer son mot de passe</p>""" % (len(r), comm),
+            html_class = 'gt_table table_leftalign',
+            html_sortable = True,
+            base_url = '%s?all=%s' % (REQUEST.URL0, all),
+            pdf_link=False # table is too wide
+            )
+        
+        return tab.make_page(self, format=format, with_html_headers=False, REQUEST=REQUEST)
 
 # --------------------------------------------------------------------
 #

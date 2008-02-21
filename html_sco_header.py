@@ -47,6 +47,10 @@ def sco_header(context, REQUEST=None,
     # context est une instance de ZScolar. container est une instance qui "acquiert" ZScolar
     if container:
         context = container # je pense que cela suffit pour ce qu'on veut.
+
+    # Add a HTTP header (can be used by Apache to log requests)
+    if REQUEST.AUTHENTICATED_USER:
+        REQUEST.RESPONSE.setHeader('X-ScoDoc-User', str(REQUEST.AUTHENTICATED_USER))
     params = {
         'page_title' : page_title or context.title_or_id(),
         'no_side_bar': no_side_bar,
