@@ -264,7 +264,8 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         docdate = datetime.datetime.now().isoformat()
     doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
                       date=docdate,
-                      publie=published)
+                      publie=published,
+                      etape_apo=sem['etape_apo'] or '')
 
     # Infos sur l'etudiant
     etudinfo = znotes.getEtudInfo(etudid=etudid,filled=1)[0]
