@@ -28,9 +28,13 @@
 """Generation de tables aux formats XHTML, PDF et Excel
 """
 
+import random
+
+# XML generation package (apt-get install jaxml)
+import jaxml
+
 import sco_excel
 from sco_pdf import *
-import random
 
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
@@ -49,7 +53,7 @@ class GenTable:
                  xls_link=True,
                  xml_link=False,
 
-                 html_id=None,
+                 table_id=None, # for html and xml
                  html_class='gt_table', # class de l'element <table>
                  html_sortable=False,
                  html_highlight_n=2, # une ligne sur 2 de classe "gt_hl"
@@ -60,7 +64,7 @@ class GenTable:
                  html_next_section='', # html fragment to put after the table
                  html_with_td_classes=False, # put class=column_id in each <td>
                  base_url = None,
-                 origin=None, # string added to excel version
+                 origin=None, # string added to excel and xml versions
                  filename='table', # filename, without extension
 
                  xls_sheet_name='feuille',
@@ -83,10 +87,10 @@ class GenTable:
         self.xls_link=xls_link
         self.xml_link=xml_link
         # HTML parameters:
-        if not html_id: # random id
-            self.html_id = 'gt_' + str(random.randint(0, 1000000))
+        if not table_id: # random id
+            self.table_id = 'gt_' + str(random.randint(0, 1000000))
         else:
-            self.html_id = html_id
+            self.table_id = table_id
         self.html_title = html_title
         self.html_caption = html_caption
         self.html_next_section = html_next_section
@@ -161,7 +165,7 @@ class GenTable:
 
     def html(self):
         "Simple HTML representation of the table"
-        hid = ' id="%s"' % self.html_id
+        hid = ' id="%s"' % self.table_id
         tablclasses = []
         if self.html_class:
             tablclasses.append(self.html_class)
@@ -312,6 +316,33 @@ class GenTable:
         if self.caption:
             objects.append(Paragraph(SU(self.caption), StyleSheet["Normal"]))
         return objects
+
+    def xml(self):
+        """XML representation of the table.
+        The schema is very simple:
+        <table origin="" id="" caption="">
+        <row title="">
+        <column_id value=""/>
+        </row>
+        </table>
+        """
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc.table( id=self.table_id, origin=self.origin or '', caption=self.caption or '')
+        doc._push()
+        for row in self.rows:
+            doc._push()
+            row_title = row.get('row_title','')
+            if row_title:
+                doc.row( title=row_title )
+            else:
+                doc.row()
+            for cid in self.columns_ids:
+                doc._push()
+                getattr(doc, cid)(value=str(row.get(cid,'')))
+                doc._pop()
+            doc._pop()
+        doc._pop()
+        return repr(doc)
     
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
@@ -341,5 +372,10 @@ class GenTable:
         elif format == 'xls':
             xls = self.excel()
             return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
+        elif format == 'xml':
+            xml = self.xml()
+            if REQUEST:
+                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            return xml
         else:
             raise ValueError('_make_page: invalid format')

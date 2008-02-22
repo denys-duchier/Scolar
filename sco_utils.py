@@ -39,7 +39,7 @@ import xml.sax.saxutils
 import jaxml
 from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
-from ScolarRolesNames import *
+from sco_permissions import *
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]

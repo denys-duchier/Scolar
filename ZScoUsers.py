@@ -139,7 +139,7 @@ class ZScoUsers(ObjectManager,
     #
     # --------------------------------------------------------------------
     # used to view content of the object
-    security.declareProtected(ScoAdminUsers, 'index_html')
+    security.declareProtected(ScoUsersView, 'index_html')
     def index_html(self, REQUEST, all=0, format='html'):
         "gestion utilisateurs..."
         all = int(all)
@@ -156,24 +156,25 @@ class ZScoUsers(ObjectManager,
                 raise AccessDenied("Vous n'avez pas la permission de voir cette page")
         else:
             dept = user[0]['dept']
-        #
+        
         H = [self.sco_header(REQUEST,page_title='Gestion des utilisateurs')]
         H.append('<h1>Gestion des utilisateurs</h1>')        
-        # 
-        if authuser.has_permission(ScoAdminUsers,self):
+        
+        if authuser.has_permission(ScoUsersAdmin,self):
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a>')
             H.append('&nbsp;&nbsp; <a href="import_users_form" class="stdlink">Importer des utilisateurs</a></p>')
-        #
-        L = self.list_users( dept, all=all, format=format, REQUEST=REQUEST )
-        if format != 'html':
-            return L
-        H.append(L) 
-        #
         if all:
             checked = 'checked'
         else:
             checked = ''
         H.append("""<p><form name="f" action="."><input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Montrer tous les départements</input></form></p>""" % checked)
+
+        L = self.list_users( dept, all=all, format=format,
+                             REQUEST=REQUEST, with_links=authuser.has_permission(ScoUsersAdmin,self) )
+        if format != 'html':
+            return L
+        H.append(L) 
+        
         F = self.sco_footer(REQUEST)
         return '\n'.join(H) + F
 
@@ -211,7 +212,7 @@ class ZScoUsers(ObjectManager,
             roles.update( [x.strip() for x in l['roles'].split(',')] )            
         return roles
 
-    security.declareProtected(ScoAdminUsers, 'user_info')
+    security.declareProtected(ScoUsersAdmin, 'user_info')
     def user_info(self, user_name, REQUEST):        
         "donne infos sur l'utilisateur (qui peut ne pas etre dans notre base)"
         infos = self._user_list( args={'user_name':user_name} )
@@ -252,7 +253,7 @@ class ZScoUsers(ObjectManager,
         if str(authuser) == user_name:
             return True
         # has permission ?
-        if not authuser.has_permission(ScoAdminUsers,self):
+        if not authuser.has_permission(ScoUsersAdmin,self):
             return False
         # Ok, now check that authuser can manage users from this departement
         # Get user info
@@ -295,7 +296,7 @@ class ZScoUsers(ObjectManager,
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
         "change a password"
-        # ScoAdminUsers: modif tous les passwd de SON DEPARTEMENT
+        # ScoUsersAdmin: modif tous les passwd de SON DEPARTEMENT
         # sauf si pas de dept (admin global)
         H = []
         F = self.sco_footer(REQUEST)
@@ -393,7 +394,7 @@ class ZScoUsers(ObjectManager,
             <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
             <p><ul>
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
-            if authuser.has_permission(ScoAdminUsers,self):
+            if authuser.has_permission(ScoUsersAdmin,self):
                 H.append("""
              <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a></li>
              <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(à n'utiliser qu'en cas d'erreur !)</em></li>
@@ -420,11 +421,11 @@ class ZScoUsers(ObjectManager,
                     b = 'non'
                 H.append('<li>%s : %s</li>' % (permname,b)) 
             H.append('</ul></div>')
-        if authuser.has_permission(ScoAdminUsers,self):
+        if authuser.has_permission(ScoUsersAdmin,self):
             H.append('<p><a class="stdlink" href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
         return '\n'.join(H)+F
         
-    security.declareProtected(ScoAdminUsers, 'create_user_form')
+    security.declareProtected(ScoUsersAdmin, 'create_user_form')
     def create_user_form(self, REQUEST, user_name=None, edit=0):
          "form. creation ou edit utilisateur"
          # Get authuser info
@@ -627,7 +628,7 @@ class ZScoUsers(ObjectManager,
         # ok
         return True, ''
 
-    security.declareProtected(ScoAdminUsers, 'import_users_form')
+    security.declareProtected(ScoUsersAdmin, 'import_users_form')
     def import_users_form(self, REQUEST, user_name=None, edit=0):
         """Import utilisateurs depuis feuille Excel"""
         head = self.sco_header(REQUEST, page_title='Import utilisateurs')
@@ -676,13 +677,13 @@ class ZScoUsers(ObjectManager,
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + help + F
     
-    security.declareProtected(ScoAdminUsers, 'import_users_generate_excel_sample')
+    security.declareProtected(ScoUsersAdmin, 'import_users_generate_excel_sample')
     def import_users_generate_excel_sample(self, REQUEST):
         "une feuille excel pour importation utilisateurs"
         data = sco_import_users.generate_excel_sample()
         return sco_excel.sendExcelFile(REQUEST,data,'ImportUtilisateurs.xls')    
     
-    security.declareProtected(ScoAdminUsers, 'create_user')
+    security.declareProtected(ScoUsersAdmin, 'create_user')
     def create_user(self, args, REQUEST=None):
         "creation utilisateur zope"
         cnx = self.GetUsersDBConnexion()        
@@ -699,7 +700,7 @@ class ZScoUsers(ObjectManager,
         if REQUEST:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
 
-    security.declareProtected(ScoAdminUsers, 'delete_user_form')
+    security.declareProtected(ScoUsersAdmin, 'delete_user_form')
     def delete_user_form(self, REQUEST, user_name, dialog_confirmed=False):
         "delete user"
         r = self._user_list( args={'user_name' : user_name})
@@ -719,7 +720,7 @@ class ZScoUsers(ObjectManager,
         self._user_delete(user_name)
         REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         
-    def list_users(self, dept, all=False, format='html', REQUEST=None):
+    def list_users(self, dept, all=False, format='html', with_links=True, REQUEST=None):
         "List users"
         if dept and not all:            
             r = self._user_list( args={ 'dept' : dept } )
@@ -728,12 +729,18 @@ class ZScoUsers(ObjectManager,
             r = self._user_list() # all users
             comm = '(tous)'
         # add links
-        for u in r:
-            target = 'userinfo?user_name=%(user_name)s' % u
-            u['_user_name_target'] = target
-            u['_nom_target'] = target
-            u['_prenom_target'] = target
+        if with_links:
+            for u in r:
+                target = 'userinfo?user_name=%(user_name)s' % u
+                u['_user_name_target'] = target
+                u['_nom_target'] = target
+                u['_prenom_target'] = target
 
+        # convert dates to ISO if XML output
+        if format=='xml':
+            for u in r:
+                u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
+        
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
             rows = r,

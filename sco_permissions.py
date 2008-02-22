@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-# DEFINITION DES PERMISSIONS (ET NON PAS DES ROLES !)
+"""Definitions of Zope permissions used by ScoDoc"""
 
 # prefix all permissions by "Sco" to group them in Zope management tab
 
@@ -25,7 +25,9 @@ ScoEntrepriseChange = "Sco Change Entreprises"
 ScoView = 'Sco View' 
 ScoEnsView = 'Sco View Ens' # parties visibles par enseignants slt
 
-ScoAdminUsers = 'Sco Administrer utilisateurs'
+ScoUsersAdmin = 'Sco Users Manage'
+ScoUsersView  = 'Sco Users View'
+
 ScoSuperAdmin = 'Sco Super Admin'
 
 # Roles:

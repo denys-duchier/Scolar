@@ -34,6 +34,7 @@ from sco_utils import *
 
 def sidebar_common(context, REQUEST=None):
     "partie commune a toutes les sidebar"
+    authuser = REQUEST.AUTHENTICATED_USER
     params = {
         'ScoURL' : context.ScoURL(),
         }
@@ -45,7 +46,7 @@ def sidebar_common(context, REQUEST=None):
  <a href="%(ScoURL)s/Absences" class="sidebar">Absences</a> <br/>
  """ % params ]
     
-    if REQUEST.AUTHENTICATED_USER.has_permission(ScoAdminUsers, context):
+    if authuser.has_permission(ScoUsersAdmin, context) or authuser.has_permission(ScoUsersView, context):
         H.append( """<a href="%(ScoURL)s/Users" class="sidebar">Utilisateurs</a> <br/>"""
                   % params )
 
