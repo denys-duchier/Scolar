@@ -578,7 +578,7 @@ class ZEntreprises(ObjectManager,
                         etud = self.getEtudInfo(etudid=c['etudid'], filled=1)
                         if etud:
                             etud = etud[0]
-                            H.append("""<a href="%s/ficheEtud?etudid=%">%s</a>"""%(self.ScoURL(), c['etudid'], etud['nomprenom']))
+                            H.append("""<a href="%s/ficheEtud?etudid=%s">%s</a>"""%(self.ScoURL(), c['etudid'], etud['nomprenom']))
                     if c['description']:
                         H.append('(%s)' % c['description'])
                     H.append('</li>')

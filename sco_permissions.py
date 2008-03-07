@@ -30,5 +30,3 @@ ScoUsersView  = 'Sco Users View'
 
 ScoSuperAdmin = 'Sco Super Admin'
 
-# Roles:
-# ScoEns, ScoAdmin
