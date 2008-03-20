@@ -100,7 +100,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
     if tf[0] == 0:
         header = context.sco_header(REQUEST,
                                     page_title='Mise en page des bulletins')
-        footer = context.sco_footer(context,REQUEST)
+        footer = context.sco_footer(REQUEST)
         sem = context.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         H = [ '<h2>Ces paramètres affectent les bulletins en PDF ("version papier") du semestre <em>%s</em> uniquement.</h2>' % sem['titreannee']
               ]
