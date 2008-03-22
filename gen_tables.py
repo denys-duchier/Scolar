@@ -259,7 +259,7 @@ class GenTable:
         
     def excel(self):
         "Simple Excel representation of the table"
-        lines = [ [ str(x) for x in line ] for line in self.get_data_list()]
+        lines = [ [ x for x in line ] for line in self.get_data_list()]
         if self.caption:
             lines.append( [] ) # empty line  
             lines.append( [self.caption] )

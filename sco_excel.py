@@ -38,6 +38,7 @@ from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html, suppress_accent
 import notesdb
 
 import time
+from types import StringType, IntType, FloatType, LongType
 
 COLOR_CODES = { 'black' : 0,
                 'red' : 0x0A,
@@ -104,6 +105,11 @@ def Excel_SimpleTable( titles=[], lines=[[]],
     for l in lines:
         col = 0
         for it in l:
+            # safety net: allow only str, int and float
+            if type(it) == LongType:
+                it = int(it) # assume all ScoDoc longs fits in int !
+            elif type(it) not in (StringType, IntType, FloatType):
+                it = str(it)
             ws0.write(li, col, it, style)
             col += 1
         li += 1
