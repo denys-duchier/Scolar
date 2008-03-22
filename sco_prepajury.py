@@ -52,6 +52,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     prev_code = {} # decisions sem prec
     assidu = {}
     parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
+    groupestd = {}
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
@@ -90,7 +91,11 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             else:
                 p.append( 'A%d%s' % (s['semestre_id'],dem) )
         parcours[etudid] = ', '.join(p)
-    
+        # groupe td
+        groupestd[etudid] = ''
+        for s in etud['sems']:
+            if s['formsemestre_id'] == formsemestre_id:                
+                groupestd[etudid] = s['ins']['groupetd']
     # Construit table
     L = [ [] ]
     all_ues =  znotes.do_ue_list(args={ 'formation_id' : sem['formation_id']})
@@ -111,7 +116,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         if prev_moy: # si qq chose dans precedent
             sp = 'S%s' % (sid-1)
     
-    titles = ['', 'etudid', 'Nom', 'Année', 'Parcours']
+    titles = ['', 'etudid', 'Nom', 'Année', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += ue_acros + ['Moy %s' % sn]
@@ -132,7 +137,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     for etudid in etudids:
         l = [ str(i), etudid, znotes.nomprenom(nt.identdict[etudid]),
              nt.identdict[etudid]['annee_naissance'],
-             parcours[etudid]]
+             parcours[etudid], groupestd[etudid] ]
         i += 1
         if prev_moy:
             for ue_acro in ue_prev_acros:
