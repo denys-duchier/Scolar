@@ -462,12 +462,12 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None, format
         context.log_unknown_etud(REQUEST)
     sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
     R = []
-    if format == 'html':
+    if format == 'html' or format == 'mailpdf':
         R.append( _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                                    formsemestre_id, format, version, REQUEST) )
     R.append(context.do_formsemestre_bulletinetud(formsemestre_id, etudid,
                                                   format=format, version=version, REQUEST=REQUEST))
-    if format == 'html':
+    if format == 'html' or format == 'mailpdf':
         R.append("""<p>Situation actuelle: """)
         if etud['inscription_formsemestre_id']:
             R.append("""<a href="formsemestre_status?formsemestre_id=%s">"""

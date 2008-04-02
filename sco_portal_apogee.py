@@ -90,7 +90,12 @@ def query_portal(req):
     return f.read()
 
 def xml_to_list_of_dicts(doc, req=None):
-    dom = xml.dom.minidom.parseString(doc)
+    try:
+        dom = xml.dom.minidom.parseString(doc)
+    except:
+        # catch bug: log and re-raise exception
+        log('xml_to_list_of_dicts: exception in XML parseString\ndoc:\n%s\n(end xml doc)\n' % doc)
+        raise
     infos = []
     try:
         if dom.childNodes[0].nodeName != u'etudiants':
