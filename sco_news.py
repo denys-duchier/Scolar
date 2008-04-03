@@ -112,7 +112,10 @@ def scolar_news_summary(context, n=5):
         # indication semestre si ajout notes:
         if n['type'] == NEWS_NOTE:
             moduleimpl_id = n['object']
-            mod = context.Notes.do_moduleimpl_list({'moduleimpl_id' : moduleimpl_id})[0]
+            mods = context.Notes.do_moduleimpl_list({'moduleimpl_id' : moduleimpl_id})
+            if not mods:
+                continue # module does not exists anymore
+            mod = mods[0]
             sem = context.Notes.get_formsemestre(mod['formsemestre_id'])
             if sem['semestre_id'] > 0:
                 descr_sem = 'S%d' % sem['semestre_id']
