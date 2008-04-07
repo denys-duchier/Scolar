@@ -5,7 +5,7 @@ import pdb,os,sys,time
 from sco_utils import SCO_ENCODING
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
-
+from email.Header import Header
 
 # Simple & stupid file logguer, used only to debug
 # (logging to SQL is done in scolog)
@@ -44,7 +44,7 @@ log = _logguer()
 
 
 # Alarms by email:
-def sendAlarm( context, subj, msg ):
+def sendAlarm( context, subj, txt ):
     msg = MIMEMultipart()
     subj = Header( subj,  SCO_ENCODING )
     msg['Subject'] = subj
