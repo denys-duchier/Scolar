@@ -2646,7 +2646,7 @@ class ZNotes(ObjectManager,
             sendAlarm( self, 'Notes: formation incoherente !', txt)
         else:
             txth = 'OK'
-        return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)
+        return self.sco_header(REQUEST=REQUEST)+txth+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_formsemestre_integrity')
     def check_formsemestre_integrity(self, formsemestre_id, REQUEST=None):
