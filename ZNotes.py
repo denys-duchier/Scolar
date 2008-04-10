@@ -2680,7 +2680,7 @@ class ZNotes(ObjectManager,
         "debug: verifie tous les semestres et tt les formations"
         # formations
         for F in self.do_formation_list():
-            self.check_form_integrity(self, F['formation_id'], REQUEST=REQUEST)
+            self.check_form_integrity(F['formation_id'], REQUEST=REQUEST)
         # semestres
         for sem in self.do_formsemestre_list():
             self.check_formsemestre_integrity(sem['formsemestre_id'], REQUEST=REQUEST)
