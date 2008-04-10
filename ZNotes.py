@@ -2643,6 +2643,29 @@ class ZNotes(ObjectManager,
         else:
             txt = 'OK'
         return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)
+
+    security.declareProtected(ScoView,'check_formsemestre_integrity')
+    def check_formsemestre_integrity(self, formsemestre_id, REQUEST=None):
+        "debug"
+        log("check_form_integrity: formsemestre_id=%s" % (formsemestre_id))
+        # verifie que tous les moduleimpl d'un formsemestre
+        # se réfèrent à un module dont l'UE appartient a la même formation
+        # Ancien bug: les ue_id étaient mal copiés lors des création de versions
+        # de formations
+        diag = []
+        sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id })[0]
+        Mlist = self.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id })
+        for mod in Mlist:
+            if mod['module']['ue_id'] != mod['matiere']['ue_id']:
+                diag.append('moduleimpl %s: module.ue_id=% != matiere.ue_id=%s'
+                            % (mod['moduleimpl_id'], mod['module']['ue_id'], mod['matiere']['ue_id']) )
+        if diag:
+            sendAlarm( self, 'Notes: formation incoherente dans semestre %s !'
+                       % formsemestre_id, '\n'.join(diag) )
+        else:
+            diag = ['OK']
+        return self.sco_header(REQUEST=REQUEST)+'\n'.join(diag)+self.sco_footer(REQUEST)
+            
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab

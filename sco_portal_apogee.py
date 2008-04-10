@@ -53,6 +53,8 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
         return []
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
+    if not doc:
+        raise ScoValueError('pas de réponse du portail !')
     etuds = xml_to_list_of_dicts(doc, req=req)
     # Filtre sur annee inscription Apogee:
     def check_inscription(e):
