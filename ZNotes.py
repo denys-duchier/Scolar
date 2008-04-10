@@ -2683,7 +2683,7 @@ class ZNotes(ObjectManager,
             self.check_form_integrity(self, F['formation_id'], REQUEST=REQUEST)
         # semestres
         for sem in self.do_formsemestre_list():
-            self.check_formsemestre_integrity(sem['formsemestre_id'], REQUEST=REQUEST):
+            self.check_formsemestre_integrity(sem['formsemestre_id'], REQUEST=REQUEST)
         return self.sco_header(REQUEST=REQUEST)+'<p>empty page: see logs and mails</p>'+self.sco_footer(REQUEST)
     
     # --------------------------------------------------------------------
