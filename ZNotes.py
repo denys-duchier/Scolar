@@ -2638,11 +2638,14 @@ class ZNotes(ObjectManager,
                     if mod['formation_id'] != formation_id:
                         bad.append(mod)
         if bad:
-            txt = '<br/>'.join([str(x) for x in bad])
+            txth = '<br/>'.join([str(x) for x in bad])
+            txt = '\n'.join([str(x) for x in bad])
+            log('check_form_integrity: formation_id=%s\ninconsistencies:' % formation_id)
+            log(txt)
             # Notify by e-mail
             sendAlarm( self, 'Notes: formation incoherente !', txt)
         else:
-            txt = 'OK'
+            txth = 'OK'
         return self.sco_header(REQUEST=REQUEST)+txt+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_formsemestre_integrity')
@@ -2666,10 +2669,23 @@ class ZNotes(ObjectManager,
         if diag:
             sendAlarm( self, 'Notes: formation incoherente dans semestre %s !'
                        % formsemestre_id, '\n'.join(diag) )
+            log('check_formsemestre_integrity: formsemestre_id=%s' % formsemestre_id)
+            log('inconsistencies:\n'+'\n'.join(diag))
         else:
             diag = ['OK']
         return self.sco_header(REQUEST=REQUEST)+'<br/>'.join(diag)+self.sco_footer(REQUEST)
-            
+
+    security.declareProtected(ScoView,'check_integrity_all')
+    def check_integrity_all(self, REQUEST=None):
+        "debug: verifie tous les semestres et tt les formations"
+        # formations
+        for F in self.do_formation_list():
+            self.check_form_integrity(self, F['formation_id'], REQUEST=REQUEST)
+        # semestres
+        for sem in self.do_formsemestre_list():
+            self.check_formsemestre_integrity(sem['formsemestre_id'], REQUEST=REQUEST):
+        return self.sco_header(REQUEST=REQUEST)+'<p>empty page: see logs and mails</p>'+self.sco_footer(REQUEST)
+    
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
 # To everride the default 'Properties' tab
