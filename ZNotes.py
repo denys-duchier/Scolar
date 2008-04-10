@@ -2657,8 +2657,11 @@ class ZNotes(ObjectManager,
         Mlist = self.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id })
         for mod in Mlist:
             if mod['module']['ue_id'] != mod['matiere']['ue_id']:
-                diag.append('moduleimpl %s: module.ue_id=% != matiere.ue_id=%s'
+                diag.append('moduleimpl %s: module.ue_id=%s != matiere.ue_id=%s'
                             % (mod['moduleimpl_id'], mod['module']['ue_id'], mod['matiere']['ue_id']) )
+            if mod['ue']['formation_id'] != mod['module']['formation_id']:
+                diag.append('moduleimpl %s: ue.formation_id=%s != mod.formation_id=%s'
+                            % (mod['moduleimpl_id'],mod['ue']['formation_id'],mod['module']['formation_id']))
         if diag:
             sendAlarm( self, 'Notes: formation incoherente dans semestre %s !'
                        % formsemestre_id, '\n'.join(diag) )
