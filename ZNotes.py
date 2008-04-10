@@ -2646,12 +2646,13 @@ class ZNotes(ObjectManager,
             sendAlarm( self, 'Notes: formation incoherente !', txt)
         else:
             txth = 'OK'
+            log('ok')
         return self.sco_header(REQUEST=REQUEST)+txth+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_formsemestre_integrity')
     def check_formsemestre_integrity(self, formsemestre_id, REQUEST=None):
         "debug"
-        log("check_form_integrity: formsemestre_id=%s" % (formsemestre_id))
+        log("check_formsemestre_integrity: formsemestre_id=%s" % (formsemestre_id))
         # verifie que tous les moduleimpl d'un formsemestre
         # se réfèrent à un module dont l'UE appartient a la même formation
         # Ancien bug: les ue_id étaient mal copiés lors des création de versions
@@ -2673,6 +2674,7 @@ class ZNotes(ObjectManager,
             log('inconsistencies:\n'+'\n'.join(diag))
         else:
             diag = ['OK']
+            log('ok')
         return self.sco_header(REQUEST=REQUEST)+'<br/>'.join(diag)+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_integrity_all')

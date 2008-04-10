@@ -171,6 +171,10 @@ def _check_duplicate_code(cnx, args, code_name, context, REQUEST=None):
                     OK = 'Continuer'
                     dest_url = 'etudident_create_form'
                     parameters = args
+                else:
+                    OK = 'Annuler'
+                    dest_url = ''
+                    parameters = {}
             if context:
                 err_page = context.confirmDialog(
                     message="""<h3>Code étudiant (%s) dupliqué !</h3>""" % code_name,
