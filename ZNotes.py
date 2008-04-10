@@ -2633,8 +2633,9 @@ class ZNotes(ObjectManager,
                             # fix mod.ue_id
                             log("fix: mod.ue_id = %s (was %s)" % (ue['ue_id'], mod['ue_id']))
                             mod['ue_id'] = ue['ue_id']
-                            self.do_module_edit(mod)
-                        mod['ue'] = ue                        
+                            self.do_module_edit(mod)                    
+                        bad.append(mod)
+                    if mod['formation_id'] != formation_id:
                         bad.append(mod)
         if bad:
             txt = '<br/>'.join([str(x) for x in bad])
@@ -2667,7 +2668,7 @@ class ZNotes(ObjectManager,
                        % formsemestre_id, '\n'.join(diag) )
         else:
             diag = ['OK']
-        return self.sco_header(REQUEST=REQUEST)+'\n'.join(diag)+self.sco_footer(REQUEST)
+        return self.sco_header(REQUEST=REQUEST)+'<br/>'.join(diag)+self.sco_footer(REQUEST)
             
     # --------------------------------------------------------------------
 # Uncomment these lines with the corresponding manage_option
