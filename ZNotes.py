@@ -263,7 +263,7 @@ class ZNotes(ObjectManager,
     moduleimpl_listenotes = sco_liste_notes.moduleimpl_listenotes
 
     security.declareProtected(ScoEnsView, 'notes_eval_selectetuds')
-    notes_eval_selectetuds = DTMLFile('dtml/notes/notes_eval_selectetuds', globals(), title='Choix groupe avant saisie notes')
+    notes_eval_selectetuds = sco_saisie_notes.notes_eval_selectetuds
     security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
     notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
 

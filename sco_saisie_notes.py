@@ -357,9 +357,12 @@ def do_evaluation_formnotes(self, REQUEST ):
             return """<h3>%s</h3>
             <p>%s notes modifiées (%d supprimées)<br/></p>
             <p>%s</p>
-            <p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Continuer</a>
+            <p>
+            <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Aller au tableau de bord module</a>
+            &nbsp;&nbsp;
+            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%s">Charger d'autres notes dans cette évaluation</a>
             </p>
-            """ % (description,nbchanged,nbsuppress,msg,E['moduleimpl_id'])
+            """ % (description,nbchanged,nbsuppress,msg,E['moduleimpl_id'],evaluation_id)
         else:
             if oknow:
                 tf.submitlabel = 'Entrer ces notes'
@@ -742,3 +745,94 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
         cnx.commit()
         self._inval_cache(formsemestre_id=M['formsemestre_id']) 
     return nb_changed, nb_suppress
+
+
+def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
+    """Dialogue saisie notes: choix methode et groupes
+    """
+    H = [ context.sco_header(REQUEST, page_title='Saisie des notes'),
+          '<h2>Saisie des notes</h2>' ]
+    
+    formid = 'notesfile'
+    if not REQUEST.form.get('%s-submitted'%formid,False):
+        # not submitted, choix groupe
+        r = context.do_evaluation_selectetuds(REQUEST)
+        if r:
+            H.append('<p>' + r + '</p>' )
+
+    theeval = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    H.append('''<div class="saisienote_etape2">
+    <span class="titredivsaisienote">Etape 2 : chargement d'un fichier de notes</span>''' #'
+             )
+
+    nf = TrivialFormulator( REQUEST.URL0, REQUEST.form, ( 
+        ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
+        ('notefile',  { 'input_type' : 'file', 'title' : 'Fichier de note (.xls)', 'size' : 44 }),
+        ('comment', { 'size' : 44, 'title' : 'Commentaire',
+                      'explanation':'(note: la colonne remarque du fichier excel est ignorée)' }),
+        ),
+                            formid=formid,
+                            submitlabel = 'Télécharger')
+    if nf[0] == 0:
+        H.append('''<p>Le fichier doit être un fichier tableur obtenu via
+        le formulaire ci-dessus, puis complété et enregistré au format Excel.
+        </p>''')
+        H.append(nf[1])
+    elif nf[0] == -1:
+        H.append('<p>Annulation</p>')
+    elif nf[0] == 1:
+        updiag = context.do_evaluation_upload_xls(REQUEST)
+        if updiag[0]:
+            H.append('''<p>Notes chargées.&nbsp;&nbsp;&nbsp;
+            <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">
+            Revenir au tableau de bord du module</a>
+            &nbsp;&nbsp;&nbsp;
+            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%(evaluation_id)s">Charger d'autres notes dans cette évaluation</a>
+            </p>''' % theeval)
+        else:
+            H.append('''<p class="redboldtext">Notes non chargées !</p>'''            
+                     + updiag[1] )
+            H.append('''
+            <p><a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%(evaluation_id)s">
+            Reprendre</a>
+            </p>''' % theeval)
+    #
+    H.append('''</div><h3>Autres opérations</h3><ul>''')
+    if context.can_edit_notes(REQUEST.AUTHENTICATED_USER,theeval['moduleimpl_id'],allow_ens=False):
+        H.append('''
+        <li>
+        <form action="do_evaluation_set_missing" method="GET">
+        Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
+        <input type="submit" value="OK"/> 
+        <input type="hidden" name="evaluation_id" value="%s"/> 
+        <em>ABS indique "absent" (zéro), EXC "excusé" (neutralisées), ATT "attente"</em>
+        </form>
+        </li>        
+        <li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=%s">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
+        </li>''' % (evaluation_id, evaluation_id)) #'
+    H.append('''<li><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">Revenir au module</a>
+    </li>
+    </ul>''' % theeval )
+    
+    H.append("""<h3>Explications</h3>
+<ol>
+<li>Cadre bleu (étape 1): 
+<ol><li>choisir la méthode de saisie (formulaire web ou feuille Excel);
+    <li>choisir le ou les groupes;</li>
+</ol>
+</li>
+<li>Cadre vert (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel <em>téléchargé à l'étape 1</em> et dans lequel on a saisi des notes. Remarques:
+<ul>
+<li>le fichier Excel ne doit pas forcément être complet: on peut ne saisir que quelques notes et répéter l'opération (en téléchargeant un nouveau fichier) plus tard;</li>
+<li>seules les valeurs des notes modifiées sont prises en compte;</li>
+<li>seules les notes sont extraites du fichier Excel;</li>
+<li>on peut optionnellement ajouter un commentaire (type "copies corrigées par Dupont", ou "Modif. suite à contestation") dans la case "Commentaire".
+</li>
+<li>le fichier Excel <em>doit impérativement être celui chargé à l'étape 1 pour cette évaluation</em>. Il n'est pas possible d'utiliser une liste d'appel ou autre document Excel téléchargé d'une autre page.</li>
+</ul>
+</li>
+</ol>
+""")
+    H.append( context.sco_footer(REQUEST) )
+    return '\n'.join(H)
+
