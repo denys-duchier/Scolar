@@ -118,6 +118,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' :  'formsemestre_check_absences_html?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           'helpmsg' : ''
+          },
+        { 'title' : 'Lister tous les enseignants',
+          'url' :  'formsemestre_enseignants_list?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          'helpmsg' : ''
           }
         ]
     if uid == 'root' or uid[:7] == 'viennet':

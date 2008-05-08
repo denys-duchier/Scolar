@@ -354,7 +354,7 @@ class GenTable:
         if not filename:
             filename = self.filename
         page_title = page_title or self.page_title
-        html_title = title or self.html_title
+        html_title = self.html_title or title
         if format == 'html':
             H = []
             if with_html_headers:                

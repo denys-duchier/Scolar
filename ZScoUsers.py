@@ -237,7 +237,7 @@ class ZScoUsers(ObjectManager,
                 n = info['nom'].lower().capitalize()
             else:
                 n = user_name
-            # noimprenom est le nom capitalisé suivai de l'initiale du prénom
+            # noimprenom est le nom capitalisé suivi de l'initiale du prénom
             info['nomprenom'] = (n + ' ' + abbrev_prenom(p)).strip()
             return info
 

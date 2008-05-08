@@ -43,3 +43,9 @@ def logdb(REQUEST, cnx, method=None, etudid=None, msg=None, commit=True ):
     if commit:
         cnx.commit()
 
+def loglist(cnx, method=None, authenticated_user=None):
+    """List of events logged for these method and user
+    """
+    cursor = cnx.cursor()
+    cursor.execute('select * from scolog where method=%(method)s and authenticated_user=%(authenticated_user)s', { 'method' : method, 'authenticated_user' : authenticated_user})
+    return cursor.dictfetchall()

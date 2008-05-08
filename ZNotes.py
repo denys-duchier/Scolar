@@ -59,12 +59,14 @@ file_path = Globals.package_home(globals())
 
 from notesdb import *
 from notes_log import log, sendAlarm
+import scolog
 from scolog import logdb
 from sco_utils import *
 import htmlutils
 import sco_excel
 #import notes_users
 from TrivialFormulator import TrivialFormulator, TF
+from gen_tables import GenTable
 import sco_cache
 import scolars
 import sco_news
@@ -1053,6 +1055,57 @@ class ZNotes(ObjectManager,
                                           'ens_id' : ens_id } )
                     return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
             return header + '\n'.join(H) + tf[1] + F + footer
+
+    security.declareProtected(ScoView, 'formsemestre_enseignants_list')
+    def formsemestre_enseignants_list(self, REQUEST, formsemestre_id, format='html'):
+        """Liste les enseignants intervenants dans le semestre (resp. modules et chargés de TD)
+        et indique les absences saisies par chacun.
+        """
+        sem = self.get_formsemestre(formsemestre_id)
+        # resp. de modules:
+        mods = self.do_moduleimpl_withmodule_list( args={'formsemestre_id' : formsemestre_id} )
+        sem_ens = {}
+        for mod in mods:
+            if not mod['responsable_id'] in sem_ens:
+                sem_ens[mod['responsable_id']] = { 'mods' : [mod] }
+            else:
+                sem_ens[mod['responsable_id']]['mods'].append(mod)
+        # charges de TD:
+        for mod in mods:
+            for ensd in mod['ens']:
+                if not ensd['ens_id'] in sem_ens:
+                    sem_ens[ensd['ens_id']] = { 'mods' : [mod] }
+                else:
+                    sem_ens[ensd['ens_id']]['mods'].append(mod)
+        # compte les absences ajoutées par chacun dans tout le semestre
+        cnx = self.GetDBConnexion()
+        for ens in sem_ens:
+            sem_ens[ens]['nbabsadded'] = len(scolog.loglist(cnx,method='AddAbsence', authenticated_user=ens))
+
+        # description textuelle des modules
+        for ens in sem_ens:
+            sem_ens[ens]['descr_mods'] = ', '.join([ x['module']['code'] for x in sem_ens[ens]['mods'] ])
+        
+        # ajoute infos sur enseignant:
+        for ens in sem_ens:
+            sem_ens[ens]['ensinfo'] = self.Users.user_info(ens,REQUEST)
+            sem_ens[ens]['nomprenom'] = sem_ens[ens]['ensinfo']['nomprenom']
+
+        sem_ens_list = sem_ens.values()
+        sem_ens_list.sort(lambda x,y:  cmp(x['nomprenom'],y['nomprenom']))
+
+        # --- Generate page with table
+        title = 'Enseignants de ' + sem['titreannee']
+        T = GenTable( columns_ids=['nomprenom', 'descr_mods', 'nbabsadded'],
+                      titles={'nomprenom' : 'Enseignant', 'descr_mods': 'Modules',
+                              'nbabsadded' : 'Saisies Abs.' },
+                      rows=sem_ens_list, html_sortable=True,
+                      filename = make_filename('Enseignants-' + sem['titreannee']),
+                      html_title = '<h2>Enseignants de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>' % (formsemestre_id,sem['titreannee']),
+                      base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
+                      caption="Nota: le nombre de saisies d'absences est le nombre d'ajouts effectués, sans tenir compte des annulations ou double saisies."
+                      )
+        return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
 
     # menu evaluation dans moduleimpl
     security.declareProtected(ScoView, 'moduleimpl_evaluation_menu')
