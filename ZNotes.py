@@ -1079,9 +1079,13 @@ class ZNotes(ObjectManager,
                     sem_ens[ensd['ens_id']]['mods'].append(mod)
         # compte les absences ajoutées par chacun dans tout le semestre
         cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
         for ens in sem_ens:
-            sem_ens[ens]['nbabsadded'] = len(scolog.loglist(cnx,method='AddAbsence', authenticated_user=ens))
-
+            cursor.execute("select * from scolog L, notes_formsemestre_inscription I where method='AddAbsence' and authenticated_user=%(authenticated_user)s and L.etudid = I.etudid and  I.formsemestre_id=%(formsemestre_id)s and date > %(date_debut)s and date < %(date_fin)s", { 'authenticated_user' : ens, 'formsemestre_id' : formsemestre_id, 'date_debut' : DateDMYtoISO(sem['date_debut']), 'date_fin' : DateDMYtoISO(sem['date_fin']) })
+            
+            events = cursor.dictfetchall()
+            sem_ens[ens]['nbabsadded'] = len(events)
+        
         # description textuelle des modules
         for ens in sem_ens:
             sem_ens[ens]['descr_mods'] = ', '.join([ x['module']['code'] for x in sem_ens[ens]['mods'] ])
@@ -1103,7 +1107,7 @@ class ZNotes(ObjectManager,
                       filename = make_filename('Enseignants-' + sem['titreannee']),
                       html_title = '<h2>Enseignants de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>' % (formsemestre_id,sem['titreannee']),
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
-                      caption="Nota: le nombre de saisies d'absences est le nombre d'ajouts effectués, sans tenir compte des annulations ou double saisies."
+                      caption="Nota: le nombre de saisies d'absences est le nombre d'ajouts effectués sur ce semestre, sans tenir compte des annulations ou double saisies."
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
 
