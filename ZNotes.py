@@ -1107,7 +1107,7 @@ class ZNotes(ObjectManager,
                       filename = make_filename('Enseignants-' + sem['titreannee']),
                       html_title = '<h2>Enseignants de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>' % (formsemestre_id,sem['titreannee']),
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
-                      caption="Nota: le nombre de saisies d'absences est le nombre d'ajouts effectués sur ce semestre, sans tenir compte des annulations ou double saisies."
+                      caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies."
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
 
