@@ -445,6 +445,12 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         R.append(etud)
     # Tri par nom
     R.sort(lambda x,y: cmp(x['nom'], y['nom']))
+
+
+    if format == 'xls':
+        keep_numeric = True # preserve format numerique dans excel
+    else:
+        keep_numeric = False
     
     # Rempli les notes de chaque eval:
     evals = context.do_evaluation_list( {'moduleimpl_id' : moduleimpl_id})
@@ -453,7 +459,7 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         for r in R:
             n = NotesDB.get(r['etudid'],None)
             if n:
-                val = fmt_note( n['value'], keep_numeric=False) # keep numeric ?
+                val = fmt_note( n['value'], keep_numeric=keep_numeric) # keep numeric ?
             else:
                 val = 'NA'
             r[e['evaluation_id']] = val
@@ -494,7 +500,8 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         (seules les évaluations complètes le sont).
         </p>
         """ % (moduleimpl_id, M['module']['code'], M['module']['titre'], formsemestre_id, sem['titreannee']),
-        pdf_title = title
+        pdf_title = title,
+        filename='notes-%s' % M['module']['code']
         )
     return tab.make_page(context, format=format, REQUEST=REQUEST)      
 
