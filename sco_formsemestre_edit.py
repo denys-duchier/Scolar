@@ -40,7 +40,12 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     iii = []
     for user in userlist: # XXX may be slow on large user base ?
         info = context.Users.user_info(user,REQUEST)
-        iii.append( (info['nom'].upper(), info['nomprenom'], user) )
+        nomprenom = info['nomprenom']
+        if iii and nomprenom == iii[-1][1]:
+            # meme nom abrege, ajoute login
+            nomprenom += ' (%s)' % user
+            iii[-1][1] += ' (%s)' % user
+        iii.append( [info['nom'].upper(), nomprenom, user] )
     iii.sort()
     nomprenoms = [ x[1] for x in iii ]
     userlist =  [ x[2] for x in iii ]
