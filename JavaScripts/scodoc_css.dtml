@@ -344,6 +344,12 @@ a.discretelink:hover {
   font-style: italic; 
 }
 
+.blacktt { 
+  font-family: Courier, monospace;
+  font-weight: normal;
+  color: black;
+}
+
 p.msg { 
   color: red;
   font-weight: bold;
