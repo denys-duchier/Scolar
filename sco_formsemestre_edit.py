@@ -44,7 +44,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         if iii and nomprenom == iii[-1][1]:
             # meme nom abrege, ajoute login
             nomprenom += ' (%s)' % user
-            iii[-1][1] += ' (%s)' % user
+            iii[-1][1] += ' (%s)' % iii[-1][2]
         iii.append( [info['nom'].upper(), nomprenom, user] )
     iii.sort()
     nomprenoms = [ x[1] for x in iii ]
