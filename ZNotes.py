@@ -825,7 +825,7 @@ class ZNotes(ObjectManager,
     def XMLgetFormsemestres(self, etape_apo=None, formsemestre_id=None, REQUEST=None):
         "List all formsemestres matching etape, XML format"
         args = {}
-        if etape:
+        if etape_apo:
             args['etape_apo'] = etape_apo
         if formsemestre_id:
             args['formsemestre_id'] = formsemestre_id
