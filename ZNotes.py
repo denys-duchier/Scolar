@@ -821,14 +821,19 @@ class ZNotes(ObjectManager,
         "list ONE formsemestre"
         return self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
 
-    security.declareProtected(ScoView, 'XML_formsemestre_list')
-    def XML_formsemestre_list(self, REQUEST=None):
-        "List all formsemestres, XML format"
+    security.declareProtected(ScoView, 'XMLgetFormsemestres')
+    def XMLgetFormsemestres(self, etape_apo=None, formsemestre_id=None, REQUEST=None):
+        "List all formsemestres matching etape, XML format"
+        args = {}
+        if etape:
+            args['etape_apo'] = etape_apo
+        if formsemestre_id:
+            args['formsemestre_id'] = formsemestre_id
         if REQUEST:
             REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.formsemestrelist()
-        for sem in self.do_formsemestre_list():
+        for sem in self.do_formsemestre_list( args=args ):
             doc._push()
             doc.formsemestre(sem)
             doc._pop()
