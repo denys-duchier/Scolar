@@ -69,9 +69,11 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     """ % (moduleimpl_id, mod['titre'], mod['code'], formsemestre_id, sem['titreannee'])]
     # Liste des inscrits à ce semestre
     inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
+    for ins in inscrits:
+        ins['etud'] = context.getEtudInfo(etudid=ins['etudid'], filled=1)[0]
+    inscrits.sort( lambda x,y: cmp(x['etud']['nom'],y['etud']['nom']) )
     in_m = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     in_module= Set( [ x['etudid'] for x in in_m ] )
-    log('in_module=%s' % in_module)
     #
     if not submitted:
         H.append("""<script type="text/javascript">
@@ -100,12 +102,12 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         <th>%(nomgroupetd)s</th><th>%(nomgroupeta)s</th><th>%(nomgroupetp)s</th></tr>""" % sem )
 
         for ins in inscrits:
-            etud = context.getEtudInfo(etudid=ins['etudid'],filled=1)[0]
+            etud = ins['etud']
             if etud['etudid'] in in_module:
                 checked = 'checked="checked"'
             else:
                 checked = ''
-            H.append("""<tr><td><input type="checkbox" name="etuds" value="%s" %s>"""
+            H.append("""<tr><td><input type="checkbox" name="etuds:list" value="%s" %s>"""
                              % (etud['etudid'], checked) )
             H.append("""<a class="discretelink" href="ficheEtud?etudid=%s">%s</a>""" % (
                         etud['etudid'], etud['nomprenom'] ))

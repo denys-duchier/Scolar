@@ -76,6 +76,35 @@ def fmt_note(val, note_max=None, keep_numeric=False):
     else:
         return val.replace('NA0', '-')  # notes sans le NA0
 
+def comp_ranks(T):
+    """Calcul rangs à partir d'une liste ordonnée de tuples [ (valeur, ..., etudid) ] 
+    (valeur est une note numérique), en tenant compte des ex-aequos
+    Le resultat est: { etudid : rang } où rang est une chaine decrivant le rang
+    """
+    rangs = {} # { etudid : rang } (rang est une chaine)
+    nb_ex = 0 # nb d'ex-aequo consécutifs en cours
+    for i in range(len(T)):
+        # test ex-aequo
+        if i < len(T)-1:
+            next = T[i+1][0]
+        else:
+            next = None
+        moy = T[i][0]
+        if nb_ex:
+            srang = '%d ex' % (i+1-nb_ex)
+            if moy == next:
+                nb_ex += 1
+            else:
+                nb_ex = 0
+        else:
+            if moy == next:
+                srang = '%d ex' % (i+1-nb_ex)
+                nb_ex = 1
+            else:
+                srang = '%d' % (i+1)                        
+        rangs[T[i][-1]] = srang # str(i+1)
+    return rangs
+
 class NotesTable:
     """Une NotesTable représente un tableau de notes pour un semestre de formation.
     Les colonnes sont des modules.
@@ -151,7 +180,7 @@ class NotesTable:
         T = []
         self.comp_ue_coefs(cnx)
         self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)
-        self.moy_ue = {} # ue_id : { etudid : moy ue }
+        self.moy_ue = {} # ue_id : { etudid : moy ue } (valeur numerique)
         self._etud_moycoef_ue = {} # { etudid : { ue_id : (moy, coef) } }
         self.etud_ues_status = {} # { etudid : { ue_id : {...status...} } }
         for etudid in self.get_etudids():
@@ -162,12 +191,15 @@ class NotesTable:
             moy_ues = []
             for ue in self._ues:
                 ue_status = self.etud_ues_status[etudid]
-                if ue_status[ue['ue_id']]['is_capitalized']:
-                    moy_ue = ue_status[ue['ue_id']]['moy_ue']
-                    moy_ues.append(fmt_note(moy_ue))
-                else:
-                    moy_ue = self._etud_moycoef_ue[etudid][ue['ue_id']][0]
-                    moy_ues.append(fmt_note(moy_ue))
+                moy_ue = ue_status[ue['ue_id']]['moy_ue']
+                moy_ues.append(fmt_note(moy_ue))
+                # XXX ancien code (inutile je pense !)
+                #if ue_status[ue['ue_id']]['is_capitalized']:
+                #    moy_ue = ue_status[ue['ue_id']]['moy_ue']
+                #    moy_ues.append(fmt_note(moy_ue))
+                #else:
+                #    moy_ue = self._etud_moycoef_ue[etudid][ue['ue_id']][0]
+                #    moy_ues.append(fmt_note(moy_ue))
                 if not self.moy_ue.has_key(ue['ue_id']):
                     self.moy_ue[ue['ue_id']] = {}
                 self.moy_ue[ue['ue_id']][etudid] = moy_ue
@@ -210,28 +242,15 @@ class NotesTable:
         self.T = T
         
         # calcul rangs (/ moyenne generale)
-        self.rangs = {} # { etudid : rangs } (rang est une chaine)
-        nb_ex = 0 # nb d'ex-aequo consécutifs en cours
-        for i in range(len(T)):
-            # test ex-aequo
-            if i < len(T)-1:
-                next = T[i+1][0]
-            else:
-                next = None
-            moy = T[i][0]
-            if nb_ex:
-                srang = '%d ex' % (i+1-nb_ex)
-                if moy == next:
-                    nb_ex += 1
-                else:
-                    nb_ex = 0
-            else:
-                if moy == next:
-                    srang = '%d ex' % (i+1-nb_ex)
-                    nb_ex = 1
-                else:
-                    srang = '%d' % (i+1)                        
-            self.rangs[T[i][-1]] = srang # str(i+1)
+        self.rangs = comp_ranks(T)
+        # calcul rangs dans chaque UE
+        # self.ue_rangs[ue_id] = { etudid : rang } (rang est une chaine)
+        self.ue_rangs = {}
+        for ue in self._ues:
+            ue_id = ue['ue_id']
+            val_ids = [ (self.moy_ue[ue_id][etudid], etudid) for etudid in self.moy_ue[ue_id] ]
+            val_ids.sort(cmprows)
+            self.ue_rangs[ue_id] = comp_ranks(val_ids)
         #
         self.compute_moy_moy()
         
