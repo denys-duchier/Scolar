@@ -115,7 +115,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     # customize table style
     TableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )
     objects.append( Table( Pt,
-                           colWidths = (1.5*cm, 5*cm, 6*cm, 2*cm, 1*cm),
+                           colWidths = (None, 5*cm, 6*cm, 2*cm, 1*cm),
                            style=TableStyle ) )
     if etud.has_key('nbabs'):
         objects.append( Spacer(0, 0.4*cm) )

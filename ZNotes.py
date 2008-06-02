@@ -185,7 +185,7 @@ class ZNotes(ObjectManager,
             log('clearcache: inconsistency !')
             txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
             log(txt)
-            sendAlarm(self, subj, txt)
+            sendAlarm(self, 'clearcache: inconsistency !', txt)
         
     # --------------------------------------------------------------------
     #
