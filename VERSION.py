@@ -7,6 +7,11 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Juin 2008</h4>
+<ul>
+<li>Rangs sur les bulletins</li>
+</ul>
+
 <h4>Février 2008</h4>
 <ul>
 <li>Statistiques et suivis de cohortes (chiffres et graphes)</li>

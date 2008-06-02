@@ -2,14 +2,6 @@
 <div class="formsemestre_status">
 
 <dtml-var formsemestre_status_head>
-
-<dtml-if "sem['bul_hide_xml'] != '0'">
-<p><em>Bulletins non publiés sur le portail</em></p>
-</dtml-if bul_hide_xml>
-
-
-<dtml-var "formsemestre_status_menubar(sem, REQUEST)">
-<br/>
 <p>
 <table class="formsemestre_status">
 <tr><th class="formsemestre_status">UE</th>

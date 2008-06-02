@@ -29,7 +29,7 @@
 """
 
 import time, string, glob, re
-import urllib, urllib2, xml
+import urllib, urllib2, cgi, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
@@ -628,6 +628,11 @@ class ZScolar(ObjectManager,
     def make_listes_sem(self, sem, REQUEST=None, with_absences=True):
         authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
+        query_args = cgi.parse_qs(REQUEST.QUERY_STRING)
+        if 'head_message' in query_args:
+            del query_args['head_message']
+        destination = "%s?%s" % (REQUEST.URL, urllib.urlencode(query_args))
+        destination=destination.replace('%','%%') # car ici utilisee dans un format string !
         H = []
         # pas de menu absences si pas autorise:
         if with_absences and not authuser.has_permission(ScoAbsChange,self):
@@ -647,8 +652,8 @@ class ZScolar(ObjectManager,
                              % sem )
             FA.append('<input type="hidden" name="semestregroupe" value="%s!%%s"/>'
                      % (formsemestre_id,) )
-            FA.append('<input type="hidden" name="destination" value="%s?%s"/>'
-                     % (REQUEST.URL, REQUEST.QUERY_STRING))
+            FA.append('<input type="hidden" name="destination" value="%s"/>'
+                      % destination)
             FA.append('<input type="submit" value="Saisir absences du" />')
             FA.append('<select name="datedebut" class="noprint">')
             date = first_monday

@@ -71,6 +71,24 @@ div.about-logo {
   padding-top: 10px;
 }
 
+
+div.head_message {
+   margin-top: 2px;
+   margin-bottom: 0px;
+   padding:  0.1em;
+   margin-left: auto;
+   margin-right: auto;
+   background-color: #ffff73;
+   -moz-border-radius: 8px;
+   -khtml-border-radius: 8px;
+   border-radius: 8px;
+   font-family : arial, verdana, sans-serif ;
+   font-weight: bold;
+   width: 40%;
+   text-align: center;
+   
+}
+
 /* ---- (left) SIDEBAR  ----- */
 
 div.sidebar {

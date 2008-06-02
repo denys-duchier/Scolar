@@ -244,13 +244,21 @@ class NotesTable:
         # calcul rangs (/ moyenne generale)
         self.rangs = comp_ranks(T)
         # calcul rangs dans chaque UE
-        # self.ue_rangs[ue_id] = { etudid : rang } (rang est une chaine)
-        self.ue_rangs = {}
+        ue_rangs = {} # ue_rangs[ue_id] = ({ etudid : rang }, nb_inscrits) (rang est une chaine)
         for ue in self._ues:
             ue_id = ue['ue_id']
             val_ids = [ (self.moy_ue[ue_id][etudid], etudid) for etudid in self.moy_ue[ue_id] ]
             val_ids.sort(cmprows)
-            self.ue_rangs[ue_id] = comp_ranks(val_ids)
+            ue_rangs[ue_id] = (comp_ranks(val_ids), len(self.moy_ue[ue_id]))
+        self.ue_rangs = ue_rangs
+        # ---- calcul rangs dans les modules
+        if self.sem['bul_show_mod_rangs'] != '0': # slt si demandé
+            self.mod_rangs = {}
+            for modimpl in self._modimpls:
+                vals = self._modmoys[modimpl['moduleimpl_id']]
+                val_ids = [ (vals[etudid], etudid) for etudid in vals.keys() ]
+                val_ids.sort(cmprows)
+                self.mod_rangs[modimpl['moduleimpl_id']] = (comp_ranks(val_ids), len(vals))
         #
         self.compute_moy_moy()
         

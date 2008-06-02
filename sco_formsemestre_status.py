@@ -99,7 +99,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : authuser.has_permission(ScoImplement, context) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
-        { 'title' : 'Options du semestre',
+        { 'title' : 'Réglages bulletins',
           'url' :  'formsemestre_edit_options?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           'helpmsg' : 'Change les options'

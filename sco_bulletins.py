@@ -114,7 +114,10 @@ def make_formsemestre_bulletinetud(
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
             ue_comment = '(en cours, non prise en compte)'
         else:
-            ue_comment = ''
+            if sem['bul_show_ue_rangs'] != '0':
+                ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1])
+            else:
+                ue_comment = ''
         if (not ue_status['is_capitalized']) or ue_status['cur_moy_ue'] != 'NA':
             t = ( ue['acronyme'], moy_ue, ue_comment, '', '%.2g' % ue_status['cur_coef_ue'] )
             P.append(t)
@@ -133,12 +136,16 @@ def make_formsemestre_bulletinetud(
                     nom_mod = modimpl['module']['abbrev']
                     if not nom_mod:
                         nom_mod = ''                        
-                    t = [ modimpl['module']['code'], nom_mod, mod_moy, '',
-                      '%.2g' % modimpl['module']['coefficient'] ]
-                    if version == 'short':
-                        t[3], t[2] = t[2], t[3] # deplace colonne note
+                    t = [ modimpl['module']['code'], nom_mod, '', mod_moy,
+                          '%.2g' % modimpl['module']['coefficient'] ]
+                    
+                    if sem['bul_show_mod_rangs'] != '0' and mod_moy != '-':
+                        t[2] = '%s/%s' % (nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid],
+                                          nt.mod_rangs[modimpl['moduleimpl_id']][1])
+                    
                     if sem['bul_show_codemodules'] != '1':
                         t[0] = '' # pas affichage du code module
+                    
                     P.append(tuple(t))
                     link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s">' % modimpl['moduleimpl_id']
                     t[0] = link_mod + t[0] # add html link
@@ -314,6 +321,12 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         doc._push()
         doc.note( value=fmt_note(ue_status['cur_moy_ue']) )
         doc._pop()
+        doc._push()
+        doc.rang( value=str(nt.ue_rangs[ue['ue_id']][0][etudid]) )
+        doc._pop()
+        doc._push()
+        doc.effectif( value=str(nt.ue_rangs[ue['ue_id']][1]) )
+        doc._pop()
         # Liste les modules de l'UE 
         ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
         for modimpl in ue_modimpls:
@@ -330,6 +343,13 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
             doc._push()
             doc.note( value=mod_moy )
             doc._pop()
+            if sem['bul_show_mod_rangs'] != '0':
+                doc._push()
+                doc.rang( value=nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid] )
+                doc._pop()
+                doc._push()
+                doc.effectif( value=nt.mod_rangs[modimpl['moduleimpl_id']][1] )
+                doc._pop()
             # --- notes de chaque eval:
             evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
             for e in evals:
@@ -482,6 +502,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None, format
 def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                            formsemestre_id=None, format=None, version=None, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
+    uid = str(authuser)
     H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST),
           """<table class="bull_head"><tr><td>
           <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>
@@ -510,7 +531,13 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     H.append("""</select></td>""")
     # Menu
     url = REQUEST.URL0
+    qurl = urllib.quote_plus( url + '?' + REQUEST.QUERY_STRING )
+    
     menuBul = [
+        { 'title' : 'Réglages bulletins',
+          'url' : 'formsemestre_edit_options?formsemestre_id=%s&target_url=%s' % (formsemestre_id, qurl),
+          'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
+          },
         { 'title' : 'Version papier (pdf)',
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s' % (formsemestre_id,etudid,version),
           },

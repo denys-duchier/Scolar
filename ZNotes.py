@@ -681,7 +681,9 @@ class ZNotes(ObjectManager,
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
-         'bul_show_codemodules', 'gestion_compensation', 'gestion_semestrielle',
+         'bul_show_codemodules', 
+         'bul_show_ue_rangs', 'bul_show_mod_rangs',
+         'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
          'etape_apo', 'modalite'
@@ -693,6 +695,8 @@ class ZNotes(ObjectManager,
                              'bul_show_decision' : str,
                              'bul_show_uevalid' : str,
                              'bul_show_codemodules' : str,
+                             'bul_show_ue_rangs' : str,
+                             'bul_show_mod_rangs' : str,
                              'gestion_compensation' : str,
                              'gestion_semestrielle' : str,
                              'etat' : str,
@@ -704,10 +708,20 @@ class ZNotes(ObjectManager,
                              'bul_show_decision' : int,
                              'bul_show_uevalid' : int,
                              'bul_show_codemodules' : int,
+                             'bul_show_ue_rangs' : int,
+                             'bul_show_mod_rangs' : int,
                              'gestion_compensation' : int,
                              'gestion_semestrielle' : int,
                              'etat' : int,
-                             'bul_hide_xml' : int }
+                             'bul_hide_xml' : int },
+
+        fields_creators = { 'bul_show_ue_rangs' : [
+                'alter table notes_formsemestre add column bul_show_ue_rangs int',
+                'alter table notes_formsemestre alter column bul_show_ue_rangs set default 1' ],
+                            'bul_show_mod_rangs' : [
+                'alter table notes_formsemestre add column bul_show_mod_rangs int',
+                'alter table notes_formsemestre alter column bul_show_mod_rangs set default 1' ],
+                            }
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')

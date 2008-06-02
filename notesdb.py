@@ -163,7 +163,8 @@ class EditableTable:
                  convert_null_outputs_to_empty=True,
                  callback_on_write = None,
                  allow_set_id = False,
-                 html_quote = True
+                 html_quote = True,
+                 fields_creators = {} # { field : [ sql_command_to_create_it ] }
                  ):
         self.table_name = table_name
         self.id_name = id_name
@@ -176,10 +177,14 @@ class EditableTable:
         self.callback_on_write = callback_on_write # called after each modification (USELESS and unused)
         self.allow_set_id = allow_set_id
         self.html_quote = html_quote
-        self.sql_default_values = None
+        self.fields_creators = fields_creators
+        self.table_verified = False # all fields may not have been created
+        self.sql_default_values = None        
 
     def create(self, cnx, args, has_uniq_values=False):
         "create object in table"
+        if not self.table_verified:
+            self.ensure_table_fields(cnx)
         vals = dictfilter(args, self.dbfields)        
         if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
@@ -214,6 +219,8 @@ class EditableTable:
     
     def delete(self, cnx, oid, commit=True ):
         "delete tuple"
+        if not self.table_verified:
+            self.ensure_table_fields(cnx)
         DBDelete(cnx, self.table_name, self.id_name, oid, commit=commit )
         if self.callback_on_write:
             self.callback_on_write()
@@ -225,6 +232,8 @@ class EditableTable:
         # REQLOG.flush()
         # global REQN
         # REQN = REQN + 1
+        if not self.table_verified:
+            self.ensure_table_fields(cnx)
         vals = dictfilter(args, self.dbfields)
         if not sortkey:
             sortkey = self.sortkey
@@ -254,6 +263,8 @@ class EditableTable:
         
     def edit(self, cnx, args):
         """Change fields"""
+        if not self.table_verified:
+            self.ensure_table_fields(cnx)
         vals = dictfilter(args, self.dbfields)
         quote_dict(vals) # quote HTML
         # format value
@@ -267,8 +278,10 @@ class EditableTable:
         if self.callback_on_write:
             self.callback_on_write()
 
-    def get_sql_default_values(self, cnx):
+    def get_sql_default_values(self, cnx, check_verified=True):
         "return dict with SQL default values for each field"
+        if check_verified and not self.table_verified:
+            self.ensure_table_fields(cnx)
         if self.sql_default_values is None: # not cached
             # We insert a new tuple, get the values and delete it
             # XXX non, car certaines tables ne peuvent creer de tuples
@@ -306,6 +319,41 @@ class EditableTable:
             self.sql_default_values = d
         return self.sql_default_values
 
+    def ensure_table_field(self, cnx, field, sql_create_commands):
+        """
+        Ensure that field exists in table.
+        If not so, create it using specified SQL commands (a list of strings).
+        """
+        if not self.sql_default_values:
+            self.get_sql_default_values(cnx, check_verified=False)
+        if not field in self.sql_default_values:
+            log('missing field %s in table %s: trying to create it'%(field,self.table_name))
+            cursor = cnx.cursor()
+            try:
+                for cmd in sql_create_commands:
+                    log('executing SQL: %s' % cmd)
+                    cursor.execute(cmd)
+                cnx.commit()
+            except:
+                cnx.rollback()
+                log('ensure_table_field: failure. Aborting transaction.')
+            # store new description and check
+            self.sql_default_values = None # clear cached data
+            self.get_sql_default_values(cnx, check_verified=False)
+            if not field in self.sql_default_values:
+                log('ensure_table_field: new field still missing !')
+                raise ScoException('database configuration problem')
+    
+    def ensure_table_fields(self, cnx):
+        """
+        Add missing fields in SQL table .
+        Note: used only for "new" fields (may 2008) to ease automatic upgrades
+        of existing ScoDoc installations.
+        """
+        for field in self.fields_creators.keys():
+            self.ensure_table_field(cnx, field, self.fields_creators[field] )
+        self.table_verified = True
+
 def dictfilter( d, fields ):
     # returns a copy of d with only keys listed in "fields" and non null values
     r = {}
@@ -318,6 +366,7 @@ def dictfilter( d, fields ):
             #if val != '': not a good idea: how to suppress a field ?
             r[f] = val
     return r
+
 
 # --------------------------------------------------------------------
 # --- Misc Tools

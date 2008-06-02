@@ -39,7 +39,8 @@ def sco_header(context, REQUEST=None,
                cssstyles=[],       # additionals CSS sheets
                javascripts=[],     # additionals JS
                bodyOnLoad='',      # JS
-               titrebandeau=''     # titre dans bandeau superieur
+               titrebandeau='',    # titre dans bandeau superieur
+               head_message='',    # message action (petit cadre jaune en haut)
                ):    
     "Main HTML page header for ScoDoc"
     # rewritten from legacy DTML code
@@ -51,6 +52,11 @@ def sco_header(context, REQUEST=None,
     # Add a HTTP header (can be used by Apache to log requests)
     if REQUEST.AUTHENTICATED_USER:
         REQUEST.RESPONSE.setHeader('X-ScoDoc-User', str(REQUEST.AUTHENTICATED_USER))
+
+    # Get more parameters from REQUEST
+    if not head_message and REQUEST.form.has_key('head_message'):
+        head_message = REQUEST.form['head_message']
+    
     params = {
         'page_title' : page_title or context.title_or_id(),
         'no_side_bar': no_side_bar,
@@ -121,6 +127,9 @@ window.onload=function(){enableTooltips("gtrcontent")};
     if not no_side_bar:
         H.append( context.sidebar(REQUEST) )
     H.append("""<div class="gtrcontent" id="gtrcontent">""")
+    #
+    if head_message:
+        H.append('<div class="head_message">' + head_message + '</div>')
     #
     return ''.join(H)
 

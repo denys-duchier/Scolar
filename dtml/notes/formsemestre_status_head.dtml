@@ -41,3 +41,11 @@ Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indi
 </dtml-in do_evaluation_etat_in_sem>
 
 </table>
+
+<dtml-if "sem['bul_hide_xml'] != '0'">
+<p><em>Bulletins non publiés sur le portail</em></p>
+</dtml-if bul_hide_xml>
+
+
+<dtml-var "formsemestre_status_menubar(sem, REQUEST)">
+<br/>
