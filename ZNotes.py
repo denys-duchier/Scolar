@@ -1139,16 +1139,21 @@ class ZNotes(ObjectManager,
         
         menuEval = [
             { 'title' : 'Saisir notes',
-              'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id },
+              'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id,
+              'enabled' : self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'])
+              },
             { 'title' : 'Modifier évaluation',
-              'url' : 'evaluation_edit?evaluation_id=' + evaluation_id },
+              'url' : 'evaluation_edit?evaluation_id=' + evaluation_id,
+              'enabled' : self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
+              },
             { 'title' : 'Afficher les notes',
               'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
               'enabled' : nbnotes > 0
               },
             { 'title' : 'Supprimer évaluation',
               'url' : 'evaluation_delete?evaluation_id=' + evaluation_id,
-              'enabled' : nbnotes == 0 },
+              'enabled' : nbnotes == 0 and self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
+              },
             { 'title' : 'Absences ce jour',
               'url' : 'Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s'
               % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe='')),
