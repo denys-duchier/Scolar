@@ -441,8 +441,8 @@ class NotesTable:
                 # module ne faisant pas partie d'une UE capitalisee
                 val = self._modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
                 # si 'NI' probablement etudiant non inscrit a ce module
+                coef = modimpl['module']['coefficient']
                 if modimpl['ue']['type'] == UE_STANDARD:
-                    coef = modimpl['module']['coefficient']
                     try:
                         sum_notes += val * coef
                         sum_coefs += coef
@@ -455,6 +455,7 @@ class NotesTable:
                         notes_sport.append(float(val))
                         coef_sport.append(coef)
                     except:
+                        # log('comp_etud_moy: exception: val=%s coef=%s' % (val,coef))
                         pass
                 else:
                     raise ScoValueError("type d'UE inconnu (%s)"%modimpl['ue']['type'])
