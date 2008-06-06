@@ -59,7 +59,9 @@ def do_evaluation_selectetuds(self, REQUEST ):
         no_group = False
     # description de l'evaluation    
     H = [ self.evaluation_create_form(evaluation_id=evaluation_id,
-                                      REQUEST=REQUEST, readonly=1) ]
+                                      REQUEST=REQUEST, readonly=1),
+          '<h3>Saisie des notes</h3>'
+          ]
     #
     descr = [
         ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
@@ -750,15 +752,14 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
 def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     """Dialogue saisie notes: choix methode et groupes
     """
-    H = [ context.sco_header(REQUEST, page_title='Saisie des notes'),
-          '<h2>Saisie des notes</h2>' ]
+    H = [ context.sco_header(REQUEST, page_title='Saisie des notes')]
     
     formid = 'notesfile'
     if not REQUEST.form.get('%s-submitted'%formid,False):
         # not submitted, choix groupe
         r = context.do_evaluation_selectetuds(REQUEST)
         if r:
-            H.append('<p>' + r + '</p>' )
+            H.append(r)            
 
     theeval = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     H.append('''<div class="saisienote_etape2">

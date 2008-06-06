@@ -1715,7 +1715,10 @@ class ZNotes(ObjectManager,
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
                 H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
-            H.append( '<br/>Coefficient dans le module: <b>%s</b></p>' % E['coefficient'] )
+            H.append( '<br/>Coefficient dans le module: <b>%s</b>' % E['coefficient'] )
+            if self.can_edit_notes(REQUEST.AUTHENTICATED_USER, moduleimpl_id, allow_ens=False):
+                H.append('<a href="evaluation_edit?evaluation_id=%s">(modifier l\'évaluation)</a>' % evaluation_id)
+            H.append('</p>')
             return '<div class="eval_description">' + '\n'.join(H) + '</div>'
 
         heures = [ '%02dh%02d' % (h,m) for h in range(8,19) for m in (0,30) ]

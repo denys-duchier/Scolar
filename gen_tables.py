@@ -267,7 +267,7 @@ class GenTable:
         if self.origin:
             lines.append( [] ) # empty line        
             lines.append( [self.origin] )
-        log('lines=%s'%lines)
+        #log('lines=%s'%lines)
         return sco_excel.Excel_SimpleTable(
             titles=self.get_titles_list(),
             lines=lines,
