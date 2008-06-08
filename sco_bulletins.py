@@ -97,7 +97,7 @@ def make_formsemestre_bulletinetud(
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
         moy_ue = fmt_note(ue_status['cur_moy_ue'])
         if ue['type'] == UE_SPORT:
-            moy_ue = '(note spéciale)'
+            moy_ue = '(note spéciale, bonus de %s points)' % nt.bonus[etudid]
         # UE capitalisee ?
         if ue_status['is_capitalized']:
             sem_origin = znotes.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
@@ -310,6 +310,9 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
     doc._push()
     doc.note_max( value=20 ) # notes toujours sur 20
     doc._pop()
+    doc._push()
+    doc.bonus_sport_culture( value=nt.bonus[etudid] )
+    doc._pop()
     # Liste les UE / modules /evals
     for ue in ues:
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
@@ -331,7 +334,7 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
         for modimpl in ue_modimpls:
             mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
-            if mod_moy == 'NI': # ne mentionne pa sles modules ou n'est pas inscrit
+            if mod_moy == 'NI': # ne mentionne pas les modules ou n'est pas inscrit
                 continue
             mod = modimpl['module']
             doc._push()

@@ -37,7 +37,8 @@ def bonus_iutv(notes_sport, coefs):
     optionnelles sont cumulés et 5% de ces points cumulés s'ajoutent à
     la moyenne générale du semestre déjà obtenue par l'étudiant.
     """
-    note_sport = sum(map(mul, notes_sport, coefs)) / sum(coefs) # moyenne pondérée
+    sumc = sum(coefs) # assumes sum. coefs > 0
+    note_sport = sum(map(mul, notes_sport, coefs)) / sumc # moyenne pondérée
     bonus = sum( [ (x - 10) / 20. for x in notes_sport if x > 10 ])
     return bonus
 

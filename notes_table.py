@@ -119,6 +119,8 @@ class NotesTable:
     get_table_moyennes_triees: [ (moy_gen, moy_ue1, moy_ue2, ... moy_ues, moy_mod1, ..., moy_modn, etudid) ] 
     (où toutes les valeurs sont formatéees (fmt_note), incluant les UE de sport
 
+    - bonus[etudid] : valeur du bonus "sport".
+
     Attributs privés:
     - _modmoys : { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
     - _ues : liste des UE de ce semestre
@@ -150,14 +152,15 @@ class NotesTable:
         rangalpha = {}
         for i in range(len(self.inscrlist)):
             rangalpha[self.inscrlist[i]['etudid']] = i
+
+        self.bonus = DictDefault(defaultvalue=0)
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
         self._modmoys, self._modimpls, valid_evals, mods_att =\
                        znotes.do_formsemestre_moyennes(formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
         self._valid_evals = {} # { evaluation_id : eval }
         for e in valid_evals:
-            self._valid_evals[e['evaluation_id']] = e
-        # Liste des modules et UE
+            self._valid_evals[e['evaluation_id']] = e        # Liste des modules et UE
         uedict = {}
         for modimpl in self._modimpls:
             mod = znotes.do_module_list(args={'module_id' : modimpl['module_id']} )[0]
@@ -431,8 +434,8 @@ class NotesTable:
         sum_notes = 0.
         sum_coefs = 0.
         nb_missing = 0
-        notes_sport = [] # liste de snotes d esport et culture
-        coef_sport = []
+        notes_sport = [] # liste des notes de sport et culture
+        coefs_sport = []
         if with_capitalized_ue:
             ues_status = self.etud_ues_status[etudid] # { ue_id : ... }
         for modimpl in modimpls:
@@ -453,7 +456,7 @@ class NotesTable:
                     # la note du module de sport agit directement sur la moyenne gen.
                     try:
                         notes_sport.append(float(val))
-                        coef_sport.append(coef)
+                        coefs_sport.append(coef)
                     except:
                         # log('comp_etud_moy: exception: val=%s coef=%s' % (val,coef))
                         pass
@@ -476,7 +479,15 @@ class NotesTable:
             if not ue_id:
                 if notes_sport:
                     # regle de calcul maison (configurable, voir bonus_sport.py)
-                    bonus = CONFIG.compute_bonus(notes_sport, coef_sport)
+                    if sum(coefs_sport) <= 0 and len(coefs_sport) != 1:
+                        log('comp_etud_moy: invalid or null coefficient (%s) for notes_sport=%s (etudid=%s, formsemestre_id=%s)'
+                            % (coefs_sport, notes_sport, etudid, self.formsemestre_id))
+                        bonus = 0
+                    else:
+                        if len(coefs_sport) == 1:
+                            coefs_sport = [1.0] # irrelevant, may be zero
+                        bonus = CONFIG.compute_bonus(notes_sport, coefs_sport)
+                    self.bonus[etudid] = bonus
                     moy += bonus
         else:
             moy = 'NA'
