@@ -148,7 +148,7 @@ def menus_bandeau(context, REQUEST=None):
     
     H = [ """<div class="barrenav"><ul class="nav">
 <li><a href="%s" class="menu accueil">ScoDoc %s</a></li>
-""" % (context.DeptIntranetURL, context.DeptName)          
+""" % (context.get_preference('DeptIntranetURL'), context.get_preference('DeptName'))          
           ]
     if REQUEST.form.has_key('etudid'):
         # menu Etudiant

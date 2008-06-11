@@ -50,6 +50,10 @@ def sidebar_common(context, REQUEST=None):
         H.append( """<a href="%(ScoURL)s/Users" class="sidebar">Utilisateurs</a> <br/>"""
                   % params )
 
+    if authuser.has_permission(ScoSuperAdmin, context):
+        H.append( """<a href="%(ScoURL)s/edit_preferences" class="sidebar">Paramétrage</a> <br/>"""
+                  % params )
+
     return ''.join(H)
 
 def sidebar(context, REQUEST=None):
@@ -125,8 +129,8 @@ def sidebar_dept(context, REQUEST=None):
  <br/>
  <a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a> <br/>""" % {
                 'BASE0' : REQUEST.BASE0,
-                'DeptIntranetURL' : context.DeptIntranetURL,
-                'DeptName' : context.DeptName,
+                'DeptIntranetURL' : context.get_preference('DeptIntranetURL'),
+                'DeptName' : context.get_preference('DeptName'),
                 'ScoURL' : context.ScoURL() }
 
 

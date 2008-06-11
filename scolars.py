@@ -194,7 +194,7 @@ def identite_edit(cnx, args, context=None, REQUEST=None):
     notify_to = None
     if context:
         try:
-            notify_to = context.notify_etud_changes_to
+            notify_to = context.get_preference('notify_etud_changes_to')
         except:
             pass
     if notify_to:
@@ -280,7 +280,7 @@ def adresse_edit(cnx, args, context=None):
     notify_to = None
     if context:
         try:
-            notify_to = context.notify_etud_changes_to
+            notify_to = context.get_preference('notify_etud_changes_to')
         except:
             pass
     if notify_to:

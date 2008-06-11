@@ -173,8 +173,8 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
     sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     params = {
         'dateJury' : dateJury,
-        'deptName' : znotes.DeptName, 
-        'nomDirecteur' : znotes.DirectorName,
+        'deptName' : znotes.get_preference('DeptName'), 
+        'nomDirecteur' : znotes.get_preference('DirectorName'),
         'titreFormation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
@@ -401,7 +401,7 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission, dateJury=None, showTitle=Fa
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
     <para align="center"><b>Procès-verbal du %s du département %s - Session %s</b></para>    
-    """ % (t, znotes.DeptName, sem['annee']), style)
+    """ % (t, znotes.get_preference('DeptName'), sem['annee']), style)
 
     if showTitle:
         objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
@@ -417,7 +417,7 @@ vu l'arrêté n° 07 081 905 001 du Président de l'%s;
 <para><bullet>-</bullet> 
 vu la délibération de la commission %s en date du %s présidée par le Chef du département;
 </para>
-    """ % (znotes.UnivName, t, dateCommission), bulletStyle )
+    """ % (znotes.get_preference('UnivName'), t, dateCommission), bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
@@ -447,7 +447,7 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     # Signature du directeur
     objects += makeParas(
         """<para spaceBefore="10mm" align="right">
-        Le directeur de l'IUT, %s</para>""" % znotes.DirectorName,
+        Le directeur de l'IUT, %s</para>""" % znotes.get_preference('DirectorName'),
                          style)
 
     # Légende des codes

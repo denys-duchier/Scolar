@@ -222,7 +222,7 @@ def make_formsemestre_bulletinetud(
         if sem['gestion_absence'] == '1':
             etud['nbabs'] = nbabs
             etud['nbabsjust'] = nbabsjust
-        infos = { 'DeptName' : znotes.DeptName }
+        infos = { 'DeptName' : znotes.get_preference('DeptName') }
         stand_alone = (format != 'pdfpart')
         if nt.get_etud_etat(etudid) == 'D':
             filigranne = 'DEMISSION'

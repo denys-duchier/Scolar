@@ -145,15 +145,13 @@ class ZNotes(ObjectManager,
         file=f.read()     
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
-
     
     def _getNotesCache(self):
         "returns CacheNotesTable instance for us"
-        if NOTES_CACHE_INST.has_key( self.ScoURL() ):
-            return NOTES_CACHE_INST[self.ScoURL()]
-        else:
-            NOTES_CACHE_INST[self.ScoURL()] = CacheNotesTable()
-            return NOTES_CACHE_INST[self.ScoURL()]
+        u = self.ScoURL()
+        if not NOTES_CACHE_INST.has_key(u):
+            NOTES_CACHE_INST[u] = CacheNotesTable()
+        return NOTES_CACHE_INST[u]
 
     def _inval_cache(self, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
@@ -2251,7 +2249,7 @@ class ZNotes(ObjectManager,
                         % etud['nomprenom']) + htm
             #
             webmaster = getattr(self,'webmaster_email',"l'administrateur.")
-            dept = unescape_html(getattr(self,'DeptName', ''))
+            dept = unescape_html(self.get_preference('DeptName'))
             #pdb.set_trace()
             fmt = formsemestre_pagebulletin_get(self, formsemestre_id)
             log(fmt)
@@ -2302,7 +2300,7 @@ class ZNotes(ObjectManager,
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
-        infos = { 'DeptName' : self.DeptName }
+        infos = { 'DeptName' : self.get_preference('DeptName') }
         if REQUEST:
             server_name = REQUEST.BASE0
         else:

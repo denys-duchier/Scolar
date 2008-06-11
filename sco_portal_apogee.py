@@ -35,11 +35,11 @@ from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
 def get_portal_url(context):
-    try:
-        return context.portal_url # Zope property
-    except:
-        log('get_portal_url: undefined property "portal_url"')
-        return None
+    "URL of portal"
+    portal_url = context.get_preference('portal_url')
+    if not portal_url:
+        log('get_portal_url: undefined "portal_url"')
+    return portal_url
 
 def get_inscrits_etape(context, code_etape, anneeapogee=None):
     """Liste des inscrits à une étape Apogée
@@ -230,11 +230,9 @@ def get_etapes_apogee_dept(context):
     Utilise la propriete 'portal_dept_name' pour identifier le departement.
     Returns [ ( code, intitule) ], ordonnee
     """
-    try:
-        portal_dept_name = context.portal_dept_name
-    except:
-        log('get_etapes_apogee_dept: no portal_dept_name property')
-        portal_dept_name = ''
+    portal_dept_name = context.get_preference('portal_dept_name')
+    log('get_etapes_apogee_dept: portal_dept_name="%s"' % portal_dept_name)
+
     infos = get_etapes_apogee(context)
     if portal_dept_name and not infos.has_key(portal_dept_name):
         log("get_etapes_apogee_dept: pas de section '%s' dans la reponse portail" %  portal_dept_name)

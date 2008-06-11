@@ -187,3 +187,30 @@ Suivi de cohortes (à implémenter)
 
 
 + Liens (customizable)
+
+------------------  JUIN 2008 -----------------
+* Propriétés (préférences): remplacer les propriétés de Zope
+-> faciliter l'installation
+-> indépendance vis a vis de Zope
+-> ne pas avoir a utiliser la ZMI pour install et config
+
+table SQL scodoc_properties (id, nom, type, value, documentation)
+editeur generique
+
+* mises à jour:
+script: stop zope, svn update, postinst (eg modif db), start zope
+postinst: script python executé a chaque mise à jour 
+
+* gestion connexion BD:
+fichier config: connection string associée à l'URL ScoDoc (ScoURL())
+install: création db connection ? ou bien gérer nous même !
+UsersDB: a part, géré uniquement en Zope pour le moment ?
+
+* Installeur: 
+    - image Zope minimale
+       (voir si on peut mettre les icones comme des fichiers ordinaires)
+      1er accès: interface de paramétrage: 
+           + possibilité d'ajouter un département
+               - cnx string: enregistree dans un fichier !
+               - propriétés / département
+            UsersDB (commune à tous les dept)

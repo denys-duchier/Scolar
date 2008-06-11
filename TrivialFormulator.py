@@ -1,11 +1,12 @@
+# -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
 
 """Simple form generator/validator
 
-   E. Viennet 2005
+   E. Viennet 2005 - 2008
 
-   v 1.0
+   v 1.1
 """
 
 def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
@@ -48,7 +49,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           HTML elements:
              input_type : 'text', 'textarea', 'password',
                           'radio', 'menu', 'checkbox',
-                          'hidden', 'separator', 'file', 'date'
+                          'hidden', 'separator', 'file', 'date', 'boolcheckbox'
                          (default text)
              size : text field width
              rows, cols: textarea geometry
@@ -128,7 +129,14 @@ class TF:
 
     def setdefaultvalues(self):
         "set default values and convert numbers to strings"
-        for (field,descr) in self.formdescription:        
+        for (field,descr) in self.formdescription:   
+            # special case for boolcheckbox
+            if descr.get('input_type', None) == 'boolcheckbox' and self.submitted():
+                # open('/tmp/toto','a').write('setdefaultvalues: self.values=%s\n'%self.values)
+                if not self.values.has_key(field):
+                    self.values[field] = 0
+                else:
+                    self.values[field] = 1     
             if not self.values.has_key(field):
                 if descr.has_key('default'): # first: default in form description
                     self.values[field] = descr['default']
@@ -136,6 +144,7 @@ class TF:
                     self.values[field] = self.initvalues.get( field, '' )
                 if self.values[field] == None:
                     self.values[field] = ''
+
         # convert numbers
         if type(self.values[field]) == type(1) or type(self.values[field]) == type(1.0):
             self.values[field] = str(self.values[field])
@@ -199,10 +208,19 @@ class TF:
                         if not v in descr['allowed_values']:
                             msg.append("valeur invalide (%s) pour le champ '%s'" % (val,field) )
                             ok = 0
+                elif descr.get('input_type',None) == 'boolcheckbox':
+                    pass
                 elif not val in descr['allowed_values']:
                     msg.append("valeur invalide (%s) pour le champ '%s'"
                                % (val,field) )
                     ok = 0
+            # boolean checkbox
+            if descr.get('input_type', None) == 'boolcheckbox':
+                if int(val):
+                    self.values[field] = 1
+                else:
+                    self.values[field] = 0
+                # open('/tmp/toto','a').write('checkvalues: val=%s (%s) values[%s] = %s\n' % (val, type(val), field, self.values[field]))
         if ok:            
             self.result = self.values            
         else:
@@ -313,16 +331,27 @@ class TF:
                     lem.append('<option value="%s" %s>%s</option>'
                                %(descr['allowed_values'][i],selected,labels[i]) )
                 lem.append('</select>')
-            elif input_type == 'checkbox':
-                labels = descr.get('labels', descr['allowed_values'])
+            elif input_type == 'checkbox' or input_type == 'boolcheckbox':
+                if input_type == 'checkbox':                
+                    labels = descr.get('labels', descr['allowed_values'])
+                else:  # boolcheckbox
+                    labels = [ '' ]
+                    descr['allowed_values'] = ['1']
                 vertical=descr.get('vertical', False)
                 if vertical:
                     lem.append('<table>')
                 for i in range(len(labels)):
-                    if descr['allowed_values'][i] in values[field]:
-                        checked='checked="checked"'
-                    else:
-                        checked=''
+                    if input_type == 'checkbox':
+                        if descr['allowed_values'][i] in values[field]:
+                            checked='checked="checked"'
+                        else:
+                            checked=''
+                    else: # boolcheckbox
+                        # open('/tmp/toto','a').write('GenForm: values[%s] = %s (%s)\n' % (field, values[field], type(values[field])))
+                        if int(values[field]):
+                            checked='checked="checked"'
+                        else:
+                            checked=''
                     if vertical:
                         lem.append('<tr><td>')
                     lem.append('<input type="checkbox" name="%s:list" value="%s" %s %s>%s</input>'
@@ -409,7 +438,7 @@ class TF:
                 R.append( '<td class="tf-ro-field">' )
             if input_type == 'text':
                 R.append( ('%('+field+')s') % values )
-            elif input_type in ('radio', 'menu', 'checkbox'):
+            elif input_type in ('radio', 'menu', 'checkbox', 'boolcheckbox'):
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
                     if descr['allowed_values'][i] == values[field]:

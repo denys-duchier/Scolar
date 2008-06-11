@@ -52,7 +52,7 @@ Ajout de <b><dtml-var sequence-length></b> absence(s) <b><dtml-if estjust><dtml-
 <dtml-let nbabsjust="Absences.CountAbsJust(etudid=etudid,debut=`AnneeScolaire()`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">
 (<dtml-var nbabsjust> J., <dtml-var "nbabs-nbabsjust"> N.J.)
 <dtml-if "(nbajoute >= 3) or (((nbabs-nbabsjust) >= 6) and ((nbabs-nbabsjust) % 6 == 0))">
-<dtml-if "email_chefdpt and int(send_mail_absence_to_chef)">
+<dtml-if "get_preference('email_chefdpt') and int(get_preference('send_mail_absence_to_chef'))">
 <h3><dtml-var email_chefdpt></h3>
 <dtml-sendmail mailhost=MailHost>
 To: <dtml-var email_chefdpt>

@@ -68,6 +68,7 @@ from notesdb import *
 from scolog import logdb
 
 import scolars
+import sco_preferences
 import sco_formations
 from scolars import format_nom, format_prenom, format_sexe, format_lycee
 from scolars import format_telephone, format_pays, make_etud_args
@@ -96,6 +97,10 @@ except:
 
 # XML generation package (apt-get install jaxml)
 import jaxml
+
+
+# --------------- preferences
+SCO_PREFERENCES = {} # { URL: sco_preferences instance }
 
 # ---------------
 
@@ -382,7 +387,38 @@ class ZScolar(ObjectManager,
     def DateDDMMYYYY2ISO(self,dmy):
         "Check date and convert to ISO string"
         return DateDMYtoISO(dmy)
-        
+
+
+    # --------------------------------------------------------------------
+    #
+    #    PREFERENCES
+    #
+    # --------------------------------------------------------------------
+    def _get_preferences(self):
+        "Get preferences for this instance"
+        u = self.ScoURL()
+        if not SCO_PREFERENCES.has_key(u):
+            SCO_PREFERENCES[u] = sco_preferences.sco_preferences(self)
+        return SCO_PREFERENCES[u]
+
+    security.declareProtected(ScoSuperAdmin, 'edit_preferences')
+    def edit_preferences(self,REQUEST):
+        """Edit global preferences"""
+        return self._get_preferences().edit(REQUEST)
+
+    security.declareProtected(ScoView, 'get_preference')
+    def get_preference(self, name):
+        """Returns value of named preference.
+        All preferences have a sensible default value (see sco_preferences.py)
+        """
+        return self._get_preferences()[name]
+    
+    # --------------------------------------------------------------------
+    #
+    #    ETUDIANTS
+    #
+    # --------------------------------------------------------------------
+
     security.declareProtected(ScoView, 'formChercheEtud')
     def formChercheEtud(self, REQUEST=None, dest_url=None, parameters=None, parameters_keys=None):
         "form recherche par nom"
@@ -621,7 +657,8 @@ class ZScolar(ObjectManager,
     def rssnews(self,REQUEST=None):
         "rss feed"
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-        return sco_news.scolar_news_summary_rss(self, 'Nouvelles de ' + self.DeptName,
+        return sco_news.scolar_news_summary_rss(self, 
+                                                'Nouvelles de ' + self.get_preference('DeptName'),
                                                  self.ScoURL() )
         
     # genere liste html pour acces aux groupes TD/TP/TA de ce semestre

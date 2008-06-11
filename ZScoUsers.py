@@ -205,7 +205,7 @@ class ZScoUsers(ObjectManager,
 
     def _all_roles(self):
         "ensemble de tous les roles attribués ou attribuables"
-        roles = Set([x.strip() for x in self.DeptCreatedUsersRoles.split(',') ])
+        roles = Set([x.strip() for x in self.get_preference('DeptCreatedUsersRoles').split(',') ])
         cnx = self.GetUsersDBConnexion()
         L = self._userEditor.list( cnx, {} )
         for l in L:
@@ -453,7 +453,7 @@ class ZScoUsers(ObjectManager,
              valid_roles = Set(self._all_roles())
          else:
              valid_roles = Set([ x.strip()
-                             for x in self.DeptCreatedUsersRoles.split(',') ])
+                             for x in self.get_preference('DeptCreatedUsersRoles').split(',') ])
          #
          if not edit:
              initvalues = {}
