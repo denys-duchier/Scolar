@@ -36,6 +36,13 @@ import jaxml
 import sco_excel
 from sco_pdf import *
 
+
+DEFAULT_TABLE_PREFERENCES = {
+    'SCOLAR_FONT' : 'Helvetica', # used for PDF, overriden by preferences argument
+    'SCOLAR_FONT_SIZE' : 10,
+    'SCOLAR_FONT_SIZE_FOOT' : 6
+}
+
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
     Can be sub-classed to generate fancy formats.
@@ -71,6 +78,7 @@ class GenTable:
                  pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
                  pdf_col_widths=None,
+                 preferences=DEFAULT_TABLE_PREFERENCES
                  ):
         self.rows = rows # [ { col_id : value } ]
         self.columns_ids = columns_ids # ordered list of col_id
@@ -105,7 +113,8 @@ class GenTable:
         self.pdf_table_style = pdf_table_style
         self.pdf_col_widths = pdf_col_widths
         self.pdf_title = pdf_title
-
+        #
+        self.preferences = preferences
     def get_nb_cols(self):
         return len(self.columns_ids)
 
@@ -287,7 +296,7 @@ class GenTable:
         "PDF representation: returns a ReportLab's platypus Table instance"
         if not self.pdf_table_style:
             LINEWIDTH = 0.5
-            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), SCOLAR_FONT),
+            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences['SCOLAR_FONT']),
                                     ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                                     ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                                     ('VALIGN', (0,0), (-1,-1), 'TOP') ]
@@ -298,9 +307,9 @@ class GenTable:
             self.pdf_col_widths = (None,) * nb_cols
         #
         CellStyle = styles.ParagraphStyle( {} )
-        CellStyle.fontSize= SCOLAR_FONT_SIZE
-        CellStyle.fontName= SCOLAR_FONT
-        CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+        CellStyle.fontSize= self.preferences['SCOLAR_FONT_SIZE']
+        CellStyle.fontName= self.preferences['SCOLAR_FONT']
+        CellStyle.leading = 1.*self.preferences['SCOLAR_FONT_SIZE'] # vertical space
         LINEWIDTH = 0.5
         #
         titles = [ '<para><b>%s</b></para>' % x for x in self.get_titles_list() ]
@@ -367,7 +376,7 @@ class GenTable:
             return '\n'.join(H)
         elif format == 'pdf':
             objects = self.pdf()
-            doc = pdf_basic_page( objects, title=title )
+            doc = pdf_basic_page( objects, title=title, preferences=self.preferences )
             return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
         elif format == 'xls':
             xls = self.excel()

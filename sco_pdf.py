@@ -56,10 +56,6 @@ from VERSION import SCOVERSION, SCONAME
 PAGE_HEIGHT=defaultPageSize[1]
 PAGE_WIDTH=defaultPageSize[0]
 
-SCOLAR_FONT = CONFIG.SCOLAR_FONT 
-SCOLAR_FONT_SIZE = CONFIG.SCOLAR_FONT_SIZE
-SCOLAR_FONT_SIZE_FOOT = CONFIG.SCOLAR_FONT_SIZE_FOOT
-
 
 DEFAULT_PDF_FOOTER_TEMPLATE = CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE
 
@@ -98,8 +94,11 @@ class ScolarsPageTemplate(PageTemplate) :
                  author=None, title=None, subject=None,
                  margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
                  server_name = '',
-                 footer_template = DEFAULT_PDF_FOOTER_TEMPLATE ):
+                 footer_template = DEFAULT_PDF_FOOTER_TEMPLATE,
+                 preferences=None # dictionnary with preferences, required
+                 ):
         """Initialise our page template."""
+        self.preferences = preferences
         self.pagesbookmarks = pagesbookmarks
         self.pdfmeta_author = author
         self.pdfmeta_title = title
@@ -146,7 +145,7 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.bookmarkPage(key)
             canvas.addOutlineEntry(txt,bm)
         # ---- Footer
-        canvas.setFont(SCOLAR_FONT, SCOLAR_FONT_SIZE_FOOT)
+        canvas.setFont(self.preferences['SCOLAR_FONT'], self.preferences['SCOLAR_FONT_SIZE_FOOT'])
         d = _makeTimeDict()
         d['scodoc_name'] = VERSION.SCONAME
         d['server_url'] = self.server_name
@@ -165,7 +164,7 @@ def _makeTimeDict():
              'minute' : time.strftime('%M' )
              }
 
-def pdf_basic_page( objects, title='' ):
+def pdf_basic_page( objects, title='', preferences=None ):
     """Simple convenience fonction: build a page from a list of platypus objects,
     adding a title if specified.
     """
@@ -176,7 +175,8 @@ def pdf_basic_page( objects, title='' ):
         ScolarsPageTemplate(document,
                             title=title,
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                            footer_template="Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s"
+                            footer_template="Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s",
+                            preferences=preferences
                             ))
     if title:
         head = Paragraph(SU(title), StyleSheet["Heading3"])

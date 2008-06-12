@@ -501,7 +501,8 @@ def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
         </p>
         """ % (moduleimpl_id, M['module']['code'], M['module']['titre'], formsemestre_id, sem['titreannee']),
         pdf_title = title,
-        filename='notes-%s' % M['module']['code']
+        filename='notes-%s' % M['module']['code'],
+        preferences=context.get_preferences()
         )
     return tab.make_page(context, format=format, REQUEST=REQUEST)      
 

@@ -269,7 +269,8 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
         base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
         page_title = title,
         html_title = """<h2>Semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']),
-        pdf_title = title
+        pdf_title = title,
+        preferences=context.get_preferences()
         )
 
 def formsemestre_description(context, formsemestre_id, format='html', REQUEST=None):

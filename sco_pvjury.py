@@ -254,7 +254,8 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                    caption = 'Décisions jury pour ' + sem['titreannee'],
                    html_class='gt_table table_leftalign',
-                   html_sortable=True
+                   html_sortable=True,
+                   preferences=context.get_preferences()
                    )
     if format != 'html':
         return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)

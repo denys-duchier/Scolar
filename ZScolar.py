@@ -394,8 +394,9 @@ class ZScolar(ObjectManager,
     #    PREFERENCES
     #
     # --------------------------------------------------------------------
-    def _get_preferences(self):
-        "Get preferences for this instance"
+    security.declareProtected(ScoView, 'get_preferences')
+    def get_preferences(self):
+        "Get preferences for this instance (a dict)"
         u = self.ScoURL()
         if not SCO_PREFERENCES.has_key(u):
             SCO_PREFERENCES[u] = sco_preferences.sco_preferences(self)
@@ -404,14 +405,14 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoSuperAdmin, 'edit_preferences')
     def edit_preferences(self,REQUEST):
         """Edit global preferences"""
-        return self._get_preferences().edit(REQUEST)
+        return self.get_preferences().edit(REQUEST)
 
     security.declareProtected(ScoView, 'get_preference')
     def get_preference(self, name):
         """Returns value of named preference.
         All preferences have a sensible default value (see sco_preferences.py)
         """
-        return self._get_preferences()[name]
+        return self.get_preferences()[name]
     
     # --------------------------------------------------------------------
     #
@@ -514,7 +515,8 @@ class ZScolar(ObjectManager,
                         page_title='Opérations sur %(nomprenom)s' % etud,
                         html_title="<h2>Opérations effectuées sur l'étudiant %(nomprenom)s</h2>" % etud,
                         filename='log_'+make_filename(etud['nomprenom']),
-                        html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud)
+                        html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud,
+                        preferences=self.get_preferences() )
         
         return tab.make_page(self, format=format, REQUEST=REQUEST)
                                  
@@ -821,7 +823,8 @@ class ZScolar(ObjectManager,
                         base_url=base_url,
                         pdf_link=False, # pas d'export pdf
                         html_sortable=True,
-                        html_class='gt_table table_leftalign table_listegroupe')
+                        html_class='gt_table table_leftalign table_listegroupe',
+                        preferences=self.get_preferences() )
         #
         if format == 'html':
             H = [ '<h2>Etudiants de <a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a> %s</h2>' % (formsemestre_id, sem['titreannee'], ng) ]

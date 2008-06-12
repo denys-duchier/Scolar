@@ -405,6 +405,7 @@ def etuds_select_box_xls(context, src_cat):
     titles = {}
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )    
     tab = GenTable( titles=titles, columns_ids=columns_ids, rows=etuds,
-                    caption='%(title)s. %(help)s' % src_cat['infos']
+                    caption='%(title)s. %(help)s' % src_cat['infos'],
+                    preferences=context.get_preferences()
                     )
     return tab.excel()

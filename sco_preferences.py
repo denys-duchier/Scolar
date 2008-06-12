@@ -65,15 +65,10 @@ PREFS = (
          'size' : 40
         }
       ),
-    ( 'email_chefdpt',
-      { 'initvalue' : '',
-        'title' : 'e-mail chef du département',
-        'size' : 40
-        }
-      ),
+ 
     ('_sep_abs',
      { 'input_type' : 'separator',
-       'title' : 'Suivi des absences'
+       'title' : '<b>Suivi des absences</b>'
        }
      ),
     ( 'work_saturday',
@@ -88,15 +83,27 @@ PREFS = (
         'input_type' : 'boolcheckbox',
         }
       ),
+    ( 'email_chefdpt',
+      { 'initvalue' : '',
+        'title' : 'e-mail chef du département',
+        'size' : 40,
+        'explanation' : 'utilisé pour envoi mail absences'
+        }
+      ),
+    ('_sep_portal',
+     { 'input_type' : 'separator',
+       'title' : '<b>Liaison avec portail (Apogée, etc)</b>'
+       }
+     ),
     ( 'portal_url',
       { 'initvalue' : '',
-        'title' : 'URL du portail (Apogée)',
+        'title' : 'URL du portail',
         'size' : 40
         }
       ),
     ( 'portal_dept_name',
       { 'initvalue' : 'Dept',
-        'title' : 'code du département sur le portail (Apogée)',
+        'title' : 'code du département sur le portail',
         }
       ),
     ( 'notify_etud_changes_to',
@@ -106,11 +113,81 @@ PREFS = (
          'size' : 40
         }
       ),
+    ('_sep_users',
+     { 'input_type' : 'separator',
+       'title' : '<b>Gestion des utilisateurs</b>'
+       }
+     ),
     ( 'DeptCreatedUsersRoles',
       { 'initvalue' : 'EnsDept,SecrDept',
         'title' : 'Rôles que l\'on peut attribuer aux utilisateurs de ce département',
         'explanation' : 'liste de noms de rôles, séparés par des virgules',
          'size' : 40
+        }
+      ),
+    ('_sep_pdf',
+     { 'input_type' : 'separator',
+       'title' : '<b>Mise en forme des documents PDF</b>'
+       }
+     ),
+    ('SCOLAR_FONT',
+     { 'initvalue' : 'Helvetica',
+        'title' : 'Police de caractère principale',
+        'explanation' : 'pour les pdf',
+         'size' : 25
+        }
+      ),
+    ('SCOLAR_FONT_SIZE',
+     { 'initvalue' : 10,
+       'title' : 'Taille des caractères',
+       'explanation' : 'pour les pdf',
+       'size' : 4,
+       'type' : 'int',
+       'convert_numbers' : True
+        }
+      ),
+    ('SCOLAR_FONT_SIZE_FOOT',
+     { 'initvalue' : 6,
+       'title' : 'Taille des caractères pied de page',
+       'explanation' : 'pour les pdf',
+       'size' : 4,
+       'type' : 'int',
+       'convert_numbers' : True
+        }
+      ),
+    ('_sep_pv',
+     { 'input_type' : 'separator',
+       'title' : '<b>Procès verbaux (documents PDF)</b>'
+       }
+     ),
+    ('INSTITUTION_NAME',
+     { 'initvalue' : "<b>Institut Universitaire de Technologie - Université Paris 13</b>",
+       'title' : 'Nom institution sur pied de pages PV',
+       'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
+       'input_type' : 'textarea',
+       'rows' : 4, 'cols' : 40
+        }
+      ),
+    ('INSTITUTION_ADDRESS',
+     { 'initvalue' : "Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse",
+       'title' : 'Adresse institution sur pied de pages PV',
+       'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
+       'input_type' : 'textarea',
+       'rows' : 4, 'cols' : 40
+        }
+      ),
+    ('INSTITUTION_CITY',
+     { 'initvalue' : "Villetaneuse",
+       'title' : "Ville de l'institution",
+       'explanation' : 'pour les lettres individuelles',
+       'size' : 40,
+        }
+      ),
+    ('PV_FONTNAME',
+     { 'initvalue' : 'Times-Roman',
+        'title' : 'Police de caractère pour les PV',
+        'explanation' : 'pour les pdf',
+         'size' : 25
         }
       ),
 )
@@ -147,17 +224,27 @@ class sco_preferences:
         self.prefs = {}
         for p in preflist:
             self.prefs[p['name']] = p['value']
-        # add defaults for missing prefs
+        # add defaults for missing prefs, and convert types
         for pref in PREFS:
             name = pref[0]
+            # convert integer types
+            if pref[1].has_key('type') and pref[1]['type'] == 'int' and name in self.prefs:
+                 self.prefs[name] = int(self.prefs[name])
+            # add defaults:
             if name and name[0] != '_' and not name in self.prefs:
-                # migration from Zope: search value in Zope property
+                # Migration from previous ScoDoc installations (before june 2008)
+                # search preferences in Zope properties and in configuration file
                 try:
                     value = getattr(self.context,name)
-                    log('sco_preferences: found default value for %s=%s'%(name,value))
+                    log('sco_preferences: found default value in Zope for %s=%s'%(name,value))
                 except:
-                    # uses hardcoded default
-                    value = pref[1]['initvalue']
+                    # search in CONFIG
+                    if hasattr(CONFIG,name):
+                        value = getattr(CONFIG,name)
+                        log('sco_preferences: found default value in config for %s=%s'%(name,value))
+                    else:
+                        # uses hardcoded default
+                        value = pref[1]['initvalue']
                 self.prefs[name] = value
                 log('creating missing preference for %s=%s'%(name,pref[1]['initvalue']))
                 # add to db table
@@ -173,7 +260,9 @@ class sco_preferences:
         for name in names:
             log('save pref %s=%s' % (name, self[name]))
             self._editor.edit(cnx, { 'name' : name, 'value' : self[name] })       
-    
+        # les preferences peuvent affecter les PDF cachés:
+        self._inval_cache(pdfonly=True)
+
     def edit(self, REQUEST):
         """HTML dialog"""
         H = [ self.context.sco_header(REQUEST, page_title="Préférences"),          

@@ -1124,7 +1124,8 @@ class ZNotes(ObjectManager,
                       filename = make_filename('Enseignants-' + sem['titreannee']),
                       html_title = '<h2>Enseignants de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>' % (formsemestre_id,sem['titreannee']),
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
-                      caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies."
+                      caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies.",
+                      preferences=self.get_preferences()
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
 
@@ -2608,8 +2609,8 @@ class ZNotes(ObjectManager,
                 pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
                                               tf[2]['dateCommission'], tf[2]['dateJury'],
                                               tf[2]['showTitle'])
-            except:
-                PDFLOCK.release()
+            finally:
+                PDFLOCK.release()                
             sem = self.get_formsemestre(formsemestre_id)
             dt = time.strftime( '%Y-%m-%d' )
             filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)

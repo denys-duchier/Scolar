@@ -60,7 +60,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
                      filigranne='', appreciations=[], situation='',
                      server_name=None,
-                     context=None
+                     context=None # required for preferences
                      ):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
@@ -73,20 +73,16 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     objects = []
     StyleSheet = styles.getSampleStyleSheet()
     # Paramètres de mise en page
-    if context:
-        fmt = formsemestre_pagebulletin_get(context, sem['formsemestre_id'])
-        margins = (fmt['left_margin'], fmt['top_margin'],
-                   fmt['right_margin'], fmt['bottom_margin'])
-        titletmpl = fmt['title']
-    else:
-        margins = (0,0,0,0)
-        titletmpl=''
-
+    fmt = formsemestre_pagebulletin_get(context, sem['formsemestre_id'])
+    margins = (fmt['left_margin'], fmt['top_margin'],
+               fmt['right_margin'], fmt['bottom_margin'])
+    titletmpl = fmt['title']
+    
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= SCOLAR_FONT_SIZE
-    CellStyle.fontName= SCOLAR_FONT    
-    CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE')
+    CellStyle.fontName= context.get_preference('SCOLAR_FONT')   
+    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
     try:
         Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
     except:        
@@ -145,7 +141,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                                 title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
                                 subject='Bulletin de note',
                                 margins=margins,
-                                server_name = server_name))
+                                server_name = server_name,
+                                preferences=context.get_preferences()))
         document.build(objects)
         data = report.getvalue()
         return data
@@ -156,12 +153,10 @@ def pdfassemblebulletins( formsemestre_id,
                           server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"
     # Paramètres de mise en page
-    if context:
-        fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
-        margins = (fmt['left_margin'], fmt['top_margin'],
-                   fmt['right_margin'], fmt['bottom_margin'])
-    else:
-        margins = (0,0,0,0)
+    fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
+    margins = (fmt['left_margin'], fmt['top_margin'],
+               fmt['right_margin'], fmt['bottom_margin'])
+    
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
     document.addPageTemplates(
@@ -171,28 +166,30 @@ def pdfassemblebulletins( formsemestre_id,
                             subject='Bulletin de note',
                             server_name=server_name,
                             margins=margins,
-                            pagesbookmarks=pagesbookmarks))
+                            pagesbookmarks=pagesbookmarks,
+                            preferences=context.get_preferences()))
     document.build(objects)
     data = report.getvalue()
     return data
 
-# -------------- Trombinoscope
-def pdftrombino( sem, etudfotos, server_name='' ):
-    """generate PDF trombinoscope
-    etudfotos = [ (etud, foto), ... ]
-    """
-    objects = []
-    objects.append( Image("/tmp/viennet.jpg") )
-    # generation du document PDF
-    report = cStringIO.StringIO() # in-memory document, no disk file
-    document = BaseDocTemplate(report)
-    document.addPageTemplates(
-    ScolarsPageTemplate(document,
-                        author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                        title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
-                        subject='Bulletin de note',
-                        server_name = server_name))
+# -------------- Trombinoscope (essai)
+# def pdftrombino( sem, etudfotos, server_name='', context=None ):
+#     """generate PDF trombinoscope
+#     etudfotos = [ (etud, foto), ... ]
+#     """
+#     objects = []
+#     objects.append( Image("/tmp/viennet.jpg") )
+#     # generation du document PDF
+#     report = cStringIO.StringIO() # in-memory document, no disk file
+#     document = BaseDocTemplate(report)
+#     document.addPageTemplates(
+#     ScolarsPageTemplate(document,
+#                         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+#                         title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
+#                         subject='Bulletin de note',
+#                         server_name=server_name,
+#                         preferences=context.get_preferences()))
     
-    document.build(objects)
-    data = report.getvalue()
-    return data
+#     document.build(objects)
+#     data = report.getvalue()
+#     return data

@@ -753,7 +753,8 @@ class ZScoUsers(ObjectManager,
             html_class = 'gt_table table_leftalign',
             html_sortable = True,
             base_url = '%s?all=%s' % (REQUEST.URL0, all),
-            pdf_link=False # table is too wide
+            pdf_link=False, # table is too wide to fit in a paper page => disable pdf
+            preferences=self.get_preferences()
             )
         
         return tab.make_page(self, format=format, with_html_headers=False, REQUEST=REQUEST)

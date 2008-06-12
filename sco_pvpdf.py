@@ -44,7 +44,7 @@ LOGO_HEADER_ASPECT = CONFIG.LOGO_HEADER_ASPECT # XXX logo IUTV (A AUTOMATISER)
 LOGO_HEADER_HEIGHT = CONFIG.LOGO_HEADER_HEIGHT * mm
 LOGO_HEADER_WIDTH  = LOGO_HEADER_HEIGHT*CONFIG.LOGO_HEADER_ASPECT
 
-def pageFooter(canvas, doc, logo):
+def pageFooter(canvas, doc, logo, preferences):
     "Add footer on page"
     width = doc.pagesize[0] # - doc.pageTemplate.left_p - doc.pageTemplate.right_p
     foot = Frame( 0.1*mm, 0.2*cm,
@@ -54,18 +54,18 @@ def pageFooter(canvas, doc, logo):
                   id="monfooter", showBoundary=0 )
 
     LeftFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    LeftFootStyle.fontName = SCOLAR_FONT
-    LeftFootStyle.fontSize = SCOLAR_FONT_SIZE_FOOT
+    LeftFootStyle.fontName = preferences['SCOLAR_FONT']
+    LeftFootStyle.fontSize = preferences['SCOLAR_FONT_SIZE_FOOT']
     LeftFootStyle.leftIndent = 0
     LeftFootStyle.firstLineIndent = 0
     LeftFootStyle.alignment = TA_RIGHT
     RightFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    RightFootStyle.fontName = SCOLAR_FONT
-    RightFootStyle.fontSize =  SCOLAR_FONT_SIZE_FOOT
+    RightFootStyle.fontName = preferences['SCOLAR_FONT']
+    RightFootStyle.fontSize =  preferences['SCOLAR_FONT_SIZE_FOOT']
     RightFootStyle.alignment = TA_RIGHT 
 
     p = makeParas( """<para>%s</para><para>%s</para>"""
-                   % (CONFIG.INSTITUTION_NAME, CONFIG.INSTITUTION_ADDRESS),
+                   % (preferences['INSTITUTION_NAME'], preferences['INSTITUTION_ADDRESS']),
                    LeftFootStyle)
     
     np = Paragraph( '<para fontSize="14">%d</para>' % doc.page, RightFootStyle)
@@ -82,7 +82,7 @@ def pageFooter(canvas, doc, logo):
     foot.addFromList( [tab], canvas )
     canvas.restoreState()
 
-def pageHeader(canvas, doc, logo):
+def pageHeader(canvas, doc, logo, preferences):
     height = doc.pagesize[1]
     head = Frame( -22*mm, height - 13*mm - LOGO_FOOTER_HEIGHT,
                   10*cm, LOGO_HEADER_HEIGHT + 2*mm,
@@ -99,13 +99,16 @@ class CourrierIndividuelTemplate(PageTemplate) :
     def __init__(self, document, pagesbookmarks={},
                  author=None, title=None, subject=None,
                  margins = CONFIG.INDIVIDUAL_LETTER_MARGINS, # additional margins in mm (left,top,right, bottom)
-                 image_dir = ''):
+                 image_dir = '',
+                 preferences=None # dictionnary with preferences, required
+                 ):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
         self.pdfmeta_author = author
         self.pdfmeta_title = title
         self.pdfmeta_subject = subject
         self.image_dir = image_dir 
+        self.preferences = preferences
         # Our doc is made of a single frame
         left, top, right, bottom = margins # marge additionnelle en mm
         # marges du Frame principal
@@ -145,36 +148,39 @@ class PVTemplate(CourrierIndividuelTemplate):
     def __init__(self, document, 
                  author=None, title=None, subject=None,
                  margins = (0,23,0,5), # additional margins in mm (left,top,right, bottom)
-                 image_dir = ''):
+                 image_dir = '',
+                 preferences=None # dictionnary with preferences, required
+                 ):
         
         CourrierIndividuelTemplate.__init__(self, document, author=author, title=title, subject=subject,
-                                            margins=margins, image_dir=image_dir)
+                                            margins=margins, image_dir=image_dir, 
+                                            preferences=preferences)
         self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
         self.logo_header = Image( image_dir + '/logo_header.jpg', height=LOGO_HEADER_HEIGHT, width=LOGO_HEADER_WIDTH )
 
     def beforeDrawPage(self, canvas, doc) :
         CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
         # --- Add footer
-        pageFooter(canvas, doc, self.logo_footer )
+        pageFooter(canvas, doc, self.logo_footer, self.preferences )
         # --- Add header
-        pageHeader(canvas, doc, self.logo_header )
+        pageHeader(canvas, doc, self.logo_header, self.preferences )
 
-def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury='', signature=None):
+def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='', signature=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
     (tous ceux du semestre, ou la liste indiquée par etudids)
     Renvoie pdf data
     """
 
-    dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=etudids, with_prev=True)
+    dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=etudids, with_prev=True)
     # Ajoute infos sur etudiants
     etuds = [ x['identite'] for x in dpv['decisions']]
-    znotes.fillEtudsInfo(etuds)
+    context.fillEtudsInfo(etuds)
     #
-    sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     params = {
         'dateJury' : dateJury,
-        'deptName' : znotes.get_preference('DeptName'), 
-        'nomDirecteur' : znotes.get_preference('DirectorName'),
+        'deptName' : context.get_preference('DeptName'), 
+        'nomDirecteur' : context.get_preference('DirectorName'),
         'titreFormation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
@@ -185,10 +191,11 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
     i = 1
     for e in dpv['decisions']:
         if e['decision_sem']: # decision prise
-            etud = znotes.getEtudInfo(e['identite']['etudid'], filled=True)[0]
+            etud = context.getEtudInfo(e['identite']['etudid'], filled=True)[0]
             params['nomEtud'] = etud['nomprenom']
             bookmarks[i] = etud['nomprenom']
-            objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params, signature ) 
+            objects += pdf_lettre_individuelle( dpv['formsemestre'], e, etud, params, 
+                                                signature, context=context ) 
             objects.append( PageBreak() )
             i += 1
     
@@ -201,7 +208,7 @@ def pdf_lettres_individuelles(znotes, formsemestre_id, etudids=None, dateJury=''
         title='Lettres décision %s' % sem['titreannee'],
         subject='Décision jury',
         pagesbookmarks=bookmarks,
-        image_dir = znotes.file_path + '/logos/' ))
+        image_dir = context.file_path + '/logos/' ))
     
     document.build(objects)
     data = report.getvalue()
@@ -217,7 +224,7 @@ def _descr_jury(sem, semestre_non_terminal):
         s = t
     return t, s # titre long, titre court
 
-def pdf_lettre_individuelle( sem, decision, etud, params, signature=None ):
+def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, context=None ):
     """
     Renvoie une liste d'objets PLATYPUS pour intégration
     dans un autre document.
@@ -237,7 +244,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None ):
     params['t'] = t
     params['s'] = s
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
-    params['city'] = CONFIG.INSTITUTION_CITY
+    params['city'] = context.get_preference('INSTITUTION_CITY')
     if decision['prev_decision_sem']:
         params['prev_semestre_id'] = decision['prev']['semestre_id']
         params['prev_code_descr']  = decision['prev_code_descr']
@@ -341,12 +348,12 @@ Le directeur de l'IUT,</para><para leftindent="%(htab1)s">%(nomDirecteur)s</para
 </para>""" % params, style )
         
     if signature:
-        objects.append( _make_signature_image(signature, params['htab1']) )
+        objects.append( _make_signature_image(signature, params['htab1'], context=context) )
         
     return objects
 
 
-def _make_signature_image(signature, leftindent):
+def _make_signature_image(signature, leftindent, context=None):
     "cree un paragraphe avec l'image signature"
     # cree une image PIL pour avoir la taille (W,H)
     from PIL import Image as PILImage
@@ -357,7 +364,7 @@ def _make_signature_image(signature, leftindent):
     f.seek(0,0)
 
     style = styles.ParagraphStyle( {} )    
-    style.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+    style.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
     style.leftIndent=leftindent
     return Table( [ ('', Image( f, width=width*pdfheight/float(height), height=pdfheight)) ],
                   colWidths = (9*cm, 7*cm) )
@@ -367,7 +374,7 @@ def _make_signature_image(signature, leftindent):
 # ----------------------------------------------
 # PV complet, tableau en format paysage
 
-def pvjury_pdf(znotes, dpv, REQUEST, dateCommission, dateJury=None, showTitle=False):
+def pvjury_pdf(context, dpv, REQUEST, dateCommission, dateJury=None, showTitle=False):
     """Doc PDF récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
@@ -401,7 +408,7 @@ def pvjury_pdf(znotes, dpv, REQUEST, dateCommission, dateJury=None, showTitle=Fa
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
     <para align="center"><b>Procès-verbal du %s du département %s - Session %s</b></para>    
-    """ % (t, znotes.get_preference('DeptName'), sem['annee']), style)
+    """ % (t, context.get_preference('DeptName'), sem['annee']), style)
 
     if showTitle:
         objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
@@ -417,22 +424,22 @@ vu l'arrêté n° 07 081 905 001 du Président de l'%s;
 <para><bullet>-</bullet> 
 vu la délibération de la commission %s en date du %s présidée par le Chef du département;
 </para>
-    """ % (znotes.get_preference('UnivName'), t, dateCommission), bulletStyle )
+    """ % (context.get_preference('UnivName'), t, dateCommission), bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
-    lines, titles, columns_ids = sco_pvjury.pvjury_table(znotes, dpv)
+    lines, titles, columns_ids = sco_pvjury.pvjury_table(context, dpv)
     # convert to lists of tuples:
     columns_ids=['etudid'] + columns_ids
     lines = [ [ line.get(x,'') for x in columns_ids ] for line in lines ]
     titles = [ titles.get(x,'') for x in columns_ids ]
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= SCOLAR_FONT_SIZE
-    CellStyle.fontName=   PV_FONTNAME
-    CellStyle.leading = 1.*SCOLAR_FONT_SIZE # vertical space
+    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE')
+    CellStyle.fontName=   context.get_preference('PV_FONTNAME')
+    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
     LINEWIDTH = 0.5
-    TableStyle = [ ('FONTNAME', (0,0), (-1,0), PV_FONTNAME),
+    TableStyle = [ ('FONTNAME', (0,0), (-1,0), context.get_preference('PV_FONTNAME')),
                    ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                    ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]
@@ -447,7 +454,7 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     # Signature du directeur
     objects += makeParas(
         """<para spaceBefore="10mm" align="right">
-        Le directeur de l'IUT, %s</para>""" % znotes.get_preference('DirectorName'),
+        Le directeur de l'IUT, %s</para>""" % context.get_preference('DirectorName'),
                          style)
 
     # Légende des codes
@@ -478,7 +485,8 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
         title=SU('PV du jury de %s' % sem['titre_num']),
         subject='PV jury',
-        image_dir = znotes.file_path + '/logos/' ))
+        image_dir = context.file_path + '/logos/',
+        preferences=context.get_preferences()))
 
     document.build(objects)
     data = report.getvalue()

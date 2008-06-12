@@ -39,6 +39,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           title      : text titre (default to field name)
           allow_null : if true, field can be left empty (default true)
           type       : 'string', 'int', 'float' (default to string), 'list' (only for hidden)
+          convert_numbers: covert int and float values (from string)
           allowed_values : list of possible values (default: any value)
           max_value : maximum value (for floats and ints)
           explanation: text string to display next the input widget
@@ -221,6 +222,11 @@ class TF:
                 else:
                     self.values[field] = 0
                 # open('/tmp/toto','a').write('checkvalues: val=%s (%s) values[%s] = %s\n' % (val, type(val), field, self.values[field]))
+            if descr.get('convert_numbers',False):
+                if typ[:3] == 'int':
+                    self.values[field] = int(self.values[field])
+                elif  typ == 'float' or typ == 'real':   
+                    self.values[field] = float(self.values[field].replace(',','.'))
         if ok:            
             self.result = self.values            
         else:

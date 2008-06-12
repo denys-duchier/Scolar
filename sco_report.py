@@ -83,7 +83,7 @@ def _categories_and_results(etuds, category, result):
     results.sort()
     return categories, results
 
-def _results_by_category(etuds, category='', result='', category_name=None):
+def _results_by_category(etuds, category='', result='', category_name=None, context=None):
     """Construit table: categories (eg types de bacs) en ligne, décisions jury en colonnes
 
     etuds est une liste d'etuds (dicts).
@@ -139,7 +139,7 @@ def _results_by_category(etuds, category='', result='', category_name=None):
             categories[i] = '?'
     lines_titles = [category_name] + categories + ['Total']
     return GenTable( titles=titles, columns_ids=codes, rows=C, lines_titles=lines_titles,
-                     html_col_width='4em', html_sortable=True )
+                     html_col_width='4em', html_sortable=True, preferences=context.get_preferences() )
 
 
 # pages
@@ -159,7 +159,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
         result_name = 'résultats'
     #
     tab = _results_by_category(etuds, category=category, category_name=category_name,
-                               result=result)
+                               result=result, context=context)
     #
     tab.filename = make_filename('stats ' + sem['titreannee'])
     
@@ -464,7 +464,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = 'Suivi cohorte ' + pp + sem['titreannee'] + dbac,
                     page_title = 'Suivi cohorte ' + sem['titreannee'],
-                    html_class='gt_table table_cohorte'
+                    html_class='gt_table table_cohorte',
+                    preferences=context.get_preferences()
                     )
     # Explication: liste des semestres associés à chaque date
     if not P:
@@ -682,7 +683,8 @@ def table_suivi_parcours(context, formsemestre_id):
                     <tr><td><tt>:R</tt></td><td> étudiants réorientés</td></tr>
                     <tr><td><tt>:D</tt></td><td> étudiants démissionnaires</td></tr>
                     </table>""",
-                    bottom_titles =  { 'parcours' : 'Total', 'nb' : len(etudids) }
+                    bottom_titles =  { 'parcours' : 'Total', 'nb' : len(etudids) },
+                    preferences=context.get_preferences()
                     )
     return tab
 

@@ -956,7 +956,8 @@ class ZAbsences(ObjectManager,
                             html_class='gt_table table_leftalign',
                             base_url = '%s?etudid=%s&absjust_only=0' % (REQUEST.URL0, etudid),
                             filename='abs_'+make_filename(etud['nomprenom']),
-                            caption='Absences non justifiées de %(nomprenom)s' % etud)
+                            caption='Absences non justifiées de %(nomprenom)s' % etud,
+                            preferences=self.get_preferences())
             if format != 'html' and absjust_only == 0:
                 return tab.make_page(self, format=format, REQUEST=REQUEST)
             H.append( tab.html() )
@@ -969,7 +970,8 @@ class ZAbsences(ObjectManager,
                             html_class='gt_table table_leftalign',
                             base_url = '%s?etudid=%s&absjust_only=1' % (REQUEST.URL0, etudid),
                             filename='absjust_'+make_filename(etud['nomprenom']),
-                            caption='Absences justifiées de %(nomprenom)s' % etud)
+                            caption='Absences justifiées de %(nomprenom)s' % etud,
+                            preferences=self.get_preferences())
             if format != 'html' and absjust_only:
                 return tab.make_page(self, format=format, REQUEST=REQUEST)
             H.append( tab.html() )
@@ -1017,18 +1019,19 @@ class ZAbsences(ObjectManager,
         title = 'Etat des absences du groupe %s %s %s' % (groupetd, groupeanglais, groupetp)
         if format == 'xls' or format == 'xml':
             columns_ids = ['etudid'] + columns_ids
-        tab = GenTable( columns_ids=columns_ids, rows=T,                        
-                        titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'Justifiées',
-                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
-                        html_sortable=True,
-                        html_class='gt_table table_leftalign',
-                        html_header=self.sco_header(REQUEST, page_title=title,
-                                                    javascripts=['calendarDateInput_js']),
-                        html_title="""<h2>%s de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (title, sem['formsemestre_id'], sem['titreannee']) + '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
-                        base_url = '%s?semestregroupe=%s&debut=%s&fin=%s' % (REQUEST.URL0, semestregroupe,debut, fin),
-                        filename='etat_abs__'+make_filename('%s %s %s de %s'%(groupetd, groupeanglais, groupetp, sem['titreannee'])),
-                        caption=title,
-                        html_next_section="""</table>
+        tab =GenTable( columns_ids=columns_ids, rows=T,  
+                       preferences=self.get_preferences(),
+                       titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'Justifiées',
+                               'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
+                       html_sortable=True,
+                       html_class='gt_table table_leftalign',
+                       html_header=self.sco_header(REQUEST, page_title=title,
+                                                   javascripts=['calendarDateInput_js']),
+                       html_title="""<h2>%s de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (title, sem['formsemestre_id'], sem['titreannee']) + '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
+                       base_url = '%s?semestregroupe=%s&debut=%s&fin=%s' % (REQUEST.URL0, semestregroupe,debut, fin),
+                       filename='etat_abs__'+make_filename('%s %s %s de %s'%(groupetd, groupeanglais, groupetp, sem['titreannee'])),
+                       caption=title,
+                       html_next_section="""</table>
 <p class="help">
 Cliquez sur un nom pour afficher le calendrier des absences<br/>
 ou entrez une date pour visualiser les absents un jour donné&nbsp;:
