@@ -195,7 +195,7 @@ def make_formsemestre_bulletinetud(
     # --- Appreciations
     # le dir. des etud peut ajouter des appreciation,
     # mais aussi le chef (perm. ScoEtudInscrit)
-    can_edit_app = ((authuser == sem['responsable_id'])
+    can_edit_app = ((str(authuser) == sem['responsable_id'])
                     or (authuser.has_permission(ScoEtudInscrit,znotes)))
     cnx = znotes.GetDBConnexion()   
     apprecs = scolars.appreciations_list(
