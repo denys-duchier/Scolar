@@ -2,9 +2,12 @@
 <div class="formsemestre_status">
 
 <dtml-var formsemestre_status_head>
+
+<dtml-call "REQUEST.set('prev_ue_id', None)">
+
 <p>
 <table class="formsemestre_status">
-<tr><th class="formsemestre_status">UE</th>
+<tr>
 <th class="formsemestre_status">Code</th><th class="formsemestre_status">Module</th><th class="formsemestre_status">Inscrits</th><th class="formsemestre_status">Responsable</th><th class="formsemestre_status">Evaluations</th></tr>
 
 <dtml-in Mlist>
@@ -12,6 +15,15 @@
 <dtml-call "REQUEST.set( 'Mod', M['module'] )">
 <dtml-call "REQUEST.set( 'ModInscrits',
 	      do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
+
+<dtml-if "prev_ue_id != M['ue']['ue_id']">
+<dtml-call "REQUEST.set('prev_ue_id', M['ue']['ue_id'])">
+<tr class="formsemestre_status_ue"><td colspan="6">
+<span class="status_ue_acro"><dtml-var "M['ue']['acronyme']"></span>
+<span class="status_ue_title"><dtml-var "M['ue']['titre']"></span>
+</td></tr>
+</dtml-if>
+
 
 <dtml-if "M['ue']['type'] != 0">
  <dtml-call "REQUEST.set('fontorange', ' fontorange')">
@@ -25,7 +37,7 @@
 <dtml-else>
 <tr class="formsemestre_status<dtml-var fontorange>">
 </dtml-if>
-<td><dtml-var "M['ue']['acronyme']"> </td>
+
 <td class="formsemestre_status_code">
 <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"><dtml-var "Mod['code']"></a>
 </td>

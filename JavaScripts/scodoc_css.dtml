@@ -464,6 +464,12 @@ table.formsemestre_status {
 tr.formsemestre_status { background-color: rgb(90%,90%,90%); }
 tr.formsemestre_status_green { background-color: rgb(90%,95%,90%); }
 
+
+tr.formsemestre_status_ue { background-color: rgb(90%,90%,90%); }
+
+span.status_ue_acro { font-weight: bold; }
+span.status_ue_title { font-style: italic; padding-left: 1cm;}
+
 th.formsemestre_status {
     font-weight: bold;
     text-align: left;

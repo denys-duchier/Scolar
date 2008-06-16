@@ -218,12 +218,16 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     n = 0
     currow = []
     for t in T:
-        elem = Table(
-            [ [ Image( tmpdir + '/' + t['etudid'] + '.jpg', width=PHOTOWIDTH ) ],
-              [ Paragraph(
-            SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
-            + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
-            colWidths=[ PHOTOWIDTH ] )
+        try:
+            elem = Table(
+                [ [ Image( tmpdir + '/' + t['etudid'] + '.jpg', width=PHOTOWIDTH ) ],
+                  [ Paragraph(
+                SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
+                   + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
+                colWidths=[ PHOTOWIDTH ] )
+        except:
+            log('*** exception while processing photo of %s (%s) (tmpdir=%s)' % (t['nom'], t['etudid'], tmpdir))
+            raise 
         currow.append( elem )
         if n == (N_PER_ROW-1):
             L.append(currow)
