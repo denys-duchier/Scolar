@@ -977,10 +977,17 @@ class ZNotes(ObjectManager,
                 args={'module_id':mo['module_id']})[0]
             mo['ue'] = self.do_ue_list( args={'ue_id' : mo['module']['ue_id']} )[0]
             mo['matiere'] = self.do_matiere_list( args={'matiere_id':mo['module']['matiere_id']} )[0]
+        
         # tri par semestre/UE/numero_matiere/numero_module
-        modimpls.sort( lambda x,y: cmp(
-            (x['module']['semestre_id'], x['ue']['numero'], x['matiere']['numero'], x['module']['numero']),
-            (y['module']['semestre_id'], y['ue']['numero'], y['matiere']['numero'], y['module']['numero']) ))
+        
+        extr = lambda x: (x['ue']['numero'], x['ue']['ue_id'],
+                          x['matiere']['numero'], x['matiere']['matiere_id'],
+                          x['module']['numero'])
+        
+        modimpls.sort(lambda x,y: cmp(extr(x), extr(y)))
+        #log('after sort args=%s' % args)
+        #log( ',\n'.join( [ str(extr(m)) for m in modimpls ] ))        
+        #log('after sort: Mlist=\n' + ',\n'.join( [ str(m) for m in  modimpls ] ) + '\n')
         return modimpls
 
     security.declareProtected(ScoView,'do_ens_list')
