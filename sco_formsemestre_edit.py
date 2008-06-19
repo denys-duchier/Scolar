@@ -665,6 +665,8 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
     Indiquez "auto" (ou laisser vide) pour que ScoDoc calcule automatiquement le coefficient,
     ou bien entrez une valeur (nombre réel).
     </p>
+    <p class="warning">Les coefficients indiqués ici ne s'appliquent que pour le traitement des UE capitalisées.
+    </p>
     """
     H = [ header,
           context.formsemestre_status_head(context, REQUEST=REQUEST,
@@ -712,36 +714,59 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
         # 2- modifie ou cree les coefs
         ue_deleted = []
         ue_modified=[]
+        msg = []
         for ue in ues:
-            ue_id = ue['ue_id']
-            val = tf[2]['ue_' + ue_id]
-            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id})
-            try:
-                val = float(val)
-                # modifie ou cree le coef
+            val = tf[2]['ue_' + ue['ue_id']]
+            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id']})
+            if val == '' or val == 'auto':
+                # supprime ce coef (il sera donc calculé automatiquement)
                 if coefs:
-                    formsemestre_uecoef_edit(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id,
-                                                        'coefficient' : val})
-                else:
-                    formsemestre_uecoef_create(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue_id,
-                                                          'coefficient' : val})
-                ue['coef'] = val
-                ue_modified.append(ue)
-            except:
-                # pas de valeur: supprime
-                ue_deleted.append(ue)
-                if coefs:
-                    formsemestre_uecoef_delete(cnx, coefs[0]['formsemestre_uecoef_id'])
-        z = [ """<h3>Modification effectuées</h3><h4>Coefs modifiés dans les UE:<h4><ul>""" ]
-        for ue in ue_modified:
-            z.append('<li>%(acronyme)s : %(coef)s</li>' % ue )
-        z.append("""</ul><h4>Coefs supprimés dans les UE:<h4><ul>""")
-        for ue in ue_deleted:
-            z.append('<li>%(acronyme)s</li>' % ue )
-        z.append("""</ul>""")
+                    ue_deleted.append(ue)
+            else:
+                try:
+                    val = float(val)
+                    if (not coefs) or (coefs[0]['coefficient'] != val):
+                        ue['coef'] = val
+                        ue_modified.append(ue)
+                except:
+                    ok = False
+                    msg.append( "valeur invalide (%s) pour le coefficient de l'UE %s"
+                                % (val, ue['acronyme']) )
 
+        if not ok:
+            return '\n'.join(H) + '<p><ul><li>%s</li></ul></p>'% '</li><li>'.join(msg) + tf[1] + footer
+
+        # apply modifications
+        for ue in ue_modified:
+            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id']})
+            # modifie ou cree le coef
+            if coefs:
+                formsemestre_uecoef_edit(cnx, args={'formsemestre_uecoef_id' : coefs[0]['formsemestre_uecoef_id'],
+                                                    'coefficient' : ue['coef']})
+            else:
+                formsemestre_uecoef_create(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id'],
+                                                      'coefficient' : ue['coef']})
+        for ue in ue_deleted:
+            coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id']})
+            if coefs:
+                formsemestre_uecoef_delete(cnx, coefs[0]['formsemestre_uecoef_id'])
+
+        if ue_modified or ue_deleted:
+            z = [ """<h3>Modification effectuées</h3>""" ]
+            if ue_modified:
+                z.append("""<h4>Coefs modifiés dans les UE:<h4><ul>""")
+                for ue in ue_modified:
+                    z.append('<li>%(acronyme)s : %(coef)s</li>' % ue )
+                z.append('</ul>')
+            if ue_deleted:
+                z.append("""<h4>Coefs supprimés dans les UE:<h4><ul>""")
+                for ue in ue_deleted:
+                    z.append('<li>%(acronyme)s</li>' % ue )
+                z.append('</ul>')
+        else:
+            z = [ """<h3>Aucune modification</h3>""" ]
         context._inval_cache(formsemestre_id=formsemestre_id)
         
-        return header + '\n'.join(z) + footer
+        return header + '\n'.join(z) + """<p><a href="formsemestre_status?formsemestre_id=%s">Revenir au tableau de bord</a></p>""" % formsemestre_id + footer
         
     

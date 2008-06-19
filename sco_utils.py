@@ -58,7 +58,7 @@ except:
     raise
 
 
-SCO_ENCODING = 'iso8859-1' # used by Excel I/O
+SCO_ENCODING = 'iso-8859-1' # used by Excel I/O
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 

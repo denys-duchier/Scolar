@@ -14,3 +14,6 @@ import sys
 
 sys.path.append('..')
 
+# ...
+
+sys.exit(0)

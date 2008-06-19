@@ -207,10 +207,35 @@ install: création db connection ? ou bien gérer nous même !
 UsersDB: a part, géré uniquement en Zope pour le moment ?
 
 * Installeur: 
-    - image Zope minimale
-       (voir si on peut mettre les icones comme des fichiers ordinaires)
-      1er accès: interface de paramétrage: 
-           + possibilité d'ajouter un département
-               - cnx string: enregistree dans un fichier !
-               - propriétés / département
-            UsersDB (commune à tous les dept)
+  - image Zope minimale
+    (voir si on peut mettre les icones comme des fichiers ordinaires)
+
+  - ajout d'un département == ajout instance ZScolar
+     Un seul parametre: nom du departement (un mot "Dept" == "RT", "Info", etc)
+
+       . fichier config: config/Dept.cfg
+          CONNECTION_STRING='xxx'
+          
+A faire:
+
+ 0) INSTALL de base:
+- prerequis: apache2, utilisateur www-data
+- detarer ScoDoc.tgz  (== Zope + produits + scodoc)
+
+
+ 1) Script (à lancer comme root): create_dept.sh
+    création de la base de données pour un dept
+    (connection sans mot depasse, utilisateur postgres www-data)
+
+ 2) ZScolar.__init__: parametre = nom du departement
+   - creation des rôles et des permissions
+      -> definition de trois roles locaux EnsDept, SecrDept, AdminDept
+      -> réglage des permissions
+
+ 3) page d'accueil listant les departements
+
+Quid des utilisateurs ? il faudrait une base commune
+
+createuser --no-createdb --no-adduser viennet
+createdb -E LATIN1 -O viennet SCOVIENNET
+

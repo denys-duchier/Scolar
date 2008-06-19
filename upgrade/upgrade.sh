@@ -6,7 +6,7 @@
 #
 # E. Viennet, june 2008
 
-SCODOC_DIR=/home/zope/instance/Products/Scolar
+source config.sh
 
 /etc/init.d/zope stop
 
@@ -15,7 +15,7 @@ echo "Using SVN to update $SCODOC_DIR..."
 
 # post-upgrade script
 echo "Executing post-upgrade script..."
-$SCODOC_DIR/upgrade/postupgrade.py
+$SCODOC_DIR/install/postupgrade.py
 
 # 
 echo "Starting Zope..."
