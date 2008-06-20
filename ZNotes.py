@@ -2379,7 +2379,7 @@ class ZNotes(ObjectManager,
             edit = 0
         sem = self.get_formsemestre(formsemestre_id)
         # check custom access permission
-        can_edit_app = ((authuser == sem['responsable_id'])
+        can_edit_app = ((str(authuser) == sem['responsable_id'])
                         or (authuser.has_permission(ScoEtudInscrit,self)))
         if not can_edit_app:
             raise AccessDenied("vous n'avez pas le droit d'ajouter une appreciation")
