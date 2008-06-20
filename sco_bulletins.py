@@ -409,11 +409,28 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
                 code = decision['decision_sem']['code']
             else:
                 code = ''
+            doc._push()
             doc.decision( code=code, etat=etat)
+            doc._pop()
+            for ue_id in decision['decisions_ue'].keys():                
+                ue = znotes.do_ue_list({ 'ue_id' : ue_id})[0]
+                doc._push()
+                doc.decision_ue( ue_id=ue['ue_id'],
+                                 numero=quote_xml_attr(ue['numero']),
+                                 acronyme=quote_xml_attr(ue['acronyme']),
+                                 titre=quote_xml_attr(ue['titre']),
+                                 code=decision['decisions_ue'][ue_id]['code']
+                                 )
+                doc._pop()
+            
             for aut in decision['autorisations']:
+                doc._push()
                 doc.autorisation_inscription( semestre_id=aut['semestre_id'] )
+                doc._pop()
         else:
+            doc._push()
             doc.decision( code='', etat='DEM' )
+            doc._pop()
     # --- Appreciations
     cnx = znotes.GetDBConnexion() 
     apprecs = scolars.appreciations_list(

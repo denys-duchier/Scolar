@@ -108,7 +108,7 @@ PREFS = (
       ),
     ( 'notify_etud_changes_to',
       { 'initvalue' : '',
-        'title' : 'e-mail a qui notifier les changements d\'identité des étudiants',
+        'title' : 'e-mail à qui notifier les changements d\'identité des étudiants',
         'explanation' : 'utile pour mettre à jour manuellement d\'autres bases de données',
          'size' : 40
         }
