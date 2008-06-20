@@ -260,8 +260,9 @@ class sco_preferences:
         for name in names:
             log('save pref %s=%s' % (name, self[name]))
             self._editor.edit(cnx, { 'name' : name, 'value' : self[name] })       
+
         # les preferences peuvent affecter les PDF cachés:
-        self._inval_cache(pdfonly=True)
+        self.context.Notes._inval_cache(pdfonly=True)
 
     def edit(self, REQUEST):
         """HTML dialog"""
