@@ -8,17 +8,27 @@
 <p>
 <table class="formsemestre_status">
 <tr>
-<th class="formsemestre_status">Code</th><th class="formsemestre_status">Module</th><th class="formsemestre_status">Inscrits</th><th class="formsemestre_status">Responsable</th><th class="formsemestre_status">Evaluations</th></tr>
+<th class="formsemestre_status">Code</th>
+<th class="formsemestre_status">Module</th>
+<th class="formsemestre_status">Inscrits</th>
+<th class="formsemestre_status">Responsable</th>
+<th class="formsemestre_status">Evaluations</th></tr>
 
 <dtml-in Mlist>
 <dtml-let M="_['sequence-item']">
 <dtml-call "REQUEST.set( 'Mod', M['module'] )">
+<dtml-call "REQUEST.set( 'ModDescr', 'Module ' + M['module']['titre'] + ', coef. ' + str(M['module']['coefficient']) )">
+<dtml-call "REQUEST.set( 'ModEns', Users.user_info(M['responsable_id'],REQUEST)['nomcomplet'])">
+<dtml-if "M['ens']">
+<dtml-call "REQUEST.set( 'ModEns', ModEns + ' (resp.), ' + ', '.join( [ Users.user_info(e['ens_id'],REQUEST)['nomcomplet'] for e in M['ens'] ] ))">
+</dtml-if>
+
 <dtml-call "REQUEST.set( 'ModInscrits',
 	      do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } ))">
 
 <dtml-if "prev_ue_id != M['ue']['ue_id']">
 <dtml-call "REQUEST.set('prev_ue_id', M['ue']['ue_id'])">
-<tr class="formsemestre_status_ue"><td colspan="6">
+<tr class="formsemestre_status_ue"><td colspan="5">
 <span class="status_ue_acro"><dtml-var "M['ue']['acronyme']"></span>
 <span class="status_ue_title"><dtml-var "M['ue']['titre']"></span>
 </td></tr>
@@ -39,14 +49,20 @@
 </dtml-if>
 
 <td class="formsemestre_status_code">
-<a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"><dtml-var "Mod['code']"></a>
+<a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" title="<dtml-var ModDescr>"><dtml-var "Mod['code']"></a>
 </td>
-<td><a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
+<td><a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" title="<dtml-var ModDescr>" class="formsemestre_status_link">
      <dtml-if "Mod['abbrev']"><dtml-var "Mod['abbrev']"><dtml-else><dtml-var "Mod['titre']"></dtml-if>
 </a></td>
 
 <td class="formsemestre_status_inscrits"><dtml-var "len( ModInscrits )"></td>
-<td class="formsemestre_status_cell"><dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']"></td>
+
+<td class="formsemestre_status_cell"><a class="discretelink" href=""
+title="<dtml-var ModEns>">
+<dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']">
+</a>
+</td>
+
 <td class="formsemestre_status_cell">
  <dtml-if "(nb_evals_completes+nb_evals_en_cours+nb_evals_vides) != 0">
  <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
