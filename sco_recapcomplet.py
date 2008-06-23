@@ -59,7 +59,7 @@ def do_formsemestre_recapcomplet(
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
     h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
-    cod2mod ={} # code : moduleimpl_id
+    cod2mod ={} # code : moduleimpl
     for ue in ues:
         if ue['type'] == UE_STANDARD:            
             h.append( ue['acronyme'] )
@@ -76,7 +76,7 @@ def do_formsemestre_recapcomplet(
                 if modimpl['module']['ue_id'] == ue['ue_id']:
                     code = modimpl['module']['code']
                     h.append( code )
-                    cod2mod[code] = modimpl['moduleimpl_id'] # pour fabriquer le lien
+                    cod2mod[code] = modimpl # pour fabriquer le lien
     F.append(h)
     ue_index = [] # indices des moy UE dans l (pour appliquer style css)
     def fmtnum(val): # conversion en nombre pour cellules excel
@@ -190,7 +190,11 @@ def do_formsemestre_recapcomplet(
             if i == 0: # Rang: force tri numerique pour sortable
                 cls = cls + ' sortnumeric'
             if cod2mod.has_key(F[0][i]): # lien vers etat module
-                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s">%s</a></td>' % (cls,cod2mod[F[0][i]], F[0][i])
+                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>' % (
+                    cls,
+                    cod2mod[F[0][i]]['moduleimpl_id'],
+                    cod2mod[F[0][i]]['module']['titre'],
+                    F[0][i])
             else:
                 cells += '<td class="%s">%s</td>' % (cls, F[0][i])
         if modejury:
