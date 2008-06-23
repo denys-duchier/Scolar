@@ -57,9 +57,9 @@
 
 <td class="formsemestre_status_inscrits"><dtml-var "len( ModInscrits )"></td>
 
-<td class="formsemestre_status_cell"><a class="discretelink" href=""
+<td class="formsemestre_status_cell"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"
 title="<dtml-var ModEns>">
-<dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']">
+<dtml-var "Users.user_info(M['responsable_id'],REQUEST)['prenomnom']">
 </a>
 </td>
 

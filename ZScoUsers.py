@@ -56,6 +56,7 @@ from sco_utils import *
 import sco_import_users, sco_excel
 from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
+import scolars
 
 # ----------------- password checking
 import crack
@@ -237,10 +238,13 @@ class ZScoUsers(ObjectManager,
                 n = info['nom'].lower().capitalize()
             else:
                 n = user_name
+            prenom_abbrv = abbrev_prenom(p)
             # nomprenom est le nom capitalisé suivi de l'initiale du prénom
-            info['nomprenom'] = (n + ' ' + abbrev_prenom(p)).strip()
+            info['nomprenom'] = (n + ' ' + prenom_abbrv).strip()
+            # prenomnom est l'initiale du prénom suivie du nom
+            info['prenomnom'] = (prenom_abbrv + ' ' + n).strip()
             # nomcomplet est le prenom et le nom complets
-            info['nomcomplet'] = p + ' ' + n
+            info['nomcomplet'] = scolars.format_prenom(p) + ' ' + scolars.format_nom(n)
             return info
 
     def _can_handle_passwd(self, authuser, user_name):
