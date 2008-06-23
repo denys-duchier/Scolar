@@ -129,7 +129,7 @@ window.onload=function(){enableTooltips("gtrcontent")};
     H.append("""<div class="gtrcontent" id="gtrcontent">""")
     #
     if head_message:
-        H.append('<div class="head_message">' + head_message + '</div>')
+        H.append('<div class="head_message">' + cgi.escape(head_message) + '</div>')
     #
     return ''.join(H)
 
