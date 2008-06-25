@@ -2588,6 +2588,8 @@ class ZNotes(ObjectManager,
         descr = [
             ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+            ('numeroArrete', {'input_type' : 'text', 'size' : 50, 'title' : 'Numéro de l\'arrêté du président',
+            'explanation' : 'le président de l\'Université prend chaque anné un arrêté formant les jurys'}),
             ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
             ('formsemestre_id', {'input_type' : 'hidden' }) ]
         if etudid:
@@ -2614,8 +2616,10 @@ class ZNotes(ObjectManager,
             try:
                 PDFLOCK.acquire()
                 pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
-                                              tf[2]['dateCommission'], tf[2]['dateJury'],
-                                              tf[2]['showTitle'])
+                                              numeroArrete=tf[2]['numeroArrete'],
+                                              dateCommission=tf[2]['dateCommission'],
+                                              dateJury=tf[2]['dateJury'],
+                                              showTitle=tf[2]['showTitle'])
             finally:
                 PDFLOCK.release()                
             sem = self.get_formsemestre(formsemestre_id)

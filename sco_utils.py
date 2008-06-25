@@ -66,6 +66,8 @@ SCO_ENCODING = 'iso-8859-1' # used by Excel I/O
 #    return unicode(s, SCO_ENCODING).encode('utf-8')
 
 
+SCO_DEFAULT_SQL_USER='www-data' # should match Zope process UID
+
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_MAILING_LIST = 'notes@gtr.iutv.univ-paris13.fr'
 

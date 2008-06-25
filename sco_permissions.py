@@ -30,3 +30,19 @@ ScoUsersView  = 'Sco Users View'
 
 ScoSuperAdmin = 'Sco Super Admin'
 
+# Default permissions for default roles
+# (set once on instance creation)
+
+Sco_Default_Permissions = {
+    'Ens' : (ScoView, ScoEnsView, ScoEtudAddAnnotations, ScoEntrepriseView,
+             ScoAbsChange),
+
+    'Secr': (ScoView, ScoEtudAddAnnotations, ScoEntrepriseView,
+             ScoAbsChange, ScoEtudChangeAdr, ScoEntrepriseChange),
+
+    'Admin' : (ScoChangeFormation, ScoEditAllNotes, ScoEditAllEvals,
+               ScoImplement, ScoAbsChange, ScoEtudChangeAdr,
+               ScoEtudChangeGroups, ScoEtudInscrit, ScoEtudAddAnnotations,
+               ScoEntrepriseView, ScoEntrepriseChange,
+               ScoView, ScoEnsView, ScoUsersAdmin)
+    }

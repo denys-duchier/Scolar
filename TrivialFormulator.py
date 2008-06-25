@@ -41,6 +41,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           type       : 'string', 'int', 'float' (default to string), 'list' (only for hidden)
           convert_numbers: covert int and float values (from string)
           allowed_values : list of possible values (default: any value)
+          validator : function validating the field (called with (value,field)).
           max_value : maximum value (for floats and ints)
           explanation: text string to display next the input widget
           withcheckbox: if true, place a checkbox at the left of the input
@@ -212,6 +213,11 @@ class TF:
                 elif descr.get('input_type',None) == 'boolcheckbox':
                     pass
                 elif not val in descr['allowed_values']:
+                    msg.append("valeur invalide (%s) pour le champ '%s'"
+                               % (val,field) )
+                    ok = 0
+            if descr.has_key('validator'):
+                if not descr['validator'](val,field):
                     msg.append("valeur invalide (%s) pour le champ '%s'"
                                % (val,field) )
                     ok = 0

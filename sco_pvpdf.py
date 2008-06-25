@@ -374,7 +374,7 @@ def _make_signature_image(signature, leftindent, context=None):
 # ----------------------------------------------
 # PV complet, tableau en format paysage
 
-def pvjury_pdf(context, dpv, REQUEST, dateCommission, dateJury=None, showTitle=False):
+def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, dateJury=None, showTitle=False):
     """Doc PDF récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
@@ -419,12 +419,12 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission, dateJury=None, showTitle=F
 Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
 </para>
 <para><bullet>-</bullet>  
-vu l'arrêté n° 07 081 905 001 du Président de l'%s;
+vu l'arrêté n° %s du Président de l'%s;
 </para>
 <para><bullet>-</bullet> 
 vu la délibération de la commission %s en date du %s présidée par le Chef du département;
 </para>
-    """ % (context.get_preference('UnivName'), t, dateCommission), bulletStyle )
+    """ % (numeroArrete, context.get_preference('UnivName'), t, dateCommission), bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]

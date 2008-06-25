@@ -34,6 +34,8 @@ try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
 
+import psycopg
+
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
@@ -139,6 +141,7 @@ class ZScolar(ObjectManager,
     # no permissions, only called from python
     def __init__(self, id, title, db_cnx_string=None, mail_host='MailHost'):
 	"initialise a new instance of ZScolar"
+        log('*** creating ZScolar instance')
         self.id = id
 	self.title = title
         self._db_cnx_string = db_cnx_string        
@@ -172,6 +175,12 @@ class ZScolar(ObjectManager,
         obj = ZEntreprises.ZEntreprises(id, 'Suivi entreprises')
         self._setObject(id, obj)
 
+        #
+        ok, diag = self._setup_initial_roles_and_permissions( self.get_preference('DeptName') )
+        if not ok:
+            log('an error occured while initializing roles and permissions')
+            log(diag)
+        
     # The for used to edit this object
     def manage_editZScolar(self, title, RESPONSE=None):
         "Changes the instance values"
@@ -179,6 +188,29 @@ class ZScolar(ObjectManager,
         self._p_changed = 1
         RESPONSE.redirect('manage_editForm')
 
+    def _setup_initial_roles_and_permissions(self, DeptName):
+        """Initialize roles and permissions
+        create 3 roles: EnsXXX, SecrXXX, AdminXXX
+        and set default permissions for each one.
+        """
+        log('initializing roles and permissions for %s' % DeptName)
+        H = []
+        ok = True
+        for role_type in ('Ens', 'Secr', 'Admin'):
+            role_name = role_type + DeptName
+            r = self._addRole( role_name )
+            if r:
+                H.append(r)
+                ok = False
+
+            for permission in Sco_Default_Permissions[role_type]:
+                r = self.manage_permission(permission, roles=[ role_name ], acquire=0)
+                if r:
+                    H.append(r)
+                    ok = False            
+        
+        return ok, '\n'.join(H)
+        
     security.declareProtected(ScoView, 'essai')
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
@@ -2577,7 +2609,70 @@ def manage_addZScolar(self, id= 'id_ZScolar',
         #return self.manage_editForm(self, REQUEST)
 
 # The form used to get the instance id from the user.
-manage_addZScolarForm = DTMLFile('dtml/manage_addZScolarForm', globals())
+#manage_addZScolarForm = DTMLFile('dtml/manage_addZScolarForm', globals())
 
+def manage_addZScolarForm(context, REQUEST=None):
+    """Form used to create a new ZScolar instance"""
+    H = [ context.standard_html_header(context),
+          "<h2>Ajout d'un site ScoDoc</h2>",
+          """<p>Cette page doit être utilisée pour créer un nouveau site ScoDoc.</p>
+          <p>Un site correspond en général à un département d'enseignement.</p>
+          <p>Avant de créer le site, il faut <b>impérativement</b> avoir préparé la base
+          de données en lançant le script <tt>create_dept.sh nom_du_site</tt> en tant que
+          <em>root</em> sur le serveur.
+          </p>"""
+          ]
+    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form,
+                           (('DeptName',
+                             {'title' : 'Nom du site (département ou filière)',
+                              'explanation' : "doit être le même que celui passé au script create_dept.sh",
+                              'allow_null' : False,
+                              'validator' : lambda v, f: re.match( '^[a-zA-Z0-9_]+$', v.strip() )
+                              }),
+                            ('db_cnx_string',
+                             {'title' : 'DB connexion string',
+                              'size' : 32,
+                              'explanation' : "laisser vide si BD locale standard"
+                              }
+                             )),
+                           submitlabel='Créer le site ScoDoc')
+    if  tf[0] == 0:            
+        return '\n'.join(H) + tf[1] + context.standard_html_footer(context)
+    elif tf[0] == -1:
+        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+    else:
+        DeptName = tf[2]['DeptName'].strip()
+        db_cnx_string = tf[2]['db_cnx_string'].strip()
+        # default connexion string
+        if not db_cnx_string:
+            db_name = 'SCO' + DeptName.upper()
+            db_user = SCO_DEFAULT_SQL_USER
+            db_cnx_string = 'user=%s dbname=%s host=localhost' % (db_user, db_name)
 
+        # vérifie que la bd existe et possede le meme nom de dept.
+        try:
+            cnx = psycopg.connect(db_cnx_string)        
+            cursor = cnx.cursor()
+            cursor.execute( "select * from sco_prefs where name='DeptName'" )
+        except:
+            return _simple_error_page(context, "Echec de la connextion à la BD (%s)" % db_cnx_string)
+        r = cursor.dictfectchall()
+        if not r:
+            return _simple_error_page(context, "Pas de departement défini dans la BD")
+        if r[0]['value'] != DeptName:
+            return _simple_error_page(context, "La BD ne correspond pas: nom departement='%s'"%r[0]['value'])
+        # ok, crée instance ScoDoc:
+        manage_addZScolar(context, id=DeptName,
+                          title='ScoDoc for %s' % DeptName,
+                          db_cnx_string=db_cnx_string)
     
+        return REQUEST.RESPONSE.redirect('index_html')
+
+def _simple_error_page(context, msg):
+    """Minimal error page (used by installer only).
+    """
+    H = [ context.standard_html_header(context),
+          '<h2>Erreur !</h2>',
+          '<p>', msg, '</p>',
+          context.standard_html_footer(context) ]
+    return '\n'.join(H)

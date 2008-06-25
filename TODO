@@ -224,8 +224,9 @@ A faire:
 
 
  1) Script (à lancer comme root): create_dept.sh
-    création de la base de données pour un dept
-    (connection sans mot depasse, utilisateur postgres www-data)
+    création de la base de données pour un dept: db SCO+DeptName.upper()
+    (connection sans mot de passe, utilisateur postgres www-data)
+    initialisation des preferences (DeptName est requis)
 
  2) ZScolar.__init__: parametre = nom du departement
    - creation des rôles et des permissions
@@ -233,6 +234,9 @@ A faire:
       -> réglage des permissions
 
  3) page d'accueil listant les departements
+   Si admin: lien : ajouter un département
+      param: DeptName
+   Le script create_dept.sh doit avoir été lancé avant.
 
 Quid des utilisateurs ? il faudrait une base commune
 

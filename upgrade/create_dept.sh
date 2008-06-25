@@ -20,30 +20,19 @@ then
   exit 1
 fi
 
-echo "Nom du departement (un mot, exemple \"Info\"):"
+echo -n "Nom du departement (un mot, exemple \"Info\"): "
 read DEPT
 
 export DEPT
 
+export db_name=SCO$(to_upper "$DEPT")
 
 # -----------------------  Create database
-su $POSTGRES_SUPERUSER
+su -c ./create_database.sh $POSTGRES_SUPERUSER 
 
-# --- Ensure postgres user www-data exists
-if [ -z $("select usename from pg_user;" | psql | grep $POSTGRES_USER) ]
-then
- # add database user
- echo "Creating postgresql user $POSTGRES_USER"
- createuser --no-createdb --no-adduser "$POSTGRES_USER"
-fi
-
-# ---
-dbuser=sco$(toLower "$DEPT")
+# ----------------------- Create tables
+# POSTGRES_USER == regular unix user (www-data)
+su -c ./initialize_database.sh $POSTGRES_USER
 
 
-createuser --pwprompt $dbuser
 
-
-exit # exit su
-# ----------------------- 
-exit 0
