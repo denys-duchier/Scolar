@@ -208,7 +208,7 @@ class SituationEtudParcours:
         self.nb_ues_under = self.nt.etud_count_ues_under_threshold(self.etudid)
         self.barres_ue_ok = (self.nb_ues_under == 0)
         self.moy_gen = self.nt.get_etud_moy_gen(self.etudid)
-        self.barre_moy_ok = self.moy_gen >= NOTES_BARRE_GEN
+        self.barre_moy_ok = type(self.moy_gen) == FloatType and self.moy_gen >= NOTES_BARRE_GEN
         # conserve etat UEs
         ue_ids = [ x['ue_id'] for x in self.nt.get_ues(etudid=self.etudid, filter_sport=True) ]
         self.ues_status = {} # ue_id : status
@@ -528,12 +528,14 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
         if not assiduite:
             code_ue = AJ
         else:
-            if ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+            # log('%s: %s: ue_status=%s' % (formsemestre_id,ue_id,ue_status))
+            if type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
                 code_ue = ADM
             elif valid_semestre:
                 code_ue = CMP
             else:
                 code_ue = AJ
+        # log('code_ue=%s' % code_ue)
         do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code_ue)
         if REQUEST:
             logdb(REQUEST, cnx, method='validate_ue', etudid=etudid,
