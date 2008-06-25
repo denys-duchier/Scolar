@@ -174,12 +174,7 @@ class ZScolar(ObjectManager,
         id = 'Entreprises'
         obj = ZEntreprises.ZEntreprises(id, 'Suivi entreprises')
         self._setObject(id, obj)
-
-        #
-        ok, diag = self._setup_initial_roles_and_permissions( self.get_preference('DeptName') )
-        if not ok:
-            log('an error occured while initializing roles and permissions')
-            log(diag)
+        
         
     # The for used to edit this object
     def manage_editZScolar(self, title, RESPONSE=None):
@@ -188,7 +183,8 @@ class ZScolar(ObjectManager,
         self._p_changed = 1
         RESPONSE.redirect('manage_editForm')
 
-    def _setup_initial_roles_and_permissions(self, DeptName):
+    security.declareProtected(ScoView, 'setup_initial_roles_and_permissions') # XXX DEBUG
+    def setup_initial_roles_and_permissions(self, DeptName):
         """Initialize roles and permissions
         create 3 roles: EnsXXX, SecrXXX, AdminXXX
         and set default permissions for each one.
@@ -202,12 +198,15 @@ class ZScolar(ObjectManager,
             if r:
                 H.append(r)
                 ok = False
-
-            for permission in Sco_Default_Permissions[role_type]:
-                r = self.manage_permission(permission, roles=[ role_name ], acquire=0)
-                if r:
-                    H.append(r)
-                    ok = False            
+            
+        for permission in Sco_Default_Permissions.keys():
+            roles = [ r + DeptName for r in Sco_Default_Permissions[permission] ]
+            roles.append('Manager')
+            log("granting '%s' to %s" % (permission, roles))
+            r = self.manage_permission(permission, roles=roles, acquire=0)
+            if r:
+                H.append(r)
+                ok = False            
         
         return ok, '\n'.join(H)
         
@@ -2429,7 +2428,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                                               REQUEST=REQUEST,
                                               formsemestre_id=formsemestre_id)
 
-    security.declareProtected(ScoEtudInscrit,"sco_import_generate_excel_sample")
+    security.declareProtected(ScoEtudInscrit,"import_generate_excel_sample")
     def import_generate_excel_sample(self, REQUEST, with_codesemestre='1'):
         "une feuille excel pour importation etudiants"
         if with_codesemestre:
@@ -2487,7 +2486,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                 tf[2]['csvfile'],
                 REQUEST=REQUEST, formsemestre_id=formsemestre_id)
 
-    security.declareProtected(ScoEtudInscrit,"sco_import_generate_admission_sample")
+    security.declareProtected(ScoEtudInscrit,"import_generate_admission_sample")
     def import_generate_admission_sample(self, REQUEST, formsemestre_id):
         "une feuille excel pour importation données admissions"
         format = ImportScolars.sco_import_format(file_path)
@@ -2603,10 +2602,15 @@ def manage_addZScolar(self, id= 'id_ZScolar',
                       db_cnx_string='the db connexion string',
                       REQUEST=None):
    "Add a ZScolar instance to a folder."
-   self._setObject(id, ZScolar(id, title, db_cnx_string=db_cnx_string))
-   if REQUEST is not None:
-        return self.manage_main(self, REQUEST)
-        #return self.manage_editForm(self, REQUEST)
+   zscolar = ZScolar(id, title, db_cnx_string=db_cnx_string)
+   self._setObject(id,zscolar)
+   #ok, diag =  zscolar._setup_initial_roles_and_permissions( zscolar.get_preference('DeptName') )
+   #if not ok:
+   #    log('an error occured while initializing roles and permissions')
+   #    log(diag)
+   
+   #if REQUEST is not None:
+   #     return self.manage_main(self, REQUEST)
 
 # The form used to get the instance id from the user.
 #manage_addZScolarForm = DTMLFile('dtml/manage_addZScolarForm', globals())
@@ -2656,7 +2660,7 @@ def manage_addZScolarForm(context, REQUEST=None):
             cursor.execute( "select * from sco_prefs where name='DeptName'" )
         except:
             return _simple_error_page(context, "Echec de la connextion à la BD (%s)" % db_cnx_string)
-        r = cursor.dictfectchall()
+        r = cursor.dictfetchall()
         if not r:
             return _simple_error_page(context, "Pas de departement défini dans la BD")
         if r[0]['value'] != DeptName:

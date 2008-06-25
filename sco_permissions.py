@@ -16,7 +16,7 @@ ScoImplement    = "Sco Implement Formation"
 
 ScoAbsChange    = "Sco Change Absences"
 ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo
-ScoEtudChangeGroups = "Sco Change Etud Groups" 
+ScoEtudChangeGroups = "Sco Change Etud Groups"
 ScoEtudInscrit  = "Sco Inscrire Etud" # aussi pour demissions, diplomes
 ScoEtudAddAnnotations = "Sco Etud Add Annotations"
 ScoEntrepriseView = "Sco View Entreprises"
@@ -34,15 +34,22 @@ ScoSuperAdmin = 'Sco Super Admin'
 # (set once on instance creation)
 
 Sco_Default_Permissions = {
-    'Ens' : (ScoView, ScoEnsView, ScoEtudAddAnnotations, ScoEntrepriseView,
-             ScoAbsChange),
 
-    'Secr': (ScoView, ScoEtudAddAnnotations, ScoEntrepriseView,
-             ScoAbsChange, ScoEtudChangeAdr, ScoEntrepriseChange),
-
-    'Admin' : (ScoChangeFormation, ScoEditAllNotes, ScoEditAllEvals,
-               ScoImplement, ScoAbsChange, ScoEtudChangeAdr,
-               ScoEtudChangeGroups, ScoEtudInscrit, ScoEtudAddAnnotations,
-               ScoEntrepriseView, ScoEntrepriseChange,
-               ScoView, ScoEnsView, ScoUsersAdmin)
+    ScoView               : ('Ens', 'Secr', 'Admin'),
+    ScoEnsView            : ('Ens',         'Admin'),
+    ScoUsersView          : ('Ens', 'Secr', 'Admin'),
+    ScoEtudAddAnnotations : ('Ens', 'Secr', 'Admin'),
+    ScoAbsChange          : ('Ens', 'Secr', 'Admin'),
+    ScoEntrepriseView     : ('Ens', 'Secr', 'Admin'),    
+    ScoEntrepriseChange   : (       'Secr', 'Admin'),
+    ScoEtudChangeAdr      : (       'Secr', 'Admin'),
+    ScoChangeFormation    : (               'Admin',),
+    ScoEditAllNotes       : (               'Admin',),
+    ScoEditAllEvals       : (               'Admin',),
+    ScoImplement          : (               'Admin',),
+    ScoEtudChangeGroups   : (               'Admin',),
+    ScoEtudInscrit        : (               'Admin',),
+    ScoUsersAdmin         : (               'Admin',),
+    ScoSuperAdmin         : (), # lister tt les permissions    
     }
+
