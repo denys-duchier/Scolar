@@ -42,7 +42,11 @@ tables = ( 'absences',
            'scolar_events',
            'scolar_formsemestre_validation',
            'scolar_autorisation_inscription',
-           'notes_appreciations'
+           'notes_appreciations',
+           # nouvelles absences
+           #'abs_absences',
+           #'abs_presences',
+           #'abs_justifs',
            )
 
 for table in tables:

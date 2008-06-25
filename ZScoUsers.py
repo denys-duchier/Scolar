@@ -222,7 +222,10 @@ class ZScoUsers(ObjectManager,
             return { 'user_name' : user_name,
                      'nom' : user_name, 'prenom' : '',
                      'email' : '', 'dept' : '',
-                     'nomprenom' : user_name }
+                     'nomprenom' : user_name,
+                     'prenomnom' : user_name,
+                     'nomcomplet': user_name
+                     }
         else:
             info = infos[0]
             # peut on divulguer ces infos ?
