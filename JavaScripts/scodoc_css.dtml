@@ -1,5 +1,5 @@
 /* # -*- mode: css -*- 
-           ScoDoc, (c) Emmanuel Viennet 1998 - 2007
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2008
  */
 <dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
 <dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
@@ -685,6 +685,10 @@ table.notes_bulletin {
 tr.notes_bulletin_row_ue {
    background-color: rgb(170,187,204);
    border-top: 1px solid black;
+}
+
+tr.notes_bulletin_row_mod {
+  border-top: 1px solid rgb(160,160,160);
 }
 
 td.note_bold {

@@ -68,6 +68,9 @@ def make_formsemestre_bulletinetud(
         PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
         PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
                          Color(170/255.,187/255.,204/255.) ))
+    def modline(i): # met la ligne i du tableau pdf en style 'Module'
+        PdfStyle.append(('LINEABOVE', (0,i), (-1,i),
+                         1, Color(170/255.,170/255.,170/255.)))
     # ligne de titres
     moy = nt.get_etud_moy_gen(etudid)
     mg = fmt_note(moy)
@@ -131,6 +134,7 @@ def make_formsemestre_bulletinetud(
                 mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
                 if mod_moy != 'NI': # ne montre pas les modules 'non inscrit'
                     tabline += 1
+                    modline(tabline)
                     H.append('<tr class="notes_bulletin_row_mod">')
                     # --- module avec moy. dans ce module et coef du module
                     nom_mod = modimpl['module']['abbrev']
