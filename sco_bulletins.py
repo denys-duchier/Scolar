@@ -582,6 +582,10 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           'enabled' : ((authuser == sem['responsable_id'])
                        or (authuser.has_permission(ScoEtudInscrit,context)))
           },
+        { 'title' : 'Entrer décisions jury',
+          'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s'%(formsemestre_id,etudid),
+          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+        },
         { 'title' : 'Editer PV jury',
           'url' : 'formsemestre_pvjury_pdf?formsemestre_id=%s&etudid=%s' % (formsemestre_id,etudid),
           'enabled' : True
