@@ -519,16 +519,17 @@ class NotesTable:
     def etud_count_ues_under_threshold(self, etudid, threshold=NOTES_BARRE_UE):
         """Nombre d'UE < barre
         Prend en compte les éventuelles UE capitalisées.
+        (les UE sans notes ne sont pas comptées comme sous la barre)
         """
         n = 0
         for ue in self._ues:
             ue_status = self.get_etud_ue_status(etudid, ue['ue_id'])
-            if ue_status['coef_ue'] > 0 and ue_status['moy_ue'] < NOTES_BARRE_UE:
+            if ue_status['coef_ue'] > 0 and type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] < NOTES_BARRE_UE:
                 n += 1
         return n
 
     def etud_has_all_ue_over_threshold(self, etudid, threshold=NOTES_BARRE_UE):
-        """True si moyenne d'UE toutes > à 8
+        """True si moyenne d'UE toutes > à 8 (sauf celles sans notes)
         Prend en compte les éventuelles UE capitalisées.
         """
         return self.etud_count_ues_under_threshold(etudid, threshold=threshold) == 0
