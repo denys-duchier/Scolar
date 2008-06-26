@@ -106,7 +106,7 @@ def make_formsemestre_bulletinetud(
                   % (sem_origin['formsemestre_id'], etudid,
                      sem_origin['titreannee'],
                      DateISOtoDMY(ue_status['event_date'])),
-                  '', '%.2g' % ue_status['coef_ue'] )
+                  '', fmt_coef(ue_status['coef_ue']) )
             P.append(t)
             tabline += 1
             ueline(tabline)
@@ -119,7 +119,7 @@ def make_formsemestre_bulletinetud(
             else:
                 ue_comment = ''
         if (not ue_status['is_capitalized']) or ue_status['cur_moy_ue'] != 'NA':
-            t = ( ue['acronyme'], moy_ue, ue_comment, '', '%.2g' % ue_status['cur_coef_ue'] )
+            t = ( ue['acronyme'], moy_ue, ue_comment, '', fmt_coef(ue_status['cur_coef_ue']) )
             P.append(t)
             tabline += 1
             ueline(tabline)
@@ -137,7 +137,7 @@ def make_formsemestre_bulletinetud(
                     if not nom_mod:
                         nom_mod = ''                        
                     t = [ modimpl['module']['code'], nom_mod, '', mod_moy,
-                          '%.2g' % modimpl['module']['coefficient'] ]
+                          fmt_coef(modimpl['module']['coefficient']) ]
                     
                     if sem['bul_show_mod_rangs'] != '0' and mod_moy != '-':
                         t[2] = '%s/%s' % (nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid],
@@ -164,7 +164,7 @@ def make_formsemestre_bulletinetud(
                                 link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submitted=1">%s</a>' % (e['evaluation_id'], nom_eval)
                                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                                 val = fmt_note(val, note_max=e['note_max'] )
-                                t = [ '', '', nom_eval, val, '%.2g' % e['coefficient'] ]
+                                t = [ '', '', nom_eval, val, fmt_coef(e['coefficient']) ]
                                 P.append(tuple(t))
                                 t[2] = link_eval
                                 H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>' % tuple(t))

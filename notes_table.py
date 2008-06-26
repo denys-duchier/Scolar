@@ -76,6 +76,13 @@ def fmt_note(val, note_max=None, keep_numeric=False):
     else:
         return val.replace('NA0', '-')  # notes sans le NA0
 
+def fmt_coef(val):
+    """Conversion valeur coefficient (float) en chaine
+    """
+    if val < 0.01:
+        return '%g' % val # unusually small value
+    return '%g' % round(val,2)
+
 def comp_ranks(T):
     """Calcul rangs à partir d'une liste ordonnée de tuples [ (valeur, ..., etudid) ] 
     (valeur est une note numérique), en tenant compte des ex-aequos
