@@ -2535,7 +2535,16 @@ class ZNotes(ObjectManager,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.do_formsemestre_validation_auto(self, formsemestre_id, REQUEST)
-
+    
+    security.declareProtected(ScoView, 'formsemestre_fix_validation_ues')
+    def formsemestre_fix_validation_ues(self, formsemestre_id, REQUEST=None):
+        "Verif/reparation codes UE"
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        
+        return sco_formsemestre_validation.formsemestre_fix_validation_ues(self,formsemestre_id, REQUEST)
     
     security.declareProtected(ScoView, 'formsemestre_pvjury')
     formsemestre_pvjury = sco_pvjury.formsemestre_pvjury

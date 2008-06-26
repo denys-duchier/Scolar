@@ -604,3 +604,70 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     H.append(znotes.sco_footer(REQUEST))
     return '\n'.join(H)
     
+
+def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
+    """
+    Suite à un bug (fix svn 502, 26 juin 2008), les UE sans notes ont parfois été validées
+    avec un code ADM (au lieu de AJ ou ADC, suivant le code semestre).
+
+    Cette fonction vérifie les codes d'UE et les modifie si nécessaire.
+
+    Si semestre validé: decision UE == CMP ou ADM
+    Sinon: si moy UE > barre et assiduité au semestre: ADM, sinon AJ
+
+
+    N'affecte que le semestre indiqué, pas les précédents.
+    """
+    from sco_codes_parcours import *
+    sem= znotes.get_formsemestre(formsemestre_id)
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    etudids = nt.get_etudids()
+    modifs = [] # liste d'étudiants modifiés
+    cnx = znotes.GetDBConnexion()
+    for etudid in etudids:
+        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
+        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+        ins = znotes.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
+        decision_sem = nt.get_etud_decision_sem(etudid)
+        if not decision_sem:
+            continue # pas encore de decision semestre
+        valid_semestre = CODES_SEM_VALIDES.get(decision_sem['code'], False)
+        ue_ids = [ x['ue_id'] for x in nt.get_ues(etudid=etudid, filter_sport=True) ]
+        for ue_id in ue_ids:
+            existing_code = nt.get_etud_decision_ues(etudid)[ue_id]['code']
+            if existing_code == None:
+                continue # pas encore de decision UE
+            ue_status = nt.get_etud_ue_status(etudid, ue_id)
+            moy_ue = ue_status['moy_ue']
+            if valid_semestre:
+                if type(moy_ue) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+                    code_ue = ADM
+                else:
+                    code_ue = CMP
+            else:
+                if not decision_sem['assidu']:
+                    code_ue = AJ
+                elif type(moy_ue) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+                    code_ue = ADM
+                else:
+                    code_ue = AJ
+
+            if code_ue != existing_code:
+                msg = ('%s: %s: code %s changé en %s' %
+                       (etud['nomprenom'],ue_id, existing_code, code_ue) )
+                modifs.append(msg)
+                log(msg)
+                sco_parcours_dut.do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code_ue)
+    #
+    H = [znotes.sco_header(REQUEST, page_title='Réparation des codes UE'),
+         znotes.formsemestre_status_head(znotes, REQUEST=REQUEST,
+                                         formsemestre_id=formsemestre_id )
+         ]
+    if modifs:
+        H = H + [ '<h2>Modifications des codes UE</h2>', '<ul><li>',
+                  '</li><li>'.join(modifs), '</li></ul>' ]
+        znotes._inval_cache(formsemestre_id=formsemestre_id)
+    else:
+        H.append('<h2>Aucune modification: codes UE corrects ou inexistants</h2>')
+    H.append(znotes.sco_footer(REQUEST))
+    return '\n'.join(H)
