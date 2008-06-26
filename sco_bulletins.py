@@ -151,7 +151,11 @@ def make_formsemestre_bulletinetud(
                         t[0] = '' # pas affichage du code module
                     
                     P.append(tuple(t))
-                    link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s">' % modimpl['moduleimpl_id']
+                    mod_descr = 'Module %s, coef. %s (%s)' % (
+                        modimpl['module']['titre'],
+                        fmt_coef(modimpl['module']['coefficient']),
+                        znotes.Users.user_info(modimpl['responsable_id'],REQUEST)['nomcomplet'])
+                    link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (modimpl['moduleimpl_id'], mod_descr)
                     t[0] = link_mod + t[0] # add html link
                     t[1] = link_mod + t[1]
                     H.append('<td>%s</a></td><td>%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>' % tuple(t) )
