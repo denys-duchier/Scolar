@@ -191,6 +191,8 @@ class NotesTable:
         self.comp_ue_coefs(cnx)
         self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)
         self.moy_ue = {} # ue_id : { etudid : moy ue } (valeur numerique)
+        for ue in self._ues:
+            self.moy_ue[ue['ue_id']] = {}
         self._etud_moycoef_ue = {} # { etudid : { ue_id : (moy, coef) } }
         self.etud_ues_status = {} # { etudid : { ue_id : {...status...} } }
         for etudid in self.get_etudids():
@@ -210,8 +212,6 @@ class NotesTable:
                 #else:
                 #    moy_ue = self._etud_moycoef_ue[etudid][ue['ue_id']][0]
                 #    moy_ues.append(fmt_note(moy_ue))
-                if not self.moy_ue.has_key(ue['ue_id']):
-                    self.moy_ue[ue['ue_id']] = {}
                 self.moy_ue[ue['ue_id']][etudid] = moy_ue
             t = [fmt_note(moy_gen)] + moy_ues
             #
