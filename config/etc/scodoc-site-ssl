@@ -1,0 +1,47 @@
+
+# Fichier config Apache basique pour ScoDoc
+# E. Viennet, juin 2008
+
+# Apache fonctionne ici en proxy https devant zope (lui même sur 8080).
+
+# A EDITER !!!
+#  1- REMPLACER YOUR.FULL.HOST.NAME par votre nom de site (www.monscodoc.com)
+#  2- indiquer vos certificats ssl (.key, .pem)
+#  3- eventuellement, le certificat de votre authorite de certif. (CA).
+#  4- eventuellement, revoir les fichiers de logs (penser au logrotate !)
+
+
+NameVirtualHost *:443
+<VirtualHost *:443>
+  ServerAdmin webmaster
+  ServerName  YOUR.FULL.HOST.NAME
+  SSLEngine on
+
+  SSLCertificateFile /etc/apache2/ssl/cert_1243125141.pem
+  SSLCertificateKeyFile /etc/apache2/ssl/iutv.univ-paris13.fr.key
+
+  SSLCACertificateFile /etc/apache2/ssl/ct_root.pem
+  SSLCACertificateFile /etc/apache2/ssl/sureserverEDU.pem
+
+  DocumentRoot /home/apache2/
+
+  ErrorLog /var/log/apache2/ssl-error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog /var/log/apache2/ssl-access.log combined
+
+  RewriteEngine on
+  RewriteLog   /var/log/rewrite.ssl
+  RewriteLogLevel 0
+
+  # Le reste est pour Zope:
+  RewriteRule ^/(.*) http://localhost:8080/VirtualHostBase/https/YOUR.FULL.HOST.NAME:443/$1 [L,P]
+
+  # Log avec utilisateur authentifie par ScoDoc
+  LogFormat "%h %l %{X-ScoDoc-User}o %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" scodoc
+  CustomLog "/var/log/apache2/scodoc_access.log" scodoc
+
+</VirtualHost>

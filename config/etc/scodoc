@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# zope		This shell script takes care of starting and stopping
+#		zope under apache (proxy)
+#               Emmanuel Viennet @ LIPN, June 2002
+#
+# chkconfig: - 90 10
+# description: zope is a web server
+
+# Source function library.
+#. /etc/init.d/functions
+
+
+ZOPE_DIR=/opt/scodoc/zope/instance
+
+# [ -x  $ZOPE_DIR/bin/python ] || exit 0
+
+RETVAL=0
+prog="Zope"
+
+start() {
+	# Start Zope persistent process
+        # Start daemons.
+        echo -n $"Starting $prog: "
+	echo $ZOPE_DIR/bin/zopectl start 
+        $ZOPE_DIR/bin/zopectl start 2> /dev/null
+	RETVAL=$?
+        echo
+#        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/zope
+	return $RETVAL
+}
+
+stop() {
+        # Stop daemons.
+	echo -n 'Stopping zope daemon: '
+        $ZOPE_DIR/bin/zopectl stop
+	RETVAL=$?
+        echo
+#        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/zope
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+        ;;
+  stop)
+	stop
+        ;;
+#  status)
+#	status $ZOPE_DIR/bin/python
+#	RETVAL=$?
+#	;;
+  restart|reload)
+	stop
+	start
+	RETVAL=$?
+	;;
+  *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $RETVAL

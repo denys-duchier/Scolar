@@ -1,0 +1,9 @@
+
+* Scripts utiles pour l'installation de ScoDoc
+
+- scodoc :  script de demarrage a placer dans /etc/rc.*
+
+- scodoc-site-ssl: configuration de site (https) pour Apache, a placer dans 
+                   /etc/apache2/sites-available/
+                   puis editer pour remplacer le nom du site et indiquer vos certificats crypto
+                   puis activer par a2ensite scodoc-site-ssl
