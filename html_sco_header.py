@@ -45,7 +45,11 @@ def sco_header(context, REQUEST=None,
     "Main HTML page header for ScoDoc"
 
     # If running for first time, initialize roles and permissions
-    if context.roles_initialized == '0':
+    try:
+        ri = context.roles_initialized
+    except:
+        ri = None # old instances does not have this attribute
+    if ri == '0':
         context._setup_initial_roles_and_permissions()
         context.manage_changeProperties(roles_initialized='1')
 
