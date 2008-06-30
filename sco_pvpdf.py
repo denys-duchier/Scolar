@@ -407,7 +407,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
-    <para align="center"><b>Procès-verbal du %s du département %s - Session %s</b></para>    
+    <para align="center"><b>Procès-verbal de %s du département %s - Session %s</b></para>    
     """ % (t, context.get_preference('DeptName'), sem['annee']), style)
 
     if showTitle:
