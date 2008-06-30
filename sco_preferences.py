@@ -199,7 +199,8 @@ class sco_preferences:
         'name',
         ('name', 'value'),
         sortkey='name',
-        allow_set_id = True
+        allow_set_id = True,
+        html_quote=False # car markup pdf reportlab  (<b> etc)
         )
     
     def __init__(self, context):

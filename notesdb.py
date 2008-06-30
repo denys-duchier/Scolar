@@ -266,7 +266,8 @@ class EditableTable:
         if not self.table_verified:
             self.ensure_table_fields(cnx)
         vals = dictfilter(args, self.dbfields)
-        quote_dict(vals) # quote HTML
+        if self.html_quote:
+            quote_dict(vals) # quote HTML
         # format value
         for title in vals.keys():
             if self.input_formators.has_key(title):
