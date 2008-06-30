@@ -248,3 +248,5 @@ Admin: compte admin zope (access): set_passwd.sh
 createuser --no-createdb --no-adduser viennet
 createdb -E LATIN1 -O viennet SCOVIENNET
 
+Test création dept:
+ - createdept.sh 
