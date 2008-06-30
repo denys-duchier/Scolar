@@ -119,7 +119,7 @@ PREFS = (
        }
      ),
     ( 'DeptCreatedUsersRoles',
-      { 'initvalue' : 'EnsDept,SecrDept',
+      { 'initvalue' : '', # 'EnsDept,SecrDept,AdminDept',
         'title' : 'Rôles que l\'on peut attribuer aux utilisateurs de ce département',
         'explanation' : 'liste de noms de rôles, séparés par des virgules',
          'size' : 40

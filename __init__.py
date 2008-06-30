@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,9 +25,10 @@
 #
 ##############################################################################
 
-import ZScolar, ZNotes
+from ZScolar import ZScolar, manage_addZScolarForm, manage_addZScolar
+# from ZNotes  import ZNotes, manage_addZNotesForm, manage_addZNotes
 
-__version__ = '0.0.0'
+__version__ = '1.0.0'
 
 
 def initialize(context):
@@ -35,11 +36,10 @@ def initialize(context):
 
     # --- ZScolars
     context.registerClass(
-        ZScolar.ZScolar,
+        ZScolar,
 	constructors = (
-	    ZScolar.manage_addZScolarForm, # this is called when
-                                    # someone adds the product
-	    ZScolar.manage_addZScolar
+	    manage_addZScolarForm, # this is called when someone adds the product
+	    manage_addZScolar
 	),
         icon = 'icons/sco_icon.png'
     )
@@ -48,15 +48,14 @@ def initialize(context):
     #context.registerHelpTitle("ZScolar")
 
     # --- ZNotes
-    context.registerClass(
-        ZNotes.ZNotes,
-	constructors = (
-	    ZNotes.manage_addZNotesForm, # this is called when
-                                    # someone adds the product
-	    ZNotes.manage_addZNotes
-	),
-      icon = 'icons/notes_icon.png'
-    )
+    #context.registerClass(
+    #   ZNotes,
+    #	constructors = (
+    #	    manage_addZNotesForm,                                   
+    #	    manage_addZNotes
+    #	),
+    #  icon = 'icons/notes_icon.png'
+    #)
 
     #context.registerHelp()
     #context.registerHelpTitle("ZNotes")

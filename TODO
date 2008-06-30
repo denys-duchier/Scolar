@@ -221,12 +221,15 @@ A faire:
  0) INSTALL de base:
 - prerequis: apache2, utilisateur www-data
 - detarer ScoDoc.tgz  (== Zope + produits + scodoc)
+- changer mot de passe admin Zope
 
 
  1) Script (à lancer comme root): create_dept.sh
     création de la base de données pour un dept: db SCO+DeptName.upper()
     (connection sans mot de passe, utilisateur postgres www-data)
     initialisation des preferences (DeptName est requis)
+    creation fichier config:
+        config/depts/DeptName.py 
 
  2) ZScolar.__init__: parametre = nom du departement
    - creation des rôles et des permissions
@@ -238,7 +241,9 @@ A faire:
       param: DeptName
    Le script create_dept.sh doit avoir été lancé avant.
 
-Quid des utilisateurs ? il faudrait une base commune
+
+Admin: compte admin zope (access): set_passwd.sh
+   Verifier qu'il a bien access aux parametres (preferences)
 
 createuser --no-createdb --no-adduser viennet
 createdb -E LATIN1 -O viennet SCOVIENNET

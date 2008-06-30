@@ -21,6 +21,3 @@ CREATE TABLE sco_users (
 	dept text -- departement d'appartenance
 );
 
-insert into sco_users (user_name, passwd, nom, prenom, email, dept ) 
-values ('viennet', 'NqUrsimfzVSmTHk/k7qyVw==', 'viennet', 'emmanuel', 'viennet@lipn.univ-paris13.fr', 'RT');
-

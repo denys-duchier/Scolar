@@ -4,6 +4,8 @@
 
 SCODOC_DIR=${PWD%/*}
 
+ZOPE_VERSION=2.7.7
+
 # Postgresql superuser:
 POSTGRES_SUPERUSER=postgres
 

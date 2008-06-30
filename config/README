@@ -1,0 +1,14 @@
+
+       CONFIGURATION DE SCODOC
+       -----------------------
+
+Emmanuel Viennet, juin 2008
+
+
+
+0) INSTALL de base:
+- prerequis: apache2, utilisateur www-data
+- detarer ScoDoc.tgz  (== Zope + produits + scodoc)
+
+
+1) Creation de la base utilisateurs (initialement vide)

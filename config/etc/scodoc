@@ -11,7 +11,7 @@
 #. /etc/init.d/functions
 
 
-ZOPE_DIR=/opt/scodoc/zope/instance
+ZOPE_DIR=/opt/scodoc/instance
 
 # [ -x  $ZOPE_DIR/bin/python ] || exit 0
 

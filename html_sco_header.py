@@ -43,7 +43,11 @@ def sco_header(context, REQUEST=None,
                head_message='',    # message action (petit cadre jaune en haut)
                ):    
     "Main HTML page header for ScoDoc"
-    # rewritten from legacy DTML code
+
+    # If running for first time, initialize roles and permissions
+    if context.roles_initialized == '0':
+        context._setup_initial_roles_and_permissions()
+        context.manage_changeProperties(roles_initialized='1')
 
     # context est une instance de ZScolar. container est une instance qui "acquiert" ZScolar
     if container:

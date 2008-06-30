@@ -459,11 +459,14 @@ class ZScoUsers(ObjectManager,
          # N'inclue pas de rôles privilégiés, sauf si l'utilisateur est super admin
          # (normalement: EnsDept, SecrDept + rôles existants)
          if authuser.has_permission(ScoSuperAdmin,self):
+             log('create_user_form called by %s (super admin)' %(auth_name, ))
              valid_roles = Set(self._all_roles())
          else:
              valid_roles = Set([ x.strip()
                              for x in self.get_preference('DeptCreatedUsersRoles').split(',') ])
-         #
+         
+         log('create_user_form: valid_roles=%s' % valid_roles)
+         #         
          if not edit:
              initvalues = {}
              submitlabel = 'Créer utilisateur'
