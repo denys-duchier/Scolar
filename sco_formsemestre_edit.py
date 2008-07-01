@@ -47,8 +47,8 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
             iii[-1][1] += ' (%s)' % iii[-1][2]
         iii.append( [info['nom'].upper(), nomprenom, user] )
     iii.sort()
-    nomprenoms = [ x[1] for x in iii ]
-    userlist =  [ x[2] for x in iii ]
+    nomprenoms = ['aucun'] + [ x[1] for x in iii ]
+    userlist =  [''] + [ x[2] for x in iii ]
     #
     formation_id = REQUEST.form['formation_id']
     F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
@@ -124,7 +124,8 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         ('responsable_id', { 'input_type' : 'menu',
                              'title' : 'Directeur des études',
                              'allowed_values' : userlist,
-                             'labels' : nomprenoms }),        
+                             'labels' : nomprenoms,
+                             'allow_null' : False }),        
         ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre',
                     'explanation' : "n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés" }),
         ('modalite', { 'input_type' : 'menu',
@@ -143,8 +144,9 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         ('etape_apo', {
             'input_type' : 'menu',
             'title' : 'Etape Apogée',
-            'allowed_values' : [ e[0] for e in etapes ],
-            'labels' :  [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
+            'allowed_values' : [''] + [ e[0] for e in etapes ],
+            'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
+            'explanation' : 'nécessaire pour inscrire les étudiants et exporter les notes en fin de semestre'
             }))
     else:
         # fallback: code etape libre
@@ -317,6 +319,12 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
             tf[2]['gestion_semestrielle'] = 1
         else:
             tf[2]['gestion_semestrielle'] = 0
+
+        # Si un module n'a pas de responsable, l'affecte au directeur des etudes:
+        for module_id in tf[2]['tf-checked']:
+            if not tf[2][module_id]:
+                tf[2][module_id] = tf[2]['responsable_id']
+
         if not edit:
             # creation du semestre                
             formsemestre_id = context.do_formsemestre_create(tf[2], REQUEST)
