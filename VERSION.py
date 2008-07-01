@@ -1,11 +1,16 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-SCOVERSION = "5"
+SCOVERSION = "6 beta"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+
+<h4>Juillet 2008</h4>
+<ul>
+<li>Installeur automatisé pour Linux</li>
+</ul>
 
 <h4>Juin 2008</h4>
 <ul>
