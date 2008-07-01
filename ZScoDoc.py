@@ -107,7 +107,7 @@ class ZScoDoc(ObjectManager,
 
     
     def check_users_folder(self, REQUEST=None):
-        """Verifie UserFolder et le cree s'il le faut
+        """Vérifie UserFolder et le crée s'il le faut
         """
         try:
             udb = self.UsersDB
@@ -295,6 +295,7 @@ h4 {
               self._top_level_css,
               """</head>""",
               self.check_users_folder(REQUEST=REQUEST), # ensure setup is done
+              self.check_icons_folder(REQUEST=REQUEST),
               """
               <div class="maindiv">
         <h2>ScoDoc: gestion scolarité</h2>
@@ -380,10 +381,28 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         H.append("""</body></html>""")
         return '\n'.join(H)
 
+    security.declareProtected('View', 'check_icons_folder')
+    def check_icons_folder(self,REQUEST=None):
+        """Vérifie icons folder et le crée s'il le faut
+        """
+        try:
+            icons = self.icons
+            return '<!-- icons ok -->'
+        except:
+            e = self.check_admin_perm(REQUEST)
+            if not e: # admin permissions:
+                self.build_icons_folder(REQUEST)
+                return '<div class="head_message">Création du dossier icons réussie</div>'
+            else:
+                return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
+    
     security.declareProtected('View', 'build_image_folder')
-    def build_icons_folder(self):
+    def build_icons_folder(self,REQUEST=None):
         """Build folder with Zope images
         """
+        e = self.check_admin_perm(REQUEST)
+        if e:
+            return e
         path = self.file_path + '/icons'
         id = 'icons'
         try:
