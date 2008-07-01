@@ -38,7 +38,7 @@ for locname in en_US.ISO-8859-15 en_US.ISO-8859-1
 do
   if [ $(grep $locname /etc/locale.gen | wc -l) -le 1 ]
   then
-    echo $locname >> /etc/locale.gen
+    echo "$locname ${locname##*.}" >> /etc/locale.gen
   fi
 done
 
