@@ -63,9 +63,9 @@ read ans
 if [ $(to_upper ${ans:0:1}) = 'Y' ]
 then
     echo 'Installation du firewall IP (voir /etc/firehol/firehol.conf)'
-    echo 'Attention: suppose que l\'interface reseau vers Internet est eth0'
-    echo '  si ce n\'est pas le cas, editer /etc/firehol/firehol.conf'
-    echo '  et relancer: /etc/init.d/firehol restart'
+    echo "Attention: suppose que l'interface reseau vers Internet est eth0"
+    echo "  si ce n'est pas le cas, editer /etc/firehol/firehol.conf"
+    echo "  et relancer: /etc/init.d/firehol restart"
     echo
     cp $SCODOC_DIR/config/etc/firehol.conf /etc/firehol/
     /etc/init.d/firehol restart
