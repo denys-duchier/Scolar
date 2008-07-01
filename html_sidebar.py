@@ -106,7 +106,7 @@ def sidebar(context, REQUEST=None):
     # ---------
     H.append('</div><br/>&nbsp;') # /etud-insidebar
     # Logo
-    scologo_img = context.scodoc_img.scologo_img.tag()
+    scologo_img = context.icons.scologo_img.tag()
     H.append('<div class="logo-insidebar">%s<br/>' % scologo_img)
     H.append("""<a href="%(ScoURL)s/about" class="sidebar">A propos</a><br/>
 <a href="https://www-gtr.iutv.univ-paris13.fr/ScoDoc/PageD'Accueil" class="sidebar">Aide</a><br/>
@@ -125,7 +125,7 @@ def sidebar_dept(context, REQUEST=None):
     
     return """<h2 class="insidebar">Dépt. %(DeptName)s</h2>
  <a href="%(BASE0)s" class="sidebar">Accueil</a> <br/> 
- <a href="%(DeptIntranetURL)s/Scolarite" class="sidebar">Intranet</a> <br/>
+ <a href="%(DeptIntranetURL)s" class="sidebar">Intranet</a> <br/>
  <br/>
  <a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a> <br/>""" % {
                 'BASE0' : REQUEST.BASE0,

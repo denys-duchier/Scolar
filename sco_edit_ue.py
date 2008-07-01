@@ -136,7 +136,7 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     editable = (not locked) and perm_change
 
     if locked:
-        lockicon = context.scodoc_img.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
     else:
         lockicon = ''
     H = [ context.sco_header(REQUEST, page_title="Programme %s" % F['acronyme']),

@@ -264,7 +264,7 @@ class ZEntreprises(ObjectManager,
             H.append('</ul></div>')
 
         #
-        H.append("""<br/><br/>%s""" % context.scodoc_img.entreprise_side_img.tag() )
+        H.append("""<br/><br/>%s""" % context.icons.entreprise_side_img.tag() )
         if REQUEST['_read_only']:
             H.append("""<br/><em>(Lecture seule)</em>""")
         H.append("""</div> </div> <!-- end of sidebar -->""")
@@ -552,7 +552,7 @@ class ZEntreprises(ObjectManager,
                 args={ 'entreprise_id' : F['entreprise_id'] })
             Cts = self.do_entreprise_contact_list( args={ 'entreprise_id' : F['entreprise_id'] })
             if not readonly:
-                H.append("""<p>%s&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=%s">Supprimer cette entreprise</a> </p>""" % (self.scodoc_img.delete_img.tag(title='delete', border='0'), F['entreprise_id']))
+                H.append("""<p>%s&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=%s">Supprimer cette entreprise</a> </p>""" % (self.icons.delete_img.tag(title='delete', border='0'), F['entreprise_id']))
             if len(Cl):
                 H.append("""<h3>%d correspondants dans l'entreprise %s (<a href="entreprise_correspondant_list?entreprise_id=%s">liste complète</a>) :</h3>
 <ul>""" % (len(Cl), F['nom'], F['entreprise_id']))

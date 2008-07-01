@@ -250,3 +250,20 @@ createdb -E LATIN1 -O viennet SCOVIENNET
 
 Test création dept:
  - createdept.sh 
+
+
+Hierarchie Zope:
+ZScoDoc (in)
+   icons/ (créé par build_icons_folder)
+   UsersDB   (cnx db utilisateurs)
+   acl_users (Zope users folder)
+   Dept1/  (Zope folder)
+	Fotos/ (Zope folder)
+        Scolarite (ScoDoc instance)
+            DB (cnx db notes)
+            Notes
+            Absences
+            Entreprises
+            Users
+   Dept2/
+        ...

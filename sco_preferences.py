@@ -211,11 +211,14 @@ class sco_preferences:
         return self.prefs[name]
 
     def __setitem___(self, name, value):
+        self.set(name,value)
+        
+    def set(self,name,value):
         if name and name[0] == '_':
             raise ValueError('invalid preference name: %s' % name)
         self.prefs[name] = value
         self.save(name) # immediately write back to db
-
+    
     def load(self):
         """Load all preferences from db
         """

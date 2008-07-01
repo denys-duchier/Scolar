@@ -271,7 +271,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'index_html')
     def index_html(self, REQUEST=None):
         "Page accueil formations"
-        lockicon = self.scodoc_img.lock32_img.tag(title="formation verrouillé", border='0')
+        lockicon = self.icons.lock32_img.tag(title="formation verrouillé", border='0')
         editable = REQUEST.AUTHENTICATED_USER.has_permission(ScoChangeFormation,self)
 
         H = [ self.sco_header(REQUEST, page_title="Programmes formations"),

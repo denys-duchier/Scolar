@@ -28,6 +28,8 @@
 from ZScolar import ZScolar, manage_addZScolarForm, manage_addZScolar
 # from ZNotes  import ZNotes, manage_addZNotesForm, manage_addZNotes
 
+from ZScoDoc import ZScoDoc, manage_addZScoDoc
+
 __version__ = '1.0.0'
 
 
@@ -46,6 +48,16 @@ def initialize(context):
 
     #context.registerHelp()
     #context.registerHelpTitle("ZScolar")
+
+    # --- ZScoDoc
+    context.registerClass(
+        ZScoDoc,
+	constructors = (
+	    manage_addZScoDoc,
+	),
+        icon = 'icons/sco_icon.png'
+    )
+
 
     # --- ZNotes
     #context.registerClass(

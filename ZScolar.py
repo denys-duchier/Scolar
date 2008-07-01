@@ -217,6 +217,31 @@ class ZScolar(ObjectManager,
             self._set_preference('DeptCreatedUsersRoles', ','.join(DeptRoles))
         
         return ok, '\n'.join(H)
+
+    security.declareProtected(ScoView, 'exy')
+    def exy(self):
+        "essai"
+        script_text = """## Script (Python) "XXX"
+##bind container=container
+##bind context=context
+##bind namespace=
+##bind script=script
+##bind subpath=traverse_subpath
+##parameters=
+##title=%(title)s
+##
+
+print 'prout !'
+"""
+        from Products.PythonScripts.PythonScript import PythonScript
+        log('a')
+        script = PythonScript('totoscript')
+        log('b')
+        script.write(script_text)
+        log('c')
+        self._setObject(script.getId(), script)
+        log('d')
+        return 'ok'
         
     security.declareProtected(ScoView, 'essai')
     def essai(self, REQUEST=None):
@@ -389,7 +414,7 @@ class ZScolar(ObjectManager,
         """ % (SCOVERSION, get_svn_version(file_path)) ]
         H.append('<p>Logiciel écrit en <a href="http://www.python.org">Python</a> pour la plate-forme <a href="http://www.zope.org">Zope</a>.</p><p>Utilise <a href="http://reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
         H.append( "<h2>Dernières évolutions</h2>" + SCONEWS )
-        H.append( '<div class="about-logo">' + self.scodoc_img.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
+        H.append( '<div class="about-logo">' + self.icons.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
         d = ''
         # debug
         #import locale
@@ -455,7 +480,8 @@ class ZScolar(ObjectManager,
 
     def _set_preference(self, name, value): # not published
         """Set a global preference"""
-        self.get_preferences()[name] = value
+        prefs = self.get_preferences()
+        prefs.set(name,value)
     
     # --------------------------------------------------------------------
     #
@@ -585,7 +611,7 @@ class ZScolar(ObjectManager,
         showlocked=int(showlocked)
         H = []
         # news
-        rssicon = self.scodoc_img.rssicon_img.tag(title='Flux RSS', border='0') 
+        rssicon = self.icons.rssicon_img.tag(title='Flux RSS', border='0') 
         H.append( sco_news.scolar_news_summary_html(self, rssicon=rssicon) )
 
         # liste de toutes les sessions
@@ -595,11 +621,11 @@ class ZScolar(ObjectManager,
         cursems = []   # semestres "courants"
         othersems = [] # autres (anciens ou futurs)
         # icon image:
-        groupicon = self.scodoc_img.groupicon_img.tag(title="Inscrits",
+        groupicon = self.icons.groupicon_img.tag(title="Inscrits",
                                                border='0') 
-        emptygroupicon = self.scodoc_img.emptygroupicon_img.tag(title="Pas d'inscrits",
-                                                         border='0')
-        lockicon = self.scodoc_img.lock32_img.tag(title="verrouillé", border='0')
+        emptygroupicon = self.icons.emptygroupicon_img.tag(title="Pas d'inscrits",
+                                                           border='0')
+        lockicon = self.icons.lock32_img.tag(title="verrouillé", border='0')
         # selection sur l'etat du semestre
         for sem in sems:
             if sem['etat'] == '1':
@@ -1804,7 +1830,7 @@ function tweakmenu( gname ) {
             try:
                 img = getattr(self.Fotos, foto + '.h90.jpg' )
             except:
-                img = getattr(self.Fotos, 'unknown_img')        
+                img = getattr(self.icons, 'unknown_img')        
         return img
 
     security.declareProtected(ScoView, 'etudfoto_islocal')
@@ -1856,9 +1882,10 @@ function tweakmenu( gname ) {
         
         # fallback: Photo "inconnu"
         try:
-            img = getattr(self.Fotos, 'unknown_img')
+            img = getattr(self.icons, 'unknown_img')
             return img.absolute_url()
         except AttributeError:
+            log('error: etudfoto_url: no icons ?')
             return '' # install incorrecte, pas d'images !
         
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')

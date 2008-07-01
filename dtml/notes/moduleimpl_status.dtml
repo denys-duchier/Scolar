@@ -43,7 +43,7 @@
 <tr><td class="fichetitre2"><dtml-if "sem['semestre_id'] >= 0">Semestre: </td><td><dtml-var "sem['semestre_id']">
     <dtml-else></td><td>
     </dtml-if>
-    <dtml-if "sem['etat'] != '1'"><dtml-var "scodoc_img.lock32_img.tag(border='0')"></dtml-if>
+    <dtml-if "sem['etat'] != '1'"><dtml-var "icons.lock32_img.tag(border='0')"></dtml-if>
    </td>
     <td class="fichetitre2">Coef dans le semestre:</td><td><dtml-var "Mod['coefficient']"></td>
 </tr>
@@ -86,25 +86,25 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 <tr class="mievr">
     <td class="mievr">
 <dtml-if caneditevals>
-<a class="smallbutton" href="evaluation_edit?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "scodoc_img.edit_img.tag(border='0', alt='modifier', title='Modifier informations')"></a>
+<a class="smallbutton" href="evaluation_edit?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "icons.edit_img.tag(border='0', alt='modifier', title='Modifier informations')"></a>
 </dtml-if caneditevals>
 <dtml-if caneditnotes>
-<a class="smallbutton" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "scodoc_img.notes_img.tag(border='0',alt='saisie notes', title='Saisie des notes')"></a>
+<a class="smallbutton" href="notes_eval_selectetuds?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "icons.notes_img.tag(border='0',alt='saisie notes', title='Saisie des notes')"></a>
 </dtml-if caneditnotes>
 <dtml-if "nb_notes == 0">
-<dtml-if caneditevals><a class="smallbutton" href="evaluation_delete?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if caneditevals><dtml-var "scodoc_img.delete_img.tag(border='0', alt='supprimer', title='Supprimer')"><dtml-if caneditevals></a>
+<dtml-if caneditevals><a class="smallbutton" href="evaluation_delete?evaluation_id=<dtml-var "eval['evaluation_id']">"></dtml-if caneditevals><dtml-var "icons.delete_img.tag(border='0', alt='supprimer', title='Supprimer')"><dtml-if caneditevals></a>
 </dtml-if caneditevals>
 <dtml-elif "evalcomplete">
- <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "scodoc_img.status_green_img.tag(border='0',title='ok')"></a>
+ <a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "icons.status_green_img.tag(border='0',title='ok')"></a>
 <dtml-else>
 <dtml-if "evalattente">
-<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "scodoc_img.status_greenorange_img.tag(border='0',title='notes en attente')"></a>
+<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "icons.status_greenorange_img.tag(border='0',title='notes en attente')"></a>
 <dtml-else>
-<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "scodoc_img.status_orange_img.tag(border='0',title='il manque des notes')"></a>
+<a class="smallbutton" href="evaluation_listenotes?evaluation_id=<dtml-var "eval['evaluation_id']">"><dtml-var "icons.status_orange_img.tag(border='0',title='il manque des notes')"></a>
 </dtml-if evalattente>
 
 </dtml-if etat>
-<dtml-if "eval['visibulletin']=='1'"><dtml-var "scodoc_img.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires')">
+<dtml-if "eval['visibulletin']=='1'"><dtml-var "icons.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires')">
 <dtml-else>&nbsp;
 </dtml-if>    
     </td>
@@ -162,7 +162,7 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
  <tr><td colspan="4">
 
 <dtml-if "sem['etat'] != '1'">
-  <dtml-var "scodoc_img.lock32_img.tag(border='0')"> semestre verrouillé
+  <dtml-var "icons.lock32_img.tag(border='0')"> semestre verrouillé
 <dtml-else>
 <a class="stdlink" href="evaluation_create?moduleimpl_id=<dtml-var moduleimpl_id>">Créer nouvelle évaluation</a>
 
@@ -181,12 +181,12 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 <hr>
 <h4>Légende</h4>
 <ul>
-<li><dtml-var "scodoc_img.edit_img.tag(border='0')"> : modifie description de l'évaluation (date, heure, coefficient, ...)</li>
-<li><dtml-var "scodoc_img.notes_img.tag(border='0')"> : saisie des notes</li>
-<li><dtml-var "scodoc_img.delete_img.tag(border='0')"> : indique qu'il n'y a aucune note entrée (cliquer pour supprimer cette évaluation)</li>
-<li><dtml-var "scodoc_img.status_orange_img.tag(border='0')"> : indique qu'il manque quelques notes dans cette évaluation</li>
-<li><dtml-var "scodoc_img.status_green_img.tag(border='0')"> : toutes les notes sont entrées (cliquer pour les afficher)</li>
-<li><dtml-var "scodoc_img.status_visible_img.tag(border='0')"> : indique que cette évaluation sera mentionnée dans les bulletins au format "intermédiaire"
+<li><dtml-var "icons.edit_img.tag(border='0')"> : modifie description de l'évaluation (date, heure, coefficient, ...)</li>
+<li><dtml-var "icons.notes_img.tag(border='0')"> : saisie des notes</li>
+<li><dtml-var "icons.delete_img.tag(border='0')"> : indique qu'il n'y a aucune note entrée (cliquer pour supprimer cette évaluation)</li>
+<li><dtml-var "icons.status_orange_img.tag(border='0')"> : indique qu'il manque quelques notes dans cette évaluation</li>
+<li><dtml-var "icons.status_green_img.tag(border='0')"> : toutes les notes sont entrées (cliquer pour les afficher)</li>
+<li><dtml-var "icons.status_visible_img.tag(border='0')"> : indique que cette évaluation sera mentionnée dans les bulletins au format "intermédiaire"
 </ul>
 
 <p>Rappel : seules les notes des évaluations complètement saisies (affichées en vert) apparaissent dans les bulletins.
