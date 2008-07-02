@@ -21,7 +21,7 @@ fi
 # --- Ensure postgres user www-data exists
 init_postgres_user
 
-db_name=BOBOSCOUSERS
+db_name=SCOUSERS
 
 echo 'Creating postgresql database ' $db_name
 su -c "createdb -E LATIN1 -O $POSTGRES_USER $db_name" $POSTGRES_SUPERUSER 
