@@ -210,7 +210,7 @@ class ZScoDoc(ObjectManager,
             add_method( 'Fotos', title='Photos identites ' + DeptName )
 
         # 3- Creation instance ScoDoc
-        add_method = DeptFolder.manage_addProduct['Scolar'].manage_addZScolarForm
+        add_method = DeptFolder.manage_addProduct['ScoDoc'].manage_addZScolarForm
         return add_method( DeptName, REQUEST=REQUEST )
 
     security.declareProtected('View','delete_dept')
