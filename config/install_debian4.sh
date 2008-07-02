@@ -86,6 +86,7 @@ then
     echo -n "Nom complet de votre serveur (exemple: notes.univ.fr): "
     read server_name
     # --- CERTIFICATS AUTO-SIGNES
+    echo 
     echo "Il est possible d'utiliser des certificats cryptographiques"
     echo "auto-signes, qui ne seront pas reconnus comme de confiance"
     echo "par les navigateurs, mais offrent une certaine securite."
@@ -106,6 +107,26 @@ then
     cat $SCODOC_DIR/config/etc/scodoc-site-ssl.orig | sed -e "s:YOUR\.FULL\.HOST\.NAME:$server_name:g" > /etc/apache2/sites-available/scodoc-site-ssl
     echo 'activation du site...'
     a2ensite scodoc-site-ssl
+
+    if [ -z "$(grep Listen /etc/apache2/ports.conf | grep 443)" ]
+    then
+      echo 'adding port 443'
+      echo 'Listen 443' >> /etc/apache2/ports.conf
+    fi
+
+    echo 'configuring Apache proxy'
+    mv /etc/apache2/mods-available/proxy.conf /etc/apache2/mods-available/proxy.conf.bak
+    cat > /etc/apache2/mods-available/proxy.conf <<EOF
+<IfModule mod_proxy.c>
+# Proxy config for ScoDoc default installation
+ProxyRequests Off
+  <ProxyMatch http://localhost:8080>
+          Order deny,allow
+          Allow from all
+  </ProxyMatch>
+</IfModule>
+EOF
+
     /etc/init.d/apache2 restart
 fi
 
