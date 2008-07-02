@@ -46,7 +46,7 @@ su -c ./create_database.sh $POSTGRES_SUPERUSER
 su -c ./initialize_database.sh $POSTGRES_USER
 
 # ----------------------- Enregistre fichier config
-echo "host=localhost dbname="$db_name > $cfg_pathname
+echo "dbname="$db_name > $cfg_pathname
 
 # ----------------------- 
 echo

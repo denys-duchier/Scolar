@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Site ScoDoc pour plusieurs departement
+"""Site ScoDoc pour plusieurs departements
 """
 
 import time, string, glob, re
@@ -164,7 +164,7 @@ class ZScoDoc(ObjectManager,
         log('create_users_cnx: in %s' % self.id)
         da = ZopeDA.Connection(
             oid, 'Cnx bd utilisateurs',
-            'host=localhost dbname=SCOUSERS',
+            'dbname=SCOUSERS',
             False,
             check=1, tilevel=2, encoding='iso8859-15')
         self._setObject(oid, da)

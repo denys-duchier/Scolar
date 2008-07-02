@@ -2696,7 +2696,7 @@ def manage_addZScolarForm(context, DeptName, REQUEST=None):
         if not db_cnx_string:
             db_name = 'SCO' + DeptName.upper()
             db_user = SCO_DEFAULT_SQL_USER
-            db_cnx_string = 'user=%s dbname=%s host=localhost' % (db_user, db_name)
+            db_cnx_string = 'user=%s dbname=%s' % (db_user, db_name)
 
         # vérifie que la bd existe et possede le meme nom de dept.
         try:
