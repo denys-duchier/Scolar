@@ -396,7 +396,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
             else:
                 return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
     
-    security.declareProtected('View', 'build_image_folder')
+    security.declareProtected('View', 'build_icons_folder')
     def build_icons_folder(self,REQUEST=None):
         """Build folder with Zope images
         """

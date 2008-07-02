@@ -2022,7 +2022,7 @@ class ZNotes(ObjectManager,
         return etat
 
 
-    security.declareProtected(ScoView, 'evaluation_liste_notes')
+    security.declareProtected(ScoView, 'evaluation_listenotes')
     def evaluation_listenotes(self, REQUEST ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('liste_format','html')=='html':
@@ -2033,7 +2033,7 @@ class ZNotes(ObjectManager,
         B = self.do_evaluation_listenotes(REQUEST)
         return H + B + F
 
-    security.declareProtected(ScoView, 'do_evaluation_liste_notes')
+    security.declareProtected(ScoView, 'do_evaluation_listenotes')
     do_evaluation_listenotes = sco_liste_notes.do_evaluation_listenotes
 
     security.declareProtected(ScoView, 'evaluation_check_absences_html')
@@ -2215,7 +2215,7 @@ class ZNotes(ObjectManager,
         #
         return D, mods, valid_evals, mods_att
 
-    security.declareProtected(ScoView, 'notes_formsemestre_recapcomplet')
+    security.declareProtected(ScoView, 'do_formsemestre_recapcomplet')
     def do_formsemestre_recapcomplet(
         self,REQUEST,formsemestre_id,format='html',
         xml_nodate=False, modejury=False, hidemodules=False, sortcol=None):
