@@ -1,0 +1,22 @@
+#
+# Config Apache minimale http: redirige tout vers https
+# (voir scodoc-site-ssl)
+#
+NameVirtualHost *
+<VirtualHost *>
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/
+	<Directory />
+		AllowOverride None
+	</Directory>
+
+	RewriteEngine on
+	
+	ReWriteCond %{SERVER_PORT} !^443$
+	RewriteRule ^/(.*) https://%{HTTP_HOST}/$1 [NC,R,L]
+
+	ErrorLog /var/log/apache2/error.log
+	LogLevel warn
+	CustomLog /var/log/apache2/access.log combined
+	ServerSignature On
+</VirtualHost>

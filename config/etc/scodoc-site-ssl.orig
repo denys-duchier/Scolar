@@ -24,7 +24,7 @@ NameVirtualHost *:443
   #  SSLCACertificateFile /etc/apache2/scodoc-ssl/ct_root.pem
   #  SSLCACertificateFile /etc/apache2/scodoc-ssl/sureserverEDU.pem
 
-  DocumentRoot /home/apache2/
+  DocumentRoot /var/www/
 
   ErrorLog /var/log/apache2/ssl-error.log
 
