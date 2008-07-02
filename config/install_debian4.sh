@@ -108,6 +108,14 @@ then
     echo 'activation du site...'
     a2ensite scodoc-site-ssl
 
+    echo 'Remplacement du site Apache par defaut (sic ! old saved as .bak)'
+    fn=/etc/apache2/sites-available/default
+    if [ -e $fn ]
+    then
+       mv $fn $fn.bak
+    fi
+    cp $SCODOC_DIR/config/etc/scodoc-site.orig $fn
+
     if [ -z "$(grep Listen /etc/apache2/ports.conf | grep 443)" ]
     then
       echo 'adding port 443'
