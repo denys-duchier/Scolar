@@ -85,6 +85,23 @@ then
     echo "Configuration d'Apache"
     echo -n "Nom complet de votre serveur (exemple: notes.univ.fr): "
     read server_name
+    # --- CERTIFICATS AUTO-SIGNES
+    echo "Il est possible d'utiliser des certificats cryptographiques"
+    echo "auto-signes, qui ne seront pas reconnus comme de confiance"
+    echo "par les navigateurs, mais offrent une certaine securite."
+    echo -n 'Voulez vous generer des certificats ssl auto-signes ? [y/n] '
+    read ans
+    if [ $(to_upper ${ans:0:1}) = 'Y' ]
+    then
+        # attention: utilise dans scodoc-site-ssl.orig
+	ssl_dir=/etc/apache2/scodoc-ssl 
+	if [ ! -e $ssl_dir ]
+	then
+          mkdir $ssl_dir
+	fi
+	/usr/sbin/make-ssl-cert /usr/share/ssl-cert/ssleay.cnf $ssl_dir/apache.pem
+    fi
+    # ---
     echo 'generation de /etc/apache2/sites-available/scodoc-site-ssl'
     cat $SCODOC_DIR/config/etc/scodoc-site-ssl.orig | sed -e "s:YOUR\.FULL\.HOST\.NAME:$server_name:g" > /etc/apache2/sites-available/scodoc-site-ssl
     echo 'activation du site...'

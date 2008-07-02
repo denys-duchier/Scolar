@@ -17,11 +17,12 @@ NameVirtualHost *:443
   ServerName  YOUR.FULL.HOST.NAME
   SSLEngine on
 
-  SSLCertificateFile /etc/apache2/ssl/cert_1243125141.pem
-  SSLCertificateKeyFile /etc/apache2/ssl/iutv.univ-paris13.fr.key
+  SSLCertificateFile /etc/apache2/scodoc-ssl/apache.pem
+  # SSLCertificateKeyFile /etc/apache2/ssl/iutv.univ-paris13.fr.key
 
-  SSLCACertificateFile /etc/apache2/ssl/ct_root.pem
-  SSLCACertificateFile /etc/apache2/ssl/sureserverEDU.pem
+  # Votre authorite de caertification:
+  #  SSLCACertificateFile /etc/apache2/scodoc-ssl/ct_root.pem
+  #  SSLCACertificateFile /etc/apache2/scodoc-ssl/sureserverEDU.pem
 
   DocumentRoot /home/apache2/
 
