@@ -74,6 +74,15 @@ then
     /etc/init.d/firehol restart
 fi
 
+# ------------ POSTFIX
+echo 
+echo -n "Voulez vous configurer la messagerie (tres recommande) ? [y/n] "
+read ans
+if [ $(to_upper ${ans:0:1}) = 'Y' ]
+then
+    apt-get install postfix
+fi
+
 # ------------ CONFIG APACHE
 a2enmod ssl
 a2enmod proxy
