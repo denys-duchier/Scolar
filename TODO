@@ -18,8 +18,6 @@ A VERIFIER AVANT 5.0:
      . choisir modules (options, sport)
      . donner les dates des semestres !
 
- - inscriptions a des semestres en utilisant les autorisations d'inscription
-
 
 BUGS
 ----
@@ -29,9 +27,6 @@ BUGS
 
  - verifier: les acronymes d'UE doivent etre uniques dans une formation
 
- - descr situation en CJ (inscr. multiples ?): checks lors des inscriptions
-
- - création d'étudiants: vérifier si existant proche...
 
 FEATURES REQUESTS
 -----------------
@@ -46,15 +41,10 @@ FEATURES REQUESTS
     et valider correctement le form !
 
 * Jury
-  . statistiques durant saisie jury: nombre d'etudiants dans chaque code
-    (26 ADM, 3 AJ, etc) + nombre passant, redoublant année, redoublant semestre.
-  . bulles d'aide avec moyenne des moyennes d'UE dans recap parcours
   . recapcomplet: revenir avec qq lignes au dessus de l'étudiant en cours
 
 
 * Divers
-  . URL site auxiliaire (emplois du temps) dans chaque semestre
-  . ScoLockedForm exception :ne devrait pas envoyer de mail
   . formsemestre_editwithmodules: confirmer suppression modules
       (et pour l'instant impossible si evaluations dans le module)
 
@@ -70,9 +60,6 @@ FEATURES REQUESTS
   . ficheEtud  indiquer si inscrit au module sport
 
 * Absences
-  . Absences: lien "saisie du lundi"
-    ne presenter que deux semaines (precedente, courante) et un bouton pour afficher
-    toute l'année.
   . EtatAbsences : verifier dates (en JS)
   . Listes absences pdf et listes groupes pdf + emargements (cf mail Nathalie)
   . absences par demi-journées sur EtatAbsencesDate (? à vérifier)
@@ -80,7 +67,6 @@ FEATURES REQUESTS
        a améliorer
 
 * Photos
-  . version pdf du trombinoscope
   . Version "haute résolution" des photos
 
 * Notes et évaluations: 
