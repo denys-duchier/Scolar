@@ -23,4 +23,4 @@ echo 'Reglage du compte administrateur Zope'
 
 mdir=$SCODOC_DIR/../../../$ZOPE_VERSION/lib/python/Zope/Startup/misc/
 
-$mdir/zpasswd.py ../../access
+$mdir/zpasswd.py $SCODOC_DIR/../../access
