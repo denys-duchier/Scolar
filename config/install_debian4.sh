@@ -18,7 +18,7 @@ fi
 
 # ------------ AJOUT DES PAQUETS NECESSAIRES
 apt-get update
-apt-get install subversion
+apt-get install subversion cracklib-runtime
 apt-get install apache2 ssl-cert postgresql-7.4 postgresql-client-7.4 
 apt-get install firehol
 apt-get install python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab-accel python-crack python-pydot
