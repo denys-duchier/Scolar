@@ -21,6 +21,10 @@ fi
 
 echo 'Reglage du compte administrateur Zope'
 
-mdir=$SCODOC_DIR/../../../$ZOPE_VERSION/lib/python/Zope/Startup/misc/
+mdir=$SCODOC_DIR/../../../$ZOPE_VERSION/lib/python/Zope2/Startup/misc/
 
-$mdir/zpasswd.py $SCODOC_DIR/../../access
+python $mdir/zpasswd.py $SCODOC_DIR/../../access
+
+echo
+echo "redemarrer scodoc pour prendre en compte le mot de passe"
+echo

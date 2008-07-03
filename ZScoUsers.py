@@ -151,7 +151,7 @@ class ZScoUsers(ObjectManager,
         user = self._user_list( args={'user_name':user_name} )        
         if not user:
             zope_roles = authuser.getRolesInContext(self)
-            if 'Manager' in zope_roles:
+            if ('Manager' in zope_roles) or ('manage' in zope_roles):
                 dept = '' # special case for zope admin
             else:
                 raise AccessDenied("Vous n'avez pas la permission de voir cette page")
@@ -256,7 +256,7 @@ class ZScoUsers(ObjectManager,
         """
         # Is authuser a zope admin ?
         zope_roles = authuser.getRolesInContext(self)
-        if 'Manager' in zope_roles:
+        if ('Manager' in zope_roles) or ('manage' in zope_roles):
             return True
         # Anyone can change its own passwd (or see its informations)
         if str(authuser) == user_name:
@@ -510,7 +510,7 @@ class ZScoUsers(ObjectManager,
              ]
          # Access control
          zope_roles = authuser.getRolesInContext(self)
-         if not authuser_info and not ('Manager' in zope_roles):
+         if not authuser_info and not ('Manager' in zope_roles) and not ('manage' in zope_roles):
              # not admin, and not in database
              raise AccessDenied('invalid user (%s)' % auth_name)
          if authuser_info:
