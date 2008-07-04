@@ -58,6 +58,7 @@ except:
 
 from sco_utils import *
 from notes_log import log
+from ZScoUsers import pwdFascistCheck
 
 class ZScoDoc(ObjectManager,
               PropertyManager,
@@ -95,6 +96,7 @@ class ZScoDoc(ObjectManager,
         "Initialise a new instance of ZScoDoc"
         self.id = id
 	self.title = title
+        self.manage_addProperty('admin_password_initialized', '0', 'string')
 
     def check_admin_perm(self, REQUEST):
         """Check if user has permission to add/delete departements
@@ -169,6 +171,57 @@ class ZScoDoc(ObjectManager,
             check=1, tilevel=2, encoding='iso8859-15')
         self._setObject(oid, da)
         
+    security.declareProtected('View', 'change_admin_user')
+    def change_admin_user(self, password, REQUEST=None):
+        """Change password of admin user"""
+        # note: controle sur le role et non pas sur une permission
+        # (non definies au top level)
+        if not REQUEST.AUTHENTICATED_USER.has_role('Manager'):
+            log('user %s is not Manager' % REQUEST.AUTHENTICATED_USER)
+            log('roles=%s' % REQUEST.AUTHENTICATED_USER.getRolesInContext(self))
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+        log("trying to change admin password")
+        # 1-- check strong password
+        if pwdFascistCheck(password) != None:
+            log("refusing weak password")
+            return REQUEST.RESPONSE.redirect("change_admin_user_form?message=Mot%20de%20passe%20trop%20simple,%20recommencez")
+        # 2-- change password for admin user
+        username = 'admin'
+        acl_users = self.aq_parent.acl_users
+        user=acl_users.getUser(username)
+        r = acl_users._changeUser(username, password, password ,user.roles,user.domains)
+        if not r:
+            # OK, set property to indicate we changed the password
+            log('admin password changed successfully')
+            self.manage_changeProperties(admin_password_initialized='1')
+        return r or REQUEST.RESPONSE.redirect("index_html")
+    
+    security.declareProtected('View', 'change_admin_user_form')
+    def change_admin_user_form(self, message='', REQUEST=None):
+        """Form allowing to change the ScoDoc admin password"""
+        # note: controle sur le role et non pas sur une permission
+        # (non definies au top level)
+        if not REQUEST.AUTHENTICATED_USER.has_role('Manager'):
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+        H = [ self._html_begin % 
+              { 'page_title' : 'ScoDoc: changement mot de passe',
+                'encoding' : SCO_ENCODING },
+              self._top_level_css,
+              """</head><body>"""
+              ]
+        if message:
+            H.append('<div id="message">%s</div>' % message )
+        H.append("""<h2>Changement du mot de passe administrateur (utilisateur admin)</h2>
+        <p>
+        <form action="change_admin_user" method="post"><table>
+        <tr><td>Nouveau mot de passe:</td><td><input type="password" size="14" name="password"/></td></tr>
+        <tr><td>Confirmation: </td><td><input type="password" size="14" name="password2" /></td></tr>
+        </table>
+        <input type="submit" value="Changer">
+"""
+        )
+        H.append("""</body></html>""")
+        return '\n'.join(H)
     
     security.declareProtected('View','list_depts')
     def list_depts(self, REQUEST=None):
@@ -271,6 +324,23 @@ h4 {
    padding-bottom: 0px;
 }
 
+#message {
+   margin-top: 2px;
+   margin-bottom: 0px;
+   padding:  0.1em;
+   margin-left: auto;
+   margin-right: auto;
+   background-color: #ffff73;
+   -moz-border-radius: 8px;
+   -khtml-border-radius: 8px;
+   border-radius: 8px;
+   font-family : arial, verdana, sans-serif ;
+   font-weight: bold;
+   width: 40%;
+   text-align: center;
+   color: red;
+}
+
 </style>"""
 
     _html_begin = """<?xml version="1.0" encoding="%(encoding)s"?>
@@ -284,7 +354,7 @@ h4 {
 <meta name="DESCRIPTION" content="ScoDoc" />"""
 
     security.declareProtected('View', 'index_html')
-    def index_html(self, REQUEST=None):
+    def index_html(self, REQUEST=None, message=None):
         """Top level page for ScoDoc
         """
         authuser = REQUEST.AUTHENTICATED_USER
@@ -293,24 +363,32 @@ h4 {
               { 'page_title' : 'ScoDoc: bienvenue',
                 'encoding' : SCO_ENCODING },
               self._top_level_css,
-              """</head>""",
+              """</head><body>""",
               self.check_users_folder(REQUEST=REQUEST), # ensure setup is done
-              self.check_icons_folder(REQUEST=REQUEST),
-              """
+              self.check_icons_folder(REQUEST=REQUEST) ]
+        if message:
+            H.append('<div id="message">%s</div>' % message )
+        H.append("""
               <div class="maindiv">
         <h2>ScoDoc: gestion scolarité</h2>
         <p>
         Ce site est <font color="red"><b>réservé au personnel autorisé</b></font>.
         </p>                 
-        """]
-
+        """)
+        
         deptList = self.list_depts()  
         isAdmin = not self.check_admin_perm(REQUEST)
+        try:
+            admin_password_initialized = self.admin_password_initialized
+        except:
+            admin_password_initialized = '0'
+        if isAdmin and admin_password_initialized != '1':
+            REQUEST.RESPONSE.redirect( "ScoDoc/change_admin_user_form?message=Le%20mot%20de%20passe%20administrateur%20doit%20etre%20change%20!")
         if not deptList:
             H.append('<em>aucun département existant !</em>')
             # si pas de dept et pas admin, propose lien pour loger admin
             if not isAdmin:
-                H.append("""<p><a href="%s/admin">Identifiez vous comme administrateur</a> (avec les identifants définis lors de l'installation de ScoDoc)</p>"""%REQUEST.BASE0)
+                H.append("""<p><a href="/force_admin_authentication">Identifiez vous comme administrateur</a> (au début: nom 'admin', mot de passe 'scodoc')</p>""")
         else:
              H.append('<ul class="main">')
              for deptFolder in self.list_depts():
@@ -353,6 +431,8 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
               
 <h3>Administration ScoDoc</h3>
 
+<p><a href="change_admin_user_form">changer le mot de passe super-administrateur</a></p>
+
 <h4>Création d'un département</h4>
 <p>Le département au préalable doit avoir été créé sur le serveur en utilisant le script
 <tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc.
@@ -362,7 +442,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <input type="submit" value="Créer département">
 <em>le nom du département doit être celui donné au script <tt>create_dept.sh</tt>.</em>
 </form>
-"""]
+""" ]
         
         deptList = self.list_depts()
         if deptList:

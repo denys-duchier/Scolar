@@ -602,8 +602,7 @@ class ZScoUsers(ObjectManager,
                  if not can_choose_dept:
                      vals['dept'] = auth_dept
                  # ok, go
-                 log('sco_users: by %s' % auth_name )
-                 log('sco_users: new_user=%s' % vals)
+                 log('sco_users: new_user %s by %s' % (vals['user_name'], auth_name ))
                  self.create_user(vals, REQUEST=REQUEST)         
 
     def _check_modif_user(self, edit, user_name='', nom='', prenom='',
@@ -701,6 +700,7 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()        
         passwd = args['passwd']
         args['passwd'] = 'undefined'
+        del args['passwd2']
         log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
         # call exUserFolder to set passwd
