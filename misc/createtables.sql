@@ -38,7 +38,7 @@ CREATE FUNCTION notes_newid_etud( text ) returns text as '
 CREATE TABLE sco_prefs (
     name text PRIMARY KEY,
     value text
-);
+) WITH OIDS;
 
 
 CREATE TABLE identite (
@@ -51,7 +51,7 @@ CREATE TABLE identite (
     foto text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)
     code_ine text UNIQUE  -- code INE Apogee
-);
+)  WITH OIDS;
 
 CREATE TABLE adresse (
     adresse_id text DEFAULT notes_newid_etud('ADR'::text) NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE adresse (
     typeadresse text DEFAULT 'domicile'::text NOT NULL,
     entreprise_id integer,
     description text
-);
+) WITH OIDS;
 
 CREATE TABLE admissions (
     adm_id text DEFAULT notes_newid_etud('ADM'::text) NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE admissions (
     commentaire text,
     nomlycee text,
     villelycee text
-);
+) WITH OIDS;
 
 CREATE TABLE absences (
     etudid text NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE absences (
     estabs boolean, -- vrai si absent
     estjust boolean, -- vrai si justifie
     matin boolean -- vrai si concerne le matin, faux si apres midi
-);
+) WITH OIDS;
 
 CREATE TABLE scolog (
     date timestamp without time zone DEFAULT now(),
@@ -106,7 +106,7 @@ CREATE TABLE scolog (
     method text,
     etudid character(32),
     msg text
-);
+) WITH OIDS;
 
 
 CREATE TABLE etud_annotations (
@@ -117,7 +117,7 @@ CREATE TABLE etud_annotations (
     comment text,
     zope_authenticated_user text,
     zope_remote_addr text
-);
+) WITH OIDS;
 
 --  ------------ Nouvelle gestion des absences ------------
 CREATE SEQUENCE abs_idgen;
@@ -131,14 +131,14 @@ CREATE TABLE abs_absences (
     etudid character(32),
     abs_begin timestamp with time zone,
     abs_end  timestamp with time zone
-);
+) WITH OIDS;
 
 CREATE TABLE abs_presences (
     absid text default abs_newid('PR') PRIMARY KEY,
     etudid character(32),
     abs_begin timestamp with time zone,
     abs_end  timestamp with time zone
-);
+) WITH OIDS;
 
 CREATE TABLE abs_justifs (
     absid text default abs_newid('JU') PRIMARY KEY,
@@ -147,7 +147,7 @@ CREATE TABLE abs_justifs (
     abs_end  timestamp with time zone,
     category text,
     description text
-);
+) WITH OIDS;
 
 
 
@@ -168,7 +168,7 @@ CREATE TABLE entreprises (
     qualite_relation integer, -- -1 inconnue, 0, 25, 50, 75, 100
     plus10salaries integer,
     date_creation timestamp without time zone DEFAULT now()
-);
+) WITH OIDS;
 
 
 CREATE TABLE entreprise_correspondant (
@@ -185,7 +185,7 @@ CREATE TABLE entreprise_correspondant (
     entreprise_id integer,
     civilite text,
     fax text
-);
+) WITH OIDS;
 
 
 --
@@ -200,7 +200,7 @@ CREATE TABLE entreprise_contact (
     etudid text,
     description text,
     enseignant text
-);
+) WITH OIDS;
 
 
 --  ------------ NOTES ------------
@@ -221,7 +221,7 @@ CREATE TABLE notes_formations (
 	version integer default 1, -- version de la formation
 	formation_code text default notes_newid_fcod('FCOD') NOT NULL,
 	UNIQUE(acronyme,titre,version)
-);
+) WITH OIDS;
 
 CREATE TABLE notes_ue (
 	ue_id text default notes_newid('UE') PRIMARY KEY,
@@ -231,7 +231,7 @@ CREATE TABLE notes_ue (
 	titre text,
 	type  int DEFAULT 0, -- 0 normal, 1 "sport"
 	ue_code text default notes_newid_fcod('UCOD') NOT NULL
-);
+) WITH OIDS;
 
 CREATE TABLE notes_matieres (
 	matiere_id text default notes_newid('MAT') PRIMARY KEY,
@@ -239,12 +239,12 @@ CREATE TABLE notes_matieres (
 	titre text,
 	numero int, -- ordre de presentation
 	UNIQUE(ue_id,titre)
-);
+) WITH OIDS;
 
 CREATE TABLE notes_semestres (
 	-- une bete table 1,2,3,4 pour l'instant fera l'affaire...
 	semestre_id int PRIMARY KEY
-);
+) WITH OIDS;
 INSERT INTO notes_semestres (semestre_id) VALUES (-1); -- denote qu'il n'y a pas de semestres dans ce diplome
 INSERT INTO notes_semestres (semestre_id) VALUES (1);
 INSERT INTO notes_semestres (semestre_id) VALUES (2);
@@ -265,7 +265,7 @@ CREATE TABLE notes_modules (
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
 	numero int, -- ordre de presentation
 	abbrev text -- nom court
-);
+) WITH OIDS;
 
 -- Mise en oeuvre d'un semestre de formation
 CREATE TABLE notes_formsemestre (
@@ -292,7 +292,7 @@ CREATE TABLE notes_formsemestre (
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
 	etape_apo text, -- code etape Apogée
 	modalite text   -- FI, FC, APP, ''
-);
+) WITH OIDS;
 
 -- Coef des UE capitalisees arrivant dans ce semestre:
 CREATE TABLE notes_formsemestre_uecoef (
@@ -301,7 +301,7 @@ CREATE TABLE notes_formsemestre_uecoef (
 	ue_id  text REFERENCES notes_ue(ue_id),
 	coefficient real NOT NULL,
 	UNIQUE(formsemestre_id, ue_id)
-);
+) WITH OIDS;
 
 
 -- Mise en page bulletins semestre
@@ -315,7 +315,7 @@ CREATE TABLE notes_formsemestre_pagebulletin (
 	title text default 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
 	intro_mail text default '%(nomprenom)s,\n\nvous trouverez ci-joint votre relevé de notes au format PDF.\nIl s\'agit d\'un relevé indicatif. Seule la version papier signée par le responsable pédagogique de l\'établissement prend valeur officielle.\n\nPour toute question sur ce document, contactez votre enseignant ou le directeur des études (ne pas répondre à ce message).\n\nCordialement,\nla scolarité du département %(dept)s.\n\nPS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s'
 
-); -- '
+) WITH OIDS; -- '
 
 
 -- Menu custom associe au semestre
@@ -325,7 +325,7 @@ CREATE TABLE notes_formsemestre_custommenu (
 	title text,
 	url text,
 	idx integer default 0 -- rang dans le menu	
-);
+) WITH OIDS;
 
 -- Mise en oeuvre d'un module pour une annee/semestre
 CREATE TABLE notes_moduleimpl (
@@ -334,14 +334,14 @@ CREATE TABLE notes_moduleimpl (
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
 	responsable_id text,
 	UNIQUE(module_id,formsemestre_id) -- ajoute
-);
+) WITH OIDS;
 
 -- Enseignants (chargés de TD ou TP) d'un moduleimpl
 CREATE TABLE notes_modules_enseignants (
 	modules_enseignants_id text default notes_newid('ENS') PRIMARY KEY,
 	moduleimpl_id text REFERENCES notes_moduleimpl(moduleimpl_id),
 	ens_id text
-);
+) WITH OIDS;
 
 -- Inscription a un semestre de formation
 CREATE TABLE notes_formsemestre_inscription (
@@ -353,7 +353,7 @@ CREATE TABLE notes_formsemestre_inscription (
 	groupeanglais text,
 	etat text, -- I inscrit, D demission en cours de semestre
 	UNIQUE(formsemestre_id, etudid)
-);
+) WITH OIDS;
 
 -- Inscription a un module  (etudiants,moduleimpl)
 CREATE TABLE notes_moduleimpl_inscription (
@@ -363,7 +363,7 @@ CREATE TABLE notes_moduleimpl_inscription (
 	-- Futur: a adapter dans d'autres departements...
 	etudid text REFERENCES identite(etudid),
 	UNIQUE( moduleimpl_id, etudid)
-);
+) WITH OIDS;
 
 -- Evaluations (controles, examens, ...)
 CREATE TABLE notes_evaluation (
@@ -376,7 +376,7 @@ CREATE TABLE notes_evaluation (
 	note_max real,
 	coefficient real,
         visibulletin integer default 1
-);
+) WITH OIDS;
 
 -- Les notes...
 CREATE TABLE notes_notes (
@@ -388,7 +388,7 @@ CREATE TABLE notes_notes (
 	comment text,
 	date timestamp default now(),
 	uid text
-);
+) WITH OIDS;
 
 -- Historique des modifs sur notes (anciennes entrees de notes_notes)
 CREATE TABLE notes_notes_log (
@@ -402,7 +402,7 @@ CREATE TABLE notes_notes_log (
 	-- pas de foreign key, sinon bug lors supression notes (et on 
 	-- veut garder le log)
 	-- FOREIGN KEY (etudid,evaluation_id) REFERENCES notes_notes(etudid,evaluation_id)
-);
+) WITH OIDS;
 
 
 ---------------------------------------------------------------------
@@ -431,7 +431,7 @@ CREATE TABLE scolar_events (
 	                 -- 'UTIL_COMPENSATION'
         comp_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id)
                          -- semestre compense par formsemestre_id
-);
+) WITH OIDS;
 
 -- Stockage des codes d'etat apres jury
 CREATE SEQUENCE notes_idgen_svalid;
@@ -451,7 +451,7 @@ CREATE TABLE scolar_formsemestre_validation (
 	event_date timestamp default now(),
 	compense_formsemestre_id text, -- null sauf si compense un semestre
 	UNIQUE(etudid,formsemestre_id,ue_id) -- une seule decision
-);
+) WITH OIDS;
 
 CREATE TABLE scolar_autorisation_inscription (
 	autorisation_inscription_id text default notes_newidsvalid('AUT') PRIMARY KEY,
@@ -460,7 +460,7 @@ CREATE TABLE scolar_autorisation_inscription (
 	semestre_id int REFERENCES notes_semestres(semestre_id), -- semestre ou on peut s'inscrire
 	date timestamp default now(),
 	origin_formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id)
-);
+) WITH OIDS;
 
 ---------------------------------------------------------------------
 -- NOUVELLES (inutilise pour l'instant)
@@ -473,7 +473,7 @@ CREATE TABLE scolar_news (
 	object text, -- moduleimpl_id, formation_id, formsemestre_id, 
 	text text, -- free text
 	url text -- optional URL
-);
+) WITH OIDS;
 
 -- Appreciations sur bulletins
 CREATE TABLE notes_appreciations (
@@ -485,4 +485,4 @@ CREATE TABLE notes_appreciations (
     comment text,
     zope_authenticated_user text,
     zope_remote_addr text
-);
+) WITH OIDS;

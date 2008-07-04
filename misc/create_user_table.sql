@@ -19,5 +19,5 @@ CREATE TABLE sco_users (
 	prenom text,
         email text,
 	dept text -- departement d'appartenance
-);
+) with oids;
 

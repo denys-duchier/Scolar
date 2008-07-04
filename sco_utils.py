@@ -67,6 +67,8 @@ SCO_ENCODING = 'iso-8859-1' # used by Excel I/O
 
 
 SCO_DEFAULT_SQL_USER='www-data' # should match Zope process UID
+SCO_DEFAULT_SQL_PORT='5433' # postgresql-8.1 on Debian
+SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_MAILING_LIST = 'notes@gtr.iutv.univ-paris13.fr'

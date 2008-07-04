@@ -164,7 +164,7 @@ class ZScoDoc(ObjectManager,
         log('create_users_cnx: in %s' % self.id)
         da = ZopeDA.Connection(
             oid, 'Cnx bd utilisateurs',
-            'dbname=SCOUSERS',
+            SCO_DEFAULT_SQL_USERS_CNX,
             False,
             check=1, tilevel=2, encoding='iso8859-15')
         self._setObject(oid, da)
@@ -304,9 +304,13 @@ h4 {
         </p>                 
         """]
 
-        deptList = self.list_depts()        
+        deptList = self.list_depts()  
+        isAdmin = not self.check_admin_perm(REQUEST)
         if not deptList:
             H.append('<em>aucun département existant !</em>')
+            # si pas de dept et pas admin, propose lien pour loger admin
+            if not isAdmin:
+                H.append("""<p><a href="%s/admin">Identifiez vous comme administrateur</a> (avec les identifants définis lors de l'installation de ScoDoc)</p>"""%REQUEST.BASE0)
         else:
              H.append('<ul class="main">')
              for deptFolder in self.list_depts():
@@ -314,8 +318,8 @@ h4 {
                           % (deptFolder.absolute_url(), deptFolder.id))
              H.append('</ul>')
 
-        e = self.check_admin_perm(REQUEST)
-        if not e:
+
+        if isAdmin:
             H.append('<p><a href="scodoc_admin">Administration de ScoDoc</a></p>')
 
         H.append("""
@@ -434,7 +438,7 @@ def manage_addZScoDoc(self, id= 'ScoDoc',
                       REQUEST=None):
    "Add a ZScoDoc instance to a folder."
    log('==============   creating a new ScoDoc instance =============')
-   zscodoc = ZScoDoc(id, title)
+   zscodoc = ZScoDoc(id, title) # ne cree (presque rien), tout se passe lors du 1er accès
    self._setObject(id,zscodoc)
    if REQUEST is not None:
        REQUEST.RESPONSE.redirect('%s/manage_workspace' % REQUEST.URL1)
