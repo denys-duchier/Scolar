@@ -15,8 +15,8 @@ then
 fi
 
 echo 'Initializing tables in database ' $db_name
-psql -U $POSTGRES_USER  $db_name < $SCODOC_DIR/misc/createtables.sql
+psql -U $POSTGRES_USER -p $POSTGRES_PORT $db_name < $SCODOC_DIR/misc/createtables.sql
 
 
 # Set DeptName in preferences:
-echo "insert into sco_prefs values ('DeptName', '"${DEPT}\'\) | psql -U $POSTGRES_USER  $db_name
+echo "insert into sco_prefs values ('DeptName', '"${DEPT}\'\) | psql -U $POSTGRES_USER  -p $POSTGRES_PORT $db_name
