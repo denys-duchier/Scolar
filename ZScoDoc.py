@@ -399,6 +399,8 @@ h4 {
 
         if isAdmin:
             H.append('<p><a href="scodoc_admin">Administration de ScoDoc</a></p>')
+        else:
+            H.append('<p><a href="%s/force_admin_authentication">Se connecter comme administrateur</a></p>' % REQUEST.BASE0)
 
         H.append("""
 <div id="scodoc_attribution">

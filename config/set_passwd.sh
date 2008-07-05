@@ -19,7 +19,8 @@ then
   exit 1
 fi
 
-echo 'Reglage du compte administrateur Zope'
+echo "Creation d'un utilisateur d'urgence pour ScoDoc"
+echo "(utile en cas de perte de votre mot de passe admin)"
 
 mdir=$SCODOC_DIR/../../../$ZOPE_VERSION/lib/python/Zope2/Startup/misc/
 

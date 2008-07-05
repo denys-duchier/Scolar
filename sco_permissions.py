@@ -28,11 +28,17 @@ ScoEnsView = 'Sco View Ens' # parties visibles par enseignants slt
 ScoUsersAdmin = 'Sco Users Manage'
 ScoUsersView  = 'Sco Users View'
 
+ScoChangePreferences = 'Sco Change Preferences'
+
 ScoSuperAdmin = 'Sco Super Admin'
+# ScoSuperAdmin est utilisé pour:
+#   - ZScoDoc: add/delete departments
+#   - tous rôles lors creation utilisateurs
+#
+
 
 # Default permissions for default roles
-# (set once on instance creation)
-
+# (set once on instance creation):
 Sco_Default_Permissions = {
 
     ScoView               : ('Ens', 'Secr', 'Admin'),
@@ -50,6 +56,7 @@ Sco_Default_Permissions = {
     ScoEtudChangeGroups   : (               'Admin',),
     ScoEtudInscrit        : (               'Admin',),
     ScoUsersAdmin         : (               'Admin',),
+    ScoChangePreferences  : (               'Admin',),
     ScoSuperAdmin         : (), # lister tt les permissions    
     }
 

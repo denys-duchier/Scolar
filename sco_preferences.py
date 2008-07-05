@@ -57,12 +57,14 @@ PREFS = (
       { 'initvalue' : '',
         'title' : 'Nom du directeur de l\'établissement',
         'size' : 32,
+        'explanation' : 'pour les PV de jury',
         }
       ),
-   ( 'DeptIntranetURL',
+    ( 'DeptIntranetURL',
       { 'initvalue' : '',
         'title' : 'URL du web (intranet ou site) du département',
-         'size' : 40
+        'size' : 40,
+        'explanation' : 'lien "Intranet" en haut à gauche',
         }
       ),
  
@@ -118,13 +120,6 @@ PREFS = (
        'title' : '<b>Gestion des utilisateurs</b>'
        }
      ),
-    ( 'DeptCreatedUsersRoles',
-      { 'initvalue' : '', # 'EnsDept,SecrDept,AdminDept',
-        'title' : 'Rôles que l\'on peut attribuer aux utilisateurs de ce département',
-        'explanation' : 'liste de noms de rôles, séparés par des virgules',
-         'size' : 40
-        }
-      ),
     ('_sep_pdf',
      { 'input_type' : 'separator',
        'title' : '<b>Mise en forme des documents PDF</b>'

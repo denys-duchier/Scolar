@@ -27,7 +27,7 @@ export DEPT
 
 export db_name=SCO$(to_upper "$DEPT")
 
-cfg_pathname=$SCODOC_DIR/config/depts/$DEPT
+cfg_pathname="$SCODOC_DIR/config/depts/$DEPT".cfg
 
 if [ -e $cfg_pathname ]
 then

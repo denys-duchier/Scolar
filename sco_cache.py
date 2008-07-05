@@ -30,9 +30,9 @@
 """
 
 from notes_log import log
-import thread
+import thread, time
 
-# Cache donnees sur un etudiant (compte abs, arbre intervalles...)
+# Cache data
 class simpleCache:
     def __init__(self):
         self.inval_cache()
@@ -44,10 +44,37 @@ class simpleCache:
         else:
             # clear all entries
             self.cache = {} # key : data
-        
+    
     def set(self, key, data):
         self.cache[key] = data
-
+    
     def get(self, key):
         """returns None if not in cache"""
         return self.cache.get(key, None)
+
+class expiringCache(simpleCache):
+    """A simple cache wich cache data for a most "duration" seconds.
+
+    This is used for users (whch may be updated from external 
+    information systems)
+    """
+    def __init__(self, max_validity=60):
+        simpleCache.__init__(self)
+        self.max_validity = max_validity
+    
+    def set(self, key, data):
+        simpleCache.set(self, key, (data, time.time()))
+    
+    def get(self,key):
+        info = simpleCache.get(self, key)
+        if info:
+            data, t = info
+            if time.time() - t < self.max_validity:
+                return data
+            else:
+                # expired
+                self.inval_cache(key)
+                return None
+        else:
+            return None # not in cache
+

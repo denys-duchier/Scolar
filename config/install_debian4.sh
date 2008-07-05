@@ -16,6 +16,23 @@ then
   exit 1
 fi
 
+# ------------ VERIFIE VERSIONS POSTGRESQL
+if [ ! -z "$(dpkg -l | grep postgresql-7.4)" ]
+then
+   echo
+   echo "Attention:  postgresql-7.4 est deja installe"
+   echo "ScoDoc va installer et utiliser postgresql-8.1"
+   echo "Vérifiez les ports dans postgresql.conf (5432 ou 5433)"
+   echo "et dans ScoDoc: config.sh et sco_utils.py"
+   echo
+   echo -n "continuer ? [y/n] "
+   read ans
+   if [ $(to_upper ${ans:0:1}) != 'Y' ]
+   then
+     exit 1
+   fi
+fi
+
 # ------------ AJOUT DES PAQUETS NECESSAIRES
 apt-get update
 apt-get install subversion cracklib-runtime
@@ -25,7 +42,6 @@ apt-get install python-jaxml python-psycopg python-pyrss2gen python-imaging pyth
 
 # start database server
 # /etc/init.d/postgresql-8.1 start
-
 
 # ------------ LOCALES
 echo 

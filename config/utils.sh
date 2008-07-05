@@ -12,7 +12,7 @@ to_upper() {
 
 # --- Ensure postgres user www-data exists
 init_postgres_user() { # run as root
-  if [ -z $(echo "select usename from pg_user;" | su -c "psql -d template1  -p $POSTGRES_PORT" $POSTGRES_SUPERUSER | grep $POSTGRES_USER) ]
+  if [ -z $(echo "select usename from pg_user;" | su -c "$PSQL -d template1  -p $POSTGRES_PORT" $POSTGRES_SUPERUSER | grep $POSTGRES_USER) ]
   then
    # add database user
    echo "Creating postgresql user $POSTGRES_USER"

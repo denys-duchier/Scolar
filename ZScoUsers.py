@@ -57,6 +57,7 @@ import sco_import_users, sco_excel
 from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
 import scolars
+import sco_cache
 
 # ----------------- password checking
 import crack
@@ -67,6 +68,14 @@ def pwdFascistCheck( cleartxt ):
         return None
     except ValueError, m:
         return m
+
+# ---------------
+# cache global: chaque instance,  repérée par son URL, a un cache
+# qui est recréé à la demande
+# On cache ici la liste des utilisateurs, pour une duree limitee
+# (une minute).
+
+CACHE_userlist = {}
 
 # ---------------
 
@@ -125,7 +134,7 @@ class ZScoUsers(ObjectManager,
     def GetUsersDBConnexion(self,new=False):
         # not published
         try:
-            # a database adaptor called UsersDB must exists
+            # a database adaptor called UsersDB must exist
             cnx = self.UsersDB().db 
         except:
             # backward compat: try to use same DB
@@ -197,16 +206,18 @@ class ZScoUsers(ObjectManager,
         # edit user
         cnx = self.GetUsersDBConnexion()
         self._userEditor.edit( cnx, *args, **kw )
+        self.get_userlist_cache().inval_cache()
 
     def _user_delete(self, user_name):
         # delete user
         cnx = self.GetUsersDBConnexion()
         user_id = self._user_list( args={'user_name':user_name} )[0]['user_id']
         self._userEditor.delete( cnx, user_id )
+        self.get_userlist_cache().inval_cache()
 
     def _all_roles(self):
         "ensemble de tous les roles attribués ou attribuables"
-        roles = Set([x.strip() for x in self.get_preference('DeptCreatedUsersRoles').split(',') ])
+        roles = Set(self.DeptUsersRoles())
         cnx = self.GetUsersDBConnexion()
         L = self._userEditor.list( cnx, {} )
         for l in L:
@@ -288,7 +299,7 @@ class ZScoUsers(ObjectManager,
 
     def do_change_password(self, user_name, password):
         user = self._user_list( args={'user_name':user_name} )
-        assert len(user) == 1, 'database insconsistency: len(r)=%d'%len(r)
+        assert len(user) == 1, 'database inconsistency: len(r)=%d'%len(r)
         # should not occur, already tested in _can_handle_passwd
         cnx = self.GetUsersDBConnexion()
         cursor = cnx.cursor()
@@ -301,6 +312,7 @@ class ZScoUsers(ObjectManager,
         # Laisse le exUserFolder modifier les donnees
         self.acl_users.manage_editUser( user_name, req )
         log("change_password: change ok for %s" % user_name)
+        self.get_userlist_cache().inval_cache()
 
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
@@ -462,9 +474,7 @@ class ZScoUsers(ObjectManager,
              log('create_user_form called by %s (super admin)' %(auth_name, ))
              valid_roles = Set(self._all_roles())
          else:
-             valid_roles = Set([ x.strip()
-                             for x in self.get_preference('DeptCreatedUsersRoles').split(',') ])
-         
+             valid_roles = Set(self.DeptUsersRoles())         
          log('create_user_form: valid_roles=%s' % valid_roles)
          #         
          if not edit:
@@ -526,7 +536,7 @@ class ZScoUsers(ObjectManager,
                             'input_type' : 'text',
                             'size' : 12,
                             'allow_null' : True,
-                            'explanation' : 'département d\'appartenance de l\'utilisateur'
+                            'explanation' : """département d\'appartenance de l\'utilisateur (s'il s'agit d'un administrateur, laisser vide si vous voulez qu'il puisse créer des utilisateurs dans d'autres départements)"""
                             }))
              can_choose_dept = True
          else:
@@ -703,6 +713,7 @@ class ZScoUsers(ObjectManager,
         del args['passwd2']
         log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
+        self.get_userlist_cache().inval_cache()
         # call exUserFolder to set passwd
         args['password'] = passwd
         args['password_confirm'] = passwd
@@ -732,13 +743,15 @@ class ZScoUsers(ObjectManager,
         self._user_delete(user_name)
         REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         
-    def list_users(self, dept, all=False, format='html', with_links=True, REQUEST=None):
+    def list_users(self, dept, all=False,
+                   format='html', with_links=True, 
+                   REQUEST=None):
         "List users"
-        if dept and not all:            
-            r = self._user_list( args={ 'dept' : dept } )
+        if dept and not all:                        
+            r = self.get_userlist(dept=dept)
             comm = '(dept. %s)' % dept
         else:
-            r = self._user_list() # all users
+            r = self.get_userlist()
             comm = '(tous)'
         # add links
         if with_links:
@@ -770,6 +783,32 @@ class ZScoUsers(ObjectManager,
             )
         
         return tab.make_page(self, format=format, with_html_headers=False, REQUEST=REQUEST)
+
+    def get_userlist_cache(self):
+        url = self.ScoURL()
+        if CACHE_userlist.has_key(url):
+            return CACHE_userlist[url]
+        else:
+            log('get_userlist_cache: new simpleCache')
+            CACHE_userlist[url] = sco_cache.expiringCache(max_validity=60)
+            return CACHE_userlist[url]
+
+    def get_userlist(self, dept=None):
+        """Returns list of users.
+        If dept, select users from this dept,
+        else return all users.
+        """
+        cache = self.get_userlist_cache()
+        r = cache.get(dept)
+        if r != None:
+            return r
+        else:
+            if dept != None:
+                r = self._user_list( args={ 'dept' : dept } )
+            else:
+                r = self._user_list() # all users
+            cache.set(dept, r)
+            return r
 
 # --------------------------------------------------------------------
 #

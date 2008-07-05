@@ -27,5 +27,5 @@ echo 'Creating postgresql database ' $db_name
 su -c "createdb -E LATIN1 -O $POSTGRES_USER  -p $POSTGRES_PORT $db_name" $POSTGRES_SUPERUSER 
 
 echo 'Initializing tables in database ' $db_name
-echo su -c "psql -U $POSTGRES_USER -p $POSTGRES_PORT $db_name < $SCODOC_DIR/misc/create_user_table.sql" $POSTGRES_USER
-su -c "psql -U $POSTGRES_USER -p $POSTGRES_PORT  $db_name < $SCODOC_DIR/misc/create_user_table.sql" $POSTGRES_USER
+echo su -c "$PSQL -U $POSTGRES_USER -p $POSTGRES_PORT $db_name < $SCODOC_DIR/misc/create_user_table.sql" $POSTGRES_USER
+su -c "$PSQL -U $POSTGRES_USER -p $POSTGRES_PORT  $db_name < $SCODOC_DIR/misc/create_user_table.sql" $POSTGRES_USER

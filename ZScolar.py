@@ -190,21 +190,19 @@ class ZScolar(ObjectManager,
         create 3 roles: EnsXXX, SecrXXX, AdminXXX
         and set default permissions for each one.
         """
-        DeptName = self.get_preference('DeptName')
-        log('initializing roles and permissions for %s' % DeptName)
+        DeptId = self.DeptId()
+        log('initializing roles and permissions for %s' % DeptId)
         H = []
         ok = True
-        DeptRoles=[]
-        for role_type in ('Ens', 'Secr', 'Admin'):
-            role_name = role_type + DeptName
-            DeptRoles.append( role_name )
+        DeptRoles= self.DeptUsersRoles()
+        for role_name in DeptRoles:
             r = self._addRole( role_name )
             if r: # error
                 H.append(r)
                 ok = False
-            
+        
         for permission in Sco_Default_Permissions.keys():
-            roles = [ r + DeptName for r in Sco_Default_Permissions[permission] ]
+            roles = [ r + DeptId for r in Sco_Default_Permissions[permission] ]
             roles.append('Manager')
             log("granting '%s' to %s" % (permission, roles))
             r = self.manage_permission(permission, roles=roles, acquire=0)
@@ -212,44 +210,34 @@ class ZScolar(ObjectManager,
                 H.append(r)
                 ok = False            
 
-        # set preference DeptCreatedUsersRoles:
-        if not self.get_preference('DeptCreatedUsersRoles'):
-            self._set_preference('DeptCreatedUsersRoles', ','.join(DeptRoles))
-        
-        return ok, '\n'.join(H)
+        return ok, '\n'.join(H)    
 
-    security.declareProtected(ScoView, 'exy')
-    def exy(self):
-        "essai"
-        script_text = """## Script (Python) "XXX"
-##bind container=container
-##bind context=context
-##bind namespace=
-##bind script=script
-##bind subpath=traverse_subpath
-##parameters=
-##title=%(title)s
-##
+    security.declareProtected(ScoView, 'DeptId')
+    def DeptId(self):
+        """Returns Id for this department
+        (c'est normalement l'id donne à create_dept.sh)
+        NB: la preference DeptName est au depart la même chose de cet id
+        mais elle peut être modifiée (préférences).
+        """
+        return self.aq_parent.id
 
-print 'prout !'
-"""
-        from Products.PythonScripts.PythonScript import PythonScript
-        log('a')
-        script = PythonScript('totoscript')
-        log('b')
-        script.write(script_text)
-        log('c')
-        self._setObject(script.getId(), script)
-        log('d')
-        return 'ok'
-        
+    security.declareProtected(ScoView, 'DeptUsersRoles')
+    def DeptUsersRoles(self):
+        """Donne les rôles utilises dans ce departement.
+        """
+        DeptId = self.DeptId()
+        DeptRoles=[]
+        for role_type in ('Ens', 'Secr', 'Admin'):
+            role_name = role_type + DeptId
+            DeptRoles.append( role_name )
+        return DeptRoles
+    
     security.declareProtected(ScoView, 'essai')
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
         b = '<p>Hello, World !</p><br/>'
         #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
-        cnx = self.GetDBConnexion()
-        b += str(dir(cnx))
+
         #cursor = cnx.cursor()
         #cursor.execute("select * from notes_formations")
         #b += str(cursor.fetchall())
@@ -466,7 +454,7 @@ print 'prout !'
             SCO_PREFERENCES[u] = sco_preferences.sco_preferences(self)
         return SCO_PREFERENCES[u]
 
-    security.declareProtected(ScoSuperAdmin, 'edit_preferences')
+    security.declareProtected(ScoChangePreferences, 'edit_preferences')
     def edit_preferences(self,REQUEST):
         """Edit global preferences"""
         return self.get_preferences().edit(REQUEST)
@@ -649,6 +637,15 @@ print 'prout !'
                 sem['groupicon'] = groupicon
             else:
                 sem['groupicon'] = emptygroupicon
+
+        # s'il n'y a pas d'utilisateurs dans la base, affiche message
+        if not self.Users.get_userlist():
+            H.append("""<h2>Aucun utilisateur défini !</h2><p>Pour définir des utilisateurs
+            <a href="Users">passez par la page Utilisateurs</a>.
+            <br/>
+            Définissez au moins un utilisateur avec le rôle AdminXXX (le responsable du département XXX).
+            </p>
+            """)
         
         # liste des fomsemestres "courants"
         if cursems:
