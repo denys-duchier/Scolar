@@ -23,7 +23,7 @@ init_postgres_user() { # run as root
   then
    # add database user
    echo "Creating postgresql user $POSTGRES_USER"
-   su -c "createuser  -p $POSTGRES_PORT --no-createdb --no-adduser $POSTGRES_USER" $POSTGRES_SUPERUSER
+   su -c "createuser  -p $POSTGRES_PORT --no-superuser --no-createdb --no-adduser --no-createrole $POSTGRES_USER" $POSTGRES_SUPERUSER
   fi
 }
 

@@ -2705,7 +2705,7 @@ def manage_addZScolarForm(context, DeptId, REQUEST=None):
 
         return REQUEST.RESPONSE.redirect('index_html')
 
-def _simple_error_page(context, msg, Deptid=None):
+def _simple_error_page(context, msg, DeptId=None):
     """Minimal error page (used by installer only).
     """
     H = [ context.standard_html_header(context),

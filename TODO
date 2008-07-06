@@ -228,6 +228,43 @@ A faire:
    Le script create_dept.sh doit avoir été lancé avant.
 
 
+Migration donnes postgresql 7.4 -> 8.1 :
+installer le client 8.1 (le dumpall de 7.4 est buggy !)
+su postgres
+/usr/lib/postgresql/8.1/bin/pg_dumpall/pg_dumpall > dumpall.txt
+puis sur la machine cible (qui est en 8.1):
+psql -d postgres -f dumpall.txt
+
+puis eventuellement creer les fichiers de conf des departements.
+
+Passage des bases ScoDoc 5 à ScoDoc 6:
+ => les bases appartiennent maintenant toutes à www-data.
+
+On doit donc éditer dumpall.txt avant re-création:
+ - supprimer tous  les CREATE ROLE et ALTER ROLE
+  et mettre a la place:
+ - modifier les CREATE DATABASE: mettre OWNER = www-data
+    et les ALTER ... OWNER TO xxx  avec ce script:
+for user in scocj scogea scofc scotest scort scogeii scoinfo scousers
+do
+  echo replacing $user
+  sed -e "s:$user:\"www-data\"":g /opt/dumpall-8.1.txt > /tmp/toto
+  mv /tmp/toto /opt/dumpall-8.1.txt # IN PLACE !
+done
+ - creer l'utilisateur www-data
+ - psql -d postgres -f /opt/dumpall-8.1.txt
+
+nettoyage:
+dropdb SCOCJ
+dropdb SCOFC
+dropdb SCOGEA
+dropdb SCOGEII
+dropdb SCOINFO
+dropdb SCORT
+dropdb SCOTEST
+dropdb SCOUSERS
+
+
 TODO
   - migration 7.4 / 8.1 : essais imports departements iutv
   - script update

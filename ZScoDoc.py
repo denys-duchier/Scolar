@@ -101,7 +101,13 @@ class ZScoDoc(ObjectManager,
 	self.title = title
         self.manage_addProperty('admin_password_initialized', '0', 'string')
 
-    def check_admin_perm(self, REQUEST):
+    security.declareProtected(ScoView, 'ScoURL')
+    def ScoDocURL(self):
+        "base URL for this instance (top level for ScoDoc site)"
+        return self.absolute_url()
+
+
+    def _check_admin_perm(self, REQUEST):
         """Check if user has permission to add/delete departements
         """
         authuser = REQUEST.AUTHENTICATED_USER
@@ -111,14 +117,14 @@ class ZScoDoc(ObjectManager,
             return """<h2>Vous n'avez pas le droit d'accéder à cette page</h2>"""
 
     
-    def check_users_folder(self, REQUEST=None):
+    def _check_users_folder(self, REQUEST=None):
         """Vérifie UserFolder et le crée s'il le faut
         """
         try:
             udb = self.UsersDB
             return '<!-- uf ok -->'
         except:
-            e = self.check_admin_perm(REQUEST)
+            e = self._check_admin_perm(REQUEST)
             if not e: # admin permissions:
                 self.create_users_cnx(REQUEST)
                 self.create_users_folder(REQUEST)
@@ -130,7 +136,7 @@ class ZScoDoc(ObjectManager,
     def create_users_folder(self, REQUEST=None):
         """Create Zope user folder
         """
-        e = self.check_admin_perm(REQUEST)
+        e = self._check_admin_perm(REQUEST)
         if e:
             return e
         
@@ -247,7 +253,7 @@ class ZScoDoc(ObjectManager,
         """Creation (ajout) d'un site departement
         (instance ZScolar + dossier la contenant)
         """
-        e = self.check_admin_perm(REQUEST)
+        e = self._check_admin_perm(REQUEST)
         if e:
             return e
         
@@ -273,7 +279,7 @@ class ZScoDoc(ObjectManager,
     def delete_dept(self, REQUEST=None, DeptId=''):
         """Supprime un departement (de Zope seulement, ne touche pas la BD)
         """
-        e = self.check_admin_perm(REQUEST)
+        e = self._check_admin_perm(REQUEST)
         if e:
             return e
         
@@ -372,7 +378,7 @@ h4 {
                 'encoding' : SCO_ENCODING },
               self._top_level_css,
               """</head><body>""",
-              self.check_users_folder(REQUEST=REQUEST), # ensure setup is done
+              self._check_users_folder(REQUEST=REQUEST), # ensure setup is done
               self.check_icons_folder(REQUEST=REQUEST) ]
         if message:
             H.append('<div id="message">%s</div>' % message )
@@ -385,7 +391,7 @@ h4 {
         """)
         
         deptList = self.list_depts()  
-        isAdmin = not self.check_admin_perm(REQUEST)
+        isAdmin = not self._check_admin_perm(REQUEST)
         try:
             admin_password_initialized = self.admin_password_initialized
         except:
@@ -428,7 +434,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
     def scodoc_admin(self, REQUEST=None):
         """Page Operations d'administration
         """
-        e = self.check_admin_perm(REQUEST)
+        e = self._check_admin_perm(REQUEST)
         if e:
             return e
         
@@ -442,19 +448,18 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <h3>Administration ScoDoc</h3>
 
 <p><a href="change_admin_user_form">changer le mot de passe super-administrateur</a></p>
+<p><a href="%s">retour à la page d'accueil</a></p>
 
 <h4>Création d'un département</h4>
 <p class="help">Le département doit avoir été créé au préalable sur le serveur en utilisant le script
 <tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc).
-</p>"""]
+</p>""" % self.absolute_url()]
 
         deptList = [ x.id for x in self.list_depts() ] # definis dans Zope
         deptIds = Set(self._list_depts_ids()) # definis sur le filesystem
         existingDepts = Set(deptList)
-        log("deptIds=%s"%deptIds)
-        log("existing depts=%s"% existingDepts)        
         addableDepts = deptIds - existingDepts
-        log("addableDepts=%s"%addableDepts)
+        
         if not addableDepts:
             # aucun departement defini: aide utilisateur
             H.append("<p>Aucun département à ajouter !</p>")
@@ -503,7 +508,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
             icons = self.icons
             return '<!-- icons ok -->'
         except:
-            e = self.check_admin_perm(REQUEST)
+            e = self._check_admin_perm(REQUEST)
             if not e: # admin permissions:
                 self.build_icons_folder(REQUEST)
                 return '<div class="head_message">Création du dossier icons réussie</div>'
@@ -514,7 +519,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
     def build_icons_folder(self,REQUEST=None):
         """Build folder with Zope images
         """
-        e = self.check_admin_perm(REQUEST)
+        e = self._check_admin_perm(REQUEST)
         if e:
             return e
         path = self.file_path + '/icons'
