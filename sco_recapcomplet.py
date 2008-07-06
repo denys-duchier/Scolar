@@ -37,14 +37,16 @@ def do_formsemestre_recapcomplet(
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
     modejury=False, # saisie décisions jury
-    sortcol=None # indice colonne a trier dans table T
+    sortcol=None, # indice colonne a trier dans table T
+    xml_with_decisions=False
     ):
     """Grand tableau récapitulatif avec toutes les notes de modules
     pour tous les étudiants, les moyennes par UE et générale,
     trié par moyenne générale décroissante.
     """
     if format=='xml':
-        return _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate)
+        return _formsemestre_recapcomplet_xml(znotes, formsemestre_id,
+                                              xml_nodate, xml_with_decisions=xml_with_decisions)
     if format == 'xls':
         keep_numeric = True # pas de conversion des notes en strings
     else:
@@ -290,7 +292,7 @@ def do_formsemestre_recapcomplet(
     else:
         raise ValueError, 'unknown format %s' % format
 
-def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate):
+def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with_decisions=False):
     "XML export: liste tous les bulletins XML"
     # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
 
@@ -316,6 +318,7 @@ def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate):
         doc._push()
         sco_bulletins.make_xml_formsemestre_bulletinetud(
             znotes, formsemestre_id, etudid,
-            doc=doc, force_publishing=True, xml_nodate=xml_nodate )
+            doc=doc, force_publishing=True,
+            xml_nodate=xml_nodate, xml_with_decisions=xml_with_decisions )
         doc._pop()
     return repr(doc)

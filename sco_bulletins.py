@@ -257,11 +257,14 @@ def make_formsemestre_bulletinetud(
 # -------- Bulletin en XML
 # (fonction séparée pour simplifier le code,
 #  mais attention a la maintenance !)
-def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
-                                        doc=None, # XML document
-                                        force_publishing=False,
-                                        xml_nodate=False,
-                                        REQUEST=None):
+def make_xml_formsemestre_bulletinetud(
+    znotes, formsemestre_id, etudid,
+    doc=None, # XML document
+    force_publishing=False,
+    xml_nodate=False,
+    REQUEST=None,
+    xml_with_decisions=False # inlue les decisions même si non publiées
+    ):
     "bulletin au format XML"
     if REQUEST:
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
@@ -405,7 +408,7 @@ def make_xml_formsemestre_bulletinetud( znotes, formsemestre_id, etudid,
         doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
         doc._pop()
     # --- Decision Jury
-    if sem['bul_show_decision'] == '1':
+    if sem['bul_show_decision'] == '1' or xml_with_decisions:
         situation, dpv = _etud_descr_situation_semestre(
             znotes, etudid, formsemestre_id, format='xml',
             show_uevalid=(sem['bul_show_uevalid']=='1'))
@@ -502,7 +505,10 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
 
 from sco_formsemestre_status import makeMenu
 
-def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None, format='html', version='long', REQUEST=None):
+def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
+                              format='html', version='long',
+                              xml_with_decisions=False,
+                              REQUEST=None):
     "page bulletin de notes"
     try:
         etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
@@ -515,7 +521,9 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None, format
         R.append( _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                                    formsemestre_id, format, version, REQUEST) )
     R.append(context.do_formsemestre_bulletinetud(formsemestre_id, etudid,
-                                                  format=format, version=version, REQUEST=REQUEST))
+                                                  format=format, version=version,
+                                                  xml_with_decisions=xml_with_decisions,
+                                                  REQUEST=REQUEST))
     if format == 'html' or format == 'mailpdf':
         R.append("""<p>Situation actuelle: """)
         if etud['inscription_formsemestre_id']:

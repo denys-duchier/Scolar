@@ -2218,25 +2218,30 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_recapcomplet')
     def do_formsemestre_recapcomplet(
         self,REQUEST,formsemestre_id,format='html',
-        xml_nodate=False, modejury=False, hidemodules=False, sortcol=None):
+        xml_nodate=False, modejury=False, hidemodules=False, sortcol=None,
+        xml_with_decisions=False):
         """Grand tableau récapitulatif avec toutes les notes de modules
         pour tous les étudiants, les moyennes par UE et générale,
         trié par moyenne générale décroissante.
         """
         return sco_recapcomplet.do_formsemestre_recapcomplet(
             self, REQUEST, formsemestre_id, format=format, xml_nodate=xml_nodate,
-            modejury=modejury, hidemodules=hidemodules, sortcol=sortcol)
+            modejury=modejury, hidemodules=hidemodules, sortcol=sortcol,
+            xml_with_decisions=xml_with_decisions)
     
     security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
     def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
                                      version='long', # short, long, selectedevals
                                      format='html',
                                      REQUEST=None,
-                                     nohtml=False):
+                                     nohtml=False,
+                                     xml_with_decisions=False # force decisions dans XML
+                                     ):
         if format != 'mailpdf':
             if format == 'xml':
                 bul = repr(sco_bulletins.make_xml_formsemestre_bulletinetud(
-                    self, formsemestre_id,  etudid, REQUEST=REQUEST ))
+                    self, formsemestre_id,  etudid, REQUEST=REQUEST,
+                    xml_with_decisions=xml_with_decisions))
             else:
                 bul, etud, filename = sco_bulletins.make_formsemestre_bulletinetud(
                     self, formsemestre_id, etudid,
