@@ -13,12 +13,8 @@
 source config.sh
 source utils.sh
 
+check_uid_root $0
 
-if [ "$UID" != "0" ] 
-then
-  echo "Erreur: le script $0 doit etre lance par root"
-  exit 1
-fi
 
 echo -n "Nom du departement (un mot sans ponctuation, exemple \"Info\"): "
 read DEPT

@@ -25,7 +25,10 @@
 #
 ##############################################################################
 
-"""Site ScoDoc pour plusieurs departements
+"""Site ScoDoc pour plusieurs departements: 
+      gestion de l'installation et des creation de départements.
+
+   Chaque departement est géré par un ZScolar sous ZScoDoc.
 """
 
 import time, string, glob, re
@@ -33,7 +36,7 @@ import urllib, urllib2, cgi, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
-import os.path
+import os.path, glob
 
 import psycopg
 
@@ -240,7 +243,7 @@ class ZScoDoc(ObjectManager,
         return r
 
     security.declareProtected('View','create_dept')
-    def create_dept(self, REQUEST=None, DeptName='', pass2=False):
+    def create_dept(self, REQUEST=None, DeptId='', pass2=False):
         """Creation (ajout) d'un site departement
         (instance ZScolar + dossier la contenant)
         """
@@ -248,38 +251,38 @@ class ZScoDoc(ObjectManager,
         if e:
             return e
         
-        if not DeptName:
+        if not DeptId:
             raise ValueError('nom de departement invalide')
         if not pass2:
            # 1- Creation de repertoire Dept
            add_method = self.manage_addProduct['OFSP'].manage_addFolder
-           add_method( DeptName, title='Site dept. ' + DeptName )
+           add_method( DeptId, title='Site dept. ' + DeptId )
 
-        DeptFolder = self[DeptName]
+        DeptFolder = self[DeptId]
 
         if not pass2:
             # 2- Creation du repertoire Fotos
             add_method = DeptFolder.manage_addProduct['OFSP'].manage_addFolder
-            add_method( 'Fotos', title='Photos identites ' + DeptName )
+            add_method( 'Fotos', title='Photos identites ' + DeptId )
 
         # 3- Creation instance ScoDoc
         add_method = DeptFolder.manage_addProduct['ScoDoc'].manage_addZScolarForm
-        return add_method( DeptName, REQUEST=REQUEST )
+        return add_method( DeptId, REQUEST=REQUEST )
 
     security.declareProtected('View','delete_dept')
-    def delete_dept(self, REQUEST=None, DeptName=''):
+    def delete_dept(self, REQUEST=None, DeptId=''):
         """Supprime un departement (de Zope seulement, ne touche pas la BD)
         """
         e = self.check_admin_perm(REQUEST)
         if e:
             return e
         
-        if not DeptName:
+        if DeptId not in [ x.id for x in self.list_depts() ]:
             raise ValueError('nom de departement invalide')
         
-        self.manage_delObjects(ids=[ DeptName ])
+        self.manage_delObjects(ids=[ DeptId ])
     
-        return '<p>Département ' + DeptName + """ supprimé du serveur web (la base de données n'est pas affectée)!</p><p><a href="%s">Continuer</a></p>""" % REQUEST.URL1
+        return '<p>Département ' + DeptId + """ supprimé du serveur web (la base de données n'est pas affectée)!</p><p><a href="%s">Continuer</a></p>""" % REQUEST.URL1
 
     _top_level_css = """
     <style type="text/css">
@@ -339,6 +342,11 @@ h4 {
    width: 40%;
    text-align: center;
    color: red;
+}
+
+.help {
+  font-style: italic; 
+  color: red;
 }
 
 </style>"""
@@ -436,17 +444,28 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <p><a href="change_admin_user_form">changer le mot de passe super-administrateur</a></p>
 
 <h4>Création d'un département</h4>
-<p>Le département au préalable doit avoir été créé sur le serveur en utilisant le script
-<tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc.
-</p>
-<form action="create_dept">
-<input name="DeptName"/>
-<input type="submit" value="Créer département">
-<em>le nom du département doit être celui donné au script <tt>create_dept.sh</tt>.</em>
-</form>
-""" ]
-        
-        deptList = self.list_depts()
+<p class="help">Le département doit avoir été créé au préalable sur le serveur en utilisant le script
+<tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc).
+</p>"""]
+
+        deptList = [ x.id for x in self.list_depts() ] # definis dans Zope
+        deptIds = Set(self._list_depts_ids()) # definis sur le filesystem
+        existingDepts = Set(deptList)
+        log("deptIds=%s"%deptIds)
+        log("existing depts=%s"% existingDepts)        
+        addableDepts = deptIds - existingDepts
+        log("addableDepts=%s"%addableDepts)
+        if not addableDepts:
+            # aucun departement defini: aide utilisateur
+            H.append("<p>Aucun département à ajouter !</p>")
+        else:
+            H.append("""<form action="create_dept"><select name="DeptId"/>""")
+            for deptId in addableDepts:
+                H.append("""<option value="%s">%s</option>""" % (deptId,deptId))
+            H.append("""</select>
+            <input type="submit" value="Créer département">
+            </form>""" )
+            
         if deptList:
             H.append("""
 <h4>Suppression d'un département</h4>
@@ -454,7 +473,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 (le site peut donc être recréé sans perte de données).
 </p>
 <form action="delete_dept">
-<select name="DeptName">
+<select name="DeptId">
               """)
             for deptFolder in self.list_depts():
                 H.append('<option value="%s">%s</option>'
@@ -466,6 +485,15 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 
         H.append("""</body></html>""")
         return '\n'.join(H)
+
+    def _list_depts_ids(self):
+        """Liste de id de departements definis par create_dept.sh
+        (fichiers depts/*.cfg)
+        """
+        filenames = glob.glob( self.file_path + '/config/depts/*.cfg')
+        ids = [ os.path.split(os.path.splitext(f)[0])[1] for f in filenames ]
+        return ids
+    
 
     security.declareProtected('View', 'check_icons_folder')
     def check_icons_folder(self,REQUEST=None):

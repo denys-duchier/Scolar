@@ -10,11 +10,7 @@
 source config.sh
 source utils.sh
 
-if [ "$UID" != "0" ] 
-then
-  echo "Erreur: le script $0 doit etre lance par root"
-  exit 1
-fi
+check_uid_root $0
 
 # ------------ VERIFIE VERSIONS POSTGRESQL
 if [ ! -z "$(dpkg -l | grep postgresql-7.4)" ]

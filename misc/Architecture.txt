@@ -1,0 +1,27 @@
+
+           Notes sur l'architecture générale du logiciel
+           ============================
+
+Hierarchie Zope:
+
+Cette hiérarche est crée par ZScoDoc. Normalement, il n'y a jamais besoin d'utiliser la ZMI de Zope.
+
+ScoDoc (ZScoDoc instance)
+   icons/ (folder, (re)créé par build_icons_folder)
+   UsersDB   (cnx db utilisateurs)
+   acl_users (exUserFolder)
+   Dept1/  (folder)   <== pour le département d'id Dept1
+	Fotos/ (folder)
+        Scolarite (ZScolar instance)
+            DB (cnx db notes)
+            Notes (ZNotes instance)
+            Absences
+            Entreprises
+            Users (ZScoUsers instance)
+   Dept2/
+        ...
+
+
+Bases de données
+    XXX todo XXX
+

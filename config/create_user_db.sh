@@ -12,11 +12,7 @@
 source config.sh
 source utils.sh
 
-if [ "$UID" != "0" ] 
-then
-  echo "Erreur: le script $0 doit etre lance par root"
-  exit 1
-fi
+check_uid_root $0
 
 # --- Ensure postgres user www-data exists
 init_postgres_user

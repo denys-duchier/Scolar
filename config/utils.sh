@@ -9,6 +9,13 @@ to_upper() {
   echo $1 | tr "[:lower:]" "[:upper:]" 
 } 
 
+check_uid_root() {
+  if [ "$UID" != "0" ] 
+  then
+    echo "Erreur: le script $1 doit etre lance par root"
+    exit 1
+  fi
+}
 
 # --- Ensure postgres user www-data exists
 init_postgres_user() { # run as root

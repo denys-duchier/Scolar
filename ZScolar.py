@@ -215,6 +215,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'DeptId')
     def DeptId(self):
         """Returns Id for this department
+        (retreived as the name of the parent folder)
         (c'est normalement l'id donne à create_dept.sh)
         NB: la preference DeptName est au depart la même chose de cet id
         mais elle peut être modifiée (préférences).
@@ -2627,10 +2628,6 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             return '\n'.join(H)
 
     # --------------------------------------------------------------------
-# Uncomment these lines with the corresponding manage_option
-# To everride the default 'Properties' tab
-#    # Edit the Properties of the object
-#    manage_editForm = DTMLFile('dtml/manage_editZScolarForm', globals())
 
 #
 # Product Administration
@@ -2643,28 +2640,22 @@ def manage_addZScolar(self, id= 'id_ZScolar',
    "Add a ZScolar instance to a folder."
    zscolar = ZScolar(id, title, db_cnx_string=db_cnx_string)
    self._setObject(id,zscolar)
-   #ok, diag =  zscolar._setup_initial_roles_and_permissions( zscolar.get_preference('DeptName') )
-   #if not ok:
-   #    log('an error occured while initializing roles and permissions')
-   #    log(diag)
-   
-   #if REQUEST is not None:
-   #     return self.manage_main(self, REQUEST)
 
 # The form used to get the instance id from the user.
-#manage_addZScolarForm = DTMLFile('dtml/manage_addZScolarForm', globals())
-
-def manage_addZScolarForm(context, DeptName, REQUEST=None):
+def manage_addZScolarForm(context, DeptId, REQUEST=None):
     """Form used to create a new ZScolar instance"""
 
-    # XXX TODO: check DeptName re.match( '^[a-zA-Z0-9_]+$', v.strip() )
+    if not re.match( '^[a-zA-Z0-9_]+$', DeptId ):
+        raise ScoValueError("Invalid department id: %s" % DeptId)
 
     H = [ context.standard_html_header(context),
-          "<h2>Ajout d'un site ScoDoc</h2>",
-          """<p>Cette page doit être utilisée pour créer un nouveau site ScoDoc.</p>
-          <p>Un site correspond en général à un département d'enseignement.</p>
-          <p>Avant de créer le site, il faut <b>impérativement</b> avoir préparé la base
-          de données en lançant le script <tt>create_dept.sh nom_du_site</tt> en tant que
+          "<h2>Ajout d'un département ScoDoc</h2>",
+          """<p>Cette page doit être utilisée pour ajouter un nouveau 
+          département au site.</p>
+
+          <p>Avant d'ajouter le département, il faut <b>impérativement</b> 
+          avoir préparé la base de données en lançant le script 
+          <tt>create_dept.sh nom_du_site</tt> en tant que
           <em>root</em> sur le serveur.
           </p>"""
           ]
@@ -2677,7 +2668,7 @@ def manage_addZScolarForm(context, DeptName, REQUEST=None):
                }
               ),
              ('pass2', { 'input_type':'hidden', 'default':'1' }),
-             ('DeptName', { 'input_type':'hidden', 'default':DeptName })
+             ('DeptId', { 'input_type':'hidden', 'default':DeptId })
              ]
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, descr,
@@ -2687,11 +2678,11 @@ def manage_addZScolarForm(context, DeptName, REQUEST=None):
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:        
-        DeptName = tf[2]['DeptName'].strip()
+        DeptId = tf[2]['DeptId'].strip()
         db_cnx_string = tf[2]['db_cnx_string'].strip()
         # default connexion string
         if not db_cnx_string:
-            db_name = 'SCO' + DeptName.upper()
+            db_name = 'SCO' + DeptId.upper()
             db_user = SCO_DEFAULT_SQL_USER
             db_cnx_string = 'user=%s dbname=%s port=%s' % (db_user, db_name, SCO_DEFAULT_SQL_PORT)
         # vérifie que la bd existe et possede le meme nom de dept.
@@ -2701,27 +2692,27 @@ def manage_addZScolarForm(context, DeptName, REQUEST=None):
             cursor.execute( "select * from sco_prefs where name='DeptName'" )
         except:
             return _simple_error_page(context,
-                                      "Echec de la connexion à la BD (%s)" % db_cnx_string, DeptName)
+                                      "Echec de la connexion à la BD (%s)" % db_cnx_string, DeptId)
         r = cursor.dictfetchall()
         if not r:
-            return _simple_error_page(context, "Pas de departement défini dans la BD", DeptName)
-        if r[0]['value'] != DeptName:
-            return _simple_error_page(context, "La BD ne correspond pas: nom departement='%s'"%r[0]['value'], DeptName)
+            return _simple_error_page(context, "Pas de departement défini dans la BD", DeptId)
+        if r[0]['value'] != DeptId:
+            return _simple_error_page(context, "La BD ne correspond pas: nom departement='%s'"%r[0]['value'], DeptId)
         # ok, crée instance ScoDoc:
         manage_addZScolar(context, id='Scolarite',
-                          title='ScoDoc for %s' % DeptName,
+                          title='ScoDoc for %s' % DeptId,
                           db_cnx_string=db_cnx_string)
 
         return REQUEST.RESPONSE.redirect('index_html')
 
-def _simple_error_page(context, msg, DeptName=None):
+def _simple_error_page(context, msg, Deptid=None):
     """Minimal error page (used by installer only).
     """
     H = [ context.standard_html_header(context),
           '<h2>Erreur !</h2>',
           '<p>', msg, '</p>' ]
-    if DeptName:
-        H.append('<p><a href="delete_dept?DeptName=%s">Supprimer le dossier %s</a>(très recommandé !)</p>'
-                 % (DeptName,DeptName) )
+    if DeptId:
+        H.append('<p><a href="delete_dept?DeptId=%s">Supprimer le dossier %s</a>(très recommandé !)</p>'
+                 % (DeptId,DeptId) )
     H.append(context.standard_html_footer(context))
     return '\n'.join(H)

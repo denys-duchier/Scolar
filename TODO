@@ -228,34 +228,13 @@ A faire:
    Le script create_dept.sh doit avoir été lancé avant.
 
 
-Admin: compte admin zope (access): set_passwd.sh
-   Verifier qu'il a bien access aux parametres (preferences)
-
-createuser --no-createdb --no-adduser viennet
-createdb -E LATIN1 -O viennet SCOVIENNET
-
-Base utilisateurs:
-
-Hierarchie Zope:
-ZScoDoc (in)
-   icons/ (créé par build_icons_folder)
-   UsersDB   (cnx db utilisateurs)
-   acl_users (Zope users folder)
-   Dept1/  (Zope folder)
-	Fotos/ (Zope folder)
-        Scolarite (ScoDoc instance)
-            DB (cnx db notes)
-            Notes
-            Absences
-            Entreprises
-            Users
-   Dept2/
-        ...
-
 TODO
+  - migration 7.4 / 8.1 : essais imports departements iutv
   - script update
 => test install vierge
 => Annonce
  
+ - modif gestion utilisateurs (donner droits en fct du dept. d'appartenance, bug #57)
+ - modif form def. utilisateur (dept appartenance)
  - archivage des semestres
  - utilisateurs: source externe

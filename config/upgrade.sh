@@ -7,9 +7,14 @@
 # E. Viennet, june 2008
 
 source config.sh
+source utils.sh
 
-/etc/init.d/zope stop
+check_uid_root $0
 
+echo "Stopping ScoDoc..."
+/etc/init.d/scodoc stop
+
+echo
 echo "Using SVN to update $SCODOC_DIR..."
 (cd $SCODOC_DIR; svn update)
 
@@ -18,7 +23,8 @@ echo "Executing post-upgrade script..."
 $SCODOC_DIR/install/postupgrade.py
 
 # 
-echo "Starting Zope..."
-/etc/init.d/zope stop
+echo
+echo "Starting ScoDoc..."
+/etc/init.d/scodoc start
 
 
