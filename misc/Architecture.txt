@@ -1,6 +1,6 @@
 
-           Notes sur l'architecture générale du logiciel
-           ============================
+                    Notes sur l'architecture générale du logiciel
+                   ============================
 
 Hierarchie Zope:
 
@@ -23,5 +23,27 @@ ScoDoc (ZScoDoc instance)
 
 
 Bases de données
-    XXX todo XXX
+===========
+
+En ScoDoc 6, les BD crées par défaut appartiennent à www-data qui peut donc y accéder sans mot de passe.
+Ce comportement peut être changé: il suffit de suivre et adapter les étapes du script create_dept.sh
+le fichier depts/DEPT.cfg doit contenir la chaine de connexion pour la BD de ce département. 
+
+La base SCOUSERS est partagée par tous les départements.
+
+Fonctionnement de l'installeur
+===================
+
+Le scrit d'install install_debian4.sh configure les logiciels nécessaires.
+Vous pouvez l'adapter à votre situation.
+
+L'image Zope standard (Data.fs) contient juste une instance vide de ScoDoc.
+(pour repartir d'une autre image Zope, ajouter une instance de ScoDoc à la racine, et voila).
+
+Les méthodes de l'objet ScoDoc (ZScoDoc.py) se chargent d'ajouter les objets nécessaires suivant 
+les départements créés.
+
+Lors de la création d'un déartement dans Zope, on crée 3 rôles (EnsXXX, SecrXXX, AdminXXX) 
+et on ajuste les permissions. Ces permissions peuvent être modifiées (via la ZMI) ensuite.
+
 

@@ -1,4 +1,7 @@
 
+  NOTES EN VRAC : voir plutôt le Trac !!!
+
+
 Composants pour Trac:
 
 - Coeur
@@ -11,7 +14,7 @@ Composants pour Trac:
 - JurysEtParcours
 
 
-A VERIFIER AVANT 5.0:
+A VERIFIER (?):
 
 
  - inscrire a un autre semestre:
@@ -174,85 +177,6 @@ Suivi de cohortes (à implémenter)
 
 + Liens (customizable)
 
-------------------  JUIN 2008 -----------------
-* Propriétés (préférences): remplacer les propriétés de Zope
--> faciliter l'installation
--> indépendance vis a vis de Zope
--> ne pas avoir a utiliser la ZMI pour install et config
-
-table SQL scodoc_properties (id, nom, type, value, documentation)
-editeur generique
-
-* mises à jour:
-script: stop zope, svn update, postinst (eg modif db), start zope
-postinst: script python executé a chaque mise à jour 
-
-* gestion connexion BD:
-fichier config: connection string associée à l'URL ScoDoc (ScoURL())
-install: création db connection ? ou bien gérer nous même !
-UsersDB: a part, géré uniquement en Zope pour le moment ?
-
-* Installeur: 
-  - image Zope minimale
-    (voir si on peut mettre les icones comme des fichiers ordinaires)
-
-  - ajout d'un département == ajout instance ZScolar
-     Un seul parametre: nom du departement (un mot "Dept" == "RT", "Info", etc)
-
-       . fichier config: config/Dept.cfg
-          CONNECTION_STRING='xxx'
-          
-A faire:
-
- 0) INSTALL de base:
-- prerequis: apache2, utilisateur www-data
-- detarer ScoDoc.tgz  (== Zope + produits + scodoc)
-- changer mot de passe admin Zope
-
-
- 1) Script (à lancer comme root): create_dept.sh
-    création de la base de données pour un dept: db SCO+DeptName.upper()
-    (connection sans mot de passe, utilisateur postgres www-data)
-    initialisation des preferences (DeptName est requis)
-    creation fichier config:
-        config/depts/DeptName.py 
-
- 2) ZScolar.__init__: parametre = nom du departement
-   - creation des rôles et des permissions
-      -> definition de trois roles locaux EnsDept, SecrDept, AdminDept
-      -> réglage des permissions
-
- 3) page d'accueil listant les departements
-   Si admin: lien : ajouter un département
-      param: DeptName
-   Le script create_dept.sh doit avoir été lancé avant.
-
-
-Migration donnes postgresql 7.4 -> 8.1 :
-installer le client 8.1 (le dumpall de 7.4 est buggy !)
-su postgres
-/usr/lib/postgresql/8.1/bin/pg_dumpall/pg_dumpall > dumpall.txt
-puis sur la machine cible (qui est en 8.1):
-psql -d postgres -f dumpall.txt
-
-puis eventuellement creer les fichiers de conf des departements.
-
-Passage des bases ScoDoc 5 à ScoDoc 6:
- => les bases appartiennent maintenant toutes à www-data.
-
-On doit donc éditer dumpall.txt avant re-création:
- - supprimer tous  les CREATE ROLE et ALTER ROLE
-  et mettre a la place:
- - modifier les CREATE DATABASE: mettre OWNER = www-data
-    et les ALTER ... OWNER TO xxx  avec ce script:
-for user in scocj scogea scofc scotest scort scogeii scoinfo scousers
-do
-  echo replacing $user
-  sed -e "s:$user:\"www-data\"":g /opt/dumpall-8.1.txt > /tmp/toto
-  mv /tmp/toto /opt/dumpall-8.1.txt # IN PLACE !
-done
- - creer l'utilisateur www-data
- - psql -d postgres -f /opt/dumpall-8.1.txt
 
 nettoyage:
 dropdb SCOCJ
@@ -265,12 +189,11 @@ dropdb SCOTEST
 dropdb SCOUSERS
 
 
+
+
 TODO
-  - migration 7.4 / 8.1 : essais imports departements iutv
-  - script update
-=> test install vierge
-=> Annonce
- 
+
+ - logs par departements 
  - modif gestion utilisateurs (donner droits en fct du dept. d'appartenance, bug #57)
  - modif form def. utilisateur (dept appartenance)
  - archivage des semestres

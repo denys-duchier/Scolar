@@ -1,0 +1,77 @@
+
+COPIE DEPUIS LE WIKI: VOIR https://www-rt.iutv.univ-paris13.fr/ScoDoc/GuideInstall2
+
+Ce document décrit la procédure d'installation et de configuration de Sco``Doc.
+Cette procédure doit être effectué sur la machine serveur avec un accès administrateur (root).
+
+
+Sco``Doc est maintenant livré avec des scripts d'installation qui peuvent se charger de la configuration presque complète de votre serveur (serveur web, base de données, etc): vous pouvez donc installer et configurer Sco``Doc avec des connaissances réduites sur le système Linux. 
+
+Bien entendu, les informaticiens chevronnés peuvent adapter l'installation à leur convenance (ou nous faire part de leurs suggestions pour améliorer les scripts).
+
+Cette documentation est prévue pour installer Sco``Doc sur un système [http://www.debian.org Debian] 4.0 (etch, stable). Debian s'installe facilement en une quinzaine de minutes, sur une machine normale ou un serveur virtualisé.
+
+/!\ note du 03/7/08: béta-tests en cours: merci d'essayer à vos risques et périls.
+
+== Préalable: configurer un serveur linux ==
+
+Le serveur devrait être accessible depuis Internet. Seul le port 443 (https) est utilisé par Sco{{{}}}Doc (on peut aussi fonctionner sur le port 80, mais ce n'est pas recommandé). Il est recommandé que le serveur puisse envoyer du mail (smtp).
+
+Nous recommandons d'effectuer une installation standard de Debian 4.0 par le réseau (netinst).
+
+
+== Installation de ScoDoc ==
+ 1. Récupérer la dernière version [http://www-lipn.univ-paris13.fr/~viennet/ScoDoc/builds/scodoc-548.tgz] (l'archive contient Zope, quelques outils tiers, et Sco``Doc).
+ 2. '''Ouvrir l'archive''': en tant que root
+{{{
+    cd /opt
+    tar xfz /tmp/scodoc-548.tgz
+}}}
+/!\ vous pouvez installer ailleurs que dans /opt, mais il faudra alors éditer plusieurs scripts.
+
+
+/!\ Les commandes ci-dessous sont à exécuter dans un terminal ouvert en tant que '''root''' sur le serveur. Vous pouvez utiliser `su` (ou `sudo su`) pour devenir '''root''').
+
+ 3.#3 '''Configurer le logiciel'''. Attention: durant cette étape, de nombreux paquets et fichiers de configuration de votre système linux vont être modifiés. Si vous préférez effectuer vous même l'installation (vous êtes développeur ou avez des besoins particuliers), lisez et adaptez le script.
+
+/!\ je répète, le script `install_debian4.sh` va reconfigurer beaucoup de choses sur votre serveur. Il suppose que la machine vient d'être installée et en gros qu'elle va servir principalement pour Sco``Doc.
+
+Toujours en tant qu'utilisateur root:
+{{{
+    cd /opt/scodoc/instance/Products/ScoDoc/config
+    ./install_debian4.sh
+}}}
+Répondez oui (Y) à toutes les questions, sauf, si vous avez une bonne raison de faire autrement.
+En cas d'échec, ce script peut être relancé (il écrasera l'ancienne configuration).
+
+Dans cette étape, sont installés et configurés automatiquement:
+ * serveur web Apache (et https)
+ * parefeu réseau (optionnel)
+ * messagerie pour envois messages (postfix) (optionnel mais vivement recommandé)
+ * installation de divers logiciels utilisés par Sco``Doc (par apt-get)
+ * script de lancement automatique de Sco``Doc (service init.d).
+
+(dans certains cas, l'installeur vous posera des questions sur votre configuration).
+
+ 4.#4 '''Initialiser la base de données utilisateurs''' (qui sera commune à tous les départements). 
+En tant que root:
+{{{
+    cd /opt/scodoc/instance/Product/Scolar/config
+    ./create_user_db.sh
+}}}
+
+
+ 5.#5 '''Initialiser la base de données pour un département''' (vous pourrez à tout moment utiliser la même commande pour ajouter d'autres départements):
+{{{
+    ./create_dept.sh
+}}}
+Il faut alors saisir le nom abbrégé du département: ce nom doit être un mot, sans ponctuation (GEII, RT, Info, ...). Il apparaîtra dans l'URL du site correspondant.
+
+ 6.#6 '''Lancer Sco``Doc''':
+{{{
+    /etc/init.d/scodoc start
+}}}
+et voila !
+
+Visiter `https://votre.site.fr/` pour achever la configuration et utiliser le logiciel: voir la page GuideConfig
+

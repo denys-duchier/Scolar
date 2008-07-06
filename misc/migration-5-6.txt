@@ -1,0 +1,57 @@
+
+MIGRATION SCODOC 5 / SCODOC 6
+
+Migration donnes postgresql 7.4 -> 8.1 :
+installer le client 8.1 (le dumpall de 7.4 est buggy !)
+su postgres
+/usr/lib/postgresql/8.1/bin/pg_dumpall/pg_dumpall > dumpall.txt
+puis sur la machine cible (qui est en 8.1):
+psql -d postgres -f dumpall.txt
+
+puis eventuellement creer les fichiers de conf des departements.
+
+ *Attention* :  les bases appartiennent maintenant toutes à www-data.
+
+On doit donc éditer dumpall.txt avant re-création:
+ - supprimer tous  les CREATE ROLE et ALTER ROLE
+  et mettre a la place:
+ - modifier les CREATE DATABASE: mettre OWNER = www-data
+    et les ALTER ... OWNER TO xxx  avec ce script:
+for user in scocj scogea scofc scotest scort scogeii scoinfo scousers
+do
+  echo replacing $user
+  sed -e "s:$user:\"www-data\"":g /opt/dumpall-8.1.txt > /tmp/toto
+  mv /tmp/toto /opt/dumpall-8.1.txt # IN PLACE !
+done
+ - creer l'utilisateur www-data
+ - psql -d postgres -f /opt/dumpall-8.1.txt
+
+
+
+Etapes à suivre
+------------
+
+stop zope
+su postgres
+/usr/lib/postgresql/8.1/bin/pg_dumpall > scodoc-5-6jul2008.dumpall.txt
+editer le dump...
+arrêter le 7.4
+installer et lancer le serveur 8.1
+/usr/lib/postgresql/8.1/bin/createuser -p 5433 --no-superuser --no-createdb --no-adduser --no-createrole www-data 
+
+/usr/lib/postgresql/8.1/bin/psql -p 5433 -d postgres -f scodoc-5-6jul2008.dumpall.txt
+for dept in CJ FC GEA GEII RT TEST Info
+do
+echo "dbname=SCO$(echo $dept | tr '[a-z]' '[A-Z]')" > depts/$dept.cfg
+done
+
+desinstaller 7.4
+stopper 8.1
+configurer 8.1 sur le port 5432
+lancer postgresql 8.1
+lancer le service scodoc
+tester
+installer script rc
+
+supprimer service zope
+verifier sauvegardes
