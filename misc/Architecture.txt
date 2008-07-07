@@ -38,12 +38,14 @@ Le scrit d'install install_debian4.sh configure les logiciels nécessaires.
 Vous pouvez l'adapter à votre situation.
 
 L'image Zope standard (Data.fs) contient juste une instance vide de ScoDoc.
-(pour repartir d'une autre image Zope, ajouter une instance de ScoDoc à la racine, et voila).
+(pour repartir d'une autre image Zope, ajouter une instance de ScoDoc à la racine, puis y accéder
+au moins une fois en tant qu'admin (view): c'est en effet lors de la première visite que sont créés les 
+sous-objets).
 
 Les méthodes de l'objet ScoDoc (ZScoDoc.py) se chargent d'ajouter les objets nécessaires suivant 
 les départements créés.
 
-Lors de la création d'un déartement dans Zope, on crée 3 rôles (EnsXXX, SecrXXX, AdminXXX) 
+Lors de la création d'un département dans Zope, on crée 3 rôles (EnsXXX, SecrXXX, AdminXXX) 
 et on ajuste les permissions. Ces permissions peuvent être modifiées (via la ZMI) ensuite.
 
 

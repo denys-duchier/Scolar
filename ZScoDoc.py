@@ -95,6 +95,9 @@ class ZScoDoc(ObjectManager,
         + RoleManager.manage_options     # add the 'Security' tab
         )
 
+    security.declareProtected('View', 'standard_error_message')
+    standard_error_message = DTMLFile('dtml/standard_error_message', globals())
+
     def __init__(self, id, title):
         "Initialise a new instance of ZScoDoc"
         self.id = id
