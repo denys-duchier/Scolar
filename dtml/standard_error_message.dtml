@@ -1,9 +1,9 @@
 <dtml-if expr="error_type == 'ScoValueError'">
- <dtml-var "sco_header(REQUEST)">
+ <dtml-var "standard_html_header(REQUEST)">
  <h2>Erreur !</h2>
  <dtml-if error_value><p><dtml-var error_value></p></dtml-if>
  <p><dtml-if dest_url><a href="<dtml-var dest_url>">Continuer</a></dtml-if></p>
-  <dtml-var sco_footer>
+  <dtml-var standard_html_footer>
 
 
 <dtml-elif expr="error_type == 'ScoGenError'">
@@ -46,14 +46,14 @@
   </ul>
 
 
-  <p>Si l'erreur persiste, contactez Emmanuel Viennet: <a href="mailto:viennet@lipn.univ-paris13.fr">viennet@lipn.univ-paris13.fr</a>
+  <p>Si l'erreur persiste, contactez Emmanuel Viennet: <a href="mailto:emmanuel.viennet@gmail.com">emmanuel.viennet@gmail.com</a>
 en copiant ce message d'erreur et le contenu du cadre bleu ci-dessous si possible.
   </p>
 </td></tr>
 </table>
 
 <dtml-try>
-<h4>Zope Traceback (a envoyer par mail a <a href="mailto:viennet@lipn.univ-paris13.fr">viennet@lipn.univ-paris13.fr</a>)</h4>
+<h4>Zope Traceback (a envoyer par mail a <a href="mailto:emmanuel.viennet@gmail.com">emmanuel.viennet@gmail.com</a>)</h4>
 <div style="background-color: rgb(153,153,204); border: 1px;">
    <dtml-var error_tb>
 <dtml-except>
