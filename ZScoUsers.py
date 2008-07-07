@@ -673,7 +673,7 @@ class ZScoUsers(ObjectManager,
         <li>vérification des données;</li>
         <li>génération d'un mot de passe alétoire pour chaque utilisateur;</li>
         <li>création de chaque utilisateur;</li>
-        <li>envoie à chaque utilisateur de son <b>mot de passe initial par mail</b>.</li>
+        <li>envoi à chaque utilisateur de son <b>mot de passe initial par mail</b>.</li>
         </ol>"""
         H.append("""<ol><li><a class="stdlink" href="import_users_generate_excel_sample">
         Obtenir la feuille excel à remplir</a></li><li>""")
@@ -710,7 +710,8 @@ class ZScoUsers(ObjectManager,
         cnx = self.GetUsersDBConnexion()        
         passwd = args['passwd']
         args['passwd'] = 'undefined'
-        del args['passwd2']
+        if 'passwd2' in args:
+            del args['passwd2']
         log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
         self.get_userlist_cache().inval_cache()

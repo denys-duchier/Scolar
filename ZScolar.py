@@ -2592,19 +2592,6 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         H.append('</table>')
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
     
-    # sendEmail is not used through the web
-    def sendEmail(self,msg):
-        # sends an email to the address using the mailhost, if there is one
-        if not self.mail_host:
-            return
-        # a failed notification shouldn't cause a Zope error on a site.
-        try:
-            mhost=getattr(self,self.mail_host)
-            mhost.send(msg.as_string())
-            log('sendEmail')
-        except:
-            pass
-
     def confirmDialog(self, message='<p>Confirmer ?</p>',
                       OK='OK', Cancel='Annuler',
                       dest_url= "", cancel_url="",

@@ -95,8 +95,6 @@ class ZScoDoc(ObjectManager,
         + RoleManager.manage_options     # add the 'Security' tab
         )
 
-    security.declareProtected('View', 'standard_error_message')
-    standard_error_message = DTMLFile('dtml/standard_error_message', globals())
 
     def __init__(self, id, title):
         "Initialise a new instance of ZScoDoc"
@@ -445,6 +443,40 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         H.append("""</body></html>""")
         return '\n'.join(H)
 
+
+    # sendEmail is not used through the web
+    def sendEmail(self,msg):
+        # sends an email to the address using the mailhost, if there is one
+        if not self.mail_host:
+            log('warning: sendEmail: no mail_host found !')
+            return
+        # a failed notification shouldn't cause a Zope error on a site.
+        try:
+            mhost=getattr(self,self.mail_host)
+            mhost.send(msg.as_string())
+            log('sendEmail')
+        except:
+            pass
+    
+#     security.declareProtected('View', 'standard_error_message')
+#     #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
+#     def standard_error_message(self, **kv): 
+#         "Recuperation des exceptions Zope"
+#         #error_value=None, error_type=None,
+#         #error_traceback=None, error_tb=None, error_message=None,
+#         #error_log_url=None, **kv):
+        
+#         # Authentication uses exceptions, pass them up
+#         if kv['error_type'] == 'LoginRequired':
+#             raise 'LoginRequired', ''  # copied from exuserFolder (beurk)
+#         log('exception caught !')
+#         log('kv=%s'%kv)
+#         if kv['error_type'] == 'ScoGenError':
+#             return '<p>' + kv.get('error_value','') + '</p>'
+#         elif kv['error_type'] == 'ScoValueError':
+#             # XXX todo
+#        return 'exception !'
+
     security.declareProtected('View', 'scodoc_admin')
     def scodoc_admin(self, REQUEST=None):
         """Page Operations d'administration
@@ -562,6 +594,9 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
                 add_method( iid, open(path+'/'+filename) )
         
         return 'ok'
+
+
+
 
 def manage_addZScoDoc(self, id= 'ScoDoc',
                       title='Site ScoDoc',
