@@ -372,6 +372,14 @@ h4 {
         """Top level page for ScoDoc
         """
         authuser = REQUEST.AUTHENTICATED_USER
+        deptList = self.list_depts()  
+        isAdmin = not self._check_admin_perm(REQUEST)
+        try:
+            admin_password_initialized = self.admin_password_initialized
+        except:
+            admin_password_initialized = '0'
+        if isAdmin and admin_password_initialized != '1':
+            REQUEST.RESPONSE.redirect( "ScoDoc/change_admin_user_form?message=Le%20mot%20de%20passe%20administrateur%20doit%20etre%20change%20!")
         
         H = [ self._html_begin % 
               { 'page_title' : 'ScoDoc: bienvenue',
@@ -382,6 +390,10 @@ h4 {
               self.check_icons_folder(REQUEST=REQUEST) ]
         if message:
             H.append('<div id="message">%s</div>' % message )
+        
+        if isAdmin and not message:
+            H.append('<div id="message">Attention: connecté comme administrateur</div>' )
+            
         H.append("""
               <div class="maindiv">
         <h2>ScoDoc: gestion scolarité</h2>
@@ -390,14 +402,7 @@ h4 {
         </p>                 
         """)
         
-        deptList = self.list_depts()  
-        isAdmin = not self._check_admin_perm(REQUEST)
-        try:
-            admin_password_initialized = self.admin_password_initialized
-        except:
-            admin_password_initialized = '0'
-        if isAdmin and admin_password_initialized != '1':
-            REQUEST.RESPONSE.redirect( "ScoDoc/change_admin_user_form?message=Le%20mot%20de%20passe%20administrateur%20doit%20etre%20change%20!")
+        
         if not deptList:
             H.append('<em>aucun département existant !</em>')
             # si pas de dept et pas admin, propose lien pour loger admin
@@ -406,8 +411,15 @@ h4 {
         else:
              H.append('<ul class="main">')
              for deptFolder in self.list_depts():
-                 H.append('<li><a class="stdlink" href="%s/Scolarite">Scolarité département %s</a></li>'
+                 H.append('<li><a class="stdlink" href="%s/Scolarite">Scolarité département %s</a>'
                           % (deptFolder.absolute_url(), deptFolder.id))
+                 # check if roles are initialized in this depts, and do it if necessary
+                 if deptFolder.Scolarite.roles_initialized == '0':
+                     if isAdmin:
+                         deptFolder.Scolarite._setup_initial_roles_and_permissions()
+                     else:
+                         H.append(' (non initialisé, connectez vous comme admin)')
+                 H.append('</li>')
              H.append('</ul>')
 
 

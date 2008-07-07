@@ -195,8 +195,10 @@ class ZScolar(ObjectManager,
         H = []
         ok = True
         DeptRoles= self.DeptUsersRoles()
+
+        container = self.aq_parent # creates roles and permissions in parent folder
         for role_name in DeptRoles:
-            r = self._addRole( role_name )
+            r = container._addRole( role_name )
             if r: # error
                 H.append(r)
                 ok = False
@@ -205,10 +207,13 @@ class ZScolar(ObjectManager,
             roles = [ r + DeptId for r in Sco_Default_Permissions[permission] ]
             roles.append('Manager')
             log("granting '%s' to %s" % (permission, roles))
-            r = self.manage_permission(permission, roles=roles, acquire=0)
+            r = container.manage_permission(permission, roles=roles, acquire=0)
             if r:
                 H.append(r)
                 ok = False            
+
+        # set property indicating that we did the job:
+        self.manage_changeProperties(roles_initialized='1')
 
         return ok, '\n'.join(H)    
 

@@ -51,7 +51,6 @@ def sco_header(context, REQUEST=None,
         ri = None # old instances does not have this attribute
     if ri == '0':
         context._setup_initial_roles_and_permissions()
-        context.manage_changeProperties(roles_initialized='1')
 
     # context est une instance de ZScolar. container est une instance qui "acquiert" ZScolar
     if container:
