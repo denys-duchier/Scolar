@@ -51,6 +51,7 @@ class FormatError(ScoException):
 class ScoValueError(ScoException):
     def __init__(self, msg, dest_url=None, REQUEST=None):
         ScoException.__init__(self,msg)
+        self.dest_url = dest_url
         if REQUEST and dest_url:
             REQUEST.set('dest_url', dest_url)
 

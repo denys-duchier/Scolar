@@ -60,9 +60,16 @@ PREFS = (
         'explanation' : 'pour les PV de jury',
         }
       ),
+    ( 'DeptIntranetTitle',
+      { 'initvalue' : 'Intranet',
+        'title' : 'Nom lien intranet',
+        'size' : 40,
+        'explanation' : 'Titre du lien "Intranet" en haut à gauche',
+        }
+      ),
     ( 'DeptIntranetURL',
       { 'initvalue' : '',
-        'title' : 'URL du web (intranet ou site) du département',
+        'title' : """URL de l'"intranet" du département""",
         'size' : 40,
         'explanation' : 'lien "Intranet" en haut à gauche',
         }

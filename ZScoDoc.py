@@ -31,7 +31,7 @@
    Chaque departement est géré par un ZScolar sous ZScoDoc.
 """
 
-import time, string, glob, re
+import time, string, glob, re, inspect
 import urllib, urllib2, cgi, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
@@ -39,6 +39,12 @@ from zipfile import ZipFile
 import os.path, glob
 
 import psycopg
+
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.MIMEBase import MIMEBase
+from email.Header import Header
+from email import Encoders
 
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
@@ -447,35 +453,140 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
     # sendEmail is not used through the web
     def sendEmail(self,msg):
         # sends an email to the address using the mailhost, if there is one
-        if not self.mail_host:
-            log('warning: sendEmail: no mail_host found !')
+        try:
+            mail_host = self.MailHost
+        except:
+            log('warning: sendEmail: no MailHost found !')
             return
         # a failed notification shouldn't cause a Zope error on a site.
         try:
-            mhost=getattr(self,self.mail_host)
-            mhost.send(msg.as_string())
-            log('sendEmail')
+            mail_host.send(msg.as_string())
+            log('sendEmail: ok')
         except:
+            log('sendEmail: exception while sending message')
             pass
+
+    def sendEmailFromException(self,msg):
+        # Send email by hand, as it seems to be not possible to use Zope Mail Host
+        # from an exception handler (see https://bugs.launchpad.net/zope2/+bug/246748)
+        log('sendEmailFromException')
+        try:
+            p = os.popen("sendmail -t", 'w') # old brute force method
+            p.write(msg.as_string())
+            exitcode = p.close()
+            if exitcode:
+                log('sendmail exit code: %s' % exitcode)
+        except:
+            log('an exception occurred sending mail')
+
     
-#     security.declareProtected('View', 'standard_error_message')
-#     #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
-#     def standard_error_message(self, **kv): 
-#         "Recuperation des exceptions Zope"
-#         #error_value=None, error_type=None,
-#         #error_traceback=None, error_tb=None, error_message=None,
-#         #error_log_url=None, **kv):
+    security.declareProtected('View', 'standard_error_message')
+    #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
+    def standard_error_message(self, error_value=None, error_message=None, error_type=None,
+                               error_traceback=None, **kv): 
+        "Recuperation des exceptions Zope"
+        # error_tb=None, error_log_url=None
+        dev_mail = 'emmanuel.viennet@gmail.com'
+
+        # neat (or should I say dirty ?) hack to get REQUEST
+        # in fact, our caller (probably SimpleItem.py) has the REQUEST variable
+        # that we'd like to use for our logs, but does not pass it as an argument.
+        try:
+            frame = inspect.currentframe()
+            REQUEST = frame.f_back.f_locals['REQUEST']
+        except:
+            REQUEST = {}
+
+        AUTHENTICATED_USER = REQUEST.get('AUTHENTICATED_USER', '')
+        dt = time.asctime()
+        URL = REQUEST.get('URL', '')
+        QUERY_STRING = REQUEST.get('QUERY_STRING', '')
+        if QUERY_STRING:
+            QUESRY_STRING = '?' + QUERY_STRING
+        REFERER = REQUEST.get('HTTP_REFERER', '')
+        form = REQUEST.get('form', '')
+        HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
+        HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
+        # Authentication uses exceptions, pass them up
+        if error_type == 'LoginRequired':
+            raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)
         
-#         # Authentication uses exceptions, pass them up
-#         if kv['error_type'] == 'LoginRequired':
-#             raise 'LoginRequired', ''  # copied from exuserFolder (beurk)
-#         log('exception caught !')
-#         log('kv=%s'%kv)
-#         if kv['error_type'] == 'ScoGenError':
-#             return '<p>' + kv.get('error_value','') + '</p>'
-#         elif kv['error_type'] == 'ScoValueError':
-#             # XXX todo
-#        return 'exception !'
+        log('exception caught !')
+        if error_type == 'ScoGenError':
+            return '<p>' + error_value + '</p>'
+        elif error_type == 'ScoValueError':
+            H = [ self.standard_html_header(self),
+                  """<h2>Erreur !</h2><p>%s</p>""" % error_value ]
+            if error_value.dest_url:
+                H.append('<p><a href="%s">Continuer</a></p>' % error_value.dest_url )
+            H.append(self.standard_html_footer(self))
+        else: # other exceptions, try carefully to build an error page...
+            H = []
+            try:
+                H.append( self.standard_html_header(self) )
+            except:
+                pass
+            if error_message:
+                H.append( error_message )
+            else:
+                H.append("""<table border="0" width="100%%"><tr valign="top">
+<td width="10%%" align="center"></td>
+<td width="90%%"><h2>Erreur !</h2>
+  <p>Une erreur est survenue</p>
+  <p>
+  <strong>Error Type: %(error_type)s</strong><br>
+  <strong>Error Value: %(error_value)s</strong><br> 
+  </p>
+  <hr noshade>
+  <p>L'URL est peut-etre incorrecte ?</p>
+
+  <p>Si l'erreur persiste, contactez Emmanuel Viennet:
+   <a href="mailto:%(dev_mail)s">%(dev_mail)s</a>
+    en copiant ce message d'erreur et le contenu du cadre bleu ci-dessous si possible.
+  </p>
+</td></tr>
+</table>        """ % vars() )
+                # display error traceback (? may open a security risk via xss attack ?)
+                H.append("""<h4>Zope Traceback (a envoyer par mail a <a href="mailto:%(dev_mail)s">%(dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
+%(error_traceback)s
+<p>
+Infos: user=%(AUTHENTICATED_USER)s, dt=%(dt)s<br/>
+URL=%(URL)s%(QUERY_STRING)s<br/>
+REFERER=%(REFERER)s<br/>
+</p>
+</div>
+
+<p>Merci de votre patience !</p>
+""" % vars() )
+                try:
+                    H.append( self.standard_html_footer(self) )
+                except:
+                    pass
+        # ---
+        txt = """
+user=%(AUTHENTICATED_USER)s
+dt=%(dt)s
+URL=%(URL)s%(QUERY_STRING)s
+REFERER=%(REFERER)s
+
+Form: %(form)s
+Origin: %(HTTP_X_FORWARDED_FOR)s
+Agent: %(HTTP_USER_AGENT)s
+
+Traceback: %(error_traceback)s
+
+""" % vars()
+        msg = MIMEMultipart()
+        subj = Header( '[scodoc] exc %s' % URL,  SCO_ENCODING )
+        recipients = [ dev_mail ]
+        msg['To'] = ' ,'.join(recipients)
+        msg['From'] = 'noreply@scodoc'
+        msg.epilogue = ''
+        msg.attach(MIMEText( txt, 'plain', SCO_ENCODING ))
+        self.sendEmailFromException(msg)
+        log(txt)
+        # ---
+        return '\n'.join(H)
 
     security.declareProtected('View', 'scodoc_admin')
     def scodoc_admin(self, REQUEST=None):

@@ -453,6 +453,16 @@ class ZScoUsers(ObjectManager,
          authuser = REQUEST.AUTHENTICATED_USER
          auth_name = str(authuser)
          authuser_info = self._user_list( args={'user_name':auth_name} )
+         
+         # Access control
+         zope_roles = authuser.getRolesInContext(self)
+         if not authuser_info and not ('Manager' in zope_roles) and not ('manage' in zope_roles):
+             # not admin, and not in database
+             raise AccessDenied('invalid user (%s)' % auth_name)
+         if authuser_info:
+             auth_dept = authuser_info[0]['dept']
+         else:
+             auth_dept = ''
          #
          edit = int(edit)
          H = [self.sco_header(REQUEST)]
@@ -468,13 +478,13 @@ class ZScoUsers(ObjectManager,
              H.append("<p>Vous êtes super administrateur !</p>")
          
          # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
-         # N'inclue pas de rôles privilégiés, sauf si l'utilisateur est super admin
-         # (normalement: EnsDept, SecrDept + rôles existants)
+         # si pas SuperAdmin, restreint aux rôles EnsX, SecrX, DeptX
+         # 
          if authuser.has_permission(ScoSuperAdmin,self):
              log('create_user_form called by %s (super admin)' %(auth_name, ))
              valid_roles = Set(self._all_roles())
          else:
-             valid_roles = Set(self.DeptUsersRoles())         
+             valid_roles = Set(self.DeptUsersRoles())
          log('create_user_form: valid_roles=%s' % valid_roles)
          #         
          if not edit:
@@ -515,18 +525,8 @@ class ZScoUsers(ObjectManager,
                          'input_type' : 'text',
                          'explanation' : "vivement recommandé: utilisé pour contacter l'utilisateur",
                          'size' : 20, 'allow_null' : True }),
-             ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox',
-                        'allowed_values' : valid_roles})
              ]
-         # Access control
-         zope_roles = authuser.getRolesInContext(self)
-         if not authuser_info and not ('Manager' in zope_roles) and not ('manage' in zope_roles):
-             # not admin, and not in database
-             raise AccessDenied('invalid user (%s)' % auth_name)
-         if authuser_info:
-             auth_dept = authuser_info[0]['dept']
-         else:
-             auth_dept = ''
+         
          if not auth_dept:
              # si auth n'a pas de departement (admin global)
              # propose de choisir le dept du nouvel utilisateur
@@ -543,7 +543,14 @@ class ZScoUsers(ObjectManager,
              can_choose_dept = False
              descr.append(('d', {'input_type' : 'separator',
                                 'title' : 'L\'utilisateur  sera crée dans le département %s' % auth_dept}))
-         descr.append(('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox', 'labels' : ('',), 'allowed_values' : ('1',)}))
+         
+         descr += [
+             ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox', 'vertical' : True,
+                        'allowed_values' : valid_roles}),
+             ('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox',
+                        'explanation' : 'passer outre les avertissements (homonymes, etc)',
+                        'labels' : ('',), 'allowed_values' : ('1',)})
+             ]
          tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                  initvalues = initvalues,
                                  submitlabel = submitlabel )

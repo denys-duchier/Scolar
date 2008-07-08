@@ -242,6 +242,7 @@ class ZScolar(ObjectManager,
     def essai(self, REQUEST=None):
         """essai: header / body / footer"""
         b = '<p>Hello, World !</p><br/>'
+        raise IndexError('essai exception')
         #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
 
         #cursor = cnx.cursor()

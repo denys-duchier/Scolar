@@ -119,20 +119,22 @@ def sidebar(context, REQUEST=None):
 
 
 def sidebar_dept(context, REQUEST=None):
-    """COLONNE DE GAUCHE: A ADAPTER A VOS BESOINS
-    XXX prevoir mécanisme de configuration 
+    """Partie supérieure de la marge de gauche
     """
+    infos = {
+        'BASE0' : REQUEST.BASE0,
+        'DeptIntranetTitle' : context.get_preference('DeptIntranetTitle'),
+        'DeptIntranetURL' : context.get_preference('DeptIntranetURL'),
+        'DeptName' : context.get_preference('DeptName'),
+        'ScoURL' : context.ScoURL() }
     
-    return """<h2 class="insidebar">Dépt. %(DeptName)s</h2>
- <a href="%(BASE0)s" class="sidebar">Accueil</a> <br/> 
- <a href="%(DeptIntranetURL)s" class="sidebar">Intranet</a> <br/>
- <br/>
- <a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a> <br/>""" % {
-                'BASE0' : REQUEST.BASE0,
-                'DeptIntranetURL' : context.get_preference('DeptIntranetURL'),
-                'DeptName' : context.get_preference('DeptName'),
-                'ScoURL' : context.ScoURL() }
-
+    H = [ """<h2 class="insidebar">Dépt. %(DeptName)s</h2>
+ <a href="%(BASE0)s" class="sidebar">Accueil</a> <br/> """ % infos ]
+    if infos['DeptIntranetURL']:
+        H.append('<a href="%(DeptIntranetURL)s" class="sidebar">%(DeptIntranetTitle)s</a> <br/>'
+                 % infos )
+    H.append("""<br/><a href="%(ScoURL)s/Entreprises" class="sidebar">Entreprises</a> <br/>""" % infos)
+    return '\n'.join(H)
 
 
     
