@@ -180,7 +180,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     params = {
         'dateJury' : dateJury,
         'deptName' : context.get_preference('DeptName'), 
-        'nomDirecteur' : context.get_preference('DirectorName'),
+        'DirectorName' : context.get_preference('DirectorName'),
+        'DirectorTitle' : context.get_preference('DirectorTitle'),
         'titreFormation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
@@ -241,8 +242,8 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
 
     params['semestre_id'] = sem['semestre_id']
     params['decision_sem_descr'] = decision['decision_sem_descr']
-    params['t'] = t
-    params['s'] = s
+    params['Type'] = t # type de jury (passage ou delivrance)
+    params['TypeAbbrv'] = s # idem, abbrégé
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
     params['city'] = context.get_preference('INSTITUTION_CITY')
     if decision['prev_decision_sem']:
@@ -251,11 +252,12 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     
     # Haut de la lettre:
     objects += makeParas("""
+<para>%(DirectorName)s
+</para>
+<para>%(DirectorTitle)s
+</para>
+
 <para leftindent="%(htab1)s">%(city)s, le %(dateJury)s
-</para>
-<para leftindent="%(htab1)s" spaceBefore="5mm">%(nomDirecteur)s
-</para>
-<para leftindent="%(htab1)s">Directeur de l'IUT
 </para>
 <para leftindent="%(htab1)s" spaceBefore="10mm">à <b>%(nomEtud)s</b>
 </para>""" % params, style)
@@ -270,11 +272,11 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     #
     objects += makeParas("""
 <para spaceBefore="25mm" fontSize="14">
-<b>Objet : jury de %(t)s 
+<b>Objet : jury de %(Type)s 
 du département %(deptName)s</b>
 </para>
 <para spaceBefore="10mm" fontSize="14">
-Le jury de %(s)s du département %(deptName)s
+Le jury de %(TypeAbbrv)s du département %(deptName)s
 s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
 </para>""" % params, style )
     # Affichage de la décision du semestre précédent s'il existe:
@@ -331,27 +333,29 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par
     # chef de département.
     if Se.semestre_non_terminal:
-        objects += makeParas("""
-<para leftindent="%(htab1)s" spaceBefore="25mm">
-Pour le Directeur de l'IUT
-</para>
-<para leftindent="%(htab1)s">
-et par délégation
-</para>
-<para leftindent="%(htab1)s">
-Le Chef du département
-</para>
-    """ % params, style )
+        sig = context.get_preference('PV_LETTER_PASSAGE_SIGNATURE') % params
+        sig = _simulate_br(sig, '<para leftindent="%(htab1)s">')
+        objects += makeParas(("""<para leftindent="%(htab1)s" spaceBefore="25mm">""" + sig + 
+                             """</para>""") % params, style ) 
     else:
-        objects += makeParas("""<para leftindent="%(htab1)s" spaceBefore="25mm">
-Le directeur de l'IUT,</para><para leftindent="%(htab1)s">%(nomDirecteur)s</para>
-</para>""" % params, style )
+        sig = context.get_preference('PV_LETTER_DIPLOMA_SIGNATURE') % params
+        sig = _simulate_br(sig, '<para leftindent="%(htab1)s">')
+        objects += makeParas(("""<para leftindent="%(htab1)s" spaceBefore="25mm">""" + sig +
+                              """</para>""") % params, style )
         
     if signature:
         objects.append( _make_signature_image(signature, params['htab1'], context=context) )
         
     return objects
 
+
+def _simulate_br(p, para='<para>' ):
+    """Reportlab bug turnaround (could be removed in a future version).
+    p is a string with Reportlab intra-paragraph XML tags.
+    Replaces <br/> (currently ignored by Reportlab) by </para><para>
+    """
+    l = re.split( r'<.*?br.*?/>', p)
+    return ('</para>'+para).join(l)
 
 def _make_signature_image(signature, leftindent, context=None):
     "cree un paragraphe avec l'image signature"
@@ -415,16 +419,13 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     if dateJury:
          objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
 
-    objects += makeParas("""<para><bullet>-</bullet>  
-Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
-</para>
-<para><bullet>-</bullet>  
-vu l'arrêté n° %s du Président de l'%s;
-</para>
-<para><bullet>-</bullet> 
-vu la délibération de la commission %s en date du %s présidée par le Chef du département;
-</para>
-    """ % (numeroArrete, context.get_preference('UnivName'), t, dateCommission), bulletStyle )
+    objects += makeParas('<para>' 
+                         + context.get_preference('PV_INTRO')
+                         % { 'Decnum' : numeroArrete,
+                             'UnivName' : context.get_preference('UnivName'),
+                             'Type' : t,
+                             'Date' : dateCommission,
+                             } + '</para>', bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
@@ -454,8 +455,10 @@ vu la délibération de la commission %s en date du %s présidée par le Chef du dép
     # Signature du directeur
     objects += makeParas(
         """<para spaceBefore="10mm" align="right">
-        Le directeur de l'IUT, %s</para>""" % context.get_preference('DirectorName'),
-                         style)
+        Le %s, %s</para>""" % 
+        (context.get_preference('DirectorTitle'),
+         context.get_preference('DirectorName')),
+        style)
 
     # Légende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()

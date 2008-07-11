@@ -192,9 +192,53 @@ dropdb SCOUSERS
 
 
 TODO
-
- - logs par departements 
  - modif gestion utilisateurs (donner droits en fct du dept. d'appartenance, bug #57)
  - modif form def. utilisateur (dept appartenance)
- - archivage des semestres
  - utilisateurs: source externe
+ - archivage des semestres
+  
+* Nouvelle gestion utilisateurs:
+  objectif: dissocier l'authentification de la notion "d'enseignant" 
+  On a une source externe "d'utilisateurs" (annuaire LDAP ou base SQL)
+  qui permet seulement de:
+     - authentifier un utilisateur (login, passwd)
+     - lister un utilisateur: login => firstname, lastname, email
+     - lister les utilisateurs
+
+  et une base interne "d'acteurs". Chaque acteur est défini par:
+     - actor_id, firstname, lastname
+       date_creation, date_expiration, 
+       roles, departement,
+       email (+flag indiquant s'il faut utiliser ce mail ou celui de
+       l'utilisateur ?)
+       state (on, off) (pour desaciver aavant expiration ?)
+       user_id (login)  => lien avec base utilisateur
+
+  On offre une source d'utilisateurs SQL (base partagée par tous les dept.
+  d'une instance ScoDoc), mais dans la plupart des cas les gens utiliseront
+  un annuaire LDAP.
+
+  La base d'acteurs remplace ScoUsers. Les objets ScoDoc (semestres, 
+  modules etc) font référence à des acteurs (eg responsable_id est un actor_id).
+
+  Le lien entre les deux ?
+  Loger un utilisateur => authentification utilisateur + association d'un acteur
+  Cela doit se faire au niveau d'un UserFolder Zope, pour avoir les
+  bons rôles et le contrôle d'accès adéquat.
+  (Il faut donc coder notre propre UserFolder).
+  On ne peut associer qu'un acteur à l'état 'on' et non expiré.
+  
+  Opérations ScoDoc:
+   - paramétrage: choisir et paramétrer source utilisateurs
+   - ajouter utilisateur: choisir un utilisateur dans la liste
+     et lui associer un nouvel acteur (choix des rôles, des dates)
+     + éventuellement: synchro d'un ensemble d'utilisateurs, basé sur
+     une requête (eg LDAP) précise (quelle interface utilisateur proposer ?)
+
+   - régulièrement (cron) aviser quelqu'un (le chef) de l'expiration des acteurs.
+   - changer etat d'un acteur (on/off)
+
+
+
+
+

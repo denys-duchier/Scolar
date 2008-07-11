@@ -139,14 +139,13 @@ class ZScolar(ObjectManager,
         )
 
     # no permissions, only called from python
-    def __init__(self, id, title, db_cnx_string=None, mail_host='MailHost'):
+    def __init__(self, id, title, db_cnx_string=None):
 	"initialise a new instance of ZScolar"
         log('*** creating ZScolar instance')
         self.id = id
 	self.title = title
         self._db_cnx_string = db_cnx_string        
         self._cnx = None
-        self.mail_host = mail_host
         # --- add editable DTML documents:
         #self.defaultDocFile('sidebar_dept',
         #                    'barre gauche (partie haute)',

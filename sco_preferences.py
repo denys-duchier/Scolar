@@ -60,6 +60,12 @@ PREFS = (
         'explanation' : 'pour les PV de jury',
         }
       ),
+    ('DirectorTitle',
+      { 'initvalue' : """directeur de l'IUT""",
+        'title' : 'titre du "directeur" (celui qui signe les PV)',
+        'size' : 64,
+        }
+      ),
     ( 'DeptIntranetTitle',
       { 'initvalue' : 'Intranet',
         'title' : 'Nom lien intranet',
@@ -159,7 +165,7 @@ PREFS = (
       ),
     ('_sep_pv',
      { 'input_type' : 'separator',
-       'title' : '<b>Procès verbaux (documents PDF)</b>'
+       'title' : '<b>Procès verbaux de jury (documents PDF)</b>'
        }
      ),
     ('INSTITUTION_NAME',
@@ -167,7 +173,7 @@ PREFS = (
        'title' : 'Nom institution sur pied de pages PV',
        'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
        'input_type' : 'textarea',
-       'rows' : 4, 'cols' : 40
+       'rows' : 4, 'cols' : 64
         }
       ),
     ('INSTITUTION_ADDRESS',
@@ -175,16 +181,53 @@ PREFS = (
        'title' : 'Adresse institution sur pied de pages PV',
        'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
        'input_type' : 'textarea',
-       'rows' : 4, 'cols' : 40
+       'rows' : 4, 'cols' : 64
         }
       ),
     ('INSTITUTION_CITY',
      { 'initvalue' : "Villetaneuse",
        'title' : "Ville de l'institution",
        'explanation' : 'pour les lettres individuelles',
-       'size' : 40,
+       'size' : 64,
         }
       ),
+    ('PV_INTRO',
+     { 'initvalue' : """<bullet>-</bullet>  
+Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
+</para>
+<para><bullet>-</bullet>  
+vu l'arrêté n° %(Decnum)s du Président de l'%(UnivName)s;
+</para>
+<para><bullet>-</bullet> 
+vu la délibération de la commission %(Type)s en date du %(Date)s présidée par le Chef du département;
+""",
+       'title' : """Paragraphe d'introduction sur le PV""",
+       'explanation' : """Balises remplacées: %(Univname)s = nom de l'université, %(DecNum)s = numéro de l'arrêté, %(Date)s = date de la commission, %(Type)s = type de commission (passage ou délivrance) """,
+       'input_type' : 'textarea',
+       'cols' : 80,
+       'rows' : 10
+       }
+     ),
+    ('PV_LETTER_DIPLOMA_SIGNATURE',
+     { 'initvalue' : """Le %(DirectorTitle)s, <br/>%(DirectorName)s""",
+       'title' :  """Signature des lettres individuelles de diplôme""",
+       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacés""",
+       'input_type' : 'textarea',
+       'rows' : 4,
+       'cols' : 64,
+       },
+     ),
+    ('PV_LETTER_PASSAGE_SIGNATURE',
+     { 'initvalue' : """Pour le Directeur de l'IUT<br/>
+et par délégation<br/>
+Le Chef du département""",
+       'title' : """Signature des lettres individuelles de passage d'un semestre à l'autre""",
+       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacés""",
+       'input_type' : 'textarea',
+       'rows' : 4,
+       'cols' : 64,
+       },
+     ),
     ('PV_FONTNAME',
      { 'initvalue' : 'Times-Roman',
         'title' : 'Police de caractère pour les PV',

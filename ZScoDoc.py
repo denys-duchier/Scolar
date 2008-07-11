@@ -515,12 +515,14 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         if error_type == 'ScoGenError':
             return '<p>' + error_value + '</p>'
         elif error_type == 'ScoValueError':
+            # Not a bug, presents a gentle message to the user:
             H = [ self.standard_html_header(self),
                   """<h2>Erreur !</h2><p>%s</p>""" % error_value ]
             if error_value.dest_url:
                 H.append('<p><a href="%s">Continuer</a></p>' % error_value.dest_url )
             H.append(self.standard_html_footer(self))
-        else: # other exceptions, try carefully to build an error page...
+            return '\n'.join(H)
+        else: # Other exceptions, try carefully to build an error page...
             H = []
             try:
                 H.append( self.standard_html_header(self) )
@@ -578,6 +580,7 @@ Traceback: %(error_traceback)s
 """ % vars()
         msg = MIMEMultipart()
         subj = Header( '[scodoc] exc %s' % URL,  SCO_ENCODING )
+        msg['Subject'] = subj
         recipients = [ dev_mail ]
         msg['To'] = ' ,'.join(recipients)
         msg['From'] = 'noreply@scodoc'

@@ -49,6 +49,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     moy_ue = DictDefault(defaultvalue={}) # ue_acro : moyennes { etudid : moy ue }
     moy = {} # moyennes gen
     code = {} # decision existantes s'il y en a
+    autorisations = {}
     prev_code = {} # decisions sem prec
     assidu = {}
     parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
@@ -77,7 +78,9 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             if decision['compense_formsemestre_id']:
                 code[etudid] += '+' # indique qu'il a servi a compenser
             assidu[etudid] = {0 : 'Non', 1 : 'Oui'}.get(decision['assidu'], '')
-
+        aut_list = sco_parcours_dut.formsemestre_get_autorisation_inscription(
+            znotes, etudid, formsemestre_id)
+        autorisations[etudid] = ', '.join([ 'S%s' % x['semestre_id'] for x in aut_list ])
         # parcours:
         sems = Se.get_semestres()
         p = []
@@ -122,6 +125,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     titles += ue_acros + ['Moy %s' % sn]
     if code:
         titles.append('Décision %s' % sn)
+    if autorisations:
+        titles.append('Autorisations')
     titles.append('Assidu')
     L.append(titles)
 
@@ -149,6 +154,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         l.append(fmt(moy.get(etudid,'')))
         if code:
             l.append(code.get(etudid, ''))
+        if autorisations:
+            l.append(autorisations.get(etudid, ''))
         l.append(assidu.get(etudid, ''))
         L.append(l)
     #

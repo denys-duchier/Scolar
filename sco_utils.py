@@ -31,7 +31,7 @@
 from VERSION import SCOVERSION
 import VERSION
 import pdb
-import os, sys, copy
+import os, sys, copy, re
 import urllib, time, datetime, cgi
 from sets import Set
 import xml.sax.saxutils

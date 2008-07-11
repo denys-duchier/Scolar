@@ -2603,7 +2603,9 @@ class ZNotes(ObjectManager,
 
         H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s %s</h2>'
              % (etuddescr, sem['titreannee']) ]
-        F = self.sco_footer(REQUEST)
+        F = [ """<p><em>Voir aussi si besoin les réglages sur la page "Paramétrage" (accessible à l'administrateur du département).</em>
+            </p>""",
+            self.sco_footer(REQUEST) ]
         descr = [
             ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
             ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
@@ -2618,7 +2620,7 @@ class ZNotes(ObjectManager,
                                 submitlabel = 'Générer document', 
                                 name='tf' )
         if  tf[0] == 0:
-            return '\n'.join(H) + '\n' + tf[1] + F
+            return '\n'.join(H) + '\n' + tf[1] + '\n'.join(F)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
         else:
