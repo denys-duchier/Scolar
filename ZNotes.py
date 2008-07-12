@@ -138,13 +138,6 @@ class ZNotes(ObjectManager,
         self.title = title
         self._p_changed = 1
         RESPONSE.redirect('manage_editForm')
-
-    # Ajout (dans l'instance) d'un dtml modifiable par Zope
-    def defaultDocFile(self,id,title,file):
-        f=open(file_path+'/dtml-editable/'+file+'.dtml')     
-        file=f.read()     
-        f.close()     
-        self.manage_addDTMLMethod(id,title,file)
     
     def _getNotesCache(self):
         "returns CacheNotesTable instance for us"

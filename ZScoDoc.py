@@ -101,7 +101,6 @@ class ZScoDoc(ObjectManager,
         + RoleManager.manage_options     # add the 'Security' tab
         )
 
-
     def __init__(self, id, title):
         "Initialise a new instance of ZScoDoc"
         self.id = id
@@ -170,6 +169,15 @@ class ZScoDoc(ObjectManager,
             not_session_length=0,
             REQUEST=REQUEST
             )
+
+    def _fix_users_folder(self):
+        """removes docLogin and docLogout dtml methods from exUserFolder, so that we use ours.
+        (called each time be index_html, to fix old ScoDoc installations.)
+        """
+        try:
+            self.acl_users.manage_delObjects(ids=[ 'docLogin', 'docLogout' ])
+        except: 
+            pass
 
     security.declareProtected('View','create_users_cnx')
     def create_users_cnx(self, REQUEST=None):
@@ -379,7 +387,8 @@ h4 {
         """Top level page for ScoDoc
         """
         authuser = REQUEST.AUTHENTICATED_USER
-        deptList = self.list_depts()  
+        deptList = self.list_depts()
+        self._fix_users_folder() # fix our exUserFolder
         isAdmin = not self._check_admin_perm(REQUEST)
         try:
             admin_password_initialized = self.admin_password_initialized
@@ -387,6 +396,14 @@ h4 {
             admin_password_initialized = '0'
         if isAdmin and admin_password_initialized != '1':
             REQUEST.RESPONSE.redirect( "ScoDoc/change_admin_user_form?message=Le%20mot%20de%20passe%20administrateur%20doit%20etre%20change%20!")
+
+        # Si l'URL indique que l'on est dans un folder, affiche pas login du departement
+        try:
+            deptfoldername = REQUEST.URL0.split('ScoDoc')[1].split('/')[1]
+            if deptfoldername in [ x.id for x in self.list_depts() ]:
+                return self.index_dept(deptfoldername=deptfoldername)
+        except:
+            pass
         
         H = [ self._html_begin % 
               { 'page_title' : 'ScoDoc: bienvenue',
@@ -417,9 +434,13 @@ h4 {
                 H.append("""<p><a href="/force_admin_authentication">Identifiez vous comme administrateur</a> (au début: nom 'admin', mot de passe 'scodoc')</p>""")
         else:
              H.append('<ul class="main">')
+             if isAdmin:
+                 dest_folder = '/Scolarite'
+             else:
+                 dest_folder = ''
              for deptFolder in self.list_depts():
-                 H.append('<li><a class="stdlink" href="%s/Scolarite">Scolarité département %s</a>'
-                          % (deptFolder.absolute_url(), deptFolder.id))
+                 H.append('<li><a class="stdlink" href="%s%s">Scolarité département %s</a>'
+                          % (deptFolder.absolute_url(), dest_folder, deptFolder.id))
                  # check if roles are initialized in this depts, and do it if necessary
                  if deptFolder.Scolarite.roles_initialized == '0':
                      if isAdmin:
@@ -435,6 +456,10 @@ h4 {
         else:
             H.append('<p><a href="%s/force_admin_authentication">Se connecter comme administrateur</a></p>' % REQUEST.BASE0)
 
+        try:
+            img = self.icons.firefox_fr.tag(border='0')
+        except:
+            img = '' # icons folder not yet available
         H.append("""
 <div id="scodoc_attribution">
 <p><a href="https://www-rt.iutv.univ-paris13.fr/ScoDoc/">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
@@ -444,11 +469,66 @@ E. Viennet (Université Paris 13).</p>
 ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 </div>
-</div>""" % self.icons.firefox_fr.tag(border='0') )
+</div>""" % img )
 
         H.append("""</body></html>""")
         return '\n'.join(H)
 
+    security.declareProtected('View', 'index_dept')
+    index_dept = DTMLFile('dtml/index_dept', globals())
+
+    security.declareProtected('View', 'doLogin')
+    def doLogin(self, REQUEST=None, destination=None):
+        "redirect to destination after login"
+        if destination:
+            return REQUEST.RESPONSE.redirect( destination )
+
+    security.declareProtected('View', 'docLogin')
+    docLogin = DTMLFile('dtml/docLogin', globals())
+    security.declareProtected('View', 'docLogout')
+    docLogout = DTMLFile('dtml/docLogout', globals())
+    
+    security.declareProtected('View', 'query_string_to_form_inputs')
+    def query_string_to_form_inputs(self, query_string=''):
+        """Return html snippet representing the query string as POST form hidden inputs.
+        This is useful in conjonction with exUserfolder to correctly redirect the response
+        after authentication.
+        """
+        H = []
+        for a in query_string.split('&'):
+            if a:
+                nv = a.split('=')
+                if len(nv) == 2:
+                    name, value = nv
+                    H.append( '<input type="hidden" name="' + name 
+                              +'" value="' + value + '"/>' )
+
+        return '<!-- query string -->\n' +  '\n'.join(H)
+    
+    security.declareProtected('View', 'standard_html_header')
+    def standard_html_header(self, REQUEST=None):
+        """Standard HTML header for pages outside depts"""
+        # not used in ZScolar, see sco_header
+        return """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>ScoDoc: accueil</title>
+<META http-equiv="Content-Type" content="text/html; charset="%s">
+<META http-equiv="Content-Style-Type" content="text/css">
+<META name="LANG" content="fr">
+<META name="DESCRIPTION" content="ScoDoc: gestion scolarite">
+
+<link HREF="%s/scodoc_css" rel="stylesheet" type="text/css">
+
+</head><body>""" % (SCO_ENCODING, self.absolute_url())
+
+    security.declareProtected('View', 'standard_html_footer')
+    def standard_html_footer(self, REQUEST=None):
+        dev_mail = 'emmanuel.viennet@iutv.univ-paris13.fr'
+        return """<p class="footer">
+Probl&egrave;mes et suggestions: <a href="mailto:%s">%s</a>
+ou <a href="mailto:notes@gtr.iutv.univ-paris13.fr">notes@gtr.iutv.univ-paris13.fr</a>
+</p>
+</body></html>""" % (dev_mail, dev_mail)
 
     # sendEmail is not used through the web
     def sendEmail(self,msg):
@@ -486,6 +566,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
                                error_traceback=None, **kv): 
         "Recuperation des exceptions Zope"
         # error_tb=None, error_log_url=None
+
         dev_mail = 'emmanuel.viennet@gmail.com'
 
         # neat (or should I say dirty ?) hack to get REQUEST
@@ -709,7 +790,22 @@ Traceback: %(error_traceback)s
         
         return 'ok'
 
+    security.declareProtected('View', 'http_expiration_date')
+    def http_expiration_date(self):
+        "http expiration date for cachable elements (css, ...)"
+        d = datetime.timedelta(minutes=10)
+        return (datetime.datetime.utcnow() + d).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+    # Styles CSS
+    security.declareProtected('View', 'scodoc_css')
+    scodoc_css = DTMLFile('JavaScripts/scodoc_css', globals())
+
+    security.declareProtected('View', 'menu_css')
+    menu_css = DTMLFile('JavaScripts/menu_css', globals())
+
+    security.declareProtected('View', 'verticalhisto_css')
+    verticalhisto_css = DTMLFile('JavaScripts/verticalhisto_css', globals())
+    
 
 
 def manage_addZScoDoc(self, id= 'ScoDoc',

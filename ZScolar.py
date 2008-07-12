@@ -290,13 +290,6 @@ class ZScolar(ObjectManager,
 
         return self.sco_header(REQUEST)+ str(b) + self.sco_footer(REQUEST)
         
-    # Ajout (dans l'instance) d'un dtml modifiable par Zope
-    def defaultDocFile(self,id,title,file):
-        f=open(file_path+'/dtml/'+file+'.dtml')     
-        file=f.read()     
-        f.close()     
-        self.manage_addDTMLMethod(id,title,file)
-
     # Ajout des JavaScripts 
     security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
@@ -319,27 +312,11 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'calendarDateInput_js')
     calendarDateInput_js = DTMLFile('JavaScripts/calendarDateInput_js',
                                     globals())
-
-    # Styles CSS
-    security.declareProtected(ScoView, 'scodoc_css')
-    scodoc_css = DTMLFile('JavaScripts/scodoc_css', globals())
-
-    security.declareProtected(ScoView, 'menu_css')
-    menu_css = DTMLFile('JavaScripts/menu_css', globals())
-
-    security.declareProtected(ScoView, 'verticalhisto_css')
-    verticalhisto_css = DTMLFile('JavaScripts/verticalhisto_css', globals())
     
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
         return self.absolute_url()
-
-    security.declareProtected(ScoView, 'StyleURL')
-    def StyleURL(self):
-        "base URL for CSS style sheet"
-        return self.gtrintranetstyle.absolute_url()
-
 
     security.declareProtected(ScoView, 'sco_header')
     sco_header = html_sco_header.sco_header
@@ -347,12 +324,6 @@ class ZScolar(ObjectManager,
     sco_footer = html_sco_header.sco_footer
     security.declareProtected(ScoView, 'menus_bandeau')
     menus_bandeau = html_sco_header.menus_bandeau
-
-    security.declareProtected(ScoView, 'http_expiration_date')
-    def http_expiration_date(self):
-        "http expiration date for cachable elements (css, ...)"
-        d = datetime.timedelta(minutes=10)
-        return (datetime.datetime.utcnow() + d).strftime("%a, %d %b %Y %H:%M:%S GMT")
     
     # --------------------------------------------------------------------
     #
