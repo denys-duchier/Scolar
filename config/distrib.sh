@@ -22,18 +22,26 @@ echo "Stopping ScoDoc..."
 /etc/init.d/scodoc stop
 
 # DROITS
-echo -n "Verification des droits: proprietaire www-data ? [y/n] "
+echo -n "Verification des droits: proprietaire www-data ? (y/n) [y] "
 read ans
-if [ "$(to_upper ${ans:0:1})" = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
   echo 'changing owner to www-data'
   chown -R www-data.www-data ..
 fi
 
-# SVN
-echo -n "svn update ? [y/n] "
+echo -n 'Suppression des backups des sources (*~) ? (y/n) [y] '
 read ans
-if [ "$(to_upper ${ans:0:1})" = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
+then
+   /bin/rm -f ../*~ ../*/*~
+fi
+
+
+# SVN
+echo -n "svn update ? (y/n) [y] "
+read ans
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
   echo 'Updating from SVN...'
   (cd ..; svn update)
@@ -41,26 +49,26 @@ fi
 
 
 # DEPARTEMENTS
-echo -n "Supprimer les configs de departements ? [y/n] "
+echo -n "Supprimer les configs de departements ? (y/n) [y] "
 read ans
-if [ "$(to_upper ${ans:0:1})" = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
    echo "moving " depts/*.cfg "to /tmp"
    mv depts/*.cfg /tmp
 fi
 
 # LOGS ZOPE
-echo -n "Effacer les logs de Zope et ScoDoc  ? [y/n] "
+echo -n "Effacer les logs de Zope et ScoDoc  ? (y/n) [y] "
 read ans
-if [ "$(to_upper ${ans:0:1})" = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
     (cd ../../../log/; ./purge)
 fi
 
 # IMAGE Data.fs
-echo -n "Recopier le Data.fs original  ? [y/n] "
+echo -n "Recopier le Data.fs original  ? (y/n) [y] "
 read ans
-if [ "$(to_upper ${ans:0:1})" = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
    echo "moving Data.fs to /tmp"
    mv ../../../var/Data.fs ../../../var/Data.fs.index /tmp

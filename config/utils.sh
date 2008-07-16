@@ -9,6 +9,11 @@ to_upper() {
   echo $1 | tr "[:lower:]" "[:upper:]" 
 } 
 
+norm_ans() {
+  x=$(to_upper $1 | tr O Y)
+  echo ${x:0:1}
+}
+
 check_uid_root() {
   if [ "$UID" != "0" ] 
   then

@@ -18,14 +18,25 @@ then
    echo
    echo "Attention:  postgresql-7.4 est deja installe"
    echo "ScoDoc va installer et utiliser postgresql-8.1"
-   echo "Vérifiez les ports dans postgresql.conf (5432 ou 5433)"
+   echo "Verifiez les ports dans postgresql.conf (5432 ou 5433)"
    echo "et dans ScoDoc: config.sh et sco_utils.py"
    echo
-   echo -n "continuer ? [y/n] "
+   echo -n "continuer ? (y/n) [y] "
    read ans
-   if [ $(to_upper ${ans:0:1}) != 'Y' ]
+   if [ "$(norm_ans "$ans")" = 'N' ]
    then
      exit 1
+   fi
+   echo
+   echo "Il est recommande de ne pas installer postgresql 7.4 et 8.1 en meme temps,"
+   echo "sauf si vous avez deja des données sous postgres 7.4 (auquel cas vous devrez"
+   echo "gerer votre configuration vous même)."
+   echo 
+   echo -n "Puis-je desinstaller postgresql 7.4 (recommande) ? (y/n) [n] "
+   read ans
+   if [ "$(norm_ans "$ans")" = 'Y' ]
+   then
+       apt-get --yes remove postgresql-7.4 postgresql-client-7.4
    fi
 fi
 
@@ -74,9 +85,10 @@ echo 'Done.'
 
 # ------------ CONFIG FIREWALL
 echo 
-echo -n "Voulez vous installer un firewall minimal ? [y/n] "
+echo "Le firewall aide a proteger votre serveur d'intrusions indesirables."
+echo -n "Voulez vous installer un firewall minimal ? (y/n) [n] "
 read ans
-if [ $(to_upper ${ans:0:1}) = 'Y' ]
+if [ "$(norm_ans "$ans")" = 'Y' ]
 then
     echo 'Installation du firewall IP (voir /etc/firehol/firehol.conf)'
     echo "Attention: suppose que l'interface reseau vers Internet est eth0"
@@ -89,9 +101,10 @@ fi
 
 # ------------ POSTFIX
 echo 
-echo -n "Voulez vous configurer la messagerie (tres recommande) ? [y/n] "
+echo "ScoDoc a besoin de pouvoir envoyer des messages par mail."
+echo -n "Voulez vous configurer la messagerie (tres recommande) ? (y/n) [y] "
 read ans
-if [ $(to_upper ${ans:0:1}) = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
     apt-get install postfix
 fi
@@ -103,21 +116,27 @@ a2enmod proxy_http
 a2enmod rewrite
 
 echo 
-echo -n "Voulez vous configurer le serveur web Apache maintenant ? [y/n] "
+echo "La configuration du serveur web va modifier votre installation Apache pour supporter ScoDoc."
+echo -n "Voulez vous configurer le serveur web Apache maintenant ? (y/n) [y] "
 read ans
-if [ $(to_upper ${ans:0:1}) = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
     echo "Configuration d'Apache"
-    echo -n "Nom complet de votre serveur (exemple: notes.univ.fr): "
-    read server_name
+    server_name=""
+    while [ -z $server_name ]
+    do
+        echo "Le nom de votre serveur doit normalement etre connu dans le DNS."
+	echo -n "Nom complet de votre serveur (exemple: notes.univ.fr): "
+	read server_name
+    done
     # --- CERTIFICATS AUTO-SIGNES
     echo 
     echo "Il est possible d'utiliser des certificats cryptographiques"
     echo "auto-signes, qui ne seront pas reconnus comme de confiance"
     echo "par les navigateurs, mais offrent une certaine securite."
-    echo -n 'Voulez vous generer des certificats ssl auto-signes ? [y/n] '
+    echo -n 'Voulez vous generer des certificats ssl auto-signes ? (y/n) [n] '
     read ans
-    if [ $(to_upper ${ans:0:1}) = 'Y' ]
+    if [ "$(norm_ans "$ans")" = 'Y' ]
     then
         # attention: utilise dans scodoc-site-ssl.orig
 	ssl_dir=/etc/apache2/scodoc-ssl 
@@ -166,12 +185,22 @@ fi
 
 # ------------ CONFIG SERVICE SCODOC
 echo 
-echo -n "Voulez vous installer le service scodoc ? [y/n] "
+echo "Installer le service scodoc permet de lancer automatiquement le serveur au demarrage."
+echo -n "Voulez vous installer le service scodoc ? (y/n) [y] "
 read ans
-if [ $(to_upper ${ans:0:1}) = 'Y' ]
+if [ "$(norm_ans "$ans")" != 'N' ]
 then
     echo 'Installation du demarrage automatique de ScoDoc'
     cp $SCODOC_DIR/config/etc/scodoc /etc/init.d/
     update-rc.d scodoc defaults
 fi
+
+# ------------ THE END
+echo
+echo "Installation terminee."
+echo
+echo "Vous pouvez maintenant creer la base d'utilisateurs avec ./create_user_db.sh"
+echo "puis creer un departement avec  ./create_dept.sh"
+echo
+
 
