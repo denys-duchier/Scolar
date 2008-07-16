@@ -109,7 +109,7 @@ def sidebar(context, REQUEST=None):
     scologo_img = context.icons.scologo_img.tag()
     H.append('<div class="logo-insidebar">%s<br/>' % scologo_img)
     H.append("""<a href="%(ScoURL)s/about" class="sidebar">A propos</a><br/>
-<a href="https://www-gtr.iutv.univ-paris13.fr/ScoDoc/PageD'Accueil" class="sidebar">Aide</a><br/>
+<a href="https://www-rt.iutv.univ-paris13.fr/ScoDoc" class="sidebar">Aide</a><br/>
 </div>
 
 </div> <!-- end of sidebar -->

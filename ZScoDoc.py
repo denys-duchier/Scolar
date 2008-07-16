@@ -526,7 +526,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         dev_mail = 'emmanuel.viennet@iutv.univ-paris13.fr'
         return """<p class="footer">
 Probl&egrave;mes et suggestions: <a href="mailto:%s">%s</a>
-ou <a href="mailto:notes@gtr.iutv.univ-paris13.fr">notes@gtr.iutv.univ-paris13.fr</a>
+ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.univ-paris13.fr</a>
 </p>
 </body></html>""" % (dev_mail, dev_mail)
 

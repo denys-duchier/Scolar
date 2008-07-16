@@ -128,11 +128,11 @@ PREFS = (
          'size' : 40
         }
       ),
-    ('_sep_users',
-     { 'input_type' : 'separator',
-       'title' : '<b>Gestion des utilisateurs</b>'
-       }
-     ),
+#    ('_sep_users',
+#     { 'input_type' : 'separator',
+#       'title' : '<b>Gestion des utilisateurs</b>'
+#       }
+#     ),
     ('_sep_pdf',
      { 'input_type' : 'separator',
        'title' : '<b>Mise en forme des documents PDF</b>'
