@@ -2,11 +2,11 @@
 <dtml-unless tabformat><dtml-call "REQUEST.set('tabformat','html')"></dtml-unless>
 
 <dtml-call "REQUEST.set('no_side_bar', 1)">
-
+<dtml-call "REQUEST.set('page_title', 'Moyennes du')">
 <dtml-var "sco_header(REQUEST, page_title='Recapitulatif', no_side_bar=True)">
 <dtml-var formsemestre_status_head>
 
-<form name="f" method="GET">
+<form name="f" method="GET" action="<dtml-var URL0>">
 <input type="hidden" name="formsemestre_id" value="<dtml-var formsemestre_id>"></input>
 <dtml-if modejury><input type="hidden" name="modejury" value="<dtml-var modejury>"></input>
 </dtml-if>

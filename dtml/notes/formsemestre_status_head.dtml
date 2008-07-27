@@ -10,23 +10,19 @@
             do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } ))">
 
 <dtml-call "REQUEST.set( 'Mlist', do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } ))">
+<dtml-call "REQUEST.set('page_title', REQUEST.get('page_title', 'Modules de '))">
 
-
-<h2>Tableau de bord 
-<a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titreannee']"></a> 
-<dtml-if "sem['etat'] != '1'"><a href="formsemestre_edit_options?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "icons.lock_img.tag(border='0',title='Semestre verrouillé')"></a></dtml-if>
-</h2>
+<dtml-var "html_sem_header(REQUEST, page_title, sem, with_page_header=False, with_h2=False)">
 
 
 <table>
-<tr><td class="fichetitre2" colspan="4"><span style="font-weight: normal">du</span> <dtml-var "sem['date_debut']"> <span style="font-weight: normal">au</span> <dtml-var "sem['date_fin']">, responsable: <span class="redboldtext"><dtml-var "Users.user_info(sem['responsable_id'],REQUEST)['prenomnom']"></span></td></tr>
+
 <tr><td class="fichetitre2">Formation: </td><td>
-<a href="Notes/ue_list?formation_id=<dtml-var "F['formation_id']">" class="stdlink" title="Formation <dtml-var "F['acronyme']">, v<dtml-var "F['version']">"><dtml-var "F['titre']"></a><dtml-if "sem['semestre_id'] >= 0">, semestre <dtml-var "sem['semestre_id']"></dtml-if>
+<a href="Notes/ue_list?formation_id=<dtml-var "F['formation_id']">" class="discretelink" title="Formation <dtml-var "F['acronyme']">, v<dtml-var "F['version']">"><dtml-var "F['titre']"></a><dtml-if "sem['semestre_id'] >= 0">, semestre <dtml-var "sem['semestre_id']"></dtml-if>
 <dtml-if "sem['modalite']">&nbsp;en <dtml-var "sem['modalite']"></dtml-if>
 <dtml-if "sem['etape_apo']">&nbsp;&nbsp;&nbsp;(étape <b><tt><dtml-var "sem['etape_apo']"></tt></b>)</dtml-if>
 </td>
 </tr>
-<tr><td class="fichetitre2">Inscrits: </td><td> <dtml-var "len(inscrits)"> étudiants</td></tr>
 
 <dtml-in "do_evaluation_etat_in_sem( formsemestre_id )" mapping>
 
@@ -47,7 +43,3 @@ Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indi
 <dtml-if "sem['bul_hide_xml'] != '0'">
 <p><em>Bulletins non publiés sur le portail</em></p>
 </dtml-if bul_hide_xml>
-
-
-<dtml-var "formsemestre_status_menubar(sem, REQUEST)">
-<br/>

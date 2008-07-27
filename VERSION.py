@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-SCOVERSION = "6 beta"
+SCOVERSION = "6.0"
 
 SCONAME = "ScoDoc"
 
@@ -10,6 +10,11 @@ SCONEWS = """
 <h4>Juillet 2008</h4>
 <ul>
 <li>Installeur automatisé pour Linux</li>
+<li>Amélioration ergonomie (barre menu pages semestres)</li>
+<li>Refonte fiche étudiant (parcours)</li>
+<li>Archivage des documents (PV)</li>
+<li>Nouvel affichage des notes des évaluations</li>
+<li>Nombreuses corrections et améliorations</li>
 </ul>
 
 <h4>Juin 2008</h4>

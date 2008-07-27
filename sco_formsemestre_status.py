@@ -35,8 +35,9 @@ from notes_log import log
 from sco_utils import *
 from sco_formsemestre_custommenu import formsemestre_custommenu_html
 from gen_tables import GenTable
+import sco_archives
 
-def makeMenu( title, items, cssclass='custommenu' ):
+def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
     items is a list of dicts:
     { 'title' :
@@ -45,25 +46,27 @@ def makeMenu( title, items, cssclass='custommenu' ):
       'helpmsg' :
     }
     """
-    H = [ """<div class="barrenav"><ul class="nav">
-    <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu %s">%s</a><ul>""" % (cssclass, title)
+    H = [ """<%s class="barrenav"><ul class="nav">
+    <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu %s">%s</a><ul>""" % (elem, cssclass, title)
           ]
     for item in items:
         if item.get('enabled', True):
-            H.append('<li><a href="%(url)s">%(title)s</a></li>' % item)
+            if base_url:
+                item['urlq'] = urllib.quote(item['url'])
+            else:
+                item['urlq'] = item['url']
+            H.append('<li><a href="' + base_url + '%(urlq)s">%(title)s</a></li>' % item)
         else:
             H.append('<li><span class="disabled_menu_item">%(title)s</span></li>' % item)
-    H.append('</ul></li></ul></div>')
+    H.append('</ul></li></ul></%s>' % elem)
     return ''.join(H)
 
 
 def defMenuStats(context,formsemestre_id):
     "Définition du menu 'Statistiques' "
     return [
-        { #'title' : 'Tableau de répartition des bacs',
-          #'url' : 'stat_bac_fmt?formsemestre_id=' + formsemestre_id,
-        'title' : 'Statistiques...',
-        'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
+        { 'title' : 'Statistiques...',
+          'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
           },
         { 'title' : 'Suivi de cohortes',
           'url' : 'formsemestre_suivi_cohorte?formsemestre_id=' + formsemestre_id,
@@ -89,8 +92,20 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         change_lock_msg = 'Verrouiller'
     else:
         change_lock_msg = 'Déverrouiller'
-            
+
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+
     menuSemestre = [
+        { 'title' : 'Tableau de bord',
+          'url' : 'formsemestre_status?formsemestre_id=%(formsemestre_id)s' % sem,
+          'enabled' : True,
+          'helpmsg' : 'Tableau de bord du semestre'
+          },
+        { 'title' : 'Voir la formation %(acronyme)s' % F,
+          'url' : 'ue_list?formation_id=%(formation_id)s' % sem,
+          'enabled' : True,
+          'helpmsg' : 'Tableau de bord du semestre'
+          },
         # Si on voulait autoriser le dir des etud a modifier le semestre,
         # il faudrait ajouter (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))
         # et aussi modifer les permissions sur formsemestre_editwithmodules
@@ -131,6 +146,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
                                'enabled' : True })
 
     menuInscriptions = [
+        { 'title' : 'Listes des étudiants',
+          'url' : 'formsemestre_lists?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          'helpmsg' : 'Accès aux listes des groues d\'étudiants'
+          },
         { 'title' : 'Voir les inscriptions aux modules',
           'url' : 'moduleimpl_inscriptions_stats?formsemestre_id=' + formsemestre_id,
           },
@@ -174,35 +194,25 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           }
         ]
 
-    menuBulletins = [
+    menuNotes = [
         { 'title' : 'Tableau des moyennes (et liens bulletins)',
           'url' : 'formsemestre_recapcomplet?formsemestre_id=' + formsemestre_id,
           },
-        { 'title' : 'Classeur PDF des bulletins (versions courtes)',
-          'url' : 'formsemestre_bulletins_pdf?version=short&formsemestre_id='+ formsemestre_id,
+        { 'title' : 'Saisie des notes',
+          'url' : 'formsemestre_status?formsemestre_id=%(formsemestre_id)s' % sem,
+          'enabled' : True,
+          'helpmsg' : 'Tableau de bord du semestre'
+          },
+        { 'title' : 'Classeur PDF des bulletins',
+          'url' : 'formsemestre_bulletins_pdf_choice?formsemestre_id='+ formsemestre_id,
           'helpmsg' : 'PDF regroupant tous les bulletins'
           },
-        { 'title' : 'Classeur PDF des bulletins (versions intermédiaires)',
-          'url' : 'formsemestre_bulletins_pdf?version=selectedevals&formsemestre_id='+ formsemestre_id,
-          'helpmsg' : 'PDF regroupant tous les bulletins'
+        { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail',
+          'url' : 'formsemestre_bulletins_mailetuds_choice?formsemestre_id='+ formsemestre_id,
           },
-        { 'title' : 'Classeur PDF des bulletins (versions completes)',
-          'url' : 'formsemestre_bulletins_pdf?version=long&formsemestre_id='+ formsemestre_id,
-          'helpmsg' : 'PDF regroupant tous les bulletins'
-          },
-        { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail (versions courtes)',
-          'url' : 'formsemestre_bulletins_mailetuds?version=short&formsemestre_id='+ formsemestre_id,
-          },
-        { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail (versions intermédiaires)',
-          'url' : 'formsemestre_bulletins_mailetuds?version=selectedevals&formsemestre_id='+ formsemestre_id,
-          },
-        { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail (versions complètes)',
-          'url' : 'formsemestre_bulletins_mailetuds?version=long&formsemestre_id='+ formsemestre_id,
-          },
-
         ]
     menuJury = [
-        { 'title' : 'Voir les décisions du jury (et éditer les PV)',
+        { 'title' : 'Voir les décisions du jury',
           'url' : 'formsemestre_pvjury?formsemestre_id=' + formsemestre_id,
           },
         { 'title' : 'Générer feuille préparation Jury',
@@ -211,31 +221,93 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         { 'title' : 'Saisie des décisions du jury',
           'url' : 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
-          }
+          },
+        { 'title' : 'Editer les PV et archiver les résultats',
+          'url' : 'formsemestre_archive?formsemestre_id=' + formsemestre_id,
+          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+          },
+        { 'title' : 'Documents archivés',
+          'url' : 'formsemestre_list_archives?formsemestre_id=' + formsemestre_id,
+          'enabled' : sco_archives.Archive.list_formsemestre_archives(context,formsemestre_id)
+          },
         ]
     
     menuStats = defMenuStats(context,formsemestre_id)
-
+    base_url=context.absolute_url() + '/' # context must be Notes
     H = [
-        '<div class="formsemestre_menubar">',
-        makeMenu( 'Semestre', menuSemestre ),
-        makeMenu( 'Inscriptions', menuInscriptions),
-        makeMenu( 'Bulletins', menuBulletins),
-        makeMenu( 'Jury', menuJury),
-        makeMenu( 'Statistiques', menuStats),
-        formsemestre_custommenu_html(context, formsemestre_id),
-        '</div>'
+        '<tr class="formsemestre_menubar">', 
+        '<td>', makeMenu( 'Semestre', menuSemestre, base_url=base_url ), '</td>',
+        '<td>', makeMenu( 'Inscriptions', menuInscriptions, base_url=base_url ), '</td>',
+        '<td>',  makeMenu( 'Notes', menuNotes, base_url=base_url ), '</td>',
+        '<td>', makeMenu( 'Jury', menuJury, base_url=base_url ), '</td>',
+        '<td>', makeMenu( 'Statistiques', menuStats, base_url=base_url ), '</td>',
+        '<td>', formsemestre_custommenu_html(context, formsemestre_id), '</td></tr>',
           ]
     return '\n'.join(H)
 
 
+# Element HTML decrivant un semestre (barre de menu et infos)
+def formsemestre_page_title(context, REQUEST):
+    """Element HTML decrivant un semestre (barre de menu et infos)
+    Cherche dans REQUEST si un semestre esi défini (formsemestre_id ou moduleimpl ou evaluation)
+    """
+    try:
+        notes = context.Notes
+    except:
+        notes = context
+    # Search formsemestre
+    if REQUEST.form.has_key('formsemestre_id'):
+        formsemestre_id = REQUEST.form['formsemestre_id']
+    elif REQUEST.form.has_key('moduleimpl_id'):
+        modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : REQUEST.form['moduleimpl_id']})[0]
+        formsemestre_id = modimpl['formsemestre_id']
+    elif REQUEST.form.has_key('evaluation_id'):
+        E = notes.do_evaluation_list({'evaluation_id' : REQUEST.form['evaluation_id']})[0]
+        modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
+        formsemestre_id = modimpl['formsemestre_id']
+    elif REQUEST.form.has_key('semestregroupe'):
+        formsemestre_id = REQUEST.form['semestregroupe'].split('!')[0]
+    else:
+        return '' # no current formsemestre
+    #
+    sem = context.Notes.get_formsemestre(formsemestre_id).copy()    
+    sem['notes'] = notes.absolute_url()
+    if sem['etat'] != '1':
+        sem['locklink'] = """<a href="formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+    else:
+        sem['locklink'] = ''
+    if sem['semestre_id'] != -1:
+        sem['num_sem'] = ', semestre %s' % sem['semestre_id']
+    else:
+        sem['num_sem'] = '' # formation sans semestres
+    if sem['modalite']:
+        sem['modalitestr'] = ' en %s' % sem['modalite']
+    else:
+        sem['modalitestr'] = ''
+    if sem['etape_apo']:
+        sem['etape_apo_str'] = 'Code étape Apogée: %s' % sem['etape_apo']
+    else:
+        sem['etape_apo_str'] = 'Pas de code étape'
+    inscrits = notes.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    sem['nbinscrits'] = len(inscrits)
+    u = context.Users.user_info(sem['responsable_id'],REQUEST)
+    sem['resp'] = u['prenomnom']
+    sem['nomcomplet'] = u['nomcomplet']
+    H = [ # table markup: css bug turnaround for Mac OS
+        """<div class="formsemestre_page_title"><table class="semtitle">""", 
+        formsemestre_status_menubar(notes, sem, REQUEST),
+        """<tr><td colspan="6" class="infos"><table><tr>
+<td class="semtitle"><a class="stdlink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a><a title="%(etape_apo_str)s">%(num_sem)s</a>%(modalitestr)s</td><td class="dates"><a title="du %(date_debut)s au %(date_fin)s ">%(mois_debut)s - %(mois_fin)s</a></td><td class="resp"><a title="%(nomcomplet)s">%(resp)s</a></td><td class="nbinscrits"><a class="discretelink" href="%(notes)s/formsemestre_lists?formsemestre_id=%(formsemestre_id)s">%(nbinscrits)d inscrits</a></td><td class="lock">%(locklink)s</td></tr></table></td></tr></table>
+          </div>""" % sem
+          ]
+    return '\n'.join(H)
 
 # Description du semestre sous forme de table exportable
 def formsemestre_description_table(context, formsemestre_id, REQUEST):
     """Description du semestre sous forme de table exportable
     Liste des modules et de leurs coefficients
     """
-    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
@@ -258,7 +330,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
     
-    title = 'Semestre %s' % (sem['titreannee'])
+    title = 'Semestre %s' % (sem['titremois'])
     
     return GenTable(
         columns_ids=columns_ids, rows=R, titles=titles,
@@ -268,7 +340,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
         html_class='gt_table table_leftalign',
         base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
         page_title = title,
-        html_title = """<h2>Semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']),
+        html_title = context.html_sem_header(REQUEST, 'Description du semestre', sem, with_page_header=False), 
         pdf_title = title,
         preferences=context.get_preferences()
         )
@@ -279,3 +351,11 @@ def formsemestre_description(context, formsemestre_id, format='html', REQUEST=No
     """
     tab = formsemestre_description_table(context, formsemestre_id, REQUEST)
     return tab.make_page(context, format=format, REQUEST=REQUEST)                          
+
+def formsemestre_lists(context, formsemestre_id, REQUEST=None):
+    """Listes des étudiants"""
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [ context.html_sem_header(REQUEST, '', sem),
+          context.make_listes_sem(sem, REQUEST),
+          context.sco_footer(REQUEST) ]
+    return '\n'.join(H)

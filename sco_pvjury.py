@@ -34,6 +34,7 @@ import sco_excel
 from notesdb import *
 from sco_utils import *
 from gen_tables import GenTable
+import sco_pvpdf
 
 """PV Jury IUTV 2006: on détaillait 8 cas:
 Jury de semestre n
@@ -239,8 +240,10 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
     footer = context.sco_footer(REQUEST)
     dpv = dict_pvjury(context, formsemestre_id, with_prev=True)
     if not dpv:
-        return header + '<h2>Aucune information disponible !</h2>' + footer
-
+        if format == 'html':
+            return header + '<h2>Aucune information disponible !</h2>' + footer
+        else:
+            return None
     sem = dpv['formsemestre']
     formsemestre_id = sem['formsemestre_id']
 
@@ -260,23 +263,146 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
     if format != 'html':
         return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
-    H = [ """<h2>Décisions du jury pour le semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-    <p>(dernière modif le %s)</p>""" 
-          % (formsemestre_id, sem['titreannee'], dpv['date']) ]
-
-    #
+    H = [ context.html_sem_header(
+            REQUEST, 'Décisions du jury pour le semestre', sem),
+          """<p>(dernière modif le %s)</p>""" % dpv['date'] ]
+    
     H.append('<ul><li><a class="stdlink" href="formsemestre_lettres_individuelles?formsemestre_id=%s">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
     H.append('<li><a class="stdlink" href="formsemestre_pvjury_pdf?formsemestre_id=%s">PV officiel (pdf)</a></li></ul>' % formsemestre_id)
 
     H.append( tab.html() )
-    
-    # Légende des codes
-    codes = sco_codes_parcours.CODES_EXPL.keys()
-    codes.sort()
-    H.append('<h3>Explication des codes</h3><p><table class="expl_codes">')
-    for code in codes:
-        H.append('<tr><td>%s</td><td>%s</td></tr>' %
-                 (code, sco_codes_parcours.CODES_EXPL[code]))
-    H.append('</table>')
 
-    return header + '\n'.join(H) + footer
+    # Count number of cases for each decision
+    counts = DictDefault()
+    for row in rows:
+        counts[row['decision']] += 1
+        # add codes for previous (for explanation, without count)
+        if row.has_key('prev_decision') and row['prev_decision']:
+            counts[row['prev_decision']] += 0
+    # Légende des codes
+    codes = counts.keys() # sco_codes_parcours.CODES_EXPL.keys()
+    codes.sort()
+    H.append('<h3>Explication des codes</h3>')
+    lines = []
+    for code in codes:
+        lines.append( { 'code' : code, 'count' : counts[code], 'expl' : sco_codes_parcours.CODES_EXPL.get(code, '') } )
+    
+    H.append( GenTable(rows=lines, titles={ 'code' : 'Code', 'count' : 'Nombre', 'expl' : '' },
+                       columns_ids= ('code', 'count', 'expl'),
+                       html_class='gt_table table_leftalign',
+                       html_sortable=True,
+                       preferences=context.get_preferences()
+                       ).html() )
+    H.append('<p></p>') # force space at bottom
+    return '\n'.join(H) + footer
+
+# ---------------------------------------------------------------------------
+
+def formsemestre_pvjury_pdf(context, formsemestre_id, etudid=None, REQUEST=None):
+    """Generation PV jury en PDF: saisie des paramètres
+    Si etudid, PV pour un seul etudiant. Sinon, tout les inscrits au semestre.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    if etudid:
+        etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+        etuddescr = '<a class="discretelink" href="ficheEtud?etudid=%s">%s</a> en' % (etudid,etud['nomprenom'])
+    else:
+        etuddescr = ''
+
+    H = [ context.html_sem_header(REQUEST,'Edition du PV de jury de %s'%etuddescr, sem),
+          """<p class="help">Utiliser cette page pour éditer des versions provisoires des PV.
+          <span class="fontred">Il est recommandé d'archiver les versions définitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span>
+          </p>""" % formsemestre_id
+          ]
+    F = [ """<p><em>Voir aussi si besoin les réglages sur la page "Paramétrage" (accessible à l'administrateur du département).</em>
+        </p>""",
+        context.sco_footer(REQUEST) ]
+    descr = descrform_pvjury(sem)
+    if etudid:
+        descr.append( ('etudid', {'input_type' : 'hidden' }) )
+    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                            cancelbutton = 'Annuler', method='GET',
+                            submitlabel = 'Générer document', 
+                            name='tf' )
+    if  tf[0] == 0:
+        return '\n'.join(H) + '\n' + tf[1] + '\n'.join(F)
+    elif tf[0] == -1:
+        return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
+    else:
+        # submit
+        if etudid:
+            etudids = [etudid]
+        else:
+            etudids = None
+        dpv = dict_pvjury(context, formsemestre_id, etudids=etudids, with_prev=True)
+        if tf[2]['showTitle']:
+            tf[2]['showTitle'] = True
+        else:
+            tf[2]['showTitle'] = False
+        try:
+            PDFLOCK.acquire()
+            pdfdoc = sco_pvpdf.pvjury_pdf(context, dpv, REQUEST,
+                                          numeroArrete=tf[2]['numeroArrete'],
+                                          dateCommission=tf[2]['dateCommission'],
+                                          dateJury=tf[2]['dateJury'],
+                                          showTitle=tf[2]['showTitle'])
+        finally:
+            PDFLOCK.release()                
+        sem = context.get_formsemestre(formsemestre_id)
+        dt = time.strftime( '%Y-%m-%d' )
+        filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)
+        return sendPDFFile(REQUEST, pdfdoc, filename)
+
+def descrform_pvjury(sem):
+    """Définition de formulaire pour PV jury PDF
+    """
+    return [
+        ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
+        ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+        ('numeroArrete', {'input_type' : 'text', 'size' : 50, 'title' : 'Numéro de l\'arrêté du président',
+        'explanation' : 'le président de l\'Université prend chaque année un arrêté formant les jurys'}),
+        ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre sur le PV', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
+        ('formsemestre_id', {'input_type' : 'hidden' }) ]
+
+
+def formsemestre_lettres_individuelles(context, formsemestre_id, REQUEST=None):
+    "Lettres avis jury en PDF"
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [context.html_sem_header(REQUEST,'Edition des lettres individuelles', sem),
+         """<p class="help">Utiliser cette page pour éditer des versions provisoires des PV.
+          <span class="fontred">Il est recommandé d'archiver les versions définitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span></p>
+         """ % formsemestre_id
+         ]
+    F = context.sco_footer(REQUEST)
+    descr = descrform_lettres_individuelles()
+    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
+                            cancelbutton = 'Annuler', method='POST',
+                            submitlabel = 'Générer document', 
+                            name='tf' )
+    if  tf[0] == 0:
+        return '\n'.join(H) + '\n' + tf[1] + F
+    elif tf[0] == -1:
+        return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
+    else:
+        # submit
+        sf = tf[2]['signature']
+        #pdb.set_trace()
+        signature = sf.read() # image of signature
+        try:
+            PDFLOCK.acquire()
+            pdfdoc = sco_pvpdf.pdf_lettres_individuelles(context, formsemestre_id,
+                                                         dateJury=tf[2]['dateJury'],
+                                                         signature=signature)
+        finally:
+            PDFLOCK.release()
+        sem = context.get_formsemestre(formsemestre_id)
+        dt = time.strftime( '%Y-%m-%d' )
+        filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
+        return sendPDFFile(REQUEST, pdfdoc, filename)
+
+def descrform_lettres_individuelles():
+    return  [
+        ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
+        ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature'}),
+        ('formsemestre_id', {'input_type' : 'hidden' })]
+

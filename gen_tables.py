@@ -36,12 +36,16 @@ import jaxml
 import sco_excel
 from sco_pdf import *
 
-
-DEFAULT_TABLE_PREFERENCES = {
-    'SCOLAR_FONT' : 'Helvetica', # used for PDF, overriden by preferences argument
-    'SCOLAR_FONT_SIZE' : 10,
-    'SCOLAR_FONT_SIZE_FOOT' : 6
-}
+class DEFAULT_TABLE_PREFERENCES:
+    values = {
+        'SCOLAR_FONT' : 'Helvetica', # used for PDF, overriden by preferences argument
+        'SCOLAR_FONT_SIZE' : 10,
+        'SCOLAR_FONT_SIZE_FOOT' : 6
+        }
+    def __getitem__(self,k):
+        return self.value[k]
+    def get_with_default(self,k):
+        return self[k] # dummy method, for compatibility with ScoDoc preferences 
 
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
@@ -56,6 +60,9 @@ class GenTable:
                  
                  caption=None,
                  page_title='', # titre fenetre html
+
+                 generate_cells=True, # generate cells even if not in rows XXX to fix: only in HTML
+
                  pdf_link=True,
                  xls_link=True,
                  xml_link=False,
@@ -91,6 +98,7 @@ class GenTable:
         self.caption = caption
         self.html_header=html_header
         self.page_title = page_title
+        self.generate_cells = generate_cells
         self.pdf_link=pdf_link
         self.xls_link=xls_link
         self.xml_link=xml_link
@@ -199,8 +207,9 @@ class GenTable:
                 H.append('<th>%s</th>' % self.lines_titles[line_num])
             if self.titles.has_key('row_title'):
                 H.append('<th>%s</th>' % self.titles['row_title'])
-            H.append( '<th>' + '</th><th>'.join([
-                str(self.titles.get(cid,'')) for cid in self.columns_ids ]) + '</th></tr>' )
+            for cid in self.columns_ids:
+                H.append('<th %s>%s</th>' % (self.titles.get('_%s_td_attrs'%cid,''), self.titles.get(cid,'')))
+            H.append('</tr>')
         
         for row in self.rows:
             line_num += 1
@@ -225,10 +234,12 @@ class GenTable:
                     H.append('<th class="gt_linetit">' + content + '</th>')
                 r = []
                 for cid in self.columns_ids:
+                    if not cid in row and not self.generate_cells:
+                        continue # skip cell
                     content = str(row.get(cid,''))
                     help = row.get('_%s_help'%cid, '')
-                    target=row.get('_%s_target'%cid, '')
-                    if help or target:                        
+                    target=row.get('_%s_target'%cid, '#')
+                    if help or target:
                         content = '<a class="discretelink" href="%s" title="%s">%s</a>' % (target,help, content)
                     if self.html_with_td_classes:
                         c = ' class="%s"' % cid
@@ -296,7 +307,7 @@ class GenTable:
         "PDF representation: returns a ReportLab's platypus Table instance"
         if not self.pdf_table_style:
             LINEWIDTH = 0.5
-            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences['SCOLAR_FONT']),
+            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences.get_with_default('SCOLAR_FONT')),
                                     ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                                     ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                                     ('VALIGN', (0,0), (-1,-1), 'TOP') ]
@@ -307,9 +318,9 @@ class GenTable:
             self.pdf_col_widths = (None,) * nb_cols
         #
         CellStyle = styles.ParagraphStyle( {} )
-        CellStyle.fontSize= self.preferences['SCOLAR_FONT_SIZE']
-        CellStyle.fontName= self.preferences['SCOLAR_FONT']
-        CellStyle.leading = 1.*self.preferences['SCOLAR_FONT_SIZE'] # vertical space
+        CellStyle.fontSize= self.preferences.get_with_default('SCOLAR_FONT_SIZE')
+        CellStyle.fontName= self.preferences.get_with_default('SCOLAR_FONT')
+        CellStyle.leading = 1.*self.preferences.get_with_default('SCOLAR_FONT_SIZE') # vertical space
         LINEWIDTH = 0.5
         #
         titles = [ '<para><b>%s</b></para>' % x for x in self.get_titles_list() ]
@@ -321,9 +332,11 @@ class GenTable:
         StyleSheet = styles.getSampleStyleSheet()
         if self.pdf_title:
             objects.append(Paragraph(SU(self.pdf_title), StyleSheet["Heading3"]))
-        objects.append(T)
         if self.caption:
             objects.append(Paragraph(SU(self.caption), StyleSheet["Normal"]))
+            objects.append( Spacer(0, 0.4*cm) )
+        objects.append(T)
+        
         return objects
 
     def xml(self):

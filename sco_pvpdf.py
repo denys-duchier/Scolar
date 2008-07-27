@@ -54,14 +54,14 @@ def pageFooter(canvas, doc, logo, preferences):
                   id="monfooter", showBoundary=0 )
 
     LeftFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    LeftFootStyle.fontName = preferences['SCOLAR_FONT']
-    LeftFootStyle.fontSize = preferences['SCOLAR_FONT_SIZE_FOOT']
+    LeftFootStyle.fontName = preferences.get_with_default('SCOLAR_FONT')
+    LeftFootStyle.fontSize = preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT')
     LeftFootStyle.leftIndent = 0
     LeftFootStyle.firstLineIndent = 0
     LeftFootStyle.alignment = TA_RIGHT
     RightFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    RightFootStyle.fontName = preferences['SCOLAR_FONT']
-    RightFootStyle.fontSize =  preferences['SCOLAR_FONT_SIZE_FOOT']
+    RightFootStyle.fontName = preferences.get_with_default('SCOLAR_FONT')
+    RightFootStyle.fontSize =  preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT')
     RightFootStyle.alignment = TA_RIGHT 
 
     p = makeParas( """<para>%s</para><para>%s</para>"""
@@ -172,6 +172,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     """
 
     dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=etudids, with_prev=True)
+    if not dpv:
+        return ''
     # Ajoute infos sur etudiants
     etuds = [ x['identite'] for x in dpv['decisions']]
     context.fillEtudsInfo(etuds)
@@ -368,7 +370,7 @@ def _make_signature_image(signature, leftindent, context=None):
     f.seek(0,0)
 
     style = styles.ParagraphStyle( {} )    
-    style.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
+    style.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
     style.leftIndent=leftindent
     return Table( [ ('', Image( f, width=width*pdfheight/float(height), height=pdfheight)) ],
                   colWidths = (9*cm, 7*cm) )
@@ -436,11 +438,11 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     titles = [ titles.get(x,'') for x in columns_ids ]
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE')
-    CellStyle.fontName=   context.get_preference('PV_FONTNAME')
-    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
+    CellStyle.fontSize= context.get_preference_with_default('SCOLAR_FONT_SIZE')
+    CellStyle.fontName=   context.get_preference_with_default('PV_FONTNAME')
+    CellStyle.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
     LINEWIDTH = 0.5
-    TableStyle = [ ('FONTNAME', (0,0), (-1,0), context.get_preference('PV_FONTNAME')),
+    TableStyle = [ ('FONTNAME', (0,0), (-1,0), context.get_preference_with_default('PV_FONTNAME')),
                    ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                    ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]

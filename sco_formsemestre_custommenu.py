@@ -33,6 +33,8 @@ from sco_utils import *
 from notesdb import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
+import sco_formsemestre_status 
+
 
 _custommenuEditor = EditableTable(
     'notes_formsemestre_custommenu',
@@ -55,24 +57,16 @@ def formsemestre_custommenu_get(context, formsemestre_id):
 def formsemestre_custommenu_html(context, formsemestre_id):
     "HTML code for custom menu"
     menu = formsemestre_custommenu_get(context, formsemestre_id)
-    H = [ """<div class="barrenav"><ul class="nav">
-    <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu custommenu">Liens</a><ul>"""
-          ]
-    for item in menu:
-        H.append('<li><a href="%(url)s" target="new">%(title)s</a></li>' % item)
-
-    H.append('<li><a href="formsemestre_custommenu_edit?formsemestre_id=%s">Modifier ce menu...</a></li>' % formsemestre_id)
-
-    H.append('</ul></ul></div>')
-    
-    return ''.join(H)
+    menu.append( { 'title' : 'Modifier ce menu...', 
+                   'url' : 'formsemestre_custommenu_edit?formsemestre_id=' + formsemestre_id } )
+    return sco_formsemestre_status.makeMenu( 'Liens', menu )
 
 def formsemestre_custommenu_edit(context, formsemestre_id, REQUEST=None):
     """Dialog to edit the custom menu"""
     sem = context.get_formsemestre(formsemestre_id)
-    H = [ context.sco_header(REQUEST, page_title='Edition du menu utilisateur' ),
-          '<h2>Modification du menu du semestre %(titreannee)s</h2>' % sem,
-          """<p class="help">Ce menu, spécifique à chaque semestre, peut être utilisé pour placer des liens vers vos applications préférées.</p>
+    H = [ 
+        context.html_sem_header(REQUEST,  'Modification du menu du semestre ', sem),
+        """<p class="help">Ce menu, spécifique à chaque semestre, peut être utilisé pour placer des liens vers vos applications préférées.</p>
           <p class="help">Procédez en plusieurs fois si vous voulez ajouter plusieurs items.</p>"""]
     descr = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),

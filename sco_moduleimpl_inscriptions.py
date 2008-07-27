@@ -57,7 +57,7 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         raise ScoValueError('opération impossible: semestre verrouille')
     header = context.sco_header(REQUEST, page_title='Inscription au module')
     footer = context.sco_footer(REQUEST)
-    H = [header, """<h2>Inscriptions au module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a> (%s) du semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
+    H = [header, """<h2>Inscriptions au module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a> (%s)</a></h2>
     <p class="help">Cette page permet d'éditer les étudiants inscrits à ce module
     (ils doivent évidemment être inscrits au semestre).
     Les étudiants cochés sont (ou seront) inscrits. Vous pouvez facilement inscrire ou
@@ -66,7 +66,7 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     <p class="help">Aucune modification n'est prise en compte tant que l'on n'appuie pas sur le bouton
     "Appliquer les modifications".
     </p>
-    """ % (moduleimpl_id, mod['titre'], mod['code'], formsemestre_id, sem['titreannee'])]
+    """ % (moduleimpl_id, mod['titre'], mod['code'])]
     # Liste des inscrits à ce semestre
     inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
     for ins in inscrits:
@@ -89,8 +89,8 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     }
     }
     </script>""")
-        H.append("""
-        <form method="post" id="mi_form">
+        H.append("""<form method="post" id="mi_form" action="%s">"""%REQUEST.URL0,
+                 """
         <input type="hidden" name="moduleimpl_id" value="%(moduleimpl_id)s"/>
         <input type="submit" name="submitted" value="Appliquer les modifications"/><p></p>
         """ % M )
@@ -181,15 +181,14 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
             mod['nb_inscrits'] = nb_inscrits
             options.append(mod)
     # Page HTML:
-    H = [context.sco_header(REQUEST, page_title='Inscriptions aux modules' )]
-    H.append("""<h2>Inscriptions aux modules du semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (formsemestre_id, sem['titreannee']))
-
+    H = [context.html_sem_header(REQUEST, 'Inscriptions aux modules du semestre' )]
+    
     H.append("""<p class="help">Cette page décrit les inscriptions actuelles. Vous pouvez changer (si vous en avez le droit) les inscrits dans chaque module via le lien "Gérer les inscriptions" dans le tableau de bord du module.</p>""")
 
     H.append('<h3>Inscrits au semestre: %d étudiants</h3>' % len(inscrits))
 
     if options:
-        H.append('<h3>Modules où tous les étudiants ne sont pas inscrits</h3>')
+        H.append('<h3>Modules auxquels tous les étudiants ne sont pas inscrits</h3>')
         H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th><th>Inscrits</th><th></th></tr>')
         for mod in options:
             H.append('<tr class="formsemestre_status"><td>%s</td><td class="formsemestre_status_code"><a href="moduleimpl_status?moduleimpl_id=%s">%s</a></td><td class="formsemestre_status_inscrits">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['moduleimpl_id'], mod['module']['code'], mod['nb_inscrits'], mod['descri']))
@@ -198,7 +197,7 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
         H.append('<h3>Tous les étudiants sont inscrits à tous les modules</h3>')
 
     if commons:
-        H.append('<h3>Modules communs (où tous les étudiants sont inscrits)</h3>')
+        H.append('<h3>Modules communs (auxquels tous les étudiants sont inscrits)</h3>')
         H.append('<table class="formsemestre_status"><tr><th>UE</th><th>Code</th><th>Module</th></tr>')
         for mod in commons:
             H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code'], mod['module']['titre']))

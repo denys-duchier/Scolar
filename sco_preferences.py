@@ -258,6 +258,10 @@ class sco_preferences:
     def __setitem___(self, name, value):
         self.set(name,value)
         
+    def get_with_default(self, name):
+        """return preference value, or default (ie initial value) if value is empty"""
+        return self[name] or self.default[name]
+
     def set(self,name,value):
         if name and name[0] == '_':
             raise ValueError('invalid preference name: %s' % name)
@@ -271,6 +275,7 @@ class sco_preferences:
         cnx = self.context.GetDBConnexion()
         preflist = self._editor.list(cnx)
         self.prefs = {}
+        self.default = {}
         for p in preflist:
             self.prefs[p['name']] = p['value']
         # add defaults for missing prefs, and convert types
@@ -280,9 +285,10 @@ class sco_preferences:
             if pref[1].has_key('type') and pref[1]['type'] == 'int' and name in self.prefs:
                  self.prefs[name] = int(self.prefs[name])
             # add defaults:
-            if name and name[0] != '_' and not name in self.prefs:
-                # Migration from previous ScoDoc installations (before june 2008)
-                # search preferences in Zope properties and in configuration file
+            
+            # Migration from previous ScoDoc installations (before june 2008)
+            # search preferences in Zope properties and in configuration file
+            if name and name[0] != '_':
                 try:
                     value = getattr(self.context,name)
                     log('sco_preferences: found default value in Zope for %s=%s'%(name,value))
@@ -294,10 +300,13 @@ class sco_preferences:
                     else:
                         # uses hardcoded default
                         value = pref[1]['initvalue']
-                self.prefs[name] = value
-                log('creating missing preference for %s=%s'%(name,pref[1]['initvalue']))
-                # add to db table
-                self._editor.create(cnx, { 'name' : name, 'value' : self.prefs[name] })
+
+                self.default[name] = value
+                if not name in self.prefs:
+                    self.prefs[name] = value
+                    log('creating missing preference for %s=%s'%(name,pref[1]['initvalue']))
+                    # add to db table
+                    self._editor.create(cnx, { 'name' : name, 'value' : self.prefs[name] })
 
     def save(self, name=None):
         """Write one or all values to db"""

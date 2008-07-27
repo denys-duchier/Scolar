@@ -2,16 +2,6 @@
   NOTES EN VRAC : voir plutôt le Trac !!!
 
 
-Composants pour Trac:
-
-- Coeur
-- Notes
-- Absences
-- Entreprises
-- Utilisateurs
-- XML
-- Interface
-- JurysEtParcours
 
 
 A VERIFIER (?):
@@ -189,7 +179,34 @@ dropdb SCOTEST
 dropdb SCOUSERS
 
 
+DONE (Jul 2008):
+ - refonte fiche étudiant: visualisation du parcours.
+ - gestion des archives des PV et documents par semestre;
+ - refonte pages semestres (barre titre, menus) pour unifier l'apparence et ameliorer l'ergonomie;
+ - amelioration affichage notes des evaluations (html, excel, pdf)
+ - separation des semestres sur page d'accueil, et présente plus recents d'abord;
+ - amelioration apparence des menus;
+ - amelioration apparence tableau de bord semestre (=> regenerer icones);
+ - lien pour regenerer icones sur page d'administration ScoDoc;
+ - creation de semestre:  propose titre par defaut (et bouton pour reinitialiser titre)
+ - correction de nombreux petits bugs...
 
+
+A faire:
+ - bug ? suivi cohortes: S4 Franck: diplomés ?
+ - saisie notes: validation
+ - saisie notes: undo
+ - bencher NotesTable sans calcul de moyennes. Etudier un cache des moyennes de modules.
+ - listes d'utilisateurs (modules): remplacer menus par champs texte + completions javascript
+ - documenter archives sur Wiki
+ - verifier paquet Debian pour font pdf (reportab: helvetica ... plante si font indisponible)
+ - chercher comment obtenir une page d'erreur correcte pour les pages POST
+    (eg: si le font n'existe pas, archive semestre echoue sans page d'erreur)
+    ? je ne crois pas que le POST soit en cause. HTTP status=500
+     ne se produit pas avec Safari
+ - essayer avec IE / Win98
+ - faire apparaitre les diplômés sur le graphe des parcours
+ - démission: formulaire: vérifier que la date est bien dans le semestre
 
 TODO
  - modif gestion utilisateurs (donner droits en fct du dept. d'appartenance, bug #57)

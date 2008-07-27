@@ -74,7 +74,7 @@ def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST
         H.append("""<p class="warning">Impossible de supprimer cette formation, car les sessions suivantes l'utilisent:</p>
 <ul>""")
         for sem in sems:
-            H.append('<li><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></li>' % sem)
+            H.append('<li><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titremois)s</a></li>' % sem)
         H.append('</ul><p><a href="%s">Revenir</a></p>' % REQUEST.URL1)
     else:
         if not dialog_confirmed:

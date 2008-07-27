@@ -10,8 +10,8 @@
 <dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
 
 <table><tr><td>
-<h1><font color="#FF0000">Annulation</font> d'une absence pour
-	  <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h1>
+<h2><font color="#FF0000">Annulation</font> d'une absence pour
+	  <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
 <dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>
@@ -46,9 +46,9 @@
 <p>
 <input type="submit" value="Supprimer les absences"> 
 </form> 
-</td></tr></table>
-
-<table frame="border" border="1"><tr><td>
+</td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td>
 <form action="doAnnuleJustif" method="get"> 
 <input type="hidden" name="etudid" value="<dtml-var etudid>">
 <p>

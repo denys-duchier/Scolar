@@ -45,7 +45,7 @@ apt-get update
 apt-get install subversion cracklib-runtime
 apt-get install apache2 ssl-cert postgresql-8.1 postgresql-client-8.1 
 apt-get install firehol
-apt-get install python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab-accel python-crack python-pydot
+apt-get install python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab-accel python-crack python-pydot python-egenix-mxdatetime
 
 # start database server
 # /etc/init.d/postgresql-8.1 start

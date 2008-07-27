@@ -382,7 +382,7 @@ CREATE TABLE notes_evaluation (
 CREATE TABLE notes_notes (
 	etudid text REFERENCES identite(etudid),
 	evaluation_id text REFERENCES notes_evaluation(evaluation_id),
-	value real,	
+	value real,	-- null si absent, voir valeurs speciales dans notes_table.py
 	UNIQUE(etudid,evaluation_id),
 	-- infos sur saisie de cette note:
 	comment text,

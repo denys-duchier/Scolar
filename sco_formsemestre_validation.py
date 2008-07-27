@@ -79,17 +79,15 @@ def formsemestre_validation_etud_form(
     etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     if Se.sem['etat'] != '1':
-        pass # ? autoriser ou pas ? warning ?
-        # raise ScoValueError('validation: semestre verrouille')
+        raise ScoValueError('validation: semestre verrouille')
     
     H = [ znotes.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
-        H.append("<h2>%s: validation du semestre %s</h2>"
-                 % (etud['nomprenom'], Se.sem['titreannee']))
+        H.append('<h2 class="formsemestre">%s: validation du semestre</h2>' % (etud['nomprenom']))
     else:
-        H.append("<h2>Parcours de %s</h2>" % (etud['nomprenom']) )
+        H.append('<h2 class="formsemestre">Parcours de %s</h2>' % (etud['nomprenom']) )
     
     H.append('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
              % (znotes.ScoURL(), etudid,
@@ -334,21 +332,78 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
     return '\n'.join(H)
 
 
-def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
+def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False,
+                                       with_all_columns=True,
+                                       a_url='',
+                                       sem_info={},
+                                       show_details=False):
     """Tableau HTML recap parcours
-    Si with_links, ajoute liens pour modifier decisions    
+    Si with_links, ajoute liens pour modifier decisions (colonne de droite)   
+    sem_info = { formsemestre_id : txt } permet d'ajouter des informations associées à chaque semestre
+    with_all_columns: si faux, pas de colonne "assiduité".
     """
-    H = []
-    H.append('<table class="recap_parcours"><tr><th></th><th>Dates</th><th>Semestre</th><th>Assidu</th><th>Etat</th><th>Abs</th><th>Moy.</th>')
+    H = ["""<script type="text/javascript">
+function toggle_vis(e) { // change visi of following row in table
+    var tr = e.parentNode.parentNode;
+    // current state: use alt attribute of current image
+    if (e.childNodes[0].alt == '+') {
+        state=1;
+    } else {
+        state=0;
+    }
+    // find next tr in siblings
+    var sibl = tr.nextSibling;
+    while ((sibl != null) && sibl.nodeType != 1 && sibl.tagName != 'TR') {
+        sibl = sibl.nextSibling;
+    }
+    if (sibl) {
+        var td_disp = 'none';
+        if (state) {
+            sibl.style.display = 'table-row';
+            e.innerHTML = '%s';
+            td_disp = 'inline';
+        } else {
+            sibl.style.display = 'none';
+            e.innerHTML = '%s';
+        }
+        // acronymes d'UE
+        sibl = e.parentNode.nextSibling;
+        while (sibl != null) {
+            if (sibl.nodeType == 1 && sibl.className == 'ue_acro')
+                sibl.childNodes[0].style.display = td_disp; 
+            sibl = sibl.nextSibling;
+        }
+    }
+}
+</script>
+        """ % (znotes.icons.minus_img.tag(border="0", alt="-"), 
+               znotes.icons.plus_img.tag(border="0", alt="+"))]
+    linktmpl  = '<span onclick="toggle_vis(this);">%s</span>'
+    minuslink = linktmpl % znotes.icons.minus_img.tag(border="0", alt="-")
+    pluslink  = linktmpl % znotes.icons.plus_img.tag(border="0", alt="+")
+    if show_details:
+        sd = ' recap_show_details'
+        plusminus = minuslink
+    else:
+        sd = ' recap_hide_details'
+        plusminus = pluslink
+    H.append( '<table class="recap_parcours%s"><tr>' % sd )
+    H.append('<th></th><th></th><th>Semestre</th>')
+    if with_all_columns:
+        H.append('<th>Assidu</th>')
+    H.append('<th>Etat</th><th>Abs</th><th>Moy.</th>')
     # titres des UE
     H.append( '<th></th>' * Se.nb_max_ue )
     #
     if with_links:
         H.append('<th></th>')
     H.append('<th></th></tr>')
+    num_sem = 0
+    
     for sem in Se.get_semestres():
         is_prev = Se.prev and (Se.prev['formsemestre_id'] == sem['formsemestre_id'])
         is_cur = (Se.formsemestre_id == sem['formsemestre_id'])        
+        num_sem += 1
         
         dpv = sco_pvjury.dict_pvjury(znotes, sem['formsemestre_id'], etudids=[etudid])
         pv = dpv['decisions'][0]
@@ -357,7 +412,7 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
 
         nt = znotes._getNotesCache().get_NotesTable(znotes, sem['formsemestre_id'] )
         if is_cur:
-            type_sem = '*'
+            type_sem = '*' # now unused
             class_sem = 'sem_courant'
         elif is_prev:
             type_sem = 'p'
@@ -370,30 +425,49 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
         else:
             bgcolor = 'background-color: rgb(255,255,240)'
         # 1ere ligne: titre sem, acronymes UE
-        H.append('<tr class="%s rcp_l1"><td class="rcp_type_sem" style="background-color:%s;">%s</td>'
-                 % (class_sem, bgcolor, type_sem) )
-        H.append('<td>%(mois_debut)s</td>' % sem )
-        H.append('<td><a class="formsemestre_status_link" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a></td>' % (sem['formsemestre_id'], etudid,sem['titreannee']))
-        H.append('<td></td>'*4) # assidu, etat, abs, moy
+        H.append('<tr class="%s rcp_l1">' % class_sem)
+        if is_cur:
+            pm = ''
+        elif is_prev:
+            pm = minuslink
+        else:
+            pm = plusminus
+        H.append('<td class="rcp_type_sem" style="background-color:%s;">%s%s</td>'
+                 % (bgcolor, num_sem, pm) )
+        H.append('<td class="datedebut">%(mois_debut)s</td>' % sem )
+        H.append('<td><a class="formsemestre_status_link" href="%sformsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="Bulletin de notes">%s</a></td>' % (a_url,sem['formsemestre_id'], etudid,sem['titreannee']))
+        if with_all_columns:
+            nc = 4
+        else:
+            nc = 3
+        H.append('<td></td>'*nc) # [assidu,] etat, abs, moy
         # acronymes UEs
         ues = nt.get_ues(filter_sport=True) 
         for ue in ues:
-            H.append('<td>%s</td>' % ue['acronyme'])
+            H.append('<td class="ue_acro"><span>%s</span></td>' % ue['acronyme'])
         if len(ues) < Se.nb_max_ue:
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
         if with_links:
             H.append('<td></td>')
         H.append('<td></td></tr>')
         # 2eme ligne: etat et notes
-        H.append('<tr class="%s rcp_l2"><td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
-                 % (class_sem, bgcolor) )
-        H.append('<td>%(mois_fin)s</td><td></td>'%sem)
+        H.append('<tr class="%s rcp_l2">' % class_sem)
+        H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
+                 % (bgcolor) )
+        H.append('<td class="datefin">%s</td><td>%s</td>'
+                 % (sem['mois_fin'], 
+                    sem_info.get(sem['formsemestre_id'], '')))
         if decision_sem:
-            ass = {0:'non',1:'oui', None:'-', '':'-'}[decision_sem['assidu']]
-            H.append('<td>%s</td><td>%s</td>'
-                     % (ass, decision_sem['code']) )
+            if with_all_columns:
+                ass = {0:'non',1:'oui', None:'-', '':'-'}[decision_sem['assidu']]
+                H.append('<td>%s</td>' % ass)
+            H.append('<td>%s</td>' % decision_sem['code'])
         else:
-            H.append('<td colspan="2"><em>pas de décision</em></td>')
+            if with_all_columns:
+                nc = 2
+            else:
+                nc = 1
+            H.append('<td colspan="%d"><em>pas de décision</em></td>'%nc)
         # Absences (nb d'abs non just. dans ce semestre)
         debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
         fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
@@ -428,7 +502,7 @@ def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False ):
         else:
             H.append('<td></td>')
         if with_links:
-            H.append('<td><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">modifier</a></td>' % (sem['formsemestre_id'],etudid))
+            H.append('<td><a href="%sformsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">modifier</a></td>' % (a_url,sem['formsemestre_id'],etudid))
 
         H.append('</tr>')
     H.append('</table>')
@@ -528,8 +602,8 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
 def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     "Formulaire saisie automatisee des decisions d'un semestre"
     sem= znotes.get_formsemestre(formsemestre_id)
-    H = [ znotes.sco_header(REQUEST, page_title='Saisie automatique') ]
-    H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
+    H = [ znotes.html_sem_header(REQUEST, 'Saisie automatique des décisions du semestre', sem),
+          """
     <ul>
     <li>Seuls les étudiants qui obtiennent le semestre seront affectés (code ADM, moyenne générale et
     toutes les barres, semestre précédent validé);</li>
@@ -544,8 +618,9 @@ def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     <input type="submit" value="Calculer automatiquement ces décisions"/>
     <p><em>Le calcul prend quelques minutes, soyez patients !</em></p>
     </form>
-    """ % (sem['titreannee'], formsemestre_id))
-    H.append(znotes.sco_footer(REQUEST))
+    """  % formsemestre_id,
+          znotes.sco_footer(REQUEST)
+          ]
     return '\n'.join(H)
 
 def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):

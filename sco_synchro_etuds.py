@@ -163,7 +163,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
     else:
         sel = [ '', '', 'selected']
     H = [
-        """<h2>Synchronisation des étudiants du semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a> avec Apogée</h2>""" % sem,
+        """<h2 class="formsemestre">Synchronisation des étudiants du semestre avec Apogée</h2>""",
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
         % (len(etuds_by_cat['etuds_ok']['etuds'])+len(etuds_by_cat['etuds_nonapogee']['etuds'])+len(etuds_by_cat['inscrits_without_key']['etuds'])),
         """<p>Code étape Apogée: %(etape_apo)s</p>

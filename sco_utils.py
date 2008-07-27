@@ -40,6 +40,7 @@ import jaxml
 from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
 from sco_permissions import *
+from TrivialFormulator import TrivialFormulator, TF
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]
@@ -235,7 +236,6 @@ def abbrev_prenom(prenom):
 def timedate_human_repr():
     "representation du temps courant pour utilisateur: a localiser"
     return time.strftime('%d/%m/%Y à %Hh%M')
-
 
 # Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
 try:

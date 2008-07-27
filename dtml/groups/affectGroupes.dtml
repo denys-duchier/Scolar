@@ -38,7 +38,7 @@
 
 <dtml-call "REQUEST.set( 'sem', Notes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0])">
 
-<h2>Affectation aux groupes de <dtml-var groupTypeName> du semestre <a href="formsemestre_status?formsemestre_id=<dtml-var formsemestre_id>"><dtml-var "sem['titre']"></a></h2>
+<h2 class="formsemestre">Affectation aux groupes de <dtml-var groupTypeName></h2>
 
 <p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes. Pour <em>supprimer</em> complètement
 un groupe, <a href="suppressGroup?formsemestre_id=<dtml-var formsemestre_id>&groupType=<dtml-var groupType>&groupTypeName=<dtml-var groupTypeName>">cliquez ici</a>. Vous pouvez aussi <a href="groupes_auto_repartition?formsemestre_id=<dtml-var formsemestre_id>&groupType=<dtml-var groupType>">répartir automatiquement les groupes</a>.

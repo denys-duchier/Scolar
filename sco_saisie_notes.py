@@ -729,11 +729,14 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
                     if value != NOTES_SUPPRESS:
                         if do_it:
                             cursor.execute('update notes_notes set value=%(value)s, comment=%(comment)s, date=%(date)s, uid=%(uid)s where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
-                    else: # supression ancienne note
+                    else: # suppression ancienne note
                         if do_it:
                             log('_notes_add, suppress, evaluation_id=%s, etudid=%s, oldval=%s'
                             % (evaluation_id,etudid,oldval) )
                             cursor.execute('delete from notes_notes where etudid=%(etudid)s and evaluation_id=%(evaluation_id)s', aa )
+                            # garde trace de la suppression dans l'historique:
+                            aa['value'] = NOTES_SUPPRESS
+                            cursor.execute('insert into notes_notes_log (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s, %(evaluation_id)s, %(value)s, %(comment)s, %(date)s, %(uid)s)', aa)
                         nb_suppress += 1
                     nb_changed += 1                    
     except:

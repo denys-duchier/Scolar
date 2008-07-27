@@ -1,0 +1,277 @@
+# -*- mode: python -*-
+# -*- coding: iso8859-15 -*-
+
+##############################################################################
+#
+# Gestion scolarite IUT
+#
+# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#   Emmanuel Viennet      emmanuel.viennet@viennet.net
+#
+##############################################################################
+
+"""ScoDoc ficheEtud
+
+   Fiche description d'un étudiant et de son parcours
+
+"""
+
+from sco_utils import *
+from notesdb import *
+import scolars
+from scolars import format_nom, format_prenom, format_sexe, format_lycee
+from scolars import format_telephone, format_pays, make_etud_args
+from sco_formsemestre_status import makeMenu
+from sco_bulletins import _etud_descr_situation_semestre
+import sco_parcours_dut
+from sco_formsemestre_validation import formsemestre_recap_parcours_table
+
+def _menuScolarite(context, authuser, sem, etudid):
+    """HTML pour menu "scolarite" pour un etudiant dans un semestre.
+    Le contenu du menu depend des droits de l'utilisateur et de l'état de l'étudiant.
+    """
+    locked = (sem['etat'] != '1')
+    if locked or (not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context)):
+        return '' # no menu
+    i = sem['ins']
+    args = { 'etudid' : etudid,
+             'formsemestre_id' : i['formsemestre_id'] }
+
+    if sem['etat'] != 'D':
+        dem_title = 'Démission'
+        dem_url = 'formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+    else:
+        dem_title = 'Annuler la démission'
+        dem_url = 'doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+    
+    items = [
+        { 'title' : 'Changer de groupe',
+          'url' : 'formChangeGroupe?etudid=%s&formsemestre_id=%s' % (etudid,i['formsemestre_id']),
+          'enabled' : authuser.has_permission(ScoEtudChangeGroups,context) and not locked,
+        },
+        { 'title' : dem_title,
+          'url' : dem_url,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
+        },
+        { 'title' : "Validation du semestre (jury)",
+          'url' : "Notes/formsemestre_validation_etud_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s" % args,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
+        },
+        { 'title' : "Inscrire à un module optionnel (ou au sport)",
+          'url' : "Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
+        },
+        { 'title' : "désinscrire (en cas d'erreur)",
+          'url' : "Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
+        },
+
+        { 'title' : "Inscrire à un autre semestre",
+          'url' : "Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s" % args,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context)
+        },        
+        ]
+
+    return makeMenu( "Scolarité", items, cssclass="direction_etud", elem='span' )
+
+def ficheEtud(context, etudid=None, REQUEST=None):
+    "fiche d'informations sur un etudiant"
+    authuser = REQUEST.AUTHENTICATED_USER
+    cnx = context.GetDBConnexion()
+    args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
+    etud = scolars.etudident_list(cnx, args)[0]
+    etudid = etud['etudid']
+    context.fillEtudsInfo([etud])
+    #
+    info = etud
+    info['ScoURL'] = context.ScoURL()
+    info['authuser'] = authuser
+    info['etudfoto'] = context.etudfoto(etudid,foto=etud['foto'])
+    if ((not info['domicile']) and (not info['codepostaldomicile'])
+        and (not info['villedomicile'])):
+        info['domicile'] ='<em>inconnue</em>'
+    if info['paysdomicile']:
+        pays = format_pays(info['paysdomicile'])
+        if pays:
+            info['paysdomicile'] = '(%s)' % pays
+        else:
+            info['paysdomicile'] = ''
+    if info['telephone'] or info['telephonemobile']:
+        info['telephones'] = '<br/>%s &nbsp;&nbsp; %s' % (info['telephonestr'],
+                                                         info['telephonemobilestr']) 
+    else:
+        info['telephones'] = ''
+    # champs dependant des permissions
+    if authuser.has_permission(ScoEtudChangeAdr,context):
+        info['modifadresse'] = '<a class="stdlink" href="formChangeCoordonnees?etudid=%s">modifier adresse</a>' % etudid
+    else:
+        info['modifadresse'] = ''
+
+    # Parcours de l'étudiant
+    if info['sems']:
+        info['last_formsemestre_id'] = info['sems'][0]['formsemestre_id']
+    else:
+        info['last_formsemestre_id'] = ''
+    sem_info={}
+    for sem in info['sems']: 
+        if sem['ins']['etat'] == 'D':
+            descr, junk = _etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
+            grlink = '<span class="fontred">%s</span>' % descr
+        else:                
+            grlink = '<a class="discretelink" href="listegroupe?formsemestre_id=%s&groupetd=%s" title="Liste du groupe">groupe %s</a>' % (sem['formsemestre_id'], sem['ins']['groupetd'], sem['ins']['groupetd'])
+        # infos ajoutées au semestre dans le parcours (groupe, menu)
+        menu =  _menuScolarite(context, authuser, sem, etudid)
+        if menu:
+            sem_info[sem['formsemestre_id']] = '<table><tr><td>'+grlink + '</td><td>' + menu + '</td></tr></table>'
+        else:
+            sem_info[sem['formsemestre_id']] = grlink
+
+    if info['sems']:
+        Se = sco_parcours_dut.SituationEtudParcours(context.Notes, etud, info['last_formsemestre_id'])
+        info['liste_inscriptions'] = formsemestre_recap_parcours_table(
+            context.Notes, Se, etudid, with_links=False, sem_info=sem_info, with_all_columns=False,
+            a_url='Notes/')
+    else:
+        # non inscrit
+        l = ['<p><b>Etudiant%s non inscrit%s'%(info['ne'],info['ne'])]
+        if authuser.has_permission(ScoEtudInscrit,context):
+            l.append('<a href="%s/Notes/formsemestre_inscription_with_modules_form?etudid=%s">inscrire</a></li>'%(context.ScoURL(),etudid))
+            l.append('</b></b>')
+            info['liste_inscriptions'] = '\n'.join(l)
+    # Liste des annotations
+    alist = []
+    annos = scolars.etud_annotations_list(cnx, args={ 'etudid' : etudid })
+    i = 0
+    for a in annos:
+        if i % 2: # XXX refaire avec du CSS
+            a['bgcolor']="#EDEDED"
+        else:
+            a['bgcolor'] = "#DEDEDE"
+        i += 1
+        alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br/>%(comment)s</td></tr>' % a )
+    info['liste_annotations'] = '\n'.join(alist)
+    # fiche admission
+    has_adm_notes = info['math'] or info['physique'] or info['anglais'] or info['francais']
+    has_bac_info = info['bac'] or info['specialite'] or info['annee_bac']
+    if has_bac_info or has_adm_notes:
+        if has_adm_notes:
+            adm_tmpl = """<!-- Donnees admission -->
+<div class="ficheadmission">
+<div class="fichetitre">Informations admission</div>
+<table>
+<tr><th>Bac</th><th>Année</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Français</th></tr>
+<tr>
+<td>%(bac)s (%(specialite)s)</td>
+<td>%(annee_bac)s </td>
+<td>%(math)s</td><td>%(physique)s</td><td>%(anglais)s</td><td>%(francais)s</td>
+</tr>
+</table>
+<div>%(ilycee)s <em>%(rap)s</em></div>
+</div>
+"""
+        else:
+            adm_tmpl = """<!-- Donnees admission (pas de notes) -->
+<div class="ficheadmission">
+<div class="fichetitre">Informations admission</div>
+<div>Bac %(bac)s (%(specialite)s) obtenu en %(annee_bac)s </div>
+<div>%(ilycee)s <em>%(rap)s</em></div>
+</div>
+"""
+    else:
+        adm_tmpl = '' # pas de boite "info admission"
+    info['adm_data'] = adm_tmpl % info
+    #
+    if info['liste_annotations']:
+        info['tit_anno'] = '<div class="fichetitre">Annotations</div'
+    else:
+        info['tit_anno'] = ''
+    # Inscriptions
+    if info['sems']:
+        rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
+    else:
+        rcl = ''
+    info['inscriptions_mkup'] = """<div class="ficheinscriptions" id="ficheinscriptions">
+<div class="fichetitre">Parcours</div>%s
+</div>""" % info['liste_inscriptions']
+        
+    #      
+    if info['groupes'].strip():
+        info['groupes_row'] = '<tr><td class="fichetitre2">Groupe :</td><td>%(groupes)s</td></tr>'%info
+    else:
+        info['groupes_row'] = ''
+    tmpl = """
+<div class="ficheEtud" id="ficheEtud"><table>
+<tr><td>
+<h2>%(nomprenom)s (%(inscription)s)</h2>
+
+<span>%(emaillink)s</span> 
+</td><td class="photocell">
+%(etudfoto)s
+</td></tr></table>
+
+<div class="fichesituation">
+<div class="fichetablesitu">
+<table>
+<tr><td class="fichetitre2">Situation :</td><td>%(situation)s</td></tr>
+%(groupes_row)s
+<tr><td class="fichetitre2">Né%(ne)s en :</td><td>%(annee_naissance)s</td></tr>
+</table>
+
+
+<!-- Adresse -->
+<div class="ficheadresse" id="ficheadresse">
+<table><tr>
+<td class="fichetitre2">Adresse :</td><td> %(domicile)s %(codepostaldomicile)s %(villedomicile)s %(paysdomicile)s
+%(modifadresse)s
+%(telephones)s
+</td></tr></table>
+</div>
+</div>
+</div>
+
+%(inscriptions_mkup)s
+
+%(adm_data)s
+
+<div class="ficheannotations">
+%(tit_anno)s
+<table width="95%%">%(liste_annotations)s</table>
+
+<form action="doAddAnnotation" method="GET" class="noprint">
+<input type="hidden" name="etudid" value="%(etudid)s">
+<b>Ajouter une annotation sur %(nomprenom)s: </b>
+<table><tr>
+<tr><td><textarea name="comment" rows="4" cols="50" value=""></textarea>
+<br/><font size=-1><i>Balises HTML autorisées: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrétariat.</i></font>
+</td></tr>
+<tr><td>Auteur : <input type="text" name="author" width=12 value="%(authuser)s">&nbsp;
+<input type="submit" value="Ajouter annotation"></td></tr>
+</table>
+</form>
+</div>
+
+<div class="code_nip">code NIP: %(code_nip)s</div>
+
+</div>
+        """                           
+    header = context.sco_header(
+                REQUEST,
+                #javascripts=[ 'prototype_1_4_0_js', 'rico_js'],
+                #bodyOnLoad='javascript:bodyOnLoad()',
+                page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
+    return header + tmpl % info + context.sco_footer(REQUEST)

@@ -220,7 +220,7 @@ class NotesTable:
             for ue in self._ues:
                 is_cap[ue['ue_id']] = ue_status[ue['ue_id']]['is_capitalized']                
             for modimpl in self._modimpls:
-                val = self.get_etud_mod_moy(modimpl, etudid)
+                val = self.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)
                 if is_cap[modimpl['module']['ue_id']]:
                     t.append('-c-')
                 else:
@@ -332,7 +332,7 @@ class NotesTable:
                 modimpls = self.get_modimpls( ue['ue_id'] )
 
                 for modi in modimpls:
-                    moy = self.get_etud_mod_moy(modi, etudid)
+                    moy = self.get_etud_mod_moy(modi['moduleimpl_id'], etudid)
                     try:
                         float(moy)
                         has_note = True
@@ -422,11 +422,10 @@ class NotesTable:
                 ue['moy'] = ue['sum_moy'] / ue['nb_moy']
             else:
                 ue['moy'] = ''
-        
-
-    def get_etud_mod_moy(self, modimpl, etudid):
+    
+    def get_etud_mod_moy(self, moduleimpl_id, etudid):
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        
-        return self._modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
+        return self._modmoys[moduleimpl_id].get(etudid, 'NI')
     
     def comp_etud_moy(self, etudid, ue_id=None, with_capitalized_ue = False):
         """Calcule moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)

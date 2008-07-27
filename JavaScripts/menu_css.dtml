@@ -1,85 +1,76 @@
+/* # -*- mode: css -*- 
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2008
+ */
 <dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
 <dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 ul.nav {
-   padding: 0px 0px 0px 0px;
-   margin: 0px; 
+    padding: 0px 0px 0px 0px;
+    margin: 0px; 
 }
 
-.barrenav
-	{
-background-color: rgb(176,176,176) ;
-	}
+.barrenav {
+    background-color: rgb(176,176,176) ;
+}
 
-.barrenav ul
-	{
-	list-style-type: none ;
-	}
+.barrenav ul {
+    list-style-type: none ;
+}
 
-.barrenav ul li
-	{
-	 float: left;
-	position: relative ;
-	}
+.barrenav ul li {
+    float: left;
+    position: relative ;
+}
 	
-	.barrenav ul li img
-	{
-	display: inline ;		
-	}
+.barrenav ul li img {
+    display: inline ;		
+}
 
-.barrenav ul li a.menu
-	{
-	display: block;
-	text-align: center;
-	text-transform: uppercase;
-	height: 15px;
-	border-style: solid;
-	border-width: 0px 0px 0px 0px;
-	border-color: black;
-	color: rgb(255,255,255);
-	font-size: 10px ;
-	font-weight: bold ;
-	font-family: Arial, Helvetica, sans-serif;
-	padding: 0px 5px 0px 5px ;
-	}
+.barrenav ul li a.menu {
+    display: block;
+    text-align: center;
+    text-transform: uppercase;
+    height: 15px;
+    border-style: solid;
+    border-width: 0px 0px 0px 0px;
+    border-color: black;
+    color: rgb(255,255,255);
+    font-size: 10px ;
+    font-weight: bold ;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 2px 5px 0px 5px ;
+}
 
-.barrenav ul li a.accueil
-	{
-	background-color: rgb(133,000,000) ;
-	width: 102px;
-	}
+.barrenav ul li a.accueil {
+    background-color: rgb(133,000,000) ;
+    width: 102px;
+}
 
-.barrenav ul li a.secretariat
-	{
-	background-color:rgb(183,000,000) ;
-	}
+.barrenav ul li a.secretariat {
+    background-color:rgb(183,000,000) ;
+}
 
-.barrenav ul li a.etudiant
-	{
-	background-color:rgb(026,160,101) ;
-	}
+.barrenav ul li a.etudiant {
+    background-color:rgb(026,160,101) ;
+}
 
+.barrenav ul li a.direction_etud {
+    background-color:rgb(183,0,0) ;
+}
 
-.barrenav ul li a.direction_etud
-	{
-	background-color:rgb(183,0,0) ;
-	}
+.barrenav ul li a.bulletin {
+    background-color:rgb(026,160,101) ;
+}
 
-.barrenav ul li a.bulletin
-	{
-	background-color:rgb(026,160,101) ;
-	}
+.barrenav ul li a.custommenu {
+    background-color:rgb(150,230,151);
+    color: black;
+    padding-left: 15px;
+    padding-right: 15px;
+}
 
-.barrenav ul li a.custommenu
-	{
-	background-color:rgb(150,230,151);
-	color: black;
-	/* text-decoration: underline; */
-        width: 110px;
-	}
-
-.barrenav ul li a.custommenu:after {
-     content:url(<dtml-var "icons.menuarrow1_img.absolute_url()">);
+.barrenav ul li a.menu:after {
+     content:" "url(<dtml-var "icons.menuarrow1_img.absolute_url()">);
 }
 
 
@@ -89,8 +80,7 @@ background-color: rgb(176,176,176) ;
  list-style-type: none ;
   display: none ;
   z-index: 1000;
-/* le position absolute indique que la position est absolue par rapport au contenant */
-	position: absolute ;
+  position: absolute ;
  margin:0px;
  padding:0px 0px 0px 0px ;
  border-style: solid ;

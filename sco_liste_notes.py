@@ -36,41 +36,59 @@ from notes_table import *
 import htmlutils
 import sco_excel
 from gen_tables import GenTable
+from htmlutils import histogram_notes
 
 from sets import Set
 
-def do_evaluation_listenotes(self, REQUEST):
+def do_evaluation_listenotes(context, REQUEST):
     """
     Affichage des notes d'une évaluation
 
 
     args: evaluation_id 
     """        
-    cnx = self.GetDBConnexion()
-    evaluation_id = REQUEST.form['evaluation_id']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-    M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
+    cnx = context.GetDBConnexion()
+    mode = None
+    if REQUEST.form.has_key('evaluation_id'):
+        evaluation_id = REQUEST.form['evaluation_id']
+        mode = 'eval'
+        evals = context.do_evaluation_list( {'evaluation_id' : evaluation_id})
+    if REQUEST.form.has_key('moduleimpl_id'):
+        moduleimpl_id = REQUEST.form['moduleimpl_id']
+        mode = 'module'
+        evals = context.do_evaluation_list( {'moduleimpl_id' : moduleimpl_id})
+    if not mode:
+        raise ValueError('missing argument: evaluation or module')
+    if not evals:
+        return '<p>Aucune évaluation !</p>'
+
+    format = REQUEST.form.get('format', 'html')
+    E = evals[0]
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
     formsemestre_id = M['formsemestre_id']
     # description de l'evaluation    
-    H = [ self.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) ]
+    if mode == 'eval':
+        H = [ context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) ]
+    else:
+        H = []
     # groupes
-    gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
+    gr_td, gr_tp, gr_anglais = context.do_evaluation_listegroupes(E['evaluation_id'])
     grnams  = [('td'+x) for x in gr_td ] # noms des checkbox
     grnams += [('tp'+x) for x in gr_tp ]
     grnams += [('ta'+x) for x in gr_anglais ]
     grlabs  = gr_td + gr_tp + gr_anglais # legendes des boutons
-    descr = [
-        ('evaluation_id',
-         { 'default' : evaluation_id, 'input_type' : 'hidden' }),
-        ('liste_format',
-         {'input_type' : 'radio', 'default' : 'html', 'allow_null' : False, 
-          'allowed_values' : [ 'html', 'pdf', 'xls' ],
-          'labels' : ['page HTML', 'fichier PDF', 'fichier tableur' ],
-          'attributes' : ('onclick="document.tf.submit();"',),
-          'title' : 'Format' }),
+    if len(evals) > 1:
+        descr = [
+            ('moduleimpl_id',
+             { 'default' : E['moduleimpl_id'], 'input_type' : 'hidden' }) ]
+    else:
+        descr = [
+            ('evaluation_id',
+             { 'default' : E['evaluation_id'], 'input_type' : 'hidden' }) ]
+    descr += [
         ('s' ,
          {'input_type' : 'separator',
-          'title': 'Choix du ou des groupes d\'étudiants' }),
+          'title': '<b>Choix du ou des groupes d\'étudiants:</b>' }),
         ('groupes',
          { 'input_type' : 'checkbox', 'title':'',
            'allowed_values' : grnams, 'labels' : grlabs,
@@ -89,7 +107,7 @@ def do_evaluation_listenotes(self, REQUEST):
            }),            
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
-                            cancelbutton=None, submitbutton=None,
+                            cancelbutton=None, submitbutton=None, bottom_buttons=False,
                             method='GET',
                             cssclass='noprint',
                             name='tf',
@@ -99,184 +117,355 @@ def do_evaluation_listenotes(self, REQUEST):
         return '\n'.join(H) + '\n' + tf[1]
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( '%s/Notes/moduleimpl_status?moduleimpl_id=%s'
-                                          % (self.ScoURL(),E['moduleimpl_id']) )
+                                          % (context.ScoURL(),E['moduleimpl_id']) )
     else:
-        liste_format = tf[2]['liste_format']
         anonymous_listing = tf[2]['anonymous_listing']
         note_sur_20 = tf[2]['note_sur_20']
-        if liste_format == 'xls':
-            keep_numeric = True # pas de conversion des notes en strings
+        return _make_table_notes(context, REQUEST, tf[1], evals, 
+                                 format=format, note_sur_20=note_sur_20,
+                                 anonymous_listing=anonymous_listing, groups_list=tf[2]['groupes'])
+
+def _make_table_notes(context, REQUEST, html_form, evals, 
+                      format='', 
+                      note_sur_20=False, anonymous_listing=False,
+                      groups_list=[] ):
+    """Generate table for evaluations marks"""
+    if not evals:
+        return '<p>Aucune évaluation !</p>'
+    E = evals[0]
+    moduleimpl_id = E['moduleimpl_id']
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id  } )[0]
+    Mod = context.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
+    sem = context.get_formsemestre(M['formsemestre_id'])
+    # check that all evals are in same module:
+    for e in evals:
+        if e['moduleimpl_id'] != moduleimpl_id:
+            raise ValueError('invalid evaluations list')
+    
+    if format == 'xls':
+        keep_numeric = True # pas de conversion des notes en strings
+    else:
+        keep_numeric = False
+    # Build list of etudids (uniq, some groups may overlap)
+    gr_td = [ x[2:] for x in groups_list if x[:2] == 'td' ]
+    gr_tp = [ x[2:] for x in groups_list if x[:2] == 'tp' ]
+    gr_anglais = [ x[2:] for x in groups_list if x[:2] == 'ta' ]
+    g = gr_td+gr_tp+gr_anglais
+    gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
+    if len(g) > 1:
+        gr_title = 'groupes ' + ', '.join(g)                
+    elif len(g) == 1:            
+        gr_title = 'groupe ' + g[0]
+    else:
+        gr_title = ''
+    if not groups_list:# aucun groupe selectionne: affiche tous les etudiants
+        getallstudents = True
+        gr_title = 'tous'
+        gr_title_filename = 'tous'
+    else:
+        getallstudents = False
+    
+    etudids = context.do_evaluation_listeetuds_groups(E['evaluation_id'],
+                                                      gr_td,gr_tp,gr_anglais,
+                                                      include_dems=True,
+                                                      getallstudents=getallstudents)
+
+    if anonymous_listing:
+        columns_ids = ['code', 'group' ] # cols in table
+    else:
+        if format == 'xls' or format == 'xml':
+            columns_ids = ['nom', 'prenom', 'group' ]
         else:
-            keep_numeric = False
-        # Build list of etudids (uniq, some groups may overlap)
-        glist = tf[2]['groupes']
-        gr_td = [ x[2:] for x in glist if x[:2] == 'td' ]
-        gr_tp = [ x[2:] for x in glist if x[:2] == 'tp' ]
-        gr_anglais = [ x[2:] for x in glist if x[:2] == 'ta' ]
-        g = gr_td+gr_tp+gr_anglais
-        gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
-        if len(g) > 1:
-            gr_title = 'groupes ' + ', '.join(g)                
-        elif len(g) == 1:            
-            gr_title = 'groupe ' + g[0]
+            columns_ids = ['nomprenom', 'group' ]        
+    
+    titles={ 'code' : 'Code', 'group' : 'Groupe', 
+             'nom' : 'Nom', 'prenom' : 'Prénom', 'nomprenom' : 'Nom',
+             'expl_key' : 'Rem.' }
+
+    rows = []
+
+    class keymgr(dict): # comment : key (pour regrouper les comments a la fin)
+        def __init__(self):
+            self.lastkey = 'a'
+        def nextkey(self):
+            r = self.lastkey
+            self.lastkey = chr(ord(self.lastkey)+1)
+            return r
+
+    K = keymgr() 
+    for etudid in etudids:
+        css_row_class = None
+        # infos identite etudiant
+        etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+        # infos inscription
+        inscr = context.do_formsemestre_inscription_list(
+            {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
+        
+        if inscr['etat'] == 'I': # si inscrit, indique groupe
+            grc=inscr['groupetd']
+            if inscr['groupetp']:
+                grc += ' / ' + inscr['groupetp']
+            if inscr['groupeanglais']:
+                grc += ' / ' + inscr['groupeanglais']
         else:
-            gr_title = ''
-        if not glist:# aucun groupe selectionne: affiche tous les etudiants
-            getallstudents = True
-            gr_title = 'tous'
-            gr_title_filename = 'tous'
-        else:
-            getallstudents = False
-        NotesDB = self._notes_getall(evaluation_id)
-        etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
-                                                       gr_td,gr_tp,gr_anglais,
-                                                       getallstudents=getallstudents)
-        E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-        M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
-        Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
+            if inscr['etat'] == 'D':
+                grc = 'DEM' # attention: ce code est re-ecrit plus bas, ne pas le changer (?)
+                css_row_class = 'etuddem'
+            else:
+                grc = inscr['etat']
+                
+        rows.append( { 'code' : etud['code_nip'] or etudid,
+                       '_code_td_attrs' : 'style="padding-left: 1em; padding-right: 2em;"',
+                       'etudid' : etudid,
+                       'nom' : etud['nom'].upper(),
+                       '_nomprenom_target' : 'formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s' % (M['formsemestre_id'], etudid),
+                       'prenom' : etud['prenom'].lower().capitalize(),
+                       'nomprenom' : etud['nomprenom'],
+                       'group' : grc,
+                       
+                       '_css_row_class' : css_row_class or '',
+                       } )
+
+    #    lignes en tête:
+    coefs = { 'nom' : '', 'prenom':'', 'nomprenom' : '', 'group' : '', 'code':'',
+              '_css_row_class' : 'sorttop fontitalic' }
+    note_max = { 'nom' : '', 'prenom':'', 'nomprenom' : '', 'group' : '', 'code':'',
+                 '_css_row_class' : 'sorttop fontitalic' }
+    moys = { '_css_row_class' : 'moyenne sortbottom',
+             #'_nomprenom_td_attrs' : 'colspan="2" ',
+             'nomprenom' : 'Moyenne (sans les absents) :',
+             'comment' : '' }
+    # Ajoute les notes de chaque évaluation:
+    for e in evals:
+        e['eval_state'] = context.do_evaluation_etat(e['evaluation_id'])[0]
+        notes = _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
+                          note_sur_20, keep_numeric)
+        columns_ids.append(e['evaluation_id'])
+    #
+    if anonymous_listing:
+        rows.sort( key=lambda x: x['code'] )
+    else:
+        rows.sort( key=lambda x: (x['nom'], x['prenom'])) # sort by nom, prenom
+
+    # Si module, ajoute moyenne du module:
+    if len(evals) > 1:
+        notes =  _add_moymod_column(context, sem['formsemestre_id'], e, rows, titles, coefs,
+                                    note_max, moys, 
+                                    note_sur_20, keep_numeric)
+        columns_ids.append('moymod')
+    
+    # ajoute lignes en tête et moyennes    
+    if len(evals) > 1:
+        log(coefs)
+        rows = [coefs, note_max] + rows
+    rows.append(moys)
+    # ajout liens HTMl vers affichage une evaluation:
+    if format == 'html' and len(evals) > 1:
+        rlinks = {}
+        for e in evals:
+            rlinks[e['evaluation_id']] = 'afficher'
+            rlinks['_'+e['evaluation_id']+'_help'] = 'afficher seulement les notes de cette évaluation'
+            rlinks['_'+e['evaluation_id']+'_target'] = 'evaluation_listenotes?evaluation_id=' + e['evaluation_id']
+            rlinks['_'+e['evaluation_id']+'_td_attrs'] = ' class="tdlink" '
+        rows.append(rlinks)
+
+    if len(evals) == 1: # colonne "Rem." seulement si une eval
+        if format == 'html': # pas d'indication d'origine en pdf (pour affichage)
+            columns_ids.append( 'expl_key' ) 
+        elif (format == 'xls' or format == 'xml'):
+            columns_ids.append( 'comment' ) 
+    
+    # titres divers:
+    gl = ''.join([ '&groupes%3Alist=' + g for g in groups_list ])
+    if note_sur_20:
+        gl = '&note_sur_20%3Alist=yes' + gl
+    if anonymous_listing:
+        gl = '&anonymous_listing%3Alist=yes' + gl
+
+    if len(evals) == 1:
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
-        hh = '<h4>%s du %s, %s (%d étudiants)</h4>' % (E['description'], E['jour'], gr_title,len(etudids))
+        hh = '%s, %s (%d étudiants)' % (E['description'], gr_title,len(etudids))
+        filename = make_filename('notes_%s_%s.csv' % (evalname,gr_title_filename))
+        caption = hh
+        pdf_title = '%(description)s (%(jour)s)' % e
+        html_title= ''
+        base_url = 'evaluation_listenotes?evaluation_id=%s'%E['evaluation_id'] + gl
+    else:
+        filename = make_filename('notes-%s' % Mod['code'])
+        title = 'Notes du module %(code)s %(titre)s' % Mod
+        title += ' semestre %(titremois)s' % sem
+        if gr_title and gr_title != 'tous':
+            title += ' %s' % gr_title
+        caption = title
+        if format == 'pdf':
+            caption = '' # same as pdf_title
+        pdf_title = title
+        html_title="""<h2 class="formsemestre">Notes du module <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h2>"""% (moduleimpl_id, Mod['code'], Mod['titre'])
+        base_url = 'evaluation_listenotes?moduleimpl_id=%s'%moduleimpl_id + gl
+    # display
+    tab = GenTable( titles=titles, columns_ids=columns_ids,
+                    rows=rows, 
+                    html_sortable=True,
+                    base_url = base_url,
+                    filename=filename,
+                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    caption = caption,
+                    page_title = 'Notes de ' + sem['titremois'],
+                    html_title=html_title,
+                    pdf_title = pdf_title,
+                    html_class='gt_table table_leftalign notes_evaluation',
+                    preferences=context.get_preferences(),
+                    #generate_cells=False # la derniere ligne (moyennes) est incomplete
+                    )
+    
+    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+    if format != 'html':
+        return t
+
+    if len(evals) > 1:
+        all_complete = True
+        for e in evals:
+            if not e['eval_state']['evalcomplete']:
+                all_complete = False
+        if all_complete:
+            eval_info = '<span class="eval_info eval_complete">Evaluations prises en compte dans les moyennes</span>'
+        else:
+            eval_info = '<span class="eval_info help">Les évaluations en vert et orange sont prises en compte dans les moyennes. Celles en rouge n\'ont pas toutes leurs notes.</span>'
+        return   html_form + eval_info + t + '<p></p>'
+    else:
+        # Une seule evaluation: ajoute histogramme
+        histo = histogram_notes(notes)
+        # 2 colonnes: histo, comments
+        C = ['<table><tr><td><div><h4>Répartition des notes:</h4>' + histo + '</div></td>\n',
+             '<td style="padding-left: 50px; vertical-align: top;"><p>' ]
+        commentkeys = K.items() # [ (comment, key), ... ]
+        commentkeys.sort( lambda x,y: cmp(x[1], y[1]) )
+        for (comment,key) in commentkeys:
+            C.append('<span class="colcomment">(%s)</span> <em>%s</em><br/>' % (key, comment))
+        if commentkeys:
+            C.append('<span><a class=stdlink" href="evaluation_list_operations?evaluation_id=%s">Gérer les opérations</a></span><br/>' % E['evaluation_id'])
+        eval_info = 'xxx'
+        if E['eval_state']['evalcomplete']:
+            eval_info = '<span class="eval_info eval_complete">Evaluation prise en compte dans les moyennes</span>'
+        elif E['eval_state']['evalattente']:
+            eval_info = '<span class="eval_info eval_attente">Il y a des notes en attente (les autres sont prises en compte)</span>'
+        else:
+            eval_info = '<span class="eval_info eval_incomplete">Notes incomplètes, évaluation non prise en compte dans les moyennes</span>'
+            
+        return context.evaluation_create_form(evaluation_id=E['evaluation_id'], REQUEST=REQUEST, readonly=1) + eval_info + html_form + t + '\n'.join(C)
+
+
+    
+def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
+                      note_sur_20, keep_numeric):
+    """Add eval e"""
+    nb_notes = 0
+    sum_notes = 0
+    notes = [] # liste des notes numeriques, pour calcul histogramme uniquement
+    evaluation_id = e['evaluation_id']
+    NotesDB = context._notes_getall(evaluation_id)
+    for row in rows:
+        etudid = row['etudid']
+        if NotesDB.has_key(etudid):
+            val = NotesDB[etudid]['value']
+            # calcul moyenne SANS LES ABSENTS
+            if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE: 
+                valsur20 = val * 20. / e['note_max'] # remet sur 20
+                notes.append(valsur20) # toujours sur 20 pour l'histogramme
+                if note_sur_20:                            
+                    val = valsur20 # affichage notes / 20 demandé
+                nb_notes = nb_notes + 1
+                sum_notes += val
+            val_fmt = fmt_note(val, keep_numeric=keep_numeric)
+            comment = NotesDB[etudid]['comment']
+            if comment is None:
+                comment = ''
+            explanation = '%s (%s) %s' % (NotesDB[etudid]['date'].strftime('%d/%m/%y %Hh%M'),
+                                          NotesDB[etudid]['uid'],comment)
+        else:
+            explanation = ''
+            val_fmt = ''
+
+        if val is None:
+            row['_'+evaluation_id+'_td_attrs'] = 'class="etudabs" '
+            if not row.get('_css_row_class', ''):
+                row['_css_row_class'] = 'etudabs'
+        # regroupe les commentaires
+        if explanation:
+            if K.has_key(explanation):
+                expl_key = '(%s)' % K[explanation]
+            else:
+                K[explanation] = K.nextkey()
+                expl_key = '(%s)' % K[explanation]
+        else:
+            expl_key = ''
+        
+        row.update( {evaluation_id : val_fmt,
+                     '_'+evaluation_id+'_help' : explanation,
+                     # si plusieurs evals seront ecrasés et non affichés:
+                     'comment' : explanation,
+                     'expl_key' : expl_key,
+                     '_expl_key_help' : explanation} )
+        
+        coefs[evaluation_id] = 'coef. %s' % e['coefficient']
         if note_sur_20:
-            nmx = 20
+            nmx = 20.
         else:
-            nmx = E['note_max']
-        Th = ['', 'Nom', 'Prénom', 'Groupe', 'Note sur %d'%nmx,
-              'Rem.']
-        T = [] # list of lists, used to build HTML and CSV
-        nb_notes = 0
-        sum_notes = 0
-        notes = [] # liste des notes numeriques, pour calcul histogramme uniquement
-        for etudid in etudids:
-            # infos identite etudiant (xxx sous-optimal: 1/select par etudiant)
-            ident = scolars.etudident_list(cnx, { 'etudid' : etudid })[0]
-            # infos inscription
-            inscr = self.do_formsemestre_inscription_list(
-                {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
-            if NotesDB.has_key(etudid):
-                val = NotesDB[etudid]['value']
-                # calcul moyenne SANS LES ABSENTS
-                if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE: 
-                    valsur20 = val * 20. / E['note_max'] # remet sur 20
-                    notes.append(valsur20) # toujours sur 20 pour l'histogramme
-                    if note_sur_20:                            
-                        val = valsur20 # affichage notes / 20 demandé
-                    nb_notes = nb_notes + 1
-                    sum_notes += val
-                val = fmt_note(val, keep_numeric=keep_numeric)
-                comment = NotesDB[etudid]['comment']
-                if comment is None:
-                    comment = ''
-                explanation = '%s (%s) %s' % (NotesDB[etudid]['date'].strftime('%d/%m/%y %Hh%M'),
-                                              NotesDB[etudid]['uid'],comment)
-            else:
-                explanation = ''
-                val = ''
-            if inscr['etat'] == 'I': # si inscrit, indique groupe
-                grc=inscr['groupetd']
-                if inscr['groupetp']:
-                    grc += '/' + inscr['groupetp']
-                if inscr['groupeanglais']:
-                    grc += '/' + inscr['groupeanglais']
-            else:
-                if inscr['etat'] == 'D':
-                    grc = 'DEM' # attention: ce code est re-ecrit plus bas, ne pas le changer
-                else:
-                    grc = inscr['etat']
-            T.append( [ etudid, ident['nom'].upper(),
-                        ident['prenom'].lower().capitalize(),
-                        grc, val, explanation ] )
-        T.sort( lambda x,y: cmp(x[1:3],y[1:3]) ) # sort by nom, prenom
-        # display
-        if liste_format == 'csv':
-            CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in [Th]+T ] )
-            filename = 'notes_%s_%s.csv' % (evalname,gr_title_filename)
-            return sendCSVFile(REQUEST,CSV, filename ) 
-        elif liste_format == 'xls':
-            title = 'notes_%s_%s' % (evalname, gr_title_filename)
-            xls = sco_excel.Excel_SimpleTable(
-                titles= Th,
-                lines = T,
-                SheetName = title )
-            filename = title + '.xls'
-            return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        elif liste_format == 'html':
-            if T:
-                if anonymous_listing:
-                    # ce mode bizarre a été demandé par GTR1 en 2005
-                    Th = [ '', Th[4] ]
-                    # tri par note decroissante (anonymisation !)
-                    def mcmp(x,y):                            
-                        try:
-                            return cmp(float(y[4]), float(x[4]))
-                        except:
-                            return cmp(y[4], x[4])
-                    T.sort( mcmp )
-                else:
-                    Th = [ Th[1], Th[2], Th[4], Th[5] ]
-                Th = [ '<th>' + '</th><th>'.join(Th) + '</th>' ]
-                Tb = []
-                demfmt = '<span class="etuddem">%s</span>'
-                absfmt = '<span class="etudabs">%s</span>'
-                cssclass = 'tablenote'
-                idx = 0
-                lastkey = 'a'
-                comments = {} # comment : key (pour regrouper les comments a la fin)
-                for t in T:
-                    idx += 1
-                    fmt='%s'
-                    if t[3] == 'DEM':
-                        fmt = demfmt
-                        comment =  t[3]+' '+t[5]
-                    elif t[4][:3] == 'ABS':
-                        fmt = absfmt
-                    nomlink = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s">%s</a>' % (M['formsemestre_id'],t[0],t[1])
-                    nom,prenom,note,comment = fmt%nomlink, fmt%t[2],fmt%t[4],t[5]
-                    if anonymous_listing:
-                        Tb.append( '<tr class="%s"><td>%s</td><td class="colnote">%s</td></tr>' % (cssclass, t[0], note) )
-                    else:
-                        if comment:
-                            if comments.has_key(comment):
-                                key = comments[comment]
-                            else:
-                                comments[comment] = lastkey
-                                key = lastkey
-                                lastkey = chr(ord(lastkey)+1)
-                        else:
-                            key = ''
-                        Tb.append( '<tr class="%s"><td>%s</td><td>%s</td><td class="colnote">%s</td><td class="colcomment">%s</td></tr>' % (cssclass,nom,prenom,note,key) )
-                Tb = [ '\n'.join(Tb ) ]
-
-                if nb_notes > 0:
-                    moy = '%.3g' % (sum_notes/nb_notes)
-                else:
-                    moy = 'ND'
-                if anonymous_listing:
-                    Tm = [ '<tr class="tablenote"><td colspan="2" class="colnotemoy">Moyenne %s</td></tr>' % moy ]
-                else:
-                    Tm = [ '<tr class="tablenote"><td colspan="2" style="text-align: right;"><b>Moyenne</b> sur %d notes (sans les absents) :</td><td class="colnotemoy">%s</td></tr>' % (nb_notes, moy) ]
-                if anonymous_listing:
-                    tclass='tablenote_anonyme'
-                else:
-                    tclass='tablenote'
-                from htmlutils import histogram_notes
-                histo = histogram_notes(notes)
-                # 2 colonnes: histo, comments
-                C = ['<table><tr><td><div><h4>Répartition des notes:</h4>' + histo + '</div></td>\n',
-                     '<td style="padding-left: 50px; vertical-align: top;"><p>' ]
-                commentkeys = comments.items() # [ (comment, key), ... ]
-                commentkeys.sort( lambda x,y: cmp(x[1], y[1]) )
-                for (comment,key) in commentkeys:
-                    C.append('<span class="colcomment">(%s)</span> <em>%s</em><br/>' % (key, comment))
-
-                Tab = [ '<table class="%s"><tr class="tablenotetitle">'%tclass ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ] + C
-            else:
-                Tab = [ '<span class="boldredmsg">aucun groupe sélectionné !</span>' ]
-            # XXX return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 
-            return self.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) + tf[1] + hh + '\n'.join(Tab)
-        elif liste_format == 'pdf':
-            return 'conversion PDF non implementée !'
+            nmx = e['note_max']
+        if keep_numeric:
+            note_max[evaluation_id] = nmx
         else:
-            raise ScoValueError('invalid value for liste_format (%s)'%liste_format)
+            note_max[evaluation_id] = '/ %s' % nmx
+
+        if nb_notes > 0:
+            moys[evaluation_id] = '%.3g' % (sum_notes/nb_notes)
+            moys['_'+evaluation_id+'_help'] = ('moyenne sur %d notes (%s le %s)' 
+                                               % (nb_notes, e['description'], e['jour']))
+        else:
+            moys[evaluation_id] = ''
+        
+        titles[evaluation_id] = '%(description)s (%(jour)s)' % e
+        
+        if e['eval_state']['evalcomplete']:
+            titles['_'+evaluation_id+'_td_attrs'] = 'class="eval_complete"'
+        elif e['eval_state']['evalattente']:
+            titles['_'+evaluation_id+'_td_attrs'] = 'class="eval_attente"'
+        else:
+            titles['_'+evaluation_id+'_td_attrs'] = 'class="eval_incomplete"'
+
+    return notes # pour histogramme
+
+def _add_moymod_column(context, formsemestre_id, e, rows, titles, coefs, note_max, moys, 
+                       note_sur_20, keep_numeric):
+    col_id = 'moymod'
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nb_notes = 0
+    sum_notes = 0
+    notes = [] # liste des notes numeriques, pour calcul histogramme uniquement
+    for row in rows:
+        etudid = row['etudid']
+        val = nt.get_etud_mod_moy(e['moduleimpl_id'], etudid) # note sur 20, ou 'NA','NI'
+        row[col_id] = fmt_note(val, keep_numeric=keep_numeric)
+        row['_'+col_id+'_td_attrs'] = ' class="moyenne" '
+        if type(val) != StringType:
+            notes.append(val)
+            nb_notes = nb_notes + 1
+            sum_notes += val
+    coefs[col_id] = ''
+    if keep_numeric:
+        note_max[col_id] = 20.
+    else:
+        note_max[col_id] = '/ 20'
+    titles[col_id] = 'Moyenne module'
+    if nb_notes > 0:
+        moys[col_id] = '%.3g' % (sum_notes/nb_notes)
+        moys['_'+col_id+'_help'] = 'moyenne des moyennes' 
+    else:
+        moys[col_id] = ''
+
+
+
+# ---------------------------------------------------------------------------------
 
 
 # matin et/ou après-midi ?
@@ -352,10 +541,9 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
     ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust = evaluation_check_absences(context, evaluation_id)
 
     if with_header:
-        H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluation'),
-              '<h2>Vérification absences à une évaluation</h2>',
+        H = [ context.html_sem_header(REQUEST, "Vérification absences à l'évaluation"),
               context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1),
-              """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
+              """<p class="help">Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
     else:
         # pas de header, mais un titre
         H = [ """<h2 class="eval_check_absences">%s du %s """
@@ -402,10 +590,9 @@ def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
     """Affiche etat verification absences pour toutes les evaluations du semestre !
     """
     sem = context.get_formsemestre(formsemestre_id)
-    H = [ context.sco_header(REQUEST, page_title='Vérification absences évaluations'),
-          '<h2>Vérification absences aux évaluations du semestre %s</h2>' % sem['titreannee'],
-          """<p>Vérification de la cohérence entre les notes saisies et les absences signalées.
-          Sont listés tous les modules avec des évaluations. Aucune action n'est effectuée:
+    H = [ context.html_sem_header(REQUEST, 'Vérification absences aux évaluations de ce semestre', sem),
+          """<p class="help">Vérification de la cohérence entre les notes saisies et les absences signalées.
+          Sont listés tous les modules avec des évaluations.<br/>Aucune action n'est effectuée:
           il vous appartient de corriger les erreurs détectées si vous le jugez nécessaire.
           </p>"""]
     # Modules, dans l'ordre
@@ -422,89 +609,3 @@ def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
             H.append('</div>')
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
-
-# ------------------------------------------------------------------------------
-
-
-def moduleimpl_listenotes(context, moduleimpl_id, format='html', REQUEST=None):
-    """Tableau avec toutes les notes saisies dans un module.
-    """
-    M = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
-    formsemestre_id = M['formsemestre_id']
-    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
-    
-    # [ { etudid: etudid, nom : nom, prenom : prenom, evaluation1_id : note, evaluation2_id : note, ... } ]
-    R = []
-    # Get liste de tous les etudiants inscrits a ce module
-    etudids = context.do_moduleimpl_listeetuds(moduleimpl_id)
-    for etudid in etudids:
-        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
-        # Ajoute groupes
-        ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
-        etud.update(ins)
-        R.append(etud)
-    # Tri par nom
-    R.sort(lambda x,y: cmp(x['nom'], y['nom']))
-
-
-    if format == 'xls':
-        keep_numeric = True # preserve format numerique dans excel
-    else:
-        keep_numeric = False
-    
-    # Rempli les notes de chaque eval:
-    evals = context.do_evaluation_list( {'moduleimpl_id' : moduleimpl_id})
-    for e in evals:
-        NotesDB = context._notes_getall(e['evaluation_id'])
-        for r in R:
-            n = NotesDB.get(r['etudid'],None)
-            if n:
-                val = fmt_note( n['value'], keep_numeric=keep_numeric) # keep numeric ?
-            else:
-                val = 'NA'
-            r[e['evaluation_id']] = val
-    # Ajoutes lignes en tête:
-    coefs = { 'nom' : 'Coefficient', '_css_row_class' : 'sorttop fontitalic' }
-    note_max = { 'nom' : 'Note sur', '_css_row_class' : 'sorttop fontitalic' }
-    for e in evals:
-        coefs[e['evaluation_id']] = e['coefficient']
-        note_max[e['evaluation_id']] = e['note_max']
-    R = [coefs, note_max] + R
-    #
-    titles = {}
-    if format == 'xls' or format == 'xml':
-        columns_ids = [ 'etudid' ]
-        titles['etudid'] = 'etudid'
-    else:
-        columns_ids = []
-    columns_ids += [ 'nom', 'prenom', 'groupetd' ]
-    titles['nom'] = 'Nom'
-    titles['prenom'] = 'Prénom'
-    titles['groupetd'] = 'Groupe TD'
-    for e in evals:
-        columns_ids.append( e['evaluation_id'] )
-        titles[e['evaluation_id']] = '%(description)s (%(jour)s)' % e
-
-    title = 'Toutes les notes du module %(code)s %(titre)s' % M['module']
-    title += ' (semestre %(titreannee)s)' % sem
-    tab = GenTable(
-        columns_ids=columns_ids, rows=R, titles=titles,
-        origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-        caption = title,
-        html_caption = title,
-        html_sortable=True,
-        base_url = '%s?moduleimpl_id=%s' % (REQUEST.URL0, moduleimpl_id),
-        page_title = title,
-        html_title = """<h2>Notes du module <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>, semestre <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>
-        <p class="help">Attention: toutes ces notes ne sont pas forcément déjà prises en compte dans les moyennes
-        (seules les évaluations complètes le sont).
-        </p>
-        """ % (moduleimpl_id, M['module']['code'], M['module']['titre'], formsemestre_id, sem['titreannee']),
-        pdf_title = title,
-        filename='notes-%s' % M['module']['code'],
-        preferences=context.get_preferences()
-        )
-    return tab.make_page(context, format=format, REQUEST=REQUEST)      
-
-
-    

@@ -21,8 +21,7 @@
 <dtml-let caneditnotes="can_edit_notes(AUTHENTICATED_USER,moduleimpl_id)">
 
 
-<h2>Tableau de bord module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"> (semestre <a href="formsemestre_status?formsemestre_id=<dtml-var "M['formsemestre_id']">"><dtml-var "sem['titreannee']"></a>)
-</h2>
+<h2 class="formsemestre">Module <tt><dtml-var "Mod['code']"></tt> <dtml-var "Mod['titre']"></h2>
 
 <div class="moduleimpl_tableaubord">
 
@@ -62,7 +61,7 @@ Afficher les groupes de&nbsp;<select name="group_type" onchange="document.f.subm
 </select>
 
 &nbsp;&nbsp;&nbsp;&nbsp;
-<a class="stdlink" href="moduleimpl_listenotes?moduleimpl_id=<dtml-var moduleimpl_id>">Voir toutes les notes</a>
+<a class="stdlink" href="evaluation_listenotes?moduleimpl_id=<dtml-var moduleimpl_id>">Voir toutes les notes</a>
 
 </span>
 </form>

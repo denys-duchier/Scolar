@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,9 +34,13 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee
 
+def _default_sem_title(F):
+    """Default title for a semestre in formation F"""
+    return F['titre']
+
 def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
-    # forme liste des enseignanst avec noms et prenoms
+    # forme liste des enseignants avec noms et prenoms
     iii = []
     for user in userlist: # XXX may be slow on large user base ?
         info = context.Users.user_info(user,REQUEST)
@@ -56,9 +60,10 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         initvalues = {
             'nomgroupetd' : 'TD',
             'nomgroupetp' : 'TP',
-            'nomgroupeta' : 'langues'
+            'nomgroupeta' : 'langues',
+            'titre' : _default_sem_title(F)
             }
-        semestre_id  = REQUEST.form['semestre_id']
+        semestre_id  = REQUEST.form['semestre_id']        
     else:
         # setup form init values
         formsemestre_id = REQUEST.form['formsemestre_id']
@@ -126,8 +131,9 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                              'allowed_values' : userlist,
                              'labels' : nomprenoms,
                              'allow_null' : False }),        
-        ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre',
-                    'explanation' : "n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés" }),
+        ('titre', { 'size' : 40, 'title' : 'Nom de ce semestre',
+                    'explanation' : """n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés <input type="button" value="remettre titre par défaut" onClick="document.tf.titre.value='%s';"/>""" % _default_sem_title(F)
+                    }),
         ('modalite', { 'input_type' : 'menu',
                           'title' : 'Modalité',
                           'allowed_values' : ('', 'FI', 'FC', 'FAP'),
@@ -293,9 +299,10 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                             submitlabel = submitlabel,
                             cancelbutton = 'Annuler',
+                            top_buttons=True,
                             initvalues = initvalues)
     if tf[0] == 0:
-        return '<p>Formation %(titre)s (%(acronyme)s), version %(version)d, code %(formation_code)s</p>' % F + tf[1] # + '<p>' + str(initvalues)
+        return '<p>Formation <a class="discretelink" href="ue_list?formation_id=%(formation_id)s"><em>%(titre)s</em> (%(acronyme)s), version %(version)d, code %(formation_code)s</a></p>' % F + tf[1] # + '<p>' + str(initvalues)
     elif tf[0] == -1:
         return '<h4>annulation</h4>'
     else:
@@ -439,14 +446,9 @@ def formsemestre_edit_options(context, formsemestre_id,
         target_url = 'formsemestre_status?formsemestre_id=' + formsemestre_id
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
-    header = context.sco_header(page_title='Modification d\'un semestre',
-                             REQUEST=REQUEST)
     footer = context.sco_footer(REQUEST)
-    H = [ header,
-          context.formsemestre_status_head(context, REQUEST=REQUEST,
-                                        formsemestre_id=formsemestre_id )
+    H = [ context.html_sem_header(REQUEST, 'Réglages des bulletins de notes', sem)
           ]
-    H.append("""<h2>Réglages des bulletins de notes</h2>""")
     modform = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('target_url', { 'input_type' : 'hidden' }),
@@ -656,8 +658,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
         return err
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
-    header = context.sco_header(page_title="Modification des coefficients d'UE capitalisées",
-                                REQUEST=REQUEST)
+    
     footer = context.sco_footer(REQUEST)
     help = """<p class="help">
     Seuls les modules ont un coefficient. Cependant, il est nécessaire d'affecter un coefficient aux UE capitalisée pour pouvoir les prendre en compte dans la moyenne générale.
@@ -676,13 +677,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
     <p class="warning">Les coefficients indiqués ici ne s'appliquent que pour le traitement des UE capitalisées.
     </p>
     """
-    H = [ header,
-          context.formsemestre_status_head(context, REQUEST=REQUEST,
-                                           formsemestre_id=formsemestre_id ),
-          """<h2>Coefficients des UE du semestre
-          <a href="formsemestre_status?formsemestre_id=%s">%s</a>
-          (formation %s)</h2>"""
-          % (formsemestre_id, sem['titreannee'], F['acronyme']),
+    H = [ context.html_sem_header(REQUEST,  'Coefficients des UE du semestre', sem),
           help
           ]
     #

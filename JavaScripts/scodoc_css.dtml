@@ -169,6 +169,10 @@ table.listesems td.semicon {
   padding-left: 1.5em;
 }
 
+table.listesems tr.firstsem td {
+ padding-top: 0.8em;
+}
+
 h2.listesems { 
   padding-bottom: 0px;
   margin-bottom: 0px;
@@ -397,20 +401,70 @@ a.smallbutton {
     margin: 0;
     text-decoration: none;
 }
-
+span.evallink {
+    font-size: 80%;
+    font-weight: normal;
+}
 .boldredmsg {
     color: red;
     font-weight: bold;
 }
 
-span.etuddem {
+tr.etuddem td {
     color: rgb(100,100,100);
     font-style: italic; 
 }
-span.etudabs {
-    color: rgb(150,0,0);
+
+td.etudabs, td.etudabs a.discretelink, tr.etudabs td.moyenne a.discretelink {
+    color: rgb(180,0,0);
+}
+tr.moyenne td {
     font-weight: bold; 
 }
+
+table.notes_evaluation th.eval_complete a.sortheader {
+    color: green;
+}
+table.notes_evaluation th.eval_incomplete a.sortheader {
+    color: red;
+}
+table.notes_evaluation th.eval_attente a.sortheader {
+    color: rgb(215, 90, 0);;
+}
+table.notes_evaluation tr td a.discretelink:hover {
+    text-decoration: none;
+}
+table.notes_evaluation tr td.tdlink a.discretelink:hover {
+    color: red; 
+    text-decoration: underline;
+}
+table.notes_evaluation tr td.tdlink a.discretelink, table.notes_evaluation tr td.tdlink a.discretelink:visited {
+    color: blue; 
+    text-decoration: underline;
+}
+
+table.notes_evaluation tr td {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.eval_description p {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+span.eval_info {
+    font-style: italic;
+}
+span.eval_complete {
+    color: green;
+}
+span.eval_incomplete {
+    color: red;
+}
+span.eval_attente {
+    color:  rgb(215, 90, 0);
+}
+
 table.tablenote {
   border-collapse: collapse;
   border: 2px solid blue;
@@ -455,8 +509,58 @@ td.colcomment, span.colcomment {
   color: rgb(80,100,80);
 }
 
-.formsemestre_menubar { 
-  padding-top: 10px;
+h2.formsemestre, .gtrcontent h2 {
+    margin-top: 2px;
+    font-size: 130%;
+}
+
+.formsemestre_page_title table.semtitle, .formsemestre_page_title table.semtitle td {
+    padding: 0px;
+    margin: 0px; 
+    border-width: 0;
+    border-collapse: collapse;
+}
+
+.formsemestre_page_title { 
+    padding-top: 0px;
+    padding-bottom: 10px;
+}
+
+.formsemestre_page_title table.semtitle td.infos table {
+    padding-top: 10px;
+}
+.formsemestre_menubar {
+    background-color: rgb(150,230,151);
+}
+
+.formsemestre_menubar .barrenav ul li a.menu {
+    font-size: 12px;
+}
+.formsemestre_page_title {
+    width: 100%;
+}
+.formsemestre_page_title  table.semtitle td.infos {
+    border-top: 1px solid #666666;
+    border-bottom: 1px solid #666666;
+    border-collapse: none;
+}
+.formsemestre_page_title  td.infos td {
+    padding-right: 10px;
+}
+.formsemestre_page_title td.semtitle {
+    font-size: 110%;
+}
+.formsemestre_page_title td.resp {
+    color: red;
+    font-weight: bold;
+}
+.formsemestre_page_title td.nbinscrits {
+    text-align: right;
+    font-weight: bold;
+    padding-right: 1px;
+}
+.formsemestre_page_title td.lock {
+
 }
 
 table.formsemestre_status {
@@ -977,14 +1081,14 @@ table.sortable span.sortarrow {
   margin-top: 3px;
   margin-left: 10px;
   border:1px solid black;
-  position: absolute; 
+  position: absolute;
 }
 
 .bar {
      background-color: rgb(100, 150, 255);
      margin: 0; 
      padding: 0; 
-     position: absolute; 
+     position: absolute;
      left: 0;
      top: 2px;
      height: 8px;
@@ -995,11 +1099,15 @@ table.sortable span.sortarrow {
      background-color: rgb(0, 150, 0);
      margin: 0; 
      padding: 0; 
-     position: absolute; 
+     position: absolute;
      top: 0;
      width: 2px;
      height: 100%;
      z-index: 2;
+}
+
+td.cell_graph {
+    width: 170px;
 }
 
 /* ------------------ Formulaire validation semestre ---------- */
@@ -1027,10 +1135,27 @@ table.recap_parcours td {
 
 .rcp_l1 td {
   padding-top: 5px;
-  border-top: 5px solid rgb(50%,50%,50%);
+  border-top: 3px solid rgb(50%,50%,50%);
   border-right: 0px;
   border-left: 0px;
   color: blue;
+}
+
+.recap_hide_details tr.rcp_l2 { display: none; } 
+table.recap_hide_details td.ue_acro span { display: none; }
+
+table.recap_hide_details tr.sem_courant,  table.recap_hide_details tr.sem_precedent { 
+    display: table-row; 
+}
+table.recap_hide_details tr.sem_courant td.ue_acro span, table.recap_hide_details tr.sem_precedent td.ue_acro span { 
+    display: inline; 
+}
+
+.recap_parcours tr.sem_courant td.rcp_type_sem {
+    font-weight: bold;
+}
+.recap_parcours tr.sem_autre td.rcp_type_sem {
+    color: rgb(100%,70%,70%);
 }
 
 .rcp_l2 td {
@@ -1039,7 +1164,12 @@ table.recap_parcours td {
 
 td.rcp_moy {  
 }
-
+table.recap_parcours td.datedebut {
+    color: rgb(0,0,128);
+}
+table.recap_parcours td.datefin {
+    color: rgb(0,0,128);
+}
 table.recap_parcours td.rcp_type_sem {  
   padding-left: 4px;
   padding-right: 4px;

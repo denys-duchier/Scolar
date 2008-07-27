@@ -145,7 +145,8 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.bookmarkPage(key)
             canvas.addOutlineEntry(txt,bm)
         # ---- Footer
-        canvas.setFont(self.preferences['SCOLAR_FONT'], self.preferences['SCOLAR_FONT_SIZE_FOOT'])
+        canvas.setFont(self.preferences.get_with_default('SCOLAR_FONT'), 
+                       self.preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT'))
         d = _makeTimeDict()
         d['scodoc_name'] = VERSION.SCONAME
         d['server_url'] = self.server_name

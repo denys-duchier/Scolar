@@ -19,11 +19,12 @@
 <dtml-if date>
 
 
-<h1>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> de <dtml-var "sem['titre']"> le <dtml-var date></h1>
+<h2>Etat des absences du groupe <dtml-var groupetd> <dtml-var groupeanglais> <dtml-var groupetp> le <dtml-var date></h2>
 
 
 <dtml-let DATE="DateDDMMYYYY2ISO(date)">
 
+<dtml-call "REQUEST.set( 'nbetud', 0 )">
 
 <p>
 <dtml-in "getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)" mapping>
@@ -37,6 +38,7 @@
 <dtml-let nbabspm="CountAbs(etudid=etudid,debut=DATE,fin=DATE,matin=0)">
 
 <dtml-if "(nbabsam != 0) or (nbabspm != 0)">
+ <dtml-call "REQUEST.set( 'nbetud', nbetud + 1 )">
  <tr bgcolor="#FFFFFF">
  <dtml-let nbabsjustam="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE,matin=1)">
  <dtml-let nbabsjustpm="CountAbsJust(etudid=etudid,debut=DATE,fin=DATE,matin=0)">
@@ -65,6 +67,9 @@
 </dtml-if>
 </dtml-in listeGroupeTD>
 
+<dtml-if "nbetud == 0">
+ <p>Aucune absence !</p>
+</dtml-if nbetud>
 </dtml-let DATE>
 
 </p>

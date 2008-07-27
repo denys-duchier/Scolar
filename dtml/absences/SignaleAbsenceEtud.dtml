@@ -19,7 +19,7 @@
 
 
 <table><tr><td>
-<h1>Signalement d'une absence pour <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h1>
+<h2>Signalement d'une absence pour <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
 <dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>

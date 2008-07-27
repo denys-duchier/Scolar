@@ -65,7 +65,6 @@ from sco_utils import *
 import htmlutils
 import sco_excel
 #import notes_users
-from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
 import sco_cache
 import scolars
@@ -77,11 +76,13 @@ import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions
-import sco_bulletins, sco_recapcomplet, sco_liste_notes, sco_saisie_notes
+import sco_bulletins, sco_recapcomplet
+import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_pagebulletin, sco_report
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
+import sco_archives
 import pdfbulletins
 from sco_pdf import PDFLOCK
 from notes_table import *
@@ -196,15 +197,34 @@ class ZNotes(ObjectManager,
     formsemestre_status_head = DTMLFile('dtml/notes/formsemestre_status_head', globals())
     security.declareProtected(ScoView, 'formsemestre_status')
     formsemestre_status = DTMLFile('dtml/notes/formsemestre_status', globals())
-    security.declareProtected(ScoView, 'formsemestre_description')
-    formsemestre_description = sco_formsemestre_status.formsemestre_description
-
-    security.declareProtected(ScoView, 'formsemestre_status_menubar')
-    formsemestre_status_menubar = sco_formsemestre_status.formsemestre_status_menubar
 
     security.declareProtected(ScoEnsView, 'evaluation_delete')
     evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
 
+    security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
+    formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
+    security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
+    formsemestre_editwithmodules = DTMLFile('dtml/notes/formsemestre_editwithmodules', globals(), title='Modification d\'un semestre (ou session) de formation avec ses modules' )
+    security.declareProtected(ScoImplement, 'formsemestre_delete')
+    formsemestre_delete = DTMLFile('dtml/notes/formsemestre_delete', globals(), title='Suppression d\'un semestre (ou session) de formation avec ses modules' )
+    security.declareProtected(ScoView, 'formsemestre_recapcomplet')
+    formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
+
+    security.declareProtected(ScoView,'moduleimpl_status')
+    moduleimpl_status = DTMLFile('dtml/notes/moduleimpl_status', globals(), title='Tableau de bord module')
+
+    security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
+    notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
+
+    # Python methods:
+    security.declareProtected(ScoView, 'formsemestre_description')
+    formsemestre_description = sco_formsemestre_status.formsemestre_description
+
+    security.declareProtected(ScoView, 'formsemestre_lists')
+    formsemestre_lists = sco_formsemestre_status.formsemestre_lists
+
+    security.declareProtected(ScoView, 'formsemestre_status_menubar')
+    formsemestre_status_menubar = sco_formsemestre_status.formsemestre_status_menubar
     security.declareProtected(ScoChangeFormation, 'formation_create')
     formation_create = sco_edit_formation.formation_create
     security.declareProtected(ScoChangeFormation, 'formation_delete')
@@ -215,15 +235,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_bulletinetud')
     formsemestre_bulletinetud = sco_bulletins.formsemestre_bulletinetud
     
-    security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
-    formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
-    security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
-    formsemestre_editwithmodules = DTMLFile('dtml/notes/formsemestre_editwithmodules', globals(), title='Modification d\'un semestre (ou session) de formation avec ses modules' )
-    security.declareProtected(ScoImplement, 'formsemestre_delete')
-    formsemestre_delete = DTMLFile('dtml/notes/formsemestre_delete', globals(), title='Suppression d\'un semestre (ou session) de formation avec ses modules' )
-    security.declareProtected(ScoView, 'formsemestre_recapcomplet')
-    formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
-
     security.declareProtected(ScoChangeFormation, 'ue_create')
     ue_create = sco_edit_ue.ue_create
     security.declareProtected(ScoChangeFormation, 'ue_delete')
@@ -249,18 +260,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'module_list')
     module_list = sco_edit_module.module_list
     
-    security.declareProtected(ScoView,'moduleimpl_status')
-    moduleimpl_status = DTMLFile('dtml/notes/moduleimpl_status', globals(), title='Tableau de bord module')
-
-    security.declareProtected(ScoView,'moduleimpl_listenotes')
-    moduleimpl_listenotes = sco_liste_notes.moduleimpl_listenotes
-
     security.declareProtected(ScoEnsView, 'notes_eval_selectetuds')
     notes_eval_selectetuds = sco_saisie_notes.notes_eval_selectetuds
-    security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
-    notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
 
-    # used to view content of the object
+    # 
     security.declareProtected(ScoView, 'index_html')
     def index_html(self, REQUEST=None):
         "Page accueil formations"
@@ -272,7 +275,7 @@ class ZNotes(ObjectManager,
               <ul class="notes_formation_list">""" ]
 
         for F in self.do_formation_list():
-            H.append('<li class="notes_formation_list">%(acronyme)s: %(titre)s (version %(version)s)' % F )
+            H.append('<li class="notes_formation_list">%(acronyme)s: <em>%(titre)s</em> (version %(version)s)' % F )
             locked = self.formation_has_locked_sems(F['formation_id'])
             if locked:
                 H.append(lockicon)
@@ -815,7 +818,8 @@ class ZNotes(ObjectManager,
                 mois_fin = months[int(mois_fin)-1]
             sem['mois_debut'] = mois_debut + ' ' + annee_debut
             sem['mois_fin'] = mois_fin + ' ' + annee_fin
-        
+            sem['titremois'] =  '%s %s  (%s - %s)' % (sem['titre_num'], sem.get('modalite',''), 
+                                                    sem['mois_debut'], sem['mois_fin'])
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
 
@@ -903,6 +907,19 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView,'formsemestre_custommenu_html')
     formsemestre_custommenu_html = sco_formsemestre_custommenu.formsemestre_custommenu_html
+
+    security.declareProtected(ScoView,'html_sem_header')
+    def html_sem_header(self, REQUEST, title, sem=None, with_page_header=True, with_h2=True):
+        "Titre d'une page semestre avec lien vers tableau de bord"
+        # sem now unused and thus optional...
+        if with_page_header:
+            h = self.sco_header(REQUEST, page_title="%s" % (title))
+        else:
+            h = ''
+        if with_h2:            
+            return  h + """<h2 class="formsemestre">%s</h2>""" % (title)
+        else:
+            return h
     
     # --- Gestion des "Implémentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
@@ -1019,8 +1036,7 @@ class ZNotes(ObjectManager,
         header = self.sco_header(REQUEST,
                                  page_title='Enseignants du module %s' % M['module']['titre'])
         footer = self.sco_footer(REQUEST)
-        H = [ '<h2>Semestre %s, du %s au %s</h2>'
-              % (sem['titre_num'], sem['date_debut'], sem['date_fin']),
+        H = [ 
               '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
               '<ul><li>%s (responsable)</li>' % M['responsable_id']
               ]
@@ -1116,13 +1132,14 @@ class ZNotes(ObjectManager,
         sem_ens_list.sort(lambda x,y:  cmp(x['nomprenom'],y['nomprenom']))
 
         # --- Generate page with table
-        title = 'Enseignants de ' + sem['titreannee']
+        title = 'Enseignants de ' + sem['titremois']
         T = GenTable( columns_ids=['nomprenom', 'descr_mods', 'nbabsadded'],
                       titles={'nomprenom' : 'Enseignant', 'descr_mods': 'Modules',
                               'nbabsadded' : 'Saisies Abs.' },
                       rows=sem_ens_list, html_sortable=True,
                       filename = make_filename('Enseignants-' + sem['titreannee']),
-                      html_title = '<h2>Enseignants de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>' % (formsemestre_id,sem['titreannee']),
+                      html_title=self.html_sem_header(REQUEST, 'Enseignants du semestre',
+                                                      sem, with_page_header=False), 
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
                       caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies.",
                       preferences=self.get_preferences()
@@ -1145,21 +1162,21 @@ class ZNotes(ObjectManager,
               'url' : 'evaluation_edit?evaluation_id=' + evaluation_id,
               'enabled' : self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
               },
-            { 'title' : 'Afficher les notes',
-              'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
-              'enabled' : nbnotes > 0
-              },
             { 'title' : 'Supprimer évaluation',
               'url' : 'evaluation_delete?evaluation_id=' + evaluation_id,
               'enabled' : nbnotes == 0 and self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
               },
+            { 'title' : 'Afficher les notes',
+              'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
+              'enabled' : nbnotes > 0
+              },            
             { 'title' : 'Absences ce jour',
-              'url' : 'Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s'
-              % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe='')),
+              'url' : 'Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s&formsemestre_id=%s'
+              % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe=''), modimpl['formsemestre_id']),
               'enabled' : E['jour']
               },
             { 'title' : 'Vérifier notes vs absents',
-              'url' : 'evaluation_check_absences_html?evaluation_id=' + evaluation_id,
+              'url' : 'evaluation_check_absences_html?evaluation_id=%s' %(evaluation_id),
               'enabled' : nbnotes > 0
               },
             ]
@@ -1667,7 +1684,7 @@ class ZNotes(ObjectManager,
                            'jour' : time.strftime('%d/%m/%Y', time.localtime()) }
             submitlabel = 'Créer cette évaluation'
             action = 'Création d\'une é'
-            
+            link=''
         else:
             # edition donnees existantes
             # setup form init values
@@ -1678,8 +1695,10 @@ class ZNotes(ObjectManager,
             submitlabel = 'Modifier les données'
             if readonly:
                 action = 'E'
+                link=' &nbsp;<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
             else:
                 action = 'Modification d\'une é'
+                link =''
         #    
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
         sem = self.get_formsemestre(M['formsemestre_id'])        
@@ -1691,7 +1710,7 @@ class ZNotes(ObjectManager,
         moyenne de chaque étudiant dans ce module.
         </p><p class="help">
         Ne pas confondre ce coefficient avec le coefficient du module, qui est lui fixé par le programme
-        pédagogique (par exemple le PPN pour les DUT) et pondère les moyennes de chaque module pour obtenir
+        pédagogique (le PPN pour les DUT) et pondère les moyennes de chaque module pour obtenir
         les moyennes d'UE et la moyenne générale.
         </p><p class="help">
         L'option <em>Visible sur bulletins</em> indique que la note sera reportée sur les bulletins
@@ -1700,21 +1719,19 @@ class ZNotes(ObjectManager,
         les bulletins en version "longue" (la note est donc visible par les étudiants sur le portail).
         </p>
         """
-        H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h3>'
-             % (action, moduleimpl_id, Mod['code'], Mod['titre']),
-             '<p>Semestre: <a href="%s/Notes/formsemestre_status?formsemestre_id=%s">%s</a>' % (self.ScoURL(),formsemestre_id, sem['titre_num']),
-             'du %(date_debut)s au %(date_fin)s' % sem ]
+        H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>%s</h3>'
+             % (action, moduleimpl_id, Mod['code'], Mod['titre'], link) ]
         if readonly:
             E = initvalues
             # version affichage seule (générée ici pour etre plus jolie que le Formulator)
             jour = E['jour']
             if not jour:
                 jour = '???'
-            H.append( '<br/>Evaluation réalisée le <b>%s</b> de %s à %s'
+            H.append( '<p>Evaluation réalisée le <b>%s</b> de %s à %s '
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
-                H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe='')  ))
-            H.append( '<br/>Coefficient dans le module: <b>%s</b>' % E['coefficient'] )
+                H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s&formsemestre_id=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe=''), formsemestre_id  ))
+            H.append( '</p><p>Coefficient dans le module: <b>%s</b> ' % E['coefficient'] )
             if self.can_edit_notes(REQUEST.AUTHENTICATED_USER, moduleimpl_id, allow_ens=False):
                 H.append('<a href="evaluation_edit?evaluation_id=%s">(modifier l\'évaluation)</a>' % evaluation_id)
             H.append('</p>')
@@ -1743,7 +1760,7 @@ class ZNotes(ObjectManager,
             ('coefficient'    , { 'size' : 10, 'type' : 'float', 'explanation' : 'coef. dans le module (choisi librement par l\'enseignant)', 'allow_null':False }),
             ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 à', 'explanation' : 'barème', 'allow_null':False, 'max_value' : NOTES_MAX }),
 
-            ('description' , { 'size' : 36, 'type' : 'text'  }),    
+            ('description' , { 'size' : 36, 'type' : 'text', 'explanation' : 'type d\'évaluation, apparait sur le bulletins longs. Exemples: "contrôle court", "examen de TP", "examen final".' }),    
             ('visibulletinlist', { 'input_type' : 'checkbox',
                                    'allowed_values' : ['X'], 'labels' : [ '' ],
                                    'title' : 'Visible sur bulletins' ,
@@ -2018,7 +2035,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'evaluation_listenotes')
     def evaluation_listenotes(self, REQUEST ):
         """Affichage des notes d'une évaluation"""
-        if REQUEST.form.get('liste_format','html')=='html':
+        if REQUEST.form.get('format','html')=='html':
             H = self.sco_header(REQUEST, cssstyles=['verticalhisto_css']) 
             F = self.sco_footer(REQUEST)
         else:
@@ -2028,6 +2045,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'do_evaluation_listenotes')
     do_evaluation_listenotes = sco_liste_notes.do_evaluation_listenotes
+
+    security.declareProtected(ScoView, 'evaluation_list_operations')
+    evaluation_list_operations = sco_undo_notes.evaluation_list_operations
 
     security.declareProtected(ScoView, 'evaluation_check_absences_html')
     evaluation_check_absences_html = sco_liste_notes.evaluation_check_absences_html
@@ -2101,17 +2121,22 @@ class ZNotes(ObjectManager,
         "dummy method, necessary to declare permission ScoEtudChangeGroups"
         return True
 
-    def _notes_getall(self, evaluation_id):
+    def _notes_getall(self, evaluation_id, table='notes_notes', filter_suppressed=True):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
         """
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute("select * from notes_notes where evaluation_id=%(evaluation_id)s",
+        cursor.execute("select * from " + table + " where evaluation_id=%(evaluation_id)s",
                        { 'evaluation_id' : evaluation_id } )
         res = cursor.dictfetchall()
         d = {}
-        for x in res:
-            d[x['etudid']] = x
+        if filter_suppressed:
+            for x in res:
+                if x['value'] != NOTES_SUPPRESS:
+                    d[x['etudid']] = x
+        else:
+            for x in res:
+                d[x['etudid']] = x
         return d
 
     # --- Bulletins
@@ -2125,8 +2150,8 @@ class ZNotes(ObjectManager,
         Les notes ABS sont remplacées par des zéros.
         S'il manque des notes et que le coef n'est pas nul,
         la moyenne n'est pas calculée: NA
-        Ne prend en compte que les evaluations où toutes les notes sont entrées
-        Le résultat est une note sur 20
+        Ne prend en compte que les evaluations où toutes les notes sont entrées.
+        Le résultat est une note sur 20.
         """
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
         etudids = self.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
@@ -2142,7 +2167,8 @@ class ZNotes(ObjectManager,
                                                      getallstudents=True))
             NotesDB = self._notes_getall(e['evaluation_id']) # toutes, y compris demissions
             # restreint aux étudiants encore inscrits à ce module            
-            notes = [ NotesDB[etudid]['value'] for etudid in NotesDB if etudid in inssem_set ]
+            notes = [ NotesDB[etudid]['value'] for etudid in NotesDB 
+                      if (etudid in inssem_set) ]
             e['nb_notes'] = len(notes)
             e['nb_abs'] = len( [ x for x in notes if x is None ] )
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
@@ -2294,9 +2320,21 @@ class ZNotes(ObjectManager,
     def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
                                    version='selectedevals'):
         "Publie les bulletins dans un classeur PDF"
+        pdfdoc, filename = self._get_formsemestre_bulletins_pdf(
+            formsemestre_id, REQUEST, version=version)
+        return sendPDFFile(REQUEST, pdfdoc, filename)
+
+    security.declareProtected(ScoView, 'formsemestre_bulletins_pdf_choice')
+    formsemestre_bulletins_pdf_choice = sco_bulletins.formsemestre_bulletins_pdf_choice
+
+    security.declareProtected(ScoView, 'formsemestre_bulletins_mailetuds_choice')
+    formsemestre_bulletins_mailetuds_choice = sco_bulletins.formsemestre_bulletins_mailetuds_choice
+
+    def _get_formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
+                                   version='selectedevals'):
         cached = self._getNotesCache().get_bulletins_pdf(formsemestre_id,version)
         if cached:
-            return sendPDFFile(REQUEST,cached[1],cached[0])
+            return cached[1], cached[0]
         fragments = []
         sem = self.get_formsemestre(formsemestre_id)
         # Make each bulletin
@@ -2332,7 +2370,7 @@ class ZNotes(ObjectManager,
         # fill cache
         self._getNotesCache().store_bulletins_pdf(formsemestre_id,version,
                                                   (filename,pdfdoc))
-        return sendPDFFile(REQUEST, pdfdoc, filename)
+        return pdfdoc, filename
 
     security.declareProtected(ScoView, 'formsemestre_bulletins_mailetuds')
     def formsemestre_bulletins_mailetuds(self, formsemestre_id, REQUEST,
@@ -2464,7 +2502,7 @@ class ZNotes(ObjectManager,
             return False # semestre verrouillé
 
         authuser = REQUEST.AUTHENTICATED_USER
-        if authuser.has_permission(ScoEtudInscrit, self):
+        if authuser.has_permission(ScoImplement, self):
             return True # admin, chef dept
 
         uid = str(authuser)
@@ -2543,149 +2581,31 @@ class ZNotes(ObjectManager,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_fix_validation_ues(self,formsemestre_id, REQUEST)
-    
+
+
+    # ------------- PV de JURY et archives
     security.declareProtected(ScoView, 'formsemestre_pvjury')
     formsemestre_pvjury = sco_pvjury.formsemestre_pvjury
     
     security.declareProtected(ScoView, 'formsemestre_lettres_individuelles')
-    def formsemestre_lettres_individuelles(self, formsemestre_id, REQUEST=None):
-        "Lettres avis jury en PDF"
-        sem = self.get_formsemestre(formsemestre_id)
-        H = [self.sco_header(REQUEST) + '<h2>Edition des lettres individuelles de %s</h2>' % sem['titreannee'] ]
-        F = self.sco_footer(REQUEST)
-        descr = [
-            ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
-            ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature'}),
-            ('formsemestre_id', {'input_type' : 'hidden' })]
-        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
-                                cancelbutton = 'Annuler', method='POST',
-                                submitlabel = 'Générer document', 
-                                name='tf' )
-        if  tf[0] == 0:
-            return '\n'.join(H) + '\n' + tf[1] + F
-        elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
-        else:
-            # submit
-            sf = tf[2]['signature']
-            #pdb.set_trace()
-            signature = sf.read() # image of signature
-            try:
-                PDFLOCK.acquire()
-                pdfdoc = sco_pvpdf.pdf_lettres_individuelles(self, formsemestre_id,
-                                                             dateJury=tf[2]['dateJury'],
-                                                             signature=signature)
-            finally:
-                PDFLOCK.release()
-            sem = self.get_formsemestre(formsemestre_id)
-            dt = time.strftime( '%Y-%m-%d' )
-            filename = 'lettres-%s-%s.pdf' % (sem['titre_num'], dt)
-            return sendPDFFile(REQUEST, pdfdoc, filename)
-        
+    formsemestre_lettres_individuelles = sco_pvjury.formsemestre_lettres_individuelles        
     security.declareProtected(ScoView, 'formsemestre_pvjury_pdf')
-    def formsemestre_pvjury_pdf(self, formsemestre_id, etudid=None, REQUEST=None):
-        """Generation PV jury en PDF: saisie des paramètres
-        Si etudid, PV pour un seul etudiant. Sinon, tout les inscrits au semestre.
-        """
-        sem = self.get_formsemestre(formsemestre_id)
-        if etudid:
-            etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-            etuddescr = '<a class="discretelink" href="ficheEtud?etudid=%s">%s</a> en' % (etudid,etud['nomprenom'])
-        else:
-            etuddescr = ''
-
-        H = [self.sco_header(REQUEST) + '<h2>Edition du PV de jury de %s %s</h2>'
-             % (etuddescr, sem['titreannee']) ]
-        F = [ """<p><em>Voir aussi si besoin les réglages sur la page "Paramétrage" (accessible à l'administrateur du département).</em>
-            </p>""",
-            self.sco_footer(REQUEST) ]
-        descr = [
-            ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
-            ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
-            ('numeroArrete', {'input_type' : 'text', 'size' : 50, 'title' : 'Numéro de l\'arrêté du président',
-            'explanation' : 'le président de l\'Université prend chaque anné un arrêté formant les jurys'}),
-            ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
-            ('formsemestre_id', {'input_type' : 'hidden' }) ]
-        if etudid:
-            descr.append( ('etudid', {'input_type' : 'hidden' }) )
-        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
-                                cancelbutton = 'Annuler', method='GET',
-                                submitlabel = 'Générer document', 
-                                name='tf' )
-        if  tf[0] == 0:
-            return '\n'.join(H) + '\n' + tf[1] + '\n'.join(F)
-        elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( "formsemestre_pvjury?formsemestre_id=%s" %(formsemestre_id))
-        else:
-            # submit
-            if etudid:
-                etudids = [etudid]
-            else:
-                etudids = None
-            dpv = sco_pvjury.dict_pvjury(self, formsemestre_id, etudids=etudids, with_prev=True)
-            if tf[2]['showTitle']:
-                tf[2]['showTitle'] = True
-            else:
-                tf[2]['showTitle'] = False
-            try:
-                PDFLOCK.acquire()
-                pdfdoc = sco_pvpdf.pvjury_pdf(self, dpv, REQUEST,
-                                              numeroArrete=tf[2]['numeroArrete'],
-                                              dateCommission=tf[2]['dateCommission'],
-                                              dateJury=tf[2]['dateJury'],
-                                              showTitle=tf[2]['showTitle'])
-            finally:
-                PDFLOCK.release()                
-            sem = self.get_formsemestre(formsemestre_id)
-            dt = time.strftime( '%Y-%m-%d' )
-            filename = 'PV-%s-%s.pdf' % (sem['titre_num'], dt)
-            return sendPDFFile(REQUEST, pdfdoc, filename)
+    formsemestre_pvjury_pdf = sco_pvjury.formsemestre_pvjury_pdf
         
-#     def _formsemestre_get_decision_str(self, cnx, etudid, formsemestre_id ):
-#         """Chaine HTML decrivant la decision du jury pour cet etudiant.
-#         Resultat: decision semestre, UE capitalisees
-#         """
-#         etat, decision_sem, decisions_ue = self._formsemestre_get_decision(etudid, formsemestre_id )
-#         if etat == 'D':
-#             decision = 'démission'
-#         else:
-#             if decision_sem:
-#                 cod = decision_sem['code']
-#                 decision = sco_codes_parcours.CODES_EXPL.get(cod,'') + ' (%s)' % cod
-#             else:
-#                 decision = ''
-
-#         if decisions_ue:
-#             uelist = []
-#             for ue_id in decisions_ue.keys():
-#                 if decisions_ue[ue_id]['code'] == 'ADM':
-#                     ue = self.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-#                     uelist.append(ue)
-#             uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
-#             ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
-#         else:
-#             ue_acros = ''
-#         return decision, ue_acros
-    
-#     def _formsemestre_get_decision(self, etudid, formsemestre_id ):
-#         """Semestre et liste des UE validées
-#         Resultat:
-#           etat = I|D  (inscription ou démission)
-#           decision_sem = {}
-#           decisions_ue = {} 
-#         }
-#         """
-#         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
-#         etat = nt.get_etud_etat(etudid)
-#         decision_sem = nt.get_etud_decision_sem(etudid)
-#         decisions_ue = nt.get_etud_decision_ues(etudid)
-#         return etat, decision_sem, decisions_ue                                                       
-
-    # ------------- Feuille excel pour preparation des jurys
     security.declareProtected(ScoView,'feuille_preparation_jury')
-    def feuille_preparation_jury(self, formsemestre_id, REQUEST):
-        "Feuille excel pour preparation des jurys"
-        return sco_prepajury.feuille_preparation_jury(self, formsemestre_id, REQUEST)        
+    feuille_preparation_jury = sco_prepajury.feuille_preparation_jury
+
+    security.declareProtected(ScoImplement, 'formsemestre_archive')
+    formsemestre_archive = sco_archives.formsemestre_archive
+
+    security.declareProtected(ScoImplement, 'formsemestre_delete_archive')
+    formsemestre_delete_archive = sco_archives.formsemestre_delete_archive
+    
+    security.declareProtected(ScoView, 'formsemestre_list_archives')
+    formsemestre_list_archives = sco_archives.formsemestre_list_archives
+    
+    security.declareProtected(ScoView, 'formsemestre_get_archived_file')
+    formsemestre_get_archived_file = sco_archives.formsemestre_get_archived_file
         
     # ------------- INSCRIPTIONS: PASSAGE D'UN SEMESTRE A UN AUTRE
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscr_passage')

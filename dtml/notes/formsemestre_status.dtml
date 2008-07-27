@@ -1,10 +1,12 @@
 <dtml-var "sco_header(REQUEST)">
 <div class="formsemestre_status">
 
-<dtml-var formsemestre_status_head>
+<dtml-var "formsemestre_status_head(formsemestre_id=formsemestre_id, page_title='Tableau de bord')">
 
 <dtml-call "REQUEST.set('prev_ue_id', None)">
 
+<p><b style="font-size: 130%">Tableau de bord: </b><span class="help">cliquez sur un module pour saisir des notes</span>
+</p>
 <p>
 <table class="formsemestre_status">
 <tr>
@@ -83,7 +85,8 @@ title="<dtml-var ModEns>">
 
 <!-- LISTE DES ETUDIANTS -->
 <div id="groupes">
-<dtml-var "'\n'.join(make_listes_sem(sem, REQUEST))">
+<h3>Listes des étudiants</h3>
+<dtml-var "make_listes_sem(sem, REQUEST)">
 </div>
 
 

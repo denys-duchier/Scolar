@@ -26,6 +26,7 @@
 ##############################################################################
 
 from sco_utils import *
+from sco_formsemestre_status import formsemestre_page_title
 
 """
 Main HTML page header for ScoDoc
@@ -134,6 +135,9 @@ window.onload=function(){enableTooltips("gtrcontent")};
     if not no_side_bar:
         H.append( context.sidebar(REQUEST) )
     H.append("""<div class="gtrcontent" id="gtrcontent">""")
+    #
+    # Barre menu semestre:
+    H.append( formsemestre_page_title(context, REQUEST) )
     #
     if head_message:
         H.append('<div class="head_message">' + cgi.escape(head_message) + '</div>')

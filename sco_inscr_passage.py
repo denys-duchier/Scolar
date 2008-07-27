@@ -219,7 +219,7 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     log('formsemestre_inscr_passage: a_desinscrire=%s' % str(a_desinscrire) )
     
     if not submitted:
-        H += build_page(context, sem, auth_etuds_by_sem,
+        H += build_page(context, REQUEST, sem, auth_etuds_by_sem,
                         inscrits, candidats_non_inscrits,
                         inscrits_ailleurs)
     else:
@@ -267,12 +267,11 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     return '\n'.join(H)
 
 
-def build_page(context, sem, auth_etuds_by_sem, inscrits,
+def build_page(context, REQUEST, sem, auth_etuds_by_sem, inscrits,
                candidats_non_inscrits, inscrits_ailleurs ):
-    H = [
-        """<h2>Inscriptions dans le semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>
-    <form method="post">
-    <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
+    H = [ context.html_sem_header(REQUEST, 'Passages dans le semestre', sem, with_page_header=False),
+          """<form method="post" action="%s">""" % REQUEST.URL0,
+          """<input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
     <input type="submit" name="submitted" value="Appliquer les modifications"/>
     &nbsp;<a href="#help">aide</a>
     """ % sem, # "

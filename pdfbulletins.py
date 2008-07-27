@@ -80,9 +80,9 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE')
-    CellStyle.fontName= context.get_preference('SCOLAR_FONT')   
-    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE') # vertical space
+    CellStyle.fontSize= context.get_preference_with_default('SCOLAR_FONT_SIZE')
+    CellStyle.fontName= context.get_preference_with_default('SCOLAR_FONT')   
+    CellStyle.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
     try:
         Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
     except:        
@@ -138,7 +138,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         document.addPageTemplates(
             ScolarsPageTemplate(document,
                                 author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                                title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
+                                title='Bulletin %s de %s' % (sem['titremois'],etud['nomprenom']),
                                 subject='Bulletin de note',
                                 margins=margins,
                                 server_name = server_name,
@@ -152,6 +152,8 @@ def pdfassemblebulletins( formsemestre_id,
                           top_margin=0, # additional top margin in mm
                           server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"
+    if not objects:
+        return ''
     # Paramètres de mise en page
     fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
     margins = (fmt['left_margin'], fmt['top_margin'],
@@ -162,7 +164,7 @@ def pdfassemblebulletins( formsemestre_id,
     document.addPageTemplates(
         ScolarsPageTemplate(document,
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                            title='Bulletin %s' % (sem['titreannee']),
+                            title='Bulletin %s' % (sem['titremois']),
                             subject='Bulletin de note',
                             server_name=server_name,
                             margins=margins,
@@ -185,7 +187,7 @@ def pdfassemblebulletins( formsemestre_id,
 #     document.addPageTemplates(
 #     ScolarsPageTemplate(document,
 #                         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-#                         title='Bulletin %s de %s' % (sem['titreannee'],etud['nomprenom']),
+#                         title='Bulletin %s de %s' % (sem['titremois'],etud['nomprenom']),
 #                         subject='Bulletin de note',
 #                         server_name=server_name,
 #                         preferences=context.get_preferences()))

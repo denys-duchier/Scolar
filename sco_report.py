@@ -208,8 +208,8 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
                     'codedecision', 'etat', 'sexe', 'qualite', 'villelycee' ]
         keys.sort()
-        F = [ """<form name="f" method="get"><p>
-              Colonnes: <select name="result" onChange="document.f.submit()">""" ]
+        F = [ """<form name="f" method="get" action="%s"><p>
+              Colonnes: <select name="result" onChange="document.f.submit()">""" % REQUEST.URL0]
         for k in keys:
             if k == result:
                 selected = 'selected'
@@ -231,12 +231,17 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 
     t = tab.make_page(
         context, 
-        title =  """<h2>Statistiques de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+        title =  """<h2 class="formsemestre">Comptes croisés</h2>""",
         format=format, REQUEST=REQUEST, with_html_headers=False)
     if format!='html':
         return t    
     H = [ context.sco_header(REQUEST, page_title=title),
           t, '\n'.join(F),
+          """<p class="help">Le tableau affiche le nombre d'étudiants de ce semestre dans chacun
+          des cas choisis: à l'aide des deux menus, vous pouvez choisir les catégories utilisées
+          pour les lignes et les colonnes. Le <tt>codedecision</tt> est le code de la décision 
+          du jury.
+          </p>""",
           context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)
@@ -504,24 +509,26 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     sexes = list(sexes)
     sexes.sort()
 
+    base_url = REQUEST.URL0
     burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s' % (
-        REQUEST.URL0, formsemestre_id, bac, bacspecialite, sexe)
+        base_url, formsemestre_id, bac, bacspecialite, sexe)
     if percent:
         pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
     else:
         pplink = '<p><a href="%s&percent=1">Afficher les résultats en pourcentages</a></p>' % burl
     help = pplink + """    
-    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>"""
+    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>
+<p class="help">Les menus permettent de n'étudier que certaines catégories d'étudiants (titulaires d'un type de bac, garçons ou filles).</p>"""
 
     # form choix bac et/ou bacspecialite
     if bac:
         selected = ''
     else:
         selected = 'selected'
-    F = [ """<form name="f" method="get">
+    F = [ """<form name="f" method="get" action="%s">
     <p>Bac: <select name="bac" onChange="document.f.submit()">
     <option value="" %s>tous</option>
-    """ % selected ]
+    """ % (base_url,selected) ]
     for b in bacs:
         if bac == b:
             selected = 'selected'
@@ -558,7 +565,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     F.append('</p>')
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
-          """<h2>Suivi cohorte de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+          """<h2 class="formsemestre">Suivi cohorte: devenir des étudiants de ce semestre</h2>""",
           '\n'.join(F),
           t, help, expl,
           context.sco_footer(REQUEST)
@@ -675,7 +682,7 @@ def table_suivi_parcours(context, formsemestre_id):
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = 'Parcours suivis, étudiants passés dans le semestre ' + sem['titreannee'],
                     page_title = 'Parcours ' + sem['titreannee'],
-                    html_title = '<h2>Parcours suivis, semestre <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>' % sem,
+                    html_title = '<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>',
                     html_next_section="""<table class="help">
                     <tr><td><tt>1, 2, ...</tt></td><td> numéros de semestres</td></tr>
                     <tr><td><tt>1d, 2d, ...</tt></td><td>semestres "décalés"</td></tr>
@@ -706,6 +713,8 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
+    if not etudids:
+        return ''
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
@@ -796,16 +805,14 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
         return sco_pdf.sendPDFFile(REQUEST, doc, filename + '.pdf' )
     url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format=pdf"%sem)
     H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
-          """<h2>Parcours de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
-          '<div>',
-          sco_formsemestre_status.makeMenu( 'Statistiques',
-                                            sco_formsemestre_status.defMenuStats(context,formsemestre_id)),
-          '<br/></div>',
+          """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
+
           graph_parcours(context, formsemestre_id),
+
           """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
           """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
 
-          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs modernes (par exemple Firefox). Attention: il semble que l'affichage sur Macintosh soit incorrect !</p>""",
+          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs récents.</p>""",
 
           """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
           sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans

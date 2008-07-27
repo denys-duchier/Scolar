@@ -177,7 +177,7 @@ class ZScoUsers(ObjectManager,
             checked = 'checked'
         else:
             checked = ''
-        H.append("""<p><form name="f" action="."><input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Montrer tous les départements</input></form></p>""" % checked)
+        H.append("""<p><form name="f" action="%s"><input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Montrer tous les départements</input></form></p>""" % (REQUEST.URL0,checked))
 
         L = self.list_users( dept, all=all, format=format,
                              REQUEST=REQUEST, with_links=authuser.has_permission(ScoUsersAdmin,self) )
@@ -374,13 +374,13 @@ class ZScoUsers(ObjectManager,
         #
         H.append("""<h2>Changement du mot de passe de <font color="red">%(user_name)s</font></h2>
         <p>
-        <form action="change_password" method="post"><table>
+        <form action="change_password" method="post" action="%(url)s"><table>
         <tr><td>Nouveau mot de passe:</td><td><input type="password" size="14" name="password"/></td></tr>
         <tr><td>Confirmation: </td><td><input type="password" size="14" name="password2" /></td></tr>
         </table>
         <input type="hidden" value="%(user_name)s" name="user_name">
         <input type="submit" value="Changer">
-""" % {'user_name' : user_name} )
+""" % {'user_name' : user_name, 'url' : REQUEST.URL0} )
         return '\n'.join(H) + F
 
     security.declareProtected(ScoView, 'userinfo')

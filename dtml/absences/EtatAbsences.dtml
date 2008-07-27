@@ -7,7 +7,7 @@
 </dtml-comment>
 <dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
 
-<h1>Etat des absences</h1>
+<h2>Etat des absences</h2>
 
 <form action="EtatAbsencesGr" method="GET"> 
 

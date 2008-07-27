@@ -214,7 +214,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
         <h3>Semestres ou sessions de cette formation</h3>
         <p><ul>""")
         for sem in context.do_formsemestre_list(args={ 'formation_id' : formation_id } ):
-            H.append('<li><a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier le semestre %(titreannee)s</a></li>' % sem)
+            H.append('<li><a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier le semestre %(titremois)s</a></li>' % sem)
         H.append('</ul>')
     
     if authuser.has_permission(ScoImplement,context):
@@ -222,9 +222,8 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
         <li><a class="stdlink" href="formsemestre_createwithmodules?formation_id=%(formation_id)s&semestre_id=1">Mettre en place un nouveau semestre de formation %(acronyme)s</a>
  </li>
 
-  <li>(debug) <a class="stdlink" href="check_form_integrity?formation_id=%(formation_id)s">Vérifier cohérence</a></li>
-
 </ul>""" % F)
+#   <li>(debug) <a class="stdlink" href="check_form_integrity?formation_id=%(formation_id)s">Vérifier cohérence</a></li>
 
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)

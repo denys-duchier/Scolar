@@ -6,7 +6,7 @@
 function enableTooltips(id){
 var links,i,h;
 if(!document.getElementById || !document.getElementsByTagName) return;
-AddCss();
+// AddCss();
 h=document.createElement("span");
 h.id="btc";
 h.setAttribute("id","btc");

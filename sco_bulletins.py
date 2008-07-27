@@ -33,6 +33,8 @@ import htmlutils, time
 import pdfbulletins
 import sco_pvjury
 from sco_pdf import PDFLOCK
+import sco_formsemestre_status
+
 
 def make_formsemestre_bulletinetud(
     znotes, formsemestre_id, etudid,
@@ -91,8 +93,8 @@ def make_formsemestre_bulletinetud(
          rang, 
          'Note/20', 'Coef')
     P.append(t)        
-    H.append( '<tr><td class="note_bold">' +
-              '</td><td class="note_bold">'.join(t) + '</td></tr>' )
+    H.append( '<tr><td class="note_bold">%s</td><td class="note_bold cell_graph">%s</td><td>' % t[:2] +
+              '</td><td class="note_bold">'.join(t[2:]) + '</td></tr>' )
     # Contenu table: UE apres UE
     tabline = 0 # line index in table
     for ue in ues:
@@ -131,7 +133,7 @@ def make_formsemestre_bulletinetud(
             # Liste les modules de l'UE 
             ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
             for modimpl in ue_modimpls:
-                mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
+                mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid))
                 if mod_moy != 'NI': # ne montre pas les modules 'non inscrit'
                     tabline += 1
                     modline(tabline)
@@ -169,7 +171,7 @@ def make_formsemestre_bulletinetud(
                                 nom_eval = e['description']
                                 if not nom_eval:
                                     nom_eval = 'le %s' % e['jour']
-                                link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&liste_format=html&groupes%%3Alist=tous&tf-submitted=1">%s</a>' % (e['evaluation_id'], nom_eval)
+                                link_eval = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1">%s</a>' % (e['evaluation_id'], nom_eval)
                                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                                 val = fmt_note(val, note_max=e['note_max'] )
                                 t = [ '', '', nom_eval, val, fmt_coef(e['coefficient']) ]
@@ -344,7 +346,7 @@ def make_xml_formsemestre_bulletinetud(
         # Liste les modules de l'UE 
         ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
         for modimpl in ue_modimpls:
-            mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl, etudid))
+            mod_moy = fmt_note(nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid))
             if mod_moy == 'NI': # ne mentionne pas les modules ou n'est pas inscrit
                 continue
             mod = modimpl['module']
@@ -454,8 +456,9 @@ def make_xml_formsemestre_bulletinetud(
 
 
 def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
-                                  format='html',
-                                  show_uevalid=True
+                                   format='html',
+                                   show_uevalid=True,
+                                   show_date_inscr=True
                                   ):
     """chaine de caractères decrivant la situation de l'étudiant
     dans ce semestre.
@@ -484,12 +487,15 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
         elif event_type == 'DEMISSION':
             assert date_dem == None, 'plusieurs démissions !'
             date_dem = event['event_date']
-    if not date_inscr:
-        inscr = 'Pas inscrit' + ne
+    if show_date_inscr: 
+        if not date_inscr:
+            inscr = 'Pas inscrit%s.' % ne
+        else:
+            inscr = 'Inscrit%s le %s.' % (ne, date_inscr)
     else:
-        inscr = 'Inscrit%s le %s.' % (ne, date_inscr)
+        inscr = ''
     if date_dem:
-        return inscr + '. Démission le %s.' % date_dem, None
+        return inscr + ' Démission le %s.' % date_dem, None
 
     dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=[etudid])
     pv = dpv['decisions'][0]
@@ -502,9 +508,6 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
 
 
 # ------ page bulletin (traduite du DTML)
-
-from sco_formsemestre_status import makeMenu
-
 def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
                               format='html', version='long',
                               xml_with_decisions=False,
@@ -545,9 +548,9 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>
           """ % etud,
           """
-          <form name="f" method="GET">
-          Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">
-          %(titreannee)s</a></span> 
+          <form name="f" method="GET" action="%s">"""%REQUEST.URL0,
+          """Bulletin <span class="bull_liensemestre"><a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">
+          %(titremois)s</a></span> 
           <br/>""" % sem,
           """<table><tr>""",
           """<td>établi le %s (notes sur 20)</td>""" % time.strftime('%d/%m/%Y à %Hh%M'),
@@ -601,7 +604,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
         ]
     
     H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
-    H.append( makeMenu( 'Autres opérations', menuBul) )
+    H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul) )
     H.append("""</div></td></tr></table>""")
     #
     H.append("""</form></span></td><td class="bull_photo">
@@ -612,3 +615,43 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     """)
     
     return ''.join(H)
+
+
+def formsemestre_bulletins_choice(context, REQUEST, formsemestre_id, 
+                                  title='', explanation=''):
+    """Choix d'une version de bulletin
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [context.html_sem_header(REQUEST, title, sem),
+         """
+      <form name="f" method="GET" action="%s">
+      <input type="hidden" name="formsemestre_id" value="%s"></input>
+      <select name="version" class="noprint">""" % (REQUEST.URL0,formsemestre_id),
+         ]
+    for (v,e) in ( ('short', 'Version courte'),
+                   ('selectedevals', 'Version intermédiaire'),
+                   ('long', 'Version complète')):
+        H.append('<option value="%s">%s</option>' % (v, e))
+    H.append("""</select>&nbsp;&nbsp;<input type="submit"/></form><p class="help">""" + explanation + '</p>',)
+
+    return '\n'.join(H) + context.sco_footer(REQUEST)
+
+expl_bull = """Versions des bulletins:<ul><li><bf>courte</bf>: moyennes des modules</li><li><bf>intermédiaire</bf>: moyennes des modules et notes des évaluations sélectionnées</li><li><bf>complète</bf>: toutes les notes</li><ul>"""
+
+def formsemestre_bulletins_pdf_choice(context, REQUEST, formsemestre_id, version=None):
+    """Choix version puis envois classeur bulletins pdf"""
+    if version:
+        return context.formsemestre_bulletins_pdf(formsemestre_id, REQUEST, version=version)
+    return formsemestre_bulletins_choice(
+        context, REQUEST, formsemestre_id, 
+        title='Choisir la version des bulletins à générer',
+        explanation = expl_bull)
+
+def formsemestre_bulletins_mailetuds_choice(context, REQUEST, formsemestre_id, version=None, dialog_confirmed=False):
+    """Choix version puis envois classeur bulletins pdf"""
+    if version:
+        return context.formsemestre_bulletins_mailetuds(formsemestre_id, REQUEST, version=version, dialog_confirmed=dialog_confirmed)
+    return formsemestre_bulletins_choice(
+        context, REQUEST, formsemestre_id, 
+        title='Choisir la version des bulletins à envoyer par mail',
+        explanation = 'Chaque étudiant ayant une adresse mail connue de ScoDoc recevra une copie PDF de son bulletin de notes, dans la version choisie.</p><p>' + expl_bull)

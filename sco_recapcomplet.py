@@ -32,13 +32,36 @@ from notes_table import *
 import sco_bulletins, sco_excel
 
 def do_formsemestre_recapcomplet(
-    znotes,REQUEST,formsemestre_id,
+    znotes=None, REQUEST=None, formsemestre_id=None,
     format='html', # html, xml, xls
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
     modejury=False, # saisie décisions jury
     sortcol=None, # indice colonne a trier dans table T
-    xml_with_decisions=False
+    xml_with_decisions=False,
+    disable_etudlink=False
+    ):
+    """Calcule et renvoie le tableau récapitulatif.
+    """
+    data, filename, format = make_formsemestre_recapcomplet(**vars())
+    if format == 'xml' or format == 'html':
+        return data
+    elif format == 'csv':
+        return sendCSVFile(REQUEST, data, filename)
+    elif format == 'xls':
+        return sco_excel.sendExcelFile(REQUEST, data, filename )
+    else:
+        raise ValueError('unknown format %s' % format)
+
+def make_formsemestre_recapcomplet(
+    znotes=None, REQUEST=None, formsemestre_id=None,
+    format='html', # html, xml, xls
+    hidemodules=False, # ne pas montrer les modules (ignoré en XML)
+    xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
+    modejury=False, # saisie décisions jury
+    sortcol=None, # indice colonne a trier dans table T
+    xml_with_decisions=False,
+    disable_etudlink=False
     ):
     """Grand tableau récapitulatif avec toutes les notes de modules
     pour tous les étudiants, les moyennes par UE et générale,
@@ -58,6 +81,8 @@ def do_formsemestre_recapcomplet(
     ues = nt.get_ues() # incluant le(s) UE de sport
     #pdb.set_trace()
     T = nt.get_table_moyennes_triees()
+    if not T:
+        return '', '', format
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
     h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
@@ -203,8 +228,10 @@ def do_formsemestre_recapcomplet(
             cells += '<td class="recap_tit">Décision</td>'
         ligne_titres = cells + '</tr>'
         H.append( ligne_titres ) # titres
-
-        etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&version=selectedevals">%s</a>'
+        if disable_etudlink:
+            etudlink = '%(name)s'
+        else:
+            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals">%(name)s</a>'
         ir = 0
         nblines = len(F)-1
         for l in F[1:]:
@@ -213,7 +240,7 @@ def do_formsemestre_recapcomplet(
                 el = l[1] # derniere ligne
                 cells = '<tr class="recap_row_moy sortbottom">'
             else:
-                el = etudlink % (formsemestre_id,etudid,l[1])
+                el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1]}
                 if ir % 2 == 0:
                     cells = '<tr class="recap_row_even" id="etudid%s">' % etudid
                 else:
@@ -273,13 +300,13 @@ def do_formsemestre_recapcomplet(
             for cod in cods:
                 H.append('<tr><td>%s</td><td>%d</td></tr>' % (cod, codes_nb[cod]))
             H.append('</table>')
-        return '\n'.join(H)
+        return '\n'.join(H), '', 'html'
     elif format == 'csv':
         CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x[:-1]) for x in F ] )
         semname = sem['titre_num'].replace( ' ', '_' )
         date = time.strftime( '%d-%m-%Y')
         filename = 'notes_modules-%s-%s.csv' % (semname,date)
-        return sendCSVFile(REQUEST,CSV, filename )
+        return CSV, filename, 'csv'
     elif format == 'xls':
         semname = sem['titre_num'].replace( ' ', '_' )
         date = time.strftime( '%d-%m-%Y')
@@ -288,9 +315,9 @@ def do_formsemestre_recapcomplet(
             titles= ['etudid'] + F[0],
             lines = [ [x[-1]] + x[:-1] for x in F[1:] ], # reordonne cols (etudid en 1er)
             SheetName = 'notes %s %s' % (semname,date) )
-        return sco_excel.sendExcelFile(REQUEST, xls, filename )
+        return xls, filename, 'xls'
     else:
-        raise ValueError, 'unknown format %s' % format
+        raise ValueError('unknown format %s' % format)
 
 def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with_decisions=False):
     "XML export: liste tous les bulletins XML"
@@ -298,7 +325,9 @@ def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with
 
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)    
     T = nt.get_table_moyennes_triees()
-
+    if not T:
+        return '', '', 'xml'
+    
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
     if xml_nodate:
         docdate = ''
@@ -321,4 +350,4 @@ def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with
             doc=doc, force_publishing=True,
             xml_nodate=xml_nodate, xml_with_decisions=xml_with_decisions )
         doc._pop()
-    return repr(doc)
+    return repr(doc), '', 'xml'

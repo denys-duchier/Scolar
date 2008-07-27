@@ -102,7 +102,7 @@ def sidebar(context, REQUEST=None):
 </ul>
 """ % params )
     else:
-        H.append("(pas d'étudiant en cours)")
+        pass # H.append("(pas d'étudiant en cours)")
     # ---------
     H.append('</div><br/>&nbsp;') # /etud-insidebar
     # Logo

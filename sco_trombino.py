@@ -95,7 +95,7 @@ def trombino(context,REQUEST,formsemestre_id,
               }
             ]
         nbcols = int(nbcols)
-        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;"><a href="Notes/formsemestre_status?formsemestre_id=%s">%s %s</a></span></td>' % (formsemestre_id, sem['titreannee'], ng) ]            
+        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]            
         H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td></tr></table>' )
 
         H.append('<div><table width="100%">')

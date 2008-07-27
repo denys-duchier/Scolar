@@ -88,10 +88,12 @@ def query_portal(req):
         f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
     except:
         log("query_apogee_portal: can't connect to Apogee portal")
-        return []
+        return ''
     return f.read()
 
 def xml_to_list_of_dicts(doc, req=None):
+    if not doc:
+        return []
     try:
         dom = xml.dom.minidom.parseString(doc)
     except:

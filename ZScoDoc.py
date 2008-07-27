@@ -397,7 +397,7 @@ h4 {
         if isAdmin and admin_password_initialized != '1':
             REQUEST.RESPONSE.redirect( "ScoDoc/change_admin_user_form?message=Le%20mot%20de%20passe%20administrateur%20doit%20etre%20change%20!")
 
-        # Si l'URL indique que l'on est dans un folder, affiche pas login du departement
+        # Si l'URL indique que l'on est dans un folder, affiche page login du departement
         try:
             deptfoldername = REQUEST.URL0.split('ScoDoc')[1].split('/')[1]
             if deptfoldername in [ x.id for x in self.list_depts() ]:
@@ -563,7 +563,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
     security.declareProtected('View', 'standard_error_message')
     #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
     def standard_error_message(self, error_value=None, error_message=None, error_type=None,
-                               error_traceback=None, **kv): 
+                               error_traceback=None, error_tb=None, **kv): 
         "Recuperation des exceptions Zope"
         # error_tb=None, error_log_url=None
 
@@ -583,7 +583,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
         URL = REQUEST.get('URL', '')
         QUERY_STRING = REQUEST.get('QUERY_STRING', '')
         if QUERY_STRING:
-            QUESRY_STRING = '?' + QUERY_STRING
+            QUERY_STRING = '?' + QUERY_STRING
         REFERER = REQUEST.get('HTTP_REFERER', '')
         form = REQUEST.get('form', '')
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
@@ -610,7 +610,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
             except:
                 pass
             if error_message:
-                H.append( error_message )
+                H.append( str(error_message) )
             else:
                 H.append("""<table border="0" width="100%%"><tr valign="top">
 <td width="10%%" align="center"></td>
@@ -631,7 +631,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
 </table>        """ % vars() )
                 # display error traceback (? may open a security risk via xss attack ?)
                 H.append("""<h4>Zope Traceback (a envoyer par mail a <a href="mailto:%(dev_mail)s">%(dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
-%(error_traceback)s
+%(error_tb)s
 <p>
 Infos: user=%(AUTHENTICATED_USER)s, dt=%(dt)s<br/>
 URL=%(URL)s%(QUERY_STRING)s<br/>
@@ -644,6 +644,7 @@ REFERER=%(REFERER)s<br/>
                 try:
                     H.append( self.standard_html_footer(self) )
                 except:
+                    log('no footer found for error page')
                     pass
         # ---
         txt = """
@@ -670,6 +671,7 @@ Traceback: %(error_traceback)s
         self.sendEmailFromException(msg)
         log(txt)
         # ---
+        log('done processing exception')
         return '\n'.join(H)
 
     security.declareProtected('View', 'scodoc_admin')
@@ -730,6 +732,14 @@ Traceback: %(error_traceback)s
 
 </form>""")
 
+        # Autres opérations
+        H.append("""<h4>Autres opérations</h4>
+<ul>
+<li><a href="build_icons_folder">Reconstruire les icônes</a></li>
+</ul>
+""")
+
+
         H.append("""</body></html>""")
         return '\n'.join(H)
 
@@ -748,6 +758,7 @@ Traceback: %(error_traceback)s
         """
         try:
             icons = self.icons
+            plus = self.icons.plus_img # upgrade jul 2008
             return '<!-- icons ok -->'
         except:
             e = self._check_admin_perm(REQUEST)

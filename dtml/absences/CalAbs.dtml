@@ -11,9 +11,7 @@
 
 <table>
 <tr><td>
-<b><font size=+2>Absences de <b><dtml-var nomprenom>
-(<dtml-var inscription> <dtml-var groupetd>)</b></font>
-<br></b>
+<h2>Absences de <b><dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h2>
 <p>
 <font color="#EE0000">A : absence NON justifi&eacute;e</font><br>
 <font color="#F8B7B0">a : absence justifi&eacute;e</font><br>
@@ -33,7 +31,6 @@
 </table>
 
 <!-- Calendrier -->
-<p class="maincalendar">
 
 <dtml-let L="[]">
 <dtml-in "ListeAbsJust( etudid=etudid, datedebut=`AnneeScolaire()`+'-08-31' )" mapping>
@@ -46,7 +43,7 @@
 <dtml-var "YearTable( _.int(AnneeScolaire()), events=L, halfday=1 )"> 
 
 </dtml-let>
-</p>
+
 
 </dtml-in getEtudInfo>
 <dtml-var sco_footer>

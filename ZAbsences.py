@@ -751,8 +751,8 @@ class ZAbsences(ObjectManager,
               <p><a href="index_html">Annuler</a></p>
 
               <p>
-              <form action="doSignaleAbsenceGrHebdo" method="post">              
-              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'], datelundi) ]
+              <form action="doSignaleAbsenceGrHebdo" method="post" action="%s">              
+              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'], datelundi, REQUEST.URL0) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
 
@@ -810,10 +810,10 @@ class ZAbsences(ObjectManager,
               les %s</h2>
               <p>
               <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
-              <form action="doSignaleAbsenceGrSemestre" method="post">              
+              <form action="doSignaleAbsenceGrSemestre" method="post" action="%s">              
               """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
                      self.day_names()[jourdebut.weekday],
-                     datedebut, datefin, semestregroupe, destination, nwl, msg) ]
+                     datedebut, datefin, semestregroupe, destination, nwl, msg, REQUEST.URL0) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination)
@@ -984,10 +984,16 @@ class ZAbsences(ObjectManager,
         return '\n'.join(H) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
-    def EtatAbsencesGr(self, semestregroupe, debut, fin, format='html', REQUEST=None): 
+    def EtatAbsencesGr(self, semestregroupe, debut, fin, format='html', formsemestre_id=None, REQUEST=None): 
         """Liste les absences d'un groupe
         """
-        formsemestre_id =  semestregroupe.split('!')[0]
+        # NB: formsemestre_id passed in semestregroupe (historical) but also
+        # in formsemestre_id in order to display page header.
+        formsemestre_id_sg =  semestregroupe.split('!')[0]
+        if not formsemestre_id:
+            formsemestre_id = formsemestre_id_sg
+        if formsemestre_id !=  formsemestre_id_sg:
+            raise ValueError('inconsistent formsemestre_id !')
         groupetd = semestregroupe.split('!')[1]
         groupeanglais = semestregroupe.split('!')[2]
         groupetp = semestregroupe.split('!')[3]
@@ -1014,8 +1020,10 @@ class ZAbsences(ObjectManager,
                         'nbabsjust' : nbabsjust, 'nbabsnonjust' : nbabs-nbabsjust, 'nbabs' : nbabs,
                         '_nomprenom_target' : 'CalAbs?etudid=%s' % etud['etudid'],
                         } )
-
-        columns_ids = ['etatincursem', 'nomprenom', 'nbabsjust', 'nbabsnonjust', 'nbabs']
+            if s['ins']['etat'] == 'D':
+                T[-1]['_css_row_class'] = 'etuddem'
+                T[-1]['nomprenom'] += ' (dem)'
+        columns_ids = ['nomprenom', 'nbabsjust', 'nbabsnonjust', 'nbabs']
         title = 'Etat des absences du groupe %s %s %s' % (groupetd, groupeanglais, groupetp)
         if format == 'xls' or format == 'xml':
             columns_ids = ['etudid'] + columns_ids
@@ -1027,7 +1035,11 @@ class ZAbsences(ObjectManager,
                        html_class='gt_table table_leftalign',
                        html_header=self.sco_header(REQUEST, page_title=title,
                                                    javascripts=['calendarDateInput_js']),
-                       html_title="""<h2>%s de <a href="formsemestre_status?formsemestre_id=%s">%s</a></h2>""" % (title, sem['formsemestre_id'], sem['titreannee']) + '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
+
+                       html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
+                                                                with_page_header=False) 
+                       +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
+                       
                        base_url = '%s?semestregroupe=%s&debut=%s&fin=%s' % (REQUEST.URL0, semestregroupe,debut, fin),
                        filename='etat_abs__'+make_filename('%s %s %s de %s'%(groupetd, groupeanglais, groupetp, sem['titreannee'])),
                        caption=title,
@@ -1036,12 +1048,12 @@ class ZAbsences(ObjectManager,
 Cliquez sur un nom pour afficher le calendrier des absences<br/>
 ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 </p>
-<form action="EtatAbsencesDate" method="get">
+<form action="EtatAbsencesDate" method="get" action="%s">
 <input type="hidden" name="semestregroupe" value="%s">
 <script>DateInput('date', true, 'DD/MM/YYYY')</script>
 <input type="submit" name="" value="visualiser les absences">
 </form>
-                        """ % semestregroupe)
+                        """ % (REQUEST.URL0,semestregroupe))
         return tab.make_page(self, format=format, REQUEST=REQUEST)
                         
 

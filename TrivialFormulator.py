@@ -18,6 +18,8 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
                       cancelbutton=None,
                       submitbutton=True,
                       submitbuttonattributes=[],
+                      top_buttons = False, # place buttons at top of form
+                      bottom_buttons=True, # buttons after form
                       readonly=False,
                       is_submitted=False ):
     """
@@ -66,6 +68,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
            cancelbutton=cancelbutton,
            submitbutton=submitbutton,
            submitbuttonattributes=submitbuttonattributes,
+           top_buttons=top_buttons, bottom_buttons=bottom_buttons,
            readonly=readonly, is_submitted=is_submitted)
     form = t.getform()
     if t.canceled():
@@ -83,6 +86,8 @@ class TF:
                  cancelbutton=None,
                  submitbutton=True,
                  submitbuttonattributes=[],
+                 top_buttons = False, # place buttons at top of form
+                 bottom_buttons=True, # buttons after form
                  readonly=False, is_submitted=False ):
         self.form_url = form_url
         self.values = values
@@ -97,9 +102,14 @@ class TF:
         self.cancelbutton = cancelbutton
         self.submitbutton = submitbutton
         self.submitbuttonattributes = submitbuttonattributes
+        self.top_buttons = top_buttons
+        self.bottom_buttons = bottom_buttons
         self.readonly = readonly
         self.result = None
         self.is_submitted = is_submitted
+        if readonly:
+            self.top_buttons = self.bottom_buttons = False
+            self.cssclass += ' readonly'
     def submitted(self):
         "true if form has been submitted"
         if self.is_submitted:
@@ -254,6 +264,14 @@ class TF:
         hiddenitemtemplate = "%(elem)s"
         separatortemplate = '<tr><td colspan="2">%(label)s</td></tr>'
         # ---- build form
+        buttons_markup = ''
+        if self.submitbutton:
+            buttons_markup+= ('<input type="submit" name="%s_submit" value="%s" %s>'
+                              % (self.formid,self.submitlabel, ' '.join(self.submitbuttonattributes)))
+        if self.cancelbutton:
+            buttons_markup += (' <input type="submit" name="%s_cancel" value="%s">'
+                               % (self.formid,self.cancelbutton))
+
         R = []
         if self.enctype is None:
             if self.method == 'post':
@@ -271,6 +289,8 @@ class TF:
         R.append( '<form action="%s" method="%s" id="%s" enctype="%s" name="%s" %s>'
                   % (self.form_url,self.method,self.formid,enctype,name,klass) )
         R.append('<input type="hidden" name="%s-submitted" value="1"/>'%self.formid)
+        if self.top_buttons:
+            R.append(buttons_markup + '<p></p>')
         R.append( '<table>')
         idx = 0
         for idx in range(len(self.formdescription)):
@@ -399,12 +419,10 @@ class TF:
             R.append( etempl % { 'label' : '\n'.join(lab),
                                  'elem' : '\n'.join(lem) } )
         R.append( '</table>' )
-        if self.submitbutton:
-            R.append('<br/><input type="submit" name="%s_submit" value="%s" %s>'
-                     % (self.formid,self.submitlabel, ' '.join(self.submitbuttonattributes)))
-        if self.cancelbutton:
-            R.append('<input type="submit" name="%s_cancel" value="%s">'
-                     % (self.formid,self.cancelbutton))
+        
+        if self.bottom_buttons:
+            R.append( '<br/>' + buttons_markup )
+            
         if add_no_enter_js:
             R.append("""<script type="text/javascript">
             function enter_focus_next (elem, event) {
