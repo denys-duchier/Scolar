@@ -179,13 +179,45 @@ dropdb SCOTEST
 dropdb SCOUSERS
 
 
-Refonte menus:
- - Titre puis barre menu 
-
 A faire:
  - bug ? suivi cohortes: S4 Franck: diplomés ?
- - saisie notes: validation
  - saisie notes: undo
+ - saisie notes: validation
+- ticket #18: 
+UE capitalisées: donc dispense possible dans semestre redoublé. Traitable en n'inscrivant pas l'etudiant aux modules de cette UE: faire interface utilisateur. 
+
+Prévoir d'entrer une UE capitalisée avec sa note, date d'obtention et un commentaire. Coupler avec la désincription aux modules (si l'étudiant a été inscrit avec ses condisciples). 
+
+
+ - Ticket #4: Afin d'éviter les doublons, vérifier qu'il n'existe pas d'homonyme proche lors de la création manuelle d'un étudiant.  (confirmé en ScoDoc 6, vérifier aussi les imports Excel)
+
+ - Ticket #74: Il est possible d'inscrire un étudiant sans prénom par un import excel !!! 
+
+ - Ticket #64: saisir les absences pour la promo entiere (et pas par groupe). Des fois, je fais signer une feuille de presence en amphi a partir de la liste de tous les etudiants. Ensuite pour reporter les absents par groupe, c'est galere. 
+
+ - Ticket #62: Lors des exports Excel, le format des cellules n'est pas reconnu comme numérique sous Windows (pas de problèmes avec Macintosh et Linux).
+
+A confirmer et corriger. 
+
+ - Ticket #75: On peut modifier une décision de jury (et les autorisations de passage associées), mais pas la supprimer purement et simplement.
+Ajoute ce choix dans les "décisions manuelles". 
+
+ - Ticket #37: Page recap notes moyennes par groupes
+Construire une page avec les moyennes dans chaque UE ou module par groupe d'étudiants. 
+Et aussi pourquoi pas ventiler par type de bac, sexe, parcours (nombre de semestre de parcours) ? 
+redemandé par CJ: à faire avant mai 2008 ! 
+
+ - Ticket #75: Synchro Apogée: choisir les etudiants
+Sur la page de syncho Apogée (formsemestre_synchro_etuds), on peut choisir (cocher) les étudiants Apogée à importer. mais on ne peut pas le faire s'ils sont déjà dans ScoDoc: il faudrait ajouter des checkboxes dans toutes les listes.  
+
+ - Ticket #9: Format des valeurs de marges des bulletins.
+formsemestre_pagebulletin_dialog: marges en mm: accepter "2,5" et "2.5" et valider correctement le form ! 
+
+ - Ticket #17: Suppression modules dans semestres
+formsemestre_editwithmodules: confirmer suppression modules
+
+ - Ticket #29: changer le stoquage des photos, garder une version HD.
+
  - bencher NotesTable sans calcul de moyennes. Etudier un cache des moyennes de modules.
  - listes d'utilisateurs (modules): remplacer menus par champs texte + completions javascript
  - documenter archives sur Wiki
