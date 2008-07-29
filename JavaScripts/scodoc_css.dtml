@@ -8,7 +8,8 @@
 html,body {
   margin:0;
   padding:0;
-  background-color: rgb(221,221,238);
+  width: 100%;
+  background-color: rgb(238,238,255);
 }
 
 a:link { color:  #008080 }
@@ -25,43 +26,44 @@ h1, h2, h3 {
    font-family : arial, verdana, sans-serif ;
 }
 
-/* ----- bandeau bleu ------ */
-table.bandeaugtr {
+/* ----- bandeau haut ------ */
+span.bandeaugtr {
   width: 100%;
   margin: 0;
   border-width: 0;
   padding-left: 160px;
-  background-color: rgb(17,51,85);
+/*  background-color: rgb(17,51,85); */
 }
 @media print {
-table.bandeaugtr {
+span.bandeaugtr {
    display:none;
 }
 }
 tr.bandeaugtr {
-  background-color: rgb(17,51,85);
+/*  background-color: rgb(17,51,85); */
   color: rgb(255,215,0);
-  font-style: italic;
+ /* font-style: italic; */
   font-weight: bold;
   border-width: 0;
   margin: 0;
 }
 
-#authuser span {
-  width: 25%;
-  text-align: right;
+#authuser {
+    margin-top: 16px;
 }
 
 #authuserlink {
   color: rgb(255,0,0);
   text-decoration: none;
 }
-
+#authuserlink:hover {
+  text-decoration: underline;
+}
 #deconnectlink {
-   font-size: 75%;
-   font-style: normal;
-   color: rgb(255,0,0);
-   text-decoration: underline;
+  font-size: 75%;
+  font-style: normal;
+  color: rgb(255,0,0);
+  text-decoration: underline;
 }
 
 /* ----- page content ------ */
@@ -93,7 +95,7 @@ div.head_message {
 
 div.sidebar {
   position: absolute;
-  top: 1em; left: 5px;
+  top: 5px; left: 5px;
   width: 130px;
   border: black 1px;
   /* debug background-color: rgb(245,245,245); */
@@ -116,11 +118,19 @@ a.sidebar:hover {
    text-decoration: underline;
 }
 
+a.scodoc_title {
+    color: rgb(102,102,102);
+    font-family: arial,verdana,sans-serif;
+    font-size: large;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
+}
 h2.insidebar {
-  color: rgb(102,102,102);
-  font-weight: bold;
-  font-size: large;
-  margin-bottom: 0;
+    color: rgb(102,102,102);
+    font-weight: bold;
+    font-size: large;
+    margin-bottom: 0;
 }
 
 h3.insidebar {
@@ -183,6 +193,8 @@ h2.listesems {
 div.news {
    margin-top: 1em;
    margin-bottom: 0px;
+   margin-right: 16px;
+   margin-left: 16px;
    padding:  0.5em;
    background-color: #ffff93;
    -moz-border-radius: 8px;
@@ -516,13 +528,18 @@ h2.formsemestre, .gtrcontent h2 {
 
 .formsemestre_page_title table.semtitle, .formsemestre_page_title table.semtitle td {
     padding: 0px;
-    margin: 0px; 
+    margin-top: 0px; 
+    margin-bottom: 0px; 
     border-width: 0;
     border-collapse: collapse;
 }
+.formsemestre_page_title table.semtitle {
+    /* width: 100%; */
+}
 
 .formsemestre_page_title { 
-    padding-top: 0px;
+    width: 100%;
+    padding-top:5px;
     padding-bottom: 10px;
 }
 
@@ -530,51 +547,58 @@ h2.formsemestre, .gtrcontent h2 {
     padding-top: 10px;
 }
 .formsemestre_menubar {
-    background-color: rgb(150,230,151);
+    border-top: 3px solid #67A7E3;
+    background-color: #D6E9F8;
 }
 
 .formsemestre_menubar .barrenav ul li a.menu {
     font-size: 12px;
 }
-.formsemestre_page_title {
-    width: 100%;
+
+.formsemestre_page_title  .infos span {
+    padding-right: 25px;
 }
-.formsemestre_page_title  table.semtitle td.infos {
-    border-top: 1px solid #666666;
-    border-bottom: 1px solid #666666;
-    border-collapse: none;
-}
-.formsemestre_page_title  td.infos td {
-    padding-right: 10px;
-}
-.formsemestre_page_title td.semtitle {
+
+.formsemestre_page_title span.semtitle {
     font-size: 110%;
 }
-.formsemestre_page_title td.resp {
+.formsemestre_page_title span.resp {
     color: red;
     font-weight: bold;
 }
-.formsemestre_page_title td.nbinscrits {
+.formsemestre_page_title span.nbinscrits {
     text-align: right;
     font-weight: bold;
     padding-right: 1px;
 }
-.formsemestre_page_title td.lock {
+.formsemestre_page_title span.lock {
 
+}
+
+div.formsemestre_status {
+    -moz-border-radius: 8px;
+    -khtml-border-radius: 8px;
+    border-radius: 8px;
+    padding: 2px 6px 2px 16px;
+    margin-right: 10px;
 }
 
 table.formsemestre_status {
+    border-collapse: collapse;
 }
 tr.formsemestre_status { background-color: rgb(90%,90%,90%); }
-tr.formsemestre_status_green { background-color: rgb(90%,95%,90%); }
-
-
+tr.formsemestre_status_green { background-color: #EFF7F2; }
 tr.formsemestre_status_ue { background-color: rgb(90%,90%,90%); }
+table.formsemestre_status td {
+    border-top: 1px solid rgb(80%,80%,80%);
+    border-bottom: 1px solid rgb(80%,80%,80%);
+    border-left: 0px;
+}
+table.formsemestre_status td.evals, table.formsemestre_status th.evals, table.formsemestre_status td.resp, table.formsemestre_status th.resp {
+    padding-left: 1em;
+}
 
-span.status_ue_acro { font-weight: bold; }
-span.status_ue_title { font-style: italic; padding-left: 1cm;}
-
-th.formsemestre_status {
+table.formsemestre_status th {
     font-weight: bold;
     text-align: left;
 }
@@ -600,6 +624,10 @@ td.formsemestre_status_inscrits {
 td.formsemestre_status_cell {
   white-space: nowrap;
 }
+
+span.status_ue_acro { font-weight: bold; }
+span.status_ue_title { font-style: italic; padding-left: 1cm;}
+
 
 /* Liste des groupes sur tableau bord semestre */
 .formsemestre_status h3 {
@@ -1059,7 +1087,7 @@ div.entreprise-insidebar {
 /* ---- Sortable tables --- */
 /* Sortable tables */
 table.sortable a.sortheader {
-    background-color:#eee;
+    background-color:#E6E6E6;
     color: black;
     font-weight: bold;
     text-decoration: none;

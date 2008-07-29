@@ -235,13 +235,13 @@ def formsemestre_status_menubar(context, sem, REQUEST):
     menuStats = defMenuStats(context,formsemestre_id)
     base_url=context.absolute_url() + '/' # context must be Notes
     H = [
-        '<tr class="formsemestre_menubar">', 
+        '<div class="formsemestre_menubar"><table><tr>', 
         '<td>', makeMenu( 'Semestre', menuSemestre, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Inscriptions', menuInscriptions, base_url=base_url ), '</td>',
         '<td>',  makeMenu( 'Notes', menuNotes, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Jury', menuJury, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Statistiques', menuStats, base_url=base_url ), '</td>',
-        '<td>', formsemestre_custommenu_html(context, formsemestre_id), '</td></tr>',
+        '<td>', formsemestre_custommenu_html(context, formsemestre_id), '</td></tr></table></div>',
           ]
     return '\n'.join(H)
 
@@ -293,12 +293,15 @@ def formsemestre_page_title(context, REQUEST):
     u = context.Users.user_info(sem['responsable_id'],REQUEST)
     sem['resp'] = u['prenomnom']
     sem['nomcomplet'] = u['nomcomplet']
-    H = [ # table markup: css bug turnaround for Mac OS
-        """<div class="formsemestre_page_title"><table class="semtitle">""", 
+    H = [ 
+        """<div class="formsemestre_page_title">""", 
+        
+        """<div class="infos">
+<span class="semtitle"><a class="stdlink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a><a title="%(etape_apo_str)s">%(num_sem)s</a>%(modalitestr)s</span><span class="dates"><a title="du %(date_debut)s au %(date_fin)s ">%(mois_debut)s - %(mois_fin)s</a></span><span class="resp"><a title="%(nomcomplet)s">%(resp)s</a></span><span class="nbinscrits"><a class="discretelink" href="%(notes)s/formsemestre_lists?formsemestre_id=%(formsemestre_id)s">%(nbinscrits)d inscrits</a></span><span class="lock">%(locklink)s</span></div>""" % sem,
+
         formsemestre_status_menubar(notes, sem, REQUEST),
-        """<tr><td colspan="6" class="infos"><table><tr>
-<td class="semtitle"><a class="stdlink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a><a title="%(etape_apo_str)s">%(num_sem)s</a>%(modalitestr)s</td><td class="dates"><a title="du %(date_debut)s au %(date_fin)s ">%(mois_debut)s - %(mois_fin)s</a></td><td class="resp"><a title="%(nomcomplet)s">%(resp)s</a></td><td class="nbinscrits"><a class="discretelink" href="%(notes)s/formsemestre_lists?formsemestre_id=%(formsemestre_id)s">%(nbinscrits)d inscrits</a></td><td class="lock">%(locklink)s</td></tr></table></td></tr></table>
-          </div>""" % sem
+
+        """</div>"""
           ]
     return '\n'.join(H)
 

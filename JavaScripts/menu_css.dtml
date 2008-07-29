@@ -72,7 +72,12 @@ ul.nav {
 .barrenav ul li a.menu:after {
      content:" "url(<dtml-var "icons.menuarrow1_img.absolute_url()">);
 }
-
+.formsemestre_menubar .barrenav ul li a.menu:after {
+     content:"";
+}
+.formsemestre_menubar .barrenav ul li a.menu {
+    background-color:  #D6E9F8;
+}
 
 .barrenav ul li ul {
  /* width:350px; */

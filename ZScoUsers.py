@@ -168,7 +168,7 @@ class ZScoUsers(ObjectManager,
             dept = user[0]['dept']
         
         H = [self.sco_header(REQUEST,page_title='Gestion des utilisateurs')]
-        H.append('<h1>Gestion des utilisateurs</h1>')        
+        H.append('<h2>Gestion des utilisateurs</h2>')        
         
         if authuser.has_permission(ScoUsersAdmin,self):
             H.append('<p><a href="create_user_form" class="stdlink">Ajouter un utilisateur</a>')

@@ -179,18 +179,8 @@ dropdb SCOTEST
 dropdb SCOUSERS
 
 
-DONE (Jul 2008):
- - refonte fiche étudiant: visualisation du parcours.
- - gestion des archives des PV et documents par semestre;
- - refonte pages semestres (barre titre, menus) pour unifier l'apparence et ameliorer l'ergonomie;
- - amelioration affichage notes des evaluations (html, excel, pdf)
- - separation des semestres sur page d'accueil, et présente plus recents d'abord;
- - amelioration apparence des menus;
- - amelioration apparence tableau de bord semestre (=> regenerer icones);
- - lien pour regenerer icones sur page d'administration ScoDoc;
- - creation de semestre:  propose titre par defaut (et bouton pour reinitialiser titre)
- - correction de nombreux petits bugs...
-
+Refonte menus:
+ - Titre puis barre menu 
 
 A faire:
  - bug ? suivi cohortes: S4 Franck: diplomés ?

@@ -87,7 +87,7 @@ def sco_header(context, REQUEST=None,
     if no_side_bar:
         params['margin_left'] = "1em"
     else:
-        params['margin_left'] = "165px"
+        params['margin_left'] = "140px"
     H = [ """<?xml version="1.0" encoding="%(encoding)s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -108,8 +108,8 @@ window.onload=function(){enableTooltips("gtrcontent")};
 </script>
 <style>
 .gtrcontent {
-   float: left;
    margin-left: %(margin_left)s;
+   height: 100%%;
 }
 </style>
 """ % params
@@ -124,13 +124,11 @@ window.onload=function(){enableTooltips("gtrcontent")};
                   % (params['ScoURL'], js) )
     H.append('</head>')
     # Body et bandeau haut:
-    H.append("""<body %(bodyOnLoad_mkup)s><table class="bandeaugtr"><tr class="bandeaugtr">
-%(titrebandeau_mkup)s
-<td class="bandeaugtr">%(menus_bandeau)s</td>
-<td id="authuser"><span><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a>
-&nbsp;&nbsp;&nbsp;<a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">déconnexion</a></span></td>
-</tr></table>
-""" % params )
+    H.append("""<body %(bodyOnLoad_mkup)s>"""%params)
+#<span class="bandeaugtr">
+#<span id="authuser"><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a>
+#&nbsp;&nbsp;&nbsp;<a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">déconnexion</a></span></span>
+#""" % params )
     #
     if not no_side_bar:
         H.append( context.sidebar(REQUEST) )
@@ -157,9 +155,7 @@ def menus_bandeau(context, REQUEST=None):
     """
     authuser = REQUEST.AUTHENTICATED_USER
     
-    H = [ """<div class="barrenav"><ul class="nav">
-<li><a href="%s" class="menu accueil">ScoDoc %s</a></li>
-""" % (context.get_preference('DeptIntranetURL'), context.get_preference('DeptName'))          
+    H = [ """<div class="barrenav"><ul class="nav">"""
           ]
     if REQUEST.form.has_key('etudid'):
         # menu Etudiant

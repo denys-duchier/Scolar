@@ -7,7 +7,7 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
-<h4>Juillet 2008</h4>
+<h4>Juillet 2008: version 6.0</h4>
 <ul>
 <li>Installeur automatisé pour Linux</li>
 <li>Amélioration ergonomie (barre menu pages semestres)</li>

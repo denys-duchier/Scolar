@@ -13,8 +13,8 @@
 <th class="formsemestre_status">Code</th>
 <th class="formsemestre_status">Module</th>
 <th class="formsemestre_status">Inscrits</th>
-<th class="formsemestre_status">Responsable</th>
-<th class="formsemestre_status">Evaluations</th></tr>
+<th class="resp">Responsable</th>
+<th class="evals">Evaluations</th></tr>
 
 <dtml-in Mlist>
 <dtml-let M="_['sequence-item']">
@@ -51,7 +51,7 @@
 </dtml-if>
 
 <td class="formsemestre_status_code">
-<a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" title="<dtml-var ModDescr>"><dtml-var "Mod['code']"></a>
+<a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" title="<dtml-var ModDescr>" class="stdlink"><dtml-var "Mod['code']"></a>
 </td>
 <td><a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" title="<dtml-var ModDescr>" class="formsemestre_status_link">
      <dtml-if "Mod['abbrev']"><dtml-var "Mod['abbrev']"><dtml-else><dtml-var "Mod['titre']"></dtml-if>
@@ -59,13 +59,13 @@
 
 <td class="formsemestre_status_inscrits"><dtml-var "len( ModInscrits )"></td>
 
-<td class="formsemestre_status_cell"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"
+<td class="resp"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">"
 title="<dtml-var ModEns>">
 <dtml-var "Users.user_info(M['responsable_id'],REQUEST)['prenomnom']">
 </a>
 </td>
 
-<td class="formsemestre_status_cell">
+<td class="evals">
  <dtml-if "(nb_evals_completes+nb_evals_en_cours+nb_evals_vides) != 0">
  <a href="moduleimpl_status?moduleimpl_id=<dtml-var "M['moduleimpl_id']">" class="formsemestre_status_link">
  <dtml-var "nb_evals_completes+nb_evals_en_cours+nb_evals_vides"> prévues,  <dtml-var nb_evals_completes> ok<dtml-if "nb_evals_en_cours > 0">, <dtml-var nb_evals_en_cours> en cours</dtml-if>

@@ -37,8 +37,12 @@ def sidebar_common(context, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
     params = {
         'ScoURL' : context.ScoURL(),
+        'authuser' :  str(authuser),
         }
     H = [
+        '<a class="scodoc_title" href="about">ScoDoc</a>',
+        '<div id="authuser"><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a><br/><a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">déconnexion</a></div>' % params,
+        
         context.sidebar_dept(REQUEST),
         """<h2 class="insidebar">Scolarit&eacute;</h2>
  <a href="%(ScoURL)s" class="sidebar">Semestres</a> <br/> 
