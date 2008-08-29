@@ -27,6 +27,7 @@
 
 """Saisie des notes
 """
+import datetime
 
 from notesdb import *
 from sco_utils import *
@@ -677,6 +678,7 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
     Return number of changed notes
     """
     uid = str(uid)
+    now = apply(DB.Timestamp, time.localtime()[:6]) #datetime.datetime.now().isoformat()
     # Verifie inscription et valeur note
     inscrits = {}.fromkeys(self.do_evaluation_listeetuds_groups(
         evaluation_id,getallstudents=True, include_dems=True))
@@ -702,9 +704,10 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
                 if value != NOTES_SUPPRESS:
                     if do_it:
                         aa = {'etudid':etudid, 'evaluation_id':evaluation_id,
-                              'value':value, 'comment' : comment, 'uid' : uid}
+                              'value': value, 'comment' : comment, 'uid' : uid, 
+                              'date' : now}
                         quote_dict(aa)
-                        cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(uid)s)', aa )
+                        cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(date)s,%(uid)s)', aa )
                     nb_changed = nb_changed + 1
             else:
                 # il y a deja une note
@@ -723,7 +726,7 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
                                        { 'etudid':etudid, 'evaluation_id':evaluation_id } )
                         aa = { 'etudid':etudid, 'evaluation_id':evaluation_id,
                                'value':value,
-                               'date': apply(DB.Timestamp, time.localtime()[:6]),
+                               'date': now,
                                'comment' : comment, 'uid' : uid}
                         quote_dict(aa)
                     if value != NOTES_SUPPRESS:

@@ -552,6 +552,7 @@ h2.formsemestre, .gtrcontent h2 {
 .formsemestre_menubar {
     border-top: 3px solid #67A7E3;
     background-color: #D6E9F8;
+    margin-top: 8px;
 }
 
 .formsemestre_menubar .barrenav ul li a.menu {

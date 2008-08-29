@@ -73,10 +73,24 @@ class NotesOperation(dict):
         self['comment'] = self.get_comment()
         self['nb_notes'] = len(self['notes'])
         self['datestr'] = self['date'].strftime('%a %d/%m/%y %Hh%M')
-
+        
     def undo(self, context):
         "undo operation"
-        raise NotImplementedError
+        pass
+        # replace notes by last found in notes_log
+        # and suppress log entry
+        # select * from notes_notes_log where evaluation_id= and etudid= and date < 
+        #
+        # verrouille tables notes, notes_log
+        # pour chaque note qui n'est pas plus recente que l'operation:
+        #   recupere valeurs precedentes dans log
+        #   affecte valeurs notes
+        #   suppr log
+        # deverrouille tablesj
+        #for note in self['notes']:
+        #    # il y a-t-il une modif plus recente ?
+        #    if self['current_notes_by_etud']['date'] <= self['date'] + OPERATION_DATE_TOLERANCE:
+                
 
 def list_operations(context, evaluation_id):
     """returns list of NotesOperation for this evaluation"""
@@ -94,11 +108,16 @@ def list_operations(context, evaluation_id):
         else:
             nd[note['date']].append(note)
 
+    current_notes_by_etud={} # { etudid : note }
+    for note in notes:
+        current_notes_by_etud[note['etudid']] = note
+    
     Ops = []
     for uid in NotesDates.keys():
         for (t0, t1), notes in NotesDates[uid].items():
             Op = NotesOperation(evaluation_id=evaluation_id, date=t0, 
-                                uid=uid, notes=NotesDates[uid][t0])
+                                uid=uid, notes=NotesDates[uid][t0], 
+                                current_notes_by_etud=current_notes_by_etud)
             Op.comp_values()
             Ops.append(Op)
     

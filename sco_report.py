@@ -275,7 +275,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     etudids = nt.get_etudids()
 
     logt('A: orig etuds set')
-    S = {} # ensemble de formsemestre_id
+    S = { formsemestre_id : sem  } # ensemble de formsemestre_id
     orig_set = Set() # ensemble d'etudid du semestre d'origine
     bacs = Set()
     bacspecialites = Set()
@@ -445,7 +445,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         l[p.datedebut] = fmtval(nb_dipl)
     L.append(l)
     
-    columns_ids = [porigin.datedebut] + [ p.datedebut for p in P ]
+    columns_ids = [ p.datedebut for p in P ]
     titles = dict( [ (p.datedebut, p.datedebut.strftime('%d/%m/%y')) for p in P ] )
     titles[porigin.datedebut] = porigin.datedebut.strftime('%d/%m/%y')
     if percent:
@@ -720,6 +720,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
     isolated_nodes = []
     connected_nodes = Set()
+    diploma_nodes = []
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         next = None
@@ -733,6 +734,14 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             sems[s['formsemestre_id']] = s
             effectifs[s['formsemestre_id']].add(etudid)
             next = s
+            # si "terminal", ajoute noeud pour diplomes
+            if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
+                nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+                dec = nt.get_etud_decision_sem(etudid)
+                if dec['code'] == 'ADM':
+                    nid = '_dipl_'+s['formsemestre_id']
+                    edges[(s['formsemestre_id'], nid)].add(etudid)
+                    diploma_nodes.append(nid)
     #
     g = pydot.graph_from_edges(edges.keys())
     for fid in isolated_nodes:
@@ -746,8 +755,12 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     # titres des semestres:
     for s in sems.values():
         n = g.get_node(s['formsemestre_id'])
-        n.set( 'label', 'S%s\\n%d/%s - %d/%s\\n%d' %
-               (_codesem(s),
+        if s['modalite'] and s['modalite'] != 'FI':
+            modalite = ' ' + s['modalite']
+        else:
+            modalite = ''
+        n.set( 'label', 'S%s%s\\n%d/%s - %d/%s\\n%d' %
+               (_codesem(s), modalite,
                 s['mois_debut_ord'], s['annee_debut'][2:],
                 s['mois_fin_ord'], s['annee_fin'][2:],
                 len(effectifs[s['formsemestre_id']])))
@@ -758,7 +771,13 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
     # semestre de depart en vert
     n = g.get_node(formsemestre_id)
-    n.set_color('green')    
+    n.set_color('green')
+    # diplomes:
+    for nid in diploma_nodes:
+        n = g.get_node(nid)
+        n.set_color('red')
+        n.set_shape('ellipse')
+        n.set('label', 'Diplôme')
     # Arètes:
     bubbles = {} # substitue titres pour bulle aides: src_id:dst_id : etud_descr
     for (src_id,dst_id) in edges.keys():

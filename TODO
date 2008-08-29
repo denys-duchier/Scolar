@@ -178,9 +178,11 @@ dropdb SCORT
 dropdb SCOTEST
 dropdb SCOUSERS
 
+Fait:
+ - corrige bug suivi cohortes (nb diplomes si un seul semestre).
+ - ajoute indication diplomes sur graphe parcours.
 
 A faire:
- - bug ? suivi cohortes: S4 Franck: diplomés ?
  - saisie notes: undo
  - saisie notes: validation
 - ticket #18: 
@@ -229,6 +231,9 @@ formsemestre_editwithmodules: confirmer suppression modules
  - essayer avec IE / Win98
  - faire apparaitre les diplômés sur le graphe des parcours
  - démission: formulaire: vérifier que la date est bien dans le semestre
+
+ + graphe parcours: aligner en colonnes selon les dates (de fin), placer les diplomes 
+   dans la même colone que le semestre terminal.
 
 TODO
  - modif gestion utilisateurs (donner droits en fct du dept. d'appartenance, bug #57)
