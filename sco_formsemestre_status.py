@@ -270,7 +270,13 @@ def formsemestre_page_title(context, REQUEST):
     else:
         return '' # no current formsemestre
     #
-    sem = context.Notes.get_formsemestre(formsemestre_id).copy()    
+    if not formsemestre_id:
+        return ''
+    try:
+        sem = context.Notes.get_formsemestre(formsemestre_id).copy()    
+    except:
+        log("can't find formsemestre_id %s" % formsemestre_id)
+        return ''
     sem['notes'] = notes.absolute_url()
     if sem['etat'] != '1':
         sem['locklink'] = """<a href="formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
