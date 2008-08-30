@@ -214,7 +214,8 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         info['groupes_row'] = '<tr><td class="fichetitre2">Groupe :</td><td>%(groupes)s</td></tr>'%info
     else:
         info['groupes_row'] = ''
-    tmpl = """
+    info['menus_etud'] = menus_etud(context,REQUEST)
+    tmpl = """<div class="menus_etud">%(menus_etud)s</div>
 <div class="ficheEtud" id="ficheEtud"><table>
 <tr><td>
 <h2>%(nomprenom)s (%(inscription)s)</h2>
@@ -275,3 +276,40 @@ def ficheEtud(context, etudid=None, REQUEST=None):
                 #bodyOnLoad='javascript:bodyOnLoad()',
                 page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
     return header + tmpl % info + context.sco_footer(REQUEST)
+
+
+
+def menus_etud(context, REQUEST=None):
+    """Menu etudiant (operations sur l'etudiant)
+    """
+    if not REQUEST.form.has_key('etudid'):
+        return ''
+    authuser = REQUEST.AUTHENTICATED_USER
+
+    etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+
+    menuEtud = [
+        { 'title' : '%(sexe)s %(prenom)s %(nom)s' % etud,
+          'url' : 'ficheEtud?etudid=%(etudid)s' % etud,
+          'enabled' : True,
+          'helpmsg' : 'Fiche étudiant'
+          },
+        { 'title' : 'Changer la photo',
+          'url' : 'formChangePhoto?etudid=%(etudid)s' % etud,
+          'enabled' : authuser.has_permission(ScoEtudChangeAdr,context),
+          },
+        { 'title' : 'Changer les données identité/admission',
+          'url' : 'etudident_edit_form?etudid=%(etudid)s' % etud,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context),
+          },
+        { 'title' : 'Supprimer cet étudiant...',
+          'url' : 'etudident_delete?etudid=%(etudid)s' % etud,
+          'enabled' : authuser.has_permission(ScoEtudInscrit,context),
+          },
+        { 'title' : 'Voir le journal...',
+          'url' : 'showEtudLog??etudid=%(etudid)s' % etud,
+          'enabled' : True,
+          },
+        ]
+       
+    return makeMenu( 'Etudiant', menuEtud, base_url=context.absolute_url() + '/')

@@ -203,8 +203,10 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
     formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
-    security.declareProtected(ScoImplement, 'formsemestre_editwithmodules')
-    formsemestre_editwithmodules = DTMLFile('dtml/notes/formsemestre_editwithmodules', globals(), title='Modification d\'un semestre (ou session) de formation avec ses modules' )
+
+    security.declareProtected(ScoView, 'formsemestre_editwithmodules')
+    formsemestre_editwithmodules = sco_formsemestre_edit.formsemestre_editwithmodules
+    
     security.declareProtected(ScoImplement, 'formsemestre_delete')
     formsemestre_delete = DTMLFile('dtml/notes/formsemestre_delete', globals(), title='Suppression d\'un semestre (ou session) de formation avec ses modules' )
     security.declareProtected(ScoView, 'formsemestre_recapcomplet')
@@ -680,7 +682,7 @@ class ZNotes(ObjectManager,
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
-         'etape_apo', 'modalite'
+         'etape_apo', 'modalite', 'resp_can_edit'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
@@ -694,7 +696,8 @@ class ZNotes(ObjectManager,
                              'gestion_compensation' : str,
                              'gestion_semestrielle' : str,
                              'etat' : str,
-                             'bul_hide_xml' : str },
+                             'bul_hide_xml' : str,
+                             },
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
@@ -707,15 +710,8 @@ class ZNotes(ObjectManager,
                              'gestion_compensation' : int,
                              'gestion_semestrielle' : int,
                              'etat' : int,
-                             'bul_hide_xml' : int },
-
-        fields_creators = { 'bul_show_ue_rangs' : [
-                'alter table notes_formsemestre add column bul_show_ue_rangs int',
-                'alter table notes_formsemestre alter column bul_show_ue_rangs set default 1' ],
-                            'bul_show_mod_rangs' : [
-                'alter table notes_formsemestre add column bul_show_mod_rangs int',
-                'alter table notes_formsemestre alter column bul_show_mod_rangs set default 1' ],
-                            }
+                             'bul_hide_xml' : int,
+                             },        
         )
     
     security.declareProtected(ScoImplement, 'do_formsemestre_create')

@@ -10,10 +10,14 @@ Runned as "root" with Zope shutted down and postgresql up.
 E. Viennet, june 2008
 """
 
-import sys
+from scodocutils import *
 
-sys.path.append('..')
 
-# ...
+if os.getuid() != 0:
+    log('postupgrade.py: must be run as root')
+    sys.exit(1)
 
+# ---
+
+# ---
 sys.exit(0)

@@ -38,9 +38,46 @@ def _default_sem_title(F):
     """Default title for a semestre in formation F"""
     return F['titre']
 
+
+def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
+    """Page modification semestre"""
+    # portage from dtml
+    authuser = REQUEST.AUTHENTICATED_USER
+    sem = context.get_formsemestre(formsemestre_id)
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem) ]
+    if sem['etat'] != '1':
+        H.append("""<p>%s<b>Ce semestre est verrouillé.</b></p>""" %
+                 context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+    else:
+        H.append(context.do_formsemestre_createwithmodules(REQUEST, context.getZopeUsers(), edit=1 ))
+        if not REQUEST.get('tf-submitted',False):
+            H.append("""<p class="help">Seuls les modules cochés font partie de ce semestre. Pour les retirer, "décocher"-les et appuyer sur le bouton "modifier".
+</p>
+<p class="help">Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</p>""")
+            if authuser.has_permission(ScoImplement,context):
+                H.append("""
+<p><a class="stdlink" href="formsemestre_delete?formsemestre_id=%s">Supprimer ce semestre</a></p>""" % formsemestre_id)
+    
+    return '\n'.join(H) + context.sco_footer(REQUEST)
+
+
 def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
-    # forme liste des enseignants avec noms et prenoms
+    # Fonction accessible à tous, controle acces à la main:
+    if edit:
+        formsemestre_id = REQUEST.form['formsemestre_id']
+        sem = context.get_formsemestre(formsemestre_id)
+    authuser = REQUEST.AUTHENTICATED_USER
+    if not authuser.has_permission(ScoImplement,context):
+        if not edit:
+            # il faut ScoImplement pour creer un semestre
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+        else:
+            if not sem['resp_can_edit'] or str(authuser) != sem['responsable_id']:
+                raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+    
+    # Forme liste des enseignants avec noms et prenoms
     iii = []
     for user in userlist: # XXX may be slow on large user base ?
         info = context.Users.user_info(user,REQUEST)
@@ -66,8 +103,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         semestre_id  = REQUEST.form['semestre_id']        
     else:
         # setup form init values
-        formsemestre_id = REQUEST.form['formsemestre_id']
-        initvalues = context.get_formsemestre(formsemestre_id)
+        initvalues = sem
         semestre_id = initvalues['semestre_id']
 #        initvalues['inscrire_etuds'] = initvalues.get('inscrire_etuds','1')
 #        if initvalues['inscrire_etuds'] == '1':
@@ -187,7 +223,7 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                                    'labels' : [''] }),
 
         ('gestion_compensation_lst',  { 'input_type' : 'checkbox',
-                                        'title' : '',
+                                        'title' : 'Jurys',
                                         'allowed_values' : ['X'],
                                         'explanation' : 'proposer compensations de semestres (parcours DUT)',
                                         'labels' : [''] }),
@@ -196,7 +232,13 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                                         'title' : '',
                                         'allowed_values' : ['X'],
                                         'explanation' : 'formation semestrialisée (jurys avec semestres décalés)',
-                                        'labels' : [''] }),
+                                        'labels' : [''] }) ]
+    if authuser.has_permission(ScoImplement,context):
+        modform += [ 
+        ('resp_can_edit',  { 'input_type' : 'boolcheckbox',
+                             'title' : 'Autorisations',
+                             'explanation' : 'Autoriser le directeur des études à modifier ce semestre' })]
+    modform += [ 
         ('nomgroupetd', { 'size' : 20,
                           'title' : 'Nom des groupes primaires',
                           'explanation' : 'TD' }),
@@ -422,12 +464,11 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                 context.do_moduleimpl_edit(modargs)
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
                 #msg += [ 'modification de %s (%s)' % (mod['code'], mod['titre']) ]
-            if msg:
-                msg = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
-            else:
-                msg = ''
-            return '<p>Modification effectuée</p>'  + msg # + str(tf[2])
 
+            if msg:
+                return '<ul><li>' + '</li><li>'.join(msg) + '</li></ul><p>Modification effectuée</p><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
+            else:
+                return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifié' %  formsemestre_id)
 
 
 # ---------------------------------------------------------------------------------------

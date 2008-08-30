@@ -32,6 +32,8 @@ import time
 import md5, base64
 from sets import Set
 
+import jaxml
+
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
                                 # 'manage_propertiesForm' method
@@ -225,9 +227,16 @@ class ZScoUsers(ObjectManager,
         return roles
 
     security.declareProtected(ScoUsersAdmin, 'user_info')
-    def user_info(self, user_name, REQUEST):        
-        "donne infos sur l'utilisateur (qui peut ne pas etre dans notre base)"
-        infos = self._user_list( args={'user_name':user_name} )
+    def user_info(self, user_name=None, user=None, REQUEST=None):        
+        """Donne infos sur l'utilisateur (qui peut ne pas etre dans notre base).
+        Si user_name est specifie, interroge la BD. Sinon, user doit etre un dict.        
+        """
+        if user_name:
+            infos = self._user_list( args={'user_name':user_name} )
+        else:
+            infos = [user.copy()]
+            user_name=user['user_name']
+        
         if not infos:
             # special case: user is not in our database
             return { 'user_name' : user_name,
@@ -235,13 +244,12 @@ class ZScoUsers(ObjectManager,
                      'email' : '', 'dept' : '',
                      'nomprenom' : user_name,
                      'prenomnom' : user_name,
-                     'nomcomplet': user_name
+                     'nomcomplet': user_name,
+                     'nomplogin' : user_name
                      }
         else:
             info = infos[0]
-            # peut on divulguer ces infos ?
-            if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, user_name):
-                info['date_modif_passwd'] = 'NA'
+            # always conceal password !
             del info['passwd'] # always conceal password !
             #
             if info['prenom']:
@@ -259,6 +267,9 @@ class ZScoUsers(ObjectManager,
             info['prenomnom'] = (prenom_abbrv + ' ' + n).strip()
             # nomcomplet est le prenom et le nom complets
             info['nomcomplet'] = scolars.format_prenom(p) + ' ' + scolars.format_nom(n)
+            # nomplogin est le capitalisé suivi du prénom et du login
+            # e.g. Dupont Pierre (dupont)
+            info['nomplogin'] = info['nomcomplet'] + ' (%s)' % info['user_name']
             return info
 
     def _can_handle_passwd(self, authuser, user_name):
@@ -497,6 +508,8 @@ class ZScoUsers(ObjectManager,
              orig_roles = Set(initvalues['roles'].split(','))
          # add existing user roles
          valid_roles = list(valid_roles.union(orig_roles))
+         valid_roles.sort()
+         
          descr = [
              ('edit', {'input_type' : 'hidden', 'default' : edit }),
              ('nom', { 'title' : 'Nom',
@@ -768,11 +781,17 @@ class ZScoUsers(ObjectManager,
                 u['_user_name_target'] = target
                 u['_nom_target'] = target
                 u['_prenom_target'] = target
+        
+        # Hide passwd modification date (depending on rights wrt user)
+        for u in r:
+            if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, u['user_name']):
+                u['date_modif_passwd'] = 'NA'
 
         # convert dates to ISO if XML output
         if format=='xml':
             for u in r:
-                u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
+                if u['date_modif_passwd'] != 'NA':
+                    u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
         
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
@@ -801,6 +820,7 @@ class ZScoUsers(ObjectManager,
             CACHE_userlist[url] = sco_cache.expiringCache(max_validity=60)
             return CACHE_userlist[url]
 
+    security.declareProtected(ScoView, 'get_userlist')
     def get_userlist(self, dept=None):
         """Returns list of users.
         If dept, select users from this dept,
@@ -815,8 +835,38 @@ class ZScoUsers(ObjectManager,
                 r = self._user_list( args={ 'dept' : dept } )
             else:
                 r = self._user_list() # all users
-            cache.set(dept, r)
-            return r
+            l = []
+            for user in r:
+                l.append(self.user_info(user=user))
+            cache.set(dept, l)
+            return l
+
+    security.declareProtected(ScoView, 'get_userlist_xml')
+    def get_userlist_xml(self, dept=None, start='', REQUEST=None):
+        """Returns XML list of users with name (nomplogin) starting with start.
+        Used for forms auto-completion."""
+        userlist = self.get_userlist(dept=dept)
+        start = start.lower()
+        userlist = [ user for user in userlist if user['nomplogin'].lower().startswith(start) ]
+        if REQUEST:
+            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc.results()
+        for user in userlist:
+            doc._push()
+            doc.rs(user['nomplogin'], id=user['user_id'], info='')
+            doc._pop()
+        return doc
+
+    security.declareProtected(ScoView, 'get_user_name_from_nomplogin')
+    def get_user_name_from_nomplogin(self, nomplogin):
+        """Returns user_name (login) from nomplogin
+        """
+        m = re.match(r'.*\((.*)\)', nomplogin.strip() )
+        if m:
+            return m.group(1)
+        else:
+            return None
 
 # --------------------------------------------------------------------
 #

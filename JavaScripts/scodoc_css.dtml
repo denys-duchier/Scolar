@@ -243,6 +243,15 @@ div.ficheEtud {
    margin-top: 10px;
 }
 
+div.menus_etud {
+   position: absolute;
+   margin-left: 1px;
+   margin-top: 1px;
+}
+div.ficheEtud h2 {
+   padding-top: 10px;
+}
+
 div.code_nip {
    padding-top: 10px;
    font-family: "Andale Mono", "Courier";

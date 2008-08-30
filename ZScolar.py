@@ -236,11 +236,42 @@ class ZScolar(ObjectManager,
             role_name = role_type + DeptId
             DeptRoles.append( role_name )
         return DeptRoles
+
+    security.declareProtected(ScoView, 'essaiform')
+    def essaiform(self,REQUEST=None):
+        """essai autocompletion"""
+        H = [ self.sco_header(REQUEST, javascripts=['AutoSuggest_js'],
+                              cssstyles=['autosuggest_inquisitor_css'],
+                              bodyOnLoad="initform()"),
+              """<form method="get" action="essai">
+              <input type="text" style="width: 200px" id="testinput_c" value=""/>
+              <input type="text" disabled="disabled" id="testinput" name="x" value=""/>
+              <input type="submit" value="submit" />
+              </form>
+              
+              <script type="text/javascript">
+              function update_field(o) {
+              document.getElementById('testinput').value = o.info;
+              }
+              function initform() {
+              var options = {
+              script: "Users/get_userlist_xml?",
+              varname: "start",
+              json: false,
+              maxresults: 35,
+              timeout:4000,
+              callback:update_field
+              };
+              var as = new bsn.AutoSuggest('testinput_c', options);
+              }
+              </script>
+              """]
+        return '\n'.join(H) + self.sco_footer(REQUEST)
     
     security.declareProtected(ScoView, 'essai')
-    def essai(self, REQUEST=None):
+    def essai(self, x='', REQUEST=None):
         """essai: header / body / footer"""
-        return self.sco_header(REQUEST)+ """<div class="xp"></div>""" + self.sco_footer(REQUEST)
+        return self.sco_header(REQUEST)+ """<div class="xp">%s</div>""" %x + self.sco_footer(REQUEST)
         b = '<p>Hello, World !</p><br/>'
         raise ValueError('essai exception')
         #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
@@ -313,7 +344,14 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'calendarDateInput_js')
     calendarDateInput_js = DTMLFile('JavaScripts/calendarDateInput_js',
                                     globals())
-    
+
+    security.declareProtected(ScoView, 'AutoSuggest_js')
+    AutoSuggest_js = DTMLFile('JavaScripts/AutoSuggest_2.1.3_comp_js',
+                              globals())
+    security.declareProtected(ScoView, 'autosuggest_inquisitor_css')
+    autosuggest_inquisitor_css = DTMLFile('JavaScripts/autosuggest_inquisitor_css', 
+                                          globals())
+
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
@@ -323,8 +361,6 @@ class ZScolar(ObjectManager,
     sco_header = html_sco_header.sco_header
     security.declareProtected(ScoView, 'sco_footer')
     sco_footer = html_sco_header.sco_footer
-    security.declareProtected(ScoView, 'menus_bandeau')
-    menus_bandeau = html_sco_header.menus_bandeau
     
     # --------------------------------------------------------------------
     #
@@ -1690,7 +1726,9 @@ function tweakmenu( gname ) {
             etud['photoloc'] = 'dans ScoDoc'
         else:
             etud['photoloc'] = 'externe'
-        H = [self.sco_header(REQUEST, page_title='Changement de photo'),
+        H = [self.sco_header(REQUEST, page_title='Changement de photo',
+                             cssstyles=['autosuggest_inquisitor_css'], 
+                             bodyOnLoad="init_tf_form('')"),
              """<h2>Changement de la photo de %(nomprenom)s</h2>
              <p>Photo actuelle (%(photoloc)s):             
              """ % etud,
@@ -1702,7 +1740,17 @@ function tweakmenu( gname ) {
             REQUEST.URL0, REQUEST.form, 
             ( ('etudid',  { 'default' : etudid, 'input_type' : 'hidden' }),
               ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
-              ('suppress', {'input_type' : 'checkbox', 'default': 0, 'title' : 'supprimer la photo actuelle', 'allowed_values' : ('1','0'), 'labels' : ('',) })
+              ('suppress', {'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'supprimer la photo actuelle' }),
+              # experimental XXXXXXXXX
+#               ('essai', { 'input_type' : 'text_suggest',
+#                           'text_suggest_options' : { 
+#                                               'script' : 'Users/get_userlist_xml?',
+#                                               'varname' : 'essai',
+#                                               'json': False,
+#                                               'maxresults': 3,
+#                                               'timeout':4000 } 
+#                           }),
+              # /
               ),
             submitlabel = 'Valider', cancelbutton='Annuler'
             )

@@ -291,7 +291,8 @@ CREATE TABLE notes_formsemestre (
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
 	etape_apo text, -- code etape Apogée
-	modalite text   -- FI, FC, APP, ''
+	modalite text,   -- FI, FC, APP, ''
+	resp_can_edit integer default 0 -- autorise resp. a modifier semestre
 ) WITH OIDS;
 
 -- Coef des UE capitalisees arrivant dans ce semestre:

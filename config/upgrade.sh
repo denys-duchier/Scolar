@@ -18,9 +18,12 @@ echo
 echo "Using SVN to update $SCODOC_DIR..."
 (cd $SCODOC_DIR; svn update)
 
-# post-upgrade script
+# post-upgrade scripts
 echo "Executing post-upgrade script..."
-$SCODOC_DIR/install/postupgrade.py
+$SCODOC_DIR/config/postupgrade.py
+
+echo "Executing post-upgrade database script..."
+su -c "$SCODOC_DIR/config/postupgrade-db.py" $POSTGRES_USER
 
 # 
 echo

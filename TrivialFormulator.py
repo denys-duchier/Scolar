@@ -6,8 +6,10 @@
 
    E. Viennet 2005 - 2008
 
-   v 1.1
+   v 1.2
 """
+
+from types import *
 
 def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
                       method='post', enctype=None,
@@ -53,12 +55,17 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           HTML elements:
              input_type : 'text', 'textarea', 'password',
                           'radio', 'menu', 'checkbox',
-                          'hidden', 'separator', 'file', 'date', 'boolcheckbox'
+                          'hidden', 'separator', 'file', 'date', 'boolcheckbox',
+                          'text_suggest'
                          (default text)
              size : text field width
              rows, cols: textarea geometry
              labels : labels for radio or menu lists (associated to allowed_values)
              vertical: for checkbox; if true, vertical layout
+          To use text_suggest elements, one must:
+            - specify options in text_suggest_options (a dict)
+            - HTML page must load JS AutoSuggest_js and CSS autosuggest_inquisitor_css
+            - bodyOnLoad must call JS function init_tf_form(formid)
     """
     method = method.lower()
     if method == 'get':
@@ -273,6 +280,7 @@ class TF:
                                % (self.formid,self.cancelbutton))
 
         R = []
+        suggest_js = []
         if self.enctype is None:
             if self.method == 'post':
                 enctype = 'multipart/form-data'
@@ -374,6 +382,9 @@ class TF:
                     lem.append('<table>')
                 for i in range(len(labels)):
                     if input_type == 'checkbox':
+                        #from notes_log import log # debug only
+                        #log('checkbox: values[%s] = "%s"' % (field,repr(values[field]) ))
+                        #log("descr['allowed_values'][%s] = '%s'" % (i, repr(descr['allowed_values'][i])))
                         if descr['allowed_values'][i] in values[field]:
                             checked='checked="checked"'
                         else:
@@ -411,6 +422,13 @@ class TF:
                 else:
                     cv = ''
                 lem.append("<script>DateInput( '%s', false, 'DD/MM/YYYY' %s )</script>" % (field,cv))
+            elif input_type == 'text_suggest':
+                lem.append( '<input type="text" name="%s" id="%s" size="%d" %s' % (field,field,size,attribs) )
+                lem.append( ('value="%('+field+')s" />') % values )
+                suggest_js.append( 
+                    """var %s_opts = %s;
+                    var %s_as = new bsn.AutoSuggest('%s', %s_opts);
+                    """ % (field, dict2js(descr.get('text_suggest_options',{})), field, field, field))
             else:
                 raise ValueError('unkown input_type for form (%s)!'%input_type)
             explanation = descr.get('explanation', '')
@@ -447,6 +465,14 @@ class TF:
 		   return true;
 	}</script>
             """) # enter_focus_next ignore 2 boutons a la fin (ok, cancel)
+        if suggest_js:
+            # nota: formid is currently ignored 
+            # => only one form with text_suggest field on a page.
+            R.append("""<script type="text/javascript">
+            function init_tf_form(formid) {
+                %s
+            }
+            </script>""" % '\n'.join(suggest_js))
         R.append('</form>')
         return R
     
@@ -466,7 +492,7 @@ class TF:
                 R.append( '<td class="tf-ro-fieldlabel">' )
                 R.append( '%s</td>' % title )
                 R.append( '<td class="tf-ro-field">' )
-            if input_type == 'text':
+            if input_type == 'text' or input_type == 'text_suggest':
                 R.append( ('%('+field+')s') % values )
             elif input_type in ('radio', 'menu', 'checkbox', 'boolcheckbox'):
                 labels = descr.get('labels', descr['allowed_values'])
@@ -486,3 +512,18 @@ class TF:
         R.append( '</table>' )
         return R
 
+def dict2js(d):
+    """convert Python dict to JS code"""
+    r = []
+    for k in d:
+        v = d[k]
+        if type(v) == BooleanType:
+            if v:
+                v = 'true'
+            else:
+                v = 'false'
+        elif  type(v) == StringType:
+            v = '"'+v+'"'
+        
+        r.append( '%s: %s' % (k,v) )
+    return '{' + ',\n'.join(r) + '}'

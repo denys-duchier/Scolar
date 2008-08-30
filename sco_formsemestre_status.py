@@ -106,12 +106,9 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : True,
           'helpmsg' : 'Tableau de bord du semestre'
           },
-        # Si on voulait autoriser le dir des etud a modifier le semestre,
-        # il faudrait ajouter (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))
-        # et aussi modifer les permissions sur formsemestre_editwithmodules
         { 'title' : 'Modifier le semestre',
           'url' : 'formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s' % sem,
-          'enabled' : authuser.has_permission(ScoImplement, context) and (sem['etat'] == '1'),
+          'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
         { 'title' : 'Réglages bulletins',

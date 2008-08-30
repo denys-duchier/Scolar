@@ -80,7 +80,7 @@ PREFS = (
         'explanation' : 'lien "Intranet" en haut à gauche',
         }
       ),
- 
+
     ('_sep_abs',
      { 'input_type' : 'separator',
        'title' : '<b>Suivi des absences</b>'
