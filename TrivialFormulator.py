@@ -390,8 +390,12 @@ class TF:
                         else:
                             checked=''
                     else: # boolcheckbox
-                        # open('/tmp/toto','a').write('GenForm: values[%s] = %s (%s)\n' % (field, values[field], type(values[field])))
-                        if int(values[field]):
+                        #open('/tmp/toto','a').write('GenForm: values[%s] = %s (%s)\n' % (field, values[field], type(values[field])))
+                        try:
+                            v = int(values[field])
+                        except:
+                            v = 0
+                        if v:
                             checked='checked="checked"'
                         else:
                             checked=''
