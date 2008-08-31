@@ -30,16 +30,30 @@ done
 
 Etapes à suivre
 ------------
+aptitude update && aptitude dist-upgrade
+aptitude install postgresql-client-8.1
 
-stop zope
+/etc/init.d/zope stop
 su postgres
-/usr/lib/postgresql/8.1/bin/pg_dumpall > scodoc-5-6jul2008.dumpall.txt
-editer le dump...
-arrêter le 7.4
-installer et lancer le serveur 8.1
-/usr/lib/postgresql/8.1/bin/createuser -p 5433 --no-superuser --no-createdb --no-adduser --no-createrole www-data 
+/usr/lib/postgresql/8.1/bin/pg_dumpall > scodoc-psql74.dumpall.txt
+editer le dump: pour cela:
+ arrêter le 7.4: /etc/init.d/postgresql-7.4 stop
+ installer et lancer le serveur 8.1
 
-/usr/lib/postgresql/8.1/bin/psql -p 5433 -d postgres -f scodoc-5-6jul2008.dumpall.txt
+ su postgres
+ /usr/lib/postgresql/8.1/bin/createuser -p 5433 --no-superuser --no-createdb --no-adduser --no-createrole www-data 
+ 
+ modifier scodoc-psql74.dumpall.txt avec:
+ cp  scodoc-psql74.dumpall.txt  scodoc-psql81.dumpall.txt
+ for user in scocj scogea scofc scotest scort scogeii scoinfo scousers # LIST DES BD
+ do
+  echo replacing $user
+  sed -e "s:$user:\"www-data\"":g scodoc-psql81.dumpall.txt > /tmp/toto
+  mv /tmp/toto scodoc-psql81.dumpall.txt # IN PLACE !
+ done
+
+/usr/lib/postgresql/8.1/bin/psql -p 5433 -d postgres -f scodoc-psql81.dumpall.txt
+
 for dept in CJ FC GEA GEII RT TEST Info
 do
 echo "dbname=SCO$(echo $dept | tr '[a-z]' '[A-Z]')" > depts/$dept.cfg

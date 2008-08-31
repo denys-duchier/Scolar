@@ -18,6 +18,14 @@ echo
 echo "Using SVN to update $SCODOC_DIR..."
 (cd $SCODOC_DIR; svn update)
 
+# Se recharge car ce fichier peut avoir change durant le svn up !
+if [ -z $SCODOC_UPGRADE_RUNNING ]
+then
+  export SCODOC_UPGRADE_RUNNING=1
+  ./upgrade.sh
+  exit 0
+fi
+
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
 $SCODOC_DIR/config/postupgrade.py

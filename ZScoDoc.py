@@ -291,14 +291,14 @@ class ZScoDoc(ObjectManager,
         return add_method( DeptId, REQUEST=REQUEST )
 
     security.declareProtected('View','delete_dept')
-    def delete_dept(self, REQUEST=None, DeptId=''):
+    def delete_dept(self, REQUEST=None, DeptId='', force=False):
         """Supprime un departement (de Zope seulement, ne touche pas la BD)
         """
         e = self._check_admin_perm(REQUEST)
         if e:
             return e
         
-        if DeptId not in [ x.id for x in self.list_depts() ]:
+        if not force and DeptId not in [ x.id for x in self.list_depts() ]:
             raise ValueError('nom de departement invalide')
         
         self.manage_delObjects(ids=[ DeptId ])

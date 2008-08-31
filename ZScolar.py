@@ -1727,6 +1727,7 @@ function tweakmenu( gname ) {
         else:
             etud['photoloc'] = 'externe'
         H = [self.sco_header(REQUEST, page_title='Changement de photo',
+                             javascripts=['AutoSuggest_js'],
                              cssstyles=['autosuggest_inquisitor_css'], 
                              bodyOnLoad="init_tf_form('')"),
              """<h2>Changement de la photo de %(nomprenom)s</h2>
@@ -1742,14 +1743,14 @@ function tweakmenu( gname ) {
               ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
               ('suppress', {'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'supprimer la photo actuelle' }),
               # experimental XXXXXXXXX
-#               ('essai', { 'input_type' : 'text_suggest',
-#                           'text_suggest_options' : { 
-#                                               'script' : 'Users/get_userlist_xml?',
-#                                               'varname' : 'essai',
-#                                               'json': False,
-#                                               'maxresults': 3,
-#                                               'timeout':4000 } 
-#                           }),
+              ('essai', { 'input_type' : 'text_suggest',
+                          'text_suggest_options' : { 
+                                              'script' : 'Users/get_userlist_xml?',
+                                              'varname' : 'essai',
+                                              'json': False,
+                                              'maxresults': 3,
+                                              'timeout':4000 } 
+                          }),
               # /
               ),
             submitlabel = 'Valider', cancelbutton='Annuler'
@@ -2523,7 +2524,7 @@ def _simple_error_page(context, msg, DeptId=None):
           '<h2>Erreur !</h2>',
           '<p>', msg, '</p>' ]
     if DeptId:
-        H.append('<p><a href="delete_dept?DeptId=%s">Supprimer le dossier %s</a>(très recommandé !)</p>'
+        H.append('<p><a href="delete_dept?DeptId=%s&force=1">Supprimer le dossier %s</a>(très recommandé !)</p>'
                  % (DeptId,DeptId) )
     H.append(context.standard_html_footer(context))
     return '\n'.join(H)

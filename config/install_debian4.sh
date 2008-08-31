@@ -16,7 +16,7 @@ check_uid_root $0
 if [ ! -z "$(dpkg -l | grep postgresql-7.4)" ]
 then
    echo
-   echo "Attention:  postgresql-7.4 est deja installe"
+   echo "Attention:  postgresql-7.4 est installe"
    echo "ScoDoc va installer et utiliser postgresql-8.1"
    echo "Verifiez les ports dans postgresql.conf (5432 ou 5433)"
    echo "et dans ScoDoc: config.sh et sco_utils.py"
