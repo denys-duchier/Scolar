@@ -35,6 +35,7 @@ from notesdb import *
 from sco_utils import *
 from gen_tables import GenTable
 import sco_pvpdf
+from sco_pdf import PDFLOCK
 
 """PV Jury IUTV 2006: on détaillait 8 cas:
 Jury de semestre n
