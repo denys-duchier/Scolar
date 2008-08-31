@@ -45,16 +45,19 @@ EKEY_APO = 'nip'
 EKEY_SCO = 'code_nip'
 EKEY_NAME = 'code NIP'
 
-def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
-                      inscrire_non_inscrits=False, # declenche inscription des "aposco" non inscrits
-                      submitted=False, dialog_confirmed=False,
-                      export_cat_xls=None,
-                      REQUEST=None):
+def formsemestre_synchro_etuds(
+    context, formsemestre_id, 
+    etuds=[], # liste des codes NIP des etudiants a inscrire (ou deja inscrits)
+    inscrits_without_key=[], # codes etudid des etudiants sans code NIP a laisser inscrits
+    anneeapogee=None,
+    submitted=False, dialog_confirmed=False,
+    export_cat_xls=None,
+    REQUEST=None ):
     """Synchronise les étudiants de ce semestre avec ceux d'Apogée.
     On a plusieurs cas de figure: L'étudiant peut être
     1- présent dans Apogée et inscrit dans le semestre ScoDoc (etuds_ok)
     2- dans Apogée, dans ScoDoc, mais pas inscrit dans le semestre (etuds_noninscrits)
-    3- dans Apogée et pas dans ScoDoc (etuds_a_importer)
+    3- dans Apogée et pas dans ScoDoc (a_importer)
     4- inscrit dans le semestre ScoDoc, mais pas trouvé dans Apogée (sur la base du code NIP)
     
     Que faire ?
@@ -71,7 +74,7 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
     etuds: apres selection par utilisateur, la liste des etudiants selectionnes
     que l'on va importer/inscrire
     """
-    log('synchronize_etuds: formsemestre_id=%s' % formsemestre_id)
+    log('formsemestre_synchro_etuds: formsemestre_id=%s' % formsemestre_id)
     sem = context.get_formsemestre(formsemestre_id)
     # -- check lock
     if sem['etat'] != '1':
@@ -88,8 +91,10 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
 
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation
-    
-    etuds_by_cat, etuds_a_importer, etudsapo_ident = list_synch(context, sem, anneeapogee=anneeapogee)    
+    if type(inscrits_without_key) == type(''):
+        inscrits_without_key = inscrits_without_key.split(',')
+        
+    etuds_by_cat, a_importer, a_inscrire, inscrits_set, inscrits_without_key_all, etudsapo_ident = list_synch(context, sem, anneeapogee=anneeapogee)    
 
     if export_cat_xls:
         filename = export_cat_xls
@@ -102,24 +107,49 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
         H += build_page(context, sem, etuds_by_cat, anneeapogee, base_url=base_url)
     else:
         etuds_set = Set(etuds)
-        etuds_a_importer = etuds_a_importer.intersection(etuds_set)
+        a_importer = a_importer.intersection(etuds_set)
+        a_desinscrire = inscrits_set - etuds_set
+        log('inscrits_without_key_all=%s'%Set(inscrits_without_key_all))
+        log('inscrits_without_key=%s'%inscrits_without_key)
+        a_desinscrire_without_key =  Set(inscrits_without_key_all) - Set(inscrits_without_key)
+        log('a_desinscrire_without_key=%s'%a_desinscrire_without_key)
+        inscrits_ailleurs = Set(sco_inscr_passage.list_inscrits_date(context, sem))
+        a_inscrire = a_inscrire.intersection(etuds_set)
+        
         if not dialog_confirmed:
-            if not inscrire_non_inscrits:
-                # Confirmation
-                if etuds_a_importer:
-                    H.append('<h3>Etudiants à importer et inscrire</h3><ol>')
-                    for key in etuds_a_importer:
-                        H.append('<li>%(fullname)s</li>' % etudsapo_ident[key] )
-                    H.append('</ol>')
-                else:
-                    H.append('<h3>Aucun étudiant à importer !</h3>')
-            else:
-                 H.append("""<h3>Etudiants à inscrire</h3>
-                 <p>Ces étudiants sont connus de ScoDoc et inscrits à l'étape Apogée
-                 correspondant à ce semestre, mais pas encore inscrits au semestre dans ScoDoc</p><ol>""")
-                 for etud in etuds_by_cat['etuds_noninscrits']['etuds']:
-                     H.append('<li>%s</li>' % context.nomprenom(etud) )
-                 H.append('</ol>')
+            # Confirmation
+            if a_importer:                
+                H.append('<h3>Etudiants à importer et inscrire :</h3><ol>')
+                for key in a_importer:
+                    H.append('<li>%(fullname)s</li>' % etudsapo_ident[key] )
+                H.append('</ol>')
+
+            if a_inscrire:
+                H.append('<h3>Etudiants à inscrire :</h3><ol>')
+                for key in a_inscrire:
+                    H.append('<li>%(fullname)s</li>' % etudsapo_ident[key] )
+                H.append('</ol>')
+            
+            a_inscrire_en_double = inscrits_ailleurs.intersection(a_inscrire)
+            if a_inscrire_en_double:
+                H.append('<h3>dont étudiants déjà inscrits:</h3><ol>')
+                for key in a_inscrire_en_double:
+                    H.append('<li class="inscrailleurs">%(fullname)s</li>' % etudsapo_ident[key])
+                H.append('</ol>')
+
+            if a_desinscrire or a_desinscrire_without_key:
+                H.append('<h3>Etudiants à désinscrire :</h3><ol>')
+                for key in a_desinscrire:
+                    etud = context.getEtudInfo(code_nip=key)[0]
+                    H.append('<li class="desinscription">%s</li>' % context.nomprenom(etud) )
+                for etudid in a_desinscrire_without_key:
+                    etud = inscrits_without_key_all[etudid]
+                    H.append('<li class="desinscription">%s</li>' % context.nomprenom(etud) )
+                H.append('</ol>')
+
+            if not a_importer and not a_inscrire and not a_desinscrire:
+                H.append("""<h3>Il n'y a rien à modifier !</h3>""")
+
             H.append( context.confirmDialog(
                 dest_url="formsemestre_synchro_etuds",
                 add_headers=False,
@@ -127,19 +157,28 @@ def synchronize_etuds(context, formsemestre_id, etuds=[], anneeapogee=None,
                 OK = "Effectuer l'opération",
                 parameters = {'formsemestre_id' : formsemestre_id,
                               'etuds' : ','.join(etuds),
+                              'inscrits_without_key' : ','.join(inscrits_without_key),
                               'submitted' : 1,
-                              'inscrire_non_inscrits' : inscrire_non_inscrits,
                               'anneeapogee' : anneeapogee
                               }) )            
         else:
             # OK, do it
-            if inscrire_non_inscrits:
-                do_synch_inscrits_etuds(context, sem, etuds_by_cat['etuds_noninscrits']['etuds'], REQUEST=REQUEST)
-            do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, REQUEST)
 
+            # Conversions des listes de codes NIP en listes de codes etudid
+            def nip2etudid(code_nip):
+                etud = context.getEtudInfo(code_nip=code_nip)[0]
+                return etud['etudid']
+            etudids_a_inscrire = [ nip2etudid(x) for x in a_inscrire ]
+            etudids_a_desinscrire = [ nip2etudid(x) for x in a_desinscrire ]
+            etudids_a_desinscrire += a_desinscrire_without_key
+            #
+            do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUEST)
+            sco_inscr_passage.do_inscrit(context, sem, etudids_a_inscrire, REQUEST)
+            sco_inscr_passage.do_desinscrit(context, sem, etudids_a_desinscrire, REQUEST)
+            
             H.append("""<h3>Opération effectuée</h3>
             <ul>
-                <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>
+                <li><a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=%s">Continuer la synchronisation</a></li>
                 <li><a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">Répartir les groupes de %s</a></li>
                 """ % (formsemestre_id,formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd']))
     
@@ -176,7 +215,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         """ % (sem['formsemestre_id'], str(year),sel[0],str(year), str(year-1),sel[1],str(year-1), '*', sel[-1], 'toutes'),
         """
         <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
-        <input type="submit" name="submitted" value="Importer et inscrire"/>
+        <input type="submit" name="submitted" value="Appliquer les modifications"/>
         &nbsp;<a href="#help">aide</a>
         """ % sem, # "
           
@@ -185,7 +224,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
                                              show_empty_boxes=True,
                                              base_url=base_url),
 
-        synchronize_etuds_help(sem),
+        formsemestre_synchro_etuds_help(sem),
         """</form>""",          
         ]
     return H
@@ -193,11 +232,13 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
 def list_synch(context, sem, anneeapogee=None):
     inscrits = sco_inscr_passage.list_inscrits(context, sem['formsemestre_id'], with_dems=True)
     # Tous les ensembles d'etudiants sont ici des ensembles de codes NIP (voir EKEY_SCO)
+    # (sauf inscrits_without_key)
     inscrits_set = Set()
     inscrits_without_key = {} # etudid : etud sans code NIP
     for e in inscrits.values():
         if not e[EKEY_SCO]:
             inscrits_without_key[e['etudid']] = e
+            e['inscrit'] = True # checkbox state 
         else:
             inscrits_set.add(e[EKEY_SCO])
 #     allinscrits_set = Set() # tous les inscrits scodoc avec code_nip, y compris les demissionnaires
@@ -210,73 +251,75 @@ def list_synch(context, sem, anneeapogee=None):
     etudsapo_ident = dict( [ (x[EKEY_APO], x) for x in etudsapo ] )
     # categories:
     etuds_ok = etudsapo_set.intersection(inscrits_set)
-    etuds_aposco, etuds_a_importer, key2etudid = list_all(context, etudsapo_set)
+    etuds_aposco, a_importer, key2etudid = list_all(context, etudsapo_set)
     etuds_noninscrits = etuds_aposco - inscrits_set
     etuds_nonapogee = inscrits_set - etudsapo_set
     #
     cnx = context.GetDBConnexion()
     # Tri listes
-    def set_to_sorted_list(etudset, valid_etudid=True):
-        def key2etud(key, valid_etudid=True ):
-            if valid_etudid:
+    def set_to_sorted_list(etudset, etud_apo=False, is_inscrit=False):
+        def key2etud(key, etud_apo=False ):
+            if not etud_apo:
                 etudid = key2etudid[key]
                 etud = scolars.identite_list(cnx, {'etudid' : etudid})[0]
+                etud['inscrit'] = is_inscrit # checkbox state
                 return etud
             else:
                 # etudiant Apogee
                 etud = etudsapo_ident[key]
                 etud['etudid'] = ''
                 etud['sexe'] = etud.get('sexe', '')
-                etud['inscrit'] = True # => checkbox checked
+                etud['inscrit'] = is_inscrit # checkbox state
                 return etud
         
-        etuds = [ key2etud(x, valid_etudid) for x in etudset ]
+        etuds = [ key2etud(x, etud_apo) for x in etudset ]
         etuds.sort( lambda x,y: cmp(x['nom'], y['nom']) )
         return etuds    
     #
-    if etuds_noninscrits:
-        inscr_link = """<br/>
-                      <a href="formsemestre_synchro_etuds?formsemestre_id=%s&submitted=1&inscrire_non_inscrits=1" style="color:red; font-weight:bold">inscrire ces étudiants</a>
-                      """ % sem['formsemestre_id']
-    else:
-        inscr_link = ''
     r = {
         'etuds_ok' :
-        { 'etuds' : set_to_sorted_list(etuds_ok),
+        { 'etuds' : set_to_sorted_list(etuds_ok, is_inscrit=True),
           'infos' : { 'id' : 'etuds_ok',
                       'title' : 'Etudiants dans Apogée et déjà inscrits',
-                      'help' : 'Ces etudiants sont inscrits dans le semestre ScoDoc et sont présents dans Apogée: tout est donc correct.',
+                      'help' : 'Ces etudiants sont inscrits dans le semestre ScoDoc et sont présents dans Apogée: tout est donc correct. Décocher les étudiants que vous souhaitez désinscrire.',
                       'title_target' : '',
-                      'with_checkbox' : False }
+                      'with_checkbox' : True,
+                      'etud_key' : EKEY_SCO
+                      }
           },
         'etuds_noninscrits' : 
-        { 'etuds' : set_to_sorted_list(etuds_noninscrits), 
+        { 'etuds' : set_to_sorted_list(etuds_noninscrits, is_inscrit=True), 
           'infos' : { 'id' : 'etuds_noninscrits',
                       'title' : 'Etudiants non inscrits dans ce semestre',
-                      'help' : """Ces étudiants sont déjà connus par ScoDoc, sont inscrits dans cette étape Apogée mais ne sont pas inscrits à ce semestre ScoDoc. Suivez le lien 'inscrire ces étudiants' pour les inscrire maintenant.""",
+                      'help' : """Ces étudiants sont déjà connus par ScoDoc, sont inscrits dans cette étape Apogée mais ne sont pas inscrits à ce semestre ScoDoc. Cochez les étudiants à inscrire.""",
                       'comment' : """ dans ScoDoc et Apogée, <br/>mais pas inscrits
-                      dans ce semestre""" + inscr_link,
+                      dans ce semestre""",
                       'title_target' : '',
-                      'with_checkbox' : False }
+                      'with_checkbox' : True,
+                      'etud_key' : EKEY_SCO
+                      }
           },
         'etuds_a_importer' :
-        { 'etuds' : set_to_sorted_list(etuds_a_importer, valid_etudid=False),
+        { 'etuds' : set_to_sorted_list(a_importer, is_inscrit=True, etud_apo=True),
           'infos' : { 'id' : 'etuds_a_importer',
                       'title' : 'Etudiants dans Apogée à importer',
                       'help' : """Ces étudiants sont inscrits dans cette étape Apogée mais ne sont pas connus par ScoDoc: cocher les noms à importer et inscrire puis appuyer sur le bouton en haut de la page.""",
                       'title_target' : '',
-                      'etud_key' : EKEY_APO # clé a stocker dans le formulaire html
+                      'with_checkbox' : True,
+                      'etud_key' : EKEY_APO # clé à stocker dans le formulaire html
                       },
           'nomprenoms' : etudsapo_ident
           },
         'etuds_nonapogee' :
-        { 'etuds' : set_to_sorted_list(etuds_nonapogee),
+        { 'etuds' : set_to_sorted_list(etuds_nonapogee, is_inscrit=True),
           'infos' : { 'id' : 'etuds_nonapogee',
                       'title' : 'Etudiants ScoDoc inconnus dans cette étape Apogée',
                       'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, ont un code NIP, mais ne sont pas inscrits dans cette étape Apogée. Soit ils sont en retard pour leur inscription, soit il s'agit d'une erreur: vérifiez avec le service Scolarité de votre établissement. Autre possibilité: votre code étape semestre (%s) est incorrect ou vous n'avez pas choisi la bonne année d'inscription.""" % sem['etape_apo'],
                       'comment' : ' à vérifier avec la Scolarité',
                       'title_target' : '',
-                      'with_checkbox' : False }
+                      'with_checkbox' : True,
+                      'etud_key' : EKEY_SCO
+                      }
           },
         'inscrits_without_key' :
         { 'etuds' : inscrits_without_key.values(),
@@ -284,10 +327,12 @@ def list_synch(context, sem, anneeapogee=None):
                       'title' : 'Etudiants ScoDoc sans clé Apogée (NIP)',
                       'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, mais n'ont pas de code NIP: on ne peut pas les mettre en correspondance avec Apogée. Utiliser le lien 'Changer les données identité' dans le menu 'Etudiant' sur leur fiche pour ajouter cette information.""",
                       'title_target' : '',
-                      'with_checkbox' : False }
+                      'with_checkbox' : True,
+                      'checkbox_name' : 'inscrits_without_key'
+                      }
         }
         }
-    return r, etuds_a_importer, etudsapo_ident
+    return r, a_importer, etuds_noninscrits, inscrits_set, inscrits_without_key, etudsapo_ident
 
 def list_all(context, etudsapo_set):
     """Cherche le sous-ensemble des etudiants Apogee de ce semestre
@@ -304,10 +349,10 @@ def list_all(context, etudsapo_set):
     
     # ne retient que ceux dans Apo
     etuds_aposco = etudsapo_set.intersection(all_set) # a la fois dans Apogee et dans ScoDoc
-    etuds_a_importer  = etudsapo_set - all_set # dans Apogee, mais inconnus dans ScoDoc
-    return etuds_aposco, etuds_a_importer, key2etudid
+    a_importer  = etudsapo_set - all_set # dans Apogee, mais inconnus dans ScoDoc
+    return etuds_aposco, a_importer, key2etudid
 
-def synchronize_etuds_help(sem):
+def formsemestre_synchro_etuds_help(sem):
     return """<div class="pas_help"><h3><a name="help">Explications</a></h3>
     <p>Cette page permet d'importer dans le semestre destination
     <a class="stdlink"
@@ -315,7 +360,9 @@ def synchronize_etuds_help(sem):
     les étudiants inscrits dans l'étape Apogée correspondante (<b><tt>%(etape_apo)s</tt></b>) 
     </p>
     <p>Au départ, tous les étudiants d'Apogée sont sélectionnés; vous pouvez 
-    en déselectionner certains.</p>
+    en déselectionner certains. Tous les étudiants cochés seront inscrits au semestre ScoDoc, 
+    les autres seront si besoin désinscrits. Aucune modification n'est effectuée avant 
+    d'appuyer sur le bouton "Appliquer les modifications" en haut de cette page.</p>
 
     <h4>Autres fonctions utiles</h4>
     <ul>
@@ -330,7 +377,7 @@ def synchronize_etuds_help(sem):
 
 
 def gender2sex(gender):
-    """Le portail code en 'M', 'F', et SocDoc en 'MR', 'MME', 'MLLE'
+    """Le portail code en 'M', 'F', et ScoDoc en 'MR', 'MME', 'MLLE'
     Les F sont ici codées en MLLE
     """
     if gender == 'M':
@@ -340,10 +387,10 @@ def gender2sex(gender):
     log('gender2sex: invalid value "%s", defaulting to "M"' % gender)
     return 'MR'
 
-def do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, REQUEST):
+def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUEST):
     """Inscrit les etudiants apogee dans ce semestre.
     """
-    log('do_import_etuds_from_portal: etuds_a_importer=%s' % etuds_a_importer)
+    log('do_import_etuds_from_portal: a_importer=%s' % a_importer)
     cnx = context.GetDBConnexion()
     annee_courante = time.localtime()[0]
     created_etudids = []
@@ -352,7 +399,7 @@ def do_import_etuds_from_portal(context, sem, etuds_a_importer, etudsapo_ident, 
     #  2/ completer suivant WebService portail (adresse, sexe, ...)
 
     try: # --- begin DB transaction
-        for key in etuds_a_importer:
+        for key in a_importer:
             etud = etudsapo_ident[key] # on a ici toutes les infos renvoyées par le portail
 
             # Traduit les infos portail en infos pour ScoDoc:

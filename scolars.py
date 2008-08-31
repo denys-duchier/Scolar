@@ -364,7 +364,7 @@ etudident_list   = _etudidentEditor.list
 etudident_edit   = _etudidentEditor.edit
 etudident_create = _etudidentEditor.create
 
-def make_etud_args(etudid=None, REQUEST=None, raise_exc=True):
+def make_etud_args(etudid=None, code_nip=None, REQUEST=None, raise_exc=True):
     """forme args dict pour requete recherche etudiant
     On peut specifier etudid
     ou bien cherche dans REQUEST.form: etudid, code_nip, code_ine
@@ -372,7 +372,9 @@ def make_etud_args(etudid=None, REQUEST=None, raise_exc=True):
     """
     args = None
     if etudid:
-        args = {'etudid':etudid}
+        args = { 'etudid' : etudid }
+    elif code_nip:
+        args = { 'code_nip' : code_nip }
     elif REQUEST:
         if REQUEST.form.has_key('etudid'):
             args = {'etudid':REQUEST.form['etudid'] }

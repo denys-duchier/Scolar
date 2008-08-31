@@ -2608,7 +2608,7 @@ class ZNotes(ObjectManager,
     formsemestre_inscr_passage = sco_inscr_passage.formsemestre_inscr_passage
 
     security.declareProtected(ScoEtudInscrit,'formsemestre_synchro_etuds')
-    formsemestre_synchro_etuds = sco_synchro_etuds.synchronize_etuds
+    formsemestre_synchro_etuds = sco_synchro_etuds.formsemestre_synchro_etuds
 
     # ------------- RAPPORTS STATISTIQUES
     security.declareProtected(ScoView, "formsemestre_report_counts")
