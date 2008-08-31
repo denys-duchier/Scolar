@@ -307,7 +307,7 @@ def menus_etud(context, REQUEST=None):
           'enabled' : authuser.has_permission(ScoEtudInscrit,context),
           },
         { 'title' : 'Voir le journal...',
-          'url' : 'showEtudLog??etudid=%(etudid)s' % etud,
+          'url' : 'showEtudLog?etudid=%(etudid)s' % etud,
           'enabled' : True,
           },
         ]
