@@ -27,6 +27,8 @@ for dept in get_depts():
     check_field(cnx, 'notes_formsemestre', 'resp_can_edit',
                 ['alter table notes_formsemestre add column resp_can_edit int default 0',
                  'update notes_formsemestre set resp_can_edit=0'])
+    
+    # Add here actions to performs after upgrades:
 
 # The end.
 sys.exit(0)

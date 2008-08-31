@@ -19,5 +19,7 @@ if os.getuid() != 0:
 
 # ---
 
+# add here actions to perform...
+
 # ---
 sys.exit(0)
