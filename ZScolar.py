@@ -2136,7 +2136,7 @@ function tweakmenu( gname ) {
         if not nomgroupe:
             nomgroupe = 'tous'
         cnx = self.GetDBConnexion()
-        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du ' % ng, sem),
+        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % ng, sem),
               '<table class="sortable" id="listegroupe">',
               '<tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
         nerrs = 0 # nombre d'anomalies détectées
