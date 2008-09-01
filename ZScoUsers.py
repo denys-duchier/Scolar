@@ -55,6 +55,7 @@ from notesdb import *
 from notes_log import log
 from scolog import logdb
 from sco_utils import *
+from scolars import format_prenom
 import sco_import_users, sco_excel
 from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
@@ -253,7 +254,7 @@ class ZScoUsers(ObjectManager,
             del info['passwd'] # always conceal password !
             #
             if info['prenom']:
-                p = info['prenom']
+                p = format_prenom(info['prenom'])
             else:
                 p = ''
             if info['nom']:
@@ -267,9 +268,9 @@ class ZScoUsers(ObjectManager,
             info['prenomnom'] = (prenom_abbrv + ' ' + n).strip()
             # nomcomplet est le prenom et le nom complets
             info['nomcomplet'] = scolars.format_prenom(p) + ' ' + scolars.format_nom(n)
-            # nomplogin est le capitalisé suivi du prénom et du login
+            # nomplogin est le nom en majuscules suivi du prénom et du login
             # e.g. Dupont Pierre (dupont)
-            info['nomplogin'] = info['nomcomplet'] + ' (%s)' % info['user_name']
+            info['nomplogin'] = '%s %s (%s)' % (n.upper(), p, info['user_name'])
             return info
 
     def _can_handle_passwd(self, authuser, user_name):
@@ -842,7 +843,7 @@ class ZScoUsers(ObjectManager,
             return l
 
     security.declareProtected(ScoView, 'get_userlist_xml')
-    def get_userlist_xml(self, dept=None, start='', REQUEST=None):
+    def get_userlist_xml(self, dept=None, start='', limit=25, REQUEST=None):
         """Returns XML list of users with name (nomplogin) starting with start.
         Used for forms auto-completion."""
         userlist = self.get_userlist(dept=dept)
@@ -852,7 +853,7 @@ class ZScoUsers(ObjectManager,
             REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.results()
-        for user in userlist:
+        for user in userlist[:limit]:
             doc._push()
             doc.rs(user['nomplogin'], id=user['user_id'], info='')
             doc._pop()

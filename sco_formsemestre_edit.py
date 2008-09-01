@@ -39,22 +39,40 @@ def _default_sem_title(F):
     return F['titre']
 
 
+def formsemestre_createwithmodules(context, REQUEST=None):
+    """Page création d'un semestre"""
+    H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
+                             javascripts=['AutoSuggest_js'],
+                             cssstyles=['autosuggest_inquisitor_css'], 
+                             bodyOnLoad="init_tf_form('')"
+                             ),
+          """<h2>Mise en place d'un semestre de formation</h2>""",
+          do_formsemestre_createwithmodules(context, REQUEST=REQUEST),
+          context.sco_footer(REQUEST)
+          ]
+    return '\n'.join(H)
+
 def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     """Page modification semestre"""
     # portage from dtml
     authuser = REQUEST.AUTHENTICATED_USER
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
-    H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem) ]
+    H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem,
+                                  javascripts=['AutoSuggest_js'],
+                                  cssstyles=['autosuggest_inquisitor_css'], 
+                                  bodyOnLoad="init_tf_form('')"
+                                  ) ]
     if sem['etat'] != '1':
         H.append("""<p>%s<b>Ce semestre est verrouillé.</b></p>""" %
                  context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
     else:
-        H.append(context.do_formsemestre_createwithmodules(REQUEST, context.getZopeUsers(), edit=1 ))
+        H.append(do_formsemestre_createwithmodules(context, REQUEST=REQUEST, edit=1 ))
         if not REQUEST.get('tf-submitted',False):
-            H.append("""<p class="help">Seuls les modules cochés font partie de ce semestre. Pour les retirer, "décocher"-les et appuyer sur le bouton "modifier".
+            H.append("""<p class="help">Seuls les modules cochés font partie de ce semestre. Pour les retirer, les décocher et appuyer sur le bouton "modifier".
 </p>
-<p class="help">Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</p>""")
+<p class="help">Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</p>
+<p class="help">Les modules ont toujours un responsable. Par défaut, c'est le directeur des études.</p>""")
             if authuser.has_permission(ScoImplement,context):
                 H.append("""
 <p><a class="stdlink" href="formsemestre_delete?formsemestre_id=%s">Supprimer ce semestre</a></p>""" % formsemestre_id)
@@ -62,7 +80,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
 
-def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
+def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
     # Fonction accessible à tous, controle acces à la main:
     if edit:
@@ -77,19 +95,12 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
             if not sem['resp_can_edit'] or str(authuser) != sem['responsable_id']:
                 raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
     
-    # Forme liste des enseignants avec noms et prenoms
-    iii = []
-    for user in userlist: # XXX may be slow on large user base ?
-        info = context.Users.user_info(user,REQUEST)
-        nomprenom = info['nomprenom']
-        if iii and nomprenom == iii[-1][1]:
-            # meme nom abrege, ajoute login
-            nomprenom += ' (%s)' % user
-            iii[-1][1] += ' (%s)' % iii[-1][2]
-        iii.append( [info['nom'].upper(), nomprenom, user] )
-    iii.sort()
-    nomprenoms = ['aucun'] + [ x[1] for x in iii ]
-    userlist =  [''] + [ x[2] for x in iii ]
+    # Liste des enseignants avec forme pour affichage / saisie avec suggestion
+    userlist = context.Users.get_userlist()
+    login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
+    for u in userlist:
+        login2display[u['user_name']] = u['nomplogin']
+    allowed_user_names = login2display.values() + ['']
     #
     formation_id = REQUEST.form['formation_id']
     F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
@@ -116,7 +127,10 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         ams = context.do_moduleimpl_list( { 'formsemestre_id' : formsemestre_id } )
         initvalues['tf-checked'] = [ x['module_id'] for x in ams ]
         for x in ams:
-            initvalues[str(x['module_id'])] = x['responsable_id']        
+            initvalues[str(x['module_id'])] = login2display.get(x['responsable_id'], x['responsable_id'])
+        
+        initvalues['responsable_id'] = login2display.get(sem['responsable_id'], sem['responsable_id'])
+
     # Liste des ID de semestres
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
@@ -162,11 +176,18 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
                          'size' : 9, 'allow_null' : False }),
         ('date_fin', { 'title' : 'Date de fin (j/m/a)',
                          'size' : 9, 'allow_null' : False }),
-        ('responsable_id', { 'input_type' : 'menu',
+        ('responsable_id', { 'input_type' : 'text_suggest',
+                             'size' : 50,
                              'title' : 'Directeur des études',
-                             'allowed_values' : userlist,
-                             'labels' : nomprenoms,
-                             'allow_null' : False }),        
+                             'allowed_values' : allowed_user_names,
+                             'allow_null' : False,
+                             'text_suggest_options' : { 
+                                             'script' : 'Users/get_userlist_xml?',
+                                             'varname' : 'start',
+                                             'json': False,
+                                             'noresults' : 'Valeur invalide !',
+                                             'timeout':60000 }
+                             }), 
         ('titre', { 'size' : 40, 'title' : 'Nom de ce semestre',
                     'explanation' : """n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés <input type="button" value="remettre titre par défaut" onClick="document.tf.titre.value='%s';"/>""" % _default_sem_title(F)
                     }),
@@ -272,17 +293,24 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
             if mod['semestre_id'] == semestre_id:
                 nbmod += 1;
                 if edit:
-                    fcg = '<select name="%s!groupe"><option value="%s!*!*!*">Tous</option><option value="%s!-!-!-">Aucun</option>' % (mod['module_id'],mod['module_id'],mod['module_id'])  + context.formChoixGroupe(formsemestre_id) + '</select>'
+                    fcg = '<select name="%s!groupe"><option value="%s!*!*!*">Tous</option><option value="%s!-!-!-">Aucun</option>' % (mod['module_id'],mod['module_id'],mod['module_id'])  + context.formChoixGroupe(formsemestre_id, display_sem_title=False) + '</select>'
                     itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td><td>""" + fcg + '</td></tr>'
                 else:
                     itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td></tr>"""
                 modform.append( (str(mod['module_id']),
-                                 { 'input_type' : 'menu',
+                                 { 'input_type' : 'text_suggest',
+                                   'size' : 50,
                                    'withcheckbox' : True,
                                    'title' : '%s %s' % (mod['code'],mod['titre']),
-                                   'allowed_values' : userlist,
-                                   'labels' : nomprenoms,
-                                   'template' : itemtemplate }) )
+                                   'allowed_values' : allowed_user_names,
+                                   'template' : itemtemplate,
+                                   'text_suggest_options' : { 
+                                                   'script' : 'Users/get_userlist_xml?',
+                                                   'varname' : 'start',
+                                                   'json': False,
+                                                   'noresults' : 'Valeur invalide !',
+                                                   'timeout':60000 }
+                                   }) )
     if nbmod == 0:
         modform.append(('sep',
                         { 'input_type' : 'separator',
@@ -369,23 +397,26 @@ def do_formsemestre_createwithmodules(context, REQUEST, userlist, edit=False ):
         else:
             tf[2]['gestion_semestrielle'] = 0
 
-        # Si un module n'a pas de responsable, l'affecte au directeur des etudes:
+        # remap les identifiants de responsables:
+        tf[2]['responsable_id'] = context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id'])
         for module_id in tf[2]['tf-checked']:
-            if not tf[2][module_id]:
-                tf[2][module_id] = tf[2]['responsable_id']
-
+            mod_resp_id = context.Users.get_user_name_from_nomplogin(tf[2][module_id])
+            if mod_resp_id is None:
+                # Si un module n'a pas de responsable (ou inconnu), l'affecte au directeur des etudes:
+                mod_resp_id = tf[2]['responsable_id']
+            tf[2][module_id] = mod_resp_id
+        
         if not edit:
-            # creation du semestre                
+            # creation du semestre  
             formsemestre_id = context.do_formsemestre_create(tf[2], REQUEST)
             # creation des modules
             for module_id in tf[2]['tf-checked']:
-                mod_resp_id = tf[2][module_id]
                 modargs = { 'module_id' : module_id,
                             'formsemestre_id' : formsemestre_id,
-                            'responsable_id' :  mod_resp_id,
+                            'responsable_id' :  tf[2][module_id]
                             }
                 mid = context.do_moduleimpl_create(modargs)
-            return '<p>ok, session créée<p/><p><a class="stdlink" href="%s">Continuer</a>'%REQUEST.URL2
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % formsemestre_id )
         else:
             # modification du semestre:
             # on doit creer les modules nouvellement selectionnés

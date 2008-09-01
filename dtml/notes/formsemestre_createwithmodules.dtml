@@ -1,6 +1,0 @@
-<dtml-var "sco_header(page_title='Création d\'une formation',REQUEST=REQUEST)">
-<h2>Mise en place d'un semestre de formation</h2>
-
-<dtml-var "do_formsemestre_createwithmodules(REQUEST, getZopeUsers() )">
-
-<dtml-var sco_footer>

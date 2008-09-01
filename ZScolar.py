@@ -542,28 +542,31 @@ class ZScolar(ObjectManager,
         return '\n'.join(H)    
 
     security.declareProtected(ScoView, 'formChoixGroupe')
-    def formChoixGroupe(self, formsemestre_id, prefix=''):
+    def formChoixGroupe(self, formsemestre_id, prefix='', display_sem_title=True):
         """Partie de formulaire pour le choix d'un groupe.
         Le groupe sera codé comme prefix!x!y!z
         groupe TD:   td!!, groupe TA !!ta, groupe tp !tp!        
         """
         # XXX assez primitif, a ameliorer
         sem = self.Notes.get_formsemestre(formsemestre_id)
-
+        if display_sem_title:
+            sem_title = '%s: ' % sem['titremois']
+        else:
+            sem_title = ''
         H = []
         nbgroups = 0
         gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
         for gr in gr_td:
-            tmpl = '<option value="%s!%s!!">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titremois'],sem['nomgroupetd'],gr))
+            tmpl = '<option value="%s!%s!!">%s%s %s</option>'
+            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupetd'],gr))
             nbgroups += 1
         for gr in gr_anglais:
-            tmpl = '<option value="%s!!!%s">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titremois'],sem['nomgroupeta'], gr))
+            tmpl = '<option value="%s!!!%s">%s%s %s</option>'
+            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupeta'], gr))
             nbgroups += 1
         for gr in gr_tp:
-            tmpl = '<option value="%s!!%s!">%s: %s %s</option>'
-            H.append( tmpl %(prefix,gr,sem['titremois'],sem['nomgroupetp'], gr))
+            tmpl = '<option value="%s!!%s!">%s%s %s</option>'
+            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupetp'], gr))
             nbgroups += 1
         if nbgroups == 0:
             return '' # aucun groupe, pas de choix
@@ -1744,12 +1747,12 @@ function tweakmenu( gname ) {
               ('suppress', {'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'supprimer la photo actuelle' }),
               # experimental XXXXXXXXX
               ('essai', { 'input_type' : 'text_suggest',
+                          'size' : 50,
                           'text_suggest_options' : { 
                                               'script' : 'Users/get_userlist_xml?',
-                                              'varname' : 'essai',
+                                              'varname' : 'start',
                                               'json': False,
-                                              'maxresults': 3,
-                                              'timeout':4000 } 
+                                              'timeout':60000 } 
                           }),
               # /
               ),

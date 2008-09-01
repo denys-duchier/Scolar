@@ -330,10 +330,12 @@ class TF:
                     checked='checked="checked"'
                 else:
                     checked=''
-                lab.append('<input type="checkbox" name="%s:list" value="%s" %s/>' % ('tf-checked', field, checked ) )
+                lab.append('<input type="checkbox" name="%s:list" value="%s" onclick="tf_enable_elem(this)" %s/>' % ('tf-checked', field, checked ) )
             lab.append(title)
             #
             attribs = ' '.join(descr.get('attributes', []))
+            if withcheckbox and not checked: # desactive les element non coches:
+                attribs += ' disabled="true"'
             #
             if input_type == 'text':
                 lem.append( '<input type="text" name="%s" size="%d" %s' % (field,size,attribs) )
@@ -477,6 +479,23 @@ class TF:
                 %s
             }
             </script>""" % '\n'.join(suggest_js))
+        # Javascript common to all forms:
+        R.append("""<script type="text/javascript">
+	// controle par la checkbox
+	function tf_enable_elem(checkbox) {
+	  oid = checkbox.value;
+	  if (oid) {
+	     elem = document.getElementById(oid)
+	     if (elem) {
+	         if (checkbox.checked) {
+	             elem.disabled = false;
+	         } else {
+	             elem.disabled = true;
+	         }
+	     }
+	  }
+	}        
+        </script>""")
         R.append('</form>')
         return R
     

@@ -202,7 +202,7 @@ class ZNotes(ObjectManager,
     evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
 
     security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
-    formsemestre_createwithmodules = DTMLFile('dtml/notes/formsemestre_createwithmodules', globals(), title='Création d\'un semestre (ou session) de formation avec ses modules')
+    formsemestre_createwithmodules = sco_formsemestre_edit.formsemestre_createwithmodules
 
     security.declareProtected(ScoView, 'formsemestre_editwithmodules')
     formsemestre_editwithmodules = sco_formsemestre_edit.formsemestre_editwithmodules
@@ -850,10 +850,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         self._formsemestreEditor.edit(cnx, *a, **kw )
         self._inval_cache()
-
-    security.declareProtected(ScoImplement, 'do_formsemestre_createwithmodules')
-    do_formsemestre_createwithmodules = sco_formsemestre_edit.do_formsemestre_createwithmodules
-
+    
     security.declareProtected(ScoView,'formsemestre_edit_uecoefs')
     formsemestre_edit_uecoefs = sco_formsemestre_edit.formsemestre_edit_uecoefs
 
@@ -905,11 +902,12 @@ class ZNotes(ObjectManager,
     formsemestre_custommenu_html = sco_formsemestre_custommenu.formsemestre_custommenu_html
 
     security.declareProtected(ScoView,'html_sem_header')
-    def html_sem_header(self, REQUEST, title, sem=None, with_page_header=True, with_h2=True):
+    def html_sem_header(self, REQUEST, title, sem=None, with_page_header=True, with_h2=True,
+                        **args):
         "Titre d'une page semestre avec lien vers tableau de bord"
         # sem now unused and thus optional...
         if with_page_header:
-            h = self.sco_header(REQUEST, page_title="%s" % (title))
+            h = self.sco_header(REQUEST, page_title="%s" % (title), **args)
         else:
             h = ''
         if with_h2:            
