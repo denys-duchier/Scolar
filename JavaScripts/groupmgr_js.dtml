@@ -48,7 +48,8 @@ CMyUpdater.prototype = {
 	    var prenom = etuds[j].attributes.getNamedItem("prenom").value;
 	    var sexe = etuds[j].attributes.getNamedItem("sexe").value;
 	    var etudid = etuds[j].attributes.getNamedItem("etudid").value;
-	    etud = new CDraggableEtud( nom, prenom, sexe, etudid );
+	    var origin = etuds[j].attributes.getNamedItem("origin").value;
+	    etud = new CDraggableEtud( nom, prenom, sexe, origin, etudid );
 	    gbox.createEtudInGroup(etud, groupName);
 	  }
 	}
@@ -155,18 +156,19 @@ var NbEtuds = 0;
 /* --- Etudiant draggable --- */
 var CDraggableEtud = Class.create(); // Prototype 
 CDraggableEtud.prototype = (new Rico.Draggable()).extend( {
-  initialize: function(nom, prenom, sexe, etudid) {
+	initialize: function(nom, prenom, sexe, origin, etudid) {
       this.type        = 'Custom';
       this.name        = etudid;
       this.etudid = etudid;
       this.nom = nom;
       this.prenom = prenom;
       this.sexe = sexe;
+      this.origin = origin;
       this.createNode();
       NbEtuds ++;
     },
       repr: function() {
-      return this.sexe + ' ' + this.prenom + ' <span class="nom">' + this.nom + '</span>';
+      return this.sexe + ' ' + this.prenom + ' <span class="nom">' + this.nom + '</span> ' + '<b>'+this.origin+'</b>';
     },
       createNode: function() {
       // Create DOM element for student

@@ -47,12 +47,13 @@ def checkGroupName(groupName):
         raise ValueError, 'invalid group name: ' + groupName
 
 
-def XMLgetGroupesTD(self, formsemestre_id, groupType, REQUEST):
+def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
     "Liste des etudiants dans chaque groupe de TD"
+    t0 = time.time()
     if not groupType in ('TD', 'TP', 'TA'):
         raise ValueError( 'invalid group type: ' + groupType)
-    cnx = self.GetDBConnexion()
-    sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+    cnx = context.GetDBConnexion()
+    sem = context.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
     REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
     doc._text( '<ajax-response><response type="object" id="MyUpdater">' )
@@ -60,8 +61,8 @@ def XMLgetGroupesTD(self, formsemestre_id, groupType, REQUEST):
 
 
     # --- Infos sur les groupes existants
-    gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
-    nt = self.Notes._getNotesCache().get_NotesTable(self.Notes,
+    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+    nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,
                                                     formsemestre_id)
     inscrlist = nt.inscrlist # liste triee par nom
     
@@ -86,21 +87,46 @@ def XMLgetGroupesTD(self, formsemestre_id, groupType, REQUEST):
         for e in inscrlist:
             if (g and e[key] == g) or (not g and not e[key]):
                 ident = nt.identdict[e['etudid']]
+                etud = context.getEtudInfo(etudid=e['etudid'], filled=1)[0]
                 doc._push()
                 doc.etud( etudid=e['etudid'],
                           sexe=format_sexe(ident['sexe']),
                           nom=format_nom(ident['nom']),
-                          prenom=format_prenom(ident['prenom']))
+                          prenom=format_prenom(ident['prenom']),
+                          origin=comp_origin(etud, sem)
+                          )
                 doc._pop()    
         doc._pop()
     doc._pop()
     doc._text( '</response></ajax-response>' )
+    log('XMLgetGroupesTD: %s seconds' % (time.time() - t0))
     return repr(doc)
 
-def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
+def comp_origin(etud, cur_sem):
+    """breve descrition de l'origine de l'étudiant (sem. precedent)
+    (n'indique l'origine que si ce n'est pa sle semestre precedent normal)
+    """
+    # cherche le semestre suivant le sem. courant dans la liste
+    cur_sem_idx = None
+    for i in range(len(etud['sems'])):
+        if etud['sems'][i]['formsemestre_id'] == cur_sem['formsemestre_id']:
+            cur_sem_idx = i
+            break
+    
+    if cur_sem_idx is None or (cur_sem_idx+1) >= (len(etud['sems'])-1):
+        return '' # on pourrait indiquer le bac mais en general on ne l'a pas en debut d'annee
+    
+    prev_sem = etud['sems'][cur_sem_idx+1] 
+    if prev_sem['semestre_id'] != (cur_sem['semestre_id'] - 1):
+        return ' (S%s)' % prev_sem['semestre_id']
+    else:
+        return '' # parcours normal, ne le signale pas
+    
+
+def setGroupes(context, groupslists, formsemestre_id=None, groupType=None,
                REQUEST=None):
     "affect groups (Ajax request)"
-    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
     
     log('***setGroupes\nformsemestre_id=%s' % formsemestre_id)
@@ -121,22 +147,22 @@ def setGroupes(self, groupslists, formsemestre_id=None, groupType=None,
         checkGroupName(groupName)
         args[grn] = groupName
         for etudid in fs[1:-1]:
-            self.doChangeGroupe( etudid, formsemestre_id, **args )
+            context.doChangeGroupe( etudid, formsemestre_id, **args )
 
     REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
     return '<ajax-response><response type="object" id="ok"/></ajax-response>'
 
 
-def suppressGroup(self, REQUEST, formsemestre_id=None,
+def suppressGroup(context, REQUEST, formsemestre_id=None,
                   groupType=None, groupTypeName=None ):
     """form suppression d'un groupe.
     (ne desisncrit pas les etudiants, change juste leur
     affectation aux groupes)
     """
-    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
 
-    gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
     if groupType == 'TD':
         groupes = gr_td
     elif groupType == 'TP':
@@ -153,14 +179,14 @@ def suppressGroup(self, REQUEST, formsemestre_id=None,
     else:
         default_group = 'aucun'
     #
-    header = self.sco_header(REQUEST, page_title='Suppression d\'un groupe' )
+    header = context.sco_header(REQUEST, page_title='Suppression d\'un groupe' )
     H = [ '<h2>Suppression d\'un groupe de %s</h2>' % groupTypeName ]
     if groupType == 'TD':
         if len(gr_td) > 1:
             H.append( '<p>Les étudiants doivent avoir un groupe de TD. Si vous supprimer ce groupe, il seront affectés au groupe destination choisi (vous pourrez les changer par la suite)</p>'  )
         else:
             H.append('<p>Il n\'y a qu\'un seul groupe défini, vous ne pouvez pas le supprimer.</p><p><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%s">Revenir au semestre</a>' % formsemestre_id )
-            return  header + '\n'.join(H) + self.sco_footer(REQUEST)
+            return  header + '\n'.join(H) + context.sco_footer(REQUEST)
 
     descr = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
@@ -183,7 +209,7 @@ def suppressGroup(self, REQUEST, formsemestre_id=None,
                             submitlabel = 'Supprimer ce groupe',
                             name='tf' )
     if  tf[0] == 0:
-        return header + '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
+        return header + '\n'.join(H) + '\n' + tf[1] + context.sco_footer(REQUEST)
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
@@ -202,7 +228,7 @@ def suppressGroup(self, REQUEST, formsemestre_id=None,
             req = 'update notes_formsemestre_inscription set groupeanglais=%(default_group)s where formsemestre_id=%(formsemestre_id)s and groupeanglais=%(groupName)s'
         else:
             raise ValueError, 'invalid group type: ' + groupType
-        cnx = self.GetDBConnexion()
+        cnx = context.GetDBConnexion()
         cursor = cnx.cursor()
         aa = { 'formsemestre_id' : formsemestre_id,
                'groupName' : groupName,
@@ -211,7 +237,7 @@ def suppressGroup(self, REQUEST, formsemestre_id=None,
         log('suppressGroup( req=%s, args=%s )' % (req, aa) )
         cursor.execute( req, aa )
         cnx.commit()
-        self.Notes._inval_cache(formsemestre_id=formsemestre_id)
+        context.Notes._inval_cache(formsemestre_id=formsemestre_id)
         return REQUEST.RESPONSE.redirect( 'Notes/formsemestre_status?formsemestre_id=%s' % formsemestre_id )
 
 def getGroupTypeName(sem, groupType):
@@ -223,13 +249,13 @@ def getGroupTypeName(sem, groupType):
         return sem['nomgroupeta']
     raise ValueError( 'invalid group type: ' + groupType)
 
-def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST=None):
+def groupes_auto_repartition(context, formsemestre_id=None, groupType=None, REQUEST=None):
     """Reparti les etudiants dans des groupes, en respectant le niveau
     et la mixité.
     """
-    if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
-    sem = self.Notes.get_formsemestre(formsemestre_id)
+    sem = context.Notes.get_formsemestre(formsemestre_id)
     groupTypeName = getGroupTypeName(sem, groupType)
     if groupType == 'TD':
         grn = 'groupetd'
@@ -244,7 +270,7 @@ def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST
                          'explanation' : 'noms des groupes à créer, séparés par des virgules'})
        ]
     
-    H = [ self.sco_header(REQUEST, page_title='Répartition des groupes' ),
+    H = [ context.sco_header(REQUEST, page_title='Répartition des groupes' ),
           '<h2>Répartition des groupes de %s</h2>' % groupTypeName,
           '<p>Semestre %s</p>' % sem['titreannee'],
           """<p class="help">Les groupes existant seront <b>détruits</b> et remplacés par
@@ -259,7 +285,7 @@ def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST
                             submitlabel = 'Créer et peupler les groupes',
                             name='tf' )
     if  tf[0] == 0:
-        return '\n'.join(H) + '\n' + tf[1] + self.sco_footer(REQUEST)
+        return '\n'.join(H) + '\n' + tf[1] + context.sco_footer(REQUEST)
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
@@ -271,15 +297,15 @@ def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST
                 checkGroupName(groupName)
             except:
                 H.append('<p class="warning">Nom de groupe invalide: %s</p>'%groupName)
-                return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+                return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
         
-        nt = self.Notes._getNotesCache().get_NotesTable(self.Notes,formsemestre_id )
+        nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,formsemestre_id )
         identdict = nt.identdict
         # build:  { sexe : liste etudids trie par niveau croissant }
         sexes = sets.Set([ x['sexe'] for x in identdict.values() ])
         listes = {}
         for sexe in sexes:
-            listes[sexe] = [ (get_prev_moy(self.Notes,x['etudid'],formsemestre_id),
+            listes[sexe] = [ (get_prev_moy(context.Notes,x['etudid'],formsemestre_id),
                               x['etudid'])
                              for x in identdict.values() if x['sexe'] == sexe ]
             listes[sexe].sort()
@@ -296,7 +322,7 @@ def groupes_auto_repartition(self, formsemestre_id=None, groupType=None, REQUEST
                     args = { 'REQUEST' : REQUEST, 'redirect' : False }
                     args[grn] = groupNames[igroup]
                     igroup = (igroup+1) % nbgroups
-                    self.doChangeGroupe(etudid, formsemestre_id, **args)
+                    context.doChangeGroupe(etudid, formsemestre_id, **args)
                     log('%s in group %s' % (etudid,args[grn]) )
         # envoie sur page edition groupes
         return REQUEST.RESPONSE.redirect(
