@@ -223,6 +223,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
                                              sel_inscrits=False,
                                              show_empty_boxes=True,
                                              base_url=base_url),
+        """<p/><input type="submit" name="submitted" value="Appliquer les modifications"/>""",
 
         formsemestre_synchro_etuds_help(sem),
         """</form>""",          
@@ -303,7 +304,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(a_importer, is_inscrit=True, etud_apo=True),
           'infos' : { 'id' : 'etuds_a_importer',
                       'title' : 'Etudiants dans Apogée à importer',
-                      'help' : """Ces étudiants sont inscrits dans cette étape Apogée mais ne sont pas connus par ScoDoc: cocher les noms à importer et inscrire puis appuyer sur le bouton en haut de la page.""",
+                      'help' : """Ces étudiants sont inscrits dans cette étape Apogée mais ne sont pas connus par ScoDoc: cocher les noms à importer et inscrire puis appuyer sur le bouton "Appliquer".""",
                       'title_target' : '',
                       'with_checkbox' : True,
                       'etud_key' : EKEY_APO # clé à stocker dans le formulaire html
@@ -362,7 +363,7 @@ def formsemestre_synchro_etuds_help(sem):
     <p>Au départ, tous les étudiants d'Apogée sont sélectionnés; vous pouvez 
     en déselectionner certains. Tous les étudiants cochés seront inscrits au semestre ScoDoc, 
     les autres seront si besoin désinscrits. Aucune modification n'est effectuée avant 
-    d'appuyer sur le bouton "Appliquer les modifications" en haut de cette page.</p>
+    d'appuyer sur le bouton "Appliquer les modifications".</p>
 
     <h4>Autres fonctions utiles</h4>
     <ul>

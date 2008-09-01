@@ -78,7 +78,7 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
     r[sem['formsemestre_id']] = {
         'etuds' : inscrits.values(),
         'infos' : { 'id' : sem['formsemestre_id'],
-                    'title' : sem['titreannee'],
+                    'title' : 'Semestre cible: ' + sem['titreannee'],
                     'title_target' : 'formsemestre_status?formsemestre_id=%s' % sem['formsemestre_id'],
                     'comment' : ' actuellement inscrits dans ce semestre',
                     'help' : 'Ces étudiants sont actuellement inscrits dans ce semestre. Si vous les décochez, il seront désinscrits.'
@@ -293,10 +293,12 @@ def build_page(context, REQUEST, sem, auth_etuds_by_sem, inscrits,
         et %d candidats supplémentaires
         </div>""" % (len(inscrits), len(candidats_non_inscrits)),
         
-        etuds_select_boxes(context, auth_etuds_by_sem, inscrits_ailleurs ),
+          etuds_select_boxes(context, auth_etuds_by_sem, inscrits_ailleurs ),
         
-        formsemestre_inscr_passage_help(sem),
-        """</form>"""
+          """<p/><input type="submit" name="submitted" value="Appliquer les modifications"/>""",
+
+          formsemestre_inscr_passage_help(sem),
+          """</form>"""
         ]
 
     # Semestres sans etudiants autorisés
@@ -359,9 +361,10 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
       }      
     }
     }
-    </script>""",
+    </script>
+    <div class="etuds_select_boxes">""",
           ] # "
-    
+
     for src_cat in auth_etuds_by_cat.keys():
         infos = auth_etuds_by_cat[src_cat]['infos']
         infos['comment'] = infos.get('comment', '') # commentaire dans sous-titre boite
@@ -416,6 +419,7 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
                 H.append('</div>')
             H.append('</div>')
     
+    H.append('</div>')
     return '\n'.join(H)
 
 def etuds_select_box_xls(context, src_cat):

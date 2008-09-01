@@ -1259,11 +1259,9 @@ div.pas_sembox {
   border: 2px solid yellow;
   padding: 5px;
   margin-right: 10px;
-  float: left;
 }
 
 div.pas_empty_sems {
-  float: left;
 }
 
 .inscrit {
