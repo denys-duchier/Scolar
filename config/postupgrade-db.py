@@ -27,6 +27,12 @@ for dept in get_depts():
     check_field(cnx, 'notes_formsemestre', 'resp_can_edit',
                 ['alter table notes_formsemestre add column resp_can_edit int default 0',
                  'update notes_formsemestre set resp_can_edit=0'])
+
+    # SVN 580 -> 581
+    # add resp_can_change_ens to notes_formsemestre:
+    check_field(cnx, 'notes_formsemestre', 'resp_can_change_ens',
+                ['alter table notes_formsemestre add column resp_can_change_ens int default 1',
+                 'update notes_formsemestre set resp_can_change_ens=1'])
     
     # Add here actions to performs after upgrades:
 

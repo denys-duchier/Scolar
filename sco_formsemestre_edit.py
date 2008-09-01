@@ -258,8 +258,12 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         modform += [ 
         ('resp_can_edit',  { 'input_type' : 'boolcheckbox',
                              'title' : 'Autorisations',
-                             'explanation' : 'Autoriser le directeur des études à modifier ce semestre' })]
+                             'explanation' : 'Autoriser le directeur des études à modifier ce semestre' })]                             
     modform += [ 
+        ('resp_can_change_ens',  { 
+                    'input_type' : 'boolcheckbox',
+                    'title' : '',
+                    'explanation' : 'Autoriser le directeur des études à modifier les enseignants' }),
         ('nomgroupetd', { 'size' : 20,
                           'title' : 'Nom des groupes primaires',
                           'explanation' : 'TD' }),

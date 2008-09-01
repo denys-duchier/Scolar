@@ -1729,10 +1729,7 @@ function tweakmenu( gname ) {
             etud['photoloc'] = 'dans ScoDoc'
         else:
             etud['photoloc'] = 'externe'
-        H = [self.sco_header(REQUEST, page_title='Changement de photo',
-                             javascripts=['AutoSuggest_js'],
-                             cssstyles=['autosuggest_inquisitor_css'], 
-                             bodyOnLoad="init_tf_form('')"),
+        H = [self.sco_header(REQUEST, page_title='Changement de photo'),
              """<h2>Changement de la photo de %(nomprenom)s</h2>
              <p>Photo actuelle (%(photoloc)s):             
              """ % etud,
@@ -1745,16 +1742,6 @@ function tweakmenu( gname ) {
             ( ('etudid',  { 'default' : etudid, 'input_type' : 'hidden' }),
               ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
               ('suppress', {'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'supprimer la photo actuelle' }),
-              # experimental XXXXXXXXX
-              ('essai', { 'input_type' : 'text_suggest',
-                          'size' : 50,
-                          'text_suggest_options' : { 
-                                              'script' : 'Users/get_userlist_xml?',
-                                              'varname' : 'start',
-                                              'json': False,
-                                              'timeout':60000 } 
-                          }),
-              # /
               ),
             submitlabel = 'Valider', cancelbutton='Annuler'
             )

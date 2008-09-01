@@ -108,7 +108,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Modifier le semestre',
           'url' : 'formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s' % sem,
-          'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))) and (sem['etat'] == '1'),
+          'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
         { 'title' : 'Réglages bulletins',
@@ -137,6 +137,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'helpmsg' : ''
           }
         ]
+    # debug :
     if uid == 'root' or uid[:7] == 'viennet':
         menuSemestre.append( { 'title' : 'Check integrity',
                                'url' : 'check_sem_integrity?formsemestre_id=' + formsemestre_id,

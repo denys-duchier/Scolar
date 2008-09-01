@@ -27,7 +27,13 @@
 
 <table>
 <tr>
-<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']"> <span class="blacktt">(<dtml-var "M['responsable_id']">)</span></td>
+<td class="fichetitre2">Responsable: </td><td class="redboldtext"><dtml-var "Users.user_info(M['responsable_id'],REQUEST)['nomprenom']"> <span class="blacktt">(<dtml-var "M['responsable_id']">)</span>
+<dtml-try> 
+ <dtml-call "can_change_module_resp(REQUEST, moduleimpl_id)">
+ <a class="stdlink" href="edit_moduleimpl_resp?moduleimpl_id=<dtml-var moduleimpl_id>">modifier</a>
+<dtml-except>
+</dtml-try>
+</td>
 <td><dtml-in "M['ens']">, <dtml-var "Users.user_info(_['sequence-item']['ens_id'],REQUEST)['nomprenom']"></dtml-in>
 </td>
 <td>

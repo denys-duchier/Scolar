@@ -682,7 +682,7 @@ class ZNotes(ObjectManager,
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
-         'etape_apo', 'modalite', 'resp_can_edit'
+         'etape_apo', 'modalite', 'resp_can_edit', 'resp_can_change_ens'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
@@ -1043,7 +1043,7 @@ class ZNotes(ObjectManager,
         login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
         for u in userlist:
             login2display[u['user_name']] = u['nomplogin']
-            allowed_user_names = login2display.values() # + ['']
+            allowed_user_names = login2display.values()
 
         H = [ 
               '<ul><li><b>%s</b> (responsable)</li>' % login2display.get(M['responsable_id'],M['responsable_id'])
@@ -1097,6 +1097,64 @@ class ZNotes(ObjectManager,
                                           'ens_id' : ens_id } )
                     return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
             return header + '\n'.join(H) + tf[1] + F + footer
+
+    security.declareProtected(ScoView, 'edit_moduleimpl_resp')
+    def edit_moduleimpl_resp(self, REQUEST, moduleimpl_id):
+        """Changement d'un enseignant responsable de module
+        Accessible par Admin et dir des etud si flag resp_can_change_ens
+        """
+        M, sem = self.can_change_module_resp(REQUEST, moduleimpl_id)
+        H = [ 
+            self.html_sem_header(
+                    REQUEST, 
+                    'Modification du responsable du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+                    % (moduleimpl_id, M['module']['titre']), 
+                    sem,
+                    javascripts=['AutoSuggest_js'],
+                    cssstyles=['autosuggest_inquisitor_css'], 
+                    bodyOnLoad="init_tf_form('')"
+                    )
+            ]
+        # Liste des enseignants avec forme pour affichage / saisie avec suggestion
+        userlist = self.Users.get_userlist()
+        login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
+        for u in userlist:
+            login2display[u['user_name']] = u['nomplogin']
+            allowed_user_names = login2display.values()
+
+        initvalues = M
+        initvalues['responsable_id'] = login2display.get(M['responsable_id'], M['responsable_id'])
+        form = [
+            ('moduleimpl_id', { 'input_type' : 'hidden' }),
+            ('responsable_id', { 
+                        'input_type' : 'text_suggest', 
+                        'size' : 50,
+                        'title' : 'Responsable du module',
+                        'allowed_values' : allowed_user_names,
+                        'allow_null' : False,
+                        'text_suggest_options' : { 
+                                        'script' : 'Users/get_userlist_xml?',
+                                        'varname' : 'start',
+                                        'json': False,
+                                        'noresults' : 'Valeur invalide !',
+                                        'timeout':60000 }
+               }) ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
+                                submitlabel = 'Changer responsable',
+                                cancelbutton = 'Annuler',
+                                initvalues=initvalues)
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
+        else:
+            responsable_id = self.Users.get_user_name_from_nomplogin(tf[2]['responsable_id'])
+            if not responsable_id: # presque impossible: tf verifie les valeurs (mais qui peuvent changer entre temps)
+                return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
+            self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
+                                       'responsable_id' : responsable_id } )
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
+
 
     security.declareProtected(ScoView, 'formsemestre_enseignants_list')
     def formsemestre_enseignants_list(self, REQUEST, formsemestre_id, format='html'):
@@ -1224,7 +1282,25 @@ class ZNotes(ObjectManager,
             and uid != sem['responsable_id']):
             raise AccessDenied('Modification impossible pour %s' % uid)
         return M, sem
-    
+
+    security.declareProtected(ScoView,'can_change_module_resp')
+    def can_change_module_resp(self, REQUEST, moduleimpl_id):
+        "check if current user can modify module resp. (raise exception if not)"
+        M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
+        # -- check lock
+        sem = self.get_formsemestre(M['formsemestre_id'])
+        if sem['etat'] != '1':
+            raise ScoValueError('Modification impossible: semestre verrouille')
+        # -- check access
+        authuser = REQUEST.AUTHENTICATED_USER
+        uid = str(authuser)
+        # admin ou resp. semestre avec flag resp_can_change_resp
+        if (not authuser.has_permission(ScoImplement, self)
+            and ((uid != sem['responsable_id'])
+                 or (not sem['resp_can_change_ens']))):
+                raise AccessDenied('Modification impossible pour %s' % uid)
+        return M, sem
+        
     # --- Gestion des inscriptions aux modules
     _formsemestre_inscriptionEditor = EditableTable(
         'notes_formsemestre_inscription',
