@@ -1777,7 +1777,7 @@ function tweakmenu( gname ) {
             if not filesize:
                 # mesure la taille du fichier uploaded
                 filesize = len(photofile.read())
-                photofile.seek(0)         
+                photofile.seek(0)
             if filesize < 10 or filesize > 800*1024:
                 return 0, 'Fichier image de taille invalide ! (%d)' % filesize
             # find a free id
@@ -1786,8 +1786,10 @@ function tweakmenu( gname ) {
                 num = num + 1
             nt = 'n_%05d' % num
             photo_id='img_' + nt + '.h90.jpg'
-
-            small_img = imageresize.ImageScaleH(photofile,H=90)
+            try:
+                small_img = imageresize.ImageScaleH(photofile,H=90)
+            except:
+                return 0, 'impossible de redimensionner la photo'
             self.Fotos.manage_addProduct['OFSP'].manage_addImage(photo_id, small_img, etudid )
             # Update database
             scolars.identite_edit(cnx,args={'etudid':etudid,'foto':photo_id})
