@@ -89,8 +89,8 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     }
     }
     </script>""")
-        H.append("""<form method="post" id="mi_form" action="%s">"""%REQUEST.URL0,
-                 """
+        H.append("""<form method="post" id="mi_form" action="%s">"""%REQUEST.URL0)
+        H.append("""        
         <input type="hidden" name="moduleimpl_id" value="%(moduleimpl_id)s"/>
         <input type="submit" name="submitted" value="Appliquer les modifications"/><p></p>
         """ % M )
