@@ -1027,16 +1027,31 @@ class ZNotes(ObjectManager,
         "modif liste enseignants/moduleimpl"
         M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
         # --
-        header = self.sco_header(REQUEST,
-                                 page_title='Enseignants du module %s' % M['module']['titre'])
+        header = self.html_sem_header(
+            REQUEST, 
+            'Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+            % (moduleimpl_id, M['module']['titre']), 
+            sem,
+            javascripts=['AutoSuggest_js'],
+            cssstyles=['autosuggest_inquisitor_css'], 
+            bodyOnLoad="init_tf_form('')"
+            )
         footer = self.sco_footer(REQUEST)
+
+        # Liste des enseignants avec forme pour affichage / saisie avec suggestion
+        userlist = self.Users.get_userlist()
+        login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
+        for u in userlist:
+            login2display[u['user_name']] = u['nomplogin']
+            allowed_user_names = login2display.values() # + ['']
+
         H = [ 
-              '<h3>Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a></h3>' % (moduleimpl_id, M['module']['titre']),
-              '<ul><li>%s (responsable)</li>' % M['responsable_id']
+              '<ul><li><b>%s</b> (responsable)</li>' % login2display.get(M['responsable_id'],M['responsable_id'])
               ]
         for ens in M['ens']:
             H.append('<li>%s (<a class="stdlink" href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
-                     (self.Users.user_info(ens['ens_id'],REQUEST)['nomprenom'], moduleimpl_id, ens['ens_id']))
+                     (login2display.get(ens['ens_id'],ens['ens_id']),
+                      moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
         F = """<p class="help">Les enseignants d'un module ont le droit de
         saisir et modifier toutes les notes des évaluations de ce module.
@@ -1045,21 +1060,22 @@ class ZNotes(ObjectManager,
         page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de département)
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
-        userlist = self.getZopeUsers()
-        iii = []
-        for user in userlist: # XXX may be slow on large user base ?
-            info = self.Users.user_info(user,REQUEST)
-            iii.append( (info['nom'].upper(), info['nomprenom'], user) )
-        iii.sort()
-        nomprenoms = [ x[1] for x in iii ]
-        userlist =  [ x[2] for x in iii ]
+        
         modform = [
             ('moduleimpl_id', { 'input_type' : 'hidden' }),
             ('ens_id',
-             { 'input_type' : 'menu',
+             { 'input_type' : 'text_suggest', 
+               'size' : 50,
                'title' : 'Ajouter un enseignant',
-               'allowed_values' : [''] + userlist,
-               'labels' : ['Choisir un enseignant...'] + nomprenoms })
+               'allowed_values' : allowed_user_names,
+               'allow_null' : False,
+               'text_suggest_options' : { 
+                               'script' : 'Users/get_userlist_xml?',
+                               'varname' : 'start',
+                               'json': False,
+                               'noresults' : 'Valeur invalide !',
+                               'timeout':60000 }
+               })
             ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                                 submitlabel = 'Ajouter enseignant',
@@ -1069,13 +1085,12 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
         else:
-            ens_id = tf[2]['ens_id']
-            # verifie qu'il existe
-            if not ens_id in userlist:
+            ens_id = self.Users.get_user_name_from_nomplogin(tf[2]['ens_id'])
+            if not ens_id:
                 H.append('<p class="help">Pour ajouter un enseignant, choisissez un nom dans le menu</p>')
             else:
                 # et qu'il n'est pas deja:
-                if ens_id in [ x['ens_id'] for x in M['ens'] ]:
+                if ens_id in [ x['ens_id'] for x in M['ens'] ] or  ens_id == M['responsable_id']:
                     H.append('<p class="help">Enseignant %s déjà dans la liste !</p>' % ens_id)
                 else:                    
                     self.do_ens_create( { 'moduleimpl_id' : moduleimpl_id,
