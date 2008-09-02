@@ -292,7 +292,7 @@ CREATE TABLE notes_formsemestre (
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
 	etape_apo text, -- code etape Apogée
 	modalite text,   -- FI, FC, APP, ''
-	resp_can_edit integer default 0 -- autorise resp. a modifier semestre
+	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
 	resp_can_change_ens integer default 1 -- autorise resp. a modifier slt les enseignants
 ) WITH OIDS;
 
