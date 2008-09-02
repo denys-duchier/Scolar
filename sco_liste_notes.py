@@ -385,7 +385,8 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
         else:
             explanation = ''
             val_fmt = ''
-
+            val = None
+        
         if val is None:
             row['_'+evaluation_id+'_td_attrs'] = 'class="etudabs" '
             if not row.get('_css_row_class', ''):
