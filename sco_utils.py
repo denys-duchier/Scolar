@@ -243,3 +243,39 @@ try:
     WITH_PYDOT = True
 except:
     WITH_PYDOT = False
+
+
+from sgmllib import SGMLParser
+
+class html2txt_parser(SGMLParser):
+  """html2txt()
+  """
+  def reset(self):
+    """reset() --> initialize the parser"""
+    SGMLParser.reset(self)
+    self.pieces = []
+  
+  def handle_data(self, text):
+    """handle_data(text) --> appends the pieces to self.pieces
+    handles all normal data not between brackets "<>"
+    """
+    self.pieces.append(text)
+  
+  def handle_entityref(self, ref):
+    """called for each entity reference, e.g. for "&copy;", ref will be
+    "copy"
+    Reconstruct the original entity reference.
+    """
+    if ref=='amp':
+      self.pieces.append("&")
+  
+  def output(self):
+    """Return processed HTML as a single string"""
+    return " ".join(self.pieces)
+
+def scodoc_html2txt(html):
+  parser = html2txt_parser()
+  parser.reset()
+  parser.feed(html)
+  parser.close()
+  return parser.output()

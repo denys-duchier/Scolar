@@ -559,7 +559,6 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
         except:
             log('an exception occurred sending mail')
 
-    
     security.declareProtected('View', 'standard_error_message')
     #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
     def standard_error_message(self, error_value=None, error_message=None, error_type=None,
@@ -590,9 +589,16 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
         HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
         # Authentication uses exceptions, pass them up
         if error_type == 'LoginRequired':
-            raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)
-        
-        log('exception caught !')
+            #    raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)        
+            log('LoginRequired from %s' % HTTP_X_FORWARDED_FOR)
+            self.login_page = error_value
+            return error_value
+        elif error_type == 'Unauthorized':
+            log('Unauthorized from %s' % HTTP_X_FORWARDED_FOR)
+            return self.acl_users.docLogin(self, REQUEST=REQUEST)
+
+
+        log('exception caught: %s' % error_type)
         if error_type == 'ScoGenError':
             return '<p>' + error_value + '</p>'
         elif error_type == 'ScoValueError':
@@ -646,18 +652,20 @@ REFERER=%(REFERER)s<br/>
                 except:
                     log('no footer found for error page')
                     pass
-        # ---
+        # --- Mail:
+        error_traceback_txt = scodoc_html2txt(error_tb)
         txt = """
-user=%(AUTHENTICATED_USER)s
-dt=%(dt)s
-URL=%(URL)s%(QUERY_STRING)s
-REFERER=%(REFERER)s
+ErrorType: %(error_type)s
+User:    %(AUTHENTICATED_USER)s
+Date:    %(dt)s
+URL:     %(URL)s%(QUERY_STRING)s
 
+REFERER: %(REFERER)s
 Form: %(form)s
 Origin: %(HTTP_X_FORWARDED_FOR)s
 Agent: %(HTTP_USER_AGENT)s
 
-Traceback: %(error_traceback)s
+%(error_traceback_txt)s
 
 """ % vars()
         msg = MIMEMultipart()
