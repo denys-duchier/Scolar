@@ -491,6 +491,8 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
      module_ids_to_del: list of module_id (warning: not moduleimpl)
      Moduleimpls must have no associated evaluations.
      """
+    ok = True
+    msg = []
     for module_id in module_ids_to_del:
         # get id
         moduleimpl_id = context.do_moduleimpl_list(
@@ -500,14 +502,14 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
         # Evaluations dans ce module ?
         evals = context.do_evaluation_list( { 'moduleimpl_id' : moduleimpl_id} )
         if evals:
-            msg = [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
+            msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
             ok = False
         else:
-            msg = [ 'suppression de %s (%s)'
+            msg += [ 'suppression de %s (%s)'
                      % (mod['code'], mod['titre']) ]
             context.do_moduleimpl_delete(moduleimpl_id)
-            ok = True
-        return ok, msg
+
+    return ok, msg
 
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     """Delete a formsemstre"""
