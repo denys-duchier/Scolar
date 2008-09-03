@@ -591,13 +591,16 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
     """
     cnx = znotes.GetDBConnexion()
     cursor = cnx.cursor()
-    cursor.execute("""select SFV.*, nue.ue_code from notes_ue nue, notes_formations nf, notes_formations nf2,
+    cursor.execute("""select SFV.*, ue.ue_code from notes_ue ue, notes_formations nf, notes_formations nf2,
     scolar_formsemestre_validation SFV, notes_formsemestre sem
-    where nue.formation_id = nf.formation_id 
+
+    where ue.formation_id = nf.formation_id    
     and nf.formation_code = nf2.formation_code 
     and nf2.formation_id=%(formation_id)s
-    and SFV.ue_id = nue.ue_id
+
+    and SFV.ue_id = ue.ue_id
     and SFV.code = 'ADM'
+    
     and sem.formsemestre_id = SFV.formsemestre_id
     and sem.date_debut < %(date_debut)s
     and sem.semestre_id = %(semestre_id)s

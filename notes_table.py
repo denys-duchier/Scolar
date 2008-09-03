@@ -134,6 +134,7 @@ class NotesTable:
     
     """
     def __init__(self, znotes, formsemestre_id):
+        log('NotesTable( formsemestre_id=%s )' % formsemestre_id)
         #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG
         if not formsemestre_id:
             raise ScoValueError('invalid formsemestre_id (%s)' % formsemestre_id)

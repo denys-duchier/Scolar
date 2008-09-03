@@ -1116,6 +1116,7 @@ class ZNotes(ObjectManager,
                     bodyOnLoad="init_tf_form('')"
                     )
             ]
+        help = """<p class="help">Taper le début du nom de l'enseignant.</p>"""
         # Liste des enseignants avec forme pour affichage / saisie avec suggestion
         userlist = self.Users.get_userlist()
         login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
@@ -1145,7 +1146,7 @@ class ZNotes(ObjectManager,
                                 cancelbutton = 'Annuler',
                                 initvalues=initvalues)
         if tf[0] == 0:
-            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+            return '\n'.join(H) + tf[1] + help + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
         else:
