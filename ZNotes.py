@@ -208,7 +208,8 @@ class ZNotes(ObjectManager,
     formsemestre_editwithmodules = sco_formsemestre_edit.formsemestre_editwithmodules
     
     security.declareProtected(ScoImplement, 'formsemestre_delete')
-    formsemestre_delete = DTMLFile('dtml/notes/formsemestre_delete', globals(), title='Suppression d\'un semestre (ou session) de formation avec ses modules' )
+    formsemestre_delete = sco_formsemestre_edit.formsemestre_delete
+    
     security.declareProtected(ScoView, 'formsemestre_recapcomplet')
     formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
 

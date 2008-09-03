@@ -56,4 +56,4 @@ def check_field(cnx, table, field, sql_create_commands):
             log('check_field: new field still missing !')
             raise Exception('database configuration problem')
         else:
-            log('field %s added succesfully.' % field)
+            log('field %s added successfully.' % field)

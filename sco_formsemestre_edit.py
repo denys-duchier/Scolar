@@ -179,6 +179,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ('responsable_id', { 'input_type' : 'text_suggest',
                              'size' : 50,
                              'title' : 'Directeur des études',
+                             'explanation' : 'taper le début du nom et choisir dans le menu',
                              'allowed_values' : allowed_user_names,
                              'allow_null' : False,
                              'text_suggest_options' : { 
@@ -464,29 +465,9 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                 context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etudids,
                                                     REQUEST=REQUEST)
                 msg += [ 'inscription de %d étudiants au module %s' % (len(etudids),mod['code'])]
-#                if tf[2]['inscrire_etudslist']:
-#                    # il faut inscrire les etudiants du semestre
-#                    # dans le nouveau module
-#                    context.do_moduleimpl_inscrit_tout_semestre(
-#                        moduleimpl_id,formsemestre_id)
-#                    msg += ['étudiants inscrits à %s (module %s)</p>'
-#                            % (moduleimpl_id, mod['code']) ]
             #
-            for module_id in mods_todelete:
-                # get id
-                moduleimpl_id = context.do_moduleimpl_list(
-                    { 'formsemestre_id' : formsemestre_id,
-                      'module_id' : module_id } )[0]['moduleimpl_id']
-                mod = context.do_module_list( { 'module_id' : module_id } )[0]
-                # Evaluations dans ce module ?
-                evals = context.do_evaluation_list(
-                    { 'moduleimpl_id' : moduleimpl_id} )
-                if evals:
-                    msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
-                else:
-                    msg += [ 'suppression de %s (%s)'
-                             % (mod['code'], mod['titre']) ]
-                    context.do_moduleimpl_delete(moduleimpl_id)
+            ok, diag = formsemestre_delete_moduleimpls(context, formsemestre_id, mods_todelete)
+            msg += diag
             for module_id in mods_toedit:
                 moduleimpl_id = context.do_moduleimpl_list(
                     { 'formsemestre_id' : formsemestre_id,
@@ -498,14 +479,68 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     'responsable_id' :  tf[2][module_id] }
                 context.do_moduleimpl_edit(modargs)
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
-                #msg += [ 'modification de %s (%s)' % (mod['code'], mod['titre']) ]
-
+            
             if msg:
                 return '<ul><li>' + '</li><li>'.join(msg) + '</li></ul><p>Modification effectuée</p><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
             else:
                 return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifié' %  formsemestre_id)
 
 
+def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del):
+    """Delete moduleimpls
+     module_ids_to_del: list of module_id (warning: not moduleimpl)
+     Moduleimpls must have no associated evaluations.
+     """
+    for module_id in module_ids_to_del:
+        # get id
+        moduleimpl_id = context.do_moduleimpl_list(
+            { 'formsemestre_id' : formsemestre_id,
+              'module_id' : module_id } )[0]['moduleimpl_id']
+        mod = context.do_module_list( { 'module_id' : module_id } )[0]
+        # Evaluations dans ce module ?
+        evals = context.do_evaluation_list( { 'moduleimpl_id' : moduleimpl_id} )
+        if evals:
+            msg = [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
+            ok = False
+        else:
+            msg = [ 'suppression de %s (%s)'
+                     % (mod['code'], mod['titre']) ]
+            context.do_moduleimpl_delete(moduleimpl_id)
+            ok = True
+        return ok, msg
+
+def formsemestre_delete(context, formsemestre_id, REQUEST=None):
+    """Delete a formsemstre"""
+    sem = context.get_formsemestre(formsemestre_id)
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem),
+          """<p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
+un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tous les événements liés à ce semestre !).</p>
+
+ <p class="help">Tous les modules de ce semestre seront supprimés. Ceci n'est possible que
+ si aucune évaluation n'a été définie (s'il y a des évaluations, allez d'abord 
+ les supprimer)</p>"""
+          ]
+    
+    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, 
+                            ( ('formsemestre_id', { 'input_type' : 'hidden' }),
+                              ),
+                            initvalues = F,
+                            submitlabel = 'Confirmer la suppression',
+                            cancelbutton = 'Annuler' )
+    if tf[0] == 0:
+        evals = context.do_evaluation_list_in_formsemestre(formsemestre_id)
+        if evals:
+            H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il reste %d évaluations)</b></p>""" %len(evals) )
+        else:
+            H.append(tf[1])
+        return '\n'.join(H) + context.sco_footer(REQUEST)
+    elif tf[0] == -1: # cancel
+        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+    else:
+        context.do_formsemestre_delete(formsemestre_id, REQUEST)
+        return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
+    
 # ---------------------------------------------------------------------------------------
 
 
