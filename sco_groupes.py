@@ -46,6 +46,17 @@ def checkGroupName(groupName):
         log('!!! invalid group name: ' + groupName)
         raise ValueError, 'invalid group name: ' + groupName
 
+def fixGroupName(groupName):
+    """bacward compat: fix old group names wich can be invalid"""    
+    try:
+        checkGroupName(groupName)
+    except:
+        log('fixing groupe name: %s' % groupName)
+        if groupName[-2:] == '.0':
+            groupName = groupName[:-2]
+        groupName = re.sub('[^a-zA-Z0-9_]', '_', groupName)
+        log('new group name: %s' % groupName)
+    return groupName
 
 def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
     "Liste des etudiants dans chaque groupe de TD"

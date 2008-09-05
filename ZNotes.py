@@ -75,7 +75,7 @@ import sco_formsemestre_edit, sco_formsemestre_status
 import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
 from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
-import sco_moduleimpl_inscriptions
+import sco_moduleimpl_inscriptions, sco_groupes
 import sco_bulletins, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_pagebulletin, sco_report
@@ -1382,9 +1382,28 @@ class ZNotes(ObjectManager,
         gr_td = {}.fromkeys( [ x['groupetd'] for x in ins if x['groupetd'] ] ).keys()
         gr_tp = {}.fromkeys( [ x['groupetp'] for x in ins if x['groupetp'] ] ).keys()
         gr_anglais = {}.fromkeys( [ x['groupeanglais'] for x in ins if x['groupeanglais'] ] ).keys()
-        gr_td.sort()
-        gr_tp.sort()
-        gr_anglais.sort()
+        for g in (gr_td, gr_tp, gr_anglais):
+            g.sort()
+
+        # fix si nom invalide (correct previous db with invalid group names)
+        for g, key in ((gr_td, 'groupetd'), (gr_tp, 'groupetp'), (gr_anglais, 'groupeanglais')):
+            for i in range(len(g)):
+                newName = sco_groupes.fixGroupName(g[i])
+                if newName != g[i]:
+                    # fix directly DB:
+                    log('changing group names in DB')
+                    cursor = cnx.cursor()
+                    cursor.execute('update notes_formsemestre_inscription set %s=%%(value)s where formsemestre_id = %%(formsemestre_id)s and %s=%%(prev_value)s' % (key, key), 
+                                   { 'formsemestre_id' : formsemestre_id,
+                                     'prev_value' : g[i], 
+                                     'value' : newName } )
+                    g[i] = newName
+                    # Warning: this kind of function is not supposed to alter the DB
+                    # we make an exception here.
+                    # => do not call do_formsemestre_inscription_listegroupes from
+                    #    notes_table !
+                    self._inval_cache(formsemestre_id=formsemestre_id)
+        
         return gr_td, gr_tp, gr_anglais
 
     # Cache inscriptions semestres

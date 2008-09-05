@@ -200,7 +200,9 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                               category=category, result=result,
                               category_name=category_name,
                               title=title)
-    if etuds:
+    if not etuds:
+        F = [ """<p><em>Aucun étudiant</em></p>""" ]
+    else:
         if allkeys:
             keys = etuds[0].keys()
         else:

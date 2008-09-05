@@ -10,7 +10,7 @@ prenom;       text;     identite;   0;  prenom de l'etudiant
 sexe;         text;     identite;   0;  sexe ('MR' ou 'MLLE')
 annee_naissance;integer;identite;   1;  annee de naissance
 nationalite;  text;     identite;   1;  nationalite
-foto;         text;     identite;   1;  nom du fichier photo (trombinoscope
+foto;         text;     identite;   1;  nom du fichier photo (trombinoscope)
 #
 bac;          text;     admissions; 1;  type de bac (S, STI, ...)
 specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)

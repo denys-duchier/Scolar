@@ -34,7 +34,7 @@ from sco_utils import *
 from notesdb import *
 from notes_log import log
 import scolars
-import sco_excel
+import sco_excel, sco_groupes
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
@@ -236,6 +236,17 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 args['formsemestre_id'] = formsemestre_id
             else:
                 args['formsemestre_id'] = values['codesemestre']
+            # fix nom groupe si besoin:
+            for groupType in ('groupetd', 'groupetp', 'groupeanglais'):                
+                if args[groupType]:
+                    if args[groupType][-2:] == '.0':
+                        # si nom groupe numerique, excel ajoute parfois ".0" !
+                        args[groupType] = args[groupType][:-2]
+                    try:
+                        sco_groupes.checkGroupName(args[groupType])
+                    except:
+                        raise ScoValueError("Nom de groupe invalide: %s" % args[groupType])
+            
             Notes.do_formsemestre_inscription_with_modules(args=args,
                                                            REQUEST=REQUEST,
                                                            method='import_csv_file')
