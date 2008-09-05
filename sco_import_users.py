@@ -175,6 +175,8 @@ Le logiciel est accessible sur: %(url)s
 Vous êtes invité à changer ce mot de passe au plus vite (cliquez sur
 votre nom en haut à gauche de la page d'accueil).
 
+
+ScoDoc est un logiciel libre développé à l'Université Paris 13 par Emmanuel Viennet.
 Pour plus d'informations sur ce logiciel, voir https://www-rt.iutv.univ-paris13.fr/ScoDoc
 
 """ % u
