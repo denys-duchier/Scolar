@@ -764,11 +764,15 @@ class ZScolar(ObjectManager,
     def make_listes_sem(self, sem, REQUEST=None, with_absences=True):
         authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
+        # construit l'URL "destination" 
+        # (a laquelle on revient apres saisie absences)
         query_args = cgi.parse_qs(REQUEST.QUERY_STRING)
         if 'head_message' in query_args:
             del query_args['head_message']
-        destination = "%s?%s" % (REQUEST.URL, urllib.urlencode(query_args))
+        destination = "%s?%s" % (REQUEST.URL, urllib.urlencode(query_args,True))
         destination=destination.replace('%','%%') # car ici utilisee dans un format string !
+        
+        #
         H = []
         # pas de menu absences si pas autorise:
         if with_absences and not authuser.has_permission(ScoAbsChange,self):
