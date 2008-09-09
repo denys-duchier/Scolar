@@ -115,5 +115,15 @@ def formation_edit(context, formation_id=None, REQUEST=None):
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
+        # check unicity : constraint UNIQUE(acronyme,titre,version)
+        args = { 'acronyme' : tf[2]['acronyme'],
+                 'titre' :  tf[2]['titre'],
+                 'version' : F['version'] }
+        quote_dict(args)
+        others = context.do_formation_list( args = args )
+        if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
+            H.append("""<ul class="tf-msg"><li class="tf-msg">Valeurs incorrecte: il existe déjà une formation avec même titre, acronyme et version.</li></ul>""")
+            return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+        #
         context.do_formation_edit(tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )

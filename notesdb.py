@@ -229,7 +229,7 @@ class EditableTable:
         # REQN = REQN + 1
         vals = dictfilter(args, self.dbfields)
         if not sortkey:
-            sortkey = self.sortkey
+            sortkey = self.sortkey        
         res = DBSelectArgs( cnx, self.table_name, 
                             vals, sortkey=sortkey,
                             test=test, operator=operator,
