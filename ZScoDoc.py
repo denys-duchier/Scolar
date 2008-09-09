@@ -587,6 +587,8 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
         form = REQUEST.get('form', '')
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
+        svn_version = get_svn_version(self.file_path)
+
         # Authentication uses exceptions, pass them up
         if error_type == 'LoginRequired':
             #    raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)        
@@ -642,6 +644,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
 Infos: user=%(AUTHENTICATED_USER)s, dt=%(dt)s<br/>
 URL=%(URL)s%(QUERY_STRING)s<br/>
 REFERER=%(REFERER)s<br/>
+ScoDoc subversion:=%(svn_version)s<br/>
 </p>
 </div>
 
@@ -664,6 +667,8 @@ REFERER: %(REFERER)s
 Form: %(form)s
 Origin: %(HTTP_X_FORWARDED_FOR)s
 Agent: %(HTTP_USER_AGENT)s
+
+ScoDoc subversion: %(svn_version)s
 
 %(error_traceback_txt)s
 

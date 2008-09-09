@@ -195,7 +195,10 @@ def sendPDFFile(REQUEST, data, filename):
 # Get SVN version
 def get_svn_version(path):
     if os.path.exists('/usr/bin/svnversion'):
-        return os.popen('svnversion ' + path).read().strip()
+        try:
+            return os.popen('svnversion ' + path).read().strip()
+        except:
+            return 'non disponible (erreur de lecture)'
     else:
         return 'non disponible'
 
