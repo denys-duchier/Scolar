@@ -94,7 +94,10 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
     cnx = context.GetDBConnexion()
     args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
-    etud = scolars.etudident_list(cnx, args)[0]
+    etuds = scolars.etudident_list(cnx, args)
+    if not etuds:
+        raise ScoValueError('Etudiant inexistant !')
+    etud = etuds[0]
     etudid = etud['etudid']
     context.fillEtudsInfo([etud])
     #
