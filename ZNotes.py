@@ -2418,7 +2418,7 @@ class ZNotes(ObjectManager,
             msg.attach(att)
             log('mail bulletin a %s' % msg['To'] )
             self.sendEmail(msg)
-            return ('<div class="boldredmsg">Message mail envoyé à %s</div>'
+            return ('<div class="head_message">Message mail envoyé à %s</div>'
                     % (etud['emaillink'])) + htm
 
 
