@@ -210,7 +210,8 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                                 % (val, linenum, titleslist[i]))
                 # xxx Ad-hoc checks (should be in format description)
                 if  titleslist[i].lower() == 'sexe':
-                    val = val.upper()
+                    if val:
+                        val = val.upper()
                     if not val in ('MR', 'MLLE'):
                         raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
                 # --
