@@ -110,7 +110,10 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     (format dumped by formation_export_xml())
     """
     log('formation_import_xml: doc=%s' % doc )
-    dom = xml.dom.minidom.parseString(doc)
+    try:
+        dom = xml.dom.minidom.parseString(doc)
+    except:
+        raise ScoValueError('Fichier XML invalide')
     
     f = dom.getElementsByTagName('formation')[0] # or dom.documentElement
     D = XMLToDicts(f,encoding)
