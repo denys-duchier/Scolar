@@ -740,7 +740,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
                 nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
                 dec = nt.get_etud_decision_sem(etudid)
-                if dec['code'] == 'ADM':
+                if dec and dec['code'] == 'ADM':
                     nid = '_dipl_'+s['formsemestre_id']
                     edges[(s['formsemestre_id'], nid)].add(etudid)
                     diploma_nodes.append(nid)
