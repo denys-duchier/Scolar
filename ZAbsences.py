@@ -91,15 +91,18 @@ class ddmmyyyy:
         self.work_saturday = work_saturday
 	if date is None:
 	    return
-        if fmt == 'ddmmyyyy':
-            self.day, self.month, self.year = string.split(date, '/')
-        elif fmt == 'iso':
-            self.year, self.month, self.day = string.split(date, '-')
-        else:
-            raise ValueError; 'invalid format spec. (%s)' % fmt
-	self.year = string.atoi(self.year)
-	self.month = string.atoi(self.month)
-	self.day = string.atoi(self.day)
+        try:
+            if fmt == 'ddmmyyyy':
+                self.day, self.month, self.year = string.split(date, '/')
+            elif fmt == 'iso':
+                self.year, self.month, self.day = string.split(date, '-')
+            else:
+                raise ValueError('invalid format spec. (%s)' % fmt)
+            self.year = string.atoi(self.year)
+            self.month = string.atoi(self.month)
+            self.day = string.atoi(self.day)
+        except:
+            raise ScoValueError('date invalide: %s' % date)
 	# accept years YYYY or YY, uses 1970 as pivot
 	if self.year < 1970:
 	    if self.year > 100:
