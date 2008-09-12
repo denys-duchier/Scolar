@@ -198,9 +198,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_status')
     formsemestre_status = DTMLFile('dtml/notes/formsemestre_status', globals())
 
-    security.declareProtected(ScoEnsView, 'evaluation_delete')
-    evaluation_delete = DTMLFile('dtml/notes/evaluation_delete', globals())
-
     security.declareProtected(ScoImplement, 'formsemestre_createwithmodules')
     formsemestre_createwithmodules = sco_formsemestre_edit.formsemestre_createwithmodules
 
@@ -1668,14 +1665,40 @@ class ZNotes(ObjectManager,
         if d and ((d < 0) or (d > 60*12)):
             raise ScoValueError("Heures de l'évaluation incohérentes !")            
 
-
+    security.declareProtected(ScoEnsView, 'do_evaluation_delete')
+    def evaluation_delete(self, REQUEST, evaluation_id):
+        """Form delete evaluation"""
+        E = self.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
+        Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
+        tit = "Suppression de l'évaluation %(description)s (%(jour)s)" % E
+        H = [ self.html_sem_header( REQUEST, tit, with_h2=False ),
+              """<h2 class="formsemestre">Module <tt>%(code)s</tt> %(titre)s</h2>""" % Mod,
+              """<h3>%s</h3>""" % tit,
+              """<p class="help">Seules les évaluations pour lesquelles aucune note n'a été entrée peuvent être supprimées.</p>"""
+              ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
+                                ( ('evaluation_id', { 'input_type' : 'hidden' }),
+                                  ),
+                                initvalues = E,
+                                submitlabel = 'Confirmer la suppression',
+                                cancelbutton = 'Annuler')
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id'] )
+        else:
+            self.do_evaluation_delete( REQUEST, E['evaluation_id'] )
+            return '\n'.join(H) + """<p>OK, évaluation supprimée.</p>
+            <p><a class="stdlink" href="%s">Continuer</a></p>""" % (self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id']) + self.sco_footer(REQUEST)
+        
     security.declareProtected(ScoEnsView, 'do_evaluation_delete')
     def do_evaluation_delete(self, REQUEST, evaluation_id):
         "delete evaluation"
         the_evals = self.do_evaluation_list( 
                 {'evaluation_id' : evaluation_id})
         if not the_evals:
-            raise ValueError, "evaluation inexistante !"
+            raise ValueError("evaluation inexistante !")
         
         moduleimpl_id = the_evals[0]['moduleimpl_id']
         self._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)

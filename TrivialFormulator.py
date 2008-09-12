@@ -164,9 +164,9 @@ class TF:
                 if self.values[field] == None:
                     self.values[field] = ''
 
-        # convert numbers
-        if type(self.values[field]) == type(1) or type(self.values[field]) == type(1.0):
-            self.values[field] = str(self.values[field])
+            # convert numbers
+            if type(self.values[field]) == type(1) or type(self.values[field]) == type(1.0):
+                self.values[field] = str(self.values[field])
         #
         if not self.values.has_key('tf-checked'):
             if self.submitted():
