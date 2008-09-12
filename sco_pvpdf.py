@@ -98,7 +98,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
     """
     def __init__(self, document, pagesbookmarks={},
                  author=None, title=None, subject=None,
-                 margins = CONFIG.INDIVIDUAL_LETTER_MARGINS, # additional margins in mm (left,top,right, bottom)
+                 margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
                  image_dir = '',
                  preferences=None # dictionnary with preferences, required
                  ):
@@ -178,7 +178,7 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     etuds = [ x['identite'] for x in dpv['decisions']]
     context.fillEtudsInfo(etuds)
     #
-    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem = context.get_formsemestre(formsemestre_id)
     params = {
         'dateJury' : dateJury,
         'deptName' : context.get_preference('DeptName'), 
@@ -201,7 +201,10 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
                                                 signature, context=context ) 
             objects.append( PageBreak() )
             i += 1
-    
+    # Paramètres de mise en page
+    fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
+    margins = (fmt['left_margin'], fmt['top_margin'],
+               fmt['right_margin'], fmt['bottom_margin'])
     # ----- Build PDF
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
@@ -210,6 +213,7 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
         title='Lettres décision %s' % sem['titreannee'],
         subject='Décision jury',
+        margins=margins,
         pagesbookmarks=bookmarks,
         image_dir = context.file_path + '/logos/' ))
     

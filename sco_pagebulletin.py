@@ -77,7 +77,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
     form = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('sep', { 'input_type' : 'separator',
-                  'title' : '<h3>Marges <em>additionnelles</em>, en millimètres</h3><p class="help">Le tableau est toujours redimensionné pour occuper l\'espace disponible entre les marges.</p>' }),
+                  'title' : '<h3>Marges <em>additionnelles</em>, en millimètres</h3><p class="help">Le tableau des notes est toujours redimensionné pour occuper l\'espace disponible entre les marges.</p>' }),
         ('left_margin', {'size' : 20, 'title' : 'Marge gauche' }),
         ('top_margin', {'size' : 20, 'title' : 'Marge haute' }),
         ('right_margin', {'size' : 20, 'title' : 'Marge droite' }),
@@ -102,7 +102,7 @@ def formsemestre_pagebulletin_dialog(context, REQUEST=None,
                                     page_title='Mise en page des bulletins')
         footer = context.sco_footer(REQUEST)
         sem = context.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
-        H = [ '<h2>Ces paramètres affectent les bulletins en PDF ("version papier") du semestre <em>%s</em> uniquement.</h2>' % sem['titreannee']
+        H = [ '<h2>Ces paramètres affectent les documents en PDF (bulletins "version papier", lettres individuelles) du semestre <em>%s</em></h2>' % sem['titreannee']
               ]
         return header + '\n'.join(H) + tf[1] + footer # formulaire HTML
     elif tf[0] == -1:

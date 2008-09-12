@@ -40,10 +40,6 @@ CONFIG.LOGO_FOOTER_HEIGHT = 10 # taille dans le document en millimetres
 CONFIG.LOGO_HEADER_ASPECT = 744 / 374. # XXX logo IUTV
 CONFIG.LOGO_HEADER_HEIGHT = 15 # taille verticale dans le document en millimetres
 
-# Marges additionnelles des PV individuels PDF,
-#   en mm, dans l'ordre (left,top,right, bottom):
-CONFIG.INDIVIDUAL_LETTER_MARGINS = (0,0,0,0)
-
 # Pied de page PDF : un format Python, %(xxx)s est remplacé par la variable xxx.
 # Les variables définies sont:
 #   day   : Day of the month as a decimal number [01,31]
