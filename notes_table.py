@@ -244,18 +244,17 @@ class NotesTable:
                     vy = float(vy)
                 except:
                     pass
-                try:
-                    if (type(vx) == type(vy)): # and type(vx) == StringType:
-                        # rang alphabetique par nom
-                        return rangalpha[x[-1]] - rangalpha[y[-1]]
-                    else:
-                        return cmp(type(vx),type(vy))
-                except:
+
+                if (type(vx) == type(vy)): # and type(vx) == StringType:
+                    # rang alphabetique par nom
+                    return rangalpha[x[-1]] - rangalpha[y[-1]]
+                else:
+                    return cmp(type(vx),type(vy))
                     # fallback *** should not occur ***
                     #txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
                     #txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
                     #znotes.send_debug_alert(txt, REQUEST=None)
-                    return cmp(x,y) 
+                    #return cmp(x,y) 
         T.sort(cmprows)
         self.T = T
         
