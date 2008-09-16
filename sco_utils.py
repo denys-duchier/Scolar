@@ -73,6 +73,7 @@ SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_DEVEL_LIST = 'scodoc-devel@rt.iutv.univ-paris13.fr'
+SCO_DEV_MAIL = 'emmanuel.viennet@gmail.com'
 
 CSV_FIELDSEP = ';'
 CSV_LINESEP  = '\n'

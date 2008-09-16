@@ -523,12 +523,11 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
-        dev_mail = 'emmanuel.viennet@iutv.univ-paris13.fr'
         return """<p class="footer">
 Probl&egrave;mes et suggestions: <a href="mailto:%s">%s</a>
 ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.univ-paris13.fr</a>
 </p>
-</body></html>""" % (dev_mail, dev_mail)
+</body></html>""" % (SCO_DEV_MAIL, SCO_DEV_MAIL)
 
     # sendEmail is not used through the web
     def sendEmail(self,msg):
@@ -564,10 +563,8 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
     def standard_error_message(self, error_value=None, error_message=None, error_type=None,
                                error_traceback=None, error_tb=None, **kv): 
         "Recuperation des exceptions Zope"
-        # error_tb=None, error_log_url=None
-
-        dev_mail = 'emmanuel.viennet@gmail.com'
-
+        sco_dev_mail = SCO_DEV_MAIL
+        
         # neat (or should I say dirty ?) hack to get REQUEST
         # in fact, our caller (probably SimpleItem.py) has the REQUEST variable
         # that we'd like to use for our logs, but does not pass it as an argument.
@@ -576,20 +573,9 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
             REQUEST = frame.f_back.f_locals['REQUEST']
         except:
             REQUEST = {}
-
-        AUTHENTICATED_USER = REQUEST.get('AUTHENTICATED_USER', '')
-        dt = time.asctime()
-        URL = REQUEST.get('URL', '')
-        QUERY_STRING = REQUEST.get('QUERY_STRING', '')
-        if QUERY_STRING:
-            QUERY_STRING = '?' + QUERY_STRING
-        REFERER = REQUEST.get('HTTP_REFERER', '')
-        form = REQUEST.get('form', '')
-        HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
-        HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
-        svn_version = get_svn_version(self.file_path)
-
+        
         # Authentication uses exceptions, pass them up
+        HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         if error_type == 'LoginRequired':
             #    raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)        
             log('LoginRequired from %s' % HTTP_X_FORWARDED_FOR)
@@ -598,8 +584,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
         elif error_type == 'Unauthorized':
             log('Unauthorized from %s' % HTTP_X_FORWARDED_FOR)
             return self.acl_users.docLogin(self, REQUEST=REQUEST)
-
-
+        
         log('exception caught: %s' % error_type)
         if error_type == 'ScoGenError':
             return '<p>' + error_value + '</p>'
@@ -632,19 +617,17 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
   <p>L'URL est peut-etre incorrecte ?</p>
 
   <p>Si l'erreur persiste, contactez Emmanuel Viennet:
-   <a href="mailto:%(dev_mail)s">%(dev_mail)s</a>
+   <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>
     en copiant ce message d'erreur et le contenu du cadre bleu ci-dessous si possible.
   </p>
 </td></tr>
 </table>        """ % vars() )
                 # display error traceback (? may open a security risk via xss attack ?)
-                H.append("""<h4>Zope Traceback (a envoyer par mail a <a href="mailto:%(dev_mail)s">%(dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
+                txt_html = self._report_request(REQUEST, format='html')
+                H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
-<p>
-Infos: user=%(AUTHENTICATED_USER)s, dt=%(dt)s<br/>
-URL=%(URL)s%(QUERY_STRING)s<br/>
-REFERER=%(REFERER)s<br/>
-ScoDoc subversion:=%(svn_version)s<br/>
+<p><b>Informations:</b><br/>
+%(txt_html)s
 </p>
 </div>
 
@@ -659,6 +642,30 @@ ScoDoc subversion:=%(svn_version)s<br/>
         error_traceback_txt = scodoc_html2txt(error_tb)
         txt = """
 ErrorType: %(error_type)s
+
+%(error_traceback_txt)s
+""" % vars()
+
+        self._send_debug_alert(txt, REQUEST=REQUEST)
+        # ---
+        log('done processing exception')
+        return '\n'.join(H)
+
+    def _report_request(self, REQUEST, format='txt'):
+        """string describing current request for bug reports"""
+        AUTHENTICATED_USER = REQUEST.get('AUTHENTICATED_USER', '')
+        dt = time.asctime()
+        URL = REQUEST.get('URL', '')
+        QUERY_STRING = REQUEST.get('QUERY_STRING', '')
+        if QUERY_STRING:
+            QUERY_STRING = '?' + QUERY_STRING
+        REFERER = REQUEST.get('HTTP_REFERER', '')
+        form = REQUEST.get('form', '')
+        HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
+        HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
+        svn_version = get_svn_version(self.file_path)
+
+        txt = """
 User:    %(AUTHENTICATED_USER)s
 Date:    %(dt)s
 URL:     %(URL)s%(QUERY_STRING)s
@@ -668,25 +675,29 @@ Form: %(form)s
 Origin: %(HTTP_X_FORWARDED_FOR)s
 Agent: %(HTTP_USER_AGENT)s
 
-ScoDoc subversion: %(svn_version)s
-
-%(error_traceback_txt)s
-
+subversion: %(svn_version)s
 """ % vars()
+        if format == 'html':
+            txt = txt.replace('\n', '<br/>')
+        return txt
+
+    security.declareProtected(ScoSuperAdmin, 'send_debug_alert')# not called through the web 
+    def send_debug_alert(self, txt, REQUEST=None):
+        """Send an alert email (bug report) to ScoDoc developpers"""
+        txt = self._report_request(REQUEST) + txt
+
+        URL = REQUEST.get('URL', '')
         msg = MIMEMultipart()
         subj = Header( '[scodoc] exc %s' % URL,  SCO_ENCODING )
         msg['Subject'] = subj
-        recipients = [ dev_mail ]
+        recipients = [ SCO_DEV_MAIL ]
         msg['To'] = ' ,'.join(recipients)
         msg['From'] = 'noreply@scodoc'
         msg.epilogue = ''
         msg.attach(MIMEText( txt, 'plain', SCO_ENCODING ))
         self.sendEmailFromException(msg)
-        log(txt)
-        # ---
-        log('done processing exception')
-        return '\n'.join(H)
-
+        log('Sent mail alert:\n' + txt)
+    
     security.declareProtected('View', 'scodoc_admin')
     def scodoc_admin(self, REQUEST=None):
         """Page Operations d'administration

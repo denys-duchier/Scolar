@@ -244,11 +244,18 @@ class NotesTable:
                     vy = float(vy)
                 except:
                     pass
-                if (type(vx) == type(vy)): # and type(vx) == StringType:
-                    # rang alphabetique par nom
-                    return rangalpha[x[-1]] - rangalpha[y[-1]]
-                else:
-                    return cmp(type(vx),type(vy))
+                try:
+                    if (type(vx) == type(vy)): # and type(vx) == StringType:
+                        # rang alphabetique par nom
+                        return rangalpha[x[-1]] - rangalpha[y[-1]]
+                    else:
+                        return cmp(type(vx),type(vy))
+                except:
+                    # fallback *** should not occur ***
+                    txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
+                    txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
+                    znotes.send_debug_alert(txt, REQUEST=REQUEST)
+                    return cmp(x,y) 
         T.sort(cmprows)
         self.T = T
         

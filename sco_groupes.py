@@ -278,13 +278,13 @@ def groupes_auto_repartition(context, formsemestre_id=None, groupType=None, REQU
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('groupType', { 'input_type' : 'hidden' }),
         ('groupNames', { 'size' : 40, 'title' : 'Groupes à créer',
-                         'explanation' : 'noms des groupes à créer, séparés par des virgules'})
+                         'explanation' : "noms des groupes à former, séparés par des virgules (il peut s'agir de groupes existant ou de nouveaux)"})
        ]
     
     H = [ context.sco_header(REQUEST, page_title='Répartition des groupes' ),
           '<h2>Répartition des groupes de %s</h2>' % groupTypeName,
           '<p>Semestre %s</p>' % sem['titreannee'],
-          """<p class="help">Les groupes existant seront <b>détruits</b> et remplacés par
+          """<p class="help">Les groupes existants seront <b>détruits</b> et remplacés par
           ceux créés ici. La répartition aléatoire tente d'uniformiser le niveau
           des groupes (en utilisant la dernière moyenne générale disponible pour
           chaque étudiant) et de maximiser la mixité de chaque groupe.</p>"""
