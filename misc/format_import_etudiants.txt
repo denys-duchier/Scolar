@@ -7,11 +7,17 @@ Code_INE;     text;     identite;   1; code INE
 #
 nom;          text;     identite;   0;  nom de l'etudiant
 prenom;       text;     identite;   0;  prenom de l'etudiant
-sexe;         text;     identite;   0;  sexe ('MR' ou 'MLLE')
+sexe (MR ou MLLE);         text;     identite;   0;  sexe ('MR' ou 'MLLE')
 annee_naissance;integer;identite;   1;  annee de naissance
 nationalite;  text;     identite;   1;  nationalite
 foto;         text;     identite;   1;  nom du fichier photo (trombinoscope)
 #
+# Informations pour inscription:
+codesemestre; text;     INS;        0;  code semestre inscription
+groupetd;     text;     INS;        0;  groupe de TD
+groupetp;     text;     INS;        1;  groupe de TP
+groupeanglais;text;     INS;        1;  groupe de anglais
+# 
 bac;          text;     admissions; 1;  type de bac (S, STI, ...)
 specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)
 annee_bac;    integer;  admissions; 1;  annee d'obtention du bac
@@ -35,8 +41,4 @@ paysdomicile; text;     adresse;    1;  pays domicile
 telephone;    text;     adresse;    1;  num. telephone (fixe)
 telephonemobile; text;  adresse;    1;  num. telephone (mobile)
 #
-# Information pour inscription
-codesemestre; text;     INS;        0;  code semestre inscription
-groupetd;     text;     INS;        0;  groupe de TD
-groupetp;     text;     INS;        1;  groupe de TP
-groupeanglais;text;     INS;        1;  groupe de anglais
+

@@ -138,13 +138,16 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
     titles = {}
     fmt = sco_import_format(product_file_path)
     for l in fmt:
-        tit = l[0].lower() # titles in lowercase
+        tit = l[0].lower().split()[0] # titles in lowercase, and take 1st word
         if (not formsemestre_id) or (tit != 'codesemestre'):
             titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
 
     #log("titles=%s" % titles)
-    # remove quotes
-    fs = [ stripquotes(s).lower() for s in data[0] ]
+    # remove quotes, downcase and keep only 1st word
+    try:
+        fs = [ stripquotes(s).lower().split()[0] for s in data[0] ]
+    except:
+        raise ScoValueError("Titres de colonnes invalides (ou vides ?)")
     #log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     
     # check columns titles    

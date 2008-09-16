@@ -2111,10 +2111,14 @@ function tweakmenu( gname ) {
             csvfile, file_path, self.Notes, REQUEST,
             formsemestre_id=formsemestre_id )
         if REQUEST:
+            if formsemestre_id:
+                dest = 'formsemestre_status?formsemestre_id=%s' % formsemestre_id
+            else:
+                dest = REQUEST.URL1
             H = [self.sco_header(REQUEST, page_title='Import etudiants')]
             H.append('<p>Import excel: %s</p>'% diag)
             H.append('<p>OK, import terminé !</p>')
-            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
+            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % dest)
             return '\n'.join(H) + self.sco_footer(REQUEST)
         # invalid all caches
         self.Notes._inval_cache()    
