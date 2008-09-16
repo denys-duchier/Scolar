@@ -2104,12 +2104,11 @@ function tweakmenu( gname ) {
     
     # ---- inscriptions "en masse"
     security.declareProtected(ScoEtudInscrit, "students_import_excel")
-    def students_import_excel(self, csvfile, REQUEST=None,
-                              formsemestre_id=None):
+    def students_import_excel(self, csvfile, REQUEST=None, formsemestre_id=None, check_homonyms=True):
         "import students from Excel file"
-        diag = ImportScolars.scolars_import_excel_file(
-            csvfile, file_path, self.Notes, REQUEST,
-            formsemestre_id=formsemestre_id )
+        diag = ImportScolars.scolars_import_excel_file( csvfile, file_path, self.Notes, REQUEST, 
+                                                        formsemestre_id=formsemestre_id, 
+                                                        check_homonyms=check_homonyms )
         if REQUEST:
             if formsemestre_id:
                 dest = 'formsemestre_status?formsemestre_id=%s' % formsemestre_id
@@ -2280,8 +2279,16 @@ function tweakmenu( gname ) {
             REQUEST.URL0, REQUEST.form, 
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
                           'size' : 40 }),
+             ( 'check_homonyms',
+               { 'title' : "Vérifier les homonymes",
+                 'input_type' : 'boolcheckbox',
+                 'explanation' : "arrète l'importation si plus de 10% d'homonymes"
+                 }
+               ),
              ('formsemestre_id', {'input_type' : 'hidden' }), 
-             ), submitlabel = 'Télécharger')
+             ), 
+            initvalues = { 'check_homonyms' : True },
+            submitlabel = 'Télécharger')
         S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
 le <b>titre</b> exact (tel que ci-dessous) doit être sur la première ligne.
@@ -2310,7 +2317,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         else:
             return self.students_import_excel(tf[2]['csvfile'],
                                               REQUEST=REQUEST,
-                                              formsemestre_id=formsemestre_id)
+                                              formsemestre_id=formsemestre_id,
+                                              check_homonyms=tf[2]['check_homonyms'])
 
     security.declareProtected(ScoEtudInscrit,"import_generate_excel_sample")
     def import_generate_excel_sample(self, REQUEST, with_codesemestre='1'):

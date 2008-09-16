@@ -152,6 +152,21 @@ identite_delete = _identiteEditor.delete
 identite_list   = _identiteEditor.list
 
 
+def check_nom_prenom(cnx, nom='', prenom=''):
+    """Check if nom and prenom are valid.
+    Also check for duplicates (homonyms) : allowed, but may be useful to generate a warning.
+    Returns:
+    True | False, NbHomonyms
+    """
+    if not nom or not prenom:
+        return False, 0
+    # any non empty string is ok, we could add some checks...
+    # Now count homonyms:
+    cursor = cnx.cursor()
+    cursor.execute('select etudid from identite where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;', { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
+    res = cursor.dictfetchall()
+    return True, len(res)
+
 def _check_duplicate_code(cnx, args, code_name, context, REQUEST=None):
     etudid = args.get('etudid', None)        
     if args.get(code_name, None):

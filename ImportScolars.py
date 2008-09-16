@@ -120,7 +120,7 @@ def sco_import_generate_excel_sample( format,
 
 
 def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
-                               formsemestre_id=None):
+                               formsemestre_id=None, check_homonyms=True):
     """Importe etudiants depuis fichier Excel
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
@@ -168,6 +168,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
     # ok, same titles
     # Start inserting data, abort whole transaction in case of error
     created_etudids = []    
+    NbImportedHomonyms = 0
     try: # --- begin DB transaction
         linenum = 0
         for line in data[1:]:
@@ -219,6 +220,12 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                         raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
                 # --
                 values[titleslist[i]] = val
+            # Check nom/prenom
+            ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=values['nom'], prenom=values['prenom'])
+            if not ok:
+                raise ScoValueError("nom ou prénom invalide sur la ligne %d" % (linenum))
+            if NbHomonyms:
+                NbImportedHomonyms += 1
             # Insert in DB tables
             log( 'scolars_import_excel_file: values=%s' % str(values) ) 
             # Identite
@@ -254,6 +261,11 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             Notes.do_formsemestre_inscription_with_modules(args=args,
                                                            REQUEST=REQUEST,
                                                            method='import_csv_file')
+        # Verification proportion d'homonymes: si > 10%, abandonne
+        log('scolars_import_excel_file: detected %d homonyms' % NbImportedHomonyms)
+        if check_homonyms and NbImportedHomonyms > len(created_etudids) / 10:
+            log('scolars_import_excel_file: too many homonyms')
+            raise ScoValueError("Il y a trop d'homonymes (%d étudiants)" % NbImportedHomonyms)
     except:
         cnx.rollback()
         log('scolars_import_excel_file: aborting transaction !')

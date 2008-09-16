@@ -151,7 +151,6 @@ class TF:
         for (field,descr) in self.formdescription:   
             # special case for boolcheckbox
             if descr.get('input_type', None) == 'boolcheckbox' and self.submitted():
-                # open('/tmp/toto','a').write('setdefaultvalues: self.values=%s\n'%self.values)
                 if not self.values.has_key(field):
                     self.values[field] = 0
                 else:
