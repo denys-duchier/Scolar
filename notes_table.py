@@ -252,9 +252,9 @@ class NotesTable:
                         return cmp(type(vx),type(vy))
                 except:
                     # fallback *** should not occur ***
-                    txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
-                    txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
-                    znotes.send_debug_alert(txt, REQUEST=None)
+                    #txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
+                    #txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
+                    #znotes.send_debug_alert(txt, REQUEST=None)
                     return cmp(x,y) 
         T.sort(cmprows)
         self.T = T
