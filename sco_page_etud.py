@@ -170,7 +170,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     info['liste_annotations'] = '\n'.join(alist)
     # fiche admission
     has_adm_notes = info['math'] or info['physique'] or info['anglais'] or info['francais']
-    has_bac_info = info['bac'] or info['specialite'] or info['annee_bac']
+    has_bac_info = info['bac'] or info['specialite'] or info['annee_bac'] or info['rapporteur'] or info['commentaire']
     if has_bac_info or has_adm_notes:
         if has_adm_notes:
             adm_tmpl = """<!-- Donnees admission -->
