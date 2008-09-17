@@ -684,6 +684,9 @@ subversion: %(svn_version)s
     security.declareProtected(ScoSuperAdmin, 'send_debug_alert')# not called through the web 
     def send_debug_alert(self, txt, REQUEST=None):
         """Send an alert email (bug report) to ScoDoc developpers"""
+        if not SCO_DEV_MAIL:
+            log('send_debug_alert: email disabled')
+            return
         if REQUEST:
             txt = self._report_request(REQUEST) + txt            
             URL = REQUEST.get('URL', '')
