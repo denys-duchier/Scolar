@@ -2416,7 +2416,7 @@ class ZNotes(ObjectManager,
             #
             webmaster = getattr(self,'webmaster_email',"l'administrateur.")
             dept = unescape_html(self.get_preference('DeptName'))
-            #pdb.set_trace()
+            copy_addr = self.get_preference('email_copy_bulletins')
             fmt = formsemestre_pagebulletin_get(self, formsemestre_id)
             log(fmt)
             hea = fmt['intro_mail'] % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
@@ -2427,7 +2427,8 @@ class ZNotes(ObjectManager,
             msg['Subject'] = subj
             msg['From'] = getattr(self,'mail_bulletin_from_addr', 'noreply' )
             msg['To'] = ' ,'.join(recipients)
-            msg['Bcc'] = 'viennet@iutv.univ-paris13.fr' # XXX
+            if copy_addr:
+                msg['Bcc'] = copy_addr.strip()
             # Guarantees the message ends in a newline
             msg.epilogue = ''
             # Text

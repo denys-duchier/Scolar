@@ -235,6 +235,18 @@ Le Chef du département""",
          'size' : 25
         }
       ),
+    ('_sep_misc',
+     { 'input_type' : 'separator',
+       'title' : '<b>Divers</b>'
+       }
+     ),
+    ( 'email_copy_bulletins',
+      { 'initvalue' : '',
+        'title' : 'e-mail copie bulletins',
+        'size' : 40,
+        'explanation' : 'adresse recevant une copie des bulletins envoyés aux étudiants'
+        }
+      ),
 )
 
 
