@@ -306,9 +306,9 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
 
 #
 def Excel_feuille_listeappel(context, sem, groupname, lines,
-                              all_groups=False, # si vrai indique les groupes
-                              with_codes=False, # indique codes etuds
-                              server_name=None ):
+                             groups_excel=[], # types de groupes a montrer
+                             with_codes=False, # indique codes etuds
+                             server_name=None ):
     "generation feuille appel"
     SheetName = 'Liste ' + groupname
     wb = Workbook()
@@ -389,13 +389,10 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
     li += 2
     li += 1
     ws0.write(li,1, "Nom", style3)
-    if all_groups:
-        ws0.write(li,2, sem['nomgroupetd'], style3)
-        ws0.write(li,3, sem['nomgroupeta'], style3)
-        ws0.write(li,4, sem['nomgroupetp'], style3)
-        co = 5  
-    else:
-        co = 2
+    co = 2
+    for groupetype in groups_excel:
+        ws0.write(li,co, sem['nom'+groupetype], style3)
+        co += 1
     if with_codes:
         coc=co
         ws0.write(li,coc, "etudid", style3)
@@ -411,10 +408,10 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         li += 1
         ws0.write(li, 0, n, style1b)
         ws0.write(li, 1, t['nom'] + ' ' + t['prenom'], style2t3) 
-        if all_groups:
-            ws0.write(li,2, t['groupetd'], style2t3)
-            ws0.write(li,3, t['groupeta'], style2t3)
-            ws0.write(li,4, t['groupetp'], style2t3)
+        co = 2
+        for groupetype in groups_excel:
+            ws0.write(li,co, t[groupetype], style2t3)
+            co += 1
         if with_codes:
             ws0.write(li,coc, t['etudid'], style2t3)
             ws0.write(li,coc+1, t['code_nip'], style2t3)

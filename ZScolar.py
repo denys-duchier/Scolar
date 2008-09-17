@@ -887,28 +887,52 @@ class ZScolar(ObjectManager,
                                                    groupetd,groupetp,groupeanglais,etat )
         if not nomgroupe:
             nomgroupe = 'tous'
-
+            all_groups = 1
+        
         with_codes = int(with_codes)
         all_groups = int(all_groups)
         base_url = '%s?formsemestre_id=%s&groupetd=%s&groupetp=%s&groupeanglais=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,formsemestre_id,groupetd,groupetp,groupeanglais,with_codes,all_groups)
         
         #
         columns_ids=['nom', 'prenom', 'groupetd']
+        groups_excel = [] # types de groupe a montrer sur feuille appel
         if all_groups:
             columns_ids += ['groupeta','groupetp']
+            groups_excel = ['groupetd', 'groupeta','groupetp']
         if format != 'html':
             columns_ids.append('etat')
         columns_ids.append('email')
         if with_codes:
             columns_ids += ['etudid', 'code_nip', 'code_ine']
+        td_set = Set()
+        tp_set = Set()
+        ta_set = Set()
         # ajoute liens
         for t in T:
             t['_email_target'] = 'mailto:' + t['email']
             t['_nom_target'] = 'ficheEtud?etudid=' + t['etudid']
             t['_prenom_target'] = 'ficheEtud?etudid=' + t['etudid']
+            # compte nb de groupes dans chaque categorie pour ne
+            # montrer que les colonnes où il y a qq chose
+            if t['groupetd']:
+                td_set.add(t['groupetd'])
+            if t['groupetp']:
+                tp_set.add(t['groupetp'])
+            if t['groupeta']:
+                ta_set.add(t['groupeta'])
             if t['etat'] == 'D':
                 t['groupetd'] = t['groupetp'] = t['groupeta'] = 'dem'
                 t['_css_row_class'] = 'etuddem'
+        if len(td_set) < 1:
+            columns_ids = [ x for x in columns_ids if x != 'groupetd' ]
+            groups_excel = [ x for x in groups_excel if x != 'groupetd' ]
+        if len(tp_set) < 1:
+            columns_ids = [ x for x in columns_ids if x != 'groupetp' ]
+            groups_excel = [ x for x in groups_excel if x != 'groupetp' ]
+        if len(ta_set) < 1:
+            columns_ids = [ x for x in columns_ids if x != 'groupeta' ]
+            groups_excel = [ x for x in groups_excel if x != 'groupeta' ]
+        
         if nbdem > 1:
             s = 's'
         else:
@@ -933,8 +957,13 @@ class ZScolar(ObjectManager,
         #
         if format == 'html':
             amail=','.join([x['email'] for x in T ])
-
-            H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % ng, sem),
+            if ng:
+                htitle = 'Etudiants du %s' % ng
+            elif len(T):
+                htitle = 'Les %d étudiants inscrits' % len(T)
+            else:
+                htitle = 'Aucun étudiant'
+            H = [ self.Notes.html_sem_header(REQUEST, htitle, sem),
                   tab.html(),
                   """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
                   % base_url,
@@ -971,7 +1000,7 @@ class ZScolar(ObjectManager,
 #                 lines = lines,
 #                 SheetName = title )
             xls = sco_excel.Excel_feuille_listeappel(self, sem, nomgroupe, T,
-                                                     all_groups=all_groups,
+                                                     groups_excel=groups_excel,
                                                      with_codes=with_codes,
                                                      server_name=REQUEST.BASE0)
             filename = title + '.xls'
