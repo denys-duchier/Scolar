@@ -192,7 +192,11 @@ class ddmmyyyy:
 # d = ddmmyyyy( '21/12/99' )
 
 
-
+def semestregroupe_decode(semestregroupe):
+    """return formsemestre_id, groupetd, groupeanglais, groupetp
+    from variable passed in URL"""
+    formsemestre_id, groupetd, groupeanglais, groupetp = tuple(semestregroupe.split('!'))
+    return formsemestre_id, groupetd, groupeanglais, groupetp
 
 # ---------------
 
@@ -735,10 +739,7 @@ class ZAbsences(ObjectManager,
     def SignaleAbsenceGrHebdo(self, datelundi, semestregroupe,
                               destination, REQUEST=None):
         "Saisie hebdomadaire des absences"
-        formsemestre_id = semestregroupe.split('!')[0]
-        groupetd = semestregroupe.split('!')[1]
-        groupeanglais = semestregroupe.split('!')[2]
-        groupetp = semestregroupe.split('!')[3]
+        formsemestre_id, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         # calcule dates jours de cette semaine
         datessem = [ self.DateDDMMYYYY2ISO(datelundi) ]
@@ -771,10 +772,7 @@ class ZAbsences(ObjectManager,
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre
         (ou intervalle de dates) entier"""
-        formsemestre_id = semestregroupe.split('!')[0]
-        groupetd = semestregroupe.split('!')[1]
-        groupeanglais = semestregroupe.split('!')[2]
-        groupetp = semestregroupe.split('!')[3]
+        formsemestre_id, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         jourdebut = ddmmyyyy(datedebut, work_saturday=self.is_work_saturday())
         jourfin = ddmmyyyy(datefin, work_saturday=self.is_work_saturday())
@@ -813,10 +811,10 @@ class ZAbsences(ObjectManager,
               les %s</h2>
               <p>
               <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
-              <form action="doSignaleAbsenceGrSemestre" method="post" action="%s">              
+              <form action="doSignaleAbsenceGrSemestre" method="post">              
               """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
                      self.day_names()[jourdebut.weekday],
-                     datedebut, datefin, semestregroupe, destination, nwl, msg, REQUEST.URL0) ]
+                     datedebut, datefin, semestregroupe, destination, nwl, msg) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination)
@@ -992,14 +990,11 @@ class ZAbsences(ObjectManager,
         """
         # NB: formsemestre_id passed in semestregroupe (historical) but also
         # in formsemestre_id in order to display page header.
-        formsemestre_id_sg =  semestregroupe.split('!')[0]
+        formsemestre_id_sg, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
         if not formsemestre_id:
             formsemestre_id = formsemestre_id_sg
         if formsemestre_id !=  formsemestre_id_sg:
             raise ValueError('inconsistent formsemestre_id !')
-        groupetd = semestregroupe.split('!')[1]
-        groupeanglais = semestregroupe.split('!')[2]
-        groupetp = semestregroupe.split('!')[3]
         datedebut = self.DateDDMMYYYY2ISO(debut)
         datefin = self.DateDDMMYYYY2ISO(fin)
         #

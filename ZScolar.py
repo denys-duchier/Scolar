@@ -841,16 +841,17 @@ class ZScolar(ObjectManager,
             args = { 'formsemestre_id' : formsemestre_id }
             ins = self.Notes.do_formsemestre_inscription_list( args=args )
             nb = len(ins) # nb etudiants
-            H.append("""<br/><p class="listegroupelink">
-            <a href="%s/listegroupe?formsemestre_id=%s">Tous les étudiants de %s</a>
+            H.append("""<h4>Tous les étudiants</h4>
+            <table><tr class="listegroupelink"><td>
+            <a href="%s/listegroupe?formsemestre_id=%s">liste</a>
+            </td><td>
             (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>)
             <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a>
-            <br/> (%d étudiants)
-            """ % (r,formsemestre_id,sem['titre_num'],r,formsemestre_id,r,formsemestre_id,nb))
-            H.append("""
-            (<a href="Absences/EtatAbsencesGr?semestregroupe=%(formsemestre_id)s!!!&debut=%(date_debut)s&fin=%(date_fin)s&formsemestre_id=%(formsemestre_id)s">état des absences</a>)
-            </p>
-            """ % sem )
+            </td><td>(%d étudiants)</td>
+            """ % (r,formsemestre_id,r,formsemestre_id,r,formsemestre_id,nb))
+            if with_absences:
+                H.append( FormAbs % ('!!','!!') )
+            H.append('</tr></table>')
         H.append('</div>')
 
         return '\n'.join(H)
