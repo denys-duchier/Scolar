@@ -203,6 +203,15 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
             H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code'], mod['module']['titre']))
         H.append('</table>')
 
+    # Etudiants "dispensés" d'une UE (capitalisée)
+    UECaps = get_etuds_with_capitalized_ue(context, formsemestre_id)
+    if UECaps:
+        H.append('<h3>3Etudiants avec UEs capitalisées</h3><ul>')        
+        for ue_id in UECaps.keys():
+            ue = context.do_ue_list({ 'ue_id' : ue_id })[0]
+            H.append( '<li>%s: %s</li>' % (ue['acronyme'], _fmt_etud_set(context, UECaps[ue_id], max_list_size=50)))
+        H.append('</ul>')
+    
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
@@ -281,11 +290,30 @@ def descr_inscrs_module(context, sem, moduleimpl_id, set_all, sets_td, sets_ta, 
     #
     return False, len(ins), ' et '.join(r)
 
-def _fmt_etud_set(context, ins):
-    if len(ins) > 7: # seuil arbitraire
+def _fmt_etud_set(context, ins, max_list_size=7):
+    # max_list_size est l enombre max de noms d'etudiants listés
+    # au delà, on indique juste le nombre, sans les noms.
+    if len(ins) > max_list_size:
         return '%d etudiants' % len(ins)
     etuds = []
     for etudid in ins:
         etuds.append(context.getEtudInfo(etudid=etudid,filled=True)[0])
     etuds.sort( lambda x,y: cmp(x['nom'],y['nom']))
-    return ', '.join( [ '<a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)ss</a>' % etud for etud in etuds ] )
+    return ', '.join( [ '<a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a>' % etud for etud in etuds ] )
+
+
+def get_etuds_with_capitalized_ue(context, formsemestre_id):
+    """For each UE, computes list of students capitalizing the UE.
+    returns { ue_id : set of etudid }
+    """
+    UECaps = DictDefault(defaultvalue=[])
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    ues = nt.get_ues()
+    for ue in ues:
+        for etud in inscrits:
+            status = nt.get_etud_ue_status(etud['etudid'], ue['ue_id'])
+            if status['is_capitalized']:
+                UECaps[ue['ue_id']].append(etud['etudid'])
+    return UECaps
+
