@@ -929,6 +929,10 @@ td.present {
   background-color: rgb(230,230,230);
 }
 
+span.capstr {
+  color: red;
+}
+
 /* ----- Formulator  ------- */
 ul.tf-msg { 
   color: rgb(6,80,18);

@@ -646,7 +646,7 @@ ErrorType: %(error_type)s
 %(error_traceback_txt)s
 """ % vars()
 
-        self._send_debug_alert(txt, REQUEST=REQUEST)
+        self.send_debug_alert(txt, REQUEST=REQUEST)
         # ---
         log('done processing exception')
         return '\n'.join(H)

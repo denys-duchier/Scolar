@@ -803,6 +803,7 @@ class ZAbsences(ObjectManager,
         #
         colnames = [ str(x) for x in dates ]
         dates = [ x.ISO() for x in dates ]
+        dayname = self.day_names()[jourdebut.weekday]
         
         H = [ self.sco_header(page_title='Saisie des absences',
                               no_side_bar=1,REQUEST=REQUEST),
@@ -813,15 +814,15 @@ class ZAbsences(ObjectManager,
               <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
               """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
-                     self.day_names()[jourdebut.weekday],
+                     dayname,
                      datedebut, datefin, semestregroupe, destination, nwl, msg) ]
         #
         etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
-        H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination)
+        H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname)
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
     
-    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination=''):
+    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination='', dayname=''):
         H = [ """
         <script type="text/javascript">
         function colorize(obj) {
@@ -836,8 +837,14 @@ class ZAbsences(ObjectManager,
         <tr><td>&nbsp;</td>
         """]
         # Titres colonnes
+        if dayname:
+            for jour in colnames:
+                H.append('<th colspan="2" width="100px" style="padding-left: 5px; padding-right: 5px;">' + dayname + '</th>')                
+            H.append('</tr><tr><td>&nbsp;</td>')
+        
         for jour in colnames:
             H.append('<th colspan="2" width="100px" style="padding-left: 5px; padding-right: 5px;">' + jour + '</th>')
+
         H.append('</tr><tr><td>&nbsp;</td>')
         H.append('<th>AM</th><th>PM</th>' * len(colnames) )
         H.append('</tr>')
@@ -846,10 +853,23 @@ class ZAbsences(ObjectManager,
         for etud in etuds:
             i += 1
             etudid = etud['etudid']
+            # UE capitalisee dans semestre courant ?
+            cap = []
+            if etud['cursem']:
+                nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, etud['cursem']['formsemestre_id'])
+                for ue in nt.get_ues():
+                    status = nt.get_etud_ue_status(etudid, ue['ue_id'])
+                    if status['is_capitalized']:
+                        cap.append(ue['acronyme'])
+            if cap:
+                capstr = ' <span class="capstr">(%s cap.)</span>' % ', '.join(cap)
+            else:
+                capstr = ''
+            #
             bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
             matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
-            H.append('<tr %s><td><b><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b></td>'
-                     % (bgcolor, etudid, etud['nomprenom']))
+            H.append('<tr %s><td><b><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
+                     % (bgcolor, etudid, etud['nomprenom'], capstr))
             for date in dates:
                 # matin
                 if self.CountAbs( etudid, date, date, True):

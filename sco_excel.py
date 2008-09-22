@@ -407,7 +407,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        ws0.write(li, 1, t['nom'] + ' ' + t['prenom'], style2t3) 
+        ws0.write(li, 1, t['prenom'] + ' ' + t['nom'], style2t3) 
         co = 2
         for groupetype in groups_excel:
             ws0.write(li,co, t[groupetype], style2t3)
