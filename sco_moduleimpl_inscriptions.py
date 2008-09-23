@@ -206,7 +206,7 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
     # Etudiants "dispensés" d'une UE (capitalisée)
     UECaps = get_etuds_with_capitalized_ue(context, formsemestre_id)
     if UECaps:
-        H.append('<h3>3Etudiants avec UEs capitalisées</h3><ul>')        
+        H.append('<h3>Etudiants avec UEs capitalisées</h3><ul>')        
         for ue_id in UECaps.keys():
             ue = context.do_ue_list({ 'ue_id' : ue_id })[0]
             H.append( '<li>%s: %s</li>' % (ue['acronyme'], _fmt_etud_set(context, UECaps[ue_id], max_list_size=50)))
@@ -251,7 +251,7 @@ def descr_inscrs_module(context, sem, moduleimpl_id, set_all, sets_td, sets_ta, 
     non_inscrits = set_all - set_m
     if len(non_inscrits) == 0:
         return True, len(ins), '' # tous inscrits
-    if len(non_inscrits) < (len(set_all)/10): # seuil arbitraire
+    if len(non_inscrits) <= 7: # seuil arbitraire
         return False, len(ins), 'tous sauf ' + _fmt_etud_set(context,non_inscrits)
     # Cherche les groupes de TD:
     if sem['nomgroupetd']:
@@ -294,7 +294,7 @@ def _fmt_etud_set(context, ins, max_list_size=7):
     # max_list_size est l enombre max de noms d'etudiants listés
     # au delà, on indique juste le nombre, sans les noms.
     if len(ins) > max_list_size:
-        return '%d etudiants' % len(ins)
+        return '%d étudiants' % len(ins)
     etuds = []
     for etudid in ins:
         etuds.append(context.getEtudInfo(etudid=etudid,filled=True)[0])
