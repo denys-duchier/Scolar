@@ -609,7 +609,7 @@ B: etuds sets: 2.4s => lent: N x getEtudInfo (non caché)
 """
 
 
-def _codesem(sem):
+def _codesem(sem, short=True, prefix=''):
     "code semestre: S1 ou S1d"
     idx = sem['semestre_id']
     # semestre décalé ?
@@ -621,8 +621,12 @@ def _codesem(sem):
         if (idx % 2 and mois_debut < 3) or (idx % 2 == 0 and mois_debut >= 8):
             d = 'd'
     if idx == -1:
-        idx = 'Autre '
-    return '%s%s' % (idx, d)
+        if short:
+            idx = 'Autre '
+        else:
+            idx = sem['titre'] + ' '
+            prefix = '' # indique titre au lieu de Sn
+    return '%s%s%s' % (prefix, idx, d)
 
 def _codeparcoursetud(context, etud):
     """calcule un code de parcours pour un etudiant
@@ -761,8 +765,8 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             modalite = ' ' + s['modalite']
         else:
             modalite = ''
-        n.set( 'label', 'S%s%s\\n%d/%s - %d/%s\\n%d' %
-               (_codesem(s), modalite,
+        n.set( 'label', '%s%s\\n%d/%s - %d/%s\\n%d' %
+               (_codesem(s, short=False, prefix='S'), modalite,
                 s['mois_debut_ord'], s['annee_debut'][2:],
                 s['mois_fin_ord'], s['annee_fin'][2:],
                 len(effectifs[s['formsemestre_id']])))
