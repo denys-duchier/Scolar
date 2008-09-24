@@ -40,7 +40,7 @@ import jaxml
 from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
 from sco_permissions import *
-from TrivialFormulator import TrivialFormulator, TF
+from TrivialFormulator import TrivialFormulator, TF, tf_error_message
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]

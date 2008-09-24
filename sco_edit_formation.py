@@ -122,8 +122,7 @@ def formation_edit(context, formation_id=None, REQUEST=None):
         quote_dict(args)
         others = context.do_formation_list( args = args )
         if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
-            H.append("""<ul class="tf-msg"><li class="tf-msg">Valeurs incorrecte: il existe déjà une formation avec même titre, acronyme et version.</li></ul>""")
-            return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+            return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe déjà une formation avec même titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
         #
         context.do_formation_edit(tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )

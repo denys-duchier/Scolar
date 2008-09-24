@@ -133,9 +133,7 @@ class TF:
         if self.submitted() and not self.readonly:
             msg = self.checkvalues()
         # display error message
-        if msg:
-            R.append('<ul class="tf-msg"><li class="tf-msg">%s</li></ul>'
-                     % '</li><li class="tf-msg">'.join(msg))
+        R.append(tf_error_message(msg))
         # form or view
         if self.readonly:
             R = R + self._ReadOnlyVersion( self.formdescription, self.values )
@@ -549,3 +547,11 @@ def dict2js(d):
         
         r.append( '%s: %s' % (k,v) )
     return '{' + ',\n'.join(r) + '}'
+
+def tf_error_message(msg):
+    """html for form error message"""
+    if not msg:
+        return ''
+    if type(msg) == StringType:
+        msg = [msg]
+    return '<ul class="tf-msg"><li class="tf-msg">%s</li></ul>' % '</li><li class="tf-msg">'.join(msg)

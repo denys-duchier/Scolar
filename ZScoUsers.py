@@ -597,7 +597,8 @@ class ZScoUsers(ObjectManager,
                      nom=vals['nom'], prenom=vals['prenom'],
                      email=vals['email'], roles=vals['roles'] )
                  if not ok:
-                     H.append('<ul class="tf-msg"><li class="tf-msg">Attention: '+msg+""" (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>")'</li></ul>""")
+                     H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>")""" % msg))
+
                      return '\n'.join(H) + '\n' + tf[1] + F
              if edit: # modif utilisateur (mais pas passwd)
                  if (not can_choose_dept) and vals.has_key('dept'):
@@ -625,10 +626,10 @@ class ZScoUsers(ObjectManager,
                  vals['roles'] = ','.join(vals['roles'])
                  # check passwords
                  if vals['passwd'] != vals['passwd2']:
-                     msg = '<ul class="tf-msg"><li>Les deux mots de passes ne correspondent pas !</li></ul>'
+                     msg = tf_error_message("""Les deux mots de passes ne correspondent pas !""")
                      return '\n'.join(H) + msg + '\n' + tf[1] + F
                  if not self._is_valid_passwd(vals['passwd']):
-                     msg = '<ul class="tf-msg"><li>Mot de passe trop simple, recommencez !</li></ul>'
+                     msg = tf_error_message("""Mot de passe trop simple, recommencez !""")
                      return '\n'.join(H) + msg + '\n' + tf[1] + F
                  if not can_choose_dept:
                      vals['dept'] = auth_dept

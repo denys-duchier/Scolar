@@ -119,7 +119,7 @@ def formsemestre_validation_etud_form(
             H.append('<p>Pas de semestre précédent !</p>')
     else:
         if not Se.prev_decision:
-            H.append('<ul class="tf-msg"><li class="tf-msg">Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)</li></ul>' % (Se.prev['formsemestre_id'], etudid))
+            H.append(tf_error_message("""Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
             H.append(znotes.sco_footer(REQUEST))
             return '\n'.join(H)
 

@@ -80,7 +80,6 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
 import html_sco_header, html_sidebar
 
-from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
 import sco_excel
 import imageresize
@@ -1918,12 +1917,12 @@ function tweakmenu( gname ) {
         return REQUEST.RESPONSE.redirect("ficheEtud?etudid=%s"%etudid)
     
     security.declareProtected(ScoEtudInscrit,"etudident_create_form")
-    def etudident_create_form(self, REQUEST):
+    def etudident_create_form(self, REQUEST=None):
         "formulaire creation individuelle etudiant"
         return self.etudident_create_or_edit_form(REQUEST, edit=False)
     
     security.declareProtected(ScoEtudInscrit,"etudident_edit_form")
-    def etudident_edit_form(self, REQUEST):
+    def etudident_edit_form(self, REQUEST=None):
         "formulaire edition individuelle etudiant"
         return self.etudident_create_or_edit_form(REQUEST, edit=True)
     
@@ -2009,7 +2008,7 @@ function tweakmenu( gname ) {
             ('adm_id', { 'input_type' : 'hidden' }),
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
-            ('prenom',    { 'size' : 25, 'title' : 'Prénom' }),
+            ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':False }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
                             'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
             ('annee_naissance', { 'size' : 5, 'title' : 'Année de naissance', 'type' : 'int' }),
@@ -2053,8 +2052,14 @@ function tweakmenu( gname ) {
                            'explanation' : 'numéro identité étudiant (Apogée)'}),
             ('code_ine', { 'size' : 25, 'title' : 'Numéro INE (optionnel)', 'allow_null':True,
                            'explanation' : 'numéro INE'}),
+            ( 'dont_check_homonyms',
+               { 'title' : "Autoriser les homonymes",
+                 'input_type' : 'boolcheckbox',
+                 'explanation' : "ne vérifie pas les noms et prénoms proches"
+                 }
+               ),
             ]
-
+        initvalues['dont_check_homonyms'] = False
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 submitlabel = submitlabel,
                                 cancelbutton = 'Re-interroger Apogee',
@@ -2066,6 +2071,18 @@ function tweakmenu( gname ) {
             #return '\n'.join(H) + '<h4>annulation</h4>' + F
         else:
             # form submission
+            if edit:
+                etudid = tf[2]['etudid']
+            else:
+                etudid = None
+            ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=tf[2]['nom'], prenom=tf[2]['prenom'], etudid=etudid)
+            if not ok:                    
+                return '\n'.join(H) + tf_error_message('Nom ou prénom invalide') + tf[1] + '<p>' + A + F
+            log('NbHomonyms=%s' % NbHomonyms)
+            log("tf[2]['dont_check_homonyms']='%s'"%tf[2]['dont_check_homonyms'])
+            if not tf[2]['dont_check_homonyms'] and NbHomonyms > 0:
+                return '\n'.join(H) + tf_error_message("""Attention: il y a déjà un étudiant portant des noms et prénoms proches. Vous pouvez forcer la présence d'un homonyme en cochant "autoriser les homonymes" en bas du formulaire.""") + tf[1] + '<p>' + A + F
+            
             if not edit:
                 # creation d'un etudiant
                 etudid = scolars.etudident_create(cnx, tf[2], context=self, REQUEST=REQUEST)
