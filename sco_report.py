@@ -757,7 +757,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     g.set('rankdir', 'LR') # left to right
     g.set_fontname('Helvetica')
     if format == 'svg':
-        g.set_bgcolor('#e5f2e5') # 'transparent'
+        g.set_bgcolor('#fffff0') # ou 'transparent'
     # titres des semestres:
     for s in sems.values():
         n = g.get_node(s['formsemestre_id'])

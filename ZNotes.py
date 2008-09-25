@@ -2425,7 +2425,7 @@ class ZNotes(ObjectManager,
             subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
             recipients = [ etud['email'] ] 
             msg['Subject'] = subj
-            msg['From'] = getattr(self,'mail_bulletin_from_addr', 'noreply' )
+            msg['From'] = self.get_preference('email_from_addr')
             msg['To'] = ' ,'.join(recipients)
             if copy_addr:
                 msg['Bcc'] = copy_addr.strip()

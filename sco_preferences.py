@@ -247,6 +247,13 @@ Le Chef du département""",
         'explanation' : 'adresse recevant une copie des bulletins envoyés aux étudiants'
         }
       ),
+    ( 'email_from_addr',
+      { 'initvalue' : 'noreply', 
+        'title' : 'adresse mail origine',
+        'size' : 40,
+        'explanation' : 'adresse expéditeur pour les envois par mails (bulletins)'
+        }
+      ),
 )
 
 
