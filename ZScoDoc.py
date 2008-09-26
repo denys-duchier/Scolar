@@ -697,7 +697,7 @@ subversion: %(svn_version)s
         msg['Subject'] = subj
         recipients = [ SCO_DEV_MAIL ]
         msg['To'] = ' ,'.join(recipients)
-        msg['From'] = 'noreply@scodoc'
+        msg['From'] = 'scodoc-alert'
         msg.epilogue = ''
         msg.attach(MIMEText( txt, 'plain', SCO_ENCODING ))
         self.sendEmailFromException(msg)

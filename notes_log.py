@@ -48,7 +48,7 @@ def sendAlarm( context, subj, txt ):
     msg = MIMEMultipart()
     subj = Header( subj,  SCO_ENCODING )
     msg['Subject'] = subj
-    msg['From'] = 'noreply'
+    msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = ALARM_DESTINATION
     msg.epilogue = ''
     txt = MIMEText( txt, 'plain', SCO_ENCODING )

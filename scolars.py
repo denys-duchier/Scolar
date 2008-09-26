@@ -268,7 +268,7 @@ def notify_etud_change(context, email_addr, etud, before, after, subject):
     msg = MIMEMultipart()
     subj = Header( '[ScoDoc] ' + subject,  SCO_ENCODING )
     msg['Subject'] = subj
-    msg['From'] = 'scodoc_noreply'
+    msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = email_addr
     txt = MIMEText( txt, 'plain', SCO_ENCODING )
     msg.attach(txt)

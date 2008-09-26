@@ -182,7 +182,7 @@ Pour plus d'informations sur ce logiciel, voir https://www-rt.iutv.univ-paris13.
 """ % u
     msg = MIMEMultipart()
     msg['Subject'] = Header( 'Votre accès ScoDoc',  SCO_ENCODING )
-    msg['From'] = 'noreply'
+    msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = u['email']
     msg.epilogue = ''
     txt = MIMEText( txt, 'plain', SCO_ENCODING )
