@@ -178,6 +178,14 @@ class ZScoDoc(ObjectManager,
             self.acl_users.manage_delObjects(ids=[ 'docLogin', 'docLogout' ])
         except: 
             pass
+        # add missing getAuthFailedMessage (bug in exUserFolder ?)
+        try:
+            x = self.getAuthFailedMessage
+        except:
+            log('adding getAuthFailedMessage to Zope install')
+            parent = self.aq_parent
+            from OFS.DTMLMethod import addDTMLMethod
+            addDTMLMethod(parent, 'getAuthFailedMessage', file='Identification')
 
     security.declareProtected('View','create_users_cnx')
     def create_users_cnx(self, REQUEST=None):
