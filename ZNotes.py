@@ -2424,7 +2424,6 @@ class ZNotes(ObjectManager,
             dept = unescape_html(self.get_preference('DeptName'))
             copy_addr = self.get_preference('email_copy_bulletins')
             fmt = formsemestre_pagebulletin_get(self, formsemestre_id)
-            log(fmt)
             hea = fmt['intro_mail'] % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
             
             msg = MIMEMultipart()

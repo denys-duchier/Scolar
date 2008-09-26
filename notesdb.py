@@ -293,10 +293,14 @@ class EditableTable:
                 # convert type to Python type
                 if v:
                     if info['data_type'] == 'text':
+                        log('get: v="%s"'%v)
                         if v[0] == v[-1] == "'":
                             v = v[1:-1] # strip quotes
+                        elif v[:2] == "E'" and  v[-1] == "'":
+                            v = v[2:-1] # postgresql string with escapes
                         v = v.replace('\\012', '\n') # fix (je ne comprend pas bien pourquoi les valeurs sont ici quotées, ce n'est pas le cas dans les tables ordinaires)
                         v = v.replace("''", "'") # idem
+                        log('-->  v="%s"'%v)
                     elif info['data_type'] == 'real':
                         v = float(v)
                     elif info['data_type'] == 'integer':
