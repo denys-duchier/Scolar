@@ -34,6 +34,8 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee
 
+from sco_pagebulletin import notes_formsemestre_pagebulletin_list, notes_formsemestre_pagebulletin_create
+
 def _default_sem_title(F):
     """Default title for a semestre in formation F"""
     return F['titre']
@@ -510,6 +512,113 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
             context.do_moduleimpl_delete(moduleimpl_id)
 
     return ok, msg
+
+def formsemestre_clone(context, formsemestre_id, REQUEST=None):
+    """
+    Formulaire clonage d'un semestre
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    H = [ context.html_sem_header(REQUEST, 'Copie du semestre', sem,
+                                  javascripts=['AutoSuggest_js'],
+                                  cssstyles=['autosuggest_inquisitor_css'], 
+                                  bodyOnLoad="init_tf_form('')"
+                                  ),
+          """<p class="help">Cette opération duplique un semestre: on reprend les mêmes modules et responsables. Aucun étudiant n'est inscrit.</p>
+          """]
+    # Liste des enseignants avec forme pour affichage / saisie avec suggestion
+    userlist = context.Users.get_userlist()
+    login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
+    for u in userlist:
+        login2display[u['user_name']] = u['nomplogin']
+    allowed_user_names = login2display.values() + ['']
+    
+    initvalues = {
+        'formsemestre_id' : sem['formsemestre_id'],
+        'responsable_id' : login2display.get(sem['responsable_id'], sem['responsable_id']) }
+
+    tf = TrivialFormulator( 
+        REQUEST.URL0, REQUEST.form, 
+        [ ('formsemestre_id', { 'input_type' : 'hidden' }), 
+          ('date_debut', { 'title' : 'Date de début (j/m/a)',
+                         'size' : 9, 'allow_null' : False }),
+          ('date_fin', { 'title' : 'Date de fin (j/m/a)',
+                         'size' : 9, 'allow_null' : False }),
+          ('responsable_id',  { 'input_type' : 'text_suggest',
+                             'size' : 50,
+                             'title' : 'Directeur des études',
+                             'explanation' : 'taper le début du nom et choisir dans le menu',
+                             'allowed_values' : allowed_user_names,
+                             'allow_null' : False,
+                             'text_suggest_options' : { 
+                                             'script' : 'Users/get_userlist_xml?',
+                                             'varname' : 'start',
+                                             'json': False,
+                                             'noresults' : 'Valeur invalide !',
+                                             'timeout':60000 } }),            
+          ],
+        submitlabel = 'Dupliquer ce semestre',
+        cancelbutton = 'Annuler',
+        initvalues = initvalues)
+    if tf[0] == 0:
+        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+    elif tf[0] == -1: # cancel
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s' % formsemestre_id )
+    else:
+        new_formsemestre_id = do_formsemestre_clone(
+            context, formsemestre_id, 
+            context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id']),
+            tf[2]['date_debut'], tf[2]['date_fin'],
+            REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )               
+
+def do_formsemestre_clone(context, orig_formsemestre_id, 
+                          responsable_id, 
+                          date_debut, date_fin,  # 'dd/mm/yyyy'
+                          REQUEST=None):
+    """Clone a semestre: make copy, same modules, same options, same resps.
+    New dates, responsable_id
+    (and no students !)
+    """
+    log('cloning %s' % orig_formsemestre_id)
+    orig_sem = context.get_formsemestre(orig_formsemestre_id)
+    cnx = context.GetDBConnexion()
+    # 1- create sem
+    args = orig_sem.copy()
+    del args['formsemestre_id']
+    args['responsable_id'] = responsable_id
+    args['date_debut'] = date_debut
+    args['date_fin'] = date_fin
+    args['etat'] = 1 # non verrouillé
+    formsemestre_id = context.do_formsemestre_create(args, REQUEST)
+    log('created formsemestre %s' % formsemestre_id)
+    # 2- create modules
+    mods_orig = context.do_moduleimpl_list( {'formsemestre_id':orig_formsemestre_id} )
+    for mod_orig in mods_orig:
+        args = mod_orig.copy()
+        args['formsemestre_id'] = formsemestre_id
+        mid = context.do_moduleimpl_create(args)
+        # copy notes_modules_enseignants
+        ens = context.do_ens_list(args={'moduleimpl_id':mod_orig['moduleimpl_id']})
+        for e in ens:
+            args = e.copy()
+            args['moduleimpl_id'] = mid
+            context.do_ens_create(args)
+    # 3- copy uecoefs
+    objs = formsemestre_uecoef_list(cnx, args={'formsemestre_id':orig_formsemestre_id})
+    for obj in objs:
+        args = obj.copy()
+        args['formsemestre_id'] = formsemestre_id
+        c = formsemestre_uecoef_create(cnx, args)
+    # 4- copy notes_formsemestre_pagebulletin
+    objs = notes_formsemestre_pagebulletin_list(cnx, args={'formsemestre_id':orig_formsemestre_id})
+    for obj in objs:
+        args = obj.copy()
+        args['formsemestre_id'] = formsemestre_id
+        c = notes_formsemestre_pagebulletin_create(cnx, args=args)
+    
+    # NB: don't copy notes_formsemestre_custommenu (usually specific)
+    
+    return formsemestre_id
 
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     """Delete a formsemstre"""

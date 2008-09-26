@@ -135,7 +135,12 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' :  'formsemestre_enseignants_list?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           'helpmsg' : ''
-          }
+          },
+        { 'title' : 'Cloner ce semestre',
+          'url' :  'formsemestre_clone?formsemestre_id=' + formsemestre_id,
+          'enabled' : authuser.has_permission(ScoImplement, context),
+          'helpmsg' : ''
+          },
         ]
     # debug :
     if uid == 'root' or uid[:7] == 'viennet':

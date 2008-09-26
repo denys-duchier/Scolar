@@ -203,6 +203,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_editwithmodules')
     formsemestre_editwithmodules = sco_formsemestre_edit.formsemestre_editwithmodules
+
+    security.declareProtected(ScoView, 'formsemestre_clone')
+    formsemestre_clone = sco_formsemestre_edit.formsemestre_clone
     
     security.declareProtected(ScoImplement, 'formsemestre_delete')
     formsemestre_delete = sco_formsemestre_edit.formsemestre_delete
@@ -755,6 +758,9 @@ class ZNotes(ObjectManager,
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Suppression des item du menu custom
         req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Suppression de la mise en page bulletins
+        req = "DELETE FROM notes_formsemestre_pagebulletin WHERE formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Destruction du semestre
         self._formsemestreEditor.delete(cnx, formsemestre_id)
