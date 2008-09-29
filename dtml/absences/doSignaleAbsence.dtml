@@ -53,9 +53,9 @@ Ajout de <b><dtml-var sequence-length></b> absence(s) <b><dtml-if estjust><dtml-
 (<dtml-var nbabsjust> J., <dtml-var "nbabs-nbabsjust"> N.J.)
 <dtml-if "(nbajoute >= 3) or (((nbabs-nbabsjust) >= 6) and ((nbabs-nbabsjust) % 6 == 0))">
 <dtml-if "get_preference('email_chefdpt') and int(get_preference('send_mail_absence_to_chef'))">
-<h3><dtml-var email_chefdpt></h3>
+<h3><dtml-var "get_preference('email_chefdpt')"></h3>
 <dtml-sendmail mailhost=MailHost>
-To: <dtml-var email_chefdpt>
+To: <dtml-var "get_preference('email_chefdpt')">
 From: Systeme_de_Gestion_des_Absences_GTR
 Subject: [Absences] Trop d'absences pour <dtml-var nom> 
 
@@ -67,14 +67,14 @@ et <dtml-var "nbabs-nbabsjust"> absences NON justifiées.
 Il convient donc de le pendre haut et court.
 Voir <dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>
 
-Votre devoué serveur GTR.
+Votre devoué serveur ScoDoc.
 
 PS: Au dela de 6, un email automatique est adressé toutes les 6 absences non
     justifiées. Vérifier cependant que l'absence n'a pas été justifiée
     ulterieurement avant de sévir.
 </dtml-sendmail>
 
-<p><b>Un e-mail vient d'être adressé au chef (<dtml-var email_chefdpt>) !</p><br>
+<p><b>Un e-mail vient d'être adressé au chef (<dtml-var "get_preference('email_chefdpt')">) !</p><br>
 
 </dtml-if>
 </dtml-if>
