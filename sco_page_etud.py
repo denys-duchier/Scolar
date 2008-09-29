@@ -154,8 +154,8 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         l = ['<p><b>Etudiant%s non inscrit%s'%(info['ne'],info['ne'])]
         if authuser.has_permission(ScoEtudInscrit,context):
             l.append('<a href="%s/Notes/formsemestre_inscription_with_modules_form?etudid=%s">inscrire</a></li>'%(context.ScoURL(),etudid))
-            l.append('</b></b>')
-            info['liste_inscriptions'] = '\n'.join(l)
+        l.append('</b></b>')
+        info['liste_inscriptions'] = '\n'.join(l)
     # Liste des annotations
     alist = []
     annos = scolars.etud_annotations_list(cnx, args={ 'etudid' : etudid })
