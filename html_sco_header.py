@@ -124,10 +124,7 @@ window.onload=function(){enableTooltips("gtrcontent")};
     H.append('</head>')
     # Body et bandeau haut:
     H.append("""<body %(bodyOnLoad_mkup)s>"""%params)
-#<span class="bandeaugtr">
-#<span id="authuser"><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a>
-#&nbsp;&nbsp;&nbsp;<a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">déconnexion</a></span></span>
-#""" % params )
+    H.append(CUSTOM_HTML_HEADER)
     #
     if not no_side_bar:
         H.append( context.sidebar(REQUEST) )
@@ -145,8 +142,7 @@ window.onload=function(){enableTooltips("gtrcontent")};
 def sco_footer(context, REQUEST=None):
     """Main HTMl pages footer
     """
-    return """</div> <!-- gtr-content -->
-</body></html>"""
+    return """</div><!-- /gtrcontent -->""" + CUSTOM_HTML_FOOTER + """</body></html>"""
 
 
 

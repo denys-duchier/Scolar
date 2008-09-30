@@ -418,6 +418,7 @@ h4 {
                 'encoding' : SCO_ENCODING },
               self._top_level_css,
               """</head><body>""",
+              CUSTOM_HTML_HEADER_CNX,
               self._check_users_folder(REQUEST=REQUEST), # ensure setup is done
               self.check_icons_folder(REQUEST=REQUEST) ]
         if message:
@@ -527,7 +528,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 
 <link HREF="%s/scodoc_css" rel="stylesheet" type="text/css">
 
-</head><body>""" % (SCO_ENCODING, self.absolute_url())
+</head><body>%s""" % (SCO_ENCODING, self.absolute_url(), CUSTOM_HTML_HEADER_CNX)
 
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):

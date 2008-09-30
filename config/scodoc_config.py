@@ -72,3 +72,22 @@ CONFIG.compute_bonus = bonus_iutv
 #   - règle "LMD": capitalisation uniquement des UE avec moy. > 10
 
 CONFIG.CAPITALIZE_ALL_UES = True # si vrai, capitalise toutes les UE des semestres validés (règle "LMD").
+
+
+#
+# -----------------------------------------------------
+#
+# -------------- Personnalisation des pages
+#
+# -----------------------------------------------------
+# Nom (chemin complet) d'un fichier .html à inclure juste après le <body>
+#  le <body> des pages ScoDoc
+CONFIG.CUSTOM_HTML_HEADER = ''
+
+# Fichier html a inclure en fin des pages (juste avant le </body>)
+CONFIG.CUSTOM_HTML_FOOTER = ''
+
+# Fichier .html à inclure dans la pages connexion/déconnexion (accueil)
+# (par défaut la même chose)
+CONFIG.CUSTOM_HTML_HEADER_CNX = CONFIG.CUSTOM_HTML_HEADER
+CONFIG.CUSTOM_HTML_FOOTER_CNX = CONFIG.CUSTOM_HTML_FOOTER

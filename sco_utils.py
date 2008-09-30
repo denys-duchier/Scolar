@@ -55,9 +55,28 @@ except:
 try:
     exec( _config_text )
 except:
-    sys.stderr.write('sco_utils: error in configuartion file %s' %  _config_filename )
+    sys.stderr.write('sco_utils: error in configuration file %s' %  _config_filename )
     raise
 
+if CONFIG.CUSTOM_HTML_HEADER:
+    CUSTOM_HTML_HEADER = open(CONFIG.CUSTOM_HTML_HEADER).read()
+else:
+    CUSTOM_HTML_HEADER = ''
+
+if CONFIG.CUSTOM_HTML_HEADER_CNX:
+    CUSTOM_HTML_HEADER_CNX = open(CONFIG.CUSTOM_HTML_HEADER_CNX).read()
+else:
+    CUSTOM_HTML_HEADER_CNX = ''
+
+if CONFIG.CUSTOM_HTML_FOOTER:
+    CUSTOM_HTML_FOOTER = open(CONFIG.CUSTOM_HTML_FOOTER).read()
+else:
+    CUSTOM_HTML_FOOTER = ''
+
+if CONFIG.CUSTOM_HTML_FOOTER_CNX:
+    CUSTOM_HTML_FOOTER_CNX = open(CONFIG.CUSTOM_HTML_FOOTER_CNX).read()
+else:
+    CUSTOM_HTML_FOOTER_CNX = ''
 
 SCO_ENCODING = 'iso-8859-1' # used by Excel I/O
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
