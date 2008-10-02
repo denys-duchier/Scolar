@@ -770,30 +770,37 @@ class ZScoUsers(ObjectManager,
                    format='html', with_links=True, 
                    REQUEST=None):
         "List users"
+        authuser = REQUEST.AUTHENTICATED_USER
         if dept and not all:                        
             r = self.get_userlist(dept=dept)
             comm = '(dept. %s)' % dept
         else:
             r = self.get_userlist()
             comm = '(tous)'
-        # add links
-        if with_links:
-            for u in r:
+
+        # -- Add some information and links:
+        for u in r:
+            # Can current user modify this user ?
+            can_modify = self._can_handle_passwd(authuser,u['user_name'])
+            
+            # Add links
+            if with_links and can_modify:
                 target = 'userinfo?user_name=%(user_name)s' % u
                 u['_user_name_target'] = target
                 u['_nom_target'] = target
                 u['_prenom_target'] = target
-        
-        # Hide passwd modification date (depending on rights wrt user)
-        for u in r:
-            if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, u['user_name']):
-                u['date_modif_passwd'] = 'NA'
+            
+            # Hide passwd modification date (depending on rights wrt user)
+            if not can_modify:
+                u['date_modif_passwd'] = '(non visible)'
+                
+            # Add spaces between roles to ease line wrap
+            if u['roles']:
+                u['roles'] = ', '.join(u['roles'].split(','))
 
-        # convert dates to ISO if XML output
-        if format=='xml':
-            for u in r:
-                if u['date_modif_passwd'] != 'NA':
-                    u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
+            # Convert dates to ISO if XML output
+            if format=='xml' and u['date_modif_passwd'] != 'NA':
+                u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
         
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
@@ -804,7 +811,8 @@ class ZScoUsers(ObjectManager,
             caption = title, page_title = 'title',
             html_title = """<h2>%d utilisateurs %s</h2>
             <p class="help">Cliquer sur un nom pour changer son mot de passe</p>""" % (len(r), comm),
-            html_class = 'gt_table table_leftalign',
+            html_class = 'gt_table table_leftalign list_users',
+            html_with_td_classes = True,
             html_sortable = True,
             base_url = '%s?all=%s' % (REQUEST.URL0, all),
             pdf_link=False, # table is too wide to fit in a paper page => disable pdf

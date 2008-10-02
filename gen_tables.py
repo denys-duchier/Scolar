@@ -238,7 +238,10 @@ class GenTable:
                         continue # skip cell
                     content = str(row.get(cid,''))
                     help = row.get('_%s_help'%cid, '')
-                    target=row.get('_%s_target'%cid, '#')
+                    if help:
+                        target=row.get('_%s_target'%cid, '#')
+                    else:
+                        target=row.get('_%s_target'%cid, '')
                     if help or target:
                         content = '<a class="discretelink" href="%s" title="%s">%s</a>' % (target,help, content)
                     if self.html_with_td_classes:

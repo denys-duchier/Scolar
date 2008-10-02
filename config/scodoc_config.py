@@ -88,6 +88,6 @@ CONFIG.CUSTOM_HTML_HEADER = ''
 CONFIG.CUSTOM_HTML_FOOTER = ''
 
 # Fichier .html à inclure dans la pages connexion/déconnexion (accueil)
-# (par défaut la même chose)
+# si on veut que ce soit différent (par défaut la même chose)
 CONFIG.CUSTOM_HTML_HEADER_CNX = CONFIG.CUSTOM_HTML_HEADER
 CONFIG.CUSTOM_HTML_FOOTER_CNX = CONFIG.CUSTOM_HTML_FOOTER

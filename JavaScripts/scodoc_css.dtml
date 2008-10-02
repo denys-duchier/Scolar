@@ -1397,4 +1397,12 @@ table.table_listegroupe tr td {
   padding-right: 0.5em;
 }
 
+table.list_users td.roles {
+  width: 22em;
+}
+
+table.list_users td.date_modif_passwd {
+  white-space: nowrap;
+}
+
 /* ----------------------------- */
