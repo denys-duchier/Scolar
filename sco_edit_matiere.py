@@ -68,6 +68,10 @@ associé.
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect(dest_url)
     else:
+        # check unicity
+        mats = context.do_matiere_list(args={ 'ue_id' : ue_id, 'titre' : tf[2]['titre'] } )
+        if mats:
+            return '\n'.join(H) + tf_error_message('Titre de matière déjà existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
         matiere_id = context.do_matiere_create( tf[2], REQUEST )
         return REQUEST.RESPONSE.redirect(dest_url)
 
@@ -135,6 +139,10 @@ associé.
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect(dest_url)
     else:
+        # check unicity
+        mats = context.do_matiere_list(args={ 'ue_id' : tf[2]['ue_id'], 'titre' : tf[2]['titre'] } )
+        if len(mats) > 1 or (len(mats) == 1 and mats[0]['matiere_id'] != matiere_id):
+            return '\n'.join(H) + tf_error_message('Titre de matière déjà existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
         context.do_matiere_edit( tf[2] )
         return REQUEST.RESPONSE.redirect(dest_url)
 
