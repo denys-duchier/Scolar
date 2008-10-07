@@ -213,16 +213,17 @@ TODO
      - lister un utilisateur: login => firstname, lastname, email
      - lister les utilisateurs
 
-  et une base interne "d'acteurs". Chaque acteur est défini par:
+  et une base interne ScoDoc "d'acteurs" (enseignants, administratifs). 
+  Chaque acteur est défini par:
      - actor_id, firstname, lastname
        date_creation, date_expiration, 
        roles, departement,
        email (+flag indiquant s'il faut utiliser ce mail ou celui de
        l'utilisateur ?)
-       state (on, off) (pour desaciver aavant expiration ?)
+       state (on, off) (pour desactiver avant expiration ?)
        user_id (login)  => lien avec base utilisateur
 
-  On offre une source d'utilisateurs SQL (base partagée par tous les dept.
+  On offrira une source d'utilisateurs SQL (base partagée par tous les dept.
   d'une instance ScoDoc), mais dans la plupart des cas les gens utiliseront
   un annuaire LDAP.
 
