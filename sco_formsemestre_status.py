@@ -262,10 +262,16 @@ def formsemestre_page_title(context, REQUEST):
     if REQUEST.form.has_key('formsemestre_id'):
         formsemestre_id = REQUEST.form['formsemestre_id']
     elif REQUEST.form.has_key('moduleimpl_id'):
-        modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : REQUEST.form['moduleimpl_id']})[0]
+        modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : REQUEST.form['moduleimpl_id']})
+        if not modimpl:
+            return '' # suppressed ?
+        modimpl = modimpl[0]
         formsemestre_id = modimpl['formsemestre_id']
     elif REQUEST.form.has_key('evaluation_id'):
-        E = notes.do_evaluation_list({'evaluation_id' : REQUEST.form['evaluation_id']})[0]
+        E = notes.do_evaluation_list({'evaluation_id' : REQUEST.form['evaluation_id']})
+        if not E:
+            return '' # evaluation suppressed ?
+        E = E[0]
         modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
         formsemestre_id = modimpl['formsemestre_id']
     elif REQUEST.form.has_key('semestregroupe'):
