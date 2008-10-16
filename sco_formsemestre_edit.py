@@ -777,7 +777,7 @@ def formsemestre_edit_options(context, formsemestre_id,
     if tf[0] == 0:
         return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formsemestre_pagebulletin_dialog?formsemestre_id=%s">Réglage de la mise en page et envoi mail des bulletins</a>' % formsemestre_id + footer
     elif tf[0] == -1:
-        return header + '<h4>annulation</h4>' + footer
+        return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s'%formsemestre_id )
     else:
         if tf[2]['gestion_absence_lst']:
             tf[2]['gestion_absence'] = 1
