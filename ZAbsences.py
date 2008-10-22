@@ -964,13 +964,22 @@ class ZAbsences(ObjectManager,
                 if with_evals:
                     a['exams'] = descr_exams(a)
                 a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
+                a['matin_o'] = a['matin']
                 a['matin'] = matin(a['matin'])
+        # ajoute lien pour justifier
+        if format == 'html':
+            for a in absnonjust:
+                a['justlink'] = '<em>justifier</em>'
+                a['_justlink_target'] = 'doJustifAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s'%(etudid, a['datedmy'], a['datedmy'], a['matin_o'])
         #
-        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens'}
+        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens', 'justlink' : '' }
         columns_ids=['datedmy', 'matin']
         if with_evals:
             columns_ids.append('exams')
-
+        
+        if format == 'html':
+            columns_ids.append('justlink')
+        
         if len(absnonjust):
             H.append('<h3>%d absences non justifiées:</h3>' % len(absnonjust))
             tab = GenTable( titles=titles, columns_ids=columns_ids, rows = absnonjust,
