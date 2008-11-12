@@ -1453,6 +1453,11 @@ class ZNotes(ObjectManager,
         # -- check lock
         if sem['etat'] != '1':
             raise ScoValueError('desinscription impossible: semestre verrouille')
+        insem = self.do_formsemestre_inscription_list(
+            args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )
+        if not insem:
+            raise ScoValueError("%s n'est pas inscrit au semestre !" % etudid)
+        insem = insem[0]
         # -- desinscription de tous les modules
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -1462,9 +1467,7 @@ class ZNotes(ObjectManager,
         moduleimpl_inscription_ids = [ x[0] for x in res ]
         for moduleimpl_inscription_id in moduleimpl_inscription_ids:
             self.do_moduleimpl_inscription_delete(moduleimpl_inscription_id)
-        # -- desincription du semestre
-        insem = self.do_formsemestre_inscription_list(
-            args={ 'formsemestre_id' : formsemestre_id, 'etudid' : etudid } )[0]
+        # -- desincription du semestre        
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
 
     
