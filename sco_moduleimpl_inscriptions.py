@@ -70,7 +70,11 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     # Liste des inscrits à ce semestre
     inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
     for ins in inscrits:
-        ins['etud'] = context.getEtudInfo(etudid=ins['etudid'], filled=1)[0]
+        etuds =  context.getEtudInfo(etudid=ins['etudid'], filled=1)
+        if not etuds:
+            log('moduleimpl_inscriptions_edit: incoherency for etudid=%s !'%ins['etudid'])
+            raise ScoValueError("Etudiant %s inscrit mais inconnu dans la base !!!!!" %ins['etudid'])
+        ins['etud'] = etuds[0]
     inscrits.sort( lambda x,y: cmp(x['etud']['nom'],y['etud']['nom']) )
     in_m = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     in_module= Set( [ x['etudid'] for x in in_m ] )
