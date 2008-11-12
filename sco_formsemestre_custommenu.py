@@ -54,11 +54,11 @@ def formsemestre_custommenu_get(context, formsemestre_id):
     vals = notes_formsemestre_custommenu_list(cnx, {'formsemestre_id' : formsemestre_id})
     return vals
 
-def formsemestre_custommenu_html(context, formsemestre_id):
+def formsemestre_custommenu_html(context, formsemestre_id, base_url=''):
     "HTML code for custom menu"
     menu = formsemestre_custommenu_get(context, formsemestre_id)
     menu.append( { 'title' : 'Modifier ce menu...', 
-                   'url' : 'formsemestre_custommenu_edit?formsemestre_id=' + formsemestre_id } )
+                   'url' : base_url + 'formsemestre_custommenu_edit?formsemestre_id=' + formsemestre_id } )
     return sco_formsemestre_status.makeMenu( 'Liens', menu )
 
 def formsemestre_custommenu_edit(context, formsemestre_id, REQUEST=None):

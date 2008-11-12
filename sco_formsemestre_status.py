@@ -244,7 +244,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         '<td>',  makeMenu( 'Notes', menuNotes, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Jury', menuJury, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Statistiques', menuStats, base_url=base_url ), '</td>',
-        '<td>', formsemestre_custommenu_html(context, formsemestre_id), '</td></tr></table></div>',
+        '<td>', formsemestre_custommenu_html(context, formsemestre_id, base_url=base_url), '</td></tr></table></div>',
           ]
     return '\n'.join(H)
 
