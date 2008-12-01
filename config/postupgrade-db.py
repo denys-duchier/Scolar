@@ -36,7 +36,7 @@ for dept in get_depts():
     
     # SVN 635
     # add bul_show_rangs to to notes_formsemestre:
-    check_field(cnx, 'notes_formsemestre', 'resp_can_change_ens',
+    check_field(cnx, 'notes_formsemestre', 'bul_show_rangs',
                 ['alter table notes_formsemestre add column bul_show_rangs int default 1',
                  'update notes_formsemestre set bul_show_rangs=1'])
 
