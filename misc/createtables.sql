@@ -284,6 +284,7 @@ CREATE TABLE notes_formsemestre (
  	nomgroupetp text default 'TP',
  	nomgroupeta text default 'langues',
 	bul_show_codemodules integer default 1,
+	bul_show_rangs integer default 1,
 	bul_show_ue_rangs integer default 1,
         bul_show_mod_rangs integer default 1,
         gestion_compensation integer default 0, -- gestion compensation sem DUT

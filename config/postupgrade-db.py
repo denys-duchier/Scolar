@@ -34,6 +34,12 @@ for dept in get_depts():
                 ['alter table notes_formsemestre add column resp_can_change_ens int default 1',
                  'update notes_formsemestre set resp_can_change_ens=1'])
     
+    # SVN 635
+    # add bul_show_rangs to to notes_formsemestre:
+    check_field(cnx, 'notes_formsemestre', 'resp_can_change_ens',
+                ['alter table notes_formsemestre add column bul_show_rangs int default 1',
+                 'update notes_formsemestre set bul_show_rangs=1'])
+
     # Add here actions to performs after upgrades:
 
 # The end.

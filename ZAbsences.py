@@ -619,12 +619,8 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoView, 'is_work_saturday')
     def is_work_saturday(self):
         "Vrai si le samedi est travaillé"
-        try:
-            r = int(self.work_saturday) # preference: Zope property
-        except:
-            r = 0
-        return r
-
+        return int(self.get_preference('work_saturday'))
+    
     def day_names(self):
         """Returns week day names.
         If work_saturday property is set, include saturday

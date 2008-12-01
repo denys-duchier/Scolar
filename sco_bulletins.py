@@ -86,8 +86,10 @@ def make_formsemestre_bulletinetud(
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = '(notes en attente)'
-    else:
+    elif sem['bul_show_rangs'] != '0':
         rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
+    else:
+        rang = ''
 
     t = ('Moyenne', mg + etatstr + bargraph,
          rang, 
@@ -312,8 +314,10 @@ def make_xml_formsemestre_bulletinetud(
         # n'affiche pas le renag sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = '?'
-    else:
+    elif sem['bul_show_rangs'] != '0':
         rang = str(nt.get_etud_rang(etudid))
+    else:
+        rang = ''
     doc._push()
     doc.note( value=mg )
     doc._pop()

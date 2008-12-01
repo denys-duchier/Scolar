@@ -689,6 +689,11 @@ def formsemestre_edit_options(context, formsemestre_id,
                                   'allowed_values' : ['X'],
                                   'explanation' : 'afficher codes des modules sur les bulletins',
                                    'labels' : [''] }),
+        ('bul_show_rangs_lst',  { 'input_type' : 'checkbox',
+                                  'title' : '',
+                                  'allowed_values' : ['X'],
+                                  'explanation' : 'afficher le classement sur les bulletins',
+                                  'labels' : [''] }),
         ('bul_show_ue_rangs_lst',  { 'input_type' : 'checkbox',
                                   'title' : '',
                                   'allowed_values' : ['X'],
@@ -745,6 +750,14 @@ def formsemestre_edit_options(context, formsemestre_id,
     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_codemodules_lst'):
         REQUEST.form['bul_show_codemodules_lst'] = []
 
+    initvalues['bul_show_rangs'] = initvalues.get('bul_show_rangs','1')
+    if initvalues['bul_show_rangs'] == '1':
+        initvalues['bul_show_rangs_lst'] = ['X']
+    else:
+        initvalues['bul_show_rangs_lst'] = []
+    if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_rangs_lst'):
+        REQUEST.form['bul_show_rangs_lst'] = []
+
     initvalues['bul_show_ue_rangs'] = initvalues.get('bul_show_ue_rangs','1')
     if initvalues['bul_show_ue_rangs'] == '1':
         initvalues['bul_show_ue_rangs_lst'] = ['X']
@@ -798,6 +811,11 @@ def formsemestre_edit_options(context, formsemestre_id,
             tf[2]['bul_show_codemodules'] = 1
         else:
             tf[2]['bul_show_codemodules'] = 0
+
+        if tf[2]['bul_show_rangs_lst']:
+            tf[2]['bul_show_rangs'] = 1
+        else:
+            tf[2]['bul_show_rangs'] = 0
 
         if tf[2]['bul_show_ue_rangs_lst']:
             tf[2]['bul_show_ue_rangs'] = 1
