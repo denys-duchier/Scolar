@@ -70,11 +70,11 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     # Liste des inscrits à ce semestre
     inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
     for ins in inscrits:
-        etuds =  context.getEtudInfo(etudid=ins['etudid'], filled=1)
-        if not etuds:
+        etuds_info =  context.getEtudInfo(etudid=ins['etudid'], filled=1)
+        if not etuds_info:
             log('moduleimpl_inscriptions_edit: incoherency for etudid=%s !'%ins['etudid'])
             raise ScoValueError("Etudiant %s inscrit mais inconnu dans la base !!!!!" %ins['etudid'])
-        ins['etud'] = etuds[0]
+        ins['etud'] = etuds_info[0]
     inscrits.sort( lambda x,y: cmp(x['etud']['nom'],y['etud']['nom']) )
     in_m = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     in_module= Set( [ x['etudid'] for x in in_m ] )
@@ -124,7 +124,7 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etuds,
                                             reset=True,
                                             REQUEST=REQUEST)
-        REQUEST.RESPONSE.redirect( "formsemestre_status?formsemestre_id=%s" %(formsemestre_id))
+        REQUEST.RESPONSE.redirect( "moduleimpl_status?moduleimpl_id=%s" %(moduleimpl_id))
     #
     H.append(footer)
     return '\n'.join(H)
