@@ -33,6 +33,7 @@ import jaxml
 import xml.dom.minidom
 
 from sco_utils import *
+from notesdb import quote_dict
 from notes_log import log
 
 
@@ -119,10 +120,12 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     D = XMLToDicts(f,encoding)
     assert D[0] == 'formation'
     F = D[1]
+    F_quoted = F.copy()
+    quote_dict(F_quoted)
     # find new version number
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
-    cursor.execute('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s', F)
+    cursor.execute('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s', F_quoted)
     res = cursor.fetchall()
     try:
         version = int(res[0][0]) + 1
