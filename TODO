@@ -251,3 +251,17 @@ TODO
 
 
 
+
+        o-------------------------------------o
+
+
+Nouvelles préférences:
+* sco_prefs: ajouter champs:
+  - formsemestre_id: si NULL, pref globale
+
+* deplacer get_preferences dans sco_preferences (instance partagee unique)
+   - donner une vue specialise / semestre (accesseur dict)
+
+
+
+

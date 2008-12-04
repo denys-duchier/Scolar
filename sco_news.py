@@ -97,6 +97,8 @@ def scolar_news_summary(context, n=5):
     news = news[:n]
     # mimic EditableTable.list output formatting:
     for n in news:
+        d = n['date']
+        n['date822'] = n['date'].strftime("%a, %d %b %Y %H:%M:%S %z")
         # heure
         n['hm'] = n['date'].strftime('%Hh%M')
         n['rssdate'] = n['date'].strftime('%d/%m %Hh%M') # pour affichage
@@ -162,7 +164,7 @@ def scolar_news_summary_rss(context, title, sco_url, n=5):
         items.append( PyRSS2Gen.RSSItem(
             title= unicode( '%s %s' % (n['rssdate'], text), SCO_ENCODING),
             link = sco_url + '/' + n['url'],
-            pubDate = n['date'] ))
+            pubDate = n['date822'] ))
     rss = PyRSS2Gen.RSS2(
         title = unicode(title, SCO_ENCODING),
         link = sco_url,
