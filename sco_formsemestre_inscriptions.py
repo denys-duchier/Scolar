@@ -207,8 +207,9 @@ def formsemestre_inscription_with_modules(
         """ % sem['nomgroupetd'])
         return '\n'.join(H) + F
 
-def formsemestre_inscription_option(self, etudid, formsemestre_id, moduleimpls=[],
-                                    REQUEST=None):
+
+
+def formsemestre_inscription_option(self, etudid, formsemestre_id, REQUEST=None):
     """Dialogue pour (des)inscription a des modules optionnels
     """
     sem = self.get_formsemestre(formsemestre_id)
@@ -216,75 +217,118 @@ def formsemestre_inscription_option(self, etudid, formsemestre_id, moduleimpls=[
         raise ScoValueError('Modification impossible: semestre verrouille')
 
     etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+    nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+
     F = self.sco_footer(REQUEST)
     H = [ self.sco_header(REQUEST)
           + "<h2>Inscription de %s aux modules de %s (%s - %s)</h2>" %
           (etud['nomprenom'],sem['titre_num'],
            sem['date_debut'],sem['date_fin']) ]
-    H.append("""<p>Voici la liste des modules du semestre choisi.</p><p>
-    Les modules cochés sont ceux dans lesquels l'étudiant est inscrit. Vous pouvez l'inscrire ou le désincrire d'un ou plusieurs modules.</p>
-    <p>Attention: cette méthode ne devrait être utilisée que pour les modules <b>optionnels</b> ou les activités culturelles et sportives.</p>
-    """)
+
     # Cherche les moduleimpls et les inscriptions
     mods = self.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
     inscr= self.do_moduleimpl_inscription_list( args={'etudid':etudid} )
     # Formulaire
-    modimpls_ids = []
-    modimpl_names= []
-    initvalues = { 'moduleimpls' : [] }
+    modimpls_by_ue_ids = DictDefault(defaultvalue=[])  # ue_id : [ moduleimpl_id ]
+    modimpls_by_ue_names= DictDefault(defaultvalue=[]) # ue_id : [ moduleimpl_name ]
+    ues = []
+    ue_ids = Set()
+    initvalues = {}
     for mod in mods:
-        modimpls_ids.append(mod['moduleimpl_id'])
-        if mod['ue']['type'] == UE_STANDARD:
-            ue_type = ''
-        else:
-            ue_type = '<b>%s</b>' % UE_TYPE_NAME[mod['ue']['type']]
-        modimpl_names.append('%s %s &nbsp;&nbsp;(%s %s)' % (
-            mod['module']['code'], mod['module']['titre'],
-            mod['ue']['acronyme'], ue_type))
-        # inscrit ?
-        for ins in inscr:
-            if ins['moduleimpl_id'] == mod['moduleimpl_id']:
-                initvalues['moduleimpls'].append(mod['moduleimpl_id'])
-                break
+        ue_id = mod['ue']['ue_id']
+        if not ue_id in ue_ids:
+            ues.append(mod['ue'])
+            ue_ids.add(ue_id)
+        modimpls_by_ue_ids[ue_id].append(mod['moduleimpl_id'])
+                
+        modimpls_by_ue_names[ue_id].append('%s %s' % (
+                mod['module']['code'], mod['module']['titre']))
+        if not REQUEST.form.get('tf-submitted', False):
+            # inscrit ?
+            for ins in inscr:
+                if ins['moduleimpl_id'] == mod['moduleimpl_id']:
+                    key = 'moduleimpls_%s' % ue_id
+                    if key in initvalues:
+                        initvalues[key].append(mod['moduleimpl_id'])
+                    else:
+                        initvalues[key] = [mod['moduleimpl_id']]
+                    break
+    
     descr = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
-        ('etudid', { 'input_type' : 'hidden' }),
-        ('moduleimpls',
-         { 'input_type' : 'checkbox', 'title':'',
-           'allowed_values' : modimpls_ids, 'labels' : modimpl_names,
-           'vertical' : True
-           }),
-    ]
+        ('etudid', { 'input_type' : 'hidden' }) ]
+    for ue in ues:
+        ue_id = ue['ue_id']
+        ue_descr = ue['acronyme']
+        if ue['type'] != UE_STANDARD:
+            ue_descr += ' <em>%s</em>' % UE_TYPE_NAME[ue['type']]
+        ue_status = nt.get_etud_ue_status(etudid, ue_id)
+        if ue_status['is_capitalized']:
+            sem_origin = self.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
+            ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s">(capitalisée le %s)' % (sem_origin['formsemestre_id'], 
+etudid, sem_origin['titreannee'], DateISOtoDMY(ue_status['event_date']))
+        descr.append( 
+            ('sec_%s' % ue_id, 
+             { 'input_type' : 'separator', 
+               'title' : """<b>%s :</b>  <a href="#" onclick="chkbx_select('%s', true);">inscrire</a>|<a href="#" onclick="chkbx_select('%s', false);">désinscrire</a> à tous les modules""" % (ue_descr, ue_id, ue_id) }))
+        descr.append(
+            ('moduleimpls_%s' % ue_id,
+             { 'input_type' : 'checkbox', 'title':'',
+               'dom_id' : ue_id,
+               'allowed_values' : modimpls_by_ue_ids[ue_id], 
+               'labels' : modimpls_by_ue_names[ue_id],
+               'vertical' : True
+               }) )
+    
+    H.append("""<script type="text/javascript">
+function chkbx_select(field_id, state) {
+   var elems = document.getElementById(field_id).getElementsByTagName("input");
+   for (var i=0; i < elems.length; i++) { 
+      elems[i].checked=state; 
+   }
+}
+    </script>
+    """)
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             initvalues,
-                            cancelbutton = 'Annuler', method='GET',
+                            cancelbutton = 'Annuler', method='post',
                             submitlabel = 'Modifier les inscriptions', cssclass='inscription',
                             name='tf' )
     if  tf[0] == 0:
+        H.append("""<p>Voici la liste des modules du semestre choisi.</p><p>
+    Les modules cochés sont ceux dans lesquels l'étudiant est inscrit. Vous pouvez l'inscrire ou le désincrire d'un ou plusieurs modules.</p>
+    <p>Attention: cette méthode ne devrait être utilisée que pour les modules <b>optionnels</b> (ou les activités culturelles et sportives) et pour désinscrire les étudiants dispensés (UE validées).</p>
+    """)
         return '\n'.join(H) + '\n' + tf[1] + F
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=%s" %(self.ScoURL(), etudid))
     else:
         # Inscriptions aux modules choisis
-        # xxx moduleimpls = REQUEST.form['moduleimpls']
         # il faut desinscrire des modules qui ne figurent pas
         # et inscrire aux autres, sauf si deja inscrit
         a_desinscrire = {}.fromkeys( [ x['moduleimpl_id'] for x in mods ] )
         insdict = {}
         for ins in inscr:
             insdict[ins['moduleimpl_id']] = ins
-        for moduleimpl_id in moduleimpls:                    
-            if a_desinscrire.has_key(moduleimpl_id):
-                del a_desinscrire[moduleimpl_id]
+        for ue in ues:
+            ue_id = ue['ue_id']
+            for moduleimpl_id in tf[2]['moduleimpls_%s'%ue_id]:
+                if a_desinscrire.has_key(moduleimpl_id):
+                    del a_desinscrire[moduleimpl_id]
         # supprime ceux auxquel pas inscrit
         for moduleimpl_id in a_desinscrire.keys():
             if not insdict.has_key(moduleimpl_id):
                 del a_desinscrire[moduleimpl_id]
-        a_inscrire = {}.fromkeys( moduleimpls )
+        
+        a_inscrire = Set()
+        for ue in ues:
+            ue_id = ue['ue_id']
+            a_inscrire.update(tf[2]['moduleimpls_%s'%ue_id])
+        # supprime ceux auquel deja inscrit:
         for ins in inscr:
-            if a_inscrire.has_key(ins['moduleimpl_id']):
-                del a_inscrire[ins['moduleimpl_id']]
+            if ins['moduleimpl_id'] in a_inscrire:
+                a_inscrire.remove(ins['moduleimpl_id'])
         # dict des modules:
         modsdict = {}
         for mod in mods:
@@ -295,23 +339,25 @@ def formsemestre_inscription_option(self, etudid, formsemestre_id, moduleimpls=[
             <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % (self.ScoURL(), etudid))
             return '\n'.join(H) + F
 
-        H.append("<h3>Confirmer les modifications</h3>")
+        H.append("<h3>Confirmer les modifications:</h3>")
         if a_desinscrire:
-            H.append("<p>%s va être <b>désinscrit</b> des modules:"
-                     %etud['nomprenom'])
-            H.append( ', '.join([
+            H.append("<p>%s va être <b>désinscrit%s</b> des modules:<ul><li>"
+                     %(etud['nomprenom'],etud['ne']))
+            H.append( '</li><li>'.join([
                 '%s (%s)' %
                 (modsdict[x]['module']['titre'],
                  modsdict[x]['module']['code'])
                 for x in a_desinscrire ]) + '</p>' )
+            H.append( '</li></ul>' )
         if a_inscrire:
-            H.append("<p>%s va être <b>inscrit</b> aux modules:"
-                     %etud['nomprenom'])
-            H.append( ', '.join([
+            H.append("<p>%s va être <b>inscrit%s</b> aux modules:<ul><li>"
+                     %(etud['nomprenom'],etud['ne']))
+            H.append( '</li><li>'.join([
                 '%s (%s)' %
                 (modsdict[x]['module']['titre'],
                  modsdict[x]['module']['code'])
                 for x in a_inscrire ]) + '</p>' )
+            H.append( '</li></ul>' )
         modulesimpls_ainscrire=','.join(a_inscrire)
         modulesimpls_adesinscrire=','.join(a_desinscrire)
         H.append("""<form action="do_moduleimpl_incription_options">

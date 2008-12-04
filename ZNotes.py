@@ -979,7 +979,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_moduleimpl_withmodule_list')
     def do_moduleimpl_withmodule_list(self,args):
         """Liste les moduleimpls et ajoute dans chacun le module correspondant
-        Tri la liste par numero de module
+        Tri la liste par semestre/UE/numero_matiere/numero_module
         """
         modimpls = self.do_moduleimpl_list(args)
         for mo in modimpls:

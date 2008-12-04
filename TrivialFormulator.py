@@ -261,7 +261,7 @@ class TF:
         # form template
         # xxx
         # default template for each input element
-        itemtemplate = """<tr>
+        itemtemplate = """<tr%(item_dom_attr)s>
         <td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td>
         </tr>
         """
@@ -309,6 +309,11 @@ class TF:
             title= descr.get('title', field.capitalize())
             withcheckbox =  descr.get('withcheckbox', False )
             input_type = descr.get('input_type', 'text')
+            item_dom_id = descr.get('dom_id', '')
+            if item_dom_id:
+                item_dom_attr = ' id="%s"' % item_dom_id
+            else:
+                item_dom_attr = ''
             # choix du template
             etempl= descr.get('template', None)
             if etempl is None:
@@ -438,7 +443,8 @@ class TF:
             if explanation:
                 lem.append('<i>%s</i>' % explanation )
             R.append( etempl % { 'label' : '\n'.join(lab),
-                                 'elem' : '\n'.join(lem) } )
+                                 'elem' : '\n'.join(lem),
+                                 'item_dom_attr' : item_dom_attr } )
         R.append( '</table>' )
         
         if self.bottom_buttons:
