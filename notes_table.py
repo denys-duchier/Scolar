@@ -777,8 +777,10 @@ class CacheNotesTable:
                         if self.cache.has_key(formsemestre_id):
                             del self.cache[formsemestre_id]
                 for formsemestre_id in to_trash:
-                    if self.pdfcache.has_key(formsemestre_id):
-                        del self.pdfcache[formsemestre_id]
+                    for (cached_formsemestre_id, cached_version) in self.pdfcache.keys():
+                        if cached_formsemestre_id == formsemestre_id:
+                            log('delete pdfcache[(%s,%s)]' % (formsemestre_id,cached_version))
+                            del self.pdfcache[(formsemestre_id,cached_version)]
         finally:
             self.release()
 
@@ -798,7 +800,11 @@ class CacheNotesTable:
             self.acquire()
             if not hasattr(self,'pdfcache'):
                 self.pdfcache = {} # fix for old zope instances...
-            return self.pdfcache.get((formsemestre_id,version), None)
+            r = self.pdfcache.get((formsemestre_id,version), None)
+            if r:
+                log('get_bulletins_pdf(%s): cache hit %s (id=%s, thread=%s)'
+                    % (version, formsemestre_id, id(self), thread.get_ident()))
+            return r
         finally:
              self.release()
 

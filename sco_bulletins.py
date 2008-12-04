@@ -636,7 +636,7 @@ def formsemestre_bulletins_choice(context, REQUEST, formsemestre_id,
                    ('selectedevals', 'Version intermédiaire'),
                    ('long', 'Version complète')):
         H.append('<option value="%s">%s</option>' % (v, e))
-    H.append("""</select>&nbsp;&nbsp;<input type="submit"/></form><p class="help">""" + explanation + '</p>',)
+    H.append("""</select>&nbsp;&nbsp;<input type="submit" value="Générer"/></form><p class="help">""" + explanation + '</p>',)
 
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
