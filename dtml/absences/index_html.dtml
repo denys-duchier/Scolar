@@ -8,15 +8,13 @@
   -->
 </dtml-comment>
 
-<dtml-let _formChoixSemestreGroupe=formChoixSemestreGroupe>
-
 <dtml-var "sco_header(page_title='Gestion des absences',
             REQUEST=REQUEST, 
             cssstyles=['Absences/calabs_css'], javascripts=['Absences/calabs_js'])">
 
 <h2>Gestion des Absences</h2>
 
-<dtml-if _formChoixSemestreGroupe>
+<dtml-if "len(Notes.do_formsemestre_list()) > 0">
 
 <h3><a href="EtatAbsences">Afficher l'&eacute;tat des absences (pour tout un groupe)</a></h3>
 
@@ -65,10 +63,8 @@ saisir les absences de toute cette semaine.</p>
 <p class="warning">Aucun semestre défini (ou aucun groupe d'étudiant)
 </p>
 
-</dtml-if _formChoixSemestreGroupe>
+</dtml-if nbsem>
 
 
 <dtml-var sco_footer>
-
-</dtml-let formChoixSemestreGroupe>
 

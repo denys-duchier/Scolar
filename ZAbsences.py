@@ -601,7 +601,12 @@ class ZAbsences(ObjectManager,
         "display calendar allowing week selection"
         if not year:
             year = self.AnneeScolaire()
-        C = self.YearTable(int(year), dayattributes='onmouseover="highlightweek(this);" onmouseout="deselectweeks();" onclick="wclick(this);"')
+        sems = self.Notes.do_formsemestre_list()
+        if not sems:
+            js = ''
+        else:
+            js = 'onmouseover="highlightweek(this);" onmouseout="deselectweeks();" onclick="wclick(this);"'
+        C = self.YearTable(int(year), dayattributes=js)
         return C
 
 
