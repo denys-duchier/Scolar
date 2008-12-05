@@ -48,11 +48,11 @@ def _menuScolarite(context, authuser, sem, etudid):
     locked = (sem['etat'] != '1')
     if locked or (not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context)):
         return '' # no menu
-    i = sem['ins']
+    ins = sem['ins']
     args = { 'etudid' : etudid,
-             'formsemestre_id' : i['formsemestre_id'] }
+             'formsemestre_id' : ins['formsemestre_id'] }
 
-    if sem['etat'] != 'D':
+    if ins['etat'] != 'D':
         dem_title = 'Démission'
         dem_url = 'formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
     else:
@@ -61,7 +61,7 @@ def _menuScolarite(context, authuser, sem, etudid):
     
     items = [
         { 'title' : 'Changer de groupe',
-          'url' : 'formChangeGroupe?etudid=%s&formsemestre_id=%s' % (etudid,i['formsemestre_id']),
+          'url' : 'formChangeGroupe?etudid=%s&formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
           'enabled' : authuser.has_permission(ScoEtudChangeGroups,context) and not locked,
         },
         { 'title' : dem_title,
