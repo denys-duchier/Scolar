@@ -33,6 +33,7 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
+from sco_groupes import getGroupsFromList
 import htmlutils
 import sco_excel
 from gen_tables import GenTable
@@ -147,17 +148,9 @@ def _make_table_notes(context, REQUEST, html_form, evals,
     else:
         keep_numeric = False
     # Build list of etudids (uniq, some groups may overlap)
-    gr_td = [ x[2:] for x in groups_list if x[:2] == 'td' ]
-    gr_tp = [ x[2:] for x in groups_list if x[:2] == 'tp' ]
-    gr_anglais = [ x[2:] for x in groups_list if x[:2] == 'ta' ]
-    g = gr_td+gr_tp+gr_anglais
+    gr_td, gr_tp, gr_anglais, gr_title = getGroupsFromList(groups_list)
     gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
-    if len(g) > 1:
-        gr_title = 'groupes ' + ', '.join(g)                
-    elif len(g) == 1:            
-        gr_title = 'groupe ' + g[0]
-    else:
-        gr_title = ''
+    
     if not groups_list:# aucun groupe selectionne: affiche tous les etudiants
         getallstudents = True
         gr_title = 'tous'
@@ -285,13 +278,13 @@ def _make_table_notes(context, REQUEST, html_form, evals,
     if len(evals) == 1:
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
         hh = '%s, %s (%d étudiants)' % (E['description'], gr_title,len(etudids))
-        filename = make_filename('notes_%s_%s.csv' % (evalname,gr_title_filename))
+        filename = make_filename('notes_%s_%s' % (evalname,gr_title_filename))
         caption = hh
         pdf_title = '%(description)s (%(jour)s)' % e
         html_title= ''
         base_url = 'evaluation_listenotes?evaluation_id=%s'%E['evaluation_id'] + gl
     else:
-        filename = make_filename('notes-%s' % Mod['code'])
+        filename = make_filename('notes_%s_%s' % (Mod['code'],gr_title_filename))
         title = 'Notes du module %(code)s %(titre)s' % Mod
         title += ' semestre %(titremois)s' % sem
         if gr_title and gr_title != 'tous':

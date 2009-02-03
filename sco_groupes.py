@@ -58,6 +58,25 @@ def fixGroupName(groupName):
         log('new group name: %s' % groupName)
     return groupName
 
+
+def getGroupsFromList(groups_list):
+    """Get list of groups (td, tp, ta) from list
+    groups_list : [ 'tdA', 'tpC' ... ] (usually coming from web request)
+    Returns: gr_td, gr_tp, gr_anglais, gr_title
+    """
+    gr_td = [ x[2:] for x in groups_list if x[:2] == 'td' ]
+    gr_tp = [ x[2:] for x in groups_list if x[:2] == 'tp' ]
+    gr_anglais = [ x[2:] for x in groups_list if x[:2] == 'ta' ]
+    g = gr_td+gr_tp+gr_anglais
+    if len(g) > 1:
+        gr_title = 'groupes ' + ', '.join(g)                
+    elif len(g) == 1:            
+        gr_title = 'groupe ' + g[0]
+    else:
+        gr_title = ''
+    return gr_td, gr_tp, gr_anglais, gr_title
+
+
 def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
     "Liste des etudiants dans chaque groupe de TD"
     t0 = time.time()
@@ -114,8 +133,8 @@ def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
     return repr(doc)
 
 def comp_origin(etud, cur_sem):
-    """breve descrition de l'origine de l'étudiant (sem. precedent)
-    (n'indique l'origine que si ce n'est pa sle semestre precedent normal)
+    """breve description de l'origine de l'étudiant (sem. precedent)
+    (n'indique l'origine que si ce n'est pas le semestre precedent normal)
     """
     # cherche le semestre suivant le sem. courant dans la liste
     cur_sem_idx = None
