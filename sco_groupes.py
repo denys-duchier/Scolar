@@ -42,9 +42,12 @@ from scolars import format_telephone, format_pays, make_etud_args
 import sco_parcours_dut
 
 def checkGroupName(groupName):
-    if groupName and not re.match( '^\w+$', groupName ):
+    "Raises exception if not a valid group name"
+    if groupName and (
+        not re.match( '^\w+$', groupName ) 
+        or (simplesqlquote(groupName) != groupName)):
         log('!!! invalid group name: ' + groupName)
-        raise ValueError, 'invalid group name: ' + groupName
+        raise ValueError('invalid group name: ' + groupName)
 
 def fixGroupName(groupName):
     """bacward compat: fix old group names wich can be invalid"""    
@@ -64,6 +67,8 @@ def getGroupsFromList(groups_list):
     groups_list : [ 'tdA', 'tpC' ... ] (usually coming from web request)
     Returns: gr_td, gr_tp, gr_anglais, gr_title
     """
+    if groups_list is None:
+        return [], [], [], ''
     gr_td = [ x[2:] for x in groups_list if x[:2] == 'td' ]
     gr_tp = [ x[2:] for x in groups_list if x[:2] == 'tp' ]
     gr_anglais = [ x[2:] for x in groups_list if x[:2] == 'ta' ]
@@ -75,6 +80,8 @@ def getGroupsFromList(groups_list):
     else:
         gr_title = ''
     return gr_td, gr_tp, gr_anglais, gr_title
+
+
 
 
 def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
@@ -91,7 +98,7 @@ def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
 
 
     # --- Infos sur les groupes existants
-    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
     nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,
                                                     formsemestre_id)
     inscrlist = nt.inscrlist # liste triee par nom
@@ -192,7 +199,7 @@ def suppressGroup(context, REQUEST, formsemestre_id=None,
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
 
-    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
     if groupType == 'TD':
         groupes = gr_td
     elif groupType == 'TP':

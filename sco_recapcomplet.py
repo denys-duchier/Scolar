@@ -39,7 +39,8 @@ def do_formsemestre_recapcomplet(
     modejury=False, # saisie décisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
-    disable_etudlink=False
+    disable_etudlink=False,
+    groupes=[] # liste des groupes a afficher ([] => tous)
     ):
     """Calcule et renvoie le tableau récapitulatif.
     """
@@ -83,6 +84,7 @@ def make_formsemestre_recapcomplet(
     T = nt.get_table_moyennes_triees()
     if not T:
         return '', '', format
+
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
     h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]

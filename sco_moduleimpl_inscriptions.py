@@ -134,7 +134,7 @@ def _make_menu(context, sem, title='', check='true'):
     <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu custommenu">%s</a><ul>""" % title
           ]
 
-    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=sem['formsemestre_id'])
+    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=sem['formsemestre_id'])
     for (groupeTypeName, idx, groupNames) in (('groupetd', 1, gr_td),
                                               ('groupeta', 2, gr_anglais),
                                               ('groupetp', 3, gr_tp)):

@@ -554,7 +554,7 @@ class ZScolar(ObjectManager,
             sem_title = ''
         H = []
         nbgroups = 0
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
         for gr in gr_td:
             tmpl = '<option value="%s!%s!!">%s%s %s</option>'
             H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupetd'],gr))
@@ -781,7 +781,7 @@ class ZScolar(ObjectManager,
         H.append('<h3>Listes de %(titre)s <span class="infostitresem">(%(mois_debut)s - %(mois_fin)s)</span></h3>' % sem )
         # cherche les groupes de ce semestre
         formsemestre_id = sem['formsemestre_id']
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
         # calcule dates 1er jour semaine pour absences
         if with_absences:
             first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).prev_monday()
@@ -1543,7 +1543,7 @@ class ZScolar(ObjectManager,
         header = self.sco_header(
             REQUEST, page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
         # Liste des groupes existant (== ou il y a des inscrits)
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listegroupes(formsemestre_id=formsemestre_id)
+        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
         #
         H.append("""<form action="doChangeGroupe" method="GET" name="cg">
 <table>

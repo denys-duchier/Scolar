@@ -1370,6 +1370,39 @@ class ZNotes(ObjectManager,
         r = self.do_formsemestre_inscription_list(args={ 'formsemestre_id' : formsemestre_id, 'etat' : 'I' } )
         cache.set(formsemestre_id,r)
         return r
+
+    security.declareProtected(ScoView,'do_formsemestre_inscription_listgroups')
+    def do_formsemestre_inscription_listgroups(self, formsemestre_id, groups_list=None):
+        """Returns list of inscriptions {etudid, etat, groupetd, groupetp, groupeanglais}
+        groups_list = liste de noms externes de groupes (tdA, tpB, taC...)
+        Si groups_list est [], ramene tous les inscrits.
+        Si groups_list est None, liste vide.
+        """
+        if groups_list is None:
+            return []
+        # check input (to avoid SQL injection)
+        for g in groups_list:
+            sco_groupes.checkGroupName(g) # raises exception
+        
+        gr_td, gr_tp, gr_anglais, gr_title = sco_groupes.getGroupsFromList(groups_list)
+
+        req = "select * from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s and etat='I'"
+        cond = []
+        for gr in gr_td:
+            cond.append( "groupetd='%(g)s'" % { 'g' : gr } )
+        for gr in gr_tp:
+            cond.append( "groupetp='%(g)s'" % { 'g' : gr } )
+        for gr in gr_anglais:
+            cond.append( "groupeanglais='%(g)s'" % { 'g' : gr } )
+        if cond:
+            req = req + ' and (' + ' or '.join(cond) + ')' 
+        
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        R = cursor.dictfetchall()
+        log('req=%s\nR=%s' % (req, R) )
+        return R
     
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_edit')
     def do_formsemestre_inscription_edit(self, **kw ):
@@ -1378,9 +1411,9 @@ class ZNotes(ObjectManager,
         self._formsemestre_inscriptionEditor.edit(cnx, **kw )
         self._inval_cache()
 
-    security.declareProtected(ScoView,'do_formsemestre_inscription_listegroupes')
-    def do_formsemestre_inscription_listegroupes(self, formsemestre_id):
-        "donne la liste des groupes dans ce semestre (td, tp, anglais)"
+    security.declareProtected(ScoView,'do_formsemestre_inscription_listgroupnames')
+    def do_formsemestre_inscription_listgroupnames(self, formsemestre_id):
+        "donne la liste des noms de groupes dans ce semestre (td, tp, anglais)"
         cnx = self.GetDBConnexion()
         ins = self._formsemestre_inscriptionEditor.list(
             cnx, args={'formsemestre_id':formsemestre_id} )
@@ -1405,7 +1438,7 @@ class ZNotes(ObjectManager,
                     g[i] = newName
                     # Warning: this kind of function is not supposed to alter the DB
                     # we make an exception here.
-                    # => do not call do_formsemestre_inscription_listegroupes from
+                    # => do not call do_formsemestre_inscription_listgroupnames from
                     #    notes_table !
                     self._inval_cache(formsemestre_id=formsemestre_id)
         
