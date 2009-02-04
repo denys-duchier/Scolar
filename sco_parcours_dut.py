@@ -147,7 +147,7 @@ class SituationEtudParcours:
             next = 1
         else:
             next = self._get_next_semestre_id()
-        if self.semestre_non_terminal:
+        if self.semestre_non_terminal and not self.all_other_validated(): 
             passage = 'Passe en S%s' % next
         else:
             passage = 'Formation terminée'
@@ -169,6 +169,19 @@ class SituationEtudParcours:
             log('explique_devenir: code devenir inconnu: %s' % devenir)
             return 'Code devenir inconnu !'
 
+    def all_other_validated(self):
+        "True si tous les autres semestres de cette formation sont validés"
+        to_validate = Set(range(1,DUT_NB_SEM+1)) # ensemble des indices à valider
+        to_validate.remove(self.sem['semestre_id'])
+        for sem in self.get_semestres():
+            if sem['formation_code'] == self.formation['formation_code']:
+                nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
+                decision = nt.get_etud_decision_sem(self.etudid)
+                if decision and code_semestre_validant(decision['code']):
+                    # validé
+                    to_validate.discard(sem['semestre_id'])
+        
+        return not to_validate
 
     def _comp_semestres(self):
         # etud['sems'] est trie par date decroissante (voir fillEtudsInfo)
