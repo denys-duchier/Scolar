@@ -189,7 +189,7 @@ def suppress_accents(s):
     return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
 
 def make_filename(name):
-    "try to convert name to a reasonnable filename"""
+    """Try to convert name to a reasonnable filename"""
     return suppress_accents(name).replace(' ', '_')
 
 def sendCSVFile(REQUEST,data,filename):
@@ -303,3 +303,14 @@ def scodoc_html2txt(html):
   parser.feed(html)
   parser.close()
   return parser.output()
+
+def sql_groupe_type(group_type):
+    """group_type : specification de groupe 'td', 'tp' ou 'ta'
+    Gives the field name in notes_formsemestre_inscription
+    """
+    if group_type == 'td' or group_type == 'tp':
+        return 'groupe' + group_type
+    elif group_type == 'ta':
+        return 'groupeanglais'
+    else:
+        raise ValueError('invalid group_type')

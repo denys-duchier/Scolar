@@ -39,8 +39,7 @@ def do_formsemestre_recapcomplet(
     modejury=False, # saisie décisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
-    disable_etudlink=False,
-    groupes=[] # liste des groupes a afficher ([] => tous)
+    disable_etudlink=False
     ):
     """Calcule et renvoie le tableau récapitulatif.
     """
@@ -88,6 +87,9 @@ def make_formsemestre_recapcomplet(
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
     h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
+    # Ajoute rangs dans groupe seulement si CSV ou XLS
+    if format == 'xls' or format == 'csv':
+        h += [ 'rang_td', 'rang_tp', 'rang_ta' ]
     cod2mod ={} # code : moduleimpl
     for ue in ues:
         if ue['type'] == UE_STANDARD:            
@@ -134,6 +136,11 @@ def make_formsemestre_recapcomplet(
         l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
               gr,
               fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
+        # Ajoute rangs dans groupe seulement si CSV ou XLS
+        if format == 'xls' or format == 'csv':
+            rang_gr, ninscrits_gr, gr_name = sco_bulletins.get_etud_rangs_groupes(znotes, etudid, formsemestre_id, nt)
+            for group_type in ('td', 'tp', 'ta'):
+                l.append( rang_gr[group_type] )
         i = 0
         for ue in ues:
             i += 1

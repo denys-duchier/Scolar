@@ -310,20 +310,30 @@ def make_xml_formsemestre_bulletinetud(
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)
     mg = fmt_note(nt.get_etud_moy_gen(etudid))
-    if nt.get_moduleimpls_attente():
-        # n'affiche pas le renag sur le bulletin s'il y a des
+    if nt.get_moduleimpls_attente() or sem['bul_show_rangs'] == '0':
+        # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
-        rang = '?'
-    elif sem['bul_show_rangs'] != '0':
-        rang = str(nt.get_etud_rang(etudid))
-    else:
         rang = ''
+        rang_gr = {}
+        ninscrits_gr = {}
+    else:
+        rang = str(nt.get_etud_rang(etudid))
+        rang_gr, ninscrits_gr, gr_name = get_etud_rangs_groupes(znotes, etudid, formsemestre_id, nt)
+    
     doc._push()
     doc.note( value=mg )
     doc._pop()
     doc._push()
     doc.rang( value=rang, ninscrits=nbetuds )
     doc._pop()
+    if rang_gr:
+        for group_type in ('td', 'tp', 'ta'):
+            doc._push()
+            doc.rang_group( group_type=group_type,
+                            group_name=gr_name[group_type],
+                            value=rang_gr[group_type], 
+                            ninscrits=ninscrits_gr[group_type] )
+            doc._pop()
     doc._push()
     doc.note_max( value=20 ) # notes toujours sur 20
     doc._pop()
@@ -457,6 +467,24 @@ def make_xml_formsemestre_bulletinetud(
     for app in apprecs:
         doc.appreciation( quote_xml_attr(app['comment']), date=znotes.DateDDMMYYYY2ISO(app['date']))
     return doc
+
+
+def get_etud_rangs_groupes(context, etudid, formsemestre_id, nt):
+    """Ramene rang et nb inscrits dans chaque type de groupe.
+    """
+    ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})
+    if len(ins) != 1:
+        raise NoteProcessError('inconsistent state !')
+    ins = ins[0]
+    
+    rang_gr, ninscrits_gr, gr_name = {}, {}, {}
+    for group_type in ('td', 'tp', 'ta'):
+        gr = ins[sql_groupe_type(group_type)]
+        rang_gr[group_type], ninscrits_gr[group_type] =\
+            nt.get_etud_rang_groupe(etudid, group_type+gr)
+        gr_name[group_type] = gr
+
+    return rang_gr, ninscrits_gr, gr_name
 
 
 def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',

@@ -260,6 +260,8 @@ class NotesTable:
         
         # calcul rangs (/ moyenne generale)
         self.rangs = comp_ranks(T)
+        self.rangs_groupes = {} # { groupe : { etudid : rang } }
+
         # calcul rangs dans chaque UE
         ue_rangs = {} # ue_rangs[ue_id] = ({ etudid : rang }, nb_inscrits) (rang est une chaine)
         for ue in self._ues:
@@ -551,6 +553,28 @@ class NotesTable:
         return self.T
     def get_etud_rang(self, etudid):
         return self.rangs[etudid]
+    def get_etud_rang_groupe(self, etudid, group):
+        """Returns rank of etud in this group and number of etuds in group.
+        If etud not in group, returns None.
+        group is a group specification in the form groupType + groupeName
+        ('tdA', 'tpC', 'taX'...)
+        """
+        if not group in self.rangs_groupes:
+            # lazy: fill rangs_groupes on demand
+            # { groupe : { etudid : rang } }
+            group_type = group[:2]
+            group_name = group[2:]
+            gkey = sql_groupe_type(group_type)
+            # 1- build T restricted to group
+            Tr = []
+            for t in self.get_table_moyennes_triees():
+                t_etudid = t[-1]
+                if self.inscrdict[t_etudid][gkey] == group_name:
+                    Tr.append(t)
+            #
+            self.rangs_groupes[group] = comp_ranks(Tr)
+        
+        return self.rangs_groupes[group].get(etudid, None), len(self.rangs_groupes[group])
 
     def get_table_moyennes_dict(self):
         """{ etudid : (liste des moyennes) } comme get_table_moyennes_triees

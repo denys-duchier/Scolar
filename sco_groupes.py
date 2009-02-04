@@ -64,7 +64,7 @@ def fixGroupName(groupName):
 
 def getGroupsFromList(groups_list):
     """Get list of groups (td, tp, ta) from list
-    groups_list : [ 'tdA', 'tpC' ... ] (usually coming from web request)
+    groups_list : [ 'tdA', 'tpC', 'taX', ... ] (usually coming from web request)
     Returns: gr_td, gr_tp, gr_anglais, gr_title
     """
     if groups_list is None:
