@@ -2754,8 +2754,29 @@ class ZNotes(ObjectManager,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_fix_validation_ues(self,formsemestre_id, REQUEST)
-
-
+    security.declareProtected(ScoView, 'formsemestre_validation_suppress_etud')
+    def formsemestre_validation_suppress_etud(self, formsemestre_id, etudid, REQUEST=None, dialog_confirmed=False):
+        """Suppression des decisions de jury pour un etudiant.
+        """
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        if not dialog_confirmed:
+            sem = self.get_formsemestre(formsemestre_id)
+            etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+            return self.confirmDialog(
+                """<h2>Confirmer la suppression des décisions du semestre %s (%s - %s) pour %s ?</h2>
+                <p>Cette opération est irréversible.
+                </p>
+                """ % (sem['titre_num'],sem['date_debut'],sem['date_fin'], etud['nomprenom']),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s" % (formsemestre_id, etudid),
+                parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
+        
+        sco_formsemestre_validation.formsemestre_validation_suppress_etud(self, formsemestre_id, etudid)
+        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&head_message=Décision%%20supprimée' % (formsemestre_id,etudid))
+    
     # ------------- PV de JURY et archives
     security.declareProtected(ScoView, 'formsemestre_pvjury')
     formsemestre_pvjury = sco_pvjury.formsemestre_pvjury

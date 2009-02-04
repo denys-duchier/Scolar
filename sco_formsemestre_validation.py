@@ -594,8 +594,9 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
     
     H.append("""</table>
     <input type="submit" value="Valider décision manuelle"/>
+    <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer décision existante</a></span>
     </form>
-    """)
+    """ % (etudid, formsemestre_id))
     return '\n'.join(H)
 
 # ----------- 
@@ -746,3 +747,23 @@ def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
         H.append('<h2>Aucune modification: codes UE corrects ou inexistants</h2>')
     H.append(znotes.sco_footer(REQUEST))
     return '\n'.join(H)
+
+
+def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
+    """Suppression des decisions de jury pour un etudiant.
+    """
+    cnx = context.GetDBConnexion()
+    cursor = cnx.cursor()
+    args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid }
+    try:
+        # -- Validation du semestre et des UEs
+        cursor.execute("""delete from scolar_formsemestre_validation
+        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s""", args )
+        # -- Autorisations d'inscription
+        cursor.execute("""delete from scolar_autorisation_inscription
+        where etudid = %(etudid)s and origin_formsemestre_id=%(formsemestre_id)s""", args )
+        cnx.commit()
+    except:
+        cnx.rollback()
+        raise
+    context._inval_cache(formsemestre_id=formsemestre_id)
