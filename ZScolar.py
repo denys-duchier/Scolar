@@ -1480,6 +1480,42 @@ class ZScolar(ObjectManager,
         logdb(REQUEST,cnx,method='addAnnotation', etudid=etudid )
         REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
+    security.declareProtected(ScoView, 'canSuppressAnnotation')
+    def canSuppressAnnotation(self, annotation_id, REQUEST):
+        """True if current user can suppress this annotation
+        Seuls l'auteur de l'annotation et le chef de dept peuvent supprimer
+        une annotation.
+        """
+        cnx = self.GetDBConnexion()
+        annos = scolars.etud_annotations_list(cnx, args={ 'id' : annotation_id })
+        if len(annos) != 1:
+            raise ScoValueError('annotation inexistante !')
+        anno = annos[0]
+        authuser = REQUEST.AUTHENTICATED_USER
+        # note: les anciennes installations n'ont pas le role ScoEtudSupprAnnotations
+        # c'est pourquoi on teste aussi ScoEtudInscrit (normalement détenue par le chef)
+        return (str(authuser) == anno['zope_authenticated_user']) \
+                or authuser.has_permission(ScoEtudSupprAnnotations,self) \
+                or authuser.has_permission(ScoEtudInscrit,self)
+        
+    security.declareProtected(ScoView, 'doSuppressAnnotation')
+    def doSuppressAnnotation(self, etudid, annotation_id, REQUEST):
+        """Suppression annotation.
+        """
+        if not self.canSuppressAnnotation(annotation_id, REQUEST):
+            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+
+        cnx = self.GetDBConnexion()
+        annos = scolars.etud_annotations_list(cnx, args={ 'id' : annotation_id })
+        if len(annos) != 1:
+            raise ScoValueError('annotation inexistante !')
+        anno = annos[0]
+        log('suppress annotation: %s' % str(anno))
+        logdb(REQUEST,cnx,method='SuppressAnnotation', etudid=etudid )
+        scolars.etud_annotations_delete(cnx, annotation_id)
+        
+        REQUEST.RESPONSE.redirect('ficheEtud?etudid=%s&head_message=Annotation%%20supprimée'%(etudid))
+    
     security.declareProtected(ScoEtudChangeAdr, 'formChangeCoordonnees')
     def formChangeCoordonnees(self,etudid,REQUEST):
         "edit coordonnes etudiant"

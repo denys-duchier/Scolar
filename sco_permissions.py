@@ -19,6 +19,7 @@ ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo
 ScoEtudChangeGroups = "Sco Change Etud Groups"
 ScoEtudInscrit  = "Sco Inscrire Etud" # aussi pour demissions, diplomes
 ScoEtudAddAnnotations = "Sco Etud Add Annotations"
+ScoEtudSupprAnnotations = "Sco Etud Suppr Annotations"
 ScoEntrepriseView = "Sco View Entreprises"
 ScoEntrepriseChange = "Sco Change Entreprises"
 
@@ -45,6 +46,7 @@ Sco_Default_Permissions = {
     ScoEnsView            : ('Ens',         'Admin'),
     ScoUsersView          : ('Ens', 'Secr', 'Admin'),
     ScoEtudAddAnnotations : ('Ens', 'Secr', 'Admin'),
+    ScoEtudSupprAnnotations : (             'Admin'),
     ScoAbsChange          : ('Ens', 'Secr', 'Admin'),
     ScoEntrepriseView     : ('Ens', 'Secr', 'Admin'),    
     ScoEntrepriseChange   : (       'Secr', 'Admin'),
@@ -56,7 +58,7 @@ Sco_Default_Permissions = {
     ScoEtudChangeGroups   : (               'Admin',),
     ScoEtudInscrit        : (               'Admin',),
     ScoUsersAdmin         : (               'Admin',),
-    ScoChangePreferences  : (               'Admin',),
+    ScoChangePreferences  : (               'Admin',),    
     ScoSuperAdmin         : (), # lister tt les permissions    
     }
 

@@ -166,7 +166,11 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         else:
             a['bgcolor'] = "#DEDEDE"
         i += 1
-        alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) : <br/>%(comment)s</td></tr>' % a )
+        if not context.canSuppressAnnotation(a['id'], REQUEST):
+            a['dellink'] = ''
+        else:
+            a['dellink'] = '<td bgcolor="%s" class="annodel"><a href="doSuppressAnnotation?etudid=%s&annotation_id=%s">%s</a></td>' % (a['bgcolor'], etudid, a['id'], context.icons.delete_img.tag(border="0", alt="suppress", title="Supprimer cette annotation"))
+        alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) :<br/>%(comment)s</td>%(dellink)s</tr>' % a )
     info['liste_annotations'] = '\n'.join(alist)
     # fiche admission
     has_adm_notes = info['math'] or info['physique'] or info['anglais'] or info['francais']

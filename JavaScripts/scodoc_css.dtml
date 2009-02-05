@@ -318,6 +318,9 @@ td.fichetitre2 {
   border-radius: 8px;
 }
 
+td.annodel {
+}
+
 /* Page accueil Sco */
 span.infostitresem {
    font-weight: normal;
@@ -807,7 +810,7 @@ td.recap_col_ue_val {
    color: rgb(0,140,0);
    border-left: 1px solid blue;
 }
-/* noms des etudiannts sur recap complet */
+/* noms des etudiants sur recap complet */
 table.notes_recapcomplet a:link, table.notes_recapcomplet a:visited {
    text-decoration: none;
    color: black;
