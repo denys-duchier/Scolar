@@ -490,6 +490,10 @@ def get_etablissements():
         ETABLISSEMENTS = read_etablissements()
     return ETABLISSEMENTS
 
+def get_lycee_infos(codelycee):
+    E = get_etablissements()
+    return E.get(codelycee, None)
+
 def format_lycee_from_code(codelycee):
     "Description lycee à partir du code"
     E = get_etablissements()

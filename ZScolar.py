@@ -1024,7 +1024,21 @@ class ZScolar(ObjectManager,
                     'bac', 'specialite', 'annee_bac',
                     'nomlycee', 'villelycee', 'codepostallycee', 'codelycee'
                     )
-            L = [ dicttakestr(d, keys) for d in Ld ]
+            # remplis infos lycee si on a que le code lycée
+            for i in range(len(Ld)):
+                d = Ld[i]
+                if d['codelycee']:
+                    e = d.copy()
+                    il = scolars.get_lycee_infos(d['codelycee'])
+                    if il:
+                        if not d['codepostallycee']:
+                            e['codepostallycee'] = il['codepostal']
+                        if not d['nomlycee']:
+                            e['nomlycee'] = il['name']
+                        if not d['villelycee']:
+                            d['villelycee'] = il['commune']
+                        Ld[i] = e
+            L = [ dicttakestr(d, keys) for d in Ld ]            
             title = 'etudiants_%s' % nomgroupe
             xls = sco_excel.Excel_SimpleTable(
                 titles=keys,
