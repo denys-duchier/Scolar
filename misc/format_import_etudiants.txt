@@ -32,6 +32,8 @@ score;        real;     admissions; 1;  score calcule lors de l'admission
 commentaire;  text;     admissions; 1;  commentaire du rapporteur
 nomlycee;     text;     admissions; 1;  nom du lycee
 villelycee;   text;     admissions; 1;  ville du lycee
+codepostallycee; text;  admissions; 1;  code postal du lycee
+codelycee;    text;     admissions; 1;  code national etablissement
 #
 email;        text;     adresse;    1;  adresse e-mail
 domicile;     text;     adresse;    1;  adresse domicile

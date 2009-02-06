@@ -47,7 +47,7 @@ ADMISSION_MODIFIABLE_FIELDS = (
     'bac', 'specialite', 'annee_bac',
     'math', 'physique', 'anglais', 'francais',
     'qualite', 'rapporteur', 'score', 'commentaire',
-    'nomlycee', 'villelycee')
+    'nomlycee', 'villelycee', 'codepostallycee', 'codelycee' )
 
 # ----
 

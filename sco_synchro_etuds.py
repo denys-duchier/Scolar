@@ -388,14 +388,27 @@ def gender2sex(gender):
     log('gender2sex: invalid value "%s", defaulting to "M"' % gender)
     return 'MR'
 
+def get_opt_str(etud,k):
+    v = etud.get(k,None)
+    if not v:
+        return v
+    return v.strip()
+
+def get_annee_naissance(ddmmyyyyy): # stokee en dd/mm/yyyy dans le XML portail
+    if not ddmmyyyyy:
+        return None
+    try:
+        return int(ddmmyyyyy.split('/')[2])
+    except:
+        return None
+
 def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUEST):
     """Inscrit les etudiants apogee dans ce semestre.
     """
     log('do_import_etuds_from_portal: a_importer=%s' % a_importer)
     cnx = context.GetDBConnexion()
-    annee_courante = time.localtime()[0]
     created_etudids = []
-    
+        
     # Manque:
     #  2/ completer suivant WebService portail (adresse, sexe, ...)
 
@@ -407,8 +420,10 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             address = etud['address'].strip()
             if address[-2:] == '\\n': # certains champs se terminent par \n
                 address = address[:-2]
-            args = { 'nom' : etud['nom'].strip(), 'prenom' : etud['prenom'].strip(),
+            args = { 'nom' : etud['nom'].strip(), 
+                     'prenom' : etud['prenom'].strip(),
                      'sexe' : gender2sex(etud['gender'].strip()),
+                     'annee_naissance' : get_annee_naissance(etud['naissance']),
                      'code_nip' :  etud['nip'],
                      'email' : etud['mail'].strip(),
                      'domicile' : address,
@@ -417,14 +432,14 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
                      'paysdomicile' : etud['country'].strip(),
                      'telephone' :  etud.get('phone', '').strip(),
                      'typeadresse' : 'domicile',
-                     'description' : 'infos portail'
+                     'description' : 'infos portail',                     
                      }
             # Identite
             args['etudid'] = scolars.identite_create(cnx, args )
             created_etudids.append(args['etudid'])
             # Admissions
-            args['annee'] = annee_courante
-            adm_id = scolars.admission_create(cnx, args)
+            do_import_etud_admission(context, cnx, args['etudid'], etud)
+            
             # Adresse
             adresse_id = scolars.adresse_create(cnx,args)
             
@@ -459,6 +474,73 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
     sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
                  text='Import Apogée de %d étudiants' % len(created_etudids) )
     
+def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False):
+    """Importe les donnees admission pour cet etud.
+    etud est un dictionnaire traduit du XML portail
+    """
+    annee_courante = time.localtime()[0]
+    serie_bac, spe_bac = get_bac(etud)
+    args = {
+        'etudid' : etudid,
+        'annee' : get_opt_str(etud,'inscription') or annee_courante,
+        'bac' : serie_bac,
+        'specialite' : spe_bac,
+        'annee_bac' : get_opt_str(etud,'anneebac'),
+        'codelycee' : get_opt_str(etud,'lycee')
+        }
+    log('do_import_etud_admission: etud=%s' % etud)
+    al = scolars.admission_list(cnx, args={'etudid':etudid})
+    if not al:
+        adm_id = scolars.admission_create(cnx, args)
+    else:
+        # existing data: merge
+        e = al[0]
+        if get_opt_str(etud,'inscription'):
+            e['annee'] = args['annee']
+        for k in args:
+            if not args[k]:
+                del args[k]
+        e.update(args)
+        scolars.admission_edit( cnx, e )
+    # Traite cas particulier de la date de naissance pour anciens etudiants IUTV
+    if import_naissance:
+        annee_naissance = get_annee_naissance(etud['naissance'])
+        if annee_naissance:
+            scolars.identite_edit_nocheck(cnx, 
+                                          { 'etudid' : etudid, 'annee_naissance' : annee_naissance })
+
+
+def get_bac(etud):
+    bac = get_opt_str(etud,'bac')
+    if not bac:
+        return None, None
+    serie_bac = bac.split('-')[0]
+    if len(serie_bac) < 8:
+        spe_bac = bac[len(serie_bac)+1:]
+    else:
+        serie_bac = bac
+        spe_bac = None
+    return serie_bac, spe_bac
+
+def formsemestre_import_etud_admission(context, formsemestre_id):
+    """Tente d'importer les données admission depuis le portail 
+    pour tous les étudiants du semestre.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    ins = context.do_formsemestre_inscription_list( { 'formsemestre_id' : formsemestre_id } )
+    log('formsemestre_import_etud_admission: %s (%d etuds)' % (formsemestre_id, len(ins)))
+    no_nip = [] # liste d'etudids sans code NIP
+    cnx = context.GetDBConnexion()
+    for i in ins:
+        etudid = i['etudid']
+        info = context.getEtudInfo(etudid=etudid, filled=1)[0]
+        code_nip = info['code_nip']
+        if not code_nip:
+            no_nip.append(etudid)
+        else:
+            etud = sco_portal_apogee.get_etud_apogee(context, code_nip)
+            do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True)
+    return no_nip
 
 def do_synch_inscrits_etuds(context, sem, etuds, REQUEST=None):
     """inscrits ces etudiants (déja dans ScoDoc) au semestre"""

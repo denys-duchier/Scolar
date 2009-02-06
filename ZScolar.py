@@ -72,7 +72,7 @@ from scolog import logdb
 import scolars
 import sco_preferences
 import sco_formations
-from scolars import format_nom, format_prenom, format_sexe, format_lycee
+from scolars import format_nom, format_prenom, format_sexe, format_lycee, format_lycee_from_code
 from scolars import format_telephone, format_pays, make_etud_args
 
 import sco_news
@@ -86,7 +86,7 @@ import imageresize
 
 import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
-import sco_portal_apogee
+import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groupes, sco_trombino
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
@@ -1022,7 +1022,7 @@ class ZScolar(ObjectManager,
                     'telephone', 'telephonemobile', 'fax',
                     'annee_naissance',
                     'bac', 'specialite', 'annee_bac',
-                    'nomlycee', 'villelycee',
+                    'nomlycee', 'villelycee', 'codepostallycee', 'codelycee'
                     )
             L = [ dicttakestr(d, keys) for d in Ld ]
             title = 'etudiants_%s' % nomgroupe
@@ -1348,7 +1348,10 @@ class ZScolar(ObjectManager,
                     etud['ilycee'] += ' (%s)' % etud['villelycee']
                 etud['ilycee'] += '<br/>'
             else:
-                etud['ilycee'] = ''
+                if etud['codelycee']:
+                    etud['ilycee'] = format_lycee_from_code(etud['codelycee'])
+                else:
+                    etud['ilycee'] = ''
             if etud['rapporteur'] or etud['commentaire']:
                 etud['rap'] = 'Note du rapporteur'
                 if etud['rapporteur']:
@@ -2074,6 +2077,7 @@ function tweakmenu( gname ) {
                        'explanation' : 'Note de qualité attribuée au dossier' }),
 
             ('decision', { 'input_type' : 'menu',
+                           'title' : 'Décision', 
                            'allowed_values' :
                            ['ADMIS','ATTENTE 1','ATTENTE 2', 'ATTENTE 3', 'REFUS', '?' ] }),
             ('score', { 'size' : 3, 'type' : 'float', 'title' : 'Score',
@@ -2082,7 +2086,10 @@ function tweakmenu( gname ) {
             ('commentaire', {'input_type' : 'textarea', 'rows' : 4, 'cols' : 50,
                              'title' : 'Note du rapporteur' }),
             ('nomlycee', { 'size' : 20, 'title' : 'Lycée d\'origine' }),
-            ('villelycee', { 'size' : 15, 'title' : 'Commune du Lycée' }),
+            ('villelycee', { 'size' : 15, 'title' : 'Commune du lycée' }),
+            ('codepostallycee', { 'size' : 15, 'title' : 'Code Postal lycée' }),
+            ('codelycee', { 'size' : 15, 'title' : 'Code Lycée',
+                            'explanation' : "Code national établissement du lycée ou établissement d'origine" }),
             ('sep', { 'input_type' : 'separator', 'title' : 'Codes Apogée: (optionnels)' }),
             ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':True,
                            'explanation' : 'numéro identité étudiant (Apogée)'}),
@@ -2425,6 +2432,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
              <div style="color: red">
              <p>A utiliser pour renseigner les informations sur l'origine des étudiants (lycées, bac, etc). Ces informations sont facultatives mais souvent utiles pour mieux connaitre les étudiants et aussi pour effectuer des statistiques (résultats suivant le type de bac...). Les données sont affichées sur les fiches individuelles des étudiants.</p>
              </div>
+             <h3>Import à l'aide d'une feuille Excel:</h3>
              <p>
              L'opération se déroule en trois étapes. <ol><li>Dans un premier temps,
              vous téléchargez une feuille Excel type.</li>
@@ -2486,7 +2494,15 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             if diag:
                 H.append('<p>diagnostic: <tt>%s</tt></p>' % diag)
             return '\n'.join(H) + self.sco_footer(REQUEST)
-        
+    
+    security.declareProtected(ScoEtudInscrit, "formsemestre_import_etud_admission")
+    def formsemestre_import_etud_admission(self, formsemestre_id, REQUEST):
+        """Transitoire: reimporte donnees admissions pour anciens semestres Villetaneuse"""
+        no_nip = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id)
+        if no_nip:
+            return 'etudiants sans NIP: ' + str(no_nip)
+        else:
+            return 'OK !'
 
     # --- Statistiques
     security.declareProtected(ScoView, "stat_bac")

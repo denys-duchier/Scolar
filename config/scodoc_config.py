@@ -4,10 +4,10 @@
 #
 # Configuration globale de ScoDoc
 #
-# Ce fichier est peu utilisé: la plupart des réglages sont stoqués en base de donnée
+# Ce fichier est peu utilisé: la plupart des réglages sont stockés en base de donnée
 # et accessibles via le web, ou bien gérés comme des propriétés Zope.
 #
-# Il y a aussi des réglages dans sco_utils.py, mais ils nécessite souvent de comprendre
+# Il y a aussi des réglages dans sco_utils.py, mais ils nécessitent souvent de comprendre
 # le code qui les utilise pour ne pas faire d'erreur: attention.
 
 
@@ -91,3 +91,15 @@ CONFIG.CUSTOM_HTML_FOOTER = ''
 # si on veut que ce soit différent (par défaut la même chose)
 CONFIG.CUSTOM_HTML_HEADER_CNX = CONFIG.CUSTOM_HTML_HEADER
 CONFIG.CUSTOM_HTML_FOOTER_CNX = CONFIG.CUSTOM_HTML_FOOTER
+
+
+# -----------------------------------------------------
+#
+# -------------- Noms de Lycées
+#
+# -----------------------------------------------------
+
+# Fichier de correspondance codelycee -> noms
+# (chemin relatif au repertoire d'install des sources)
+CONFIG.ETABL_FILENAME = 'config/etablissements.csv'
+

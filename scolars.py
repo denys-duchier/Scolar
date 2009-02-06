@@ -229,6 +229,10 @@ def identite_edit(cnx, args, context=None, REQUEST=None):
         notify_etud_change(context, notify_to, etud, before, after,
                            'Modification identite %(nomprenom)s' % etud)
 
+def identite_edit_nocheck(cnx, args):
+    "Modifie les champs mentionnes dans args, sans verification ni notification"""
+    _identiteEditor.edit(cnx, args)
+
 def identite_create( cnx, args, context=None, REQUEST=None ):
     "check unique etudid, then create"
     _check_duplicate_code(cnx, args, 'code_nip', context, REQUEST)
@@ -333,7 +337,7 @@ _admissionEditor = EditableTable(
       'math', 'physique', 'anglais', 'francais',  
       'rang', 'qualite', 'rapporteur',
       'decision', 'score', 'commentaire',
-      'nomlycee', 'villelycee' ),
+      'nomlycee', 'villelycee', 'codepostallycee', 'codelycee' ),
     input_formators = { 'annee' : pivot_year,
                         'bac' : force_uppercase,
                         'specialite' : force_uppercase,
@@ -464,3 +468,50 @@ appreciations_delete = _appreciationsEditor.delete
 appreciations_list   = _appreciationsEditor.list
 appreciations_edit   = _appreciationsEditor.edit
 
+
+# -------- Noms des Lycées à partir du code
+def read_etablissements():
+    filename = SCO_SRCDIR + '/' + CONFIG.ETABL_FILENAME
+    log('reading %s' % filename)
+    f = open(filename)
+    L = [ x[:-1].split(';') for x in f ]
+    E = {}
+    for l in L[1:]:
+        E[l[0]] = { 'name' : l[1],
+                    'address' : l[2],
+                    'codepostal' : l[3],
+                    'commune' : l[4] }
+    return E
+
+ETABLISSEMENTS = None
+def get_etablissements():
+    global ETABLISSEMENTS
+    if ETABLISSEMENTS is None:
+        ETABLISSEMENTS = read_etablissements()
+    return ETABLISSEMENTS
+
+def format_lycee_from_code(codelycee):
+    "Description lycee à partir du code"
+    E = get_etablissements()
+    if codelycee in E:
+        e = E[codelycee]
+        nomlycee = e['name']
+        return '%s (%s)' % (nomlycee, e['commune'])
+    else:
+        return '%s (établissement inconnu)' % codelycee
+
+
+
+""" Conversion fichier original:
+f = open('etablissements.csv')
+o = open('etablissements2.csv', 'w')
+o.write( f.readline() )
+for l in f:
+    fs = l.split(';')
+    nom = ' '.join( [ x.capitalize() for x in fs[1].split() ] )
+    adr = ' '.join( [ x.capitalize() for x in fs[2].split() ] )
+    ville=' '.join( [ x.capitalize() for x in fs[4].split() ] )
+    o.write( '%s;%s;%s;%s;%s\n' % (fs[0], nom, adr, fs[3], ville))
+
+o.close()
+"""

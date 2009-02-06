@@ -87,7 +87,9 @@ CREATE TABLE admissions (
     score real,
     commentaire text,
     nomlycee text,
-    villelycee text
+    villelycee text,
+    codepostallycee text,
+    codelycee text
 ) WITH OIDS;
 
 CREATE TABLE absences (

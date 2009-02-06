@@ -34,7 +34,6 @@
 from sco_utils import *
 from notesdb import *
 import scolars
-from scolars import format_nom, format_prenom, format_sexe, format_lycee
 from scolars import format_telephone, format_pays, make_etud_args
 from sco_formsemestre_status import makeMenu
 from sco_bulletins import _etud_descr_situation_semestre

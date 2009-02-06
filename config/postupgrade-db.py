@@ -40,6 +40,14 @@ for dept in get_depts():
                 ['alter table notes_formsemestre add column bul_show_rangs int default 1',
                  'update notes_formsemestre set bul_show_rangs=1'])
 
+    # SVN 651
+    # Nouvelles donnees d'admission
+    check_field(cnx, 'admissions', 'codelycee',
+                ['alter table admissions add column codelycee text',
+                 ])
+    check_field(cnx, 'admissions', 'codepostallycee',
+                ['alter table admissions add column codepostallycee text',
+                 ])
     # Add here actions to performs after upgrades:
 
 # The end.

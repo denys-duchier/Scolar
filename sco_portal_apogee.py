@@ -34,6 +34,10 @@ from notes_log import log
 from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
+def has_portal(context):
+    "True if we are conected to a portal"
+    return get_portal_url(context)
+
 def get_portal_url(context):
     "URL of portal"
     portal_url = context.get_preference('portal_url')
@@ -175,6 +179,20 @@ def get_infos_apogee(context, nom, prenom):
         if nom != nom1 or prenom != prenom1:
             infos += get_infos_apogee_allaccents(context, nom1, prenom1)
     return infos
+
+def get_etud_apogee(context, code_nip):
+    """Informations à partir du code NIP"""
+    if not code_nip:
+        return {}
+    portal_url = get_portal_url(context)
+    if not portal_url:
+        return {}
+    req = portal_url + 'getEtud.php?' + urllib.urlencode((('nip', code_nip),))
+    doc = query_portal(req)
+    d = xml_to_list_of_dicts(doc, req=req)
+    if len(d) != 1:
+        raise ValueError('invalid XML response from getEtud Web Service\n%s' % doc)
+    return d[0]
 
 def get_default_etapes(context):
     """Liste par défaut: devrait etre lue d'un fichier de config
