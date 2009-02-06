@@ -1036,7 +1036,7 @@ class ZScolar(ObjectManager,
                         if not d['nomlycee']:
                             e['nomlycee'] = il['name']
                         if not d['villelycee']:
-                            d['villelycee'] = il['commune']
+                            e['villelycee'] = il['commune']
                         Ld[i] = e
             L = [ dicttakestr(d, keys) for d in Ld ]            
             title = 'etudiants_%s' % nomgroupe
