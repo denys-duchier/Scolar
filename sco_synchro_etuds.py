@@ -531,6 +531,7 @@ def formsemestre_import_etud_admission(context, formsemestre_id):
     ins = context.do_formsemestre_inscription_list( { 'formsemestre_id' : formsemestre_id } )
     log('formsemestre_import_etud_admission: %s (%d etuds)' % (formsemestre_id, len(ins)))
     no_nip = [] # liste d'etudids sans code NIP
+    unknowns = [] # etudiants avec NIP mais inconnus du portail
     cnx = context.GetDBConnexion()
     for i in ins:
         etudid = i['etudid']
@@ -540,8 +541,11 @@ def formsemestre_import_etud_admission(context, formsemestre_id):
             no_nip.append(etudid)
         else:
             etud = sco_portal_apogee.get_etud_apogee(context, code_nip)
-            do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True)
-    return no_nip
+            if etud:
+                do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True)
+            else:
+                unknowns.append(code_nip)
+    return no_nip, unknowns
 
 def do_synch_inscrits_etuds(context, sem, etuds, REQUEST=None):
     """inscrits ces etudiants (déja dans ScoDoc) au semestre"""

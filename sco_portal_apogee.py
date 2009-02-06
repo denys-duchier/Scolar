@@ -181,7 +181,10 @@ def get_infos_apogee(context, nom, prenom):
     return infos
 
 def get_etud_apogee(context, code_nip):
-    """Informations à partir du code NIP"""
+    """Informations à partir du code NIP.
+    None si pas d'infos sur cet etudiant.
+    Exception si reponse invalide.
+    """
     if not code_nip:
         return {}
     portal_url = get_portal_url(context)
@@ -190,7 +193,9 @@ def get_etud_apogee(context, code_nip):
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('nip', code_nip),))
     doc = query_portal(req)
     d = xml_to_list_of_dicts(doc, req=req)
-    if len(d) != 1:
+    if not d:
+        return None
+    if len(d) > 1:
         raise ValueError('invalid XML response from getEtud Web Service\n%s' % doc)
     return d[0]
 

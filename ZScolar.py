@@ -2498,11 +2498,14 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
     security.declareProtected(ScoEtudInscrit, "formsemestre_import_etud_admission")
     def formsemestre_import_etud_admission(self, formsemestre_id, REQUEST):
         """Transitoire: reimporte donnees admissions pour anciens semestres Villetaneuse"""
-        no_nip = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id)
+        no_nip, unknowns = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id)
+        H = [ self.Notes.html_sem_header( REQUEST, 'Reimport données admission' ),
+              '<h3>Opération effectuée</h3>' ]
         if no_nip:
-            return 'etudiants sans NIP: ' + str(no_nip)
-        else:
-            return 'OK !'
+            H.append('<p>Attention: étudiants sans NIP: ' + str(no_nip) + '</p>')
+        if unknowns:
+            H.append('<p>Attention: étudiants inconnus du portail: codes NIP=' + str(unknowns) + '</p>')
+        return '\n'.join(H) + self.sco_footer(REQUEST)
 
     # --- Statistiques
     security.declareProtected(ScoView, "stat_bac")
