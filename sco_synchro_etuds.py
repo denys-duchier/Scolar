@@ -497,7 +497,8 @@ def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False)
         e = al[0]
         if get_opt_str(etud,'inscription'):
             e['annee'] = args['annee']
-        for k in args:
+        keys = args.keys()
+        for k in keys:
             if not args[k]:
                 del args[k]
         e.update(args)
