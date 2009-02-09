@@ -2294,6 +2294,11 @@ class ZNotes(ObjectManager,
         "dummy method, necessary to declare permission ScoEtudChangeGroups"
         return True
 
+    security.declareProtected(ScoEtudSupprAnnotations, 'dummy_ScoEtudSupprAnnotations')
+    def dummy_ScoEtudSupprAnnotations(self):
+        "dummy method, necessary to declare permission ScoEtudSupprAnnotations"
+        return True
+
     def _notes_getall(self, evaluation_id, table='notes_notes', filter_suppressed=True):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
         """
