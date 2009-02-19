@@ -161,7 +161,7 @@ def formsemestre_inscription_with_modules(
     else:
         # formulaire choix groupe
         # Liste des groupes existant (== où il y a des inscrits)
-        gr_td,gr_tp,gr_anglais = self.do_formsemestre_inscription_listegroupnames(formsemestre_id=formsemestre_id)
+        gr_td,gr_tp,gr_anglais = self.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
         if not gr_td:
             gr_td = ['A']
         if not gr_anglais:
