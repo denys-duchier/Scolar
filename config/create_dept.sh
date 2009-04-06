@@ -19,9 +19,9 @@ check_uid_root $0
 echo -n "Nom du departement (un mot sans ponctuation, exemple \"Info\"): "
 read DEPT
 
-if [[ ! "$DEPT" =~ "^[A-Za-z0-9]+$" ]]
+if [[ ! "$DEPT" =~ ^[A-Za-z0-9]+$ ]]
 then
- echo "Nom de departement invalide !"
+ echo 'Nom de departement invalide !'
  exit 1
 fi
 

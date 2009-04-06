@@ -20,6 +20,7 @@ init_postgres_user
 db_name=SCOUSERS
 
 echo 'Creating postgresql database ' $db_name
+# su -c "createdb -E LATIN1 -O www-data  -p 5432 SCOUSERS" postgres
 su -c "createdb -E LATIN1 -O $POSTGRES_USER  -p $POSTGRES_PORT $db_name" $POSTGRES_SUPERUSER 
 
 echo 'Initializing tables in database ' $db_name

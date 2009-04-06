@@ -16,21 +16,21 @@ CREATE SEQUENCE serial;
 CREATE SEQUENCE notes_idgen;
 
 CREATE FUNCTION notes_newid( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''notes_idgen''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
 CREATE SEQUENCE notes_idgen2;
 
 CREATE FUNCTION notes_newid2( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen2\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''notes_idgen2''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
 CREATE SEQUENCE notes_idgen_etud;
 
 CREATE FUNCTION notes_newid_etud( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen_etud\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''notes_idgen_etud''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
@@ -124,7 +124,7 @@ CREATE TABLE etud_annotations (
 --  ------------ Nouvelle gestion des absences ------------
 CREATE SEQUENCE abs_idgen;
 CREATE FUNCTION abs_newid( text ) returns text as '
-	select $1 || to_char(  nextval(\'abs_idgen\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''abs_idgen''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
@@ -211,7 +211,7 @@ CREATE TABLE entreprise_contact (
 -- Description generique d'un module (eg infos du PPN)
 CREATE SEQUENCE notes_idgen_fcod;
 CREATE FUNCTION notes_newid_fcod( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen_fcod\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''notes_idgen_fcod''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
@@ -442,7 +442,7 @@ CREATE TABLE scolar_events (
 CREATE SEQUENCE notes_idgen_svalid;
 
 CREATE FUNCTION notes_newidsvalid( text ) returns text as '
-	select $1 || to_char(  nextval(\'notes_idgen_svalid\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''notes_idgen_svalid''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 

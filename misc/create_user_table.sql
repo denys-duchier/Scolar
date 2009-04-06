@@ -2,7 +2,7 @@
 CREATE SEQUENCE sco_users_idgen;
 
 CREATE FUNCTION sco_users_newid( text ) returns text as '
-	select $1 || to_char(  nextval(\'sco_users_idgen\'), \'FM999999999\' ) 
+	select $1 || to_char(  nextval(''sco_users_idgen''), ''FM999999999'' ) 
 	as result;
 	' language SQL;
 
