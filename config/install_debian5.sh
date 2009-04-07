@@ -2,9 +2,9 @@
 
 #
 # ScoDoc: install third-party software necessary for our installation
-# starting for a minimal Debian (4.0) install.
+# starting for a minimal Debian (Lenny, 5.0) install.
 #
-# E. Viennet, Juin 2008
+# E. Viennet, Jun 2008, Apr 2009
 #
 
 source config.sh
@@ -78,9 +78,8 @@ echo 'Done.'
 
 # ------------ AJOUT DES PAQUETS NECESSAIRES
 apt-get update
-apt-get install subversion cracklib-runtime
+apt-get install subversion cracklib-runtime firehol
 apt-get install apache2 ssl-cert postgresql-8.3 postgresql-client-8.3
-apt-get install firehol
 apt-get install python2.4 python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab python-crack python-pydot
 
 # start database server
