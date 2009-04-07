@@ -109,6 +109,9 @@ then
     echo "  et relancer: /etc/init.d/firehol restart"
     echo
     cp $SCODOC_DIR/config/etc/firehol.conf /etc/firehol/
+    mv /etc/default/firehol /etc/default/firehol.orig
+    cat /etc/default/firehol.orig | sed 's/START_FIREHOL=NO/START_FIREHOL=YES/' > /tmp/firehol && mv /tmp/firehol /etc/default/firehol
+    
     /etc/init.d/firehol restart
 fi
 
