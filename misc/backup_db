@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# usage: backup_db dbname
+# Dump une base postgresql, et garde plusieurs dumps dans le passe
+# Les dumps sont compresses (gzip).
+#
+# E. Viennet pour ScoDoc, 2005-2009
+
+# Nombre de copies a conserver dans le passe:
+NUMBACK=500
+
+
+DBNAME=$1
+
+DUMPFILE=BACKUP-"$DBNAME"/"$DBNAME"_pgdump
+
+function remove_leadings_zeros {
+   n=$1
+   if [ $n = "0000" ]; then
+      echo 0
+   else
+     while [ "${n:0:1}" = '0' ]; do
+        n=${n:1}
+     done
+     echo $n 
+   fi
+}
+
+# 1- rotate previous dumps
+if [ -e ${DUMPFILE}.gz ]
+then
+  LIST=$(ls -r1 ${DUMPFILE}*)
+fi
+
+
+for i in $LIST; do
+   x=${i#*.}
+   num=${x%.*} # just the number
+   num=$(remove_leadings_zeros $num)
+   if [ "$i" != "$DUMPFILE".gz ]; then
+      if [ $num -lt $NUMBACK ]; then
+        # rename file
+        base=${i%%.*}	
+	ni=$(($num+1))
+	mv $i "$base".$(printf "%04d" $ni).gz
+      else
+        # remove file
+        rm $i
+      fi
+   fi
+done
+
+# rename last dump to .0000
+mv "$DUMPFILE".gz "$DUMPFILE.0000.gz"
+
+# 2- dump
+#pg_dump "$DBNAME" > $DUMPFILE
+
+pg_dump --format=t "$DBNAME" -f $DUMPFILE
+
+gzip $DUMPFILE
