@@ -195,7 +195,7 @@ class ZScoUsers(ObjectManager,
         'sco_users',
         'user_id',
         ('user_id', 'user_name','passwd','roles',
-         'date_modif_passwd','nom','prenom', 'email', 'dept'),
+         'date_modif_passwd','nom','prenom', 'email', 'dept', 'passwd_temp'),
         output_formators = { 'date_modif_passwd' : DateISOtoDMY },
         sortkey = 'nom'
         )
@@ -246,7 +246,8 @@ class ZScoUsers(ObjectManager,
                      'nomprenom' : user_name,
                      'prenomnom' : user_name,
                      'nomcomplet': user_name,
-                     'nomplogin' : user_name
+                     'nomplogin' : user_name,
+                     'passwd_temp' : 0
                      }
         else:
             info = infos[0]
@@ -315,14 +316,16 @@ class ZScoUsers(ObjectManager,
         # should not occur, already tested in _can_handle_passwd
         cnx = self.GetUsersDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('update sco_users set date_modif_passwd=now() where user_name=%(user_name)s',
+        cursor.execute('update sco_users set date_modif_passwd=now(), passwd_temp=0 where user_name=%(user_name)s',
                        { 'user_name' : user_name } )
         cnx.commit()
         req = { 'password' : password,
                 'password_confirm' : password,
                 'roles' : [user[0]['roles']] }
+
         # Laisse le exUserFolder modifier les donnees
         self.acl_users.manage_editUser( user_name, req )
+        
         log("change_password: change ok for %s" % user_name)
         self.get_userlist_cache().inval_cache()
 
@@ -378,7 +381,7 @@ class ZScoUsers(ObjectManager,
         authuser = REQUEST.AUTHENTICATED_USER
         if not user_name:
             user_name = str(authuser)
-        H = [self.sco_header(REQUEST)]
+        H = [self.sco_header(REQUEST, user_check=False)]
         F = self.sco_footer(REQUEST)
         # check access
         if not self._can_handle_passwd(authuser, user_name):
@@ -392,6 +395,8 @@ class ZScoUsers(ObjectManager,
         </table>
         <input type="hidden" value="%(user_name)s" name="user_name">
         <input type="submit" value="Changer">
+        </p>
+        <p>Vous pouvez aussi: <a class="stdlink" href="reset_password_form?user_name=%(user_name)s">renvoyer un mot de passe aléatoire temporaire par mail à l'utilisateur</a>
 """ % {'user_name' : user_name, 'url' : REQUEST.URL0} )
         return '\n'.join(H) + F
 
@@ -805,9 +810,9 @@ class ZScoUsers(ObjectManager,
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
             rows = r,
-            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd'),
+            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd', 'passwd_temp'),
             titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
-                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' },
+                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.' },
             caption = title, page_title = 'title',
             html_title = """<h2>%d utilisateurs %s</h2>
             <p class="help">Cliquer sur un nom pour changer son mot de passe</p>""" % (len(r), comm),
@@ -877,6 +882,53 @@ class ZScoUsers(ObjectManager,
             return m.group(1)
         else:
             return None
+
+    security.declareProtected(ScoView, 'reset_password_form')
+    def reset_password_form(self, user_name=None, dialog_confirmed=False, REQUEST=None):
+        """Form to reset a password"""
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                """<h2>Ré-initialiser le mot de passe de %s ?</h2>
+<p>Le mot de passe de %s va être choisi au hasard et lui être envoyé par mail.
+Il devra ensuite se connecter et le changer.
+</p>
+                """ % (user_name, user_name),
+                parameters={'user_name':user_name}
+                )
+        self.reset_password(user_name=user_name, REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=mot%20de%20passe%20de%20' + user_name + '%20reinitialise' )
+        
+    security.declareProtected(ScoView, 'reset_password')
+    def reset_password(self, user_name=None, REQUEST=None):
+        """Reset a password:
+        - set user's passwd_temp to 1
+        - set roles to 'ScoReset'
+        - generate a random password and mail it
+        """
+        authuser = REQUEST.AUTHENTICATED_USER
+        auth_name = str(authuser)
+        if not user_name:
+            user_name = auth_name
+        # Access control        
+        if not self._can_handle_passwd(authuser, user_name):
+            raise AccessDenied("vous n'avez pas la permission de changer ce mot de passe")
+        log('reset_password: %s' % user_name)
+        # Check that user has valid mail
+        info = self.user_info(user_name=user_name)
+        if not is_valid_mail(info['email']):
+            raise Exception("pas de mail valide associé à l'utilisateur")
+        # Generate random password
+        password = sco_import_users.generate_password()
+        self.do_change_password(user_name, password)
+        # Flag it as temporary:
+        cnx = self.GetUsersDBConnexion()
+        cursor = cnx.cursor()
+        ui = { 'user_name' : user_name }
+        cursor.execute("update sco_users set passwd_temp=1 where user_name='%(user_name)s'" % ui)
+
+        # Send email
+        info['passwd'] = password
+        sco_import_users.mail_password(info, context=self, reset=True)
 
 # --------------------------------------------------------------------
 #

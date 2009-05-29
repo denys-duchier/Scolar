@@ -90,10 +90,16 @@ SCO_DEFAULT_SQL_USER='www-data' # should match Zope process UID
 SCO_DEFAULT_SQL_PORT='5432' # warning: 5433 for postgresql-8.1 on Debian if 7.4 also installed !
 SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 
+# Valeurs utilisées pour affichage seulement, pas de requetes ni de mails envoyés:
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_DEVEL_LIST = 'scodoc-devel@rt.iutv.univ-paris13.fr'
+
 # Mails avec exceptions (erreurs) anormales envoyés à cette adresse:
+# mettre '' pour désactiver completement l'envois de mails d'erreurs.
+# (ces mails sont précieux pour corriger les erreurs, ne les désactiver que si 
+#  vous avez de bonnes raisons de le faire: vous pouvez me contacter avant)
 SCO_DEV_MAIL = 'emmanuel.viennet@gmail.com'
+
 
 CSV_FIELDSEP = ';'
 CSV_LINESEP  = '\n'
@@ -314,3 +320,8 @@ def sql_groupe_type(group_type):
         return 'groupeanglais'
     else:
         raise ValueError('invalid group_type')
+
+
+def is_valid_mail(email):
+    """True if well-formed email address"""
+    return re.match( "^.+@.+\..{2,3}$", email)

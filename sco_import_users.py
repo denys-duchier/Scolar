@@ -155,7 +155,7 @@ from email.MIMEBase import MIMEBase
 from email.Header import Header
 from email import Encoders
 
-def mail_password(u, context=None):
+def mail_password(u, context=None, reset=False):
     "Send password by email"
     if not u['email']:
         return
@@ -165,6 +165,17 @@ def mail_password(u, context=None):
     txt = """
 Bonjour %(prenom)s %(nom)s,
 
+""" % u
+    if reset:
+        txt += """
+votre mot de passe ScoDoc a été ré-initialisé.
+Le nouveau mot de passe est:  %(passwd)s
+
+Vous devrez le changer lors de votre première connexion 
+sur %(url)s
+""" % u
+    else:
+        txt += """
 vous avez été déclaré comme utilisateur du logiciel de gestion de scolarité ScoDoc.
 
 Votre nom d'utilisateur est %(user_name)s
@@ -174,14 +185,19 @@ Le logiciel est accessible sur: %(url)s
 
 Vous êtes invité à changer ce mot de passe au plus vite (cliquez sur
 votre nom en haut à gauche de la page d'accueil).
+""" % u
 
-
+    txt += """
+        
 ScoDoc est un logiciel libre développé à l'Université Paris 13 par Emmanuel Viennet.
 Pour plus d'informations sur ce logiciel, voir https://www-rt.iutv.univ-paris13.fr/ScoDoc
 
-""" % u
+"""
     msg = MIMEMultipart()
-    msg['Subject'] = Header( 'Votre accès ScoDoc',  SCO_ENCODING )
+    if reset:
+        msg['Subject'] = Header( 'Mot de passe ScoDoc',  SCO_ENCODING )
+    else:
+        msg['Subject'] = Header( 'Votre accès ScoDoc',  SCO_ENCODING )
     msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = u['email']
     msg.epilogue = ''

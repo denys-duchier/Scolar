@@ -50,5 +50,14 @@ for dept in get_depts():
                  ])
     # Add here actions to performs after upgrades:
 
+
+# Base utilisateurs:
+log('\nChecking users database')
+cnx = psycopg.connect( get_users_cnx_str() )
+cursor = cnx.cursor()
+check_field(cnx, 'sco_users', 'passwd_temp',
+            ['alter table sco_users add column passwd_temp int default 0',
+             'update sco_users set passwd_temp=0' ])
+
 # The end.
 sys.exit(0)

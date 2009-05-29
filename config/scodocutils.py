@@ -1,7 +1,7 @@
 """
     Some utilities used by upgrade scripts
 """
-import sys, os, psycopg, glob
+import sys, os, psycopg, glob, subprocess
 
 sys.path.append('..')
 
@@ -25,7 +25,14 @@ def get_dept_cnx_str(dept):
         log("Error: can't read connexion string for dept %s" % dept)
         log("(tried to open %s)" % f)
         raise
-        
+
+def get_users_cnx_str():
+    "db cnx string for users database (used only during upgrades to modify db schema)"
+    # uses default in sco_utils
+    # For customized installs, define the value here (used only during upgrades)
+    import sco_utils 
+    return sco_utils.SCO_DEFAULT_SQL_USERS_CNX
+
 def get_depts():
     "list of defined depts"    
     files=glob.glob(SCODOC_DIR+'/config/depts/*.cfg')

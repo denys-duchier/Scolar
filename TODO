@@ -2,6 +2,14 @@
   NOTES EN VRAC : voir plutôt le Trac !!!
 
 
+Reset password:
+ - declenche par admin 
+    passwd aleatoire, envoye par mail, passwd_temp=1
+    => envoi mail
+
+ - si passwd_temp= 1:
+    header renvoie sur page changement passwd
+
 
 
 A VERIFIER (?):

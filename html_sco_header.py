@@ -42,6 +42,7 @@ def sco_header(context, REQUEST=None,
                bodyOnLoad='',      # JS
                titrebandeau='',    # titre dans bandeau superieur
                head_message='',    # message action (petit cadre jaune en haut)
+               user_check=True     # verifie passwords temporaires
                ):    
     "Main HTML page header for ScoDoc"
 
@@ -132,6 +133,17 @@ window.onload=function(){enableTooltips("gtrcontent")};
     #
     # Barre menu semestre:
     H.append( formsemestre_page_title(context, REQUEST) )
+
+    # Avertissement si mot de passe à changer
+    if user_check:
+        authuser = REQUEST.AUTHENTICATED_USER
+        passwd_temp = context.Users.user_info(user_name=str(authuser))['passwd_temp']
+        if passwd_temp:
+            H.append('''<div class="passwd_warn">
+    Attention !<br/>
+    Vous avez reçu un mot de passe temporaire.<br/>
+    Vous devez le changer: <a href="%s/Users/form_change_password?user_name=%s">cliquez ici</a>
+    </div>''' % (context.ScoURL(), str(authuser)) )
     #
     if head_message:
         H.append('<div class="head_message">' + cgi.escape(head_message) + '</div>')
