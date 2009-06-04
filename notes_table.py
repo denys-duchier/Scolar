@@ -371,26 +371,33 @@ class NotesTable:
     def get_evals_in_mod(self, moduleimpl_id):
         "liste des evaluations valides dans un module"
         return [ e for e in self._valid_evals.values() if e['moduleimpl_id'] == moduleimpl_id ]
-    def get_mod_moy(self, moduleimpl_id):
-        """moyenne generale pour un module
+    def get_mod_stats(self, moduleimpl_id):
+        """moyenne generale, min, max pour un module
         Ne prend en compte que les evaluations où toutes les notes sont entrées
         """
         nb_notes = 0
         sum_notes = 0.
         nb_missing = 0
         moys = self._modmoys[moduleimpl_id]
+        vals = []
         for etudid in self.get_etudids():
+            # saute les demissionnaires:
+            if self.inscrdict[etudid]['etat'] != 'I':
+                continue
             val = moys.get(etudid, None) # None si non inscrit
             try:
-                sum_notes += val
-                nb_notes = nb_notes + 1
+                vals.append(float(val))
             except:
                 nb_missing = nb_missing + 1
+        sum_notes = sum(vals)
+        nb_notes = len(vals)
         if nb_notes > 0:
-            moy = sum_notes/nb_notes 
+            moy = sum_notes/nb_notes
+            max_note, min_note = max(vals), min(vals) 
         else:
-            moy = 'NA'
-        return moy, nb_notes, nb_missing
+            moy, min_note, max_note = 'NA', '-', '-'
+        return { 'moy' : moy, 'max' : max_note, 'min' : min_note,
+                 'nb_notes' : nb_notes, 'nb_missing' : nb_missing }
 
     def compute_moy_moy(self):
         """precalcule les moyennes d'UE et generale (moyennes sur tous
@@ -402,11 +409,14 @@ class NotesTable:
         sum_moy = 0
         nb_moy = 0
         for ue in ues:
-            ue['sum_moy'] = 0
-            ue['nb_moy'] = 0
+            ue['_notes'] = [] # liste tmp des valeurs de notes valides dans l'ue
+
         T = self.get_table_moyennes_triees()
         for t in T:
             etudid = t[-1]
+            # saute les demissionnaires:
+            if self.inscrdict[etudid]['etat'] != 'I':
+                continue
             try:
                 sum_moy += float(t[0])
                 nb_moy += 1
@@ -416,8 +426,7 @@ class NotesTable:
             for ue in ues:
                 i += 1
                 try:
-                    ue['sum_moy'] += float(t[i])
-                    ue['nb_moy']  += 1
+                    ue['_notes'].append(float(t[i]))
                 except:
                     pass
         if nb_moy > 0:
@@ -427,10 +436,14 @@ class NotesTable:
         i = 0
         for ue in ues:
             i += 1
+            ue['nb_moy'] = len(ue['_notes'])
             if ue['nb_moy'] > 0:
-                ue['moy'] = ue['sum_moy'] / ue['nb_moy']
+                ue['moy'] = sum(ue['_notes']) / ue['nb_moy']
+                ue['max'] = max(ue['_notes'])
+                ue['min'] = min(ue['_notes'])
             else:
-                ue['moy'] = ''
+                ue['moy'], ue['max'], ue['min'] = '', '', ''
+            del ue['_notes']
     
     def get_etud_mod_moy(self, moduleimpl_id, etudid):
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        

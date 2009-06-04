@@ -771,7 +771,13 @@ tr.recap_row_moy {
    border-top: 1px solid blue;
    font-weight: bold;
 }
-
+tr.recap_row_min, tr.recap_row_max {
+   font-weight: normal;
+   font-style: italic;
+}
+tr.recap_row_max {
+   border-bottom: 1px solid blue;
+}
 td.recap_tit {
    font-weight: bold;
    text-align: left;

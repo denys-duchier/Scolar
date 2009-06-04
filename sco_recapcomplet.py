@@ -159,26 +159,35 @@ def make_formsemestre_recapcomplet(
                     j += 1
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
-    # Dernière ligne: moyennes UE et modules
-    l = [ '', 'Moyennes', '', fmt_note(nt.moy_moy) ] 
-    i = 0
-    for ue in ues:
-        i += 1
-        if ue['type'] == UE_STANDARD:
-            l.append( fmt_note(ue['moy'], keep_numeric=keep_numeric) ) 
-        elif ue['type'] == UE_SPORT:
-            # n'affiche pas la moyenne d'UE dans ce cas
+    # Dernière ligne: moyennes, min et max des UEs et modules
+    if not hidemodules: # moy/min/max dans chaque module
+        mods_stats = {} # moduleimpl_id : stats
+        for modimpl in modimpls:
+            mods_stats[modimpl['moduleimpl_id']] = nt.get_mod_stats(modimpl['moduleimpl_id'])
+    
+    def add_bottom_stat( key, title, corner_value='' ):
+        l = [ '', title, '', corner_value ] 
+        for ue in ues:
+            if ue['type'] == UE_STANDARD:
+                l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
+            elif ue['type'] == UE_SPORT:
+                # n'affiche pas la moyenne d'UE dans ce cas
+                if not hidemodules:
+                    l.append('') 
+            ue_index.append(len(l)-1)
             if not hidemodules:
-                l.append('') 
-        ue_index.append(len(l)-1)
-        if not hidemodules:
-            for modimpl in modimpls:
-                if modimpl['module']['ue_id'] == ue['ue_id']:
-                    l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0],
-                                      keep_numeric=keep_numeric)) # moyenne du module
-    if modejury:
-        l.append('') # case vide sur ligne "Moyennes"
-    F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
+                for modimpl in modimpls:
+                    if modimpl['module']['ue_id'] == ue['ue_id']:
+                        l.append(fmt_note(mods_stats[modimpl['moduleimpl_id']][key],
+                                          keep_numeric=keep_numeric)) # moyenne du module
+        if modejury:
+            l.append('') # case vide sur ligne "Moyennes"
+        F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
+    
+    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy) )
+    add_bottom_stat( 'min', 'Min')
+    add_bottom_stat( 'max', 'Max')
+    
     # Generation table au format demandé
     if format == 'html':
         # Table format HTML
@@ -245,9 +254,10 @@ def make_formsemestre_recapcomplet(
         nblines = len(F)-1
         for l in F[1:]:
             etudid = l[-1]
-            if ir == nblines-1:
+            if ir >= nblines-3:
                 el = l[1] # derniere ligne
-                cells = '<tr class="recap_row_moy sortbottom">'
+                styl = ( 'recap_row_moy', 'recap_row_min', 'recap_row_max')[ir-nblines+3]
+                cells = '<tr class="%s sortbottom">' % styl
             else:
                 el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1]}
                 if ir % 2 == 0:
@@ -271,13 +281,14 @@ def make_formsemestre_recapcomplet(
                 if i in ue_index:
                     cssclass = 'recap_col_ue'
                     # grise si moy UE < barre
-                    try:
-                        if float(nsn[i]) < NOTES_BARRE_UE:
-                            cssclass = 'recap_col_ue_inf'
-                        elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:
-                            cssclass = 'recap_col_ue_val'
-                    except:
-                        pass
+                    if ir < nblines - 3:
+                        try:
+                            if float(nsn[i]) < NOTES_BARRE_UE:
+                                cssclass = 'recap_col_ue_inf'
+                            elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:
+                                cssclass = 'recap_col_ue_val'
+                        except:
+                            pass
                 else:
                     cssclass = 'recap_col'
                 cells += '<td class="%s">%s</td>' % (cssclass,nsn[i])
