@@ -167,6 +167,8 @@ def make_formsemestre_recapcomplet(
     
     def add_bottom_stat( key, title, corner_value='' ):
         l = [ '', title, '', corner_value ] 
+        if format == 'xls' or format == 'csv':
+            l += [ '', '', '' ] # rangs td, tp, ta
         for ue in ues:
             if ue['type'] == UE_STANDARD:
                 l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
