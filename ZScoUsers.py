@@ -247,6 +247,7 @@ class ZScoUsers(ObjectManager,
                      'prenomnom' : user_name,
                      'nomcomplet': user_name,
                      'nomplogin' : user_name,
+                     'nomnoacc'  : suppress_accents(user_name),
                      'passwd_temp' : 0
                      }
         else:
@@ -272,6 +273,8 @@ class ZScoUsers(ObjectManager,
             # nomplogin est le nom en majuscules suivi du prénom et du login
             # e.g. Dupont Pierre (dupont)
             info['nomplogin'] = '%s %s (%s)' % (n.upper(), p, info['user_name'])
+            # nomnoacc est le nom en minuscules sans accents
+            info['nomnoacc'] = suppress_accents(info['nom'].lower())
             return info
 
     def _can_handle_passwd(self, authuser, user_name):
@@ -860,9 +863,13 @@ class ZScoUsers(ObjectManager,
     def get_userlist_xml(self, dept=None, start='', limit=25, REQUEST=None):
         """Returns XML list of users with name (nomplogin) starting with start.
         Used for forms auto-completion."""
+        log('get_userlist_xml: start="%s" (%s)' % (start, repr(start)) )
         userlist = self.get_userlist(dept=dept)
-        start = start.lower()
-        userlist = [ user for user in userlist if user['nomplogin'].lower().startswith(start) ]
+        
+        start = suppression_diacritics(unicode(start, 'utf-8'))
+        start = str(start).lower()        
+        
+        userlist = [ user for user in userlist if user['nomnoacc'].startswith(start) ]
         if REQUEST:
             REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
