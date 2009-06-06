@@ -143,7 +143,8 @@ def make_formsemestre_bulletinetud(
                     # --- module avec moy. dans ce module et coef du module
                     nom_mod = modimpl['module']['abbrev']
                     if not nom_mod:
-                        nom_mod = ''                        
+                        nom_mod = modimpl['module']['titre'] or ''
+                    
                     t = [ modimpl['module']['code'], nom_mod, '', mod_moy,
                           fmt_coef(modimpl['module']['coefficient']) ]
                     

@@ -6,6 +6,12 @@
 #
 # E. Viennet pour ScoDoc, 2005-2009
 
+# Note: pour restaurer un backup (en supprimant la abs eexistante !!!)
+# 1- supprimer la base existante si elle existe (dropdb)
+# 2- recreer la base, vide: createdb -E LATIN1 NOMDELABASE
+# 3- pg_restore  --create -d SCOINFO SCOINFO_pgdump
+
+
 # Nombre de copies a conserver dans le passe:
 NUMBACK=500
 
@@ -59,3 +65,4 @@ mv "$DUMPFILE".gz "$DUMPFILE.0000.gz"
 pg_dump --format=t "$DBNAME" -f $DUMPFILE
 
 gzip $DUMPFILE
+
