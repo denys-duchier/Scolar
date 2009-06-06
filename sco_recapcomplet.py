@@ -251,7 +251,7 @@ def make_formsemestre_recapcomplet(
         if disable_etudlink:
             etudlink = '%(name)s'
         else:
-            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals">%(name)s</a>'
+            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals" title="%(nomprenom)s">%(name)s</a>'
         ir = 0
         nblines = len(F)-1
         for l in F[1:]:
@@ -261,7 +261,8 @@ def make_formsemestre_recapcomplet(
                 styl = ( 'recap_row_moy', 'recap_row_min', 'recap_row_max')[ir-nblines+3]
                 cells = '<tr class="%s sortbottom">' % styl
             else:
-                el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1]}
+                el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1],
+                                  'nomprenom' :  nt.get_nom_long(etudid) }
                 if ir % 2 == 0:
                     cells = '<tr class="recap_row_even" id="etudid%s">' % etudid
                 else:

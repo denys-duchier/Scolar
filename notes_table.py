@@ -38,6 +38,7 @@ from sco_parcours_dut import formsemestre_get_etud_capitalisation
 from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
 from sco_formsemestre_edit import formsemestre_uecoef_list
 
+
 NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
 NOTES_MIN = 0.       # valeur minimale admise pour une note
 NOTES_MAX = 100.
@@ -293,7 +294,12 @@ class NotesTable:
         return self.identdict[etudid]['sexe'] + ' ' + self.identdict[etudid]['nom'].upper()
     def get_nom_short(self, etudid):
         "formatte nom d'un etud (pour table recap)"
-        return self.identdict[etudid]['nom'].upper() + ' ' + self.identdict[etudid]['prenom'].upper()[0] + '.'
+        return self.identdict[etudid]['nom'].upper() + ' ' + self.identdict[etudid]['prenom'][:2].capitalize() + '.'
+
+    def get_nom_long(self, etudid):
+        "formatte nom d'un etud"
+        etud =  self.identdict[etudid]
+        return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom'])])
 
     def get_groupetd(self,etudid):
         "groupe de TD de l'etudiant dans ce semestre"
