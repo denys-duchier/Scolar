@@ -43,6 +43,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
     etudids = nt.get_etudids( sorted=True ) # tri par moy gen
     sem= znotes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
+    fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
 
     prev_moy_ue = DictDefault(defaultvalue={}) # ue_acro : { etudid : moy ue }
     prev_moy = {} # moyennes gen sem prec
@@ -54,6 +56,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     assidu = {}
     parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
     groupestd = {}
+    nbabs = {}
+    nbabsjust = {}
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
@@ -99,6 +103,10 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         for s in etud['sems']:
             if s['formsemestre_id'] == formsemestre_id:                
                 groupestd[etudid] = s['ins']['groupetd']
+        # absences:
+        nbabs[etudid] = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust[etudid] = znotes.Absences.CountAbsJust(etudid=etudid, debut=debut_sem,fin=fin_sem)
+    
     # Construit table
     L = [ [] ]
     all_ues =  znotes.do_ue_list(args={ 'formation_id' : sem['formation_id']})
@@ -122,7 +130,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     titles = ['', 'etudid', 'Nom', 'Année', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
-    titles += ue_acros + ['Moy %s' % sn]
+    titles += ue_acros + ['Moy %s' % sn, 'Abs', 'Abs Just.' ]
     if code:
         titles.append('Décision %s' % sn)
     if autorisations:
@@ -152,6 +160,8 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         for ue_acro in ue_acros:
             l.append(fmt(moy_ue.get(ue_acro, {}).get(etudid,'')))
         l.append(fmt(moy.get(etudid,'')))
+        l.append(fmt(str(nbabs.get(etudid,''))))
+        l.append(fmt(str(nbabsjust.get(etudid,''))))
         if code:
             l.append(code.get(etudid, ''))
         if autorisations:

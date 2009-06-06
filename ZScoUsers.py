@@ -863,7 +863,7 @@ class ZScoUsers(ObjectManager,
     def get_userlist_xml(self, dept=None, start='', limit=25, REQUEST=None):
         """Returns XML list of users with name (nomplogin) starting with start.
         Used for forms auto-completion."""
-        log('get_userlist_xml: start="%s" (%s)' % (start, repr(start)) )
+        # log('get_userlist_xml: start="%s" (%s)' % (start, repr(start)) )
         userlist = self.get_userlist(dept=dept)
         
         start = suppression_diacritics(unicode(start, 'utf-8'))
