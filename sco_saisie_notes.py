@@ -243,7 +243,8 @@ def do_evaluation_formnotes(self, REQUEST ):
         # infos inscription
         inscr = self.do_formsemestre_inscription_list(
             {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
-        label = '%s %s' % (ident['nom'].upper(), ident['prenom'].lower().capitalize())
+        nom = ident['nom'].upper()
+        label = '%s %s' % (nom, ident['prenom'].lower().capitalize())
         if NotesDB.has_key(etudid):
             val = self._displayNote(NotesDB[etudid]['value'])
             comment = NotesDB[etudid]['comment']
@@ -254,9 +255,9 @@ def do_evaluation_formnotes(self, REQUEST ):
         else:
             explanation = ''
             val = ''            
-        el.append( (label, etudid, val, explanation, ident, inscr) )
+        el.append( (nom, label, etudid, val, explanation, ident, inscr) )
     el.sort() # sort by name
-    for (label,etudid, val, explanation, ident, inscr) in el:
+    for (nom, label,etudid, val, explanation, ident, inscr) in el:
 
         if inscr['etat'] == 'D':
             label = '<span class="etuddem">' + label + '</span>'
