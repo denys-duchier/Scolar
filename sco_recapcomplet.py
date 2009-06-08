@@ -284,8 +284,8 @@ def make_formsemestre_recapcomplet(
                 if i in ue_index:
                     cssclass = 'recap_col_ue'
                     # grise si moy UE < barre
-                    if ir < nblines - 3:
-                        try:
+                    if ir < nblines - 2:
+                        try:                            
                             if float(nsn[i]) < NOTES_BARRE_UE:
                                 cssclass = 'recap_col_ue_inf'
                             elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:

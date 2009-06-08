@@ -46,9 +46,11 @@ NOTES_NEUTRALISE=-1000. # notes non prises en comptes dans moyennes
 NOTES_SUPPRESS=-1001.   # note a supprimer
 NOTES_ATTENTE=-1002.    # note "en attente" (se calcule comme une note neutralisee)
 
-NOTES_BARRE_GEN = 10. # barre sur moyenne generale
-NOTES_BARRE_UE = 8.   # barre sur UE
-NOTES_BARRE_VALID_UE = 10. # seuil pour valider UE
+NOTES_TOLERANCE = 0.00499999999999 # si note >= (BARRE-TOLERANCE), considere ok
+                                   # (permet d'eviter d'afficher 10.00 sous barre alors que la moyenne vaut 9.999)
+NOTES_BARRE_GEN = 10.-NOTES_TOLERANCE # barre sur moyenne generale
+NOTES_BARRE_UE = 8.-NOTES_TOLERANCE   # barre sur UE
+NOTES_BARRE_VALID_UE = 10.-NOTES_TOLERANCE # seuil pour valider UE
 
 UE_STANDARD = 0
 UE_SPORT = 1
