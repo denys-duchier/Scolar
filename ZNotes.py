@@ -2336,6 +2336,7 @@ class ZNotes(ObjectManager,
         # Inscrits au semestre (pour traiter les demissions):
         inssem_set = Set( [x['etudid'] for x in
                            self.do_formsemestre_inscription_listinscrits(M['formsemestre_id'])])
+        insmod_set = inssem_set.intersection(etudids) # inscrits au semestre et au module
         evals = self.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
         attente = False
         # recupere les notes de toutes les evaluations
@@ -2344,9 +2345,9 @@ class ZNotes(ObjectManager,
                 self.do_evaluation_listeetuds_groups(e['evaluation_id'],
                                                      getallstudents=True))
             NotesDB = self._notes_getall(e['evaluation_id']) # toutes, y compris demissions
-            # restreint aux étudiants encore inscrits à ce module            
+            # restreint aux étudiants encore inscrits à ce module        
             notes = [ NotesDB[etudid]['value'] for etudid in NotesDB 
-                      if (etudid in inssem_set) ]
+                      if (etudid in insmod_set) ]
             e['nb_notes'] = len(notes)
             e['nb_abs'] = len( [ x for x in notes if x is None ] )
             e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
