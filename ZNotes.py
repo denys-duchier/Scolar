@@ -2361,7 +2361,7 @@ class ZNotes(ObjectManager,
                         if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
         # 
         R = {}
-        for etudid in etudids:
+        for etudid in insmod_set: # inscrits au semestre et au module
             nb_notes = 0
             sum_notes = 0.
             sum_coefs = 0.
