@@ -141,6 +141,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : authuser.has_permission(ScoImplement, context),
           'helpmsg' : ''
           },
+        { 'title' : 'Associer à une nouvelle version du programme',
+          'url' :  'formsemestre_associate_new_version?formsemestre_id=' + formsemestre_id,
+          'enabled' : authuser.has_permission(ScoChangeFormation, context) and (sem['etat']== '1'),
+          'helpmsg' : ''
+          },
         ]
     # debug :
     if uid == 'root' or uid[:7] == 'viennet':

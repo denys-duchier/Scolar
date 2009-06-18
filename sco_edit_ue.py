@@ -147,7 +147,7 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
 Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module), vous devez:
 </p>
 <ul class="help">
-<li>soit créer une nouvelle version de cette formation pour pouvoir l'éditer librement;</li>
+<li>soit créer une nouvelle version de cette formation pour pouvoir l'éditer librement (vous pouvez passer par la fonction "Associer à une nouvelle version du programme" (menu "Semestre") si vous avez un semestre en cours);</li>
 <li>soit déverrouiler le ou les semestres qui s'y réfèrent (attention, en principe ces semestres sont archivés 
     et ne devraient pas être modifiés).</li>
 </ul>""" % len(locked))

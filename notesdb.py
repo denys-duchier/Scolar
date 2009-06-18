@@ -254,10 +254,11 @@ class EditableTable:
                     raise
             r[k] = v
         
-    def edit(self, cnx, args):
+    def edit(self, cnx, args, html_quote=None):
         """Change fields"""
         vals = dictfilter(args, self.dbfields)
-        if self.html_quote:
+        html_quote = html_quote or self.html_quote
+        if html_quote:
             quote_dict(vals) # quote HTML
         # format value
         for title in vals.keys():
@@ -456,3 +457,21 @@ def UniqListofDicts( L, key ):
     for item in L:
         d[item[key]] = item
     return d.values()
+
+
+#
+def copy_tuples_changing_attribute( cnx, table, column, old_value, new_value, to_exclude=[] ):
+    """Duplicate tuples in DB table, replacing column old_value by new_value
+
+    Will raise exception if violation of integerity constraint !
+    """
+    cursor = cnx.cursor()
+    cursor.execute("select * from %s where %s=%%(old_value)s" 
+                   % (table, column),
+                   { 'old_value' :  old_value } )
+    res = cursor.dictfetchall()
+    for t in res:
+        t[column] = new_value
+        for c in to_exclude:
+            del t[c]
+        DBInsertDict( cnx, table, t, convert_empty_to_nulls=False)

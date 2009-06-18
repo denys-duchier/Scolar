@@ -207,6 +207,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_clone')
     formsemestre_clone = sco_formsemestre_edit.formsemestre_clone
     
+    security.declareProtected(ScoChangeFormation, 'formsemestre_associate_new_version')
+    formsemestre_associate_new_version = sco_formsemestre_edit.formsemestre_associate_new_version
+
     security.declareProtected(ScoImplement, 'formsemestre_delete')
     formsemestre_delete = sco_formsemestre_edit.formsemestre_delete
     
@@ -401,22 +404,25 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
-            formation_id = self.formation_import_xml(tf[2]['xmlfile'],REQUEST)
+            formation_id, junk, junk = self.formation_import_xml(tf[2]['xmlfile'],REQUEST)
             
             return '\n'.join(H) + """<p>Import effectué !</p>
             <p><a class="stdlink" href="ue_list?formation_id=%s">Voir la formation</a></p>""" % formation_id + footer
 
     security.declareProtected(ScoChangeFormation, 'formation_create_new_version')
-    def formation_create_new_version(self,formation_id,REQUEST):
+    def formation_create_new_version(self,formation_id,redirect=True,REQUEST=None):
         "duplicate formation, with new version number"
-        xml = sco_formations.formation_export_xml(self, formation_id)
-        new_id = sco_formations.formation_import_xml(self,REQUEST, xml)
+        xml = sco_formations.formation_export_xml(self, formation_id, export_ids=True)
+        new_id, modules_old2new, ues_old2new = sco_formations.formation_import_xml(self,REQUEST, xml)
         # news
         cnx = self.GetDBConnexion()
         F = self.do_formation_list(args={ 'formation_id' :new_id})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=new_id,
                      text='Nouvelle version de la formation %(acronyme)s'%F)
-        return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&msg=Nouvelle version !')
+        if redirect:
+            return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&msg=Nouvelle version !')
+        else:
+            return new_id, modules_old2new, ues_old2new
         
     # --- UE
     _ueEditor = EditableTable(
@@ -2831,18 +2837,26 @@ class ZNotes(ObjectManager,
     # DEBUG
     security.declareProtected(ScoView,'check_sem_integrity')
     def check_sem_integrity(self, formsemestre_id, REQUEST):
-        "debug"
+        """Debug.
+        Check that ue and module formations are consistents
+        """
         sem = self.get_formsemestre(formsemestre_id)
+
         modimpls = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
-        bad = []
+        bad_ue = []
+        bad_sem = []
         for modimpl in modimpls:
             mod = self.do_module_list( {'module_id': modimpl['module_id'] } )[0]
             ue = self.do_ue_list( {'ue_id' : mod['ue_id']})[0]
             if ue['formation_id'] != mod['formation_id']:
                 modimpl['mod'] = mod
                 modimpl['ue'] = ue                
-                bad.append(modimpl)                
-        return self.sco_header(REQUEST=REQUEST)+'<br/>'.join([str(x) for x in bad])+self.sco_footer(REQUEST)
+                bad_ue.append(modimpl)  
+            if sem['formation_id'] !=  mod['formation_id']:
+                bad_sem.append(modimpl)
+                modimpl['mod'] = mod
+                
+        return self.sco_header(REQUEST=REQUEST)+ '<p>formation_id=%s' % sem['formation_id'] + '<h2>Inconsistent UE/MOD:</h2>'+'<br/>'.join([str(x) for x in bad_ue])+ '<h2>Inconsistent SEM/MOD:</h2>'+'<br/>'.join([str(x) for x in bad_sem])+self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView,'check_form_integrity')
     def check_form_integrity(self, formation_id, fix=False, REQUEST=None):

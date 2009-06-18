@@ -37,7 +37,7 @@ from notesdb import quote_dict
 from notes_log import log
 
 
-def formation_export_xml( context, formation_id ):
+def formation_export_xml( context, formation_id, export_ids=False ):
     """XML representation of a formation
     context is the ZNotes instance
     """
@@ -53,24 +53,27 @@ def formation_export_xml( context, formation_id ):
     for ue in ues:
         doc._push()
         ue_id = ue['ue_id']
-        del ue['ue_id']
-        del ue['formation_id']
+        if not export_ids:
+            del ue['ue_id']
+            del ue['formation_id']
         ue = dict_quote_xml_attr(ue, fromhtml=True)
         doc.ue( **ue )
         mats = context.do_matiere_list({ 'ue_id' : ue_id })
         for mat in mats:
             doc._push()
             matiere_id = mat['matiere_id']
-            del mat['matiere_id']
-            del mat['ue_id']
+            if not export_ids:
+                del mat['matiere_id']
+                del mat['ue_id']
             mat = dict_quote_xml_attr(mat, fromhtml=True)
             doc.matiere( **mat )
             mods = context.do_module_list({ 'matiere_id' : matiere_id })
             for mod in mods:
-                del mod['ue_id']
-                del mod['matiere_id']
-                del mod['module_id']
-                del mod['formation_id']
+                if not export_ids:
+                    del mod['ue_id']
+                    del mod['matiere_id']
+                    del mod['module_id']
+                    del mod['formation_id']
                 doc._push()
                 mod = dict_quote_xml_attr(mod, fromhtml=True)
                 doc.module( **mod )
@@ -135,22 +138,40 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     # create formation
     formation_id = context.do_formation_create(F, REQUEST)
     log('formation %s created' % formation_id)
-    # -- create UEs
+    ues_old2new = {} # xml ue_id : new ue_id
+    modules_old2new = {} # xml module_id : new module_id
+    # (nb: mecanisme utilise pour cloner semestres seulement, pas pour I/O XML)
+    # -- create UEs    
     for ue_info in D[2]:
         assert ue_info[0] == 'ue'
         ue_info[1]['formation_id'] = formation_id
+        if 'ue_id' in ue_info[1]:
+            xml_ue_id = ue_info[1]['ue_id']
+            del  ue_info[1]['ue_id']
+        else:
+            xml_ue_id = None            
         ue_id = context.do_ue_create(ue_info[1], REQUEST)
+        if xml_ue_id:
+            ues_old2new[xml_ue_id] = ue_id
         # -- create matieres
         for mat_info in ue_info[2]:
             assert mat_info[0] == 'matiere'
             mat_info[1]['ue_id'] = ue_id
             mat_id = context.do_matiere_create(mat_info[1], REQUEST)
-            # -- create modules
+            # -- create modules            
             for mod_info in mat_info[2]:
                 assert mod_info[0] == 'module'
+                if 'module_id' in mod_info[1]:
+                    xml_module_id = mod_info[1]['module_id']
+                    del  mod_info[1]['module_id']
+                else:
+                    xml_module_id = None
                 mod_info[1]['formation_id'] = formation_id
                 mod_info[1]['matiere_id'] = mat_id
                 mod_info[1]['ue_id'] = ue_id
                 mod_id = context.do_module_create(mod_info[1], REQUEST)
-    return formation_id
+                if xml_module_id:
+                    modules_old2new[xml_module_id] = mod_id
+    
+    return formation_id, modules_old2new, ues_old2new
 

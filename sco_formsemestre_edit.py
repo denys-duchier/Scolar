@@ -32,7 +32,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
-import sco_portal_apogee
+import sco_portal_apogee, scolars, sco_parcours_dut
 
 from sco_pagebulletin import notes_formsemestre_pagebulletin_list, notes_formsemestre_pagebulletin_create
 
@@ -517,6 +517,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
     """
     Formulaire clonage d'un semestre
     """
+    authuser = REQUEST.AUTHENTICATED_USER
     sem = context.get_formsemestre(formsemestre_id)
     H = [ context.html_sem_header(REQUEST, 'Copie du semestre', sem,
                                   javascripts=['AutoSuggest_js'],
@@ -536,9 +537,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
         'formsemestre_id' : sem['formsemestre_id'],
         'responsable_id' : login2display.get(sem['responsable_id'], sem['responsable_id']) }
 
-    tf = TrivialFormulator( 
-        REQUEST.URL0, REQUEST.form, 
-        [ ('formsemestre_id', { 'input_type' : 'hidden' }), 
+    descr = [ ('formsemestre_id', { 'input_type' : 'hidden' }), 
           ('date_debut', { 'title' : 'Date de début (j/m/a)',
                          'size' : 9, 'allow_null' : False }),
           ('date_fin', { 'title' : 'Date de fin (j/m/a)',
@@ -554,8 +553,11 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
                                              'varname' : 'start',
                                              'json': False,
                                              'noresults' : 'Valeur invalide !',
-                                             'timeout':60000 } }),            
-          ],
+                                             'timeout':60000 } }), 
+              ]
+
+    tf = TrivialFormulator( 
+        REQUEST.URL0, REQUEST.form, descr,
         submitlabel = 'Dupliquer ce semestre',
         cancelbutton = 'Annuler',
         initvalues = initvalues)
@@ -576,8 +578,7 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
                           date_debut, date_fin,  # 'dd/mm/yyyy'
                           REQUEST=None):
     """Clone a semestre: make copy, same modules, same options, same resps.
-    New dates, responsable_id
-    (and no students !)
+    New dates, responsable_id    
     """
     log('cloning %s' % orig_formsemestre_id)
     orig_sem = context.get_formsemestre(orig_formsemestre_id)
@@ -589,14 +590,16 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
     args['date_debut'] = date_debut
     args['date_fin'] = date_fin
     args['etat'] = 1 # non verrouillé
+    if clone_formation:
+        args['formation_id'] = formation_id 
     formsemestre_id = context.do_formsemestre_create(args, REQUEST)
     log('created formsemestre %s' % formsemestre_id)
-    # 2- create modules
+    # 2- create moduleimpls
     mods_orig = context.do_moduleimpl_list( {'formsemestre_id':orig_formsemestre_id} )
     for mod_orig in mods_orig:
         args = mod_orig.copy()
         args['formsemestre_id'] = formsemestre_id
-        mid = context.do_moduleimpl_create(args)
+        mid = context.do_moduleimpl_create(args)        
         # copy notes_modules_enseignants
         ens = context.do_ens_list(args={'moduleimpl_id':mod_orig['moduleimpl_id']})
         for e in ens:
@@ -618,7 +621,63 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
     
     # NB: don't copy notes_formsemestre_custommenu (usually specific)
     
+    # XXX futur: copy new style preferences !
+        
     return formsemestre_id
+
+# ---------------------------------------------------------------------------------------
+
+def formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None, dialog_confirmed=False):
+    """Formulaire changement formation d'un semestre"""
+    if not dialog_confirmed:
+        return context.confirmDialog(
+            """<h2>Associer une nouvelle version de formation non verrouillée ?</h2>
+                <p>Le programme pédagogique ("formation") va être dupliqué pour que vous puissiez le modifier sans affecter les autres semestres. Les autres paramètres (étudiants, notes...) du semestre seront inchangés.</p>
+                <p>Veillez à ne pas abuser de cette possibilité, car créer trop versions de formations va vous compliquer la gestion (à vous de garder trace des différences et à ne pas vous tromper par la suite...).
+                </p>
+                """,
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
+                parameters={'formsemestre_id' : formsemestre_id})
+    else:
+        do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Formation%%20dupliquée' % formsemestre_id )
+
+
+def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None):
+    """Cree une nouvelle version de la formation du semestre, et y rattache ce semestre.
+    Tous les moduleimpl sont ré-associés à la nouvelle formation, ainsi que les decisions de jury 
+    si elles existent (codes d'UE validées).
+    """
+    log('formsemestre_change_formation %s' % formsemestre_id)
+    sem = context.get_formsemestre(formsemestre_id)
+    cnx = context.GetDBConnexion()
+    # New formation:
+    formation_id, modules_old2new, ues_old2new = context.formation_create_new_version(sem['formation_id'], redirect=False, REQUEST=REQUEST)
+    # --- should be a transaction !
+    sem['formation_id'] = formation_id
+    context.do_formsemestre_edit(sem, html_quote=False)
+    
+    # re-associate moduleimpls to new modules:
+    modimpls = context.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
+    for mod in modimpls:
+        mod['module_id'] = modules_old2new[mod['module_id']]
+        context.do_moduleimpl_edit(mod)
+    # update decisions:
+    events = scolars.scolar_events_list(cnx, args={'formsemestre_id' : formsemestre_id} )
+    for e in events:
+        if e['ue_id']:
+            e['ue_id'] = ues_old2new[e['ue_id']]
+        scolars.scolar_events_edit(cnx, e)
+    validations = sco_parcours_dut.scolar_formsemestre_validation_list(
+        cnx, args={'formsemestre_id': formsemestre_id} )
+    for e in validations:
+        if e['ue_id']:
+            e['ue_id'] = ues_old2new[e['ue_id']]
+        log('e=%s' % e )
+        sco_parcours_dut.scolar_formsemestre_validation_edit(cnx, e)
+    # transaction done.
+
 
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     """Delete a formsemstre"""
@@ -651,10 +710,8 @@ un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tou
     else:
         context.do_formsemestre_delete(formsemestre_id, REQUEST)
         return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
-    
+
 # ---------------------------------------------------------------------------------------
-
-
 def formsemestre_edit_options(context, formsemestre_id, 
                               target_url=None,
                               REQUEST=None):
@@ -855,7 +912,7 @@ def formsemestre_change_lock(context, formsemestre_id,
         else:
             msg = 'verrouillage'
         return context.confirmDialog(
-            '<p>Confirmer le %s du semestre ?</p>' % msg,
+            '<h2>Confirmer le %s du semestre ?</h2>' % msg,
             helpmsg = """Les notes d'un semestre verrouillé ne peuvent plus être modifiées.
             Un semestre verrouillé peut cependant être déverrouillé facilement à tout moment
             (par son responsable ou un administrateur).

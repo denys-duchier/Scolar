@@ -468,7 +468,7 @@ CREATE TABLE scolar_autorisation_inscription (
 ) WITH OIDS;
 
 ---------------------------------------------------------------------
--- NOUVELLES (inutilise pour l'instant)
+-- NOUVELLES (pour page d'accueil et flux rss associe)
 --
 CREATE TABLE scolar_news (
 	news_id text default notes_newid('NEWS') PRIMARY KEY,

@@ -443,21 +443,27 @@ def check_compensation( etudid, sem, nt, semc, ntc ):
 
 # -------------------------------------------------------------------------------------------
 
+def int_or_null(s):
+    if s == '':
+        return None
+    else:
+        return int(s)
 
 _scolar_formsemestre_validation_editor = EditableTable(
     'scolar_formsemestre_validation',
     'formsemestre_validation_id',
-    ('etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
+    ('formsemestre_validation_id', 'etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
      'compense_formsemestre_id' ),
     output_formators = { 'event_date' : DateISOtoDMY,
                          'assidu' : str },
     input_formators  = { 'event_date' : DateDMYtoISO,
-                         'assidu' : int }
+                         'assidu' : int_or_null }
 )
 
 scolar_formsemestre_validation_create = _scolar_formsemestre_validation_editor.create
 scolar_formsemestre_validation_list = _scolar_formsemestre_validation_editor.list
 scolar_formsemestre_validation_delete = _scolar_formsemestre_validation_editor.delete
+scolar_formsemestre_validation_edit = _scolar_formsemestre_validation_editor.edit
 
 def formsemestre_validate_sem(cnx, formsemestre_id, etudid, code, assidu=True,
                               formsemestre_id_utilise_pour_compenser=None):
