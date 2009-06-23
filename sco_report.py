@@ -824,7 +824,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         # bug turnaround: il doit bien y avoir un endroit ou regler cela ?
         # cf http://groups.google.com/group/pydot/browse_thread/thread/b3704c53e331e2ec
         data = data.replace( 'font-family:Arial', 'font-family:Helvetica' )
-        data = data.replace( '<g id="graph0" class="graph"', '<g id="graph0" class="graph" style="font-family:Times-Roman;font-size:14.00;"')
+        
     return data
 
 def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
