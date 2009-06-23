@@ -534,7 +534,10 @@ class sco_base_preferences:
                     func = eval(PREFS_DICT[p['name']]['type'])
                     p['value'] = func(p['value'])
                 if p['name'] in PREFS_DICT and PREFS_DICT[p['name']].get('input_type',None) == 'boolcheckbox':
-                    p['value'] = int(p['value']) # boolcheckboxes are always 0/1
+                    if p['value']:
+                        p['value'] = int(p['value']) # boolcheckboxes are always 0/1
+                    else:
+                        p['value'] = 0 # NULL (backward compat)
                 self.prefs[p['formsemestre_id']][p['name']] = p['value']
             
             # log('prefs=%s' % self.prefs)
