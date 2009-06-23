@@ -28,6 +28,7 @@
 """Generation documents PDF (reportlab)
 """
 from sco_pdf import *
+import traceback
 
 def essaipdf(REQUEST):
     PDFLOCK.acquire()
@@ -60,7 +61,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
                      filigranne='', appreciations=[], situation='',
                      server_name=None,
-                     context=None # required for preferences
+                     context=None       # required for preferences
                      ):
     """Genere le PDF pour un bulletin
     P et PdfStyle specifient la table principale (en format PLATYPUS)
@@ -68,21 +69,24 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     Sinon, renvoie juste une liste d'objets PLATYPUS pour intégration
     dans un autre document.
     """
+    formsemestre_id = sem['formsemestre_id']
     #log('pdfbulletin_etud: P=' + str(P))
     #log('pdfbulletin_etud: style=' + str(TableStyle))
     objects = []
+    diag = '' # diagnostic (empty == ok)
     StyleSheet = styles.getSampleStyleSheet()
     # Paramètres de mise en page
-    fmt = formsemestre_pagebulletin_get(context, sem['formsemestre_id'])
-    margins = (fmt['left_margin'], fmt['top_margin'],
-               fmt['right_margin'], fmt['bottom_margin'])
-    titletmpl = fmt['title']
+    margins = (context.get_preference('left_margin', formsemestre_id),
+               context.get_preference('top_margin', formsemestre_id),
+               context.get_preference('right_margin', formsemestre_id),
+               context.get_preference('bottom_margin', formsemestre_id))    
+    titletmpl = context.get_preference('bul_title',  formsemestre_id)
     
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= context.get_preference_with_default('SCOLAR_FONT_SIZE')
-    CellStyle.fontName= context.get_preference_with_default('SCOLAR_FONT')   
-    CellStyle.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
+    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id)
+    CellStyle.fontName= context.get_preference('SCOLAR_FONT', formsemestre_id)
+    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id) # vertical space
     try:
         Pt = [ [Paragraph(SU(x),CellStyle) for x in line ] for line in P ]
     except:        
@@ -91,7 +95,9 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         log('P=%s' % P )
         # compris: reportlab is not thread safe !
         #   see http://two.pairlist.net/pipermail/reportlab-users/2006-June/005037.html
-        raise
+        diag = 'erreur lors de la génération du PDF<br/>'
+        diag += '<pre>' + traceback.format_exc() + '</pre>'
+        return [], diag
     # --- Build doc using ReportLab's platypus
     # Title
     objects.append(Paragraph(SU(titletmpl % infos),
@@ -130,7 +136,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
-        return objects
+        return objects, diag
     else:
         # generation du document PDF
         report = cStringIO.StringIO() # in-memory document, no disk file
@@ -142,22 +148,22 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                                 subject='Bulletin de note',
                                 margins=margins,
                                 server_name = server_name,
-                                preferences=context.get_preferences()))
+                                preferences=context.get_preferences(formsemestre_id)))
         document.build(objects)
         data = report.getvalue()
-        return data
+        return data, diag
 
 def pdfassemblebulletins( formsemestre_id,
                           objects, sem, infos, pagesbookmarks,
-                          top_margin=0, # additional top margin in mm
                           server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"
     if not objects:
         return ''
     # Paramètres de mise en page
-    fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
-    margins = (fmt['left_margin'], fmt['top_margin'],
-               fmt['right_margin'], fmt['bottom_margin'])
+    margins = (context.get_preference('left_margin', formsemestre_id),
+               context.get_preference('top_margin', formsemestre_id),
+               context.get_preference('right_margin', formsemestre_id),
+               context.get_preference('bottom_margin', formsemestre_id)) 
     
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
@@ -169,7 +175,7 @@ def pdfassemblebulletins( formsemestre_id,
                             server_name=server_name,
                             margins=margins,
                             pagesbookmarks=pagesbookmarks,
-                            preferences=context.get_preferences()))
+                            preferences=context.get_preferences(formsemestre_id)))
     document.build(objects)
     data = report.getvalue()
     return data
@@ -190,7 +196,7 @@ def pdfassemblebulletins( formsemestre_id,
 #                         title='Bulletin %s de %s' % (sem['titremois'],etud['nomprenom']),
 #                         subject='Bulletin de note',
 #                         server_name=server_name,
-#                         preferences=context.get_preferences()))
+#                         preferences=context.get_preferences(formsemestre_id)))
     
 #     document.build(objects)
 #     data = report.getvalue()

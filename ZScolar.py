@@ -99,10 +99,6 @@ except:
 # XML generation package (apt-get install jaxml)
 import jaxml
 
-
-# --------------- preferences
-SCO_PREFERENCES = {} # { URL: sco_preferences instance }
-
 # ---------------
 
 class ZScolar(ObjectManager,
@@ -330,7 +326,10 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoView, 'rico_js')
     rico_js = DTMLFile('JavaScripts/rico_js', globals())
-
+    
+    security.declareProtected(ScoView, 'jquery_1_2_6_min_js')
+    jquery_1_2_6_min_js = DTMLFile('JavaScripts/jquery_1_2_6_min_js', globals())
+    
     security.declareProtected(ScoView, 'sorttable_js')
     sorttable_js = DTMLFile('JavaScripts/sorttable_js', globals())
 
@@ -460,37 +459,37 @@ class ZScolar(ObjectManager,
     #
     # --------------------------------------------------------------------
     security.declareProtected(ScoView, 'get_preferences')
-    def get_preferences(self):
-        "Get preferences for this instance (a dict)"
-        u = self.ScoURL()
-        if not SCO_PREFERENCES.has_key(u):
-            SCO_PREFERENCES[u] = sco_preferences.sco_preferences(self)
-        return SCO_PREFERENCES[u]
+    def get_preferences(self, formsemestre_id=None):
+        "Get preferences for this instance (a dict-like instance)"
+        return sco_preferences.sem_preferences(self,formsemestre_id)
+
+    security.declareProtected(ScoView, 'get_preference')
+    def get_preference(self, name, formsemestre_id=None):
+        """Returns value of named preference.
+        All preferences have a sensible default value (see sco_preferences.py), 
+        this function always returns a usable value for all defined preferences names.
+        """
+        return sco_preferences.get_base_preferences(self).get(formsemestre_id,name)
     
     security.declareProtected(ScoChangePreferences, 'edit_preferences')
     def edit_preferences(self,REQUEST):
         """Edit global preferences"""
-        return self.get_preferences().edit(REQUEST)
-
-    security.declareProtected(ScoView, 'get_preference')
-    def get_preference(self, name):
-        """Returns value of named preference.
-        All preferences have a sensible default value (see sco_preferences.py)
-        """
-        return self.get_preferences()[name]
-
-    security.declareProtected(ScoView, 'get_preference_with_default')
-    def get_preference_with_default(self, name):
-        """Returns value of named preference.
-        If preference is empty, uses default value
-        """
-        return self.get_preferences().get_with_default(name)
-
-    def _set_preference(self, name, value): # not published
-        """Set a global preference"""
-        prefs = self.get_preferences()
-        prefs.set(name,value)
+        return sco_preferences.get_base_preferences(self).edit(REQUEST=REQUEST)
     
+    security.declareProtected(ScoView, 'formsemestre_edit_preferences')
+    def formsemestre_edit_preferences(self, formsemestre_id, REQUEST):
+        """Edit preferences for a semestre"""
+        authuser = REQUEST.AUTHENTICATED_USER
+        sem = self.Notes.get_formsemestre(formsemestre_id)
+        ok = (authuser.has_permission(ScoImplement, self) or (sem['responsable_id'] == str(authuser) and sem['resp_can_edit'])) and (sem['etat'] == '1')
+        if ok:
+            return self.get_preferences(formsemestre_id=formsemestre_id).edit(REQUEST=REQUEST)
+        else:
+            raise AccessDenied('Modification impossible pour %s' % authuser)
+    
+    security.declareProtected(ScoChangePreferences, 'edit_preferences2')
+    edit_preferences2 = sco_preferences.edit_preferences2
+
     # --------------------------------------------------------------------
     #
     #    ETUDIANTS
@@ -952,7 +951,7 @@ class ZScolar(ObjectManager,
                         pdf_link=False, # pas d'export pdf
                         html_sortable=True,
                         html_class='gt_table table_leftalign table_listegroupe',
-                        preferences=self.get_preferences() )
+                        preferences=self.get_preferences(formsemestre_id) )
         #
         if format == 'html':
             amail=','.join([x['email'] for x in T ])

@@ -9,6 +9,8 @@ SCONEWS = """
 
 <h4>Juin 2009</h4>
 <ul>
+<li>Nouveau système plus flexibles de gestion des préférences (ou "paramètres")</li>
+<li>Possiblité d'associer une nouvelle version de programme à un semestre</li>
 <li>Corrections et améliorations diverses</h4>
 </ul>
 

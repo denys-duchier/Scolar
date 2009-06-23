@@ -36,8 +36,11 @@ CREATE FUNCTION notes_newid_etud( text ) returns text as '
 
 -- Preferences
 CREATE TABLE sco_prefs (
-    name text PRIMARY KEY,
-    value text
+    pref_id text DEFAULT notes_newid('PREF'::text) UNIQUE NOT NULL,
+    name text NOT NULL,
+    value text,
+    formsemestre_id text default NULL,
+    UNIQUE(name,formsemestre_id)
 ) WITH OIDS;
 
 
@@ -278,17 +281,17 @@ CREATE TABLE notes_formsemestre (
 	date_debut date,
         date_fin   date,
 	responsable_id text,
-        gestion_absence integer default 1,
-	bul_show_decision integer default 1,
-	bul_show_uevalid integer default 1,
+        -- gestion_absence integer default 1,   -- XXX obsolete
+	-- bul_show_decision integer default 1, -- XXX obsolete
+	-- bul_show_uevalid integer default 1,  -- XXX obsolete
         etat integer default 1, -- 1 ouvert, 0 ferme (verrouille)
  	nomgroupetd text default 'TD',
  	nomgroupetp text default 'TP',
  	nomgroupeta text default 'langues',
-	bul_show_codemodules integer default 1,
-	bul_show_rangs integer default 1,
-	bul_show_ue_rangs integer default 1,
-        bul_show_mod_rangs integer default 1,
+	-- bul_show_codemodules integer default 1, -- XXX obsolete
+	-- bul_show_rangs integer default 1,  -- XXX obsolete
+	-- bul_show_ue_rangs integer default 1, -- XXX obsolete
+        -- bul_show_mod_rangs integer default 1, -- XXX obsolete
         gestion_compensation integer default 0, -- gestion compensation sem DUT
 	bul_hide_xml integer default 0, --  ne publie pas le bulletin XML
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
@@ -307,20 +310,6 @@ CREATE TABLE notes_formsemestre_uecoef (
 	coefficient real NOT NULL,
 	UNIQUE(formsemestre_id, ue_id)
 ) WITH OIDS;
-
-
--- Mise en page bulletins semestre
-CREATE TABLE notes_formsemestre_pagebulletin (
-	formsemestre_id text PRIMARY KEY REFERENCES notes_formsemestre(formsemestre_id),
-	-- all dimensions in mm
-	left_margin real default 0,
-	top_margin real default 0,
-	right_margin real default 0,
-	bottom_margin real default 0,
-	title text default 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
-	intro_mail text default E'%(nomprenom)s,\n\nvous trouverez ci-joint votre relevé de notes au format PDF.\nIl s\'agit d\'un relevé indicatif. Seule la version papier signée par le responsable pédagogique de l\'établissement prend valeur officielle.\n\nPour toute question sur ce document, contactez votre enseignant ou le directeur des études (ne pas répondre à ce message).\n\nCordialement,\nla scolarité du département %(dept)s.\n\nPS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s'
-
-) WITH OIDS; -- '
 
 
 -- Menu custom associe au semestre

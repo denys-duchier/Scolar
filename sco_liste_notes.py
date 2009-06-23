@@ -307,7 +307,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                     html_title=html_title,
                     pdf_title = pdf_title,
                     html_class='gt_table table_leftalign notes_evaluation',
-                    preferences=context.get_preferences(),
+                    preferences=context.get_preferences(M['formsemestre_id']),
                     #generate_cells=False # la derniere ligne (moyennes) est incomplete
                     )
     

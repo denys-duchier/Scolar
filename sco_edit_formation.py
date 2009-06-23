@@ -49,7 +49,7 @@ def formation_create(context, REQUEST=None):
         ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)', 'allow_null' : False }),
         ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications)', 'allow_null' : False }),
         ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
-        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
+        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE). Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
         ),
                            cancelbutton = 'Annuler',
                            submitlabel = 'Créer cette formation')
@@ -64,7 +64,10 @@ def formation_create(context, REQUEST=None):
 def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST=None):
     """Delete a formation
     """
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    if not F:
+        raise ScoValueError("formation inexistante !")
+    F = F[0]
     
     H = [ context.sco_header(REQUEST, page_title="Suppression d'une formation"),          
           """<h2>Suppression de la formation %(titre)s (%(acronyme)s)</h2>""" % F ]
@@ -98,7 +101,10 @@ def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST
 def formation_edit(context, formation_id=None, REQUEST=None):
     """Edit a formation
     """
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    if not F:
+        raise ScoValueError('formation inexistante !')
+    F = F[0]
     H = [ context.sco_header(REQUEST, page_title="Modification d'une formation"),
           """<h2>Modification de la formation %(acronyme)s</h2>""" % F ]
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
@@ -106,7 +112,7 @@ def formation_edit(context, formation_id=None, REQUEST=None):
         ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)',  'allow_null' : False }),
         ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications',  'allow_null' : False }),
         ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
-        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
+        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
         ),
                            initvalues = F,
                            submitlabel = 'Modifier les valeurs')

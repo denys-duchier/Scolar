@@ -866,6 +866,10 @@ class ZAbsences(ObjectManager,
                 capstr = ' <span class="capstr">(%s cap.)</span>' % ', '.join(cap)
             else:
                 capstr = ''
+            # XXX
+            if etudid == '339691':
+                log('\n****\netud=%s\n\n' % etud)
+                #log('\n****\netud=%s\ncap=%s\nues=%s\n\n'%(etud, cap,nt.get_ues()))
             #
             bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
             matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
@@ -1056,7 +1060,7 @@ class ZAbsences(ObjectManager,
         if format == 'xls' or format == 'xml':
             columns_ids = ['etudid'] + columns_ids
         tab =GenTable( columns_ids=columns_ids, rows=T,  
-                       preferences=self.get_preferences(),
+                       preferences=self.get_preferences(formsemestre_id),
                        titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'Justifiées',
                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
                        html_sortable=True,

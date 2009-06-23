@@ -80,10 +80,12 @@ echo 'Done.'
 apt-get update
 apt-get install subversion cracklib-runtime firehol
 apt-get install apache2 ssl-cert postgresql-8.3 postgresql-client-8.3
-apt-get install python2.4 python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab python-crack python-pydot
+apt-get install python2.4 python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab python-crack graphviz
 
-# start database server
-# /etc/init.d/postgresql-8.1 start
+# python-pydot is currently bugged in Debian 5: install our 0.9.10
+echo '\nInstallation de pydot\n'
+(cd /tmp; tar xfz $SCODOC_DIR/config/softs/pydot-0.9.10.tar.gz)
+(cd /tmp/pydot-0.9.10;  /usr/bin/python2.4 setup.py install)
 
 # ------------ PYEXCELERATOR
 echo
@@ -91,7 +93,7 @@ echo 'Installation de pyExcelerator'
 echo
 
 (cd /tmp; tar xfz $SCODOC_DIR/config/softs/pyExcelerator-0.6.3a.patched.tgz)
-(cd /tmp/pyExcelerator-0.6.3a.patched; python2.4 setup.py install)
+(cd /tmp/pyExcelerator-0.6.3a.patched; /usr/bin/python2.4 setup.py install)
 
 echo 'Done.'
 

@@ -193,13 +193,14 @@ def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='',
                 data,
                 context.sco_footer(REQUEST) ])
         Archive.store(archive_id, 'Tableau_moyennes.html', data)
+    
     # Bulletins en XML
     data, filename, format = make_formsemestre_recapcomplet(
         context, REQUEST, formsemestre_id, format='xml', xml_with_decisions=True )
     if data:
         Archive.store(archive_id, 'Bulletins.xml', data)
     # Decisions de jury, en XLS
-    data = sco_pvjury.formsemestre_pvjury(context, formsemestre_id, format='xls', REQUEST=REQUEST)
+    data = sco_pvjury.formsemestre_pvjury(context, formsemestre_id, format='xls', REQUEST=REQUEST, publish=False)
     if data:
         Archive.store(archive_id, 'Decisions_Jury.xls', data)
     # Classeur bulletins (PDF)
@@ -263,6 +264,7 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
                                 signature=signature, 
                                 numeroArrete=tf[2]['numeroArrete'], showTitle=tf[2]['showTitle'])
         msg = 'Nouvelle%20archive%20créée'
+    
     # submitted or cancelled:
     return REQUEST.RESPONSE.redirect( "formsemestre_list_archives?formsemestre_id=%s&head_message=%s" %(formsemestre_id, msg))
 

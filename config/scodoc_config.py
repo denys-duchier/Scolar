@@ -2,13 +2,17 @@
 # -*- coding: iso8859-15 -*-
 
 #
-# Configuration globale de ScoDoc
+# Configuration globale de ScoDoc (version juin 2009)
 #
-# Ce fichier est peu utilisé: la plupart des réglages sont stockés en base de donnée
-# et accessibles via le web, ou bien gérés comme des propriétés Zope.
-#
-# Il y a aussi des réglages dans sco_utils.py, mais ils nécessitent souvent de comprendre
-# le code qui les utilise pour ne pas faire d'erreur: attention.
+
+# La plupart des réglages sont stoqués en base de donnée et accessibles via le web
+# (pages de paramètres ou préférences).
+# Les valeurs indiquées ici sont les valeurs initiales que prendront 
+# les paramètres lors de la création d'un nouveau département, 
+# elles ne sont plus utilisées ensuite.
+
+# Nota: il y a aussi des réglages dans sco_utils.py, mais ils nécessitent 
+# souvent de comprendre le code qui les utilise pour ne pas faire d'erreur: attention.
 
 
 class CFG :
@@ -31,8 +35,7 @@ CONFIG.INSTITUTION_ADDRESS="Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean
 
 CONFIG.INSTITUTION_CITY="Villetaneuse"
 
-# Le logo en pied des PV
-CONFIG.PV_FONTNAME = 'Times-Roman'
+
 # Taille du l'image logo: largeur/hauteur  (ne pas oublier le . !!!)
 CONFIG.LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utilisera PIL pour connaitre la taille de l'image
 CONFIG.LOGO_FOOTER_HEIGHT = 10 # taille dans le document en millimetres

@@ -606,6 +606,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
             H.append(self.standard_html_footer(self))
             return '\n'.join(H)
         else: # Other exceptions, try carefully to build an error page...
+            log('exc A')
             H = []
             try:
                 H.append( self.standard_html_header(self) )
@@ -632,6 +633,7 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
 </td></tr>
 </table>        """ % vars() )
                 # display error traceback (? may open a security risk via xss attack ?)
+                log('exc B')
                 txt_html = self._report_request(REQUEST, format='html')
                 H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
@@ -658,6 +660,7 @@ ErrorType: %(error_type)s
         self.send_debug_alert(txt, REQUEST=REQUEST)
         # ---
         log('done processing exception')
+        log( '\n page=\n' + '\n'.join(H) )
         return '\n'.join(H)
 
     def _report_request(self, REQUEST, format='txt'):

@@ -34,12 +34,6 @@ for dept in get_depts():
                 ['alter table notes_formsemestre add column resp_can_change_ens int default 1',
                  'update notes_formsemestre set resp_can_change_ens=1'])
     
-    # SVN 635
-    # add bul_show_rangs to to notes_formsemestre:
-    check_field(cnx, 'notes_formsemestre', 'bul_show_rangs',
-                ['alter table notes_formsemestre add column bul_show_rangs int default 1',
-                 'update notes_formsemestre set bul_show_rangs=1'])
-
     # SVN 651
     # Nouvelles donnees d'admission
     check_field(cnx, 'admissions', 'codelycee',
@@ -48,6 +42,45 @@ for dept in get_depts():
     check_field(cnx, 'admissions', 'codepostallycee',
                 ['alter table admissions add column codepostallycee text',
                  ])
+    
+    # New preferences system
+    check_field(cnx, 'sco_prefs', 'formsemestre_id',
+                ["alter table sco_prefs add column pref_id text DEFAULT notes_newid('PREF'::text) UNIQUE NOT NULL",
+                 "update sco_prefs set pref_id=oid",
+                 "alter table sco_prefs add column formsemestre_id text default NULL",
+                 "alter table sco_prefs drop CONSTRAINT sco_prefs_pkey",
+                 "alter table sco_prefs add unique( name, formsemestre_id)",
+                 # copie anciennes prefs:
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'left_margin', left_margin, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'top_margin', top_margin, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'right_margin', right_margin, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bottom_margin', bottom_margin, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_title', title, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_intro_mail', intro_mail, formsemestre_id from notes_formsemestre_pagebulletin",
+                 "drop table notes_formsemestre_pagebulletin",
+                 # anciens champs de formsemestre:
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_abs', gestion_absence, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column gestion_absence",
+                 
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_decision', bul_show_decision, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_decision",
+                 
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_uevalid', bul_show_uevalid, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_uevalid",
+                 
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_showcodemodules', bul_show_codemodules, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_codemodules",
+
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_rangs', bul_show_rangs, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_rangs",
+                 
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_ue_rangs', bul_show_ue_rangs, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_ue_rangs",
+                 
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_mod_rangs', bul_show_mod_rangs, formsemestre_id from notes_formsemestre",
+                 "alter table notes_formsemestre drop column bul_show_mod_rangs",
+                 ])
+    
     # Add here actions to performs after upgrades:
 
 

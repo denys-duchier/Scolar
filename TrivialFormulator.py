@@ -16,7 +16,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
                       submitlabel='OK',
                       name=None,
                       formid='tf',
-                      cssclass=None,
+                      cssclass='',
                       cancelbutton=None,
                       submitbutton=True,
                       submitbuttonattributes=[],
@@ -43,11 +43,14 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           title      : text titre (default to field name)
           allow_null : if true, field can be left empty (default true)
           type       : 'string', 'int', 'float' (default to string), 'list' (only for hidden)
+          readonly   : default False. if True, no form element, display current value.
           convert_numbers: covert int and float values (from string)
           allowed_values : list of possible values (default: any value)
           validator : function validating the field (called with (value,field)).
           max_value : maximum value (for floats and ints)
           explanation: text string to display next the input widget
+          title_buble: help bubble on field title (needs bubble_js or equivalent)
+          comment : comment, showed under input widget
           withcheckbox: if true, place a checkbox at the left of the input
                         elem. Checked items will be returned in 'tf-checked'
           attributes: a liste of strings to put in the HTML element
@@ -89,7 +92,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
 class TF:
     def __init__(self, form_url, values, formdescription=[], initvalues={},
                  method='POST', enctype=None, submitlabel='OK', name=None,
-                 formid='tf', cssclass=None,
+                 formid='tf', cssclass='',
                  cancelbutton=None,
                  submitbutton=True,
                  submitbuttonattributes=[],
@@ -117,6 +120,7 @@ class TF:
         if readonly:
             self.top_buttons = self.bottom_buttons = False
             self.cssclass += ' readonly'
+    
     def submitted(self):
         "true if form has been submitted"
         if self.is_submitted:
@@ -136,7 +140,7 @@ class TF:
         R.append(tf_error_message(msg))
         # form or view
         if self.readonly:
-            R = R + self._ReadOnlyVersion( self.formdescription, self.values )
+            R = R + self._ReadOnlyVersion( self.formdescription )
         else:
             R = R + self._GenForm()
         # 
@@ -201,6 +205,7 @@ class TF:
                             msg.append("La valeur (%d) du champ '%s' est trop grande (max=%s)"
                                        % (val,field,descr['max_value']))
                             ok = 0
+                        self.values[field] = val
                     except:
                         msg.append(
                             "La valeur du champ '%s' doit être un nombre entier" % field )
@@ -213,6 +218,7 @@ class TF:
                             msg.append("La valeur (%f) du champ '%s' est trop grande (max=%s)"
                                        % (val,field,descr['max_value']))
                             ok = 0
+                        self.values[field] = val
                     except:
                         msg.append("La valeur du champ '%s' doit être un nombre" % field )
                         ok = 0
@@ -254,8 +260,7 @@ class TF:
         return msg
 
 
-    def _GenForm(self, cssclass=None, method='',
-                 enctype=None, form_url='' ):
+    def _GenForm(self, method='', enctype=None, form_url='' ):
         values = self.values
         add_no_enter_js = False # add JS function to prevent 'enter' -> submit
         # form template
@@ -296,17 +301,21 @@ class TF:
         R.append('<input type="hidden" name="%s-submitted" value="1"/>'%self.formid)
         if self.top_buttons:
             R.append(buttons_markup + '<p></p>')
-        R.append( '<table>')
+        R.append( '<table class="tf">')
         idx = 0
         for idx in range(len(self.formdescription)):
             (field,descr) = self.formdescription[idx]
             nextitemname = None
             if idx < len(self.formdescription) - 2:
                 nextitemname = self.formdescription[idx+1][0]
+            if descr.get('readonly', False):
+                R.append(self._ReadOnlyElement(field, descr))
+                continue
             size = descr.get('size', 12)
             rows = descr.get('rows',  5)
             cols = descr.get('cols', 60)
             title= descr.get('title', field.capitalize())
+            title_bubble=descr.get('title_bubble', None)
             withcheckbox =  descr.get('withcheckbox', False )
             input_type = descr.get('input_type', 'text')
             item_dom_id = descr.get('dom_id', '')
@@ -333,10 +342,15 @@ class TF:
                 else:
                     checked=''
                 lab.append('<input type="checkbox" name="%s:list" value="%s" onclick="tf_enable_elem(this)" %s/>' % ('tf-checked', field, checked ) )
-            lab.append(title)
+            if title_bubble:
+                lab.append('<a class="discretelink" href="" title="%s">%s</a>' 
+                           % (title_bubble, title))
+            else:
+                lab.append(title)
             #
             attribs = ' '.join(descr.get('attributes', []))
-            if withcheckbox and not checked: # desactive les element non coches:
+            if ((withcheckbox and not checked) # desactive les element non coches:
+                    or not descr.get('enabled', True)):
                 attribs += ' disabled="true"'
             #
             if input_type == 'text':
@@ -380,7 +394,7 @@ class TF:
                     labels = descr.get('labels', descr['allowed_values'])
                 else:  # boolcheckbox
                     labels = [ '' ]
-                    descr['allowed_values'] = ['1']
+                    descr['allowed_values'] = ['0', '1']
                 vertical=descr.get('vertical', False)
                 if vertical:
                     lem.append('<table>')
@@ -440,8 +454,11 @@ class TF:
             else:
                 raise ValueError('unkown input_type for form (%s)!'%input_type)
             explanation = descr.get('explanation', '')
-            if explanation:
-                lem.append('<i>%s</i>' % explanation )
+            if explanation:                
+                lem.append('<span class="tf-explanation">%s</span>' % explanation )
+            comment = descr.get('comment', '')
+            if comment:
+                lem.append('<br/><span class="tf-comment">%s</span>' % comment )
             R.append( etempl % { 'label' : '\n'.join(lab),
                                  'elem' : '\n'.join(lem),
                                  'item_dom_attr' : item_dom_attr } )
@@ -502,39 +519,61 @@ class TF:
         R.append('</form>')
         return R
     
-    
-    def _ReadOnlyVersion(self, formdescription, values ):
-        "Generate HTML for read-only view of the form"
-        R = ['<table>']
-        for (field,descr) in formdescription:
-            title= descr.get('title', field.capitalize())
-            withcheckbox =  descr.get('withcheckbox', False )
-            input_type = descr.get('input_type', 'text')
-            if input_type != 'hidden':
-                R.append( '<tr>')
-                if input_type == 'separator': # separator
-                    R.append('<td colspan="2">%s</td></tr>' % title )
-                    continue
-                R.append( '<td class="tf-ro-fieldlabel">' )
-                R.append( '%s</td>' % title )
-                R.append( '<td class="tf-ro-field">' )
-            if input_type == 'text' or input_type == 'text_suggest':
-                R.append( ('%('+field+')s') % values )
-            elif input_type in ('radio', 'menu', 'checkbox', 'boolcheckbox'):
+    def _ReadOnlyElement(self, field, descr):
+        "Generate HTML for an element, read-only"
+        R = []
+        title= descr.get('title', field.capitalize())
+        withcheckbox =  descr.get('withcheckbox', False )
+        input_type = descr.get('input_type', 'text')
+
+        if input_type == 'hidden':
+            return ''
+
+        R.append( '<tr class="tf-ro-tr">')
+        
+        if input_type == 'separator': # separator
+            R.append('<td colspan="2">%s' % title )
+        else:
+            R.append( '<td class="tf-ro-fieldlabel">' )
+            R.append( '%s</td>' % title )
+            R.append( '<td class="tf-ro-field">' )
+        
+        if input_type == 'text' or input_type == 'text_suggest':
+            R.append( ('%('+field+')s') % self.values )
+        elif input_type in ('radio', 'menu', 'checkbox', 'boolcheckbox'):
+            if input_type == 'boolcheckbox':
+                labels = descr.get('labels', descr.get('allowed_values',[ 'oui', 'non' ]))
+                # XXX open('/tmp/log', 'w').write('%s labels=%s, val=%s\ndescr=%s\n'%(field, labels, self.values[field], descr))                
+                R.append( labels[int(self.values[field])] )
+                if int(self.values[field]):
+                    R.append('<input type="hidden" name="%s" value="1"/>'%field)
+            else:
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
-                    if descr['allowed_values'][i] == values[field]:
+                    if descr['allowed_values'][i] == self.values[field]:
                         R.append('%s' % labels[i])
-            elif input_type == 'textarea':
-                R.append( '<p>%s</p>' % values[field] )
-            elif input_type == 'separator' or  input_type == 'hidden':
-                pass
-            elif input_type == 'file':
-                R.append( "'%s'" % values[field] )
-            else:
-                raise ValueError('unkown input_type for form (%s)!'%input_type)
-            if input_type != 'hidden':
-                R.append( '</td></tr>' )
+        elif input_type == 'textarea':
+            R.append( '<div class="tf-ro-textarea">%s</div>' % self.values[field] )
+        elif input_type == 'separator' or  input_type == 'hidden':
+            pass
+        elif input_type == 'file':
+            R.append( "'%s'" % self.values[field] )
+        else:
+            raise ValueError('unkown input_type for form (%s)!'%input_type)
+        
+        explanation = descr.get('explanation', '')
+        if explanation:                
+            R.append('<span class="tf-explanation">%s</span>' % explanation )
+        
+        R.append( '</td></tr>' )
+        
+        return '\n'.join(R)
+
+    def _ReadOnlyVersion(self, formdescription ):
+        "Generate HTML for read-only view of the form"
+        R = ['<table class="tf-ro">']
+        for (field,descr) in formdescription:
+            R.append( self._ReadOnlyElement(field, descr) )
         R.append( '</table>' )
         return R
 

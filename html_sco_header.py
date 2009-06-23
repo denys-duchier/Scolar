@@ -38,7 +38,8 @@ def sco_header(context, REQUEST=None,
                page_title='',      # page title
                no_side_bar=False,  # hide sidebar
                cssstyles=[],       # additionals CSS sheets
-               javascripts=[],     # additionals JS
+               javascripts=[],     # additionals JS filenames to load
+               scripts=[],         # script to put in page header
                bodyOnLoad='',      # JS
                titrebandeau='',    # titre dans bandeau superieur
                head_message='',    # message action (petit cadre jaune en haut)
@@ -99,30 +100,41 @@ def sco_header(context, REQUEST=None,
 <meta name="DESCRIPTION" content="ScoDoc" />
 
 <link href="%(maincss_url)s%(maincss_args)s" rel="stylesheet" type="text/css" />
-<link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />
+<link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />""" % params ]
+    
+    # Feuilles de style additionnelles:
+    for cssstyle in cssstyles:
+        H.append( """<link type="text/css" rel="stylesheet" href="%s/%s" />"""
+                  % (params['ScoURL'], cssstyle) )
+    
+    H.append( """
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/sorttable_js"></script>
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/bubble_js"></script>
 <script type="text/javascript">
 window.onload=function(){enableTooltips("gtrcontent")};
-</script>
-<style>
+</script>""" % params )
+    # JS additionels
+    for js in javascripts:
+        H.append( """<script language="javascript" type="text/javascript" src="%s/%s"></script>"""
+                  % (params['ScoURL'], js) )
+
+    H.append( """<style>
 .gtrcontent {
    margin-left: %(margin_left)s;
    height: 100%%;
 }
 </style>
-""" % params
-          ]
-    # Feuilles de style additionnelles:
-    for cssstyle in cssstyles:
-        H.append( """<link type="text/css" rel="stylesheet" href="%s/%s" />"""
-                  % (params['ScoURL'], cssstyle) )
-    # JS additionels
-    for js in javascripts:
-        H.append( """<script language="javascript" type="text/javascript" src="%s/%s"></script>"""
-                  % (params['ScoURL'], js) )
+""" % params )
+    # Scripts de la page:
+    if scripts:
+        H.append( """<script language="javascript" type="text/javascript">""" )
+        for script in scripts:
+            H.append(script)
+        H.append("""</script>""")
+
     H.append('</head>')
+    
     # Body et bandeau haut:
     H.append("""<body %(bodyOnLoad_mkup)s>"""%params)
     H.append(CUSTOM_HTML_HEADER)

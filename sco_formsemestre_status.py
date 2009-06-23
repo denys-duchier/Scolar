@@ -111,6 +111,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
+        { 'title' : 'Préférences du semestre',
+          'url' : 'formsemestre_edit_preferences?formsemestre_id=%(formsemestre_id)s' % sem,
+          'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
+          'helpmsg' : 'Préférences du semestre'
+          },
         { 'title' : 'Réglages bulletins',
           'url' :  'formsemestre_edit_options?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
@@ -370,7 +375,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
         page_title = title,
         html_title = context.html_sem_header(REQUEST, 'Description du semestre', sem, with_page_header=False), 
         pdf_title = title,
-        preferences=context.get_preferences()
+        preferences=context.get_preferences(formsemestre_id)
         )
 
 def formsemestre_description(context, formsemestre_id, format='html', REQUEST=None):

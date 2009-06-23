@@ -49,7 +49,6 @@ from reportlab.lib.pagesizes import letter, A4, landscape
 
 from sco_utils import *
 from notes_log import log
-from sco_pagebulletin import formsemestre_pagebulletin_get
 from SuppressAccents import suppression_diacritics
 from VERSION import SCOVERSION, SCONAME
 
@@ -106,7 +105,7 @@ class ScolarsPageTemplate(PageTemplate) :
         self.server_name = server_name
         self.footer_template = footer_template
         # Our doc is made of a single frame
-        left, top, right, bottom = margins
+        left, top, right, bottom = [ float(x) for x in margins ]
         content = Frame(0.75 * inch + left*mm, 0.5 * inch + bottom*mm,
                         document.pagesize[0] - 1.25 * inch - left*mm-right*mm,
                         document.pagesize[1] - 1.5 * inch - top*mm - bottom*mm)
@@ -145,8 +144,8 @@ class ScolarsPageTemplate(PageTemplate) :
             canvas.bookmarkPage(key)
             canvas.addOutlineEntry(txt,bm)
         # ---- Footer
-        canvas.setFont(self.preferences.get_with_default('SCOLAR_FONT'), 
-                       self.preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT'))
+        canvas.setFont(self.preferences['SCOLAR_FONT'], 
+                       self.preferences['SCOLAR_FONT_SIZE_FOOT'])
         d = _makeTimeDict()
         d['scodoc_name'] = VERSION.SCONAME
         d['server_url'] = self.server_name

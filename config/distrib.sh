@@ -57,6 +57,15 @@ then
    mv depts/*.cfg /tmp
 fi
 
+# Archives PV
+echo -n "Supprimer les documents archives (PV jury...) ? (y/n) [y] "
+read ans
+if [ "$(norm_ans "$ans")" != 'N' ]
+then
+  echo "moving ../../../var/scodoc to /tmp"
+  mv ../../../var/scodoc /tmp
+fi
+
 # LOGS ZOPE
 echo -n "Effacer les logs de Zope et ScoDoc  ? (y/n) [y] "
 read ans

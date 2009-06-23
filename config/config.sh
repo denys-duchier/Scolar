@@ -14,7 +14,9 @@ export POSTGRES_SUPERUSER=postgres
 export POSTGRES_USER=www-data
 
 # psql command: if various versions installed, force the one we want:
-if [ $(cat /etc/debian_version) = "5.0" ] 
+debian_version=$(cat /etc/debian_version)
+debian_version=${debian_version// /}
+if [ ${debian_version:0:1} = "5" ] 
 then
    PSQL=/usr/lib/postgresql/8.3/bin/psql
 else

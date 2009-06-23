@@ -70,7 +70,7 @@ import sco_cache
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
-from sco_pagebulletin import formsemestre_pagebulletin_get
+
 import sco_formsemestre_edit, sco_formsemestre_status
 import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
 from sco_formsemestre_status import makeMenu
@@ -78,7 +78,7 @@ import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
 import sco_moduleimpl_inscriptions, sco_groupes
 import sco_bulletins, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
-import sco_formations, sco_pagebulletin, sco_report
+import sco_formations, sco_report
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -683,9 +683,6 @@ class ZNotes(ObjectManager,
         'formsemestre_id',
         ('formsemestre_id', 'semestre_id', 'formation_id','titre',
          'date_debut', 'date_fin', 'responsable_id',
-         'gestion_absence', 'bul_show_decision', 'bul_show_uevalid',
-         'bul_show_codemodules', 
-         'bul_show_rangs', 'bul_show_ue_rangs', 'bul_show_mod_rangs',
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
@@ -694,13 +691,6 @@ class ZNotes(ObjectManager,
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
                              'date_fin'   : DateISOtoDMY,
-                             'gestion_absence' : str,
-                             'bul_show_decision' : str,
-                             'bul_show_uevalid' : str,
-                             'bul_show_codemodules' : str,
-                             'bul_show_rangs' : str,
-                             'bul_show_ue_rangs' : str,
-                             'bul_show_mod_rangs' : str,
                              'gestion_compensation' : str,
                              'gestion_semestrielle' : str,
                              'etat' : str,
@@ -709,13 +699,6 @@ class ZNotes(ObjectManager,
 
         input_formators  = { 'date_debut' : DateDMYtoISO,
                              'date_fin'   : DateDMYtoISO,
-                             'gestion_absence' : int,
-                             'bul_show_decision' : int,
-                             'bul_show_uevalid' : int,
-                             'bul_show_codemodules' : int,
-                             'bul_show_rangs' : int,
-                             'bul_show_ue_rangs' : int,
-                             'bul_show_mod_rangs' : int,
                              'gestion_compensation' : int,
                              'gestion_semestrielle' : int,
                              'etat' : int,
@@ -767,8 +750,8 @@ class ZNotes(ObjectManager,
         # --- Suppression des item du menu custom
         req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression de la mise en page bulletins
-        req = "DELETE FROM notes_formsemestre_pagebulletin WHERE formsemestre_id=%(formsemestre_id)s"
+        # --- Suppression des preferences
+        req = "DELETE FROM sco_prefs WHERE formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Destruction du semestre
         self._formsemestreEditor.delete(cnx, formsemestre_id)
@@ -891,18 +874,7 @@ class ZNotes(ObjectManager,
                 footer ])
         else:
             return True, ''
-        
-
-    security.declareProtected(ScoView,'formsemestre_pagebulletin_dialog')
-    def formsemestre_pagebulletin_dialog(self, REQUEST, formsemestre_id):
-        "Dialogue mise en page bulletin"
-        # Ad-Hoc access control (dir. etud)
-        ok, err = self._check_access_diretud(formsemestre_id,REQUEST)
-        if not ok:
-            return err
-        return sco_pagebulletin.formsemestre_pagebulletin_dialog(
-            self, REQUEST, formsemestre_id )
-
+    
     security.declareProtected(ScoView,'formsemestre_custommenu_edit')
     def formsemestre_custommenu_edit(self, REQUEST, formsemestre_id):
         "Dialogue modif menu"
@@ -1222,7 +1194,7 @@ class ZNotes(ObjectManager,
                                                       sem, with_page_header=False), 
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
                       caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies.",
-                      preferences=self.get_preferences()
+                      preferences=self.get_preferences(formsemestre_id)
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
 
@@ -2470,17 +2442,17 @@ class ZNotes(ObjectManager,
                 return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'
                         % etud['nomprenom']) + htm
             #
-            webmaster = getattr(self,'webmaster_email',"l'administrateur.")
-            dept = unescape_html(self.get_preference('DeptName'))
-            copy_addr = self.get_preference('email_copy_bulletins')
-            fmt = formsemestre_pagebulletin_get(self, formsemestre_id)
-            hea = fmt['intro_mail'] % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
+            webmaster = self.get_preference('bul_mail_contact_addr', formsemestre_id)
+            dept = unescape_html(self.get_preference('DeptName',formsemestre_id))
+            copy_addr = self.get_preference('email_copy_bulletins',formsemestre_id)            
+            intro_mail = self.get_preference('intro_mail', formsemestre_id)
+            hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
             
             msg = MIMEMultipart()
             subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
             recipients = [ etud['email'] ] 
             msg['Subject'] = subj
-            msg['From'] = self.get_preference('email_from_addr')
+            msg['From'] = self.get_preference('email_from_addr',formsemestre_id)
             msg['To'] = ' ,'.join(recipients)
             if copy_addr:
                 msg['Bcc'] = copy_addr.strip()
@@ -2534,7 +2506,7 @@ class ZNotes(ObjectManager,
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
-        infos = { 'DeptName' : self.get_preference('DeptName') }
+        infos = { 'DeptName' : self.get_preference('DeptName',formsemestre_id) }
         if REQUEST:
             server_name = REQUEST.BASE0
         else:

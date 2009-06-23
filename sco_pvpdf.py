@@ -34,8 +34,6 @@ import sco_codes_parcours
 from sco_utils import *
 from sco_pdf import PDFLOCK
 
-PV_FONTNAME = CONFIG.PV_FONTNAME
-
 LOGO_FOOTER_ASPECT = CONFIG.LOGO_FOOTER_ASPECT # XXX A AUTOMATISER
 LOGO_FOOTER_HEIGHT = CONFIG.LOGO_FOOTER_HEIGHT * mm
 LOGO_FOOTER_WIDTH  = LOGO_FOOTER_HEIGHT*CONFIG.LOGO_FOOTER_ASPECT
@@ -54,14 +52,14 @@ def pageFooter(canvas, doc, logo, preferences):
                   id="monfooter", showBoundary=0 )
 
     LeftFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    LeftFootStyle.fontName = preferences.get_with_default('SCOLAR_FONT')
-    LeftFootStyle.fontSize = preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT')
+    LeftFootStyle.fontName = preferences['SCOLAR_FONT']
+    LeftFootStyle.fontSize = preferences['SCOLAR_FONT_SIZE_FOOT']
     LeftFootStyle.leftIndent = 0
     LeftFootStyle.firstLineIndent = 0
     LeftFootStyle.alignment = TA_RIGHT
     RightFootStyle = reportlab.lib.styles.ParagraphStyle({})
-    RightFootStyle.fontName = preferences.get_with_default('SCOLAR_FONT')
-    RightFootStyle.fontSize =  preferences.get_with_default('SCOLAR_FONT_SIZE_FOOT')
+    RightFootStyle.fontName = preferences['SCOLAR_FONT']
+    RightFootStyle.fontSize = preferences['SCOLAR_FONT_SIZE_FOOT']
     RightFootStyle.alignment = TA_RIGHT 
 
     p = makeParas( """<para>%s</para><para>%s</para>"""
@@ -116,7 +114,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
         self.left_p = 2.5*cm
         self.right_p = 2.5*cm
         self.top_p = 0*cm
-
+        log("margins=%s" % str(margins))
         content = Frame(
             self.left_p + left*mm,
             self.bot_p + bottom*mm,
@@ -181,9 +179,9 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     sem = context.get_formsemestre(formsemestre_id)
     params = {
         'dateJury' : dateJury,
-        'deptName' : context.get_preference('DeptName'), 
-        'DirectorName' : context.get_preference('DirectorName'),
-        'DirectorTitle' : context.get_preference('DirectorTitle'),
+        'deptName' : context.get_preference('DeptName', formsemestre_id), 
+        'DirectorName' : context.get_preference('DirectorName', formsemestre_id),
+        'DirectorTitle' : context.get_preference('DirectorTitle', formsemestre_id),
         'titreFormation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
@@ -202,9 +200,10 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
             objects.append( PageBreak() )
             i += 1
     # Paramètres de mise en page
-    fmt = formsemestre_pagebulletin_get(context, formsemestre_id)
-    margins = (fmt['left_margin'], fmt['top_margin'],
-               fmt['right_margin'], fmt['bottom_margin'])
+    margins = (context.get_preference('left_margin', formsemestre_id),
+               context.get_preference('top_margin', formsemestre_id),
+               context.get_preference('right_margin', formsemestre_id),
+               context.get_preference('bottom_margin', formsemestre_id))  
     # ----- Build PDF
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
@@ -237,12 +236,13 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     dans un autre document.
     """
     #
+    formsemestre_id = sem['formsemestre_id']
     Se = decision['Se']
     t, s = _descr_jury(sem, Se.semestre_non_terminal)
     objects = []
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 12
-    style.fontName= PV_FONTNAME
+    style.fontName= context.get_preference('PV_FONTNAME', formsemestre_id)
     style.leading = 18
     style.alignment = TA_JUSTIFY
 
@@ -251,7 +251,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     params['Type'] = t # type de jury (passage ou delivrance)
     params['TypeAbbrv'] = s # idem, abbrégé
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
-    params['city'] = context.get_preference('INSTITUTION_CITY')
+    params['city'] = context.get_preference('INSTITUTION_CITY', formsemestre_id)
     if decision['prev_decision_sem']:
         params['prev_semestre_id'] = decision['prev']['semestre_id']
         params['prev_code_descr']  = decision['prev_code_descr']
@@ -339,18 +339,18 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par
     # chef de département.
     if Se.semestre_non_terminal:
-        sig = context.get_preference('PV_LETTER_PASSAGE_SIGNATURE') % params
+        sig = context.get_preference('PV_LETTER_PASSAGE_SIGNATURE', formsemestre_id) % params
         sig = _simulate_br(sig, '<para leftindent="%(htab1)s">')
         objects += makeParas(("""<para leftindent="%(htab1)s" spaceBefore="25mm">""" + sig + 
                              """</para>""") % params, style ) 
     else:
-        sig = context.get_preference('PV_LETTER_DIPLOMA_SIGNATURE') % params
+        sig = context.get_preference('PV_LETTER_DIPLOMA_SIGNATURE', formsemestre_id) % params
         sig = _simulate_br(sig, '<para leftindent="%(htab1)s">')
         objects += makeParas(("""<para leftindent="%(htab1)s" spaceBefore="25mm">""" + sig +
                               """</para>""") % params, style )
         
     if signature:
-        objects.append( _make_signature_image(signature, params['htab1'], context=context) )
+        objects.append( _make_signature_image(signature, params['htab1'], formsemestre_id, context=context) )
         
     return objects
 
@@ -363,7 +363,7 @@ def _simulate_br(p, para='<para>' ):
     l = re.split( r'<.*?br.*?/>', p)
     return ('</para>'+para).join(l)
 
-def _make_signature_image(signature, leftindent, context=None):
+def _make_signature_image(signature, leftindent, formsemestre_id, context=None):
     "cree un paragraphe avec l'image signature"
     # cree une image PIL pour avoir la taille (W,H)
     from PIL import Image as PILImage
@@ -374,7 +374,7 @@ def _make_signature_image(signature, leftindent, context=None):
     f.seek(0,0)
 
     style = styles.ParagraphStyle( {} )    
-    style.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
+    style.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id) # vertical space
     style.leftIndent=leftindent
     return Table( [ ('', Image( f, width=width*pdfheight/float(height), height=pdfheight)) ],
                   colWidths = (9*cm, 7*cm) )
@@ -396,14 +396,14 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     objects = []
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 12
-    style.fontName= PV_FONTNAME
+    style.fontName= context.get_preference('PV_FONTNAME', formsemestre_id)
     style.leading = 18
     style.alignment = TA_JUSTIFY
 
     indent = 1*cm
     bulletStyle = reportlab.lib.styles.ParagraphStyle({})
     bulletStyle.fontSize= 12
-    bulletStyle.fontName= PV_FONTNAME
+    bulletStyle.fontName= context.get_preference('PV_FONTNAME', formsemestre_id)
     bulletStyle.leading = 12
     bulletStyle.alignment = TA_JUSTIFY
     bulletStyle.firstLineIndent=0
@@ -418,7 +418,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
     <para align="center"><b>Procès-verbal de %s du département %s - Session %s</b></para>    
-    """ % (t, context.get_preference('DeptName'), sem['annee']), style)
+    """ % (t, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
 
     if showTitle:
         objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
@@ -426,9 +426,9 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
          objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
 
     objects += makeParas('<para>' 
-                         + context.get_preference('PV_INTRO')
+                         + context.get_preference('PV_INTRO', formsemestre_id)
                          % { 'Decnum' : numeroArrete,
-                             'UnivName' : context.get_preference('UnivName'),
+                             'UnivName' : context.get_preference('UnivName', formsemestre_id),
                              'Type' : t,
                              'Date' : dateCommission,
                              } + '</para>', bulletStyle )
@@ -442,11 +442,11 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     titles = [ titles.get(x,'') for x in columns_ids ]
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
-    CellStyle.fontSize= context.get_preference_with_default('SCOLAR_FONT_SIZE')
-    CellStyle.fontName=   context.get_preference_with_default('PV_FONTNAME')
-    CellStyle.leading = 1.*context.get_preference_with_default('SCOLAR_FONT_SIZE') # vertical space
+    CellStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id)
+    CellStyle.fontName= context.get_preference('PV_FONTNAME', formsemestre_id)
+    CellStyle.leading = 1.*context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id) # vertical space
     LINEWIDTH = 0.5
-    TableStyle = [ ('FONTNAME', (0,0), (-1,0), context.get_preference_with_default('PV_FONTNAME')),
+    TableStyle = [ ('FONTNAME', (0,0), (-1,0), context.get_preference('PV_FONTNAME', formsemestre_id)),
                    ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                    ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]
@@ -462,8 +462,8 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     objects += makeParas(
         """<para spaceBefore="10mm" align="right">
         Le %s, %s</para>""" % 
-        (context.get_preference('DirectorTitle'),
-         context.get_preference('DirectorName')),
+        (context.get_preference('DirectorTitle', formsemestre_id),
+         context.get_preference('DirectorName', formsemestre_id)),
         style)
 
     # Légende des codes
@@ -474,7 +474,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     L = []
     for code in codes:
         L.append( (code, sco_codes_parcours.CODES_EXPL[code]))
-    TableStyle2 = [ ('FONTNAME', (0,0), (-1,0), PV_FONTNAME),
+    TableStyle2 = [ ('FONTNAME', (0,0), (-1,0), context.get_preference('PV_FONTNAME', formsemestre_id)),
                     ('LINEBELOW', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                     ('LINEABOVE', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                     ('LINEBEFORE', (0,0), (0,-1), LINEWIDTH, Color(0,0,0)),
@@ -495,7 +495,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
         title=SU('PV du jury de %s' % sem['titre_num']),
         subject='PV jury',
         image_dir = context.file_path + '/logos/',
-        preferences=context.get_preferences()))
+        preferences=context.get_preferences(formsemestre_id)))
 
     document.build(objects)
     data = report.getvalue()

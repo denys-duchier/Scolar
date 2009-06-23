@@ -177,7 +177,10 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                         max_date = date
         # Code semestre precedent
         if with_prev: # optionnel car un peu long...
-            etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
+            info = znotes.getEtudInfo(etudid=etudid, filled=True)
+            if not info:
+                continue # should not occur
+            etud = info[0]
             Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
             if Se.prev and Se.prev_decision:
                 d['prev_decision_sem'] = Se.prev_decision
@@ -233,12 +236,13 @@ def pvjury_table(znotes, dpv):
     return lines, titles, columns_ids
 
     
-def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, REQUEST=None):
     """Page récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
     header = context.sco_header(REQUEST)
     footer = context.sco_footer(REQUEST)
+    
     dpv = dict_pvjury(context, formsemestre_id, with_prev=True)
     if not dpv:
         if format == 'html':
@@ -259,10 +263,10 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
                    caption = 'Décisions jury pour ' + sem['titreannee'],
                    html_class='gt_table table_leftalign',
                    html_sortable=True,
-                   preferences=context.get_preferences()
+                   preferences=context.get_preferences(formsemestre_id),
                    )
     if format != 'html':
-        return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+        return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST, publish=publish)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     H = [ context.html_sem_header(
             REQUEST, 'Décisions du jury pour le semestre', sem),
@@ -292,7 +296,7 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', REQUEST=None):
                        columns_ids= ('code', 'count', 'expl'),
                        html_class='gt_table table_leftalign',
                        html_sortable=True,
-                       preferences=context.get_preferences()
+                       preferences=context.get_preferences(formsemestre_id)
                        ).html() )
     H.append('<p></p>') # force space at bottom
     return '\n'.join(H) + footer

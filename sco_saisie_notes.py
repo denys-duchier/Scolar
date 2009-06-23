@@ -45,7 +45,10 @@ def do_evaluation_selectetuds(self, REQUEST ):
     Choisi les etudiants pour saisie notes
     """
     evaluation_id = REQUEST.form['evaluation_id']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})
+    if not E:
+        raise ScoValueError("invalid evaluation_id")
+    E = E[0]
     M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
     formsemestre_id = M['formsemestre_id']
     # groupes

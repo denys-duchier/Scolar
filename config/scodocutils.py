@@ -1,7 +1,7 @@
 """
     Some utilities used by upgrade scripts
 """
-import sys, os, psycopg, glob, subprocess
+import sys, os, psycopg, glob, subprocess, traceback
 
 sys.path.append('..')
 
@@ -51,6 +51,7 @@ def check_field(cnx, table, field, sql_create_commands):
     if not field_exists(cnx, table, field):
         log('missing field %s in table %s: trying to create it'%(field,table))
         cursor = cnx.cursor()
+        error = False
         try:
             for cmd in sql_create_commands:
                 log('executing SQL: %s' % cmd)
@@ -59,8 +60,12 @@ def check_field(cnx, table, field, sql_create_commands):
         except:
             cnx.rollback()
             log('check_field: failure. Aborting transaction.')
+            error = True
+            traceback.print_exc()
         if not field_exists(cnx, table, field):
             log('check_field: new field still missing !')
             raise Exception('database configuration problem')
+        elif error:
+            log('\n\nAN UNEXPECTED ERROR OCCURRED WHILE UPGRADING DATABASE !\n\n')
         else:
             log('field %s added successfully.' % field)

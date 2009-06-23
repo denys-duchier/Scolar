@@ -44,8 +44,6 @@ class DEFAULT_TABLE_PREFERENCES:
         }
     def __getitem__(self,k):
         return self.value[k]
-    def get_with_default(self,k):
-        return self[k] # dummy method, for compatibility with ScoDoc preferences 
 
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
@@ -310,7 +308,7 @@ class GenTable:
         "PDF representation: returns a ReportLab's platypus Table instance"
         if not self.pdf_table_style:
             LINEWIDTH = 0.5
-            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences.get_with_default('SCOLAR_FONT')),
+            self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences['SCOLAR_FONT']),
                                     ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
                                     ('GRID', (0,0), (-1,-1), LINEWIDTH, Color(0,0,0)),
                                     ('VALIGN', (0,0), (-1,-1), 'TOP') ]
@@ -321,9 +319,9 @@ class GenTable:
             self.pdf_col_widths = (None,) * nb_cols
         #
         CellStyle = styles.ParagraphStyle( {} )
-        CellStyle.fontSize= self.preferences.get_with_default('SCOLAR_FONT_SIZE')
-        CellStyle.fontName= self.preferences.get_with_default('SCOLAR_FONT')
-        CellStyle.leading = 1.*self.preferences.get_with_default('SCOLAR_FONT_SIZE') # vertical space
+        CellStyle.fontSize= self.preferences['SCOLAR_FONT_SIZE']
+        CellStyle.fontName= self.preferences['SCOLAR_FONT']
+        CellStyle.leading = 1.*self.preferences['SCOLAR_FONT_SIZE'] # vertical space
         LINEWIDTH = 0.5
         #
         titles = [ '<para><b>%s</b></para>' % x for x in self.get_titles_list() ]
@@ -371,10 +369,11 @@ class GenTable:
     
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
-                  with_html_headers=True ):
+                  with_html_headers=True, publish=True ):
         """
         Build page at given format
         This is a simple page with only a title and the table.
+        If not publish, does not set response header
         """
         if not filename:
             filename = self.filename
@@ -393,13 +392,19 @@ class GenTable:
         elif format == 'pdf':
             objects = self.pdf()
             doc = pdf_basic_page( objects, title=title, preferences=self.preferences )
-            return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
+            if publish:
+                return sendPDFFile(REQUEST, doc, filename + '.pdf' )   
+            else:
+                return doc
         elif format == 'xls':
             xls = self.excel()
-            return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
+            if publish:
+                return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
+            else:
+                return xls
         elif format == 'xml':
             xml = self.xml()
-            if REQUEST:
+            if REQUEST and publish:
                 REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
             return xml
         else:

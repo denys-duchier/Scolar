@@ -132,6 +132,7 @@ def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
         #open('/tmp/toto','a').write('vals=%s\n'%vals)
     except:
         cnx.commit() # get rid of this transaction
+        log('Exception in DBUpdateArgs:\n\treq="%s"\n\tvals="%s"\n' % (req,vals))
         raise        # and re-raise exception
     if commit:
         cnx.commit()

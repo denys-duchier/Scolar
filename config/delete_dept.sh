@@ -28,7 +28,7 @@ echo
 echo -n "Nom du departement a supprimer (un mot sans ponctuation, exemple \"Info\"): "
 read DEPT
 
-if [[ ! "$DEPT" =~ "^[A-Za-z0-9]+$" ]]
+if [[ ! "$DEPT" =~ ^[A-Za-z0-9]+$ ]]
 then
  echo "Nom de departement invalide !"
  exit 1
@@ -40,12 +40,21 @@ cfg_pathname="$SCODOC_DIR/config/depts/$DEPT".cfg
 
 if [ -e $cfg_pathname ]
 then
+  # arret de ScoDoc
+  /etc/init.d/scodoc stop
   # suppression de la base postgres
   db_name=$(cat $cfg_pathname | sed '/^dbname=*/!d; s///;q')
   echo "suppression de la base postgres $db_name"
   su -c "dropdb $db_name" $POSTGRES_SUPERUSER || terminate "ne peux supprimer base de donnees $db_name"
   # suppression du fichier de config
   /bin/rm -f $cfg_pathname || terminate "ne peux supprimer $cfg_pathname"
+  # relance ScoDoc
+  echo -n "Demarrer le serveur ScoDoc ? (y/n) [n]"
+  read ans
+  if [ "$(norm_ans "$ans")" = 'Y' ]
+  then
+     /etc/init.d/scodoc start
+  fi
   exit 0
 else
   echo 'Erreur: pas de configuration trouvee pour "'$DEPT'"'

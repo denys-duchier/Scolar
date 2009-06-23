@@ -129,7 +129,10 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     """
     authuser = REQUEST.AUTHENTICATED_USER
 
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    if not F:
+        raise ScoValueError("invalid formation_id")
+    F = F[0]
     locked = context.formation_has_locked_sems(formation_id)
 
     perm_change = authuser.has_permission(ScoChangeFormation,context)

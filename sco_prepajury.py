@@ -59,7 +59,10 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     nbabs = {}
     nbabsjust = {}
     for etudid in etudids:
-        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
+        info = znotes.getEtudInfo(etudid=etudid, filled=True)
+        if not info:
+            continue # should not occur...
+        etud = info[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
         if Se.prev:
             ntp = znotes._getNotesCache().get_NotesTable(znotes, Se.prev['formsemestre_id'])

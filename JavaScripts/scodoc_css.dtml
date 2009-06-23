@@ -973,12 +973,41 @@ p.warning {
 }
 /* ---- ? ne fonctionne pas :  p.warning:before { url("<dtml-var "ScoDocURL">/icons/warning16_img"); } */
 
+form.sco_pref table.tf {
+  border-spacing: 5px 15px;
+}
 
 td.tf-ro-fieldlabel { 
-  font-weight: bold;
+  /* font-weight: bold; */
+  vertical-align:top;
+  margin-top: 20px;
 }
 td.tf-ro-fieldlabel:after {
    content: ' :';
+}
+td.tf-ro-field {
+  vertical-align:top;
+}
+div.tf-ro-textarea {
+  border: 1px solid grey;
+  padding-left: 8px;
+}
+select.tf-selglobal {
+  margin-left: 10px;
+}
+
+td.tf-fieldlabel { 
+  /* font-weight: bold; */
+  vertical-align:top;
+}
+
+.tf-comment {
+    font-size: 80%;
+    font-style: italic;
+}
+
+.tf-explanation {
+    font-style: italic;
 }
 
 .radio_green { 

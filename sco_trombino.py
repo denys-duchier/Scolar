@@ -246,7 +246,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     objects.append(table)
     # Build document
     document = BaseDocTemplate(report)
-    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences()))
+    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
     document.build(objects)
     data = report.getvalue()
     # Clean temporary files

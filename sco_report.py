@@ -83,7 +83,8 @@ def _categories_and_results(etuds, category, result):
     results.sort()
     return categories, results
 
-def _results_by_category(etuds, category='', result='', category_name=None, context=None):
+def _results_by_category(etuds, category='', result='', category_name=None,
+                         context=None, formsemestre_id=None):
     """Construit table: categories (eg types de bacs) en ligne, décisions jury en colonnes
 
     etuds est une liste d'etuds (dicts).
@@ -139,7 +140,8 @@ def _results_by_category(etuds, category='', result='', category_name=None, cont
             categories[i] = '?'
     lines_titles = [category_name] + categories + ['Total']
     return GenTable( titles=titles, columns_ids=codes, rows=C, lines_titles=lines_titles,
-                     html_col_width='4em', html_sortable=True, preferences=context.get_preferences() )
+                     html_col_width='4em', html_sortable=True, 
+                     preferences=context.get_preferences(formsemestre_id) )
 
 
 # pages
@@ -159,7 +161,8 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
         result_name = 'résultats'
     #
     tab = _results_by_category(etuds, category=category, category_name=category_name,
-                               result=result, context=context)
+                               result=result, 
+                               context=context, formsemestre_id=formsemestre_id)
     #
     tab.filename = make_filename('stats ' + sem['titreannee'])
     
@@ -472,7 +475,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     caption = 'Suivi cohorte ' + pp + sem['titreannee'] + dbac,
                     page_title = 'Suivi cohorte ' + sem['titreannee'],
                     html_class='gt_table table_cohorte',
-                    preferences=context.get_preferences()
+                    preferences=context.get_preferences(formsemestre_id)
                     )
     # Explication: liste des semestres associés à chaque date
     if not P:
@@ -697,7 +700,7 @@ def table_suivi_parcours(context, formsemestre_id):
                     <tr><td><tt>:D</tt></td><td> étudiants démissionnaires</td></tr>
                     </table>""",
                     bottom_titles =  { 'parcours' : 'Total', 'nb' : len(etudids) },
-                    preferences=context.get_preferences()
+                    preferences=context.get_preferences(formsemestre_id)
                     )
     return tab
 
@@ -771,7 +774,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
                 s['mois_fin_ord'], s['annee_fin'][2:],
                 len(effectifs[s['formsemestre_id']])))
         n.set_fontname('Helvetica')
-        n.set_fontsize(9.0)
+        n.set_fontsize(8.0)
         n.set_width(1.2)
         n.set_shape('box')
         n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
@@ -817,7 +820,11 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         def repl_title(m):            
             return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (m.group('fid'), suppress_accents(sems[m.group('fid')]['titreannee'])) # evite accents car svg utf-8 vs page en latin1...
         data = exp1.sub(repl_title, data)
-
+        # Substitution de Arial par Helvetica (new prblem in Debian 5) ???
+        # bug turnaround: il doit bien y avoir un endroit ou regler cela ?
+        # cf http://groups.google.com/group/pydot/browse_thread/thread/b3704c53e331e2ec
+        data = data.replace( 'font-family:Arial', 'font-family:Helvetica' )
+        data = data.replace( '<g id="graph0" class="graph"', '<g id="graph0" class="graph" style="font-family:Times-Roman;font-size:14.00;"')
     return data
 
 def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):

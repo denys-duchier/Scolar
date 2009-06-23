@@ -310,6 +310,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
                              with_codes=False, # indique codes etuds
                              server_name=None ):
     "generation feuille appel"
+    formsemestre_id = sem['formsemestre_id']
     SheetName = 'Liste ' + groupname
     wb = Workbook()
     ws0 = wb.add_sheet(SheetName)
@@ -374,7 +375,8 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
     # ligne 1
     li = 0
     ws0.write(li,1, "%s %s (%s - %s)"
-              % (context.get_preference('DeptName'), notesdb.unquote(sem['titre_num']),
+              % (context.get_preference('DeptName',formsemestre_id), 
+                 notesdb.unquote(sem['titre_num']),
                  sem['date_debut'],sem['date_fin']), style2)
     # ligne 2
     li += 1

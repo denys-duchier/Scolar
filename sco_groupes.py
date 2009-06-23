@@ -370,10 +370,10 @@ def get_prev_moy(znotes, etudid, formsemestre_id):
     """Donne la derniere moyenne generale calculee pour cette étudiant,
     ou 0 si on n'en trouve pas (nouvel inscrit,...).
     """
-    etud = znotes.getEtudInfo(etudid=etudid, filled=True)
-    if not etud:
+    info = znotes.getEtudInfo(etudid=etudid, filled=True)
+    if not info:
         raise ScoValueError("etudiant invalide: etudid=%s" % etudid)
-    etud = etud[0]
+    etud = info[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     if Se.prev:
         nt = znotes._getNotesCache().get_NotesTable(znotes, Se.prev['formsemestre_id'] )

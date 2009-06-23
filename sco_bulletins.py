@@ -54,6 +54,7 @@ def make_formsemestre_bulletinetud(
     ues = nt.get_ues( filter_empty=True, etudid=etudid )
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)
+    bul_show_mod_rangs = znotes.get_preference('bul_show_mod_rangs', formsemestre_id)
     # Genere le HTML H, une table P pour le PDF
     if sem['bul_bgcolor']:
         bgcolor = sem['bul_bgcolor']
@@ -86,7 +87,7 @@ def make_formsemestre_bulletinetud(
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = '(notes en attente)'
-    elif sem['bul_show_rangs'] != '0':
+    elif znotes.get_preference('bul_show_rangs', formsemestre_id):
         rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
     else:
         rang = ''
@@ -108,12 +109,15 @@ def make_formsemestre_bulletinetud(
         # UE capitalisee ?
         if ue_status['is_capitalized']:
             sem_origin = znotes.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
+            if format == 'html':
+                du =  '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">Capitalisée le %s</a>' % (
+                    sem_origin['formsemestre_id'], etudid,
+                    sem_origin['titreannee'],
+                    DateISOtoDMY(ue_status['event_date']))
+            else:
+                du = 'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date'])
             t = ( ue['acronyme'], fmt_note(ue_status['moy_ue']),
-                  '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">Capitalisée le %s</a>'
-                  % (sem_origin['formsemestre_id'], etudid,
-                     sem_origin['titreannee'],
-                     DateISOtoDMY(ue_status['event_date'])),
-                  '', fmt_coef(ue_status['coef_ue']) )
+                  du, '', fmt_coef(ue_status['coef_ue']) )
             P.append(t)
             tabline += 1
             ueline(tabline)
@@ -121,7 +125,7 @@ def make_formsemestre_bulletinetud(
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
             ue_comment = '(en cours, non prise en compte)'
         else:
-            if sem['bul_show_ue_rangs'] != '0':
+            if znotes.get_preference('bul_show_ue_rangs', formsemestre_id):
                 ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1])
             else:
                 ue_comment = ''
@@ -148,11 +152,11 @@ def make_formsemestre_bulletinetud(
                     t = [ modimpl['module']['code'], nom_mod, '', mod_moy,
                           fmt_coef(modimpl['module']['coefficient']) ]
                     
-                    if sem['bul_show_mod_rangs'] != '0' and mod_moy != '-':
+                    if bul_show_mod_rangs and mod_moy != '-':
                         t[2] = '%s/%s' % (nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid],
                                           nt.mod_rangs[modimpl['moduleimpl_id']][1])
                     
-                    if sem['bul_show_codemodules'] != '1':
+                    if not znotes.get_preference('bul_show_codemodules', formsemestre_id):
                         t[0] = '' # pas affichage du code module
                     
                     P.append(tuple(t))
@@ -183,7 +187,7 @@ def make_formsemestre_bulletinetud(
                                 H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>' % tuple(t))
     H.append('</table>')
     # --- Absences
-    if sem['gestion_absence'] == '1':
+    if znotes.get_preference('bul_show_abs', formsemestre_id):
         debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
         fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
         nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
@@ -196,11 +200,11 @@ def make_formsemestre_bulletinetud(
     </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
     # --- Decision Jury
-    if sem['bul_show_decision'] == '1':
+    if znotes.get_preference('bul_show_decision', formsemestre_id):
         situation, dpv = _etud_descr_situation_semestre(
             znotes, etudid, formsemestre_id,
             format=format,
-            show_uevalid=(sem['bul_show_uevalid']=='1'))
+            show_uevalid=znotes.get_preference('bul_show_uevalid', formsemestre_id))
     else:
         situation = ''
     if situation:
@@ -232,25 +236,30 @@ def make_formsemestre_bulletinetud(
         return '\n'.join(H), None, None
     elif format == 'pdf' or format == 'pdfpart':
         etud = znotes.getEtudInfo(etudid=etudid,filled=1)[0]
-        if sem['gestion_absence'] == '1':
+        if znotes.get_preference('bul_show_abs', formsemestre_id):
             etud['nbabs'] = nbabs
             etud['nbabsjust'] = nbabsjust
-        infos = { 'DeptName' : znotes.get_preference('DeptName') }
+        infos = { 'DeptName' : znotes.get_preference('DeptName', formsemestre_id) }
         stand_alone = (format != 'pdfpart')
         if nt.get_etud_etat(etudid) == 'D':
             filigranne = 'DEMISSION'
         else:
             filigranne = ''
+        diag = ''
         try:
             PDFLOCK.acquire()
-            pdfbul = pdfbulletins.pdfbulletin_etud(
+            pdfbul, diag = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
                 appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
                 situation=situation,
-                server_name=server_name, context=znotes )
+                server_name=server_name, 
+                context=znotes )
         finally:
             PDFLOCK.release()
+        if diag:
+            log('error: %s' % diag )
+            raise NoteProcessError(diag)
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, etud['nom'])
         filename = unescape_html(filename).replace(' ','_').replace('&','')
@@ -311,7 +320,7 @@ def make_xml_formsemestre_bulletinetud(
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)
     mg = fmt_note(nt.get_etud_moy_gen(etudid))
-    if nt.get_moduleimpls_attente() or sem['bul_show_rangs'] == '0':
+    if nt.get_moduleimpls_attente() or znotes.get_preference('bul_show_rangs', formsemestre_id) == 0:
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = ''
@@ -374,7 +383,7 @@ def make_xml_formsemestre_bulletinetud(
             doc._push()
             doc.note( value=mod_moy )
             doc._pop()
-            if sem['bul_show_mod_rangs'] != '0':
+            if znotes.get_preference('bul_show_mod_rangs', formsemestre_id):
                 doc._push()
                 doc.rang( value=nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid] )
                 doc._pop()
@@ -415,7 +424,7 @@ def make_xml_formsemestre_bulletinetud(
             doc._pop()
             doc._pop()
     # --- Absences
-    if sem['gestion_absence'] == '1':
+    if  znotes.get_preference('bul_show_abs', formsemestre_id):
         debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
         fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
         nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
@@ -425,10 +434,10 @@ def make_xml_formsemestre_bulletinetud(
         doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
         doc._pop()
     # --- Decision Jury
-    if sem['bul_show_decision'] == '1' or xml_with_decisions:
+    if znotes.get_preference('bul_show_decision', formsemestre_id) or xml_with_decisions:
         situation, dpv = _etud_descr_situation_semestre(
             znotes, etudid, formsemestre_id, format='xml',
-            show_uevalid=(sem['bul_show_uevalid']=='1'))
+            show_uevalid=znotes.get_preference('bul_show_uevalid',formsemestre_id))
         doc.situation( quote_xml_attr(situation) )
         if dpv:
             decision = dpv['decisions'][0]
@@ -440,7 +449,7 @@ def make_xml_formsemestre_bulletinetud(
             doc._push()
             doc.decision( code=code, etat=etat)
             doc._pop()
-            if decision['decisions_ue']:
+            if decision['decisions_ue']: # and znotes.get_preference('bul_show_uevalid', formsemestre_id): always publish (car utile pour export Apogee)
                 for ue_id in decision['decisions_ue'].keys():                
                     ue = znotes.do_ue_list({ 'ue_id' : ue_id})[0]
                     doc._push()
@@ -535,7 +544,7 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     dec = ''
     if pv['decision_sem_descr']:
         dec = 'Décision jury: ' + pv['decision_sem_descr'] + '. '
-    if pv['decisions_ue_descr']:
+    if pv['decisions_ue_descr'] and show_uevalid:
         dec += ' UE acquises: ' + pv['decisions_ue_descr']
     return inscr + ' ' + dec, dpv
 

@@ -32,6 +32,7 @@ from VERSION import SCOVERSION
 import VERSION
 import pdb
 import os, sys, copy, re
+import thread
 import urllib, time, datetime, cgi
 from sets import Set
 import xml.sax.saxutils
@@ -41,6 +42,9 @@ from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
 from sco_permissions import *
 from TrivialFormulator import TrivialFormulator, TF, tf_error_message
+
+# ----- Global lock for critical sections (except notes_tables caches)
+GSL = thread.allocate_lock() # Global ScoDoc Lock
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]

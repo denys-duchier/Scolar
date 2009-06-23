@@ -136,7 +136,7 @@ def evaluation_list_operations(context, REQUEST, evaluation_id):
     tab = GenTable( titles=titles, columns_ids=columns_ids, rows=Ops, 
                     html_sortable=False, 
                     html_title="<h2>Opérations sur l'évaluation %s du %s</h2>" % (E['description'], E['jour']),
-                    preferences=context.get_preferences()
+                    preferences=context.get_preferences(M['formsemestre_id'])
                     )
     return tab.make_page(context, REQUEST=REQUEST)
                     

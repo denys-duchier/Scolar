@@ -14,7 +14,7 @@ from email.Header import Header
 LOG_FILENAME = 'notes.log' # empty to disable logging
 DEFAULT_LOG_DIR = '/tmp' # clients should call set_log_directory to change this
 
-ALARM_DESTINATION = 'emmanuel.viennet@lipn.univ-paris13.fr' # XXX a mettre en preference
+ALARM_DESTINATION = 'emmanuel.viennet@univ-paris13.fr' # XXX a mettre en preference
 
 class _logguer:
     def __init__(self):
