@@ -80,8 +80,13 @@ for dept in get_depts():
                  "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_mod_rangs', bul_show_mod_rangs, formsemestre_id from notes_formsemestre",
                  "alter table notes_formsemestre drop column bul_show_mod_rangs",
                  ])
+    # fixed previous bug (misspelled pref)
+    cursor.execute("update sco_prefs set name = 'bul_show_codemodules' where name = 'bul_showcodemodules'")
     
     # Add here actions to performs after upgrades:
+
+    cnx.commit()
+    cnx.close()
 
 
 # Base utilisateurs:
@@ -91,6 +96,8 @@ cursor = cnx.cursor()
 check_field(cnx, 'sco_users', 'passwd_temp',
             ['alter table sco_users add column passwd_temp int default 0',
              'update sco_users set passwd_temp=0' ])
+cnx.commit()
+cnx.close()
 
 # The end.
 sys.exit(0)
