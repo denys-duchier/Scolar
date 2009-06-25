@@ -68,7 +68,7 @@ for dept in get_depts():
                  "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_uevalid', bul_show_uevalid, formsemestre_id from notes_formsemestre",
                  "alter table notes_formsemestre drop column bul_show_uevalid",
                  
-                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_showcodemodules', bul_show_codemodules, formsemestre_id from notes_formsemestre",
+                 "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_codemodules', bul_show_codemodules, formsemestre_id from notes_formsemestre",
                  "alter table notes_formsemestre drop column bul_show_codemodules",
 
                  "insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_rangs', bul_show_rangs, formsemestre_id from notes_formsemestre",
