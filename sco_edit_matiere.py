@@ -102,9 +102,19 @@ def matiere_delete(context, matiere_id=None, REQUEST=None):
 
 def matiere_edit(context, matiere_id=None, REQUEST=None):
     """Edit matiere"""
-    F = context.do_matiere_list(args={ 'matiere_id' : matiere_id } )[0]
-    U = context.do_ue_list( args={ 'ue_id' : F['ue_id'] } )[0]
+    F = context.do_matiere_list(args={ 'matiere_id' : matiere_id } )
+    if not F:
+        raise ScoValueError('Matière inexistante !')
+    F = F[0]
+    U = context.do_ue_list( args={ 'ue_id' : F['ue_id'] } )
+    if not F:
+        raise ScoValueError('UE inexistante !')
+    U = U[0]
     Fo= context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
+
+    ues = context.do_ue_list( args={ 'formation_id' : U['formation_id'] } )
+    ue_names = [ '%(acronyme)s (%(titre)s)' % u for u in ues ]
+    ue_ids = [ u['ue_id'] for u in ues ]
     H = [context.sco_header(REQUEST, page_title="Modification d'une matière"),
          """<h2>Modification de la matière %(titre)s""" % F,
          """(formation %(acronyme)s, version %(version)s)</h2>""" % Fo ]
@@ -124,7 +134,7 @@ associé.
 </p>"""
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
         ('matiere_id', { 'input_type' : 'hidden' }),
-        ('ue_id', { 'input_type' : 'hidden' }),
+        ('ue_id', { 'input_type' : 'menu', 'allowed_values' : ue_ids, 'labels' : ue_names }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom de cette matière' }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour affichage',
                         'type' : 'int' }),
@@ -143,7 +153,15 @@ associé.
         mats = context.do_matiere_list(args={ 'ue_id' : tf[2]['ue_id'], 'titre' : tf[2]['titre'] } )
         if len(mats) > 1 or (len(mats) == 1 and mats[0]['matiere_id'] != matiere_id):
             return '\n'.join(H) + tf_error_message('Titre de matière déjà existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
+        
+        # changement d'UE ?
+        if tf[2]['ue_id'] != F['ue_id']:
+            log('attaching mat %s to new UE %s' % (matiere_id, tf[2]['ue_id']) )
+            SimpleQuery( context, "UPDATE notes_modules SET ue_id = %(ue_id)s WHERE matiere_id=%(matiere_id)s",
+                         { 'ue_id' :  tf[2]['ue_id'], 'matiere_id' : matiere_id } )
+        
         context.do_matiere_edit( tf[2] )
+        
         return REQUEST.RESPONSE.redirect(dest_url)
 
 
