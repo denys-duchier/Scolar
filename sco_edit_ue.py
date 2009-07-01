@@ -70,7 +70,10 @@ def ue_create(context, formation_id=None, REQUEST=None):
 def ue_edit(context, ue_id=None, REQUEST=None):
     """Modification d'une UE
     """
-    U = context.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+    U = context.do_ue_list( args={ 'ue_id' : ue_id } )
+    if not U:
+        raise ScoValueError("UE inexistante !")
+    U = U[0]
     Fo = context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
     H = [ context.sco_header(REQUEST, page_title="Modification d'une UE"),          
           "<h2>Modification de l'UE %(titre)s" % U,
@@ -105,7 +108,10 @@ def ue_edit(context, ue_id=None, REQUEST=None):
 
 def ue_delete(context, ue_id=None, REQUEST=None):
     """Delete an UE"""
-    F = context.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+    F = context.do_ue_list( args={ 'ue_id' : ue_id } )
+    if not F:
+        raise ScoValueError("UE inexistante !")
+    F = F[0]
     H = [ context.sco_header(REQUEST, page_title="Suppression d'une UE"),
           "<h2>Suppression de l'UE %(titre)s (%(acronyme)s))</h2>" % F ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
