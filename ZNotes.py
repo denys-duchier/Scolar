@@ -335,7 +335,9 @@ class ZNotes(ObjectManager,
     
     security.declareProtected(ScoChangeFormation, 'do_formation_delete')
     def do_formation_delete(self, oid, REQUEST):
-        "delete a formation (and all its UE, matieres, modules)"
+        """delete a formation (and all its UE, matieres, modules)
+        XXX delete all ues, will break if there are validations ! USE WITH CARE !
+        """
         F = self.do_formation_list(args={'formation_id':oid})[0]
         if self.formation_has_locked_sems(oid):
             raise ScoLockedFormError()
@@ -343,7 +345,7 @@ class ZNotes(ObjectManager,
         # delete all UE in this formation
         ues = self.do_ue_list({ 'formation_id' : oid })
         for ue in ues:
-            self.do_ue_delete(ue['ue_id'], REQUEST=REQUEST)
+            self._do_ue_delete(ue['ue_id'], REQUEST=REQUEST, force=True)
         
         self._formationEditor.delete(cnx, oid)
         self._inval_cache()
@@ -455,10 +457,10 @@ class ZNotes(ObjectManager,
                      text='Modification de la formation %(acronyme)s' % F )
         return r
 
-    security.declareProtected(ScoChangeFormation, 'do_ue_delete')
-    def do_ue_delete(self, ue_id, delete_validations=False, REQUEST=None):
+    def _do_ue_delete(self, ue_id, delete_validations=False, REQUEST=None, force=False):
         "delete UE and attached matieres (but not modules (it should ?))"
         cnx = self.GetDBConnexion()
+        log('do_ue_delete: ue_id=%s, delete_validations=%s' % (ue_id, delete_validations))
         # check
         ue = self.do_ue_list({ 'ue_id' : ue_id })
         if not ue:
@@ -469,13 +471,13 @@ class ZNotes(ObjectManager,
         # Il y a-t-il des etudiants ayant validé cette UE ?
         # si oui, propose de supprimer les validations
         validations = sco_parcours_dut.scolar_formsemestre_validation_list ( cnx, args={'ue_id' : ue_id} )
-        if validations and not delete_validations:
+        if validations and not delete_validations and not force:
             return self.confirmDialog(
                 '<p>%d étudiants ont validé l\'UE %s (%s)</p><p>Si vous supprimer cette UE, ces validations vont être supprimées !</p>' % (len(validations), ue['acronyme'], ue['titre']),
                 dest_url="", REQUEST=REQUEST,
                 target_variable='delete_validations',
                 cancel_url="ue_list?formation_id=%s"%ue['formation_id'],
-                parameters={'ue_id' : ue_id} )
+                parameters={'ue_id' : ue_id, 'dialog_confirmed' : 1} )
         if delete_validations:
             log('deleting all validations of UE %s' % ue_id )
             SimpleQuery(self, "DELETE FROM scolar_formsemestre_validation WHERE ue_id=%(ue_id)s",
@@ -495,6 +497,11 @@ class ZNotes(ObjectManager,
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
+        #
+        if not force:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(ue['formation_id']))
+        else:
+            return None
 
     security.declareProtected(ScoView, 'do_ue_list')
     def do_ue_list(self, *args, **kw ):
@@ -560,6 +567,7 @@ class ZNotes(ObjectManager,
             log('do_matiere_delete: ue=%s' % ue)
             log('do_matiere_delete: locked sems: %s' % locked)
             raise ScoLockedFormError()  
+        log('do_matiere_delete: matiere_id=%s' % oid)
         # delete all modules in this matiere
         mods = self.do_module_list({ 'matiere_id' : oid })
         for mod in mods:

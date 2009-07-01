@@ -106,28 +106,20 @@ def ue_edit(context, ue_id=None, REQUEST=None):
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(U['formation_id']))
 
 
-def ue_delete(context, ue_id=None, REQUEST=None):
+def ue_delete(context, ue_id=None, delete_validations=False, dialog_confirmed=False, REQUEST=None):
     """Delete an UE"""
-    F = context.do_ue_list( args={ 'ue_id' : ue_id } )
-    if not F:
+    ue = context.do_ue_list( args={ 'ue_id' : ue_id } )
+    if not ue:
         raise ScoValueError("UE inexistante !")
-    F = F[0]
-    H = [ context.sco_header(REQUEST, page_title="Suppression d'une UE"),
-          "<h2>Suppression de l'UE %(titre)s (%(acronyme)s))</h2>" % F ]
-    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
-        ('ue_id', { 'input_type' : 'hidden' }),
-        ),
-                            initvalues = F,
-                            submitlabel = 'Confirmer la suppression',
-                            cancelbutton = 'Annuler'
-                            )
-    if tf[0] == 0:
-        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
-    elif tf[0] == -1:
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
-    else:
-        context.do_ue_delete( ue_id, REQUEST=REQUEST )
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(F['formation_id']))
+    ue = ue[0]
+    
+    if not dialog_confirmed:
+        return context.confirmDialog( "<h2>Suppression de l'UE %(titre)s (%(acronyme)s))</h2>" % ue,
+                                  dest_url="", REQUEST=REQUEST,
+                                  parameters = { 'ue_id' : ue_id },
+                                  cancel_url="ue_list?formation_id=%s"%ue['formation_id'] )
+
+    return context._do_ue_delete( ue_id, delete_validations=delete_validations, REQUEST=REQUEST )
 
 
 def ue_list(context, formation_id=None, msg='', REQUEST=None):
