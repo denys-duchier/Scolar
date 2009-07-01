@@ -126,7 +126,7 @@ def ue_delete(context, ue_id=None, REQUEST=None):
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
-        context.do_ue_delete( ue_id, REQUEST )
+        context.do_ue_delete( ue_id, REQUEST=REQUEST )
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(F['formation_id']))
 
 

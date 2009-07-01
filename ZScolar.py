@@ -2538,12 +2538,13 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
     def confirmDialog(self, message='<p>Confirmer ?</p>',
                       OK='OK', Cancel='Annuler',
                       dest_url= "", cancel_url="",
+                      target_variable='dialog_confirmed',
                       parameters={},
                       add_headers = True, # complete page
                       REQUEST=None,
                       helpmsg=None):
-        # dialog de confirmation simple"
-        parameters['dialog_confirmed'] = 1
+        # dialog de confirmation simple
+        parameters[target_variable] = 1
         H = [ message,
               """<form action="%s" method="post">
               <input type="submit" value="%s"/>""" % (dest_url, OK) ]

@@ -343,7 +343,7 @@ class ZNotes(ObjectManager,
         # delete all UE in this formation
         ues = self.do_ue_list({ 'formation_id' : oid })
         for ue in ues:
-            self.do_ue_delete(ue['ue_id'], REQUEST)
+            self.do_ue_delete(ue['ue_id'], REQUEST=REQUEST)
         
         self._formationEditor.delete(cnx, oid)
         self._inval_cache()
@@ -456,18 +456,40 @@ class ZNotes(ObjectManager,
         return r
 
     security.declareProtected(ScoChangeFormation, 'do_ue_delete')
-    def do_ue_delete(self, oid, REQUEST):
-        "delete UE and attached matieres"
+    def do_ue_delete(self, ue_id, delete_validations=False, REQUEST=None):
+        "delete UE and attached matieres (but not modules (it should ?))"
+        cnx = self.GetDBConnexion()
         # check
-        ue = self.do_ue_list({ 'ue_id' : oid })[0]
+        ue = self.do_ue_list({ 'ue_id' : ue_id })
+        if not ue:
+            raise ScoValueError('UE inexistante !')
+        ue = ue[0]
         if self.formation_has_locked_sems(ue['formation_id']):
-            raise ScoLockedFormError()        
+            raise ScoLockedFormError()      
+        # Il y a-t-il des etudiants ayant validé cette UE ?
+        # si oui, propose de supprimer les validations
+        validations = sco_parcours_dut.scolar_formsemestre_validation_list ( cnx, args={'ue_id' : ue_id} )
+        if validations and not delete_validations:
+            return self.confirmDialog(
+                '<p>%d étudiants ont validé l\'UE %s (%s)</p><p>Si vous supprimer cette UE, ces validations vont être supprimées !</p>' % (len(validations), ue['acronyme'], ue['titre']),
+                dest_url="", REQUEST=REQUEST,
+                target_variable='delete_validations',
+                cancel_url="ue_list?formation_id=%s"%ue['formation_id'],
+                parameters={'ue_id' : ue_id} )
+        if delete_validations:
+            log('deleting all validations of UE %s' % ue_id )
+            SimpleQuery(self, "DELETE FROM scolar_formsemestre_validation WHERE ue_id=%(ue_id)s",
+                        { 'ue_id' : ue_id } )
+        
         # delete all matiere in this UE
-        mats = self.do_matiere_list({ 'ue_id' : oid })
+        mats = self.do_matiere_list({ 'ue_id' : ue_id })
         for mat in mats:
             self.do_matiere_delete(mat['matiere_id'], REQUEST)
+        # delete uecoef and events
+        SimpleQuery(self, "DELETE FROM notes_formsemestre_uecoef WHERE ue_id=%(ue_id)s",{'ue_id':ue_id})
+        SimpleQuery(self, "DELETE FROM scolar_events WHERE ue_id=%(ue_id)s", { 'ue_id' : ue_id } )
         cnx = self.GetDBConnexion()
-        self._ueEditor.delete(cnx, oid)
+        self._ueEditor.delete(cnx, ue_id)
         self._inval_cache()
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
