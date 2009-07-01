@@ -264,6 +264,12 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                           'title' : 'Couleur fond des bulletins',
                           'explanation' : 'version web seulement (ex: #ffeeee)' }),
 
+        ('bul_publish_xml_lst', { 'input_type' : 'checkbox',
+                                  'title' : 'Publication',
+                                  'allowed_values' : ['X'],
+                                  'explanation' : 'publier le bulletin sur le portail étudiants',
+                                  'labels' : [''] }),
+
         ('sep', { 'input_type' : 'separator',                  
                   'title' : '',
                   'template' : '</table>%s<table>' % formtit
@@ -332,6 +338,14 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_semestrielle_lst'):
         REQUEST.form['gestion_semestrielle_lst'] = []
 
+    initvalues['bul_hide_xml'] = initvalues.get('bul_hide_xml','0')
+    if initvalues['bul_hide_xml'] == '0':
+        initvalues['bul_publish_xml_lst'] = ['X']
+    else:
+        initvalues['bul_publish_xml_lst'] = []
+    if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_publish_xml_lst'):
+        REQUEST.form['bul_publish_xml_lst'] = []
+
     #
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                             submitlabel = submitlabel,
@@ -351,6 +365,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
             tf[2]['gestion_semestrielle'] = 1
         else:
             tf[2]['gestion_semestrielle'] = 0
+        if tf[2]['bul_publish_xml_lst']:
+            tf[2]['bul_hide_xml'] = 0
+        else:
+            tf[2]['bul_hide_xml'] = 1
 
         # remap les identifiants de responsables:
         tf[2]['responsable_id'] = context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id'])
