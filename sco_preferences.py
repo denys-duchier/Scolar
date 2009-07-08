@@ -508,7 +508,8 @@ class sco_base_preferences:
         sortkey = 'name',
         convert_null_outputs_to_empty=False,
         allow_set_id = True,
-        html_quote=False # car markup pdf reportlab  (<b> etc)
+        html_quote=False, # car markup pdf reportlab  (<b> etc)
+        filter_nulls=False
         )
     
     def __init__(self, context):
@@ -591,6 +592,7 @@ class sco_base_preferences:
         """Write one or all (if name is None) values to db"""
         try:
             GSL.acquire()
+            modif = False
             cnx = self.context.GetDBConnexion()
             if name is None:
                 names = self.prefs[formsemestre_id].keys()
@@ -598,7 +600,6 @@ class sco_base_preferences:
                 names = [name]
             for name in names:
                 value = self.get(formsemestre_id, name)
-                log('save pref sem=%s %s=%s' % (formsemestre_id, name, value))
                 # existe deja ?
                 pdb = self._editor.list(cnx, args={'formsemestre_id' : formsemestre_id, 
                                                    'name' : name})
@@ -607,16 +608,22 @@ class sco_base_preferences:
                     log('create pref sem=%s %s=%s' % (formsemestre_id, name, value))
                     self._editor.create(cnx, { 'name' : name, 'value' : value,
                                                'formsemestre_id' : formsemestre_id})
+                    modif = True
+                    log('create pref sem=%s %s=%s' % (formsemestre_id, name, value))
                 else:
                     # edit existing value
-                    self._editor.edit(cnx, 
-                                      {'pref_id' : pdb[0]['pref_id'], 
-                                       'formsemestre_id' : formsemestre_id, 
-                                       'name' : name, 'value' : value
-                                       })
+                    if pdb[0]['value'] != str(value) and (pdb[0]['value'] or str(value)):
+                        self._editor.edit(cnx, 
+                                          {'pref_id' : pdb[0]['pref_id'], 
+                                           'formsemestre_id' : formsemestre_id, 
+                                           'name' : name, 'value' : value
+                                           })
+                        modif = True
+                        log('save pref sem=%s %s=%s' % (formsemestre_id, name, value))
             
             # les preferences peuvent affecter les PDF cachés:
-            self.context.Notes._inval_cache(pdfonly=True)
+            if modif:
+                self.context.Notes._inval_cache(pdfonly=True)
         finally:
             GSL.release()
     

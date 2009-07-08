@@ -1710,7 +1710,7 @@ class ZNotes(ObjectManager,
             y,m,d = [ int(x) for x in DateDMYtoISO(jour).split('-') ]
             jour = datetime.date(y,m,d)
             if (jour > date_fin) or (jour < date_debut):
-                raise ScoValueError("La date de l'évaluation n'est pas dans le semestre !")
+                raise ScoValueError("La date de l'évaluation (%s/%s/%s) n'est pas dans le semestre !" % (d,m,y))
         heure_debut = args.get('heure_debut', None)
         heure_fin = args.get('heure_fin', None)
         d = TimeDuration(heure_debut, heure_fin)

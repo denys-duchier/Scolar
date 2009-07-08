@@ -125,7 +125,7 @@ def make_formsemestre_bulletinetud(
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
             ue_comment = '(en cours, non prise en compte)'
         else:
-            if znotes.get_preference('bul_show_ue_rangs', formsemestre_id):
+            if znotes.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
                 ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1])
             else:
                 ue_comment = ''

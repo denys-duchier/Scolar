@@ -731,8 +731,7 @@ class NotesTable:
             if is_capitalized:
                 d[ue_id]['formsemestre_id'] = formsemestre_id
                 d[ue_id]['event_date'] = event_date
-        #if etudid=='10500853': # YYY
-        #    pdb.set_trace()
+        
         return d
 
     def get_etud_ue_status(self, etudid, ue_id):

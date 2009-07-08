@@ -139,8 +139,8 @@ def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
     try:
         req = 'update ' + table + ' set ' + s + ' where ' + where
         cursor.execute( req, vals )
-        #open('/tmp/toto','a').write('req=%s\n'%req)
-        #open('/tmp/toto','a').write('vals=%s\n'%vals)
+        #log('req=%s\n'%req)
+        #log('vals=%s\n'%vals)
     except:
         cnx.commit() # get rid of this transaction
         log('Exception in DBUpdateArgs:\n\treq="%s"\n\tvals="%s"\n' % (req,vals))
@@ -176,7 +176,8 @@ class EditableTable:
                  callback_on_write = None,
                  allow_set_id = False,
                  html_quote = True,
-                 fields_creators = {} # { field : [ sql_command_to_create_it ] }
+                 fields_creators = {}, # { field : [ sql_command_to_create_it ] }
+                 filter_nulls=True # dont allow to set fields to null
                  ):
         self.table_name = table_name
         self.id_name = id_name
@@ -190,11 +191,12 @@ class EditableTable:
         self.allow_set_id = allow_set_id
         self.html_quote = html_quote
         self.fields_creators = fields_creators
+        self.filter_nulls = filter_nulls
         self.sql_default_values = None        
 
     def create(self, cnx, args, has_uniq_values=False):
         "create object in table"
-        vals = dictfilter(args, self.dbfields)        
+        vals = dictfilter(args, self.dbfields, self.filter_nulls)        
         if vals.has_key(self.id_name) and not self.allow_set_id:
             del vals[self.id_name]        
         if self.html_quote:
@@ -239,7 +241,7 @@ class EditableTable:
         # REQLOG.flush()
         # global REQN
         # REQN = REQN + 1
-        vals = dictfilter(args, self.dbfields)
+        vals = dictfilter(args, self.dbfields, self.filter_nulls)
         if not sortkey:
             sortkey = self.sortkey        
         res = DBSelectArgs( cnx, self.table_name, 
@@ -268,7 +270,7 @@ class EditableTable:
         
     def edit(self, cnx, args, html_quote=None):
         """Change fields"""
-        vals = dictfilter(args, self.dbfields)
+        vals = dictfilter(args, self.dbfields, self.filter_nulls)
         html_quote = html_quote or self.html_quote
         if html_quote:
             quote_dict(vals) # quote HTML
@@ -327,11 +329,11 @@ class EditableTable:
         return self.sql_default_values
 
 
-def dictfilter( d, fields ):
+def dictfilter( d, fields, filter_nulls=True ):
     # returns a copy of d with only keys listed in "fields" and non null values
     r = {}
     for f in fields:
-        if d.has_key(f) and d[f] != None:
+        if d.has_key(f) and (d[f] != None or not filter_nulls):
             try:
                 val = d[f].strip()
             except:
