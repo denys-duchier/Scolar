@@ -171,7 +171,7 @@ class ZScolar(ObjectManager,
 
         #
         self.manage_addProperty('roles_initialized', '0', 'string')
-        
+    
     # The for used to edit this object
     def manage_editZScolar(self, title, RESPONSE=None):
         "Changes the instance values"
@@ -365,11 +365,16 @@ class ZScolar(ObjectManager,
     #    GESTION DE LA BD
     #
     # --------------------------------------------------------------------
+    security.declareProtected('Change DTML Documents', 'GetDBConnexion')    
+    def GetDBConnexionString(self):
+        # should not be published (but used from contained classes via acquisition)
+        return self._db_cnx_string
+
     security.declareProtected('Change DTML Documents', 'GetDBConnexion')
     def GetDBConnexion(self,new=False):
         # should not be published (but used from contained classes via acquisition)
         if not self._db_cnx_string:
-            raise ScolarError('invalid sgbd connexion string')
+            raise ScolarError('invalid db connexion string')
         cnx = self.DB().db # a database adaptor called DB must exists        
         cnx.commit() # sync !
         return cnx

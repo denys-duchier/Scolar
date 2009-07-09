@@ -142,7 +142,7 @@ class ZNotes(ObjectManager,
     
     def _getNotesCache(self):
         "returns CacheNotesTable instance for us"
-        u = self.ScoURL()
+        u = self.GetDBConnexionString() # identifie le dept de facon fiable
         if not NOTES_CACHE_INST.has_key(u):
             NOTES_CACHE_INST[u] = CacheNotesTable()
         return NOTES_CACHE_INST[u]
