@@ -370,7 +370,7 @@ def _make_signature_image(signature, leftindent, formsemestre_id, context=None):
     f = cStringIO.StringIO(signature)
     im = PILImage.open(f)
     width, height = im.size
-    pdfheight = 1.1*cm
+    pdfheight = 1.*context.get_preference('pv_sig_image_height', formsemestre_id)*mm
     f.seek(0,0)
 
     style = styles.ParagraphStyle( {} )    

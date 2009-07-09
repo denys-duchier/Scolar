@@ -367,6 +367,13 @@ Le Chef du département""",
        'category' : 'pvpdf'
         }
       ),
+    ('pv_sig_image_height',
+     { 'initvalue' : 11, 
+         'size' : 10, 'title' : 'Hauteur de l\'image de la signature', 'type' : 'float',
+         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimmensionnée à cette taille (en millimètres)',
+         'category' : 'pvpdf'
+         }),
+    
     # bul
     ( 'bul_show_abs', # ex "gestion_absence"
       { 'initvalue' : 1,
