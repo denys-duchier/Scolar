@@ -171,8 +171,16 @@ class SituationEtudParcours:
 
     def all_other_validated(self):
         "True si tous les autres semestres de cette formation sont validés"
+        return self._sems_validated( exclude_current=True )
+        
+    def parcours_validated(self):
+        "True si parcours validé (diplôme obtenu, donc)."
+        return self._sems_validated()
+    
+    def _sems_validated(self, exclude_current=False):
         to_validate = Set(range(1,DUT_NB_SEM+1)) # ensemble des indices à valider
-        to_validate.remove(self.sem['semestre_id'])
+        if exclude_current:
+            to_validate.remove(self.sem['semestre_id'])
         for sem in self.get_semestres():
             if sem['formation_code'] == self.formation['formation_code']:
                 nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])

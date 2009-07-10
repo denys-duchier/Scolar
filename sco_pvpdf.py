@@ -329,8 +329,8 @@ s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
     </para>""" % (etud['ne'], s, s, decision['autorisations_descr']), style )
 
     if (not Se.semestre_non_terminal) and decision['decision_sem']:
-        if sco_codes_parcours.CODES_SEM_VALIDES.has_key(decision['decision_sem']['code']):
-            # Semestre terminal validé => diplôme
+        if Se.parcours_validated():
+            # Parcours validé => diplôme
             objects += makeParas(""" <para spaceBefore="10mm" fontSize="14">
             Vous avez donc obtenu le diplôme : <b>%(titreFormation)s</b>
             </para>""" % params, style ) 
