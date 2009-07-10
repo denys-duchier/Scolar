@@ -80,7 +80,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                context.get_preference('top_margin', formsemestre_id),
                context.get_preference('right_margin', formsemestre_id),
                context.get_preference('bottom_margin', formsemestre_id))    
-    titletmpl = context.get_preference('bul_title',  formsemestre_id)
+    titletmpl = context.get_preference('bul_title',  formsemestre_id) or ''        
     
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
