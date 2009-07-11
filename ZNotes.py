@@ -1454,13 +1454,13 @@ class ZNotes(ObjectManager,
 
     # Cache inscriptions semestres
     def get_formsemestre_inscription_cache(self):
-        url = self.ScoURL()
-        if CACHE_formsemestre_inscription.has_key(url):
-            return CACHE_formsemestre_inscription[url]
+        u = self.GetDBConnexionString()
+        if CACHE_formsemestre_inscription.has_key(u):
+            return CACHE_formsemestre_inscription[u]
         else:
             log('get_formsemestre_inscription_cache: new simpleCache')
-            CACHE_formsemestre_inscription[url] = sco_cache.simpleCache()
-            return CACHE_formsemestre_inscription[url]
+            CACHE_formsemestre_inscription[u] = sco_cache.simpleCache()
+            return CACHE_formsemestre_inscription[u]
 
 
     security.declareProtected(ScoImplement, 'formsemestre_desinscription')
