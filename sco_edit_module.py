@@ -91,7 +91,10 @@ def module_create(context, matiere_id=None, REQUEST=None):
 
 def module_delete(context, module_id=None, REQUEST=None):
     """Delete a module"""
-    Mod = context.do_module_list(args={ 'module_id' : module_id } )[0]
+    Mods = context.do_module_list(args={ 'module_id' : module_id } )
+    if not Mods:
+        raise ScoValueError('Module inexistant !')
+    Mod = Mods[0]
     H = [ context.sco_header(REQUEST, page_title="Suppression d'un module"),
           """<h2>Suppression du module %(titre)s (%(code)s)</h2>""" % Mod ]
 
