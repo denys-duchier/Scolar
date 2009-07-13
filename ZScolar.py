@@ -398,6 +398,7 @@ class ZScolar(ObjectManager,
                           cancelbutton=None,
                           readonly=False ):
         "generator/validator of simple forms"
+        # obsolete, still used by dtml/entreprises old code...
         return TrivialFormulator(
             form_url, values,
             formdescription=formdescription,

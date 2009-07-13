@@ -43,7 +43,7 @@ def _default_sem_title(F):
 def formsemestre_createwithmodules(context, REQUEST=None):
     """Page création d'un semestre"""
     H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
-                             javascripts=['AutoSuggest_js'],
+                             javascripts=['AutoSuggest_js', 'calendarDateInput_js'],
                              cssstyles=['autosuggest_inquisitor_css'], 
                              bodyOnLoad="init_tf_form('')"
                              ),
@@ -60,7 +60,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem,
-                                  javascripts=['AutoSuggest_js'],
+                                  javascripts=['AutoSuggest_js', 'calendarDateInput_js'],
                                   cssstyles=['autosuggest_inquisitor_css'], 
                                   bodyOnLoad="init_tf_form('')"
                                   ) ]
@@ -173,9 +173,11 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     modform = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id}),
-        ('date_debut', { 'title' : 'Date de début (j/m/a)',
+        ('date_debut', { 'title' : 'Date de début', # j/m/a
+                         'input_type' : 'date',
                          'size' : 9, 'allow_null' : False }),
-        ('date_fin', { 'title' : 'Date de fin (j/m/a)',
+        ('date_fin', { 'title' : 'Date de fin',  # j/m/a
+                         'input_type' : 'date',
                          'size' : 9, 'allow_null' : False }),
         ('responsable_id', { 'input_type' : 'text_suggest',
                              'size' : 50,
@@ -486,7 +488,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
     sem = context.get_formsemestre(formsemestre_id)
     H = [ context.html_sem_header(REQUEST, 'Copie du semestre', sem,
-                                  javascripts=['AutoSuggest_js'],
+                                  javascripts=['AutoSuggest_js', 'calendarDateInput_js'],
                                   cssstyles=['autosuggest_inquisitor_css'], 
                                   bodyOnLoad="init_tf_form('')"
                                   ),
@@ -504,9 +506,11 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
         'responsable_id' : login2display.get(sem['responsable_id'], sem['responsable_id']) }
 
     descr = [ ('formsemestre_id', { 'input_type' : 'hidden' }), 
-          ('date_debut', { 'title' : 'Date de début (j/m/a)',
+          ('date_debut', { 'title' : 'Date de début',  # j/m/a
+                           'input_type' : 'date',
                          'size' : 9, 'allow_null' : False }),
-          ('date_fin', { 'title' : 'Date de fin (j/m/a)',
+          ('date_fin', { 'title' : 'Date de fin',  # j/m/a
+                         'input_type' : 'date',
                          'size' : 9, 'allow_null' : False }),
           ('responsable_id',  { 'input_type' : 'text_suggest',
                              'size' : 50,
