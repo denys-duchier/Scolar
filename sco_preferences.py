@@ -196,6 +196,15 @@ PREFS = (
         'only_global' : True
         }
       ),
+    ( 'handle_billets_abs',
+      { 'initvalue' : 0,
+        'title' : "Gestion de \"billets\" d'absence",
+        'explanation' : "fonctions pour traiter les \"billets\" déclarés par les étudiants sur un portail externe",
+        'input_type' : 'boolcheckbox',
+        'category' : 'abs',
+        'only_global' : True
+        }
+      ),
     ( 'send_mail_absence_to_chef',
       { 'initvalue' : 0,
         'title' : "Envoyer un mail au chef si un étudiant a beaucoup d\'absences",

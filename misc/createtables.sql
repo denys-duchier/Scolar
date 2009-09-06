@@ -103,6 +103,22 @@ CREATE TABLE absences (
     matin boolean -- vrai si concerne le matin, faux si apres midi
 ) WITH OIDS;
 
+CREATE SEQUENCE notes_idgen_billets;
+CREATE FUNCTION notes_newid_billet( text ) returns text as '
+	select $1 || to_char(  nextval(''notes_idgen_billets''), ''FM999999999'' ) 
+	as result;
+	' language SQL;
+
+CREATE TABLE billet_absence (
+    billet_id text DEFAULT notes_newid_billet('B'::text) NOT NULL,
+    etudid text NOT NULL,
+    abs_begin timestamp with time zone,
+    abs_end  timestamp with time zone,
+    description text, -- "raison" de l'absence
+    etat integer default 0 -- 0 new, 1 processed    
+) WITH OIDS;
+
+
 CREATE TABLE scolog (
     date timestamp without time zone DEFAULT now(),
     authenticated_user text,

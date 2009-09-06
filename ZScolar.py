@@ -2203,7 +2203,9 @@ function tweakmenu( gname ) {
                    'scolog',
                    'admissions',
                    'adresse',
-                   'identite' ]
+                   'identite',
+                   'absences', 
+                   'billet_absence' ]
         cursor = cnx.cursor()
         for table in tables:
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,

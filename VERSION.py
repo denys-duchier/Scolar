@@ -7,6 +7,11 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Septembre 2009</h4>
+<ul>
+<li>Traitement de "billets d'absences" (saisis par les étudiants sur le portail)</li>
+</ul>
+
 <h4>Juin 2009</h4>
 <ul>
 <li>Nouveau système plus flexibles de gestion des préférences (ou "paramètres")</li>

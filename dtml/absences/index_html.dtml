@@ -16,8 +16,13 @@
 
 <dtml-if "len(Notes.do_formsemestre_list()) > 0">
 
-<h3><a href="EtatAbsences">Afficher l'&eacute;tat des absences (pour tout un groupe)</a></h3>
 
+<ul>
+<li><a href="EtatAbsences">Afficher l'&eacute;tat des absences (pour tout un groupe)</a></li>
+<dtml-if "get_preference('handle_billets_abs')">
+<li><a href="listeBillets">Traitement des billets d'absence en attente</a></li>
+</dtml-if>
+</ul>
 
 <p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'étudiant concerné:</p>
 

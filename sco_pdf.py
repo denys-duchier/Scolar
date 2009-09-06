@@ -61,6 +61,8 @@ DEFAULT_PDF_FOOTER_TEMPLATE = CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE
 def SU(s):
     "convert s from SCO default encoding to UTF8"
     # Mis en service le 4/11/06, passage à ReportLab 2.0
+    if not s:
+        s = ''
     return unicode(s, SCO_ENCODING, 'replace').encode('utf8')
 
 def _splitPara(txt):

@@ -5,7 +5,7 @@
 
 # prefix all permissions by "Sco" to group them in Zope management tab
 
-# Attention: si on change ses valeurs, il faut verifier les codes
+# Attention: si on change ces valeurs, il faut verifier les codes
 # DTML qui utilisent directement les chaines de caractères...
 
 ScoChangeFormation = "Sco Change Formation"
@@ -15,6 +15,7 @@ ScoEditAllEvals = "Sco Modifier toutes les evaluations"
 ScoImplement    = "Sco Implement Formation"
 
 ScoAbsChange    = "Sco Change Absences"
+ScoAbsAddBillet = "Sco Add Abs Billet" # ajouter un billet d'absence via AddBilletAbsence
 ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo
 ScoEtudChangeGroups = "Sco Change Etud Groups"
 ScoEtudInscrit  = "Sco Inscrire Etud" # aussi pour demissions, diplomes
@@ -48,6 +49,7 @@ Sco_Default_Permissions = {
     ScoEtudAddAnnotations : ('Ens', 'Secr', 'Admin',),
     ScoEtudSupprAnnotations : (             'Admin',),
     ScoAbsChange          : ('Ens', 'Secr', 'Admin',),
+    ScoAbsAddBillet       : ('Ens', 'Secr', 'Admin',),
     ScoEntrepriseView     : ('Ens', 'Secr', 'Admin',),    
     ScoEntrepriseChange   : (       'Secr', 'Admin',),
     ScoEtudChangeAdr      : (       'Secr', 'Admin',),

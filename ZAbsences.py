@@ -57,6 +57,8 @@ import scolars
 import sco_excel
 import string, re
 import time, calendar 
+from mx.DateTime import DateTime as mxDateTime
+from mx.DateTime.ISO import ParseDateTimeUTC
 
 def _toboolean(x):
     "convert a value to boolean (ensure backward compat with OLD intranet code)"
@@ -1087,7 +1089,206 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 </form>
                         """ % (REQUEST.URL0,semestregroupe))
         return tab.make_page(self, format=format, REQUEST=REQUEST)
-                        
+    
+    # ----- Gestion des "billets d'absence": signalement par les etudiants eux mêmes (à travers le portail)
+    security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
+    def AddBilletAbsence(self, begin, end, description, etudid=None, code_nip=None, code_ine=None, REQUEST=None, xml_reply=True ):
+        """Memorise un "billet"
+        begin et end sont au format ISO (eg "1999-01-08 04:05:06")
+        """
+        # check etudid
+        etud = self.getEtudInfo(etudid=etudid, code_nip=code_nip, REQUEST=REQUEST)[0]
+        if not etud:
+            return self.log_unknown_etud(REQUEST=REQUEST)
+        # check dates
+        begin_date = ParseDateTimeUTC(begin) # may raises ValueError
+        end_date = ParseDateTimeUTC(end)
+        if begin_date > end_date:
+            raise ValueError('invalid dates')
+        #
+        cnx = self.GetDBConnexion()
+        billet_id = billet_absence_create( cnx, { 'etudid' : etud['etudid'], 
+                                                  'abs_begin' : begin, 'abs_end' : end,
+                                                  'description' : description,
+                                                  'etat' : 0 } )
+        if xml_reply:
+            if REQUEST:
+                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            doc = jaxml.XML_document( encoding=SCO_ENCODING )
+            doc.billet(id=billet_id)
+            return repr(doc)
+        else:
+            return billet_id
+
+    security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
+    def AddBilletAbsenceForm(self, etudid, REQUEST=None):
+        """Formulaire ajout billet (pour tests seulement, le vrai formulaire accessible aux etudiants
+        étant sur le portail étudiant).
+        """
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        H = [ self.sco_header(REQUEST,page_title="Billet d'absence de %s" % etud['nomprenom'], javascripts=['calendarDateInput_js']) ]
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            (('etudid',  { 'input_type' : 'hidden' }),
+             ('begin', { 'input_type' : 'date' }),
+             ('end', { 'input_type' : 'date' }),
+             ('description', { 'input_type' : 'textarea' } )))
+        if  tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            e = tf[2]['begin'].split('/')
+            begin = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
+            e = tf[2]['end'].split('/')
+            end = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
+            self.AddBilletAbsence(begin, end, tf[2]['description'], etudid=etudid, xml_reply=False)
+            return REQUEST.RESPONSE.redirect( 'listeBilletsEtud?etudid=' + etudid )
+
+    def _tableBillets(self, billets, etud=None, title='' ):
+        for b in billets:
+            b['abs_begin_str'] = str(b['abs_begin']) # XXX dates a reformatter
+            b['abs_end_str'] = str(b['abs_end'])
+            if b['etat'] == 0:
+                b['etat_str'] = 'traiter'
+                b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s&estjust=0' % b['billet_id']
+                b['_billet_id_target'] = b['_etat_str_target']
+            else:
+                b['etat_str'] = 'ok'
+            if not etud:
+                # ajoute info etudiant
+                e = self.getEtudInfo(etudid=b['etudid'], filled=1)
+                if not e:
+                    b['nomprenom'] = '???' # should not occur
+                else:
+                    b['nomprenom'] = e[0]['nomprenom']
+                b['_nomprenom_target'] = 'ficheEtud?etudid=%s' % b['etudid']
+        if etud and not title:
+            title = "Billets d'absence déclarés par %(nomprenom)s" % etud
+        else:
+            title = title
+        columns_ids = ['billet_id']
+        if not etud:
+            columns_ids += [ 'nomprenom' ]
+        columns_ids += ['abs_begin_str', 'abs_end_str', 'description', 'etat_str']
+        
+        tab = GenTable( titles= { 'billet_id' : 'Numéro', 'abs_begin_str' : 'Début', 'abs_end_str' : 'Fin', 'description' : "Raison de l'absence", 'etat_str' : 'Etat'}, 
+                        columns_ids=columns_ids,
+                        page_title=title, html_title='<h2>%s</h2>' % title,
+                        preferences=self.get_preferences(),
+                        rows = billets )
+        return tab
+
+    security.declareProtected(ScoView, 'listeBilletsEtud')
+    def listeBilletsEtud(self, etudid=None, REQUEST=None, format='html'):
+        """Liste billets pour un etudiant
+        """
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        cnx = self.GetDBConnexion()
+        billets = billet_absence_list(cnx,  {'etudid': etud['etudid'] } )
+        tab = self._tableBillets(billets, etud=etud)
+        return tab.make_page(self, REQUEST=REQUEST, format=format)
+
+    security.declareProtected(ScoView, 'XMLgetBilletsEtud')
+    def XMLgetBilletsEtud(self, etudid=None, REQUEST=None):
+        """Liste billets pour un etudiant
+        """
+        return self.listeBilletsEtud(etudid, REQUEST=REQUEST, format='xml')
+
+    security.declareProtected(ScoView, 'listeBillets')
+    def listeBillets(self, REQUEST=None):
+        """Page liste des billets non traités et formulaire recherche d'un billet"""
+        cnx = self.GetDBConnexion()
+        billets = billet_absence_list(cnx,  {'etat': 0 } )
+        tab = self._tableBillets(billets)
+        T = tab.html()
+        H = [ self.sco_header(REQUEST,page_title="Billet d'absence non traités"),
+              "<h2>Billets d'absence en attente de traitement (%d)</h2>" % len(billets),
+              ]
+
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            (('billet_id', { 'input_type' : 'text', 'title' : 'Numéro du billet' }),),
+            submitbutton=False
+            )
+        if  tf[0] == 0:
+            return '\n'.join(H) + tf[1] + T + self.sco_footer(REQUEST)
+        else:
+            return REQUEST.RESPONSE.redirect( 'ProcessBilletAbsenceForm?billet_id=' + tf[2]['billet_id'] )
+
+    def _ProcessBilletAbsence(self, billet, estjust, REQUEST):
+        """Traite un billet: ajoute absence(s) et éventuellement justificatifs,
+        et change l'état du billet à 1.
+        NB: actuellement, les heures ne sont utilisées que pour déterminer si matin et/ou après midi.
+        """
+        cnx = self.GetDBConnexion()
+        log('billet=%s' % billet)
+        if billet['etat'] != 0:
+            log('billet deja traité !')
+            return 1
+        # 1-- ajout des absences (et justifs)
+        datedebut = billet['abs_begin'].strftime('%d/%m/%Y')
+        datefin = billet['abs_end'].strftime('%d/%m/%Y')
+        dates = self.DateRangeISO( datedebut, datefin )
+        # commence apres midi ?
+        if billet['abs_begin'].hour > 11:
+            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST)
+            dates = dates[1:]
+        # termine matin ?
+        if dates and billet['abs_end'].hour < 12:
+            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST)
+            dates = dates[:-1]
+        
+        for jour in dates:
+            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST)
+            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST)
+        
+        # 2- change etat du billet
+        billet_absence_edit(cnx, { 'billet_id' : billet['billet_id'], 'etat' : 1 } )
+        
+        return 0
+    
+    security.declareProtected(ScoAbsChange, 'ProcessBilletAbsenceForm')
+    def ProcessBilletAbsenceForm(self, billet_id, REQUEST=None):
+        """Formulaire traitement d'un billet"""
+        cnx = self.GetDBConnexion()
+        billets = billet_absence_list(cnx,  {'billet_id': billet_id} )
+        if not billets:
+            return REQUEST.RESPONSE.redirect( 'listeBillets?head_message=Billet%%20%s%%20inexistant !' % billet_id)        
+        billet = billets[0]
+        etudid = billet['etudid']
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        tab = self._tableBillets([billet], etud=etud)
+        H = [ self.sco_header(REQUEST,page_title="Traitement billet d'absence de %s" % etud['nomprenom']),
+              '<h2>Traitement du billet %s : <a class="discretelink" href="ficheEtud?etudid=%s">%s</a></h2>' % (billet_id, etudid, etud['nomprenom'])
+              ]
+        F = '<p><a class="stdlink" href="listeBillets">Liste des billets en attente</a></p>' + self.sco_footer(REQUEST)
+        tf = TrivialFormulator(
+            REQUEST.URL0, REQUEST.form, 
+            (('billet_id',  { 'input_type' : 'hidden' }),
+             ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiées' } )),
+            submitlabel = 'Enregistrer ces absences')
+        if tf[0] == 0:
+            H.append(tab.html())
+            return '\n'.join(H) + tf[1] + F
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        else:
+            self._ProcessBilletAbsence(billet, tf[2]['estjust'], REQUEST)
+            return REQUEST.RESPONSE.redirect( 'listeBilletsEtud?etudid=%(etudid)s&head_message=billet%%20traité' % etud )
+    
+    
+
+_billet_absenceEditor = EditableTable(
+    'billet_absence',
+    'billet_id',
+    ('billet_id', 'etudid', 'abs_begin', 'abs_end', 'description', 'etat')
+)
+
+billet_absence_create = _billet_absenceEditor.create
+billet_absence_delete = _billet_absenceEditor.delete
+billet_absence_list = _billet_absenceEditor.list
+billet_absence_edit = _billet_absenceEditor.edit
 
 # ------ HTML Calendar functions (see YearTable method)
 

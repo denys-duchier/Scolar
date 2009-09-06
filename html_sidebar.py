@@ -100,7 +100,9 @@ def sidebar(context, REQUEST=None):
 <li>     <a href="%(ScoURL)s/Absences/JustifAbsenceEtud?etudid=%(etudid)s">Justifier</a></li>
 <li>     <a href="%(ScoURL)s/Absences/AnnuleAbsenceEtud?etudid=%(etudid)s">Supprimer</a></li>
 """ % params )
-        H.append("""
+            if context.get_preference('handle_billets_abs'):
+                H.append("""<li>     <a href="%(ScoURL)s/Absences/listeBilletsEtud?etudid=%(etudid)s">Billets</a></li>""" % params )
+            H.append("""
 <li>     <a href="%(ScoURL)s/Absences/CalAbs?etudid=%(etudid)s">Calendrier</a></li>
 <li>     <a href="%(ScoURL)s/Absences/ListeAbsEtud?etudid=%(etudid)s">Liste</a></li>
 </ul>

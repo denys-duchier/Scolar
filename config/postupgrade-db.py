@@ -82,6 +82,24 @@ for dept in get_depts():
                  ])
     # fixed previous bug (misspelled pref)
     cursor.execute("update sco_prefs set name = 'bul_show_codemodules' where name = 'bul_showcodemodules'")
+
+    # billets d'absences
+    check_table( cnx, 'billet_absence', [
+            """CREATE SEQUENCE notes_idgen_billets""",
+            """CREATE FUNCTION notes_newid_billet( text ) returns text as '
+	select $1 || to_char(  nextval(''notes_idgen_billets''), ''FM999999999'' ) 
+	as result;
+	' language SQL;
+""",
+            """CREATE TABLE billet_absence (
+    billet_id text DEFAULT notes_newid_billet('B'::text) NOT NULL,
+    etudid text NOT NULL,
+    abs_begin timestamp with time zone,
+    abs_end  timestamp with time zone,
+    description text, -- "raison" de l'absence
+    etat integer default 0 -- 0 new, 1 processed    
+) WITH OIDS;
+"""] )
     
     # Add here actions to performs after upgrades:
 
