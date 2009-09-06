@@ -439,8 +439,16 @@ class ZScolar(ObjectManager,
         raise ScoValueError(msg)
 
     security.declareProtected(ScoView, 'AnneeScolaire')
-    def AnneeScolaire(self):
+    def AnneeScolaire(self, REQUEST=None):
         "annee de debut de l'annee scolaire courante"
+        if REQUEST and REQUEST.form.has_key('sco_year'):
+            year = REQUEST.form['sco_year']
+            try:
+                year = int(year)
+                if year > 1900 and year < 2999:
+                    return year
+            except:
+                pass
         t = time.localtime()
         year, month = t[0], t[1]
         if month < 8: # le "pivot" est le 1er aout

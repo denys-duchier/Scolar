@@ -48,7 +48,7 @@ saisir les absences de toute cette semaine.</p>
 
 <dtml-comment> ANCIENNE INTERFACE (1 bouton/semaine) 
 <table><tr><td valign="top">
-<dtml-in ListMondays>
+<dtml-in "ListMondays(REQUEST=REQUEST)">
 <dtml-if "(_['sequence-number'] - 1) % 6 == 0"></td><td></dtml-if>
 <button type="submit" name="datelundi" style="background-color: orange;" value="<dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )">"> <dtml-var "DateISO2DDMMYYYY( _['sequence-item'] )"> </button><br>
 </dtml-in>

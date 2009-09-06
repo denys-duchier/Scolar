@@ -602,7 +602,7 @@ class ZAbsences(ObjectManager,
     def CalSelectWeek(self, year=None, REQUEST=None):
         "display calendar allowing week selection"
         if not year:
-            year = self.AnneeScolaire()
+            year = self.AnneeScolaire(REQUEST)
         sems = self.Notes.do_formsemestre_list()
         if not sems:
             js = ''
@@ -638,11 +638,11 @@ class ZAbsences(ObjectManager,
             return ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
     
     security.declareProtected(ScoView, 'ListMondays')
-    def ListMondays(self, year=None):
+    def ListMondays(self, year=None, REQUEST=None):
         """return list of mondays (ISO dates), from september to june
         """
         if not year:
-            year = self.AnneeScolaire()
+            year = self.AnneeScolaire(REQUEST)
         d = ddmmyyyy( '1/9/%d' % year, work_saturday=self.is_work_saturday() )
         while d.weekday != 0:
             d = d.next()
@@ -923,8 +923,8 @@ class ZAbsences(ObjectManager,
     def ListeAbsEtud(self, etudid, with_evals=True, format='html',
                      absjust_only=0, REQUEST=None):
         "Liste des absences d'un étudiant sur l'année en cours"
-        datedebut = '%s-08-31' % self.AnneeScolaire()
-        #datefin = '%s-08-31' % (self.AnneeScolaire()+1)
+        datedebut = '%s-08-31' % self.AnneeScolaire(REQUEST)
+        #datefin = '%s-08-31' % (self.AnneeScolaire(REQUEST)+1)
         absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
         absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
         absjust_only = int(absjust_only) # si vrai, table absjust seule (export xls ou pdf)

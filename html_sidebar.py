@@ -82,7 +82,7 @@ def sidebar(context, REQUEST=None):
         etud = context.getEtudInfo(filled=1, etudid=etudid)[0]
         params.update(etud)
         # compte les absences de l'annee scolaire en cours (du 1 sept au 31 juil)
-        annee = int(context.AnneeScolaire())
+        annee = int(context.AnneeScolaire(REQUEST))
         date_debut = str(annee) + '-08-31'
         date_fin = str(annee+1) + '-07-31'
         params['nbabs']= context.Absences.CountAbs(etudid=etudid, debut=date_debut, fin=date_fin)
