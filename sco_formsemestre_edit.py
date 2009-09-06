@@ -104,7 +104,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     allowed_user_names = login2display.values() + ['']
     #
     formation_id = REQUEST.form['formation_id']
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    if not F:
+        raise ScoValueError('Formation inexistante !')
+    F = F[0]
     if not edit:
         initvalues = {
             'nomgroupetd' : 'TD',
