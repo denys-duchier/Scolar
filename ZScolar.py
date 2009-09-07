@@ -1141,7 +1141,7 @@ class ZScolar(ObjectManager,
                 nbdem += 1
             T.append(t)
         def cmpnom(x,y):
-            return cmp( x['nom'], y['nom'] )
+            return cmp( x['nom']+x['prenom'], y['nom']+y['prenom'] )
         T.sort(cmpnom) # sort by nom
         return T, nomgroupe, ng, sem, nbdem
     

@@ -156,9 +156,9 @@ class NotesTable:
             i = scolars.etudident_list( cnx, { 'etudid' : x['etudid'] } )[0]
             self.identdict[x['etudid']] = i
             self.inscrdict[x['etudid']] = x
-            x['nom'] = i['nom'] # pour tri
+            x['nomp'] = i['nom'] + i['prenom'] # pour tri
         # Tri les etudids par NOM
-        self.inscrlist.sort( lambda x,y: cmp(x['nom'],y['nom']) )
+        self.inscrlist.sort( lambda x,y: cmp(x['nomp'],y['nomp']) )
         # { etudid : rang dans l'ordre alphabetique }
         rangalpha = {}
         for i in range(len(self.inscrlist)):

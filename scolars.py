@@ -376,7 +376,7 @@ class EtudIdentEditor:
                 #print "*** pas d'info admission pour %s" % str(i)
                 pass
         # tri par nom
-        res.sort( lambda x,y: cmp(x['nom'],y['nom']) )
+        res.sort( lambda x,y: cmp(x['nom']+x['prenom'],y['nom']+y['prenom']) )
         return res
     def edit(self, cnx, args, context=None, REQUEST=None):
         identite_edit( cnx, args, context, REQUEST )
