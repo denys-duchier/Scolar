@@ -379,9 +379,17 @@ Le Chef du département""",
     ('pv_sig_image_height',
      { 'initvalue' : 11, 
          'size' : 10, 'title' : 'Hauteur de l\'image de la signature', 'type' : 'float',
-         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimmensionnée à cette taille (en millimètres)',
+         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimensionnée à cette taille (en millimètres)',
          'category' : 'pvpdf'
          }),
+    ('ChiefDeptName',
+     { 'initvalue' : '',
+       'title' : 'Nom du chef de département',
+       'size' : 32,
+       'explanation' : 'pour les bulletins pdf',
+       'category' : 'pvpdf'
+     }
+    ),
     
     # bul
     ( 'bul_show_abs', # ex "gestion_absence"
@@ -435,6 +443,15 @@ Le Chef du département""",
     ( 'bul_show_uevalid', 
       { 'initvalue' : 1,
         'title' : 'Faire figurer les UE validées sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
+    
+    ( 'bul_show_chiefDept', 
+      { 'initvalue' : 0,
+        'title' : 'Faire figurer le nom du chef de départemnt sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']

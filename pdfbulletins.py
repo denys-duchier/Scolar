@@ -131,6 +131,15 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     if situation:
         objects.append( Spacer(0, 0.5*cm) )
         objects.append( Paragraph( SU(situation), StyleSheet["Heading3"] ) )
+# Yann
+    if context.get_preference('bul_show_chiefDept', formsemestre_id):
+        t = Table([[SU('La direction des études'), SU('Le chef de département')],
+               [SU(context.Users.user_info(user_name=sem['responsable_id'])['prenomnom']), SU(context.get_preference('ChiefDeptName', formsemestre_id))]])
+        t._argW[0] = 10*cm
+        objects.append( Spacer(1, 1.5*cm) )
+        objects.append(t)
+
+
     # reduit sur une page
     objects = [KeepInFrame(0,0,objects,mode='shrink')]    
     #
