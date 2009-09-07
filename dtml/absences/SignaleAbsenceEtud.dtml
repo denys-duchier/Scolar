@@ -47,9 +47,13 @@
 &nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
 
 <p>
-<INPUT TYPE="CHECKBOX" name="estjust">Absence justifi&eacute;e.
+<input type="checkbox" name="estjust"/>Absence justifi&eacute;e.
+<br/>
+Raison: <input type="text" name="description" size="42"/> (optionnel)
+</p>
+
 <p>
-<input type="submit" value="Envoyer"> 
+<input type="submit" value="Envoyer"/> 
 
 <p>(<em>toutes les dates au format jour/mois/annee</em>)</p>
 

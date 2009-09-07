@@ -34,10 +34,10 @@
 
 <dtml-let L="[]">
 <dtml-in "ListeAbsJust( etudid=etudid, datedebut=`AnneeScolaire(REQUEST)`+'-08-31' )" mapping>
-<dtml-call "L.append( ( str(jour), 'a', '#F8B7B0', '', matin ) )">
+<dtml-call "L.append( ( str(jour), 'a', '#F8B7B0', '', matin, description ) )">
 </dtml-in>
 <dtml-in "ListeAbsNonJust( etudid=etudid, datedebut=`_.int(AnneeScolaire(REQUEST))`+'-08-31' )" mapping>
-<dtml-call "L.append( ( str(jour), 'A', '#EE0000', '', matin ) )">
+<dtml-call "L.append( ( str(jour), 'A', '#EE0000', '', matin, description ) )">
 </dtml-in>
 
 <dtml-var "YearTable( _.int(AnneeScolaire(REQUEST)), events=L, halfday=1 )"> 

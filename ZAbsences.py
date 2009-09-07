@@ -298,7 +298,7 @@ class ZAbsences(ObjectManager,
     #
     # --------------------------------------------------------------------
     security.declareProtected(ScoAbsChange, 'AddAbsence')
-    def AddAbsence(self, etudid, jour, matin, estjust, REQUEST):
+    def AddAbsence(self, etudid, jour, matin, estjust, REQUEST, description=None):
         "Ajoute une absence dans la bd"
         if self._isFarFutur(jour):
             raise ScoValueError('date absence trop loin dans le futur !')
@@ -306,22 +306,22 @@ class ZAbsences(ObjectManager,
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin) values (%(etudid)s,%(jour)s, TRUE, %(estjust)s, %(matin)s )', vars() )
+        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin,description) values (%(etudid)s, %(jour)s, TRUE, %(estjust)s, %(matin)s, %(description)s )', vars())
         logdb(REQUEST, cnx, 'AddAbsence', etudid=etudid,
-              msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s'%vars())
+              msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
         self.Notes._inval_cache()
 
     security.declareProtected(ScoAbsChange, 'AddJustif')
-    def AddJustif(self, etudid, jour, matin, REQUEST):
+    def AddJustif(self, etudid, jour, matin, REQUEST, description=None):
         "Ajoute un justificatif dans la base"
         if self._isFarFutur(jour):
             raise ScoValueError('date justificatif trop loin dans le futur !')
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin) values (%(etudid)s,%(jour)s, FALSE, TRUE, %(matin)s )', vars() )
+        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin, description) values (%(etudid)s,%(jour)s, FALSE, TRUE, %(matin)s, %(description)s )', vars() )
         logdb(REQUEST, cnx, 'AddJustif', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
@@ -470,22 +470,46 @@ class ZAbsences(ObjectManager,
  AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN AND A.JOUR > %(datedebut)s
  AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)
         """, vars() )
-        return cursor.dictfetchall()
+        A = cursor.dictfetchall()
+        for a in A:
+            a['description'] = self._GetAbsDescription(a, cursor=cursor)
+        return A
 
     security.declareProtected(ScoView, 'ListeAbsNonJust')
     def ListeAbsNonJust(self, etudid, datedebut):
         "Liste des absences NON justifiees"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute("""SELECT JOUR, MATIN FROM ABSENCES A 
+        cursor.execute("""SELECT ETUDID, JOUR, MATIN FROM ABSENCES A 
     WHERE A.ETUDID = %(etudid)s
     AND A.estabs 
     AND A.jour > %(datedebut)s
-    EXCEPT SELECT JOUR, MATIN FROM ABSENCES B 
+    EXCEPT SELECT ETUDID, JOUR, MATIN FROM ABSENCES B 
     WHERE B.estjust 
     AND B.ETUDID = %(etudid)s
         """, vars() )
-        return cursor.dictfetchall()
+        A = cursor.dictfetchall()
+        for a in A:
+            a['description'] = self._GetAbsDescription(a, cursor=cursor)
+        return A
+
+    def _GetAbsDescription(self, a, cursor=None):
+        "Description associee a l'absence"
+        if not cursor:
+            cnx = self.GetDBConnexion()
+            cursor = cnx.cursor()
+        a = a.copy()
+        a['jour'] = a['jour'].date
+        if a['matin']: # devrait etre booleen... :-(
+            a['matin'] = True
+        else:
+            a['matin'] = False
+        cursor.execute("""select * from absences where etudid=%(etudid)s and jour=%(jour)s and matin=%(matin)s order by entry_date desc""", a)
+        A = cursor.dictfetchall()
+        for a in A:
+            if a['description']:
+                return a['description']
+        return None
 
     security.declareProtected(ScoView, 'ListeAbsJour')
     def ListeAbsJour(self, date, am=True, pm=True):
@@ -502,7 +526,10 @@ class ZAbsences(ObjectManager,
             req += "AND matin"
         
         cursor.execute(req, { 'date' : date } )
-        return cursor.dictfetchall()
+        A = cursor.dictfetchall()
+        for a in A:
+            a['description'] = self._GetAbsDescription(a, cursor=cursor)
+        return A
 
     security.declareProtected(ScoView, 'ListeAbsNonJustJour')
     def ListeAbsNonJustJour(self, date, am=True, pm=True):
@@ -521,7 +548,10 @@ class ZAbsences(ObjectManager,
     WHERE B.estjust AND B.jour = %(date)s""" + reqa        
         
         cursor.execute(req, { 'date' : date } )
-        return cursor.dictfetchall()
+        A = cursor.dictfetchall()
+        for a in A:
+            a['description'] = self._GetAbsDescription(a, cursor=cursor)
+        return A
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
     def doSignaleAbsenceGrHebdo(self, abslist=[],
@@ -1327,6 +1357,7 @@ def MonthTableTail():
     return '</table>\n'
 
 def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_saturday=False ):
+    log('XXX events=%s' % events)
     firstday, nbdays = calendar.monthrange(year,month)
     localtime = time.localtime()
     current_weeknum = time.strftime( '%U', localtime )
@@ -1372,6 +1403,8 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                         color = ev[2]
                     if ev[3]:
                         href = ev[3]
+                    if len(ev) > 4 and ev[4]:
+                        descr = ev[4]
             #
             cc = []
             if color != None:
@@ -1380,6 +1413,9 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 cc.append( '<td>' )
             if href:
                 cc.append( '<a href="%s">' % href )
+            elif descr:
+                cc.append( '<a title="%s">' % descr )
+            
             if legend or d == 1:
                 n = 8-len(legend) # pad to 8 cars
                 if n > 0:
@@ -1387,7 +1423,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
             else:
                 legend = '&nbsp;' # empty cell
             cc.append(legend)
-            if href:
+            if href or descr:
                 cc.append('</a>')
             cc.append('</td>')
             cell = string.join(cc,'')
@@ -1422,6 +1458,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 color = None
                 legend = ''
                 href = ''
+                descr = ''
                 for ev in events:
                     ev_year = int(ev[0][:4])
                     ev_month = int(ev[0][5:7])
@@ -1438,6 +1475,8 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                             color = ev[2]
                         if ev[3]:
                             href = ev[3]
+                        if len(ev) > 5 and ev[5]:
+                            descr = ev[5]
                 #
                 if color != None:
                     cc.append( '<td bgcolor="%s">'
@@ -1446,6 +1485,8 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                     cc.append( '<td>'  )
                 if href:
                     cc.append( '<a href="%s">' % href )
+                elif descr:
+                    cc.append( '<a title="%s">' % descr )
                 if legend or d == 1:
                     n = 3-len(legend) # pad to 3 cars
                     if n > 0:
@@ -1453,7 +1494,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 else:
                     legend = '&nbsp;&nbsp;&nbsp;' # empty cell
                 cc.append(legend)
-                if href:
+                if href or descr:
                     cc.append('</a>')
                 cc.append('</td>\n')
             T.append(string.join(cc,'')+'</tr>')

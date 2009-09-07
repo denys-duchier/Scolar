@@ -100,7 +100,13 @@ for dept in get_depts():
     etat integer default 0 -- 0 new, 1 processed    
 ) WITH OIDS;
 """] )
-    
+    # description absence
+    check_field(cnx, 'absences', 'description',
+                ['alter table absences add column description text'
+                 ])
+    check_field(cnx, 'absences', 'entry_date',
+                ['alter table absences add column entry_date timestamp with time zone DEFAULT now()'
+                 ])
     # Add here actions to performs after upgrades:
 
     cnx.commit()

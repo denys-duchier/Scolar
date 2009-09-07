@@ -43,6 +43,9 @@
        <option value="0">Apr&egrave;s midi seulement</option>
        </select>
 
+<br/>
+Raison: <input type="text" name="description" size="42"/> (optionnel)
+
 <p>
 <input type="submit" value="Envoyer"> 
 

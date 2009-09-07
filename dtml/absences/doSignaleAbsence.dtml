@@ -7,6 +7,7 @@
 
 <dtml-var "sco_header(page_title='Signalement d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST)">
 
+<dtml-call "REQUEST.set('description_abs', REQUEST.form.get('description', None))">
 
 <dtml-try>
 <dtml-if estjust>
@@ -26,15 +27,12 @@
 
   <dtml-if "demijournee=='2'">
    <dtml-call "REQUEST.set('matin', 'false' )">
-   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
+   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST,description_abs)">
    <dtml-call "REQUEST.set('matin', 'true' )">
-   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
+   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST,description_abs)">
   <dtml-else>
    <dtml-call "REQUEST.set( 'matin', _.int(demijournee) )">
-   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST)">
-<!--   AddAbsence( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin>, estjust=<dtml-var estjust> )<br> -->
+   <dtml-call "AddAbsence(etudid,jour,matin,estjust,REQUEST,description_abs)">
   </dtml-if>
 
 </dtml-let jour>
@@ -45,7 +43,6 @@ Ajout de <b><dtml-var sequence-length></b> absence(s) <b><dtml-if estjust><dtml-
 <dtml-else> <p>
 <font color="#FF0000" size="+1">Aucune date ouvrable entre le <dtml-var datedebut> et  <dtml-var datefin> !!!</font>
 </dtml-in DateRangeISO>
-
 
 
 <dtml-let nbabs="Absences.CountAbs(etudid=etudid,debut=`AnneeScolaire(REQUEST)`+'-08-31',fin=`AnneeScolaire()+1`+'-07-31')">

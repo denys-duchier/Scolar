@@ -100,7 +100,9 @@ CREATE TABLE absences (
     jour date, -- jour de l'absence
     estabs boolean, -- vrai si absent
     estjust boolean, -- vrai si justifie
-    matin boolean -- vrai si concerne le matin, faux si apres midi
+    matin boolean, -- vrai si concerne le matin, faux si apres midi
+    description text,  -- "raison" de l'absence
+    entry_date timestamp with time zone DEFAULT now(),
 ) WITH OIDS;
 
 CREATE SEQUENCE notes_idgen_billets;

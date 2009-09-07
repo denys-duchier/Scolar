@@ -8,21 +8,23 @@
 
 <dtml-var "sco_header(page_title='Justification d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST)">
 
+<dtml-call "REQUEST.set('description_abs', REQUEST.form.get('description', None))">
+
 <dtml-in "DateRangeISO( datedebut, datefin )">
 <dtml-let jour=sequence-item><dtml-call "REQUEST.set('jour', jour )">
 
 <dtml-if "demijournee=='2'">
 
-<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=False, REQUEST=REQUEST)">
+<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=False, REQUEST=REQUEST, description=description_abs)">
 <!-- AddJustif( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=False  )<br> -->
 
-<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=True, REQUEST=REQUEST)">
+<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=True, REQUEST=REQUEST, description=description_abs)">
 <!-- AddJustif( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=True )<br> -->
 
 
 <dtml-else>
 <dtml-let matin="_.int(demijournee)">
-<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=matin, REQUEST=REQUEST)">
+<dtml-call "AddJustif(etudid=etudid, jour=jour, matin=matin, REQUEST=REQUEST, description=description_abs)">
 <!-- AddJustif( etudid=<dtml-var etudid>, jour=<dtml-var jour>, matin=<dtml-var matin> )<br> -->
 </dtml-let>
 </dtml-if demijournee>
