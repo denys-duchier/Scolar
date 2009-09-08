@@ -1003,17 +1003,20 @@ class ZAbsences(ObjectManager,
                 a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
                 a['matin_o'] = a['matin']
                 a['matin'] = matin(a['matin'])
+                a['description'] = a['description'] or ''
         # ajoute lien pour justifier
         if format == 'html':
             for a in absnonjust:
                 a['justlink'] = '<em>justifier</em>'
                 a['_justlink_target'] = 'doJustifAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s'%(etudid, a['datedmy'], a['datedmy'], a['matin_o'])
         #
-        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens', 'justlink' : '' }
+        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens', 'justlink' : '', 'description' : 'Raison' }
         columns_ids=['datedmy', 'matin']
         if with_evals:
             columns_ids.append('exams')
-        
+            
+        columns_ids.append('description')
+
         if format == 'html':
             columns_ids.append('justlink')
         
@@ -1262,16 +1265,16 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         dates = self.DateRangeISO( datedebut, datefin )
         # commence apres midi ?
         if billet['abs_begin'].hour > 11:
-            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST)
+            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=billet['description'])
             dates = dates[1:]
         # termine matin ?
         if dates and billet['abs_end'].hour < 12:
-            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST)
+            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST, description=billet['description'])
             dates = dates[:-1]
         
         for jour in dates:
-            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST)
-            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST)
+            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST, description=billet['description'])
+            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST, description=billet['description'])
         
         # 2- change etat du billet
         billet_absence_edit(cnx, { 'billet_id' : billet['billet_id'], 'etat' : 1 } )
