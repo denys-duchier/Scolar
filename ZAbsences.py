@@ -1389,6 +1389,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
             color = None
             legend = ''
             href = ''
+            descr = ''
             # event this day ?        
             # each event is a tuple (date, text, color, href)
             #  where date is a string in ISO format (yyyy-mm-dd)
