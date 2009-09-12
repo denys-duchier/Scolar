@@ -1180,11 +1180,21 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 
     def _tableBillets(self, billets, etud=None, title='' ):
         for b in billets:
-            b['abs_begin_str'] = str(b['abs_begin']) # XXX dates a reformatter
-            b['abs_end_str'] = str(b['abs_end'])
+            if b['abs_begin'].hour < 12:
+                m = ' matin'
+            else:
+                m = ' après midi'
+            b['abs_begin_str'] = b['abs_begin'].strftime('%d/%m/%Y') + m
+            if b['abs_end'].hour < 12:
+                m = ' matin'
+            else:
+                m = ' après midi'
+            b['abs_end_str'] = b['abs_end'].strftime('%d/%m/%Y') + m
             if b['etat'] == 0:
-                b['etat_str'] = 'traiter'
+                b['etat_str'] = 'à traiter'
                 b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s&estjust=0' % b['billet_id']
+                if etud:
+                    b['_etat_str_target'] += '&etudid=%s' % etud['etudid']
                 b['_billet_id_target'] = b['_etat_str_target']
             else:
                 b['etat_str'] = 'ok'
@@ -1209,7 +1219,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                         columns_ids=columns_ids,
                         page_title=title, html_title='<h2>%s</h2>' % title,
                         preferences=self.get_preferences(),
-                        rows = billets )
+                        rows = billets, html_sortable=True )
         return tab
 
     security.declareProtected(ScoView, 'listeBilletsEtud')
@@ -1249,7 +1259,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         else:
             return REQUEST.RESPONSE.redirect( 'ProcessBilletAbsenceForm?billet_id=' + tf[2]['billet_id'] )
 
-    def _ProcessBilletAbsence(self, billet, estjust, REQUEST):
+    def _ProcessBilletAbsence(self, billet, estjust, description, REQUEST):
         """Traite un billet: ajoute absence(s) et éventuellement justificatifs,
         et change l'état du billet à 1.
         NB: actuellement, les heures ne sont utilisées que pour déterminer si matin et/ou après midi.
@@ -1258,28 +1268,32 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         log('billet=%s' % billet)
         if billet['etat'] != 0:
             log('billet deja traité !')
-            return 1
+            return -1
+        n = 0 # nombre de demi-journées d'absence ajoutées
         # 1-- ajout des absences (et justifs)
         datedebut = billet['abs_begin'].strftime('%d/%m/%Y')
         datefin = billet['abs_end'].strftime('%d/%m/%Y')
         dates = self.DateRangeISO( datedebut, datefin )
         # commence apres midi ?
         if billet['abs_begin'].hour > 11:
-            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=billet['description'])
+            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=description)
+            n += 1
             dates = dates[1:]
         # termine matin ?
         if dates and billet['abs_end'].hour < 12:
-            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST, description=billet['description'])
+            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST, description=description)
+            n += 1
             dates = dates[:-1]
         
         for jour in dates:
-            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST, description=billet['description'])
-            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST, description=billet['description'])
+            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST, description=description)
+            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST, description=description)
+            n += 2
         
         # 2- change etat du billet
         billet_absence_edit(cnx, { 'billet_id' : billet['billet_id'], 'etat' : 1 } )
         
-        return 0
+        return n
     
     security.declareProtected(ScoAbsChange, 'ProcessBilletAbsenceForm')
     def ProcessBilletAbsenceForm(self, billet_id, REQUEST=None):
@@ -1291,31 +1305,55 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         billet = billets[0]
         etudid = billet['etudid']
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
-        tab = self._tableBillets([billet], etud=etud)
+        
         H = [ self.sco_header(REQUEST,page_title="Traitement billet d'absence de %s" % etud['nomprenom']),
               '<h2>Traitement du billet %s : <a class="discretelink" href="ficheEtud?etudid=%s">%s</a></h2>' % (billet_id, etudid, etud['nomprenom'])
               ]
-        F = '<p><a class="stdlink" href="listeBillets">Liste des billets en attente</a></p>' + self.sco_footer(REQUEST)
+        
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('billet_id',  { 'input_type' : 'hidden' }),
-             ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiées' } )),
+             ('etudid',  { 'input_type' : 'hidden' }), # pour centrer l'UI sur l'étudiant
+             ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiées' }),
+              ('description',  { 'input_type' : 'text', 'size' : 42, 'title' : 'Raison' })),
+            initvalues = { 'description' : billet['description'],
+                           'etudid' : etudid},
             submitlabel = 'Enregistrer ces absences')
         if tf[0] == 0:
+            tab = self._tableBillets([billet], etud=etud)
             H.append(tab.html())
-            return '\n'.join(H) + tf[1] + F
+            F = '<p><a class="stdlink" href="listeBillets">Liste de tous les billets en attente</a></p>' + self.sco_footer(REQUEST)
+            return '\n'.join(H) + '<br/>' +  tf[1] + F
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
-            self._ProcessBilletAbsence(billet, tf[2]['estjust'], REQUEST)
-            return REQUEST.RESPONSE.redirect( 'listeBilletsEtud?etudid=%(etudid)s&head_message=billet%%20traité' % etud )
+            n = self._ProcessBilletAbsence(billet, tf[2]['estjust'], tf[2]['description'], REQUEST)
+            if tf[2]['estjust']:
+                j = 'justifiées'
+            else:
+                j = 'non justifiées'
+            H.append('<div class="head_message">')
+            if n > 0:
+                H.append('%d absences (1/2 journées) %s ajoutées' % (n,j))
+            elif n == 0:
+                H.append("Aucun jour d'absence dans les dates indiquées !")
+            elif n < 0:
+                H.append("Ce billet avait déjà été traité !")
+            H.append('</div><p><a class="stdlink" href="listeBillets">Autre billets en attente</a></p><h4>Billets déclarés par %s</h4>' % (etud['nomprenom']))
+            billets = billet_absence_list(cnx,  {'etudid': etud['etudid'] } )
+            tab = self._tableBillets(billets, etud=etud)
+            H.append(tab.html())
+            return '\n'.join(H) + self.sco_footer(REQUEST)
+
+
     
     
 
 _billet_absenceEditor = EditableTable(
     'billet_absence',
     'billet_id',
-    ('billet_id', 'etudid', 'abs_begin', 'abs_end', 'description', 'etat')
+    ('billet_id', 'etudid', 'abs_begin', 'abs_end', 'description', 'etat', 'entry_date'),
+    sortkey='entry_date desc'
 )
 
 billet_absence_create = _billet_absenceEditor.create

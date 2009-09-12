@@ -107,6 +107,9 @@ for dept in get_depts():
     check_field(cnx, 'absences', 'entry_date',
                 ['alter table absences add column entry_date timestamp with time zone DEFAULT now()'
                  ])
+    check_field(cnx, 'billet_absence', 'entry_date',
+                ['alter table billet_absence add column entry_date timestamp with time zone DEFAULT now()'
+                 ])
     # Add here actions to performs after upgrades:
 
     cnx.commit()
