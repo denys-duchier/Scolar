@@ -185,7 +185,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Synchroniser avec étape Apogée',
           'url' : 'formsemestre_synchro_etuds?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url')
           },
         { 'title' : 'Inscrire un étudiant',
           'url' : 'formsemestre_inscription_with_modules_etud?formsemestre_id=' + formsemestre_id,
@@ -201,7 +201,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Resynchroniser données admission', # TEMPORAIRE POUR MIGRER IUTV
           'url' : 'formsemestre_import_etud_admission?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (str(authuser) == 'viennetadm' or str(authuser) == 'admin'),
+          'enabled' : (authuser.has_permission(ScoEtudInscrit, context) and (str(authuser) == 'viennetadm' or str(authuser) == 'admin')) and context.get_preference('portal_url'),
           },
 
         { 'title' : 'Exporter table des étudiants',

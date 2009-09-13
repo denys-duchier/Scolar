@@ -409,9 +409,6 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
     cnx = context.GetDBConnexion()
     created_etudids = []
         
-    # Manque:
-    #  2/ completer suivant WebService portail (adresse, sexe, ...)
-
     try: # --- begin DB transaction
         for key in a_importer:
             etud = etudsapo_ident[key] # on a ici toutes les infos renvoyées par le portail
@@ -474,7 +471,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
     sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
                  text='Import Apogée de %d étudiants' % len(created_etudids) )
     
-def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False):
+def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False, import_identite=False):
     """Importe les donnees admission pour cet etud.
     etud est un dictionnaire traduit du XML portail
     """
@@ -509,6 +506,22 @@ def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False)
         if annee_naissance:
             scolars.identite_edit_nocheck(cnx, 
                                           { 'etudid' : etudid, 'annee_naissance' : annee_naissance })
+    # Reimport des identités
+    if import_identite:
+        args = { 'etudid' : etudid }
+        annee_naissance = get_annee_naissance(etud['naissance'])
+        if annee_naissance:
+            args['annee_naissance'] = annee_naissance
+        nom = etud.get('nom', '').strip()
+        if nom:
+            args['nom'] = nom
+        prenom = etud.get('prenom', '').strip()
+        if prenom:
+            args['prenom'] = prenom
+        sexe = gender2sex(etud['gender'].strip())
+        if sexe:
+            args['sexe'] = sexe
+        scolars.identite_edit_nocheck(cnx, args)
 
 
 def get_bac(etud):
@@ -523,9 +536,12 @@ def get_bac(etud):
         spe_bac = None
     return serie_bac, spe_bac
 
-def formsemestre_import_etud_admission(context, formsemestre_id):
+def formsemestre_import_etud_admission(context, formsemestre_id, import_identite=True):
     """Tente d'importer les données admission depuis le portail 
     pour tous les étudiants du semestre.
+    Si  import_identite==True, recopie l'identité (nom/prenom/sexe/annee_naissance)
+    de chaque étudiant depuis le portail.
+    N'affecte pas les etudiants inconnus sur le portail. 
     """
     sem = context.get_formsemestre(formsemestre_id)
     ins = context.do_formsemestre_inscription_list( { 'formsemestre_id' : formsemestre_id } )
@@ -542,10 +558,11 @@ def formsemestre_import_etud_admission(context, formsemestre_id):
         else:
             etud = sco_portal_apogee.get_etud_apogee(context, code_nip)
             if etud:
-                do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True)
+                do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True, import_identite=import_identite)
             else:
                 unknowns.append(code_nip)
     return no_nip, unknowns
+
 
 def do_synch_inscrits_etuds(context, sem, etuds, REQUEST=None):
     """inscrits ces etudiants (déja dans ScoDoc) au semestre"""
