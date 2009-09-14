@@ -85,7 +85,7 @@ for dept in get_depts():
 
     # billets d'absences
     check_table( cnx, 'billet_absence', [
-            """CREATE SEQUENCE notes_idgen_billets""",
+            """CREATE SEQUENCE notes_idgen_billets;""",
             """CREATE FUNCTION notes_newid_billet( text ) returns text as '
 	select $1 || to_char(  nextval(''notes_idgen_billets''), ''FM999999999'' ) 
 	as result;
