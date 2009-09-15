@@ -27,9 +27,9 @@ try:
     txt = open(cfg_file).read()
 except:
     txt = None
-    log('*** standard configuration file not found, ignoring')
+    log('\n*** standard configuration file not found, ignoring')
     log('%s not found' % cfg_file)
-    log('(you will have to upgrade your Apache configuration by hand)')
+    log('(you will have to upgrade your Apache configuration by hand)\n\n')
 
 if txt:
     try:
