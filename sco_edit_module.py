@@ -60,6 +60,12 @@ def module_create(context, matiere_id=None, REQUEST=None):
           """ (UE %(acronyme)s)</h2>""" % UE,
           _MODULE_HELP
           ]
+    # cherche le numero adequat (pour placer le module en fin de liste)
+    Mods = context.do_module_list(args={ 'matiere_id' :  matiere_id } )
+    if Mods:
+        default_num = max([ m['numero'] for m in Mods ]) + 10
+    else:
+        default_num = 10
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
@@ -79,7 +85,7 @@ def module_create(context, matiere_id=None, REQUEST=None):
                           'explanation' : 'semestre de début du module dans la formation standard',
                           'labels' : ('1','2','3','4'), 'allowed_values' : ('1','2','3','4') }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
-                        'type' : 'int', 'default':10 }),
+                        'type' : 'int', 'default': default_num }),
         ),
                            submitlabel = 'Créer ce module')
     if tf[0] == 0:
