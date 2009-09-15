@@ -124,7 +124,13 @@ def XMLgetGroupesTD(context, formsemestre_id, groupType, REQUEST):
         for e in inscrlist:
             if (g and e[key] == g) or (not g and not e[key]):
                 ident = nt.identdict[e['etudid']]
-                etud = context.getEtudInfo(etudid=e['etudid'], filled=1)[0]
+                etud = context.getEtudInfo(etudid=e['etudid'], filled=1)
+                if not etud:
+                    log('*** ouch: etud %s inscrit mais inconnu !' % e['etudid'])
+                    log(e)
+                    continue
+                else:
+                    etud = etud[0]
                 doc._push()
                 doc.etud( etudid=e['etudid'],
                           sexe=format_sexe(ident['sexe']),
