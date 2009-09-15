@@ -116,8 +116,12 @@ window.onload=function(){enableTooltips("gtrcontent")};
 </script>""" % params )
     # JS additionels
     for js in javascripts:
-        H.append( """<script language="javascript" type="text/javascript" src="%s/%s"></script>"""
-                  % (params['ScoURL'], js) )
+        if js[:4] != 'http':
+            u = params['ScoURL'] + '/' + js
+        else:
+            u = js
+        H.append( """<script language="javascript" type="text/javascript" src="%s"></script>"""
+                  % (u) )
 
     H.append( """<style>
 .gtrcontent {

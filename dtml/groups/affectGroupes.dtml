@@ -1,7 +1,7 @@
 <dtml-if "Notes.can_change_groups(REQUEST,formsemestre_id)">
 <dtml-var "sco_header(page_title='Affectation aux groupes',
            REQUEST=REQUEST,
-           javascripts=[ 'prototype_1_4_0_js', 'rico_js', 'groupmgr_js' ],
+           javascripts=[ BASE0+'/ScoDoc/static/Rico/src/prototype.js',BASE0+ '/ScoDoc/static/Rico/src/min.rico.js', BASE0+ '/ScoDoc/static/Rico/src/ricoAjaxEngine.js', 'groupmgr_js' ],
            bodyOnLoad='javascript:bodyOnLoad()' )">
 
 

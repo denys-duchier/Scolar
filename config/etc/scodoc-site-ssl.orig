@@ -1,6 +1,6 @@
 
 # Fichier config Apache basique pour ScoDoc
-# E. Viennet, juin 2008
+# E. Viennet, juin 2008, sept 2009
 
 # Apache fonctionne ici en proxy https devant zope (lui même sur 8080).
 
@@ -37,6 +37,10 @@ NameVirtualHost *:443
   RewriteEngine on
   RewriteLog   /var/log/rewrite.ssl
   RewriteLogLevel 0
+
+  # ScoDoc static content, served directly:
+  RewriteCond %{HTTP:Authorization}  ^(.*)
+  RewriteRule ^/ScoDoc/static/(.*) /opt/scodoc/instance/Products/ScoDoc/static/$1 [L]
 
   # Le reste est pour Zope:
   RewriteRule ^/(.*) http://localhost:8080/VirtualHostBase/https/YOUR.FULL.HOST.NAME:443/$1 [L,P]

@@ -278,8 +278,6 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         """                           
     header = context.sco_header(
                 REQUEST,
-                #javascripts=[ 'prototype_1_4_0_js', 'rico_js'],
-                #bodyOnLoad='javascript:bodyOnLoad()',
                 page_title='Fiche étudiant %(prenom)s %(nom)s'%info )
     return header + tmpl % info + context.sco_footer(REQUEST)
 

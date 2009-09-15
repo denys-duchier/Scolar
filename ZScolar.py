@@ -321,12 +321,6 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
 
-    security.declareProtected(ScoView, 'prototype_1_4_0_js')
-    prototype_1_4_0_js = DTMLFile('JavaScripts/prototype_1_4_0_js', globals())
-
-    security.declareProtected(ScoView, 'rico_js')
-    rico_js = DTMLFile('JavaScripts/rico_js', globals())
-    
     security.declareProtected(ScoView, 'jquery_1_2_6_min_js')
     jquery_1_2_6_min_js = DTMLFile('JavaScripts/jquery_1_2_6_min_js', globals())
     
@@ -1353,8 +1347,12 @@ class ZScolar(ObjectManager,
                 etud['situation'] = self._descr_situation_etud(etudid,etud['ne'])
             else:
                 if etud['sems']:
-                    etud['inscription'] = 'ancien'
-                    etud['situation'] = 'ancien élève'
+                    if etud['sems'][0]['dateord'] > time.strftime('%Y-%m-%d',time.localtime()):
+                        etud['inscription'] = 'futur'
+                        etud['situation'] = 'futur élève'
+                    else:
+                        etud['inscription'] = 'ancien'
+                        etud['situation'] = 'ancien élève'
                 else:
                     etud['inscription'] = 'non inscrit'
                     etud['situation'] = etud['inscription']

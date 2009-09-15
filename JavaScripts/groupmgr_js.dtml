@@ -7,8 +7,8 @@
 
 var onloads = new Array();
 function bodyOnLoad() {
-  new Rico.Effect.Round( null, 'roundNormal' );
-  new Rico.Effect.Round( null, 'roundCompact', {compact:true} );
+  // XXX new Rico.Effect.Round( null, 'roundNormal' );
+  // XXX new Rico.Effect.Round( null, 'roundCompact', {compact:true} );
   for ( var i = 0 ; i < onloads.length ; i++ )
     onloads[i]();
   // alert('bodyOnLoad: done');
@@ -155,8 +155,8 @@ var NbEtuds = 0;
 
 /* --- Etudiant draggable --- */
 var CDraggableEtud = Class.create(); // Prototype 
-CDraggableEtud.prototype = (new Rico.Draggable()).extend( {
-	initialize: function(nom, prenom, sexe, origin, etudid) {
+CDraggableEtud.prototype = Object.extend( new Rico.Draggable(), {
+      initialize: function(nom, prenom, sexe, origin, etudid) {
       this.type        = 'Custom';
       this.name        = etudid;
       this.etudid = etudid;
