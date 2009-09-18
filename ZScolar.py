@@ -505,14 +505,14 @@ class ZScolar(ObjectManager,
     # --------------------------------------------------------------------
 
     security.declareProtected(ScoView, 'formChercheEtud')
-    def formChercheEtud(self, REQUEST=None, dest_url=None, parameters=None, parameters_keys=None):
+    def formChercheEtud(self, REQUEST=None, dest_url=None, parameters=None, parameters_keys=None, title='Rechercher un &eacute;tudiant par nom&nbsp;: '):
         "form recherche par nom"
         H = [ """<form action="chercheEtud" method="POST">
-        <b>Rechercher un &eacute;tudiant par nom&nbsp;: </b>
+        <b>%s</b>
         <input type="text" name="expnom" width=12 value="">
         <input type="submit" value="Chercher">
         <br/>(entrer une partie du nom)
-        """ ]
+        """ % title]
         if dest_url:
             H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)
         if parameters:
@@ -1236,40 +1236,50 @@ class ZScolar(ObjectManager,
                     q.append( '%s=%s' % (key,v) )
         query_string = '&'.join(q)
         
+        no_side_bar = True
         H = []
         if title:
             H.append('<h2>%s</h2>'%title)
         if expnom:
             etuds = self.chercheEtudsInfo(expnom=expnom,REQUEST=REQUEST)
-            if len(etuds) == 1:
-                # va directement a la destination
-                return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
+        else:
+            etuds = []
+        if len(etuds) == 1:
+            # va directement a la destination
+            return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
 
-            if len(etuds) > 0:
-                # Choix dans la liste des résultats:
-                H.append('<h2>%d résultats pour "%s": choisissez un étudiant:</h2>' % (len(etuds),expnom))
-                H.append('<table cellspacing="0" cellpadding ="3" border="0" bgcolor="#ccffff">')
-                i = 0
-                for etud in etuds:
-                    if i % 2 == 0:
-                        bgcolor = '#ffffcc'
-                    else:
-                        bgcolor = '#ccffff'
-                    i += 1
-                    H.append('<tr bgcolor="%s"><td>%s</td><td><a class="discretelink" href="%s"><b>%s</b> %s</a></td><td>%s %s</tr>'
-                             % (bgcolor, format_sexe(etud['sexe']),
-                                dest_url + '?etudid=%s&' % etud['etudid'] + query_string,
-                                format_nom(etud['nom']), format_prenom(etud['prenom']),
-                                etud['inscription'], etud['groupetd']) )
-                H.append('</table>')
-            else:
-                H.append('<h2 style="color: red;">Aucun résultat pour "%s".</h2>' % expnom )
+        if len(etuds) > 0:
 
-        H.append(self.formChercheEtud(dest_url=dest_url,
-                                      parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST))
-        
+            # Choix dans la liste des résultats:
+            H.append("""<h2>%d résultats pour "%s": choisissez un étudiant:</h2>""" % (len(etuds),expnom))
+            H.append(self.formChercheEtud(dest_url=dest_url,
+                                          parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
+
+            for e in etuds:
+                target = dest_url + '?etudid=%s&' % e['etudid'] + query_string
+                e['_nomprenom_target'] = target
+                e['inscription_target'] = target
+
+            tab = GenTable( columns_ids=('nomprenom', 'inscription', 'groupetd'),
+                            titles={ 'nomprenom' : 'Etudiant',
+                                     'inscription' : 'Inscription', 
+                                     'groupetd' : 'Groupe' },
+                            rows = etuds,
+                            html_sortable=True,
+                            html_class='gt_table table_leftalign',
+                            preferences=self.get_preferences())
+            H.append(tab.html())            
+            if len(etuds) > 20: # si la page est grande
+                H.append(self.formChercheEtud(dest_url=dest_url,
+                                              parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
+
+        else:
+            H.append('<h2 style="color: red;">Aucun résultat pour "%s".</h2>' % expnom )
+            add_headers = True
+            no_side_bar = False
+        H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'étudiant</p>""")
         if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=True) + '\n'.join(H) + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=no_side_bar) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
             return '\n'.join(H)
     

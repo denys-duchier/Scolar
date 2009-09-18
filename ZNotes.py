@@ -144,6 +144,7 @@ class ZNotes(ObjectManager,
         "returns CacheNotesTable instance for us"
         u = self.GetDBConnexionString() # identifie le dept de facon fiable
         if not NOTES_CACHE_INST.has_key(u):
+            log('getNotesCache: creating cache for %s' % u )
             NOTES_CACHE_INST[u] = CacheNotesTable()
         return NOTES_CACHE_INST[u]
 
