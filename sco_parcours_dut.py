@@ -178,18 +178,24 @@ class SituationEtudParcours:
         return self._sems_validated()
     
     def _sems_validated(self, exclude_current=False):
-        to_validate = Set(range(1,DUT_NB_SEM+1)) # ensemble des indices à valider
-        if exclude_current:
-            to_validate.remove(self.sem['semestre_id'])
-        for sem in self.get_semestres():
-            if sem['formation_code'] == self.formation['formation_code']:
-                nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
-                decision = nt.get_etud_decision_sem(self.etudid)
-                if decision and code_semestre_validant(decision['code']):
-                    # validé
-                    to_validate.discard(sem['semestre_id'])
-        
-        return not to_validate
+        "True si semestres du parcours validés"
+        if self.sem['semestre_id'] == NO_SEMESTRE_ID:
+            # mono-semestre: juste celui ci
+            decision = self.nt.get_etud_decision_sem(self.etudid)
+            return decision and code_semestre_validant(decision['code'])
+        else:
+            to_validate = Set(range(1,DUT_NB_SEM+1)) # ensemble des indices à valider
+            if exclude_current:
+                to_validate.remove(self.sem['semestre_id'])
+            for sem in self.get_semestres():
+                if sem['formation_code'] == self.formation['formation_code']:
+                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
+                    decision = nt.get_etud_decision_sem(self.etudid)
+                    if decision and code_semestre_validant(decision['code']):
+                        # validé
+                        to_validate.discard(sem['semestre_id'])
+
+            return not to_validate
 
     def _comp_semestres(self):
         # etud['sems'] est trie par date decroissante (voir fillEtudsInfo)
