@@ -495,14 +495,25 @@ Le Chef du département""",
 
     # champs des bulletins PDF:
     ( 'bul_pdf_title',
-      { 'initvalue' : """<para fontSize="16">
+      { 'initvalue' : """<para fontSize="14" align="center">
 <b>%(UnivName)s</b>
-</para><para fontSize="14" spaceBefore="2mm">
-<b>%(titre_num)s %(annee)s</b></para>
-<para fontSize="14" spaceBefore="2mm">
-<b>Relevé de notes de <i>%(nomprenom)s</i> %(demission)s</b>
 </para>
-""",
+<para fontSize="16" align="center" spaceBefore="2mm">
+<b>%(InstituteName)s</b>
+</para>
+<para fontSize="16" align="center" spaceBefore="4mm">
+<b>RELEVÉ DE NOTES</b>
+</para>
+
+<para fontSize="15" spaceBefore="3mm">
+%(nomprenom)s <b>%(demission)s</b>
+</para>
+
+<para fontSize="14" spaceBefore="3mm">
+Formation: %(titre_num)s</para>
+<para fontSize="14" spaceBefore="2mm">
+Année scolaire: %(anneescolaire)s
+</para>""",
         'title' : 'Bulletins PDF: paragraphe de titre',
         'explanation' : '(balises interprétées, voir documentation)',
         'input_type' : 'textarea', 'rows' : 10, 'cols' : 64,
