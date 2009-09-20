@@ -43,7 +43,7 @@ FORMAT_FILE = "misc/format_import_etudiants.txt"
 
 # Champs modifiables via "Import données admission"
 ADMISSION_MODIFIABLE_FIELDS = (
-    'annee_naissance',
+    'date_naissance', 'lieu_naissance',
     'bac', 'specialite', 'annee_bac',
     'math', 'physique', 'anglais', 'francais',
     'qualite', 'rapporteur', 'score', 'commentaire',
@@ -218,6 +218,11 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                         val = val.upper()
                     if not val in ('MR', 'MLLE'):
                         raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
+                # Excel date conversion:
+                if titleslist[i].lower() == 'date_naissance':
+                    if val:
+                        val = sco_excel.xldate_as_datetime(float(val))
+                
                 # --
                 values[titleslist[i]] = val
             # Check nom/prenom

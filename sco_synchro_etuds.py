@@ -420,7 +420,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             args = { 'nom' : etud['nom'].strip(), 
                      'prenom' : etud['prenom'].strip(),
                      'sexe' : gender2sex(etud['gender'].strip()),
-                     'annee_naissance' : get_annee_naissance(etud['naissance']),
+                     'date_naissance' : etud['naissance'].strip(),
                      'code_nip' :  etud['nip'],
                      'email' : etud['mail'].strip(),
                      'domicile' : address,
@@ -502,16 +502,16 @@ def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False,
         scolars.admission_edit( cnx, e )
     # Traite cas particulier de la date de naissance pour anciens etudiants IUTV
     if import_naissance:
-        annee_naissance = get_annee_naissance(etud['naissance'])
-        if annee_naissance:
+        date_naissance = etud['naissance'].strip()
+        if date_naissance:
             scolars.identite_edit_nocheck(cnx, 
-                                          { 'etudid' : etudid, 'annee_naissance' : annee_naissance })
+                                          { 'etudid' : etudid, 'date_naissance' : date_naissance })
     # Reimport des identités
     if import_identite:
         args = { 'etudid' : etudid }
-        annee_naissance = get_annee_naissance(etud['naissance'])
-        if annee_naissance:
-            args['annee_naissance'] = annee_naissance
+        date_naissance = etud['naissance']
+        if date_naissance:
+            args['date_naissance'] = date_naissance.strip()
         nom = etud.get('nom', '').strip()
         if nom:
             args['nom'] = nom
@@ -539,7 +539,7 @@ def get_bac(etud):
 def formsemestre_import_etud_admission(context, formsemestre_id, import_identite=True):
     """Tente d'importer les données admission depuis le portail 
     pour tous les étudiants du semestre.
-    Si  import_identite==True, recopie l'identité (nom/prenom/sexe/annee_naissance)
+    Si  import_identite==True, recopie l'identité (nom/prenom/sexe/date_naissance)
     de chaque étudiant depuis le portail.
     N'affecte pas les etudiants inconnus sur le portail. 
     """

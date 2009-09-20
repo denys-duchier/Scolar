@@ -49,8 +49,9 @@ CREATE TABLE identite (
     nom text,
     prenom text,
     sexe text,
-    annee_naissance integer,
-    nationalite text,
+    date_naissance date, -- new: date en texte
+    lieu_naissance text,
+    nationalite text,    
     foto text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)
     code_ine text UNIQUE  -- code INE Apogee

@@ -1032,7 +1032,7 @@ class ZScolar(ObjectManager,
                     'inscriptionstr', 'groupetd', 'groupeanglais', 'groupetp',
                     'email', 'domicile', 'villedomicile', 'codepostaldomicile', 'paysdomicile',
                     'telephone', 'telephonemobile', 'fax',
-                    'annee_naissance',
+                    'date_naissance', 'lieu_naissance',
                     'bac', 'specialite', 'annee_bac',
                     'nomlycee', 'villelycee', 'codepostallycee', 'codelycee'
                     )
@@ -2008,7 +2008,7 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = [self.sco_header(REQUEST)]
+        H = [self.sco_header(REQUEST, javascripts=['calendarDateInput_js'])]
         F = self.sco_footer(REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)
@@ -2090,7 +2090,8 @@ function tweakmenu( gname ) {
             ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':False }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
                             'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
-            ('annee_naissance', { 'size' : 5, 'title' : 'Année de naissance', 'type' : 'int' }),
+            ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date' }),
+            ('lieu_naissance', {  'title' : 'Lieu de naissance', 'size' : 32 }),
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
 
             ('annee', { 'size' : 5, 'title' : 'Année admission IUT',

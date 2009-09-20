@@ -103,6 +103,9 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     info = etud
     info['ScoURL'] = context.ScoURL()
     info['authuser'] = authuser
+    info['info_naissance'] = info['date_naissance']
+    if info['lieu_naissance']:
+        info['info_naissance'] += ' à ' + info['lieu_naissance']
     info['etudfoto'] = context.etudfoto(etudid,foto=etud['foto'])
     if ((not info['domicile']) and (not info['codepostaldomicile'])
         and (not info['villedomicile'])):
@@ -236,7 +239,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 <table>
 <tr><td class="fichetitre2">Situation :</td><td>%(situation)s</td></tr>
 %(groupes_row)s
-<tr><td class="fichetitre2">Né%(ne)s en :</td><td>%(annee_naissance)s</td></tr>
+<tr><td class="fichetitre2">Né%(ne)s le :</td><td>%(info_naissance)s</td></tr>
 </table>
 
 

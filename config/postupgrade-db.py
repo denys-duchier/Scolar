@@ -113,6 +113,15 @@ for dept in get_depts():
     # Nouvelles preferences pour bulletins PDF: migre bul_show_chiefDept
     cursor.execute("update sco_prefs set name = 'bul_show_sig_right' where name = 'bul_show_chiefDept'")
     cursor.execute("insert into sco_prefs (name, value, formsemestre_id) select 'bul_show_sig_left', value, formsemestre_id from sco_prefs where name = 'bul_show_sig_right'")
+    # date et lieu naissance (pour IFAG Sofia)
+    check_field(cnx, 'identite', 'date_naissance',
+                ['alter table identite add column date_naissance date',
+                 "update identite set date_naissance=to_date(to_char( annee_naissance, 'FM9999') || '-01-01', 'YYYY-MM-DD')",
+                 'alter table identite drop column annee_naissance'
+                 ])
+    check_field(cnx, 'identite', 'lieu_naissance',
+                ['alter table identite add column lieu_naissance text'
+                 ])
     
     # Add here actions to performs after upgrades:
 

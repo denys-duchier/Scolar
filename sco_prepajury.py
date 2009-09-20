@@ -152,7 +152,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     i = 1 # numero etudiant
     for etudid in etudids:
         l = [ str(i), etudid, znotes.nomprenom(nt.identdict[etudid]),
-             nt.identdict[etudid]['annee_naissance'],
+             nt.identdict[etudid]['date_naissance'],
              parcours[etudid], groupestd[etudid] ]
         i += 1
         if prev_moy:

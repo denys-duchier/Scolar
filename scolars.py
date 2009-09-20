@@ -136,21 +136,32 @@ def pivot_year(y):
 _identiteEditor = EditableTable(
     'identite',
     'etudid',
-    ('etudid','nom','prenom','sexe','annee_naissance','nationalite',
+    ('etudid','nom','prenom','sexe',
+     'date_naissance','lieu_naissance',
+     'nationalite',
      'foto', 'code_ine', 'code_nip'),
     sortkey = 'nom',
     input_formators = { 'nom' : force_uppercase,
                         'prenom' : force_uppercase,
                         'sexe' : force_uppercase,
-                        'annee_naissance' : pivot_year,
+                        'date_naissance' : DateDMYtoISO
                         },
+    output_formators = { 'date_naissance' : DateISOtoDMY },
     convert_null_outputs_to_empty=True,
     allow_set_id = True # car on specifie le code Apogee a la creation
     )
 
 identite_delete = _identiteEditor.delete
-identite_list   = _identiteEditor.list
 
+def identite_list(cnx, *a, **kw):
+    "list, add 'annee_naissance'"
+    objs = _identiteEditor.list(cnx,*a,**kw)
+    for o in objs:
+        if o['date_naissance']:
+            o['annee_naissance'] = int(o['date_naissance'].split('/')[2])
+        else:
+            o['annee_naissance'] = o['date_naissance']
+    return objs
 
 def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     """Check if nom and prenom are valid.

@@ -37,7 +37,7 @@ from sco_exceptions import *
 from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html, suppress_accents
 import notesdb
 
-import time
+import time, datetime
 from types import StringType, IntType, FloatType, LongType
 
 COLOR_CODES = { 'black' : 0,
@@ -57,6 +57,51 @@ def sendExcelFile(REQUEST,data,filename):
     REQUEST.RESPONSE.setHeader('Content-type', XLS_MIMETYPE)
     REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data
+
+##  (stolen from xlrd)
+# Convert an Excel number (presumed to represent a date, a datetime or a time) into
+# a Python datetime.datetime
+# @param xldate The Excel number
+# @param datemode 0: 1900-based, 1: 1904-based.
+# @return a datetime.datetime object, to the nearest_second.
+# <br>Special case: if 0.0 <= xldate < 1.0, it is assumed to represent a time;
+# a datetime.time object will be returned.
+# <br>Note: 1904-01-01 is not regarded as a valid date in the datemode 1 system; its "serial number"
+# is zero.
+
+_XLDAYS_TOO_LARGE = (2958466, 2958466 - 1462) # This is equivalent to 10000-01-01
+
+def xldate_as_datetime(xldate, datemode=0):
+    if datemode not in (0, 1):
+        raise ValueError('invalid mode %s' % datemode)
+    if xldate == 0.00:
+        return datetime.time(0, 0, 0)
+    if xldate < 0.00:
+        raise ValueError('invalid date code %s' % xldate)
+    xldays = int(xldate)
+    frac = xldate - xldays
+    seconds = int(round(frac * 86400.0))
+    assert 0 <= seconds <= 86400
+    if seconds == 86400:
+        seconds = 0
+        xldays += 1
+    if xldays >= _XLDAYS_TOO_LARGE[datemode]:
+        raise ValueError('date too large %s' % xldate)
+    
+    if xldays == 0:
+        # second = seconds % 60; minutes = seconds // 60
+        minutes, second = divmod(seconds, 60)
+        # minute = minutes % 60; hour    = minutes // 60
+        hour, minute = divmod(minutes, 60)
+        return datetime.time(hour, minute, second)
+    
+    if xldays < 61 and datemode == 0:
+        raise ValueError('ambiguous date %s' % xldate)
+    
+    return (
+        datetime.datetime.fromordinal(xldays + 693594 + 1462 * datemode)
+        + datetime.timedelta(seconds=seconds)
+        )
 
 
 # Sous-classes pour ajouter methode savetostr()
