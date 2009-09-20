@@ -66,7 +66,8 @@ def make_formsemestre_bulletinetud(
     LINEWIDTH = 0.5
     from reportlab.lib.colors import Color
     PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                 ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)) ]
+                 ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
+                 ]
     def ueline(i): # met la ligne i du tableau pdf en style 'UE'
         PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
         PdfStyle.append(('BACKGROUND', (0,i), (-1,i),

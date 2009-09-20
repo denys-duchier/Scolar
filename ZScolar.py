@@ -498,6 +498,11 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoChangePreferences, 'edit_preferences2')
     edit_preferences2 = sco_preferences.edit_preferences2
 
+    security.declareProtected(ScoView, 'doc_preferences')
+    def doc_preferences(self, REQUEST):
+        """Liste preferences for wiki documentation"""
+        return sco_preferences.doc_preferences(self)
+    
     # --------------------------------------------------------------------
     #
     #    ETUDIANTS

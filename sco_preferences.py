@@ -123,9 +123,6 @@ L'attribut .base_prefs point sur sco_base_preferences.
 get_base_preferences(context, formsemestre_id)
  Return base preferences for this context (instance sco_base_preferences)
 
-
-TODO:
- - tests exhaustifs
 """
 
 PREF_CATEGORIES = (
@@ -142,8 +139,8 @@ PREF_CATEGORIES = (
     ('bul'  , { 'title' : 'Réglages des bulletins de notes',
                'related' : ('abs', 'bul_margins', 'bul_mail') }),
     # sur page "Mise en page des bulletins"
-    ('bul_margins'  , { 'title' : 'Marges additionnelles, en millimètres', 
-                       'subtitle' : "Le tableau des notes est toujours redimensionné pour occuper l'espace disponible entre les marges.",
+    ('bul_margins'  , { 'title' : 'Marges additionnelles des bulletins, en millimètres', 
+                       'subtitle' : "Le bulletin de notes notes est toujours redimensionné pour occuper l'espace disponible entre les marges.",
                        'related' : ('bul', 'bul_mail', 'pdf')}),
     ('bul_mail', { 'title' : 'Envoi des bulletins par e-mail',
                    'related' : ('bul', 'bul_margins', 'pdf') }),
@@ -162,7 +159,25 @@ PREFS = (
     ( 'DeptFullName',
       { 'initvalue' : 'nom du département',
         'title' : 'Nom complet du département',
-        'explanation' : 'actuellement inutilisé',
+        'explanation' : 'inutilisé par défaut',
+        'size' : 40,
+        'category' : 'general',
+        'only_global' : True
+        }
+      ),
+    ( 'UnivName',
+      { 'initvalue' : '',
+        'title' : 'Nom de l\'Université',
+        'explanation' : 'apparait sur les bulletins et PV de jury',
+        'size' : 40,
+        'category' : 'general',
+        'only_global' : True
+        }
+      ),
+     ( 'InstituteName',
+      { 'initvalue' : '',
+        'title' : 'Nom de l\'Institut',
+        'explanation' : 'exemple "IUT de Villetaneuse". Peut être utilisé sur les bulletins.',
         'size' : 40,
         'category' : 'general',
         'only_global' : True
@@ -276,16 +291,21 @@ PREFS = (
        'category' : 'pdf'
         }
       ),
+    ('pdf_footer_x',
+     { 'initvalue' : 20,
+       'title' : 'Position horizontale du pied de page pdf (en mm)',
+       'size' : 8,
+       'type' : 'float', 'category' : 'pdf' 
+       }
+     ),
+    ('pdf_footer_y',
+     { 'initvalue' : 6.35,
+       'title' : 'Position verticale du pied de page pdf (en mm)',
+       'size' : 8,
+       'type' : 'float', 'category' : 'pdf' 
+       }
+     ),
     # pvpdf
-    ( 'UnivName',
-      { 'initvalue' : '',
-        'title' : 'Nom de l\'Université',
-        'explanation' : 'apparait sur les PV de jury',
-        'size' : 40,
-        'category' : 'pvpdf',
-        'only_global' : True
-        }
-      ),
     ( 'DirectorName',
       { 'initvalue' : '',
         'title' : 'Nom du directeur de l\'établissement',
@@ -392,6 +412,13 @@ Le Chef du département""",
     ),
     
     # bul
+   ( 'bul_title', 
+      { 'initvalue' : 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
+        'size' : 70, 
+        'title' : 'Titre des bulletins', 
+        'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département',
+        'category' : 'bul' }
+      ),
     ( 'bul_show_abs', # ex "gestion_absence"
       { 'initvalue' : 1,
         'title' : 'Indiquer les absences sur les bulletins',
@@ -449,15 +476,76 @@ Le Chef du département""",
         }
       ),
     
-    ( 'bul_show_chiefDept', 
+    ( 'bul_show_sig_left', 
       { 'initvalue' : 0,
-        'title' : 'Faire figurer le nom du chef de départemnt sur les bulletins',
+        'title' : 'Faire figurer la signature de gauche (nom du directeur) sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
         }
       ),
-    
+    ( 'bul_show_sig_right', 
+      { 'initvalue' : 0,
+        'title' : 'Faire figurer la signature de droite (nom du chef de département) sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
+
+    # champs des bulletins PDF:
+    ( 'bul_pdf_title',
+      { 'initvalue' : """<para fontSize="16">
+<b>%(UnivName)s</b>
+</para><para fontSize="14" spaceBefore="2mm">
+<b>%(titre_num)s %(annee)s</b></para>
+<para fontSize="14" spaceBefore="2mm">
+<b>Relevé de notes de <i>%(nomprenom)s</i> %(demission)s</b>
+</para>
+""",
+        'title' : 'Bulletins PDF: paragraphe de titre',
+        'explanation' : '(balises interprétées, voir documentation)',
+        'input_type' : 'textarea', 'rows' : 10, 'cols' : 64,
+        'category' : 'bul' }
+      ),
+    ( 'bul_pdf_caption',
+      { 'initvalue' : """<para spaceBefore="5mm" fontSize="14"><i>%(situation)s</i></para>""",
+        'title' : 'Bulletins PDF: paragraphe sous table note',
+        'explanation' : '(visible seulement si "Faire figurer les décision" est coché)',
+        'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
+        'category' : 'bul' }
+      ),
+     ( 'bul_pdf_sig_left',
+      { 'initvalue' : """<para>La direction des études
+<br/>
+%(responsable)s
+</para>
+""",
+        'title' : 'Bulletins PDF: signature gauche',
+        'explanation' : '(balises interprétées, voir documentation)',
+        'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
+        'category' : 'bul' }
+      ),
+    ( 'bul_pdf_sig_right',
+      { 'initvalue' : """<para>Le chef de département
+<br/>
+%(ChiefDeptName)s
+</para>
+""",
+        'title' : 'Bulletins PDF: signature droite',
+        'explanation' : '(balises interprétées, voir documentation)',
+        'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
+        'category' : 'bul' }
+      ),
+    ('SCOLAR_FONT_BUL_FIELDS',
+     { 'initvalue' : 'Times-Roman',
+       'title' : 'Police titres bulletins',
+       'explanation' : 'pour les pdf',
+       'size' : 25,
+       'category' : 'bul'
+        }
+      ),
+
     # XXX A COMPLETER, voir sco_formsemestre_edit.py XXX
 
     # bul_mail
@@ -496,13 +584,7 @@ Le Chef du département""",
         'size' : 32
         }
       ),
-    ( 'bul_title', 
-      { 'initvalue' : 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
-        'size' : 70, 
-        'title' : 'Titre des bulletins', 
-        'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département',
-        'category' : 'bul' }
-      ),
+    
     # bul_margins
     ( 'left_margin', 
       { 'initvalue' : 0, 
@@ -873,6 +955,19 @@ def _build_form(self, categories=[], global_edit=False):
                                                  'title' : '<p class="help">%s</p>' % subtitle }))
             form.extend(cat_elems)
     return form
+
+
+#
+def doc_preferences(context):
+    """ Liste les preferences, pour la documentation"""
+    L = []
+    for cat, cat_descr in PREF_CATEGORIES:
+        L.append( [ '' ] )
+        L.append( [ '===='+cat_descr.get('title', '')+'====' ] )
+        for pref_name, pref in PREFS:
+            if pref['category'] == cat:
+                L.append( [ pref_name, pref['title'], pref.get('explanation', '') ] )
+    return '<br/>\n'.join( [ '|| ' + " || ".join(x)  + ' ||' for x in L ]) 
 
 # essais:
 def edit_preferences2(context, REQUEST):

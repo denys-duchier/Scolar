@@ -810,7 +810,7 @@ class ZNotes(ObjectManager,
             # Ajoute nom avec numero semestre:
             sem['titre_num'] = sem['titre']
             if sem['semestre_id'] != -1:
-                sem['titre_num'] += ' Semestre %s' % sem['semestre_id']
+                sem['titre_num'] += ', semestre %s' % sem['semestre_id']
 
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
             try:
@@ -827,6 +827,7 @@ class ZNotes(ObjectManager,
             sem['mois_fin_ord'] = int(mois_fin)
             
             sem['annee'] = annee_debut # 2007 ou 2007-2008
+            sem['anneescolaire'] = annee_scolaire_repr(int(annee_debut), sem['mois_debut_ord']) 
             
             sem['titreannee'] = '%s %s  %s' % (sem['titre_num'], sem.get('modalite',''), annee_debut)
             if annee_fin != annee_debut:

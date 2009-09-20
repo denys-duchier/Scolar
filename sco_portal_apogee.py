@@ -35,7 +35,7 @@ from sco_utils import *
 from SuppressAccents import suppression_diacritics
 
 def has_portal(context):
-    "True if we are conected to a portal"
+    "True if we are connected to a portal"
     return get_portal_url(context)
 
 def get_portal_url(context):

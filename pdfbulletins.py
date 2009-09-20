@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2009 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +21,65 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#   Emmanuel Viennet      emmanuel.viennet@viennet.net
+#   Emmanuel Viennet      emmanuel.viennet@gmail.com
 #
 ##############################################################################
 
-"""Generation documents PDF (reportlab)
+"""Generation bulletins de notes en PDF (avec reportlab)
+
+Les templates utilisent les XML markup tags de ReportLab
+ (voir ReportLab user guide, page 70 et suivantes), dans lesquels les balises
+de la forme %(XXX)s sont remplacées par la valeur de XXX, pour XXX dans:
+
+- preferences du semestre (ou globales) (voir sco_preferences.py)
+- champs de formsemestre: titre, date_debut, date_fin, responsable, anneesem
+- champs de l'etudiant s(etud, décoré par getEtudInfo)
+- demission ("DEMISSION" ou vide)
+- situation ("Inscrit le XXX")
+
+Balises img: actuellement interdites.
+
 """
 from sco_pdf import *
-import traceback
+import sco_preferences
+import traceback, re
+
+def make_context_dict(context, sem, etud, filigranne='', situation=''):
+    """Construit dictionnaire avec valeurs pour substitution des textes
+    (preferences bul_pdf_*)
+    """
+    C = sem.copy()
+    C['responsable'] = context.Users.user_info(user_name=sem['responsable_id'])['prenomnom']
+    annee_debut = sem['date_debut'].split('/')[2]
+    annee_fin = sem['date_fin'].split('/')[2]
+    if annee_debut != annee_fin:
+        annee = '%s - %s' % (annee_debut, annee_fin)
+    else:
+        annee = annee_debut
+    C['anneesem'] = annee
+    C.update(etud)
+    C['demission'] = filigranne
+    C['situation'] = situation
+    # copie preferences
+    for name in sco_preferences.PREFS_NAMES:
+        C[name] = context.get_preference(name, sem['formsemestre_id'])
+    
+    return C
+
+def process_field(field, cdict, style):
+    """Process a field given in preferences, returns list of Platypus objects
+    Substitutes all %()s markup
+    Remove potentialy harmful <img> tags
+    """
+    try:
+        text = field % cdict
+    except:
+        log('process_field: invalid format=%s' % field)
+        text = '<i>format champs invalide !<i>'
+    # remove unhandled or dangerous tags:
+    text = re.sub( r'<\s*img', '', text)
+    
+    return makeParas(text, style)
 
 def essaipdf(REQUEST):
     PDFLOCK.acquire()
@@ -80,7 +131,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                context.get_preference('top_margin', formsemestre_id),
                context.get_preference('right_margin', formsemestre_id),
                context.get_preference('bottom_margin', formsemestre_id))    
-    titletmpl = context.get_preference('bul_title',  formsemestre_id) or ''        
+    titletmpl = context.get_preference('bul_title',  formsemestre_id) or ''
     
     # Make a new cell style and put all cells in paragraphs    
     CellStyle = styles.ParagraphStyle( {} )
@@ -98,48 +149,60 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         diag = 'erreur lors de la génération du PDF<br/>'
         diag += '<pre>' + traceback.format_exc() + '</pre>'
         return [], diag
+
+    FieldStyle = styles.ParagraphStyle( {} )
+    FieldStyle.fontName= context.get_preference('SCOLAR_FONT_BUL_FIELDS', formsemestre_id)
+    FieldStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id)
+    FieldStyle.firstLineIndent = 0
+
     # --- Build doc using ReportLab's platypus
+    infos = make_context_dict(context, sem, etud, filigranne=filigranne, situation=situation)
     # Title
-    objects.append(Paragraph(SU(titletmpl % infos),
-                             StyleSheet["Heading2"]) )
-    annee_debut = sem['date_debut'].split('/')[2]
-    annee_fin = sem['date_fin'].split('/')[2]
-    if annee_debut != annee_fin:
-        annee = '%s - %s' % (annee_debut, annee_fin)
-    else:
-        annee = annee_debut
-    objects.append(Paragraph(SU("Relevé de notes de %s (%s %s) %s"
-                                % (etud['nomprenom'], sem['titre_num'],
-                                   annee,
-                                   filigranne)),
-                             StyleSheet["Heading3"]))
-    objects.append(Spacer(0, 10))
+    objects += process_field(context.get_preference('bul_pdf_title', formsemestre_id), 
+                                 infos, FieldStyle)
+    objects.append(Spacer(1, 5*mm))
     # customize table style
     TableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )
     objects.append( Table( Pt,
                            colWidths = (None, 5*cm, 6*cm, 2*cm, 1*cm),
                            style=TableStyle ) )
+    
     if etud.has_key('nbabs'):
-        objects.append( Spacer(0, 0.4*cm) )
-        objects.append( Paragraph(
-            SU("%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust'])), CellStyle ) )
+        nbabs = etud['nbabs']
+        nbabsjust = etud['nbabsjust']
+        objects.append( Spacer(1, 2*mm) )
+        if nbabs:
+            objects.append( Paragraph(
+                    SU("%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust'])), CellStyle ) )
+        else:
+            objects.append( Paragraph(SU("Pas d'absences signalées."), CellStyle) )
     #
     if appreciations:
-        objects.append( Spacer(0, 0.2*cm) )
+        objects.append( Spacer(1, 3*mm) )
         objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(appreciations)),
                                   CellStyle) )
-    if situation:
-        objects.append( Spacer(0, 0.5*cm) )
-        objects.append( Paragraph( SU(situation), StyleSheet["Heading3"] ) )
-# Yann
-    if context.get_preference('bul_show_chiefDept', formsemestre_id):
-        t = Table([[SU('La direction des études'), SU('Le chef de département')],
-               [SU(context.Users.user_info(user_name=sem['responsable_id'])['prenomnom']), SU(context.get_preference('ChiefDeptName', formsemestre_id))]])
+    
+    if context.get_preference('bul_show_decision', formsemestre_id):
+        objects += process_field(context.get_preference('bul_pdf_caption', formsemestre_id), 
+                                 infos, FieldStyle)
+    
+    show_left = context.get_preference('bul_show_sig_left', formsemestre_id)
+    show_right = context.get_preference('bul_show_sig_right', formsemestre_id)
+    if show_left or show_right:
+        if show_left:
+            L = [[process_field(context.get_preference('bul_pdf_sig_left', formsemestre_id), 
+                                infos, FieldStyle)]]
+        else:
+            L = [['']]
+        if show_right:
+            L[0].append(process_field(context.get_preference('bul_pdf_sig_right', formsemestre_id), infos, FieldStyle))
+        else:
+            L[0].append('')
+        t = Table(L)
         t._argW[0] = 10*cm
         objects.append( Spacer(1, 1.5*cm) )
         objects.append(t)
-
-
+    
     # reduit sur une page
     objects = [KeepInFrame(0,0,objects,mode='shrink')]    
     #

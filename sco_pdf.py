@@ -86,8 +86,10 @@ def makeParas(txt, style):
     """Returns a list of Paragraph instances from a text
     with one or more <para> ... </para>
     """
-    return [ Paragraph( SU(s), style ) for s in _splitPara(txt) ]
-
+    try:
+        return [ Paragraph( SU(s), style ) for s in _splitPara(txt) ]
+    except:
+        return [ Paragraph( SU('<font color="red"><i>Erreur: format invalide</i></font>'), style ) ]
 
 class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""
@@ -108,9 +110,9 @@ class ScolarsPageTemplate(PageTemplate) :
         self.footer_template = footer_template
         # Our doc is made of a single frame
         left, top, right, bottom = [ float(x) for x in margins ]
-        content = Frame(0.75 * inch + left*mm, 0.5 * inch + bottom*mm,
-                        document.pagesize[0] - 1.25 * inch - left*mm-right*mm,
-                        document.pagesize[1] - 1.5 * inch - top*mm - bottom*mm)
+        content = Frame(10.*mm + left*mm, 5.*mm + bottom*mm,
+                        document.pagesize[0] - 20.*mm - left*mm - right*mm,
+                        document.pagesize[1] - 10.*mm - top*mm - bottom*mm)
         PageTemplate.__init__(self, "ScolarsPageTemplate", [content])
         self.logo = None
         
@@ -152,7 +154,7 @@ class ScolarsPageTemplate(PageTemplate) :
         d['scodoc_name'] = VERSION.SCONAME
         d['server_url'] = self.server_name
         footer_str = SU( self.footer_template % d )
-        canvas.drawString(2*cm, 0.25 * inch, footer_str )
+        canvas.drawString(self.preferences['pdf_footer_x']*mm, self.preferences['pdf_footer_y']*mm, footer_str )
         canvas.restoreState()
 
 

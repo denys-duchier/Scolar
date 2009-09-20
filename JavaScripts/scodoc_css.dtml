@@ -251,7 +251,7 @@ div.scoinfos {
 div.ficheEtud {
    background-color: #f5edc8; /* rgb(255,240,128); */
    border: 1px solid gray;
-   width: 800px;
+   width: 910px;
    padding: 10px;
    margin-top: 10px;
 }

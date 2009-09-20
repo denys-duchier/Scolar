@@ -271,6 +271,16 @@ def timedate_human_repr():
     "representation du temps courant pour utilisateur: a localiser"
     return time.strftime('%d/%m/%Y à %Hh%M')
 
+def annee_scolaire_repr(year, month):
+    """representation de l'annee scolaire : '2009 - 2010'
+    à partir d'une date.
+    """
+    if month > 8: # after september, 1 ?
+        return '%s - %s' % (year, year + 1)
+    else:
+        return '%s - %s' % (year - 1, year)
+    
+
 # Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
 try:
     import pydot
