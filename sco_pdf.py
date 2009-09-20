@@ -110,9 +110,9 @@ class ScolarsPageTemplate(PageTemplate) :
         self.footer_template = footer_template
         # Our doc is made of a single frame
         left, top, right, bottom = [ float(x) for x in margins ]
-        content = Frame(10.*mm + left*mm, 5.*mm + bottom*mm,
+        content = Frame(10.*mm + left*mm, 13.*mm + bottom*mm,
                         document.pagesize[0] - 20.*mm - left*mm - right*mm,
-                        document.pagesize[1] - 10.*mm - top*mm - bottom*mm)
+                        document.pagesize[1] - 18.*mm - top*mm - bottom*mm)
         PageTemplate.__init__(self, "ScolarsPageTemplate", [content])
         self.logo = None
         
