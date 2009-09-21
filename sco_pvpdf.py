@@ -33,6 +33,8 @@ import sco_pvjury
 import sco_codes_parcours
 from sco_utils import *
 from sco_pdf import PDFLOCK
+import sco_preferences
+import pdfbulletins
 
 LOGO_FOOTER_ASPECT = CONFIG.LOGO_FOOTER_ASPECT # XXX A AUTOMATISER
 LOGO_FOOTER_HEIGHT = CONFIG.LOGO_FOOTER_HEIGHT * mm
@@ -178,14 +180,14 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     #
     sem = context.get_formsemestre(formsemestre_id)
     params = {
-        'dateJury' : dateJury,
-        'deptName' : context.get_preference('DeptName', formsemestre_id), 
-        'DirectorName' : context.get_preference('DirectorName', formsemestre_id),
-        'DirectorTitle' : context.get_preference('DirectorTitle', formsemestre_id),
-        'titreFormation' : dpv['formation']['titre_officiel'],
+        'date_jury' : dateJury,
+        'titre_formation' : dpv['formation']['titre_officiel'],
         'htab1' : "8cm", # lignes à droite (entete, signature)
         'htab2' : "1cm",
     }
+    # copie preferences
+    for name in sco_preferences.PREFS_NAMES:
+        params[name] = context.get_preference(name, sem['formsemestre_id'])
     
     bookmarks = {}
     objects = [] # list of PLATYPUS objects
@@ -248,93 +250,57 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
 
     params['semestre_id'] = sem['semestre_id']
     params['decision_sem_descr'] = decision['decision_sem_descr']
-    params['Type'] = t # type de jury (passage ou delivrance)
-    params['TypeAbbrv'] = s # idem, abbrégé
+    params['type_jury'] = t # type de jury (passage ou delivrance)
+    params['type_jury_abbrv'] = s # idem, abbrégé
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
-    params['city'] = context.get_preference('INSTITUTION_CITY', formsemestre_id)
+    params['INSTITUTION_CITY'] = context.get_preference('INSTITUTION_CITY', formsemestre_id)
     if decision['prev_decision_sem']:
         params['prev_semestre_id'] = decision['prev']['semestre_id']
         params['prev_code_descr']  = decision['prev_code_descr']
-    
-    # Haut de la lettre:
-    objects += makeParas("""
-<para>%(DirectorName)s
-</para>
-<para>%(DirectorTitle)s
-</para>
 
-<para leftindent="%(htab1)s">%(city)s, le %(dateJury)s
-</para>
-<para leftindent="%(htab1)s" spaceBefore="10mm">à <b>%(nomEtud)s</b>
-</para>""" % params, style)
-    # Adresse étudiant:
-    i = decision['identite']
-    objects += makeParas("""
-    <para leftindent="%s">%s</para>
-    <para leftindent="%s">%s %s</para>
-    """ % (params['htab1'], i['domicile'],
-           params['htab1'], i['codepostaldomicile'], i['villedomicile']),
-           style)
-    #
-    objects += makeParas("""
-<para spaceBefore="25mm" fontSize="14">
-<b>Objet : jury de %(Type)s 
-du département %(deptName)s</b>
-</para>
-<para spaceBefore="10mm" fontSize="14">
-Le jury de %(TypeAbbrv)s du département %(deptName)s
-s'est réuni le %(dateJury)s. Les décisions vous concernant sont :
-</para>""" % params, style )
-    # Affichage de la décision du semestre précédent s'il existe:
-    if decision['prev_decision_sem']:
-        objects += makeParas("""
-        <para leftindent="%(htab2)s" spaceBefore="5mm" fontSize="14">
-        <b>Décision du semestre antérieur S%(prev_semestre_id)s :</b> %(prev_code_descr)s
-        </para>
-        """ % params, style )                             
+    params.update(decision['identite'])
+    # fix domicile
+    if params['domicile']:
+        params['domicile'] = params['domicile'].replace('\\n', '<br/>')
     
     # Décision semestre courant:
     if sem['semestre_id'] >= 0:
-        params['s'] = 'du semestre S%s' % sem['semestre_id']
+        params['decision_orig'] = 'du semestre S%s' % sem['semestre_id']
     else:
-        params['s'] = ''
-    objects += makeParas("""
-    <para leftindent="%(htab2)s" spaceBefore="5mm" fontSize="14">
-    <b>Décision %(s)s :</b> %(decision_sem_descr)s
-    </para>""" % params, style )
+        params['decision_orig'] = ''
 
+    if decision['prev_decision_sem']:
+        params['prev_decision_sem_txt'] = """<b>Décision du semestre antérieur S%(prev_semestre_id)s :</b> %(prev_code_descr)s""" % params
+    else:
+        params['prev_decision_sem_txt'] = ''
     # UE capitalisées:
     if decision['decisions_ue'] and decision['decisions_ue_descr']:
-        objects += makeParas("""
-    <para leftindent="%(htab2)s" spaceBefore="0mm" fontSize="14">
-    <b>Unités d'Enseignement %(s)s capitalisées : </b>%(decisions_ue_descr)s</b>
-    </para>""" % params, style )
-    
+        params['decision_ue_txt'] = """<b>Unités d'Enseignement %(decision_orig)s capitalisées : </b>%(decisions_ue_descr)s</b>""" % params
+    else:
+        params['decision_ue_txt'] = ''
     # Informations sur compensations
     if decision['observation']:
-        objects += makeParas("""
-    <para leftindent="%s" spaceBefore="0mm" fontSize="14">
-    <b>Observation :</b> %s.
-    </para>""" % (params['htab2'], decision['observation']), style )
-    
+        params['observation_txt'] = """<b>Observation :</b> %(observation)s.""" % decision
+    else:
+        params['observation_txt'] = ''
     # Autorisations de passage
     if decision['autorisations'] and Se.semestre_non_terminal:
         if len(decision['autorisations']) > 1:
             s = 's'
         else:
             s = ''
-        objects += makeParas("""
-    <para spaceBefore="10mm" fontSize="14">
-    Vous êtes autorisé%s à continuer dans le%s semestre%s : <b>%s</b>
-    </para>""" % (etud['ne'], s, s, decision['autorisations_descr']), style )
-
-    if (not Se.semestre_non_terminal) and decision['decision_sem']:
-        if Se.parcours_validated():
-            # Parcours validé => diplôme
-            objects += makeParas(""" <para spaceBefore="10mm" fontSize="14">
-            Vous avez donc obtenu le diplôme : <b>%(titreFormation)s</b>
-            </para>""" % params, style ) 
-
+        params['autorisations_txt'] = """Vous êtes autorisé%s à continuer dans le%s semestre%s : <b>%s</b>""" % (etud['ne'], s, s, decision['autorisations_descr'])
+    else:
+        params['autorisations_txt'] =  ''
+    
+    if (not Se.semestre_non_terminal) and decision['decision_sem'] and Se.parcours_validated():
+        params['diplome_txt'] = """Vous avez donc obtenu le diplôme : <b>%(titre_formation)s</b>""" % params
+    else:
+        params['diplome_txt'] = ''
+    
+    # Corps de la lettre:
+    objects += pdfbulletins.process_field(context.get_preference('PV_LETTER_TEMPLATE', sem['formsemestre_id']), params, style, suppress_empty_pars=True)
+    
     # Signature:
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par
     # chef de département.

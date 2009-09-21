@@ -322,6 +322,14 @@ PREFS = (
         'category' : 'pvpdf'
         }
       ),
+    ('ChiefDeptName',
+     { 'initvalue' : '',
+       'title' : 'Nom du chef de département',
+       'size' : 32,
+       'explanation' : 'pour les bulletins pdf',
+       'category' : 'pvpdf'
+     }
+    ),
     ('INSTITUTION_NAME',
      { 'initvalue' : "<b>Institut Universitaire de Technologie - Université Paris 13</b>",
        'title' : 'Nom institution sur pied de pages PV',
@@ -388,6 +396,77 @@ Le Chef du département""",
        'category' : 'pvpdf'
        },
      ),
+    ('pv_sig_image_height',
+     { 'initvalue' : 11, 
+         'size' : 10, 'title' : 'Hauteur de l\'image de la signature', 'type' : 'float',
+         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimensionnée à cette taille (en millimètres)',
+         'category' : 'pvpdf'
+         }),
+    ('PV_LETTER_TEMPLATE',
+     { 'initvalue' : """<para>%(DirectorName)s
+</para>
+<para>%(DirectorTitle)s
+</para>
+
+<para leftindent="%(pv_htab1)s">%(INSTITUTION_CITY)s, le %(date_jury)s
+</para>
+
+<para leftindent="%(pv_htab1)s" spaceBefore="10mm">
+à <b>%(nomprenom)s</b>
+</para>
+<para leftindent="%(pv_htab1)s">%(domicile)s</para>
+<para leftindent="%(pv_htab1)s">%(codepostaldomicile)s %(villedomicile)s</para>
+
+<para spaceBefore="25mm" fontSize="14">
+<b>Objet : jury de %(type_jury)s 
+du département %(DeptName)s</b>
+</para>
+<para spaceBefore="10mm" fontSize="14">
+Le jury de %(type_jury_abbrv)s du département %(DeptName)s
+s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
+</para>
+
+<para leftindent="%(pv_htab2)s" spaceBefore="5mm" fontSize="14">%(prev_decision_sem_txt)s</para>
+<para leftindent="%(pv_htab2)s" spaceBefore="5mm" fontSize="14">
+    <b>Décision %(decision_orig)s :</b> %(decision_sem_descr)s
+</para>
+
+<para leftindent="%(pv_htab2)s" spaceBefore="0mm" fontSize="14">
+%(decision_ue_txt)s
+</para>
+
+<para leftindent="%(pv_htab2)s" spaceBefore="0mm" fontSize="14">
+%(observation_txt)s
+</para>
+
+<para spaceBefore="10mm" fontSize="14">%(autorisations_txt)s</para>
+
+<para spaceBefore="10mm" fontSize="14">%(diplome_txt)s</para>
+""",
+       'title' : """Lettre individuelle""",
+       'explanation' : """Balises remplacées et balisage XML, voir la documentation""",
+       'input_type' : 'textarea',
+       'rows' : 15,
+       'cols' : 64,
+       'category' : 'pvpdf'
+       },
+     ),
+    ('pv_htab1',
+     { 'initvalue' : '8cm',
+       'title' : 'marge colonne droite lettre',
+       'explanation' : 'pour les courriers pdf',
+       'size' : 10,
+       'category' : 'pvpdf'
+        }
+      ),
+    ('pv_htab2',
+     { 'initvalue' : '5mm',
+       'title' : 'marge colonne gauche lettre',
+       'explanation' : 'pour les courriers pdf',
+       'size' : 10,
+       'category' : 'pvpdf'
+        }
+      ),
     ('PV_FONTNAME',
      { 'initvalue' : 'Times-Roman',
        'title' : 'Police de caractère pour les PV',
@@ -396,20 +475,6 @@ Le Chef du département""",
        'category' : 'pvpdf'
         }
       ),
-    ('pv_sig_image_height',
-     { 'initvalue' : 11, 
-         'size' : 10, 'title' : 'Hauteur de l\'image de la signature', 'type' : 'float',
-         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimensionnée à cette taille (en millimètres)',
-         'category' : 'pvpdf'
-         }),
-    ('ChiefDeptName',
-     { 'initvalue' : '',
-       'title' : 'Nom du chef de département',
-       'size' : 32,
-       'explanation' : 'pour les bulletins pdf',
-       'category' : 'pvpdf'
-     }
-    ),
     
     # bul
    ( 'bul_title', 

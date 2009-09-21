@@ -71,9 +71,12 @@ def _splitPara(txt):
     closetag = '</para>'
     l = len(closetag)
     start = 0
+    e = -1
     while 1:
         b = txt.find('<para',start)
         if b < 0:
+            if e < 0:
+                L.append(txt) # no para, just return text
             break
         e = txt.find(closetag,b)
         if e < 0:
@@ -82,12 +85,23 @@ def _splitPara(txt):
         start = e        
     return L
 
-def makeParas(txt, style):
+def makeParas(txt, style, suppress_empty=False):
     """Returns a list of Paragraph instances from a text
     with one or more <para> ... </para>
     """
     try:
-        return [ Paragraph( SU(s), style ) for s in _splitPara(txt) ]
+        paras = _splitPara(txt)
+        if suppress_empty:
+            r = []
+            for para in paras:
+                m = re.match('\s*<\s*para.*>\s*(.*)\s*<\s*/\s*para\s*>\s*', para )
+                if not m:
+                    r.append(para) # not a paragraph, keep it
+                else:
+                    if m.group(1): # non empty paragraph
+                        r.append(para)
+            paras = r
+        return [ Paragraph( SU(s), style ) for s in paras ]
     except:
         return [ Paragraph( SU('<font color="red"><i>Erreur: format invalide</i></font>'), style ) ]
 

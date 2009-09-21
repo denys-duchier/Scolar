@@ -66,7 +66,7 @@ def make_context_dict(context, sem, etud, filigranne='', situation=''):
     
     return C
 
-def process_field(field, cdict, style):
+def process_field(field, cdict, style, suppress_empty_pars=False):
     """Process a field given in preferences, returns list of Platypus objects
     Substitutes all %()s markup
     Remove potentialy harmful <img> tags
@@ -75,11 +75,11 @@ def process_field(field, cdict, style):
         text = field % cdict
     except:
         log('process_field: invalid format=%s' % field)
-        text = '<i>format champs invalide !<i>'
+        text = '<para><i>format invalide !<i></para><para>' + traceback.format_exc() + '</para>'
     # remove unhandled or dangerous tags:
     text = re.sub( r'<\s*img', '', text)
     
-    return makeParas(text, style)
+    return makeParas(text, style, suppress_empty=suppress_empty_pars)
 
 def essaipdf(REQUEST):
     PDFLOCK.acquire()
