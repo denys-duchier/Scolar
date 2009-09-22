@@ -221,8 +221,8 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 # Excel date conversion:
                 if titleslist[i].lower() == 'date_naissance':
                     if val:
-                        val = sco_excel.xldate_as_datetime(float(val))
-                
+                        if re.match('^[0-9]*\.?[0-9]*$', str(val)):
+                            val = sco_excel.xldate_as_datetime(float(val))                        
                 # --
                 values[titleslist[i]] = val
             # Check nom/prenom
