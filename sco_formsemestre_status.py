@@ -199,9 +199,9 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'form_students_import_infos_admissions?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
           },
-        { 'title' : 'Resynchroniser données identité', # TEMPORAIRE POUR MIGRER IUTV
+        { 'title' : 'Resynchroniser données identité',
           'url' : 'formsemestre_import_etud_admission?formsemestre_id=' + formsemestre_id,
-          'enabled' : (authuser.has_permission(ScoEtudInscrit, context) and (str(authuser) == 'viennetadm' or str(authuser) == 'admin')) and context.get_preference('portal_url'),
+          'enabled' : (authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url'),
           },
 
         { 'title' : 'Exporter table des étudiants',
