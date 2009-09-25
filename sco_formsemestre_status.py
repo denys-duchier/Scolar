@@ -201,7 +201,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Resynchroniser données identité',
           'url' : 'formsemestre_import_etud_admission?formsemestre_id=' + formsemestre_id,
-          'enabled' : (authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url'),
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url'),
           },
 
         { 'title' : 'Exporter table des étudiants',
