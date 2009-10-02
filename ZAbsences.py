@@ -1275,7 +1275,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         datefin = billet['abs_end'].strftime('%d/%m/%Y')
         dates = self.DateRangeISO( datedebut, datefin )
         # commence apres midi ?
-        if billet['abs_begin'].hour > 11:
+        if dates and billet['abs_begin'].hour > 11:
             self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=description)
             n += 1
             dates = dates[1:]
