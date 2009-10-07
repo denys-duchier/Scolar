@@ -1130,9 +1130,10 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         begin et end sont au format ISO (eg "1999-01-08 04:05:06")
         """
         # check etudid
-        etud = self.getEtudInfo(etudid=etudid, code_nip=code_nip, REQUEST=REQUEST)[0]
-        if not etud:
+        etuds = self.getEtudInfo(etudid=etudid, code_nip=code_nip, REQUEST=REQUEST)        
+        if not etuds:
             return self.log_unknown_etud(REQUEST=REQUEST)
+        etud = etuds[0]
         # check dates
         begin_date = ParseDateTimeUTC(begin) # may raises ValueError
         end_date = ParseDateTimeUTC(end)
@@ -1226,7 +1227,11 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     def listeBilletsEtud(self, etudid=None, REQUEST=None, format='html'):
         """Liste billets pour un etudiant
         """
-        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        etuds = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)
+        if not etuds:
+            return self.log_unknown_etud(format=format, REQUEST=REQUEST)
+        
+        etud = etuds[0]
         cnx = self.GetDBConnexion()
         billets = billet_absence_list(cnx,  {'etudid': etud['etudid'] } )
         tab = self._tableBillets(billets, etud=etud)

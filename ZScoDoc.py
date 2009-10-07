@@ -568,7 +568,6 @@ ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.un
             log('an exception occurred sending mail')
 
     security.declareProtected('View', 'standard_error_message')
-    #standard_error_message = DTMLFile('dtml/standard_error_message', globals())
     def standard_error_message(self, error_value=None, error_message=None, error_type=None,
                                error_traceback=None, error_tb=None, **kv): 
         "Recuperation des exceptions Zope"

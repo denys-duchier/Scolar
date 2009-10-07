@@ -560,8 +560,11 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
         etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
         etudid = etud['etudid']
     except:
-        context.log_unknown_etud(REQUEST)
-    sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+        return context.log_unknown_etud(REQUEST, format=format)
+    sems = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )
+    if not sems:
+        return context.ScoErrorResponse("invalid formsemestre_id (%s)" % formsemestre_id, format=format, REQUEST=REQUEST)
+    sem = sems[0]
     R = []
     if format == 'html' or format == 'mailpdf':
         R.append( _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,

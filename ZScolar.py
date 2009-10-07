@@ -432,6 +432,21 @@ class ZScolar(ObjectManager,
         """
         raise ScoValueError(msg)
 
+    security.declareProtected(ScoView, 'ScoErrorResponse')
+    def ScoErrorResponse(self, msg, format='html', REQUEST=None):
+        """Send an error message to the client, in html or xml format.
+        """
+        REQUEST.RESPONSE.setStatus(404, reason=msg)
+        if format == 'html':
+            raise ScoValueError(msg)
+        elif format == 'xml':
+            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            doc = jaxml.XML_document( encoding=SCO_ENCODING )
+            doc.error( msg=msg )
+            return repr(doc)
+        else:
+            raise ValueError('ScoErrorResponse: invalid format')
+
     security.declareProtected(ScoView, 'AnneeScolaire')
     def AnneeScolaire(self, REQUEST=None):
         "annee de debut de l'annee scolaire courante"
@@ -1201,15 +1216,14 @@ class ZScolar(ObjectManager,
         return etud
 
     security.declareProtected(ScoView, 'log_unknown_etud')
-    def log_unknown_etud(self, REQUEST=None):
+    def log_unknown_etud(self, REQUEST=None, format='html'):
         """Log request: cas ou getEtudInfo n'a pas ramene de resultat"""
         etudid = REQUEST.form.get('etudid', '?')
         code_nip = REQUEST.form.get('code_nip', '?')
         code_ine = REQUEST.form.get('code_ine', '?')
         log("unknown student: etudid=%s code_nip=%s code_ine=%s"
             % (etudid, code_nip, code_ine))
-        REQUEST.RESPONSE.setStatus(404, reason='etudiant inconnu')
-        raise ScoValueError('etudiant inconnu')
+        return self.ScoErrorResponse( 'unknown student', format=format, REQUEST=REQUEST)
     
     #
     security.declareProtected(ScoView, 'nomprenom')
