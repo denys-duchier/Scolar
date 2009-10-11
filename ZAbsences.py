@@ -1125,7 +1125,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     
     # ----- Gestion des "billets d'absence": signalement par les etudiants eux mêmes (à travers le portail)
     security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
-    def AddBilletAbsence(self, begin, end, description, etudid=None, code_nip=None, code_ine=None, REQUEST=None, xml_reply=True ):
+    def AddBilletAbsence(self, begin, end, description, etudid=False, code_nip=None, code_ine=None, REQUEST=None, xml_reply=True ):
         """Memorise un "billet"
         begin et end sont au format ISO (eg "1999-01-08 04:05:06")
         """
@@ -1224,7 +1224,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         return tab
 
     security.declareProtected(ScoView, 'listeBilletsEtud')
-    def listeBilletsEtud(self, etudid=None, REQUEST=None, format='html'):
+    def listeBilletsEtud(self, etudid=False, REQUEST=None, format='html'):
         """Liste billets pour un etudiant
         """
         etuds = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)
@@ -1238,7 +1238,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         return tab.make_page(self, REQUEST=REQUEST, format=format)
 
     security.declareProtected(ScoView, 'XMLgetBilletsEtud')
-    def XMLgetBilletsEtud(self, etudid=None, REQUEST=None):
+    def XMLgetBilletsEtud(self, etudid=False, REQUEST=None):
         """Liste billets pour un etudiant
         """
         return self.listeBilletsEtud(etudid, REQUEST=REQUEST, format='xml')

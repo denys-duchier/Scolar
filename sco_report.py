@@ -279,6 +279,10 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
 
+    # Elimine les etudiants non primo-entrants dans sem
+    # (ie ayant une inscription antérieure dans un semestre)
+    # if XXXXXXXXXX
+
     logt('A: orig etuds set')
     S = { formsemestre_id : sem  } # ensemble de formsemestre_id
     orig_set = Set() # ensemble d'etudid du semestre d'origine
