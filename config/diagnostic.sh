@@ -16,7 +16,7 @@ fi
 mkdir $TMP
 
 # Files to copy:
-FILES=/etc/debian_version /etc/apt/sources.list 
+FILES=/etc/debian_version /etc/apt /etc/apache2
 
 
 echo "ScoDoc diagnostic: informations about your system will be sent to $DEST_ADDRESS"
@@ -26,9 +26,10 @@ echo "and left in $TMP"
 copy_log() {
  if [ -e $1 ]
  then
-   cp $1 $TMP/scodoc_logs
+   cp $1 $TMP/scodoc_logs/
  fi
 }
+mkdir $TMP/scodoc_logs/
 copy_log /opt/scodoc/instance/log/event.log
 copy_log /opt/scodoc/instance/log/event.log.1
 copy_log /opt/scodoc/instance/log/notes.log
@@ -47,7 +48,7 @@ dpkg -l > $TMP/dpkg.lst
 # copy files:
 for f in $FILES 
 do 
-   cp $f $TMP/$(basename $f)
+   cp -R $f $TMP
 done
 
 # archive all stuff and send it
