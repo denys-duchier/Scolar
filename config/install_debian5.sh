@@ -97,6 +97,16 @@ echo
 
 echo 'Done.'
 
+# ------------ POSTFIX
+echo 
+echo "ScoDoc a besoin de pouvoir envoyer des messages par mail."
+echo -n "Voulez vous configurer la messagerie (tres recommande) ? (y/n) [y] "
+read ans
+if [ "$(norm_ans "$ans")" != 'N' ]
+then
+    apt-get install postfix
+fi
+
 # ------------ CONFIG FIREWALL
 echo 
 echo "Le firewall aide a proteger votre serveur d'intrusions indesirables."
@@ -112,19 +122,10 @@ then
     cp $SCODOC_DIR/config/etc/firehol.conf /etc/firehol/
     mv /etc/default/firehol /etc/default/firehol.orig
     cat /etc/default/firehol.orig | sed 's/START_FIREHOL=NO/START_FIREHOL=YES/' > /tmp/firehol && mv /tmp/firehol /etc/default/firehol
-    
-    /etc/init.d/firehol restart
 fi
 
-# ------------ POSTFIX
-echo 
-echo "ScoDoc a besoin de pouvoir envoyer des messages par mail."
-echo -n "Voulez vous configurer la messagerie (tres recommande) ? (y/n) [y] "
-read ans
-if [ "$(norm_ans "$ans")" != 'N' ]
-then
-    apt-get install postfix
-fi
+# Nota: after this point, the network may be unreachable 
+# (if firewall config is wrong)
 
 # ------------ CONFIG APACHE
 a2enmod ssl

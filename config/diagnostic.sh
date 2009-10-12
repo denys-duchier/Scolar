@@ -8,7 +8,10 @@ DEST_ADDRESS=emmanuel.viennet@univ-paris13.fr
 TMP=/tmp/scodoc-$(date +%F-%s)
 
 # needed for uuencode
-apt-get install sharutils
+if [ ! -e /usr/bin/uuencode ]
+then
+   apt-get install sharutils
+fi
 
 mkdir $TMP
 
@@ -19,14 +22,24 @@ FILES=/etc/debian_version /etc/apt/sources.list
 echo "ScoDoc diagnostic: informations about your system will be sent to $DEST_ADDRESS"
 echo "and left in $TMP"
 
-# copy Zope logs
-tar cvfz $TMP/scodoc_logs.tgz /opt/scodoc/instance/log
+# copy some Zope logs
+copy_log() {
+ if [ -e $1 ]
+ then
+   cp $1 $TMP/scodoc_logs
+ fi
+}
+copy_log /opt/scodoc/instance/log/event.log
+copy_log /opt/scodoc/instance/log/event.log.1
+copy_log /opt/scodoc/instance/log/notes.log
+copy_log /opt/scodoc/instance/log/notes.log.1
 
 # Run some commands:
 iptables -L > $TMP/iptables.out
 ifconfig > $TMP/ifconfig.out
 ps auxww > $TMP/ps.out
 df -h > $TMP/df.out
+dpkg -l > $TMP/dpkg.lst
 
 (cd /opt/scodoc/instance/Products/ScoDoc; svn status > $TMP/svn.status)
 (cd /opt/scodoc/instance/Products/ScoDoc; svn diff > $TMP/svn.diff)
