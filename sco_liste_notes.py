@@ -248,8 +248,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         columns_ids.append('moymod')
     
     # ajoute lignes en tête et moyennes    
-    if len(evals) > 1:
-        log(coefs)
+    if len(evals) > 0: 
         rows = [coefs, note_max] + rows
     rows.append(moys)
     # ajout liens HTMl vers affichage une evaluation:
