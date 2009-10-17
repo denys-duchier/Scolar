@@ -51,7 +51,8 @@ def _fill_reptable():
         (u"Y",  [0x00DD,0x0176,0x0178]),
         (u"y",  [0x00FD,0x00FF,0x0177]),
         (u"Z",  [0x0179,0x017B,0x017D]),
-        (u"z",  [0x017A,0x017C,0x017E])
+        (u"z",  [0x017A,0x017C,0x017E]),
+        (u"2",  [0x00B2]), # deux exposant
         ]
     global _reptable
     for repchar,codes in _corresp :
