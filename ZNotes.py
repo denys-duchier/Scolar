@@ -1350,7 +1350,7 @@ class ZNotes(ObjectManager,
             'event_type' : 'INSCRIPTION' } )
         # Log etudiant
         logdb(REQUEST, cnx, method=method,
-              etudid=args['etudid'], msg='inscription initiale',
+              etudid=args['etudid'], msg='inscription en semestre %s' % args['formsemestre_id'],
               commit=False )
         #
         self._inval_cache()
@@ -1487,12 +1487,12 @@ class ZNotes(ObjectManager,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
 
-        self.do_formsemestre_desinscription(etudid, formsemestre_id)
+        self.do_formsemestre_desinscription(etudid, formsemestre_id, REQUEST=REQUEST)
         
         return self.sco_header(REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
 
 
-    def do_formsemestre_desinscription(self, etudid, formsemestre_id):
+    def do_formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None):
         "Deinscription d'un étudiant"
         sem = self.get_formsemestre(formsemestre_id)
         # -- check lock
@@ -1514,7 +1514,11 @@ class ZNotes(ObjectManager,
             self.do_moduleimpl_inscription_delete(moduleimpl_inscription_id)
         # -- desincription du semestre        
         self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
-
+        if REQUEST:
+            logdb(REQUEST, cnx, method='formsemestre_desinscription',
+                  etudid=etudid,
+                  msg='desinscription semestre %s' % formsemestre_id,
+                  commit=False )
     
     # --- Inscriptions aux modules
     _moduleimpl_inscriptionEditor = EditableTable(

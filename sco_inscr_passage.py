@@ -146,7 +146,7 @@ def do_inscrit(context, sem, etudids, REQUEST):
 def do_desinscrit(context, sem, etudids, REQUEST):
     log('do_desinscrit: %s' % etudids)
     for etudid in etudids:
-        context.do_formsemestre_desinscription(etudid, sem['formsemestre_id'])
+        context.do_formsemestre_desinscription(etudid, sem['formsemestre_id'], REQUEST=REQUEST)
 
 
 def list_source_sems(context, sem, delai=None):
