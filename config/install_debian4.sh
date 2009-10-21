@@ -49,8 +49,8 @@ apt-get install python-jaxml python-psycopg python-pyrss2gen python-imaging pyth
 
 # start database server
 # /etc/init.d/postgresql-8.1 start
-
-SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install)
+SVNVERSION=$(cd ..; svnversion)
+SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install\&svn=$SVNVERSION)
 
 # ------------ LOCALES
 echo 
