@@ -11,12 +11,16 @@ source utils.sh
 
 check_uid_root $0
 
+apt-get -y install curl # now necessary
+
 echo "Stopping ScoDoc..."
 /etc/init.d/scodoc stop
 
 echo
 echo "Using SVN to update $SCODOC_DIR..."
 (cd $SCODOC_DIR; svn update)
+
+SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=upgrade)
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z $SCODOC_UPGRADE_RUNNING ]

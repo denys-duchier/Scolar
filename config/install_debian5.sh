@@ -78,9 +78,11 @@ echo 'Done.'
 
 # ------------ AJOUT DES PAQUETS NECESSAIRES
 apt-get update
-apt-get install subversion cracklib-runtime firehol
+apt-get install subversion curl cracklib-runtime firehol
 apt-get install apache2 ssl-cert postgresql-8.3 postgresql-client-8.3
 apt-get install python2.4 python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab python-crack graphviz
+
+SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install)
 
 # python-pydot is currently bugged in Debian 5: install our 0.9.10
 echo '\nInstallation de pydot\n'
