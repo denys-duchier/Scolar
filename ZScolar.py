@@ -525,14 +525,22 @@ class ZScolar(ObjectManager,
     # --------------------------------------------------------------------
 
     security.declareProtected(ScoView, 'formChercheEtud')
-    def formChercheEtud(self, REQUEST=None, dest_url=None, parameters=None, parameters_keys=None, title='Rechercher un &eacute;tudiant par nom&nbsp;: '):
+    def formChercheEtud(self, REQUEST=None, 
+                        dest_url=None, 
+                        parameters=None, parameters_keys=None, 
+                        title='Rechercher un &eacute;tudiant par nom&nbsp;: ', 
+                        add_headers = False, # complete page
+                        ):
         "form recherche par nom"
-        H = [ """<form action="chercheEtud" method="POST">
+        H = []
+        if title:
+            H.append('<h2>%s</h2>'%title)
+        H.append( """<form action="chercheEtud" method="POST">
         <b>%s</b>
         <input type="text" name="expnom" width=12 value="">
         <input type="submit" value="Chercher">
         <br/>(entrer une partie du nom)
-        """ % title]
+        """ % title)
         if dest_url:
             H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)
         if parameters:
@@ -547,7 +555,11 @@ class ZScolar(ObjectManager,
                     H.append('<input type="hidden" name="%s" value="%s"/>'%(key,v))
             H.append('<input type="hidden" name="parameters_keys" value="%s"/>'%parameters_keys)
         H.append('</form>')
-        return '\n'.join(H)
+        
+        if add_headers:
+            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant') + '\n'.join(H) + self.sco_footer(REQUEST)
+        else:
+            return '\n'.join(H)
     
     security.declareProtected(ScoView, 'formChoixSemestreGroupe')
     def formChoixSemestreGroupe(self, all=False):
