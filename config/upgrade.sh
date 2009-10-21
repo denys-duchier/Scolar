@@ -30,8 +30,7 @@ else
   mode=install  
 fi
 SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode&svn=$SVNVERSION&sn=$SN)
-if [ ! -e $SCODOC_DIR/config/scodoc.sn ]
-then
+if [ ! -z $SVERSION ]; then
   echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
 fi
 
