@@ -308,9 +308,12 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
         return ''
     TitlePrev = ''
     if Se.prev:
-        TitlePrev = 'S%d' % Se.prev['semestre_id']
-    
-    if Se.sem['semestre_id']:
+        if Se.prev['semestre_id'] >= 0:
+            TitlePrev = 'S%d' % Se.prev['semestre_id']
+        else:
+            TitlePrev = 'Prec.'
+
+    if Se.sem['semestre_id'] >= 0:
         TitleCur = 'S%d' % Se.sem['semestre_id']
     else:
         TitleCur = 'Sem'
