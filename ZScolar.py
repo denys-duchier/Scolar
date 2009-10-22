@@ -2228,9 +2228,12 @@ function tweakmenu( gname ) {
         self.fillEtudsInfo([etud])
         if not dialog_confirmed:
             return self.confirmDialog(
-                """<p>Confirmer la supression de l'étudiant <b>%(nomprenom)s</b> ?
+                """<h2>Confirmer la suppression de l'étudiant <b>%(nomprenom)s</b> ?</h2>
                 </p>
-                <p>Cette opération <b>irreversible</b> efface toute trace de l'étudiant: inscriptions, notes, absences...</p>
+                <p>Prennez le temps de vérifier que vous devez vraiment supprimer cet étudiant !</p>
+                <p>Cette opération <font color="red"><b>irreversible</b></font> efface toute trace de l'étudiant: inscriptions, <b>notes</b>, absences... dans <b>tous les semestres</b> qu'il a fréquenté.</p>
+                <p>Peut être voulez vous seulement de désinscrire d'un semestre ? (dans ce cas passez par sa fiche, menu associé au semestre)</p>
+
                 <p><a href="ficheEtud?etudid=%(etudid)s">Vérifier la fiche de %(nomprenom)s</a>
                 </p>""" % etud,
                 dest_url="", REQUEST=REQUEST,
@@ -2259,6 +2262,8 @@ function tweakmenu( gname ) {
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
                             etud )            
         cnx.commit()
+        # invalid all caches
+        self.Notes._inval_cache()  
         return REQUEST.RESPONSE.redirect(REQUEST.URL1)
     
     # ---- inscriptions "en masse"
