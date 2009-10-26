@@ -362,13 +362,12 @@ def DateDMYtoISO(dmy):
     month = int(month)
     day = int(day)
     # accept years YYYY or YY, uses 1970 as pivot
-    if year < 1970:
-        if year > 100:
-            raise ScoValueError('année invalide ! (%s)' % year)
-        if year < 70:
-            year = year + 2000
+    if year < 100:
+        if year > 70:
+            year += 1900
         else:
-            year = year + 1900
+            year += 2000
+    
     if month < 1 or month > 12:
         raise ScoValueError('mois de la date invalide ! (%s)' % month)
     # compute nb of day in month:
