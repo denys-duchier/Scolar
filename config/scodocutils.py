@@ -74,6 +74,7 @@ def check_field(cnx, table, field, sql_create_commands):
         else:
             log('field %s added successfully.' % field)
 
+
 def table_exists(cnx, table):
     "true if SQL table exists"
     cursor = cnx.cursor()

@@ -119,7 +119,8 @@ CREATE TABLE billet_absence (
     abs_end  timestamp with time zone,
     description text, -- "raison" de l'absence
     etat integer default 0, -- 0 new, 1 processed    
-    entry_date timestamp with time zone DEFAULT now()
+    entry_date timestamp with time zone DEFAULT now(),
+    justified integer default 0, -- 1 si l'absence pourrait etre justifiée
 ) WITH OIDS;
 
 

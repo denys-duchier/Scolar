@@ -1151,7 +1151,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     
     # ----- Gestion des "billets d'absence": signalement par les etudiants eux mêmes (à travers le portail)
     security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
-    def AddBilletAbsence(self, begin, end, description, etudid=False, code_nip=None, code_ine=None, REQUEST=None, xml_reply=True ):
+    def AddBilletAbsence(self, begin, end, description, etudid=False, code_nip=None, code_ine=None, justified=True, REQUEST=None, xml_reply=True ):
         """Memorise un "billet"
         begin et end sont au format ISO (eg "1999-01-08 04:05:06")
         """
@@ -1166,11 +1166,15 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         if begin_date > end_date:
             raise ValueError('invalid dates')
         #
+        justified = int(justified)
+        #
         cnx = self.GetDBConnexion()
         billet_id = billet_absence_create( cnx, { 'etudid' : etud['etudid'], 
                                                   'abs_begin' : begin, 'abs_end' : end,
                                                   'description' : description,
-                                                  'etat' : 0 } )
+                                                  'etat' : 0,
+                                                  'justified' : justified
+                                                  } )
         if xml_reply:
             if REQUEST:
                 REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
@@ -1180,7 +1184,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         else:
             return billet_id
 
-    security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
+    security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsenceForm')
     def AddBilletAbsenceForm(self, etudid, REQUEST=None):
         """Formulaire ajout billet (pour tests seulement, le vrai formulaire accessible aux etudiants
         étant sur le portail étudiant).
@@ -1192,6 +1196,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             (('etudid',  { 'input_type' : 'hidden' }),
              ('begin', { 'input_type' : 'date' }),
              ('end', { 'input_type' : 'date' }),
+             ('justified', { 'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'Justifiée' }),
              ('description', { 'input_type' : 'textarea' } )))
         if  tf[0] == 0:
             return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
@@ -1202,7 +1207,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             begin = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
             e = tf[2]['end'].split('/')
             end = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
-            self.AddBilletAbsence(begin, end, tf[2]['description'], etudid=etudid, xml_reply=False)
+            self.AddBilletAbsence(begin, end, tf[2]['description'], etudid=etudid, xml_reply=False, justified=tf[2]['justified'])
             return REQUEST.RESPONSE.redirect( 'listeBilletsEtud?etudid=' + etudid )
 
     def _tableBillets(self, billets, etud=None, title='' ):
@@ -1218,8 +1223,11 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                 m = ' après midi'
             b['abs_end_str'] = b['abs_end'].strftime('%d/%m/%Y') + m
             if b['etat'] == 0:
-                b['etat_str'] = 'à traiter'
-                b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s&estjust=0' % b['billet_id']
+                if b['justified'] == 0:
+                    b['etat_str'] = 'à traiter'
+                else:
+                    b['etat_str'] = 'à justifier'
+                b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s' % b['billet_id']
                 if etud:
                     b['_etat_str_target'] += '&etudid=%s' % etud['etudid']
                 b['_billet_id_target'] = b['_etat_str_target']
@@ -1296,8 +1304,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         NB: actuellement, les heures ne sont utilisées que pour déterminer si matin et/ou après midi.
         """
         cnx = self.GetDBConnexion()
-        log('billet=%s' % billet)
         if billet['etat'] != 0:
+            log('billet=%s' % billet)
             log('billet deja traité !')
             return -1
         n = 0 # nombre de demi-journées d'absence ajoutées
@@ -1346,13 +1354,16 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             (('billet_id',  { 'input_type' : 'hidden' }),
              ('etudid',  { 'input_type' : 'hidden' }), # pour centrer l'UI sur l'étudiant
              ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiées' }),
-              ('description',  { 'input_type' : 'text', 'size' : 42, 'title' : 'Raison' })),
+             ('description',  { 'input_type' : 'text', 'size' : 42, 'title' : 'Raison' })),
             initvalues = { 'description' : billet['description'],
+                           'estjust' : billet['justified'],
                            'etudid' : etudid},
             submitlabel = 'Enregistrer ces absences')
         if tf[0] == 0:
             tab = self._tableBillets([billet], etud=etud)
             H.append(tab.html())
+            if billet['justified'] == 1:
+                H.append("""<p>L'étudiant pense pouvoir justifier cette absence.<br/><em>Vérifiez le justificatif avant d'enregistrer.</em></p>""")
             F = '<p><a class="stdlink" href="listeBillets">Liste de tous les billets en attente</a></p>' + self.sco_footer(REQUEST)
             return '\n'.join(H) + '<br/>' +  tf[1] + F
         elif tf[0] == -1:
@@ -1404,7 +1415,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 _billet_absenceEditor = EditableTable(
     'billet_absence',
     'billet_id',
-    ('billet_id', 'etudid', 'abs_begin', 'abs_end', 'description', 'etat', 'entry_date'),
+    ('billet_id', 'etudid', 'abs_begin', 'abs_end', 'description', 'etat', 'entry_date', 'justified'),
     sortkey='entry_date desc'
 )
 

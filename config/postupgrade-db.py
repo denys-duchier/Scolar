@@ -122,6 +122,11 @@ for dept in get_depts():
     check_field(cnx, 'identite', 'lieu_naissance',
                 ['alter table identite add column lieu_naissance text'
                  ])
+    # justification billets:
+    check_field(cnx, 'billet_absence', 'justified', 
+                [ 'alter table billet_absence add column justified integer default 0',
+                  'update billet_absence set justified=0'
+                  ])
     
     # Add here actions to performs after upgrades:
 
