@@ -443,21 +443,45 @@ class ZAbsences(ObjectManager,
         """, vars() )
         res = cursor.fetchone()[0]
         return res
-# XXX inutilisé (idem ListeAbsNonJust) ?
-#     security.declareProtected(ScoView, 'ListeAbsDate')
-#     def ListeAbsDate(self, etudid, datedebut):
-#         "Liste des absences NON justifiees"
-#         cnx = self.GetDBConnexion()
-#         cursor = cnx.cursor()
-#         cursor.execute("""SELECT JOUR, MATIN FROM ABSENCES A 
-#     WHERE A.ETUDID = %(etudid)s
-#     AND A.estabs 
-#     AND A.jour > %(datebut)s
-#     EXCEPT SELECT JOUR FROM ABSENCES B 
-#     WHERE B.estjust 
-#     AND B.ETUDID = %(etudid)s
-#         """, vars() )
-#         return cursor.dictfetchall()
+
+
+    def _ListeAbsDate(self, etudid, beg_date, end_date):
+        # Liste des absences et justifs entre deux dates
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute("""SELECT jour, matin, estabs, estjust, description FROM ABSENCES A 
+     WHERE A.ETUDID = %(etudid)s
+     AND A.jour >= %(beg_date)s 
+     AND A.jour <= %(end_date)s 
+         """, vars() )
+        Abs = cursor.dictfetchall()
+        log('ListeAbsDate: abs=%s' % Abs)
+        # remove duplicates        
+        A = {} # { (jour, matin) : abs }
+        for a in Abs:
+            jour, matin = a['jour'], a['matin']
+            if (jour, matin) in A:
+                # garde toujours la description
+                a['description'] = a['description'] or A[(jour, matin)]['description']
+                # et la justif:
+                a['estjust'] = a['estjust'] or A[(jour, matin)]['estjust']
+                a['estabs'] = a['estabs'] or A[(jour, matin)]['estabs']
+                A[(jour, matin)] = a
+            else:
+                A[(jour, matin)] = a
+            # add hours: matin = 8:00 - 12:00, apresmidi = 12:00 - 18:00
+            dat = '%04d-%02d-%02d' % (a['jour'].year,a['jour'].month,a['jour'].day)
+            if a['matin']:
+                A[(jour, matin)]['begin'] = dat + ' 08:00:00'
+                A[(jour, matin)]['end'] = dat + ' 11:59:59'
+            else:
+                A[(jour, matin)]['begin'] = dat + ' 12:00:00'
+                A[(jour, matin)]['end'] = dat + ' 17:59:59'
+        # sort
+        R = A.values()
+        R.sort( key=lambda x: (x['begin']) )
+        log('R=%s' % R)
+        return R
     
     security.declareProtected(ScoView, 'ListeAbsJust')
     def ListeAbsJust(self, etudid, datedebut):
@@ -1350,9 +1374,30 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             H.append(tab.html())
             return '\n'.join(H) + self.sco_footer(REQUEST)
 
-
-    
-    
+    security.declareProtected(ScoView, 'XMLgetAbsEtud')
+    def XMLgetAbsEtud(self, beg_date='', end_date='', REQUEST=None):
+        """returns list of absences in date interval"""
+        etud = self.getEtudInfo(REQUEST=REQUEST)[0]
+        exp = re.compile('^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$')
+        if not exp.match(beg_date):
+            raise ScoValueError('invalid date: %s' % beg_date)
+        if not exp.match(end_date):
+            raise ScoValueError('invalid date: %s' % end_date)
+        
+        Abs = self._ListeAbsDate(etud['etudid'], beg_date, end_date)
+        
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        doc.absences( etudid=etud['etudid'], beg_date=beg_date, end_date=end_date )
+        doc._push()
+        for a in Abs:
+            if a['estabs']: # ne donne pas les justifications si pas d'absence
+                doc._push()
+                doc.abs( begin=a['begin'], end=a['end'], 
+                         description=a['description'], justified=a['estjust'] )
+                doc._pop()
+        doc._pop()
+        return repr(doc)
 
 _billet_absenceEditor = EditableTable(
     'billet_absence',
