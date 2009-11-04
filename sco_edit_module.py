@@ -53,6 +53,8 @@ saisir et modifier les notes de ce module.
 def module_create(context, matiere_id=None, REQUEST=None):
     """Creation d'un module
     """
+    if not matiere_id:
+        raise ScoValueError('invalid matiere !')
     M = context.do_matiere_list( args={'matiere_id' : matiere_id} )[0]
     UE = context.do_ue_list( args={'ue_id' : M['ue_id']} )[0]
     H = [ context.sco_header(REQUEST, page_title="Création d'un module"),
@@ -97,6 +99,8 @@ def module_create(context, matiere_id=None, REQUEST=None):
 
 def module_delete(context, module_id=None, REQUEST=None):
     """Delete a module"""
+    if not module_id:
+        raise ScoValueError('invalid module !')
     Mods = context.do_module_list(args={ 'module_id' : module_id } )
     if not Mods:
         raise ScoValueError('Module inexistant !')
@@ -121,6 +125,8 @@ def module_delete(context, module_id=None, REQUEST=None):
 
 def module_edit(context, module_id=None, REQUEST=None):
     """Edit a module"""
+    if not module_id:
+        raise ScoValueError('invalid module !')
     Mod= context.do_module_list( args={ 'module_id' : module_id } )[0]
     Fo = context.do_formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
     M  = context.do_matiere_list( args={'ue_id' : Mod['ue_id']} )
@@ -171,6 +177,8 @@ def module_list(context, formation_id, REQUEST=None):
     """Liste des modules de la formation
     (XXX inutile ou a revoir)
     """
+    if not formation_id:
+        raise ScoValueError('invalid formation !')
     F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
     H = [ context.sco_header(REQUEST, page_title="Liste des modules de %(titre)s" % F),
           """<h2>Listes des modules dans la formation %(titre)s (%(acronyme)s)</h2>""" % F,
