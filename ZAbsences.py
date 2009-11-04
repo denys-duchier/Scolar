@@ -469,6 +469,8 @@ class ZAbsences(ObjectManager,
                 A[(jour, matin)] = a
             else:
                 A[(jour, matin)] = a
+            if A[(jour, matin)]['description'] is None:
+                A[(jour, matin)]['description'] = ''
             # add hours: matin = 8:00 - 12:00, apresmidi = 12:00 - 18:00
             dat = '%04d-%02d-%02d' % (a['jour'].year,a['jour'].month,a['jour'].day)
             if a['matin']:
