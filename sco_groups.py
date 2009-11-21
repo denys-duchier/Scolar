@@ -529,7 +529,7 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     H = [ context.sco_header(REQUEST, page_title="Partitions..."),
           """<script type="text/javascript">
           function checkname() {
- var val = document.editpart.partition_name.value.trim();
+ var val = document.editpart.partition_name.value.replace(/^\s+/, "").replace(/\s+$/, "");
  if (val.length > 0) {
    document.editpart.ok.disabled = false;
  } else {
