@@ -37,41 +37,28 @@ import tempfile
 from notes_log import log
 from sco_utils import *
 from scolars import format_nom, format_prenom, format_sexe
-
+import sco_groups
 import sco_portal_apogee
 from sco_formsemestre_status import makeMenu
 from sco_pdf import *
 from reportlab.lib import colors
 
-def trombino(context,REQUEST,formsemestre_id,
-             groupetd=None, groupetp=None, groupeanglais=None,
+def trombino(context,REQUEST, group_id,
              etat=None, nbcols=5,
              format = 'html', dialog_confirmed=False ):
     """Trombinoscope"""
-    T, nomgroupe, ng, sem, nbdem = context._getlisteetud(formsemestre_id,
-                                                      groupetd,groupetp,groupeanglais,etat )
-    args='formsemestre_id=%s' % formsemestre_id
-    if groupetd:
-        args += '&groupetd=%s' % groupetd
-    if groupetp:
-        args += '&groupetp=%s' % groupetp
-    if groupeanglais:
-        args += '&groupeanglais=%s' % groupeanglais
+    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
+    
+    args='group_id=%s' % group_id
     if etat:
         args += '&etat=%s' % etat
     #
     if format != 'html' and not dialog_confirmed:
         # check that we have local copies of all images
-        for t in T:
+        for t in members:
             etudid = t['etudid']
             if not context.etudfoto_islocal(etudid):
-                parameters = { 'formsemestre_id' : formsemestre_id, 'etat' : etat, 'format' : format }
-                if groupetd:
-                    parameters['groupetd'] = groupetd
-                if groupetp:
-                    parameters['groupetp'] = groupetp
-                if groupeanglais:
-                    parameters['groupeanglais'] = groupeanglais
+                parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
                 return context.confirmDialog(
                     """<p>Attention: certaines photos ne sont pas stockées dans ScoDoc et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino_copy_photos?%s">copier les photos du portail dans ScoDoc</a> ou bien <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (args, args),
                     dest_url = 'trombino',
@@ -79,9 +66,9 @@ def trombino(context,REQUEST,formsemestre_id,
                     cancel_url="trombino?%s"%args,
                     REQUEST=REQUEST, parameters=parameters )
     if format == 'zip':
-        return _trombino_zip(context, T, REQUEST)
+        return _trombino_zip(context, members, REQUEST)
     elif format == 'pdf':
-        return _trombino_pdf(context, sem, ng, T, REQUEST)
+        return _trombino_pdf(context, sem, group_tit, members, REQUEST)
     else:
         menuTrombi = [
             { 'title' : 'Version PDF (imprimable)',
@@ -95,12 +82,16 @@ def trombino(context,REQUEST,formsemestre_id,
               }
             ]
         nbcols = int(nbcols)
+        if group['group_name'] != None:
+            ng = 'Groupe %s' % group['group_name']
+        else:
+            ng = 'Tous les étudiants'
         H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]            
         H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td></tr></table>' )
 
         H.append('<div><table width="100%">')
         i = 0
-        for t in T:
+        for t in members:
             if i % nbcols == 0:
                 H.append('<tr>')
             H.append('<td align="center">')
@@ -141,12 +132,9 @@ def _trombino_zip(context, T, REQUEST ):
 
 
 # Copy photos from portal to ScoDoc
-def trombino_copy_photos(context, formsemestre_id,
-             groupetd=None, groupetp=None, groupeanglais=None,
-             etat=None,REQUEST=None):
+def trombino_copy_photos(context, group_id, etat=None,REQUEST=None):
     "Copy photos from portal to ScoDoc (only if we don't have a local copy)"
-    T, nomgroupe, ng, sem, nbdem = context._getlisteetud(formsemestre_id,
-                                                      groupetd,groupetp,groupeanglais,etat )
+    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
     portal_url = sco_portal_apogee.get_portal_url(context)
     header = context.sco_header(REQUEST, page_title='Chargement des photos') 
     footer = context.sco_footer(REQUEST)
@@ -154,7 +142,7 @@ def trombino_copy_photos(context, formsemestre_id,
         return header + '<p>portail non configuré</p>' + footer
     msg = []
     nok = 0
-    for etud in T:
+    for etud in members:
         etudid = etud['etudid']
         if not context.etudfoto_islocal(etudid):
             if not etud['code_nip']:
@@ -178,13 +166,7 @@ def trombino_copy_photos(context, formsemestre_id,
                     else:
                         msg.append('%s: <b>%s</b>' % (context.nomprenom(etud), diag))
     msg.append('<b>%d photos correctement chargées</b>' % nok )
-    args='formsemestre_id=%s' % formsemestre_id
-    if groupetd:
-        args += '&groupetd=%s' % groupetd
-    if groupetp:
-        args += '&groupetp=%s' % groupetp
-    if groupeanglais:
-        args += '&groupeanglais=%s' % groupeanglais
+    args='group_id=%s' % formsemestre_id
     if etat:
         args += '&etat=%s' % etat            
 

@@ -34,35 +34,32 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
+import sco_groups
 import htmlutils
 import sco_excel
 import scolars
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
-def do_evaluation_selectetuds(self, REQUEST ):
+def do_evaluation_selectetuds(context, REQUEST ):
     """
     Choisi les etudiants pour saisie notes
     """
     evaluation_id = REQUEST.form['evaluation_id']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})
     if not E:
         raise ScoValueError("invalid evaluation_id")
     E = E[0]
-    M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
     formsemestre_id = M['formsemestre_id']
     # groupes
-    gr_td, gr_tp, gr_anglais = self.do_evaluation_listegroupes(evaluation_id)
-    grnams  = ['tous'] + [('td'+x) for x in gr_td ] # noms des checkbox
-    grnams += [('tp'+x) for x in gr_tp ]
-    grnams += [('ta'+x) for x in gr_anglais ]
-    grlabs  = ['tous'] + gr_td + gr_tp + gr_anglais # legendes des boutons
-    if len(gr_td) <= 1 and len(gr_tp) <= 1 and len(gr_anglais) <= 1:
-        no_group = True
-    else:
-        no_group = False
+    groups = sco_groups.do_evaluation_listegroupes(context,evaluation_id, include_default=True)
+    grlabs = [ g['group_name'] or 'tous' for g in groups ]  # legendes des boutons
+    grnams  = [ g['group_id'] for g in groups ] # noms des checkbox
+    no_groups = (len(groups) == 1) and groups[0]['group_name'] is None
+    
     # description de l'evaluation    
-    H = [ self.evaluation_create_form(evaluation_id=evaluation_id,
+    H = [ context.evaluation_create_form(evaluation_id=evaluation_id,
                                       REQUEST=REQUEST, readonly=1),
           '<h3>Saisie des notes</h3>'
           ]
@@ -73,11 +70,13 @@ def do_evaluation_selectetuds(self, REQUEST ):
                          'allowed_values' : [ 'xls', 'form' ],
                          'labels' : ['fichier tableur', 'formulaire web'],
                          'title' : 'Méthode de saisie des notes :' }) ]
-    if no_group:
+    if no_groups:
         submitbuttonattributes = []
+        descr += [ 
+            ('group_ids', { 'default' : [g['group_id'] for g in groups],  'input_type' : 'hidden', 'type':'list' }) ]
     else:
         descr += [ 
-            ('groupes', { 'input_type' : 'checkbox',
+            ('group_ids', { 'input_type' : 'checkbox',
                           'title':'Choix du ou des groupes d\'étudiants :',
                           'allowed_values' : grnams, 'labels' : grlabs,
                           'attributes' : ['onchange="gr_change(this);"']
@@ -90,7 +89,7 @@ def do_evaluation_selectetuds(self, REQUEST ):
           # JS pour desactiver le bouton OK si aucun groupe selectionné
           """<script type="text/javascript">
           function gr_change(e) {
-          var boxes = document.getElementsByName("groupes:list");
+          var boxes = document.getElementsByName("group_ids:list");
           var nbchecked = 0;
           for (var i=0; i < boxes.length; i++) {
               if (boxes[i].checked)
@@ -117,27 +116,24 @@ def do_evaluation_selectetuds(self, REQUEST ):
         return '\n'.join(H) + '\n' + tf[1] + "\n</div>"
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( '%s/Notes/moduleimpl_status?moduleimpl_id=%s'
-                                          % (self.ScoURL(),E['moduleimpl_id']) )
+                                          % (context.ScoURL(),E['moduleimpl_id']) )
     else:
         # form submission
         #   get checked groups
-        if no_group:
-            g = ['tous']
-        else:
-            g = tf[2]['groupes']
+        group_ids = tf[2]['group_ids']
         note_method =  tf[2]['note_method']
         if note_method in ('form', 'xls'):
             # return notes_evaluation_formnotes( REQUEST )
-            gs = [('groupes%3Alist=' + urllib.quote_plus(x)) for x in g ]
+            gs = [('group_ids%3Alist=' + urllib.quote_plus(x)) for x in group_ids ]
             query = 'evaluation_id=%s&note_method=%s&' % (evaluation_id,note_method) + '&'.join(gs)
             REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/notes_evaluation_formnotes?' + query )
         else:
             raise ValueError, "invalid note_method (%s)" % tf[2]['note_method'] 
 
 
-def do_evaluation_formnotes(self, REQUEST ):
+def do_evaluation_formnotes(context, REQUEST ):
     """Formulaire soumission notes pour une evaluation.
-    parametres: evaluation_id, groupes (liste, avec prefixes tp, td, ta)
+    parametres: evaluation_id, group_ids (liste des id de groupes)
     """
     authuser = REQUEST.AUTHENTICATED_USER
     authusername = str(authuser)
@@ -145,18 +141,18 @@ def do_evaluation_formnotes(self, REQUEST ):
         evaluation_id = REQUEST.form['evaluation_id']
     except:        
         raise ScoValueError("Formulaire incomplet ! Vous avez sans doute attendu trop longtemps, veuillez vous reconnecter. Si le problème persiste, contacter l'administrateur. Merci.")
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     # Check access
     # (admin, respformation, and responsable_id)
-    if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
-        return self.sco_header(REQUEST)\
+    if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
+        return context.sco_header(REQUEST)\
                + '<h2>Modification des notes impossible pour %s</h2>' % authusername\
                + """<p>(vérifiez que le semestre n'est pas verrouillé et que vous
                avez l'autorisation d'effectuer cette opération)</p>
                <p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>
-               """ % E['moduleimpl_id']  + self.sco_footer(REQUEST)                
+               """ % E['moduleimpl_id']  + context.sco_footer(REQUEST)                
            #
-    cnx = self.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     note_method = REQUEST.form['note_method']
     okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
     changed = int(REQUEST.form.get('changed',0)) # a ete modifie depuis verif 
@@ -165,30 +161,27 @@ def do_evaluation_formnotes(self, REQUEST ):
     CSV = [] # une liste de liste de chaines: lignes du fichier CSV
     CSV.append( ['Fichier de notes (à enregistrer au format CSV XXX)'])
     # Construit liste des etudiants        
-    glist = REQUEST.form.get('groupes', [] )
-    gr_td = [ x[2:] for x in glist if x[:2] == 'td' ]
-    gr_tp = [ x[2:] for x in glist if x[:2] == 'tp' ]
-    gr_anglais = [ x[2:] for x in glist if x[:2] == 'ta' ]
-    gr_title = ' '.join(gr_td+gr_tp+gr_anglais)
-    gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
-    if 'tous' in glist:
+    group_ids = REQUEST.form.get('group_ids', [] )
+    groups = sco_groups.listgroups(context, group_ids)
+    gr_title_filename = sco_groups.listgroups_filename(groups) 
+    gr_title = sco_groups.listgroups_abbrev(groups)
+
+    if None in [ g['group_name'] for g in groups ]: # tous les etudiants
         getallstudents = True
         gr_title = 'tous'
         gr_title_filename = 'tous'
     else:
         getallstudents = False
-    etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
-                                                   gr_td,gr_tp,gr_anglais,
-                                                   getallstudents=getallstudents,
-                                                   include_dems=True)
+    etudids = sco_groups.do_evaluation_listeetuds_groups(
+        context, evaluation_id, groups, getallstudents=getallstudents, include_dems=True)
     if not etudids:
         return '<p>Aucun groupe sélectionné !</p>'
     # Notes existantes
-    NotesDB = self._notes_getall(evaluation_id)
+    NotesDB = context._notes_getall(evaluation_id)
     #
-    M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
-    Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-    sem = self.get_formsemestre(M['formsemestre_id'])
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
+    Mod = context.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
+    sem = context.get_formsemestre(M['formsemestre_id'])
     evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
     if E['description']:
         evaltitre = '%s du %s' % (E['description'],E['jour'])
@@ -232,7 +225,7 @@ def do_evaluation_formnotes(self, REQUEST ):
     
     descr = [
         ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
-        ('groupes', { 'default' : glist,  'input_type' : 'hidden', 'type':'list' }),
+        ('group_ids', { 'default' : group_ids,  'input_type' : 'hidden', 'type':'list' }),
         ('note_method', { 'default' : note_method, 'input_type' : 'hidden'}),
         ('comment', { 'size' : 44, 'title' : 'Commentaire',
                       'return_focus_next' : True, }),
@@ -244,12 +237,12 @@ def do_evaluation_formnotes(self, REQUEST ):
         # infos identite etudiant (xxx sous-optimal: 1/select par etudiant)
         ident = scolars.etudident_list(cnx, { 'etudid' : etudid })[0] # XXX utiliser ZScolar (parent)
         # infos inscription
-        inscr = self.do_formsemestre_inscription_list(
+        inscr = context.do_formsemestre_inscription_list(
             {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
         nom = ident['nom'].upper()
         label = '%s %s' % (nom, ident['prenom'].lower().capitalize())
         if NotesDB.has_key(etudid):
-            val = self._displayNote(NotesDB[etudid]['value'])
+            val = context._displayNote(NotesDB[etudid]['value'])
             comment = NotesDB[etudid]['comment']
             if comment is None:
                 comment = ''
@@ -273,14 +266,11 @@ def do_evaluation_formnotes(self, REQUEST ):
                                          'return_focus_next' : True,
                                          'attributes' : ['onchange="form_change();"'],
                                          } ) )
-        grnam = inscr['groupetd']
-        if inscr['groupetp'] or inscr['groupeanglais']:
-            grnam += '/' + inscr['groupetp']
-            if inscr['groupeanglais']:
-                grnam += '/' + inscr['groupeanglais']
+        groups = sco_groups.get_etud_groups(context, ident['etudid'], sem)
+        grc = sco_groups.listgroups_abbrev(groups)
         CSV.append( [ '%s' % etudid, ident['nom'].upper(), ident['prenom'].lower().capitalize(),
                       inscr['etat'],
-                      grnam, val, explanation ] )
+                      grc, val, explanation ] )
     if note_method == 'csv':
         CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in CSV ] )
         filename = 'notes_%s_%s.csv' % (evalname,gr_title_filename)
@@ -297,7 +287,7 @@ def do_evaluation_formnotes(self, REQUEST ):
     junk = tf.getform()  # check and init
     if tf.canceled():
         return REQUEST.RESPONSE.redirect( '%s/Notes/notes_eval_selectetuds?evaluation_id=%s'
-                                          % (self.ScoURL(), evaluation_id) )
+                                          % (context.ScoURL(), evaluation_id) )
     elif (not tf.submitted()) or not tf.result:
         # affiche premier formulaire
         tf.formdescription.append(
@@ -311,7 +301,7 @@ def do_evaluation_formnotes(self, REQUEST ):
         L, invalids, withoutnotes, absents, tosuppress = _check_notes(notes, E)
         oknow = int(not len(invalids))
         if oknow:
-            nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, do_it=False )
+            nbchanged, nbsuppress = context._notes_add(authuser, evaluation_id, L, do_it=False )
             msg_chg = ' (%d modifiées, %d supprimées)' % (nbchanged, nbsuppress)
         else:
             msg_chg = ''
@@ -339,7 +329,7 @@ def do_evaluation_formnotes(self, REQUEST ):
         # ('reviewed', { 'input_type':'hidden', 'default' : oknow } ) )        
         if oknow and okbefore and not changed:
             # ---------------  ok, on rentre ces notes
-            nbchanged, nbsuppress = self._notes_add(authuser, evaluation_id, L, tf.result['comment'])
+            nbchanged, nbsuppress = context._notes_add(authuser, evaluation_id, L, tf.result['comment'])
             if nbchanged > 0 or nbsuppress > 0:
                 Mod['moduleimpl_id'] = M['moduleimpl_id']
                 Mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s" % Mod
@@ -347,7 +337,7 @@ def do_evaluation_formnotes(self, REQUEST ):
                              text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                              url=Mod['url'])
             # affiche etat evaluation
-            etat = self.do_evaluation_etat(evaluation_id)[0]             
+            etat = context.do_evaluation_etat(evaluation_id)[0]             
             msg = '%d notes / %d inscrits' % (
                 etat['nb_notes'], etat['nb_inscrits'])
             if etat['nb_att']:
@@ -380,16 +370,16 @@ def do_evaluation_formnotes(self, REQUEST ):
 
 # ---------------------------------------------------------------------------------
 
-def _XXX_do_evaluation_upload_csv(self, REQUEST): # XXX UNUSED
+def _XXX_do_evaluation_upload_csv(context, REQUEST): # XXX UNUSED
     """soumission d'un fichier CSV (evaluation_id, notefile)  [XXX UNUSED]
     """
     authuser = REQUEST.AUTHENTICATED_USER
     evaluation_id = REQUEST.form['evaluation_id']
     comment = REQUEST.form['comment']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     # Check access
     # (admin, respformation, and responsable_id)
-    if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
+    if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
         # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
     #
@@ -432,21 +422,21 @@ def _XXX_do_evaluation_upload_csv(self, REQUEST): # XXX UNUSED
     if len(invalids):
         return '<p class="boldredmsg">Le fichier contient %d notes invalides</p>' % len(invalids)
     else:
-        nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
+        nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
         return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
 
-def do_evaluation_upload_xls(self, REQUEST):
+def do_evaluation_upload_xls(context, REQUEST):
     """
     Soumission d'un fichier XLS (evaluation_id, notefile)
     """
     authuser = REQUEST.AUTHENTICATED_USER
     evaluation_id = REQUEST.form['evaluation_id']
     comment = REQUEST.form['comment']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     # Check access
     # (admin, respformation, and responsable_id)
-    if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
+    if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
         # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
     #
@@ -503,12 +493,12 @@ def do_evaluation_upload_xls(self, REQUEST):
                 diag.append('Notes invalides pour les id: ' + str(invalids) )
             raise FormatError()
         else:
-            nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
+            nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
             # news
-            cnx = self.GetDBConnexion()
-            E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-            M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
-            mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+            cnx = context.GetDBConnexion()
+            E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+            M = context.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+            mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
             mod['moduleimpl_id'] = M['moduleimpl_id']
             mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
             sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
@@ -525,20 +515,20 @@ def do_evaluation_upload_xls(self, REQUEST):
         return 0, msg + '<p>(pas de notes modifiées)</p>'
 
 
-def do_evaluation_set_missing(self, evaluation_id, value, REQUEST=None, dialog_confirmed=False):
+def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialog_confirmed=False):
     """Initialisation des notes manquantes
     """
     authuser = REQUEST.AUTHENTICATED_USER
     evaluation_id = REQUEST.form['evaluation_id']
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     # Check access
     # (admin, respformation, and responsable_id)
-    if not self.can_edit_notes( authuser, E['moduleimpl_id'] ):
+    if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
         # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
     #
-    NotesDB = self._notes_getall(evaluation_id)        
-    etudids = self.do_evaluation_listeetuds_groups(evaluation_id,
+    NotesDB = context._notes_getall(evaluation_id)        
+    etudids = context.do_evaluation_listeetuds_groups(evaluation_id,
                                                    getallstudents=True,
                                                    include_dems=False)
     notes = []
@@ -551,13 +541,13 @@ def do_evaluation_set_missing(self, evaluation_id, value, REQUEST=None, dialog_c
     if len(invalids):
         diag = 'Valeur %s invalide' % value
     if diag:
-        return self.sco_header(REQUEST)\
+        return context.sco_header(REQUEST)\
                + '<h2>%s</h2><p><a href="notes_eval_selectetuds?evaluation_id=%s">Recommencer</a>'\
                % (diag, evaluation_id) \
-               + self.sco_footer(REQUEST)
+               + context.sco_footer(REQUEST)
     # Confirm action
     if not dialog_confirmed:
-        return self.confirmDialog(
+        return context.confirmDialog(
             """<h2>Mettre toutes les notes manquantes de l'évaluation
             à la valeur %s ? (<em>%d étudiants concernés</em>)</h2>
             <p>(seuls les étudiants pour lesquels aucune note (ni valeur, ni ABS, ni EXC)
@@ -568,44 +558,44 @@ def do_evaluation_set_missing(self, evaluation_id, value, REQUEST=None, dialog_c
             parameters={'evaluation_id' : evaluation_id, 'value' : value})
     # ok
     comment = 'Initialisation notes manquantes'
-    nb_changed, nb_suppress = self._notes_add(authuser, evaluation_id, L, comment )
+    nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
     # news
-    cnx = self.GetDBConnexion()
-    M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
-    mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+    cnx = context.GetDBConnexion()
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+    mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
     mod['moduleimpl_id'] = M['moduleimpl_id']
     mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
     sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                  text='Initialisation notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url = mod['url'])
-    return self.sco_header(REQUEST)\
+    return context.sco_header(REQUEST)\
                + """<h2>%d notes changées</h2>
                <p><a href="moduleimpl_status?moduleimpl_id=%s">
                Revenir au tableau de bord du module</a>
                </p>
                """ % (nb_changed, M['moduleimpl_id']) \
-               + self.sco_footer(REQUEST)
+               + context.sco_footer(REQUEST)
 
 
-def evaluation_suppress_alln(self, evaluation_id, REQUEST, dialog_confirmed=False):
+def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=False):
     "suppress all notes in this eval"
     authuser = REQUEST.AUTHENTICATED_USER
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-    if not self.can_edit_notes( authuser, E['moduleimpl_id'], allow_ens=False ):
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    if not context.can_edit_notes( authuser, E['moduleimpl_id'], allow_ens=False ):
         # NB: les chargés de TD n'ont pas le droit.
         # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
     if not dialog_confirmed:
-        return self.confirmDialog(
+        return context.confirmDialog(
             '<p>Confirmer la suppression des notes ?</p>',
             dest_url="", REQUEST=REQUEST,
             cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
             parameters={'evaluation_id':evaluation_id})
     # recupere les etuds ayant une note
-    NotesDB = self._notes_getall(evaluation_id)
+    NotesDB = context._notes_getall(evaluation_id)
     notes = [ (etudid, NOTES_SUPPRESS) for etudid in NotesDB.keys() ]
     # modif
-    nb_changed, nb_suppress = self._notes_add(
+    nb_changed, nb_suppress = context._notes_add(
         authuser, evaluation_id, notes, comment='suppress all' )
     assert nb_changed == nb_suppress       
     H = [ '<p>%s notes supprimées</p>' % nb_suppress,
@@ -613,16 +603,16 @@ def evaluation_suppress_alln(self, evaluation_id, REQUEST, dialog_confirmed=Fals
           % E['moduleimpl_id']
           ]
     # news
-    M = self.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
-    mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
+    mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
     mod['moduleimpl_id'] = M['moduleimpl_id']
-    cnx = self.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
     sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                  text='Suppression des notes d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url= mod['url'])
 
-    return self.sco_header(REQUEST) + '\n'.join(H) + self.sco_footer(REQUEST)
+    return context.sco_header(REQUEST) + '\n'.join(H) + context.sco_footer(REQUEST)
 
 
 def _check_notes( notes, evaluation ):
@@ -669,7 +659,7 @@ def _check_notes( notes, evaluation ):
     return L, invalids, withoutnotes, absents, tosuppress
 
 
-def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
+def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     """
     Insert or update notes
     notes is a list of tuples (etudid,value)
@@ -684,22 +674,22 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
     uid = str(uid)
     now = apply(DB.Timestamp, time.localtime()[:6]) #datetime.datetime.now().isoformat()
     # Verifie inscription et valeur note
-    inscrits = {}.fromkeys(self.do_evaluation_listeetuds_groups(
-        evaluation_id,getallstudents=True, include_dems=True))
+    inscrits = {}.fromkeys(sco_groups.do_evaluation_listeetuds_groups(
+            context, evaluation_id, getallstudents=True, include_dems=True))
     for (etudid,value) in notes:
         if not inscrits.has_key(etudid):
             raise NoteProcessError("etudiant %s non inscrit a l'evaluation %s" %(etudid,evaluation_id))
         if not ((value is None) or (type(value) == type(1.0))):
             raise NoteProcessError( "etudiant %s: valeur de note invalide (%s)" %(etudid,value))
     # Recherche notes existantes
-    NotesDB = self._notes_getall(evaluation_id)
+    NotesDB = context._notes_getall(evaluation_id)
     # Met a jour la base
-    cnx = self.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     nb_changed = 0
     nb_suppress = 0
-    E = self.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
-    M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
+    E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    M = context.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
 
     try:
         for (etudid,value) in notes:
@@ -750,12 +740,12 @@ def _notes_add(self, uid, evaluation_id, notes, comment=None, do_it=True ):
         log('*** exception in _notes_add')
         if do_it:
             # inval cache
-            self._inval_cache(formsemestre_id=M['formsemestre_id'])
+            context._inval_cache(formsemestre_id=M['formsemestre_id'])
             cnx.rollback() # abort
         raise # re-raise exception
     if do_it:
         cnx.commit()
-        self._inval_cache(formsemestre_id=M['formsemestre_id']) 
+        context._inval_cache(formsemestre_id=M['formsemestre_id']) 
     return nb_changed, nb_suppress
 
 

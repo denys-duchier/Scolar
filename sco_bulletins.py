@@ -37,7 +37,7 @@ import sco_formsemestre_status
 
 
 def make_formsemestre_bulletinetud(
-    znotes, formsemestre_id, etudid,
+    context, formsemestre_id, etudid,
     version='long', # short, long, selectedevals
     format='html',
     REQUEST=None):        
@@ -49,12 +49,12 @@ def make_formsemestre_bulletinetud(
     authuser = REQUEST.AUTHENTICATED_USER
     if not version in ('short','long','selectedevals'):
         raise ValueError('invalid version code !')
-    sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     ues = nt.get_ues( filter_empty=True, etudid=etudid )
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)
-    bul_show_mod_rangs = znotes.get_preference('bul_show_mod_rangs', formsemestre_id)
+    bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     # Genere le HTML H, une table P pour le PDF
     if sem['bul_bgcolor']:
         bgcolor = sem['bul_bgcolor']
@@ -88,7 +88,7 @@ def make_formsemestre_bulletinetud(
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = '(notes en attente)'
-    elif znotes.get_preference('bul_show_rangs', formsemestre_id):
+    elif context.get_preference('bul_show_rangs', formsemestre_id):
         rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
     else:
         rang = ''
@@ -109,7 +109,7 @@ def make_formsemestre_bulletinetud(
             moy_ue = '(note spéciale, bonus de %s points)' % nt.bonus[etudid]
         # UE capitalisee ?
         if ue_status['is_capitalized']:
-            sem_origin = znotes.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
+            sem_origin = context.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
             if format == 'html':
                 du =  '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">Capitalisée le %s</a>' % (
                     sem_origin['formsemestre_id'], etudid,
@@ -126,7 +126,7 @@ def make_formsemestre_bulletinetud(
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % t )
             ue_comment = '(en cours, non prise en compte)'
         else:
-            if znotes.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
+            if context.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
                 ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1])
             else:
                 ue_comment = ''
@@ -157,14 +157,14 @@ def make_formsemestre_bulletinetud(
                         t[2] = '%s/%s' % (nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid],
                                           nt.mod_rangs[modimpl['moduleimpl_id']][1])
                     
-                    if not znotes.get_preference('bul_show_codemodules', formsemestre_id):
+                    if not context.get_preference('bul_show_codemodules', formsemestre_id):
                         t[0] = '' # pas affichage du code module
                     
                     P.append(tuple(t))
                     mod_descr = 'Module %s, coef. %s (%s)' % (
                         modimpl['module']['titre'],
                         fmt_coef(modimpl['module']['coefficient']),
-                        znotes.Users.user_info(modimpl['responsable_id'],REQUEST)['nomcomplet'])
+                        context.Users.user_info(modimpl['responsable_id'],REQUEST)['nomcomplet'])
                     link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (modimpl['moduleimpl_id'], mod_descr)
                     t[0] = link_mod + t[0] # add html link
                     t[1] = link_mod + t[1]
@@ -188,11 +188,11 @@ def make_formsemestre_bulletinetud(
                                 H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>' % tuple(t))
     H.append('</table>')
     # --- Absences
-    if znotes.get_preference('bul_show_abs', formsemestre_id):
-        debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
-        fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
-        nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = znotes.Absences.CountAbsJust(etudid=etudid,
+    if context.get_preference('bul_show_abs', formsemestre_id):
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
+        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
                                            debut=debut_sem,fin=fin_sem)
         H.append("""<p>
     <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
@@ -201,11 +201,11 @@ def make_formsemestre_bulletinetud(
     </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
     # --- Decision Jury
-    if znotes.get_preference('bul_show_decision', formsemestre_id):
+    if context.get_preference('bul_show_decision', formsemestre_id):
         situation, dpv = _etud_descr_situation_semestre(
-            znotes, etudid, formsemestre_id,
+            context, etudid, formsemestre_id,
             format=format,
-            show_uevalid=znotes.get_preference('bul_show_uevalid', formsemestre_id))
+            show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
     else:
         situation = ''
     if situation:
@@ -214,8 +214,8 @@ def make_formsemestre_bulletinetud(
     # le dir. des etud peut ajouter des appreciation,
     # mais aussi le chef (perm. ScoEtudInscrit)
     can_edit_app = ((str(authuser) == sem['responsable_id'])
-                    or (authuser.has_permission(ScoEtudInscrit,znotes)))
-    cnx = znotes.GetDBConnexion()   
+                    or (authuser.has_permission(ScoEtudInscrit,context)))
+    cnx = context.GetDBConnexion()   
     apprecs = scolars.appreciations_list(
         cnx,
         args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
@@ -236,11 +236,11 @@ def make_formsemestre_bulletinetud(
     if format == 'html':
         return '\n'.join(H), None, None
     elif format == 'pdf' or format == 'pdfpart':
-        etud = znotes.getEtudInfo(etudid=etudid,filled=1)[0]
-        if znotes.get_preference('bul_show_abs', formsemestre_id):
+        etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+        if context.get_preference('bul_show_abs', formsemestre_id):
             etud['nbabs'] = nbabs
             etud['nbabsjust'] = nbabsjust
-        infos = { 'DeptName' : znotes.get_preference('DeptName', formsemestre_id) }
+        infos = { 'DeptName' : context.get_preference('DeptName', formsemestre_id) }
         stand_alone = (format != 'pdfpart')
         if nt.get_etud_etat(etudid) == 'D':
             filigranne = 'DEMISSION'
@@ -255,7 +255,7 @@ def make_formsemestre_bulletinetud(
                 appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
                 situation=situation,
                 server_name=server_name, 
-                context=znotes )
+                context=context )
         finally:
             PDFLOCK.release()
         if diag:
@@ -273,7 +273,7 @@ def make_formsemestre_bulletinetud(
 # (fonction séparée pour simplifier le code,
 #  mais attention a la maintenance !)
 def make_xml_formsemestre_bulletinetud(
-    znotes, formsemestre_id, etudid,
+    context, formsemestre_id, etudid,
     doc=None, # XML document
     force_publishing=False,
     xml_nodate=False,
@@ -286,7 +286,7 @@ def make_xml_formsemestre_bulletinetud(
     if not doc:            
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
 
-    sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
     if sem['bul_hide_xml'] == '0' or force_publishing:
         published=1
     else:
@@ -301,14 +301,14 @@ def make_xml_formsemestre_bulletinetud(
                       etape_apo=sem['etape_apo'] or '')
 
     # Infos sur l'etudiant
-    etudinfo = znotes.getEtudInfo(etudid=etudid,filled=1)[0]
+    etudinfo = context.getEtudInfo(etudid=etudid,filled=1)[0]
     doc._push()
     doc.etudiant(
         etudid=etudid, code_nip=etudinfo['code_nip'], code_ine=etudinfo['code_ine'],
         nom=quote_xml_attr(etudinfo['nom']),
         prenom=quote_xml_attr(etudinfo['prenom']),
         sexe=quote_xml_attr(etudinfo['sexe']),
-        photo_url=quote_xml_attr(znotes.etudfoto_url(etudid)),
+        photo_url=quote_xml_attr(context.etudfoto_url(etudid)),
         email=quote_xml_attr(etudinfo['email']))    
     doc._pop()
 
@@ -316,12 +316,19 @@ def make_xml_formsemestre_bulletinetud(
     if not published:
         return doc # stop !
 
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    # Groupes:
+    partitions = sco_groups.get_partitions_list(context, formsemestre_id, with_default=False)
+    partitions_etud_groups = {} # { partition_id : { etudid : group } }
+    for partition in partitions:
+        pid=partition['partition_id']
+        partitions_etud_groups[pid] = sco_groups.get_etud_groups_in_partition(context, pid)
+
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     ues = nt.get_ues()
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)
     mg = fmt_note(nt.get_etud_moy_gen(etudid))
-    if nt.get_moduleimpls_attente() or znotes.get_preference('bul_show_rangs', formsemestre_id) == 0:
+    if nt.get_moduleimpls_attente() or context.get_preference('bul_show_rangs', formsemestre_id) == 0:
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = ''
@@ -329,7 +336,8 @@ def make_xml_formsemestre_bulletinetud(
         ninscrits_gr = {}
     else:
         rang = str(nt.get_etud_rang(etudid))
-        rang_gr, ninscrits_gr, gr_name = get_etud_rangs_groupes(znotes, etudid, formsemestre_id, nt)
+        rang_gr, ninscrits_gr, gr_name = get_etud_rangs_groups(
+            context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
     
     doc._push()
     doc.note( value=mg )
@@ -338,12 +346,12 @@ def make_xml_formsemestre_bulletinetud(
     doc.rang( value=rang, ninscrits=nbetuds )
     doc._pop()
     if rang_gr:
-        for group_type in ('td', 'tp', 'ta'):
+        for partition in partitions:
             doc._push()
-            doc.rang_group( group_type=group_type,
-                            group_name=gr_name[group_type],
-                            value=rang_gr[group_type], 
-                            ninscrits=ninscrits_gr[group_type] )
+            doc.rang_group( group_type=partition['partition_name'],
+                            group_name=gr_name[partition['partition_id']],
+                            value=rang_gr[partition['partition_id']], 
+                            ninscrits=ninscrits_gr[partition['partition_id']] )
             doc._pop()
     doc._push()
     doc.note_max( value=20 ) # notes toujours sur 20
@@ -384,7 +392,7 @@ def make_xml_formsemestre_bulletinetud(
             doc._push()
             doc.note( value=mod_moy )
             doc._pop()
-            if znotes.get_preference('bul_show_mod_rangs', formsemestre_id):
+            if context.get_preference('bul_show_mod_rangs', formsemestre_id):
                 doc._push()
                 doc.rang( value=nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid] )
                 doc._pop()
@@ -421,24 +429,24 @@ def make_xml_formsemestre_bulletinetud(
             doc._pop()
             doc._push()
             doc.date_capitalisation(
-                value=znotes.DateDDMMYYYY2ISO(ue_status['event_date']) )
+                value=DateDMYtoISO(ue_status['event_date']) )
             doc._pop()
             doc._pop()
     # --- Absences
-    if  znotes.get_preference('bul_show_abs', formsemestre_id):
-        debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
-        fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
-        nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = znotes.Absences.CountAbsJust(etudid=etudid,
+    if  context.get_preference('bul_show_abs', formsemestre_id):
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
+        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
                                            debut=debut_sem,fin=fin_sem)
         doc._push()
         doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
         doc._pop()
     # --- Decision Jury
-    if znotes.get_preference('bul_show_decision', formsemestre_id) or xml_with_decisions:
+    if context.get_preference('bul_show_decision', formsemestre_id) or xml_with_decisions:
         situation, dpv = _etud_descr_situation_semestre(
-            znotes, etudid, formsemestre_id, format='xml',
-            show_uevalid=znotes.get_preference('bul_show_uevalid',formsemestre_id))
+            context, etudid, formsemestre_id, format='xml',
+            show_uevalid=context.get_preference('bul_show_uevalid',formsemestre_id))
         doc.situation( quote_xml_attr(situation) )
         if dpv:
             decision = dpv['decisions'][0]
@@ -450,9 +458,9 @@ def make_xml_formsemestre_bulletinetud(
             doc._push()
             doc.decision( code=code, etat=etat)
             doc._pop()
-            if decision['decisions_ue']: # and znotes.get_preference('bul_show_uevalid', formsemestre_id): always publish (car utile pour export Apogee)
+            if decision['decisions_ue']: # and context.get_preference('bul_show_uevalid', formsemestre_id): always publish (car utile pour export Apogee)
                 for ue_id in decision['decisions_ue'].keys():                
-                    ue = znotes.do_ue_list({ 'ue_id' : ue_id})[0]
+                    ue = context.do_ue_list({ 'ue_id' : ue_id})[0]
                     doc._push()
                     doc.decision_ue( ue_id=ue['ue_id'],
                                      numero=quote_xml_attr(ue['numero']),
@@ -471,34 +479,39 @@ def make_xml_formsemestre_bulletinetud(
             doc.decision( code='', etat='DEM' )
             doc._pop()
     # --- Appreciations
-    cnx = znotes.GetDBConnexion() 
+    cnx = context.GetDBConnexion() 
     apprecs = scolars.appreciations_list(
         cnx,
         args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
     for app in apprecs:
-        doc.appreciation( quote_xml_attr(app['comment']), date=znotes.DateDDMMYYYY2ISO(app['date']))
+        doc.appreciation( quote_xml_attr(app['comment']), date=DateDMYtoISO(app['date']))
     return doc
 
 
-def get_etud_rangs_groupes(context, etudid, formsemestre_id, nt):
-    """Ramene rang et nb inscrits dans chaque type de groupe.
+def get_etud_rangs_groups(context, etudid, formsemestre_id, 
+                           partitions, partitions_etud_groups, 
+                           nt):
+    """Ramene rang et nb inscrits dans chaque partition
     """
-    ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})
-    if len(ins) != 1:
-        raise NoteProcessError('inconsistent state !')
-    ins = ins[0]
-    
     rang_gr, ninscrits_gr, gr_name = {}, {}, {}
-    for group_type in ('td', 'tp', 'ta'):
-        gr = ins[sql_groupe_type(group_type)]
-        rang_gr[group_type], ninscrits_gr[group_type] =\
-            nt.get_etud_rang_groupe(etudid, group_type+gr)
-        gr_name[group_type] = gr
+    for partition in partitions:
+        if partition['partition_name'] != None:
+            partition_id = partition['partition_id']
+
+            if etudid in partitions_etud_groups[partition_id]:
+                group = partitions_etud_groups[partition_id][etudid]
+            
+                rang_gr[partition_id], ninscrits_gr[partition_id] =\
+                    nt.get_etud_rang_group(etudid, group['group_id'])
+                gr_name[partition_id] = group['group_name']
+            else: # etudiant non present dans cette partition
+                rang_gr[partition_id], ninscrits_gr[partition_id] = '', ''
+                gr_name[partition_id] = ''
 
     return rang_gr, ninscrits_gr, gr_name
 
 
-def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
+def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
                                    format='html',
                                    show_uevalid=True,
                                    show_date_inscr=True
@@ -506,7 +519,7 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     """chaine de caractères decrivant la situation de l'étudiant
     dans ce semestre.
     Si format == 'html', peut inclure du balisage html"""
-    cnx = znotes.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     # --- Situation et décisions jury
 
     # demission/inscription ?
@@ -540,7 +553,7 @@ def _etud_descr_situation_semestre(znotes, etudid, formsemestre_id, ne='',
     if date_dem:
         return inscr + ' Démission le %s.' % date_dem, None
 
-    dpv = sco_pvjury.dict_pvjury(znotes, formsemestre_id, etudids=[etudid])
+    dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=[etudid])
     pv = dpv['decisions'][0]
     dec = ''
     if pv['decision_sem_descr']:
@@ -578,7 +591,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
         if etud['inscription_formsemestre_id']:
             R.append("""<a href="formsemestre_status?formsemestre_id=%s">"""
                      % etud['inscription_formsemestre_id'])
-        R.append(etud['inscriptionstr'] + ' ' + etud['groupetd'])
+        R.append(etud['inscriptionstr'])
         if etud['inscription_formsemestre_id']:
             R.append("""</a>""")
         R.append("""</p>""")

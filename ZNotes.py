@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2009 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,8 +74,11 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 import sco_formsemestre_edit, sco_formsemestre_status
 import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
 from sco_formsemestre_status import makeMenu
-import sco_formsemestre_inscriptions, sco_formsemestre_custommenu
-import sco_moduleimpl_inscriptions, sco_groupes
+import sco_formsemestre_inscriptions
+import sco_formsemestre_custommenu
+import sco_moduleimpl_status
+import sco_moduleimpl_inscriptions
+import sco_groups
 import sco_bulletins, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_report
@@ -218,7 +221,7 @@ class ZNotes(ObjectManager,
     formsemestre_recapcomplet = DTMLFile('dtml/notes/formsemestre_recapcomplet', globals(), title='Tableau de toutes les moyennes du semestre')
 
     security.declareProtected(ScoView,'moduleimpl_status')
-    moduleimpl_status = DTMLFile('dtml/notes/moduleimpl_status', globals(), title='Tableau de bord module')
+    moduleimpl_status = sco_moduleimpl_status.moduleimpl_status
 
     security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
     notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
@@ -716,7 +719,6 @@ class ZNotes(ObjectManager,
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
-         'nomgroupetd', 'nomgroupetp', 'nomgroupeta',
          'etape_apo', 'modalite', 'resp_can_edit', 'resp_can_change_ens'
          ),
         sortkey = 'date_debut',
@@ -1229,44 +1231,7 @@ class ZNotes(ObjectManager,
                       preferences=self.get_preferences(formsemestre_id)
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
-
-    # menu evaluation dans moduleimpl
-    security.declareProtected(ScoView, 'moduleimpl_evaluation_menu')
-    def moduleimpl_evaluation_menu(self, evaluation_id, nbnotes=0, REQUEST=None):
-        "Menu avec actions sur une evaluation"
-        E = self.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
-        modimpl = self.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
-        
-        menuEval = [
-            { 'title' : 'Saisir notes',
-              'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id,
-              'enabled' : self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'])
-              },
-            { 'title' : 'Modifier évaluation',
-              'url' : 'evaluation_edit?evaluation_id=' + evaluation_id,
-              'enabled' : self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
-              },
-            { 'title' : 'Supprimer évaluation',
-              'url' : 'evaluation_delete?evaluation_id=' + evaluation_id,
-              'enabled' : nbnotes == 0 and self.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
-              },
-            { 'title' : 'Afficher les notes',
-              'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
-              'enabled' : nbnotes > 0
-              },            
-            { 'title' : 'Absences ce jour',
-              'url' : 'Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s&formsemestre_id=%s'
-              % (modimpl['formsemestre_id'], urllib.quote(E['jour'],safe=''), modimpl['formsemestre_id']),
-              'enabled' : E['jour']
-              },
-            { 'title' : 'Vérifier notes vs absents',
-              'url' : 'evaluation_check_absences_html?evaluation_id=%s' %(evaluation_id),
-              'enabled' : nbnotes > 0
-              },
-            ]
-            
-        return makeMenu( 'actions', menuEval )
-
+    
     security.declareProtected(ScoView, 'edit_enseignants_form_delete')
     def edit_enseignants_form_delete(self, REQUEST, moduleimpl_id, ens_id):
         "remove ens"
@@ -1323,7 +1288,7 @@ class ZNotes(ObjectManager,
         'notes_formsemestre_inscription',
         'formsemestre_inscription_id',
         ('formsemestre_inscription_id', 'etudid', 'formsemestre_id',
-         'groupetd', 'groupetp', 'groupeanglais', 'etat'),
+         'etat'),
         sortkey = 'formsemestre_id'
         )
     
@@ -1381,79 +1346,13 @@ class ZNotes(ObjectManager,
         cache.set(formsemestre_id,r)
         return r
 
-    security.declareProtected(ScoView,'do_formsemestre_inscription_listgroups')
-    def do_formsemestre_inscription_listgroups(self, formsemestre_id, groups_list=None):
-        """Returns list of inscriptions {etudid, etat, groupetd, groupetp, groupeanglais}
-        groups_list = liste de noms externes de groupes (tdA, tpB, taC...)
-        Si groups_list est [], ramene tous les inscrits.
-        Si groups_list est None, liste vide.
-        """
-        if groups_list is None:
-            return []
-        # check input (to avoid SQL injection)
-        for g in groups_list:
-            sco_groupes.checkGroupName(g) # raises exception
-        
-        gr_td, gr_tp, gr_anglais, gr_title = sco_groupes.getGroupsFromList(groups_list)
-
-        req = "select * from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s and etat='I'"
-        cond = []
-        for gr in gr_td:
-            cond.append( "groupetd='%(g)s'" % { 'g' : gr } )
-        for gr in gr_tp:
-            cond.append( "groupetp='%(g)s'" % { 'g' : gr } )
-        for gr in gr_anglais:
-            cond.append( "groupeanglais='%(g)s'" % { 'g' : gr } )
-        if cond:
-            req = req + ' and (' + ' or '.join(cond) + ')' 
-        
-        cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        R = cursor.dictfetchall()
-        log('req=%s\nR=%s' % (req, R) )
-        return R
-    
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_edit')
     def do_formsemestre_inscription_edit(self, **kw ):
         "edit a formsemestre_inscription"
         cnx = self.GetDBConnexion()
         self._formsemestre_inscriptionEditor.edit(cnx, **kw )
         self._inval_cache()
-
-    security.declareProtected(ScoView,'do_formsemestre_inscription_listgroupnames')
-    def do_formsemestre_inscription_listgroupnames(self, formsemestre_id):
-        "donne la liste des noms de groupes dans ce semestre (td, tp, anglais)"
-        cnx = self.GetDBConnexion()
-        ins = self._formsemestre_inscriptionEditor.list(
-            cnx, args={'formsemestre_id':formsemestre_id} )
-        gr_td = {}.fromkeys( [ x['groupetd'] for x in ins if x['groupetd'] ] ).keys()
-        gr_tp = {}.fromkeys( [ x['groupetp'] for x in ins if x['groupetp'] ] ).keys()
-        gr_anglais = {}.fromkeys( [ x['groupeanglais'] for x in ins if x['groupeanglais'] ] ).keys()
-        for g in (gr_td, gr_tp, gr_anglais):
-            g.sort()
-
-        # fix si nom invalide (correct previous db with invalid group names)
-        for g, key in ((gr_td, 'groupetd'), (gr_tp, 'groupetp'), (gr_anglais, 'groupeanglais')):
-            for i in range(len(g)):
-                newName = sco_groupes.fixGroupName(g[i])
-                if newName != g[i]:
-                    # fix directly DB:
-                    log('changing group names in DB')
-                    cursor = cnx.cursor()
-                    cursor.execute('update notes_formsemestre_inscription set %s=%%(value)s where formsemestre_id = %%(formsemestre_id)s and %s=%%(prev_value)s' % (key, key), 
-                                   { 'formsemestre_id' : formsemestre_id,
-                                     'prev_value' : g[i], 
-                                     'value' : newName } )
-                    g[i] = newName
-                    # Warning: this kind of function is not supposed to alter the DB
-                    # we make an exception here.
-                    # => do not call do_formsemestre_inscription_listgroupnames from
-                    #    notes_table !
-                    self._inval_cache(formsemestre_id=formsemestre_id)
-        
-        return gr_td, gr_tp, gr_anglais
-
+    
     # Cache inscriptions semestres
     def get_formsemestre_inscription_cache(self):
         u = self.GetDBConnexionString()
@@ -1613,9 +1512,6 @@ class ZNotes(ObjectManager,
                 self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
         
     # --- Inscriptions
-    security.declareProtected(ScoEtudInscrit,'do_formsemestre_inscription_with_modules')
-    do_formsemestre_inscription_with_modules = sco_formsemestre_inscriptions.do_formsemestre_inscription_with_modules
-
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules_form')
     formsemestre_inscription_with_modules_form = sco_formsemestre_inscriptions.formsemestre_inscription_with_modules_form
 
@@ -1917,7 +1813,8 @@ class ZNotes(ObjectManager,
             H.append( '<p>Evaluation réalisée le <b>%s</b> de %s à %s '
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
-                H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?semestregroupe=%s%%21%%21%%21&date=%s&formsemestre_id=%s">(absences ce jour)</a></span>' % (self.ScoURL(),formsemestre_id,urllib.quote(E['jour'],safe=''), formsemestre_id  ))
+                group_id = sco_groups.get_default_group(self, formsemestre_id)
+                H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?group_id=%s&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),group_id,urllib.quote(E['jour'],safe='') ))
             H.append( '</p><p>Coefficient dans le module: <b>%s</b> ' % E['coefficient'] )
             if self.can_edit_notes(REQUEST.AUTHENTICATED_USER, moduleimpl_id, allow_ens=False):
                 H.append('<a href="evaluation_edit?evaluation_id=%s">(modifier l\'évaluation)</a>' % evaluation_id)
@@ -1975,60 +1872,7 @@ class ZNotes(ObjectManager,
             else:
                 self.do_evaluation_edit( REQUEST, tf[2] )
                 return REQUEST.RESPONSE.redirect( dest_url )
-
-    security.declareProtected(ScoView, 'do_evaluation_listegroupes')
-    def do_evaluation_listegroupes(self, evaluation_id ):
-        """donne la liste des groupes (td,tp,anglais) dans lesquels figurent
-        des etudiants inscrits au module/semestre dans auquel appartient
-        cette evaluation
-        """    
-        req = 'select distinct %s from notes_formsemestre_inscription Isem, notes_moduleimpl_inscription Im, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and E.moduleimpl_id=M.moduleimpl_id and M.formsemestre_id =  Isem.formsemestre_id and E.evaluation_id = %%(evaluation_id)s'
-        cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()    
-        cursor.execute( req % 'groupetd', { 'evaluation_id' : evaluation_id } )
-        res = cursor.fetchall()
-        gr_td = [ x[0] for x in res if x[0] ]
-        cursor.execute( req % 'groupetp', { 'evaluation_id' : evaluation_id } )
-        res = cursor.fetchall()
-        gr_tp = [ x[0] for x in res if x[0] ]
-        cursor.execute( req % 'groupeanglais', { 'evaluation_id' : evaluation_id } )
-        res = cursor.fetchall()
-        gr_anglais = [ x[0] for x in res if x[0] ]
-        return gr_td, gr_tp, gr_anglais
-
-    security.declareProtected(ScoView, 'do_evaluation_listeetuds_groups')
-    def do_evaluation_listeetuds_groups(self, evaluation_id,
-                                        gr_td=[],gr_tp=[],gr_anglais=[],
-                                        getallstudents=False,
-                                        include_dems=False):
-        """Donne la liste des etudids inscrits a cette evaluation dans les
-        groupes indiqués.
-        Si getallstudents==True, donne tous les etudiants inscrits a cette
-        evaluation.
-        Si include_dems, compte aussi les etudiants démissionnaires
-        (sinon, par défaut, seulement les 'I')
-        """
-        # construit condition sur les groupes
-        if not getallstudents:
-            rg =  [ "Isem.groupetd = '%s'" % simplesqlquote(x) for x in gr_td ]
-            rg += [ "Isem.groupetp = '%s'" % simplesqlquote(x) for x in gr_tp ]
-            rg += [ "Isem.groupeanglais = '%s'" % simplesqlquote(x) for x in gr_anglais ]
-            if not rg:
-                return [] # no groups, so no students
-            r = ' and (' + ' or '.join(rg) + ' )'
-        else:
-            r = ''        
-        # requete complete
-        req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M, notes_evaluation E where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and Isem.formsemestre_id=M.formsemestre_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
-        if not include_dems:
-            req += " and Isem.etat='I'"
-        req += r
-        cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
-        cursor.execute( req, { 'evaluation_id' : evaluation_id } )
-        res = cursor.fetchall()
-        return [ x[0] for x in res ]
-
+    
     def _displayNote(self, val):
         "convert note from DB to viewable string"
         # Utilisé seulement pour I/O vers formulaires (sans perte de precision)
@@ -2044,7 +1888,7 @@ class ZNotes(ObjectManager,
         return val
 
     security.declareProtected(ScoView, 'do_evaluation_etat')
-    def do_evaluation_etat(self, evaluation_id, group_type='groupetd'):
+    def do_evaluation_etat(self, evaluation_id, partition_id=None, select_first_partition=False):
         """donne infos sur l'etat du evaluation
         { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
         date_last_modif, gr_complets, gr_incomplets, evalcomplete }
@@ -2052,7 +1896,8 @@ class ZNotes(ObjectManager,
         à ce module ont des notes)
         evalattente est vrai s'il ne manque que des notes en attente
         """
-        nb_inscrits = len(self.do_evaluation_listeetuds_groups(evaluation_id,getallstudents=True))
+        #log('do_evaluation_etat: evaluation_id=%s  partition_id=%s' % (evaluation_id, partition_id))
+        nb_inscrits = len(sco_groups.do_evaluation_listeetuds_groups(self, evaluation_id,getallstudents=True))
         NotesDB = self._notes_getall(evaluation_id) # { etudid : value }
         notes = [ x['value'] for x in NotesDB.values() ]
         nb_notes = len(notes)
@@ -2075,7 +1920,16 @@ class ZNotes(ObjectManager,
         E = self.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
         formsemestre_id = M['formsemestre_id']
-        # il faut considerer les inscription au semestre
+        # Si partition_id is None, prend 'all' ou bien la premiere:
+        if partition_id is None:
+            if select_first_partition:
+                partitions = sco_groups.get_partitions_list(self, formsemestre_id)
+                partition = partitions[0]
+            else:
+                partition = sco_groups.get_default_partition(self, formsemestre_id)
+            partition_id = partition['partition_id']
+        
+        # Il faut considerer les inscription au semestre
         # (pour avoir l'etat et le groupe) et aussi les inscriptions
         # au module (pour gerer les modules optionnels correctement)
         insem = self.do_formsemestre_inscription_listinscrits(formsemestre_id)
@@ -2087,25 +1941,34 @@ class ZNotes(ObjectManager,
         
         # On considere une note "manquante" lorsqu'elle n'existe pas
         # ou qu'elle est en attente (ATT)
-        GrNbMissing = DictDefault() # groupe : nb notes manquantes
-        GrNotes = DictDefault(defaultvalue=[]) # groupetd: liste notes valides
+        GrNbMissing = DictDefault() # group_id : nb notes manquantes
+        GrNotes = DictDefault(defaultvalue=[]) # group_id: liste notes valides
         TotalNbMissing = 0
         TotalNbAtt = 0
+        groups = {} # group_id : group
+        etud_groups = sco_groups.get_etud_groups_in_partition(self, partition_id)
+        
         for i in ins:
-            group = i[group_type]
+            group = etud_groups.get( i['etudid'], None )
+            if group and not group['group_id'] in groups:
+                groups[group['group_id']] = group
+            # 
             isMissing = False
             if NotesDB.has_key(i['etudid']):
                 val = NotesDB[i['etudid']]['value']
                 if val == NOTES_ATTENTE:
                     isMissing = True
                     TotalNbAtt += 1
-                GrNotes[group].append( val )
+                if group:
+                    GrNotes[group['group_id']].append( val )
             else:
-                junk = GrNotes[group] # create group
+                if group:
+                    junk = GrNotes[group['group_id']] # create group
                 isMissing = True
             if isMissing:
                 TotalNbMissing += 1
-                GrNbMissing[group] += 1
+                if group:
+                    GrNbMissing[group['group_id']] += 1
         
         gr_incomplets = [ x for x in GrNbMissing.keys() ]
         gr_incomplets.sort()
@@ -2119,16 +1982,20 @@ class ZNotes(ObjectManager,
             evalattente = False
         # calcul moyenne dans chaque groupe de TD
         gr_moyennes = [] # group : {moy,median, nb_notes}
-        for gr in GrNotes.keys():
-            notes = GrNotes[gr]
+        for group_id in GrNotes.keys():
+            notes = GrNotes[group_id]
             gr_moy, gr_median = notes_moyenne_median(notes)
             gr_moyennes.append(
-                {'gr':gr, 'gr_moy' : fmt_note(gr_moy),
+                {'group_id':group_id, 
+                 'group_name' : groups[group_id]['group_name'],
+                 'gr_moy' : fmt_note(gr_moy),
                  'gr_median':fmt_note(gr_median),
                  'gr_nb_notes': len(notes),
                  'gr_nb_att' : len([ x for x in notes if x == NOTES_ATTENTE ])
                  } )
+        gr_moyennes.sort(key=operator.itemgetter('group_name'))
         # retourne mapping
+        #log('gr_moyennes=%s' % gr_moyennes) 
         return [ {
             'evaluation_id' : evaluation_id,
             'nb_inscrits':nb_inscrits, 'nb_notes':nb_notes,
@@ -2137,6 +2004,7 @@ class ZNotes(ObjectManager,
             'last_modif':last_modif,
             'gr_incomplets':gr_incomplets,
             'gr_moyennes' : gr_moyennes,
+            'groups' : groups,
             'evalcomplete' : complete,
             'evalattente' : evalattente } ]
     
@@ -2356,8 +2224,8 @@ class ZNotes(ObjectManager,
         # recupere les notes de toutes les evaluations
         for e in evals:
             e['nb_inscrits'] = len(
-                self.do_evaluation_listeetuds_groups(e['evaluation_id'],
-                                                     getallstudents=True))
+                sco_groups.do_evaluation_listeetuds_groups(self, e['evaluation_id'],
+                                                           getallstudents=True))
             NotesDB = self._notes_getall(e['evaluation_id']) # toutes, y compris demissions
             # restreint aux étudiants encore inscrits à ce module        
             notes = [ NotesDB[etudid]['value'] for etudid in NotesDB 

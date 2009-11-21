@@ -34,6 +34,7 @@
 from sco_utils import *
 from notesdb import *
 import scolars
+import sco_groups
 from scolars import format_telephone, format_pays, make_etud_args
 from sco_formsemestre_status import makeMenu
 from sco_bulletins import _etud_descr_situation_semestre
@@ -59,10 +60,10 @@ def _menuScolarite(context, authuser, sem, etudid):
         dem_url = 'doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
     
     items = [
-        { 'title' : 'Changer de groupe',
-          'url' : 'formChangeGroupe?etudid=%s&formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
-          'enabled' : authuser.has_permission(ScoEtudChangeGroups,context) and not locked,
-        },
+#        { 'title' : 'Changer de groupe',
+#          'url' : 'formChangeGroup?etudid=%s&formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
+#          'enabled' : authuser.has_permission(ScoEtudChangeGroups,context) and not locked,
+#        },
         { 'title' : dem_title,
           'url' : dem_url,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
@@ -127,6 +128,9 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     else:
         info['modifadresse'] = ''
 
+    # Groupes:
+    sco_groups.etud_add_group_infos(context, info, info['cursem'])
+
     # Parcours de l'étudiant
     if info['sems']:
         info['last_formsemestre_id'] = info['sems'][0]['formsemestre_id']
@@ -137,8 +141,13 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         if sem['ins']['etat'] == 'D':
             descr, junk = _etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
             grlink = '<span class="fontred">%s</span>' % descr
-        else:                
-            grlink = '<a class="discretelink" href="listegroupe?formsemestre_id=%s&groupetd=%s" title="Liste du groupe">groupe %s</a>' % (sem['formsemestre_id'], sem['ins']['groupetd'], sem['ins']['groupetd'])
+        else:       
+            group = sco_groups.get_etud_main_group(context, etudid, sem)
+            if group['partition_name']:
+                gr_name = group['group_name']
+            else:
+                gr_name = 'tous'
+            grlink = '<a class="discretelink" href="listegroupe?group_id=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
         # infos ajoutées au semestre dans le parcours (groupe, menu)
         menu =  _menuScolarite(context, authuser, sem, etudid)
         if menu:

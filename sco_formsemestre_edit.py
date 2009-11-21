@@ -30,6 +30,7 @@
 
 from notesdb import *
 from sco_utils import *
+import sco_groups
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee, scolars, sco_parcours_dut
@@ -110,9 +111,6 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     F = F[0]
     if not edit:
         initvalues = {
-            'nomgroupetd' : 'TD',
-            'nomgroupetp' : 'TP',
-            'nomgroupeta' : 'langues',
             'titre' : _default_sem_title(F)
             }
         semestre_id  = REQUEST.form['semestre_id']        
@@ -255,15 +253,6 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     'input_type' : 'boolcheckbox',
                     'title' : '',
                     'explanation' : 'Autoriser le directeur des études à modifier les enseignants' }),
-        ('nomgroupetd', { 'size' : 20,
-                          'title' : 'Nom des groupes primaires',
-                          'explanation' : 'TD' }),
-        ('nomgroupetp', { 'size' : 20,
-                          'title' : 'Nom des groupes secondaires',
-                          'explanation' : 'TP' }),
-        ('nomgroupeta', { 'size' : 20,
-                          'title' : 'Nom des groupes tertiaires',
-                          'explanation' : 'langues' }),
 
         ('bul_bgcolor', { 'size' : 8,
                           'title' : 'Couleur fond des bulletins',
@@ -294,7 +283,14 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
             if mod['semestre_id'] == semestre_id:
                 nbmod += 1;
                 if edit:
-                    fcg = '<select name="%s!groupe"><option value="%s!*!*!*">Tous</option><option value="%s!-!-!-">Aucun</option>' % (mod['module_id'],mod['module_id'],mod['module_id'])  + context.formChoixGroupe(formsemestre_id, display_sem_title=False) + '</select>'
+                    fcg = '<select name="%s!group_id">' % mod['module_id']
+                    fcg += '<option value="%s">Tous</option>' % sco_groups.get_default_group(context,formsemestre_id)
+                    fcg += '<option value="">Aucun</option>'
+                    for p in sco_groups.get_partitions_list(context, formsemestre_id):
+                        if p['partition_name'] != None:
+                            for group in sco_groups.get_partition_groups(context, p):
+                                fcg += '<option value="%s">%s %s</option>' % (group['group_id'], p['partition_name'], group['group_name'])
+                    fcg += '</select>'
                     itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td><td>""" + fcg + '</td></tr>'
                 else:
                     itemtemplate = """<tr><td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td></tr>"""
@@ -422,22 +418,16 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
                 msg += [ 'création de %s (%s)' % (mod['code'], mod['titre']) ] 
                 # INSCRIPTIONS DES ETUDIANTS                
-                log('inscription module: %s = "%s"' % ('%s!groupe'%module_id,tf[2]['%s!groupe'%module_id]))
-                groupetd,groupetp,groupeta = tf[2]['%s!groupe'%module_id].split('!')[1:]
-                args = { 'formsemestre_id' : formsemestre_id,
-                         'etat' : 'I' }
-                if groupetd and groupetd != '*':
-                    args['groupetd'] = groupetd
-                if groupeta and groupeta != '*':
-                    args['groupeanglais'] = groupeta
-                if groupetp and groupetp != '*':
-                    args['groupetp'] = groupetp
-                ins = context.Notes.do_formsemestre_inscription_list( args=args )
-                etudids = [ x['etudid'] for x in ins ]
-                log('inscription module:module_id=%s,moduleimpl_id=%s: %s' % (module_id,moduleimpl_id,etudids) )
-                context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etudids,
+                log('inscription module: %s = "%s"' % ('%s!group_id'%module_id,tf[2]['%s!group_id'%module_id]))
+                group_id = tf[2]['%s!group_id'%module_id]
+                if group_id:
+                    etudids = [ x['etudid'] for x in sco_groups.get_group_members(context, group_id) ]
+                    log('inscription module:module_id=%s,moduleimpl_id=%s: %s' % (module_id,moduleimpl_id,etudids) )
+                    context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etudids,
                                                     REQUEST=REQUEST)
-                msg += [ 'inscription de %d étudiants au module %s' % (len(etudids),mod['code'])]
+                    msg += [ 'inscription de %d étudiants au module %s' % (len(etudids),mod['code'])]
+                else:
+                    log('inscription module:module_id=%s,moduleimpl_id=%s: aucun etudiant inscrit' % (module_id,moduleimpl_id) )
             #
             ok, diag = formsemestre_delete_moduleimpls(context, formsemestre_id, mods_todelete)
             msg += diag

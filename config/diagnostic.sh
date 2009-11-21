@@ -44,7 +44,10 @@ dpkg -l > $TMP/dpkg.lst
 
 (cd /opt/scodoc/instance/Products/ScoDoc; svn status > $TMP/svn.status)
 (cd /opt/scodoc/instance/Products/ScoDoc; svn diff > $TMP/svn.diff)
-(cd /opt/scodoc/instance/Products/ScoDoc; svnversion > $TMP/svn.version)
+
+(cd /opt/scodoc/instance/Products/ScoDoc; svnversion >  $TMP/svn.version)
+ls -laR /opt/scodoc/instance/Products/ScoDoc > $TMP/ls-laR
+
 
 # copy files:
 for f in $FILES 

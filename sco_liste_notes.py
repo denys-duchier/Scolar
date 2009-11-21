@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
-from sco_groupes import getGroupsFromList
+import sco_groups
 import htmlutils
 import sco_excel
 from gen_tables import GenTable
@@ -44,7 +44,6 @@ from sets import Set
 def do_evaluation_listenotes(context, REQUEST):
     """
     Affichage des notes d'une évaluation
-
 
     args: evaluation_id 
     """        
@@ -67,17 +66,16 @@ def do_evaluation_listenotes(context, REQUEST):
     E = evals[0]
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
     formsemestre_id = M['formsemestre_id']
+    
     # description de l'evaluation    
     if mode == 'eval':
         H = [ context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1) ]
     else:
         H = []
     # groupes
-    gr_td, gr_tp, gr_anglais = context.do_evaluation_listegroupes(E['evaluation_id'])
-    grnams  = [('td'+x) for x in gr_td ] # noms des checkbox
-    grnams += [('tp'+x) for x in gr_tp ]
-    grnams += [('ta'+x) for x in gr_anglais ]
-    grlabs  = gr_td + gr_tp + gr_anglais # legendes des boutons
+    groups = sco_groups.do_evaluation_listegroupes(context, E['evaluation_id'])
+    grlabs = [ g['group_name'] or 'tous' for g in groups ]  # legendes des boutons
+    grnams  = [ g['group_id'] for g in groups ] # noms des checkbox
     if len(evals) > 1:
         descr = [
             ('moduleimpl_id',
@@ -90,7 +88,7 @@ def do_evaluation_listenotes(context, REQUEST):
         ('s' ,
          {'input_type' : 'separator',
           'title': '<b>Choix du ou des groupes d\'étudiants:</b>' }),
-        ('groupes',
+        ('group_ids',
          { 'input_type' : 'checkbox', 'title':'',
            'allowed_values' : grnams, 'labels' : grlabs,
            'attributes' : ('onclick="document.tf.submit();"',) }),
@@ -122,14 +120,15 @@ def do_evaluation_listenotes(context, REQUEST):
     else:
         anonymous_listing = tf[2]['anonymous_listing']
         note_sur_20 = tf[2]['note_sur_20']
+        log('tf2=%s' % tf[2])
         return _make_table_notes(context, REQUEST, tf[1], evals, 
                                  format=format, note_sur_20=note_sur_20,
-                                 anonymous_listing=anonymous_listing, groups_list=tf[2]['groupes'])
+                                 anonymous_listing=anonymous_listing, group_ids=tf[2]['group_ids'])
 
 def _make_table_notes(context, REQUEST, html_form, evals, 
                       format='', 
                       note_sur_20=False, anonymous_listing=False,
-                      groups_list=[] ):
+                      group_ids=[] ):
     """Generate table for evaluations marks"""
     if not evals:
         return '<p>Aucune évaluation !</p>'
@@ -138,7 +137,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id  } )[0]
     Mod = context.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
     sem = context.get_formsemestre(M['formsemestre_id'])
-    # check that all evals are in same module:
+    # (debug) check that all evals are in same module:
     for e in evals:
         if e['moduleimpl_id'] != moduleimpl_id:
             raise ValueError('invalid evaluations list')
@@ -147,22 +146,17 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         keep_numeric = True # pas de conversion des notes en strings
     else:
         keep_numeric = False
-    # Build list of etudids (uniq, some groups may overlap)
-    gr_td, gr_tp, gr_anglais, gr_title = getGroupsFromList(groups_list)
-    gr_title_filename = 'gr' + '+'.join(gr_td+gr_tp+gr_anglais)
+    # Si pas de groupe, affiche tout
+    if not group_ids:
+        group_ids = [sco_groups.get_default_group(context, M['formsemestre_id'])]
+    groups = sco_groups.listgroups(context, group_ids)
     
-    if not groups_list:# aucun groupe selectionne: affiche tous les etudiants
-        getallstudents = True
-        gr_title = 'tous'
-        gr_title_filename = 'tous'
-    else:
-        getallstudents = False
+    gr_title = sco_groups.listgroups_abbrev(groups)
+    gr_title_filename = sco_groups.listgroups_filename(groups)    
     
-    etudids = context.do_evaluation_listeetuds_groups(E['evaluation_id'],
-                                                      gr_td,gr_tp,gr_anglais,
-                                                      include_dems=True,
-                                                      getallstudents=getallstudents)
-
+    etudids = sco_groups.do_evaluation_listeetuds_groups(
+        context, E['evaluation_id'], groups, include_dems=True)
+    
     if anonymous_listing:
         columns_ids = ['code', 'group' ] # cols in table
     else:
@@ -195,11 +189,8 @@ def _make_table_notes(context, REQUEST, html_form, evals,
             {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
         
         if inscr['etat'] == 'I': # si inscrit, indique groupe
-            grc=inscr['groupetd']
-            if inscr['groupetp']:
-                grc += ' / ' + inscr['groupetp']
-            if inscr['groupeanglais']:
-                grc += ' / ' + inscr['groupeanglais']
+            groups = sco_groups.get_etud_groups(context, etudid, sem)
+            grc = sco_groups.listgroups_abbrev(groups)
         else:
             if inscr['etat'] == 'D':
                 grc = 'DEM' # attention: ce code est re-ecrit plus bas, ne pas le changer (?)
@@ -268,7 +259,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
             columns_ids.append( 'comment' ) 
     
     # titres divers:
-    gl = ''.join([ '&groupes%3Alist=' + g for g in groups_list ])
+    gl = ''.join([ '&group_ids%3Alist=' + g for g in group_ids ])
     if note_sur_20:
         gl = '&note_sur_20%3Alist=yes' + gl
     if anonymous_listing:
@@ -490,7 +481,7 @@ def evaluation_check_absences(context, evaluation_id):
     E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
     M = context.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
     formsemestre_id = M['formsemestre_id']
-    etudids = context.do_evaluation_listeetuds_groups(evaluation_id, getallstudents=True)
+    etudids = sco_groups.do_evaluation_listeetuds_groups(context, evaluation_id, getallstudents=True)
     
     am, pm, demijournee = _eval_demijournee(E)
     

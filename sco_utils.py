@@ -32,6 +32,7 @@ from VERSION import SCOVERSION
 import VERSION
 import pdb
 import os, sys, copy, re
+import operator
 import thread
 import urllib, time, datetime, cgi
 from sets import Set
@@ -323,18 +324,6 @@ def scodoc_html2txt(html):
   parser.feed(html)
   parser.close()
   return parser.output()
-
-def sql_groupe_type(group_type):
-    """group_type : specification de groupe 'td', 'tp' ou 'ta'
-    Gives the field name in notes_formsemestre_inscription
-    """
-    if group_type == 'td' or group_type == 'tp':
-        return 'groupe' + group_type
-    elif group_type == 'ta':
-        return 'groupeanglais'
-    else:
-        raise ValueError('invalid group_type')
-
 
 def is_valid_mail(email):
     """True if well-formed email address"""

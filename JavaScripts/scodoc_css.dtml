@@ -712,8 +712,22 @@ td.mievr_tit {
 tr.mievr td {
   text-align: left;
 }
-
-tr.mievr td.mievr_grtit {
+tr.mievr td.mievr {
+  width: 90px;
+}
+tr.mievr td.mievr_menu {
+  width: 110px;
+}
+tr.mievr td.mievr_dur {
+  width: 60px;
+}
+tr.mievr td.mievr_coef {
+  width: 60px;
+}
+tr.mievr td.mievr_nbnotes {
+  width: 90px;
+}
+tr td.mievr_grtit {
  vertical-align: top;
  text-align: right;
  font-weight: bold;
@@ -1457,3 +1471,8 @@ table.list_users td.date_modif_passwd {
 }
 
 /* ----------------------------- */
+
+div.form_rename_partition {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}

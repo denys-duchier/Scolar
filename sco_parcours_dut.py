@@ -641,7 +641,7 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
     """, { 'etudid' : etudid,
            'formation_id' : sem['formation_id'],
            'semestre_id' : sem['semestre_id'],
-           'date_debut' : znotes.DateDDMMYYYY2ISO(sem['date_debut'])
+           'date_debut' : DateDMYtoISO(sem['date_debut'])
            })
     
     return cursor.dictfetchall()
@@ -664,5 +664,5 @@ def list_formsemestre_utilisateurs_uecap( znotes, formsemestre_id ):
     """, { 'formation_code' : F['formation_code'],
            'semestre_id' : sem['semestre_id'],
            'formsemestre_id' : formsemestre_id,
-           'date_debut' : znotes.DateDDMMYYYY2ISO(sem['date_debut']) })
+           'date_debut' : DateDMYtoISO(sem['date_debut']) })
     return [ x[0] for x in cursor.fetchall() ]

@@ -27,12 +27,13 @@ def SimpleQuery(context, query, args, cursor=None):
     if not cursor:
         cnx = context.GetDBConnexion()
         cursor = cnx.cursor()
+    #log( 'SimpleQuery(%s)' % (query % args) )
     cursor.execute( query, args )
     return cursor
 
 def SimpleDictFetch(context, query, args, cursor=None):
-    cursor = SimpleQuery(context, query, args)
-    return cursor.dict_fetchall()
+    cursor = SimpleQuery(context, query, args, cursor=cursor)
+    return cursor.dictfetchall()
 
 def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
     "insert into table values in dict 'vals'"

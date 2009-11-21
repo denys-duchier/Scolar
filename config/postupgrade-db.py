@@ -128,6 +128,117 @@ for dept in get_depts():
                   'update billet_absence set justified=0'
                   ])
     
+    # New groups
+    # 1- Create new tables
+    check_table( cnx, 'partition', [
+            """CREATE TABLE partition(
+       partition_id text default notes_newid2('P') PRIMARY KEY,
+       formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+       partition_name text, -- "TD", "TP", ...
+       compute_ranks integer default 0, -- calcul rang etudiants dans les groupes
+       numero SERIAL, -- ordre de presentation
+       UNIQUE(formsemestre_id,partition_name)
+) WITH OIDS;
+"""] )
+    check_table( cnx, 'group_descr', [
+            """CREATE TABLE group_descr (
+       group_id text default notes_newid2('G') PRIMARY KEY,
+       partition_id text REFERENCES partition(partition_id),
+       group_name text, -- "A", "C2", ...
+       UNIQUE(partition_id, group_name)     
+) WITH OIDS;
+"""] )
+    check_table( cnx, 'group_membership', [
+            """CREATE TABLE group_membership(
+       group_membership_id text default notes_newid2('GM') PRIMARY KEY,
+       etudid text REFERENCES identite(etudid),       
+       group_id text REFERENCES group_descr(group_id),
+       UNIQUE(etudid, group_id)
+) WITH OIDS;
+"""] )
+
+    # 2- For each sem, create 1 to 4 partitions: all, TD (if any), TP, TA
+    # Here we have to deal with plain SQL, nasty...
+    if field_exists(cnx, 'notes_formsemestre_inscription', 'groupetd'):
+        # Some very old stduents didn't have addresses: it's now mandatory
+        cursor.execute("insert into adresse (etudid) select etudid from identite i except select etudid from adresse")
+        #
+        cursor.execute("SELECT formsemestre_id from notes_formsemestre")
+        formsemestre_ids = [ x[0] for x in cursor.fetchall() ]
+        for formsemestre_id in formsemestre_ids:
+            # create "all" partition (with empty name)
+            cursor.execute("INSERT into partition (formsemestre_id, compute_ranks) VALUES (%(formsemestre_id)s, 1)", {'formsemestre_id' : formsemestre_id } )
+            cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+            partition_id = cursor.fetchone()[0]
+            # create group "all" (without name)
+            cursor.execute("INSERT into group_descr (partition_id) VALUES (%(pid)s)", { 'pid' : partition_id } )
+            cursor.execute("SELECT group_id from group_descr where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+            group_id = cursor.fetchone()[0]
+            # inscrit etudiants:
+            cursor.execute("INSERT into group_membership (etudid, group_id) SELECT etudid, %(group_id)s from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s", { 'group_id' : group_id, 'formsemestre_id' : formsemestre_id } )
+            
+            # create TD, TP, TA
+            cursor.execute("SELECT distinct(groupetd) from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+            groupetds = [ x[0] for x in cursor.fetchall() if x[0] ]
+            if len(groupetds) > 1 or (len(groupetds)==1 and groupetds[0] != 'A'):
+                # TD : create partition
+                cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+                nomgroupetd = cursor.dictfetchone()['nomgroupetd']
+                cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupetd)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupetd' : nomgroupetd } )
+                cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                partition_id = cursor.fetchone()[0]
+                # create groups
+                for groupetd in groupetds:
+                    cursor.execute("INSERT into group_descr (partition_id, group_name) VALUES (%(pid)s, %(group_name)s)", { 'pid' : partition_id, 'group_name' : groupetd } )
+                    cursor.execute("SELECT group_id from group_descr where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                    group_id = cursor.fetchone()[0]
+                    # inscrit les etudiants
+                    cursor.execute("INSERT into group_membership (etudid, group_id) SELECT etudid, %(group_id)s from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s and groupetd=%(groupetd)s", { 'group_id' : group_id, 'formsemestre_id' : formsemestre_id, 'groupetd' : groupetd } )
+            # TA
+            cursor.execute("SELECT distinct(groupeanglais) from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+            groupetds = [ x[0] for x in cursor.fetchall() if x[0] ]            
+            if len(groupetds) > 0:
+                # TA : create partition
+                cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+                nomgroupetd = cursor.dictfetchone()['nomgroupeta']
+                cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupeta)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupeta' : nomgroupetd } )
+                cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                partition_id = cursor.fetchone()[0]
+                # create groups
+                for groupetd in groupetds:
+                    cursor.execute("INSERT into group_descr (partition_id, group_name) VALUES (%(pid)s, %(group_name)s)", { 'pid' : partition_id, 'group_name' : groupetd } )
+                    cursor.execute("SELECT group_id from group_descr where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                    group_id = cursor.fetchone()[0]
+                    # inscrit les etudiants
+                    cursor.execute("INSERT into group_membership (etudid, group_id) SELECT etudid, %(group_id)s from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s and groupeanglais=%(groupetd)s", { 'group_id' : group_id, 'formsemestre_id' : formsemestre_id, 'groupetd' : groupetd } )
+            
+            # TP
+            cursor.execute("SELECT distinct(groupetp) from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+            groupetds = [ x[0] for x in cursor.fetchall() if x[0] ]
+            if len(groupetds) > 0:
+                # TP : create partition
+                cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
+                nomgroupetd = cursor.dictfetchone()['nomgroupetp']
+                cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupeta)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupeta' : nomgroupetd } )
+                cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                partition_id = cursor.fetchone()[0]
+                # create groups
+                for groupetd in groupetds:
+                    cursor.execute("INSERT into group_descr (partition_id, group_name) VALUES (%(pid)s, %(group_name)s)", { 'pid' : partition_id, 'group_name' : groupetd } )
+                    cursor.execute("SELECT group_id from group_descr where oid=%(oid)s", { 'oid' : cursor.lastoid() })
+                    group_id = cursor.fetchone()[0]
+                    # inscrit les etudiants
+                    cursor.execute("INSERT into group_membership (etudid, group_id) SELECT etudid, %(group_id)s from notes_formsemestre_inscription where formsemestre_id=%(formsemestre_id)s and groupetp=%(groupetd)s", { 'group_id' : group_id, 'formsemestre_id' : formsemestre_id, 'groupetd' : groupetd } )
+
+        # 3- Suppress obsolete fields
+        cursor.execute( """alter table notes_formsemestre drop column nomgroupetd""" ) 
+        cursor.execute( """alter table notes_formsemestre drop column nomgroupetp""" ) 
+        cursor.execute( """alter table notes_formsemestre drop column nomgroupeta""" )
+        
+        cursor.execute( """alter table notes_formsemestre_inscription drop column groupetd""" )
+        cursor.execute( """alter table notes_formsemestre_inscription drop column groupetp""" )
+        cursor.execute( """alter table notes_formsemestre_inscription drop column groupeanglais""" )
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()

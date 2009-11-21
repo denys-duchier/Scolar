@@ -306,9 +306,9 @@ CREATE TABLE notes_formsemestre (
 	-- bul_show_decision integer default 1, -- XXX obsolete
 	-- bul_show_uevalid integer default 1,  -- XXX obsolete
         etat integer default 1, -- 1 ouvert, 0 ferme (verrouille)
- 	nomgroupetd text default 'TD',
- 	nomgroupetp text default 'TP',
- 	nomgroupeta text default 'langues',
+	-- nomgroupetd text default 'TD',  -- XXX obsolete
+ 	-- nomgroupetp text default 'TP',  -- XXX obsolete 
+ 	-- nomgroupeta text default 'langues', -- XXX obsolete
 	-- bul_show_codemodules integer default 1, -- XXX obsolete
 	-- bul_show_rangs integer default 1,  -- XXX obsolete
 	-- bul_show_ue_rangs integer default 1, -- XXX obsolete
@@ -363,9 +363,9 @@ CREATE TABLE notes_formsemestre_inscription (
 	formsemestre_inscription_id text default notes_newid2('SI') PRIMARY KEY,
 	etudid text REFERENCES identite(etudid),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	groupetd text,
-	groupetp text,
-	groupeanglais text,
+	-- groupetd text, -- XXX obsolete
+	-- groupetp text, -- XXX obsolete
+	-- groupeanglais text, -- XXX obsolete
 	etat text, -- I inscrit, D demission en cours de semestre
 	UNIQUE(formsemestre_id, etudid)
 ) WITH OIDS;
@@ -378,6 +378,30 @@ CREATE TABLE notes_moduleimpl_inscription (
 	-- Futur: a adapter dans d'autres departements...
 	etudid text REFERENCES identite(etudid),
 	UNIQUE( moduleimpl_id, etudid)
+) WITH OIDS;
+
+
+CREATE TABLE partition(
+       partition_id text default notes_newid2('P') PRIMARY KEY,
+       formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+       partition_name text, -- "TD", "TP", ... (NULL for 'all')
+       compute_ranks integer default 1, -- calcul rang etudiants dans les groupes (currently unused)
+       numero SERIAL, -- ordre de presentation
+       UNIQUE(formsemestre_id,partition_name)
+) WITH OIDS;
+
+CREATE TABLE group_descr (
+       group_id text default notes_newid2('G') PRIMARY KEY,
+       partition_id text REFERENCES partition(partition_id),
+       group_name text, -- "A", "C2", ...  (NULL for 'all')
+       UNIQUE(partition_id, group_name)     
+) WITH OIDS;
+
+CREATE TABLE group_membership(
+       group_membership_id text default notes_newid2('GM') PRIMARY KEY,
+       etudid text REFERENCES identite(etudid),       
+       group_id text REFERENCES group_descr(group_id),
+       UNIQUE(etudid, group_id)
 ) WITH OIDS;
 
 -- Evaluations (controles, examens, ...)

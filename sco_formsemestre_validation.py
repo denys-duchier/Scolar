@@ -472,8 +472,8 @@ function toggle_vis(e) { // change visi of following row in table
                 nc = 1
             H.append('<td colspan="%d"><em>pas de décision</em></td>'%nc)
         # Absences (nb d'abs non just. dans ce semestre)
-        debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
-        fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
         nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
         nbabsjust = znotes.Absences.CountAbsJust(etudid=etudid,
                                                  debut=debut_sem,fin=fin_sem)

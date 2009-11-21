@@ -36,6 +36,7 @@ import safehtml
 from scolog import logdb
 from notes_table import *
 
+
 # XXXXXXXXX HACK: zope 2.7.7 bug turaround ?
 import locale
 locale.setlocale(locale.LC_ALL, ('en_US', SCO_ENCODING) )

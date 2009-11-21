@@ -1,0 +1,48 @@
+
+Notes sur la restauration de la base SQL complete
+(dans le cas d'une réinstallation sur une autre machine, par exemple)
+
+
+1) Sur la machine origine, faire un dump complet:
+su postgres
+cd /tmp # ou ailleurs...
+pg_dumpall > scodoc.dump.txt
+
+On obtient un fichier texte assez volumineux (on peut utiliser gzip pour le compresser avant transfert).
+
+Le copier sur la machine destination.
+
+2) Sur la machine destination:
+
+ Avant toute chose, stopper scodoc:
+ /etc/init.d/scodoc stop
+
+ 1.1) Supprimer toutes les bases ScoDoc existantes s'il y en a:
+     su postgres
+     psql -l
+    liste les bases: celles de ScoDoc sont SCO* 
+
+   Pour chaque base SCO*, faire dropdb
+    dropdb SCOUSERS
+    dropdb SCOGEII
+    ...
+
+ Pour les feignants, voici un script (à lancer comme utilisateur postgres):
+for f in $(psql -l --no-align --field-separator . | grep SCO | cut -f 1 -d.); do
+  echo dropping $f
+  dropdb $f
+done
+
+ 1.2) Charger le dump (toujours comme utilisateur postgres):
+ psql -f scodoc.dump.txt postgres
+
+ 1.3) Recopier les fichiers de definition des departements: copier le repertoire complet
+   /opt/scodoc/instance/Products/ScoDoc/config/depts
+  de la machine origine vers la nouvelle
+
+Puis redemarrer ScoDoc:
+  en tant que root: /etc/init.d/scodoc start
+
+(NB: si la version des sources a changer, lancer imperativement le script de mise a jour avant de redemarrer scodoc, afin qu'il change si besoin la base de donnees).
+cd /opt/scodoc/instance/Products/ScoDoc/config
+./upgrade.sh

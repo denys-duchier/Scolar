@@ -420,7 +420,7 @@ h4 {
               """</head><body>""",
               CUSTOM_HTML_HEADER_CNX,
               self._check_users_folder(REQUEST=REQUEST), # ensure setup is done
-              self.check_icons_folder(REQUEST=REQUEST) ]
+              self._check_icons_folder(REQUEST=REQUEST) ]
         if message:
             H.append('<div id="message">%s</div>' % message )
         
@@ -791,14 +791,13 @@ subversion: %(svn_version)s
         ids = [ os.path.split(os.path.splitext(f)[0])[1] for f in filenames ]
         return ids
     
-
-    security.declareProtected('View', 'check_icons_folder')
-    def check_icons_folder(self,REQUEST=None):
+    def _check_icons_folder(self,REQUEST=None): # not published
         """Vérifie icons folder et le crée s'il le faut
         """
         try:
             icons = self.icons
             plus = self.icons.plus_img # upgrade jul 2008
+            arrow_up = self.icons.arrow_up # nov 2009
             return '<!-- icons ok -->'
         except:
             e = self._check_admin_perm(REQUEST)
@@ -807,14 +806,19 @@ subversion: %(svn_version)s
                 return '<div class="head_message">Création du dossier icons réussie</div>'
             else:
                 return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
-    
+
     security.declareProtected('View', 'build_icons_folder')
-    def build_icons_folder(self,REQUEST=None):
+    def build_icons_folder(self,REQUEST=None): 
         """Build folder with Zope images
         """
         e = self._check_admin_perm(REQUEST)
         if e:
             return e
+        return self._build_icons_folder(REQUEST=REQUEST)
+    
+    def _build_icons_folder(self,REQUEST=None): # not published
+        """Build folder with Zope images
+        """
         path = self.file_path + '/icons'
         id = 'icons'
         try:

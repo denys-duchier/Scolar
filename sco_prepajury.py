@@ -33,18 +33,22 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 import notes_table
+import sco_groups
 import sco_excel
 import sco_parcours_dut, sco_codes_parcours
+from scolars import format_nom, format_prenom, format_sexe, format_lycee
 
 
-
-def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
+def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     "Feuille excel pour preparation des jurys"
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids( sorted=True ) # tri par moy gen
-    sem= znotes.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
-    debut_sem = znotes.DateDDMMYYYY2ISO(sem['date_debut'])
-    fin_sem = znotes.DateDDMMYYYY2ISO(sem['date_fin'])
+    sem= context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
+    debut_sem = DateDMYtoISO(sem['date_debut'])
+    fin_sem = DateDMYtoISO(sem['date_fin'])
+
+    etud_groups = sco_groups.formsemestre_get_etud_groupnames(context, formsemestre_id)
+    main_partition_id = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)['partition_id']
 
     prev_moy_ue = DictDefault(defaultvalue={}) # ue_acro : { etudid : moy ue }
     prev_moy = {} # moyennes gen sem prec
@@ -55,17 +59,17 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
     prev_code = {} # decisions sem prec
     assidu = {}
     parcours = {} # etudid : parcours, sous la forme S1, S2, S2, S3
-    groupestd = {}
+    groupestd = {}# etudid : nom groupe principal
     nbabs = {}
     nbabsjust = {}
     for etudid in etudids:
-        info = znotes.getEtudInfo(etudid=etudid, filled=True)
+        info = context.getEtudInfo(etudid=etudid, filled=True)
         if not info:
             continue # should not occur...
         etud = info[0]
-        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+        Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
         if Se.prev:
-            ntp = znotes._getNotesCache().get_NotesTable(znotes, Se.prev['formsemestre_id'])
+            ntp = context._getNotesCache().get_NotesTable(context, Se.prev['formsemestre_id'])
             for ue in ntp.get_ues(filter_sport=True):
                 ue_status = ntp.get_etud_ue_status(etudid, ue['ue_id'])
                 prev_moy_ue[ue['acronyme']][etudid] = ue_status['moy_ue']
@@ -86,7 +90,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
                 code[etudid] += '+' # indique qu'il a servi a compenser
             assidu[etudid] = {0 : 'Non', 1 : 'Oui'}.get(decision['assidu'], '')
         aut_list = sco_parcours_dut.formsemestre_get_autorisation_inscription(
-            znotes, etudid, formsemestre_id)
+            context, etudid, formsemestre_id)
         autorisations[etudid] = ', '.join([ 'S%s' % x['semestre_id'] for x in aut_list ])
         # parcours:
         sems = Se.get_semestres()
@@ -101,18 +105,18 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
             else:
                 p.append( 'A%d%s' % (s['semestre_id'],dem) )
         parcours[etudid] = ', '.join(p)
-        # groupe td
+        # groupe principal (td)
         groupestd[etudid] = ''
         for s in etud['sems']:
-            if s['formsemestre_id'] == formsemestre_id:                
-                groupestd[etudid] = s['ins']['groupetd']
+            if s['formsemestre_id'] == formsemestre_id:       
+                groupestd[etudid] = etud_groups.get(etudid, {}).get(main_partition_id, '')        
         # absences:
-        nbabs[etudid] = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust[etudid] = znotes.Absences.CountAbsJust(etudid=etudid, debut=debut_sem,fin=fin_sem)
+        nbabs[etudid] = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust[etudid] = context.Absences.CountAbsJust(etudid=etudid, debut=debut_sem,fin=fin_sem)
     
     # Construit table
     L = [ [] ]
-    all_ues =  znotes.do_ue_list(args={ 'formation_id' : sem['formation_id']})
+    all_ues =  context.do_ue_list(args={ 'formation_id' : sem['formation_id']})
     ue_prev_acros = [] # celles qui sont utilisees ici
     for ue in all_ues:
         if prev_moy_ue.has_key(ue['acronyme']):
@@ -130,7 +134,7 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
         if prev_moy: # si qq chose dans precedent
             sp = 'S%s' % (sid-1)
     
-    titles = ['', 'etudid', 'Nom', 'Année', 'Parcours', 'Groupe' ]
+    titles = ['', 'etudid', 'Civ.', 'Nom', 'Prénom', 'Naissance', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += ue_acros + ['Moy %s' % sn, 'Abs', 'Abs Just.' ]
@@ -151,9 +155,11 @@ def feuille_preparation_jury(znotes, formsemestre_id, REQUEST):
 
     i = 1 # numero etudiant
     for etudid in etudids:
-        l = [ str(i), etudid, znotes.nomprenom(nt.identdict[etudid]),
-             nt.identdict[etudid]['date_naissance'],
-             parcours[etudid], groupestd[etudid] ]
+        etud = nt.identdict[etudid]
+        l = [ str(i), etudid, 
+              format_sexe(etud['sexe']), format_nom(etud['nom']), format_prenom(etud['prenom']),
+              nt.identdict[etudid]['date_naissance'],
+              parcours[etudid], groupestd[etudid] ]
         i += 1
         if prev_moy:
             for ue_acro in ue_prev_acros:

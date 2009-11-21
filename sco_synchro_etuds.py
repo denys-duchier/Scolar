@@ -35,6 +35,7 @@ import sco_portal_apogee
 import sco_inscr_passage
 import scolars
 import sco_news, sco_excel
+import sco_formsemestre_inscriptions
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
 from sets import Set
@@ -178,9 +179,12 @@ def formsemestre_synchro_etuds(
             
             H.append("""<h3>Opération effectuée</h3>
             <ul>
-                <li><a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=%s">Continuer la synchronisation</a></li>
-                <li><a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">Répartir les groupes de %s</a></li>
-                """ % (formsemestre_id,formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd']))
+                <li><a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=%s">Continuer la synchronisation</a></li>""" % formsemestre_id)
+            #
+            partition = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)
+            if partition['partition_id'] != formsemestre_get_main_partition(context, formsemestre_id)['partition_id']: # il y a au moins une vraie partition
+                H.append("""<li><a class="stdlink" href="affectGroups?partition_id=%s">Répartir les groupes de %s</a></li>
+                """ % (partition['partition_id'],partition['partition_name']))
     
     H.append(footer)    
     return '\n'.join(H)
@@ -441,12 +445,9 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             adresse_id = scolars.adresse_create(cnx,args)
             
             # Inscription au semestre
-            args['etat'] = 'I' # etat insc. semestre
-            args['groupetd'] = 'A' # groupe par defaut
-            args['formsemestre_id'] = sem['formsemestre_id']
-
-            context.do_formsemestre_inscription_with_modules(
-                args=args,
+            sco_formsemestre_inscriptions.do_formsemestre_inscription_with_modules(
+                context, sem['formsemestre_id'], args['etudid'],
+                etat='I',
                 REQUEST=REQUEST,
                 method='synchro_apogee')
     except:
@@ -568,13 +569,9 @@ def do_synch_inscrits_etuds(context, sem, etuds, REQUEST=None):
     """inscrits ces etudiants (déja dans ScoDoc) au semestre"""
     log('do_synch_inscrits_etuds: inscription de %d etudiants'%len(etuds))
     for etud in etuds:
-        args = { 'etat' : 'I', # etat insc. semestre
-                 'groupetd' : 'A', # groupe par defaut
-                 'formsemestre_id' : sem['formsemestre_id'],
-                 'etudid' : etud['etudid']
-                 }
-        context.do_formsemestre_inscription_with_modules(
-            args=args,
-            REQUEST=REQUEST,
-            method='synchro_apogee')
-        
+        sco_formsemestre_inscriptions.do_formsemestre_inscription_with_modules(
+                context, sem['formsemestre_id'],  etud['etudid'],
+                etat='I',
+                REQUEST=REQUEST,
+                method='synchro_apogee')
+

@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 # 
-# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2009 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -87,7 +87,8 @@ import imageresize
 import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
-import sco_page_etud, sco_groupes, sco_trombino
+import sco_page_etud, sco_groups, sco_trombino
+import sco_groups_edit
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
 
@@ -320,6 +321,9 @@ class ZScolar(ObjectManager,
     # Ajout des JavaScripts 
     security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
+    
+    security.declareProtected(ScoView, 'groups_css')
+    groups_css = DTMLFile('JavaScripts/groups_css', globals())
 
     security.declareProtected(ScoView, 'jquery_1_2_6_min_js')
     jquery_1_2_6_min_js = DTMLFile('JavaScripts/jquery_1_2_6_min_js', globals())
@@ -571,44 +575,17 @@ class ZScolar(ObjectManager,
             sems = self.Notes.do_formsemestre_list()
         else:
             sems = self.Notes.do_formsemestre_list( args={'etat':'1'} )
-        H = ['<select name="semestregroupe">']
+        H = [ '<select  name="group_id">' ]        
         nbgroups = 0
         for sem in sems:
-            formsemestre_id = sem['formsemestre_id']
-            H.append( self.formChoixGroupe(formsemestre_id, prefix=formsemestre_id) )
+            for p in sco_groups.get_partitions_list(self, sem['formsemestre_id']):
+                if p['partition_name'] != None:
+                    for group in sco_groups.get_partition_groups(self, p):
+                        H.append('<option value="%s">%s: %s %s</option>' 
+                                 % (group['group_id'], sem['titremois'], p['partition_name'], group['group_name']))        
         H.append('</select>')
         return '\n'.join(H)    
 
-    security.declareProtected(ScoView, 'formChoixGroupe')
-    def formChoixGroupe(self, formsemestre_id, prefix='', display_sem_title=True):
-        """Partie de formulaire pour le choix d'un groupe.
-        Le groupe sera codé comme prefix!x!y!z
-        groupe TD:   td!!, groupe TA !!ta, groupe tp !tp!        
-        """
-        # XXX assez primitif, a ameliorer
-        sem = self.Notes.get_formsemestre(formsemestre_id)
-        if display_sem_title:
-            sem_title = '%s: ' % sem['titremois']
-        else:
-            sem_title = ''
-        H = []
-        nbgroups = 0
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
-        for gr in gr_td:
-            tmpl = '<option value="%s!%s!!">%s%s %s</option>'
-            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupetd'],gr))
-            nbgroups += 1
-        for gr in gr_anglais:
-            tmpl = '<option value="%s!!!%s">%s%s %s</option>'
-            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupeta'], gr))
-            nbgroups += 1
-        for gr in gr_tp:
-            tmpl = '<option value="%s!!%s!">%s%s %s</option>'
-            H.append( tmpl %(prefix,gr,sem_title,sem['nomgroupetp'], gr))
-            nbgroups += 1
-        if nbgroups == 0:
-            return '' # aucun groupe, pas de choix
-        return '\n'.join(H) 
 
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')
@@ -798,8 +775,9 @@ class ZScolar(ObjectManager,
                                                 'Nouvelles de ' + self.get_preference('DeptName'),
                                                  self.ScoURL() )
         
-    # genere liste html pour acces aux groupes TD/TP/TA de ce semestre
+    # genere liste html pour accès aux groupes de ce semestre
     def make_listes_sem(self, sem, REQUEST=None, with_absences=True):
+        context = self
         authuser = REQUEST.AUTHENTICATED_USER
         r = self.ScoURL() # root url
         # construit l'URL "destination" 
@@ -818,9 +796,9 @@ class ZScolar(ObjectManager,
 
         #
         H.append('<h3>Listes de %(titre)s <span class="infostitresem">(%(mois_debut)s - %(mois_fin)s)</span></h3>' % sem )
-        # cherche les groupes de ce semestre
+
         formsemestre_id = sem['formsemestre_id']
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
+        
         # calcule dates 1er jour semaine pour absences
         if with_absences:
             first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).prev_monday()
@@ -828,8 +806,8 @@ class ZScolar(ObjectManager,
             FA.append('<td><form action="Absences/SignaleAbsenceGrSemestre" method="GET">')
             FA.append('<input type="hidden" name="datefin" value="%(date_fin)s"/>'
                              % sem )
-            FA.append('<input type="hidden" name="semestregroupe" value="%s!%%s"/>'
-                     % (formsemestre_id,) )
+            FA.append('<input type="hidden" name="group_id" value="%(group_id)s"/>')
+
             FA.append('<input type="hidden" name="destination" value="%s"/>'
                       % destination)
             FA.append('<input type="submit" value="Saisir absences du" />')
@@ -839,78 +817,47 @@ class ZScolar(ObjectManager,
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
             FA.append('</select>')
-            FA.append('<a href="Absences/EtatAbsencesGr?semestregroupe=%(formsemestre_id)s!%%s&debut=%(date_debut)s&fin=%(date_fin)s&formsemestre_id=%(formsemestre_id)s">état</a>' % sem )
+            FA.append('<a href="Absences/EtatAbsencesGr?group_id=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
             FA.append('</form></td>')
             FormAbs = '\n'.join(FA)
         else:
             FormAbs = ''
         #
         H.append('<div id="grouplists">')
-        # Genere liste pour chaque categorie de groupes
-        for (groupes, nomgroupe, semnomgroupe, grmask) in (
-            (gr_td, 'groupetd', 'nomgroupetd', '%s!!'),
-            (gr_anglais, 'groupeanglais', 'nomgroupeta', '!!%s'),
-            (gr_tp, 'groupetp', 'nomgroupetp', '!%s!')
-            ):
-            if groupes:
-                H.append('<h4>Groupes de %s</h4>' % sem[semnomgroupe])
-                H.append('<table>')
-                for gr in groupes:
-                    args = { 'formsemestre_id' : formsemestre_id, nomgroupe : gr }
-                    ins = self.Notes.do_formsemestre_inscription_list( args=args )
-                    nb = len(ins) # nb etudiants
-                    H.append('<tr class="listegroupelink">')
-                    H.append("""<td>
-                    <a href="%s/listegroupe?formsemestre_id=%s&%s=%s">groupe %s</a>
+        # Genere liste pour chaque partition (categorie de groupes)
+        for partition in sco_groups.get_partitions_list(context, sem['formsemestre_id']):
+            if not partition['partition_name']:
+                H.append('<h4>Tous les étudiants</h4>' % partition)
+            else:
+                H.append('<h4>Groupes de %(partition_name)s</h4>' % partition)
+            H.append('<table>')
+            for group in sco_groups.get_partition_groups(context, partition):
+                n_members = len(sco_groups.get_group_members(context, group['group_id']))
+                group['url'] = r
+                if group['group_name']:
+                    group['label'] = 'groupe %(group_name)s' % group
+                else:
+                    group['label'] = 'liste'
+                H.append('<tr class="listegroupelink">')                
+                H.append("""<td>
+                    <a href="%(url)s/listegroupe?group_id=%(group_id)s">%(label)s</a>
                     </td><td>
-                    (<a href="%s/listegroupe?formsemestre_id=%s&%s=%s&format=xls">format tableur</a>)
-                    <a href="%s/trombino?formsemestre_id=%s&%s=%s&etat=I">Photos</a>
-                    </td><td>(%d étudiants)</td>
-                    """ % (r, formsemestre_id, nomgroupe, gr, gr,
-                           r, formsemestre_id, nomgroupe, gr,
-                           r, formsemestre_id, nomgroupe, gr,
-                           nb))
-                    if with_absences:
-                        H.append( FormAbs % ((grmask % gr),(grmask % gr)) )
-                    H.append('</tr>')
-                H.append('</table>')
+                    (<a href="%(url)s/listegroupe?&group_id=%(group_id)s&format=xls">format tableur</a>)
+                    <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
+                    </td>""" % group )
+                H.append('<td>(%d étudiants)</td>' % n_members )
+                
+                if with_absences:
+                    H.append( FormAbs % group )
+                
+                H.append('</tr>')
+            H.append('</table>')
         
-        if len(gr_td) > 1:
-            args = { 'formsemestre_id' : formsemestre_id }
-            ins = self.Notes.do_formsemestre_inscription_list( args=args )
-            nb = len(ins) # nb etudiants
-            H.append("""<h4>Tous les étudiants</h4>
-            <table><tr class="listegroupelink"><td>
-            <a href="%s/listegroupe?formsemestre_id=%s">liste</a>
-            </td><td>
-            (<a href="%s/listegroupe?formsemestre_id=%s&format=xls">format tableur</a>)
-            <a href="%s/trombino?formsemestre_id=%s&etat=I">Photos</a>
-            </td><td>(%d étudiants)</td>
-            """ % (r,formsemestre_id,r,formsemestre_id,r,formsemestre_id,nb))
-            if with_absences:
-                H.append( FormAbs % ('!!','!!') )
-            H.append('</tr></table>')
-        H.append('</div>')
-
+        H.append('</div>')        
         return '\n'.join(H)
 
-    def make_query_groups(self,groupetd,groupetp,groupeanglais,etat=None):
-        "query string"
-        qs = []
-        if groupetd:
-            qs.append('groupetd=%s' % groupetd)
-        if groupetp:
-            qs.append('groupetp=%s' % groupetp)
-        if groupeanglais:
-            qs.append('groupeanglais=%s' % groupeanglais)
-        if etat:
-            qs.append('etat=%s' % etat)
-        return '&'.join(qs)
-
     security.declareProtected(ScoView, 'listegroupe')
-    def listegroupe(self, 
-                    formsemestre_id, REQUEST=None,
-                    groupetd='', groupetp='', groupeanglais='',
+    def listegroupe(self, group_id, REQUEST=None,
                     with_codes=0,
                     all_groups=0,
                     etat=None,
@@ -918,75 +865,61 @@ class ZScolar(ObjectManager,
         """liste etudiants inscrits dans ce semestre
         format: html, csv, xls, xml, allxls (XXX futur: pdf)
         Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
-        Si all_groupes, donne les 3 groupes (3 colonnes)
+        Si all_groups, donne les groupes
         """
         authuser = REQUEST.AUTHENTICATED_USER
-        T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
-                                                   groupetd,groupetp,groupeanglais,etat )
-        if not nomgroupe:
-            nomgroupe = 'tous'
+        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
+        if not group['group_name']:
             all_groups = 1
         
         with_codes = int(with_codes)
         all_groups = int(all_groups)
-        base_url = '%s?formsemestre_id=%s&groupetd=%s&groupetp=%s&groupeanglais=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,formsemestre_id,groupetd,groupetp,groupeanglais,with_codes,all_groups)
-        
+        base_url = '%s?group_id=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,group_id,with_codes,all_groups)
+        formsemestre_id = group['formsemestre_id']
         #
-        columns_ids=['nom', 'prenom', 'groupetd']
-        groups_excel = [] # types de groupe a montrer sur feuille appel
+        columns_ids=['nom', 'prenom' ] # colonnes a inclure
+        titles = { 'nom' : 'Nom', 'prenom' : 'Prénom',
+                   'email' : 'Mail',
+                   'etat':'Etat',
+                   'etudid':'etudid',
+                   'code_nip':'code_nip', 'code_ine':'code_ine'
+                   }
+        
         if all_groups:
-            columns_ids += ['groupeta','groupetp']
-            groups_excel = ['groupetd', 'groupeta','groupetp']
-        if format != 'html':
+            # ajoute colonnes pour groupes
+            for partition in sco_groups.get_partitions_list(self, formsemestre_id):
+                if partition['partition_name']:
+                    columns_ids.append( partition['partition_id'] )
+                    titles[partition['partition_id']] = partition['partition_name']
+        
+        if format != 'html': # ne mentionne l'état que en Excel (style en html)
             columns_ids.append('etat')
         columns_ids.append('email')
         if with_codes:
             columns_ids += ['etudid', 'code_nip', 'code_ine']
-        td_set = Set()
-        tp_set = Set()
-        ta_set = Set()
         # ajoute liens
-        for t in T:
-            t['_email_target'] = 'mailto:' + t['email']
-            t['_nom_target'] = 'ficheEtud?etudid=' + t['etudid']
-            t['_prenom_target'] = 'ficheEtud?etudid=' + t['etudid']
-            # compte nb de groupes dans chaque categorie pour ne
-            # montrer que les colonnes où il y a qq chose
-            if t['groupetd']:
-                td_set.add(t['groupetd'])
-            if t['groupetp']:
-                tp_set.add(t['groupetp'])
-            if t['groupeta']:
-                ta_set.add(t['groupeta'])
-            if t['etat'] == 'D':
-                t['groupetd'] = t['groupetp'] = t['groupeta'] = 'dem'
-                t['_css_row_class'] = 'etuddem'
-        if len(td_set) < 1:
-            columns_ids = [ x for x in columns_ids if x != 'groupetd' ]
-            groups_excel = [ x for x in groups_excel if x != 'groupetd' ]
-        if len(tp_set) < 1:
-            columns_ids = [ x for x in columns_ids if x != 'groupetp' ]
-            groups_excel = [ x for x in groups_excel if x != 'groupetp' ]
-        if len(ta_set) < 1:
-            columns_ids = [ x for x in columns_ids if x != 'groupeta' ]
-            groups_excel = [ x for x in groups_excel if x != 'groupeta' ]
+        for etud in members:
+            if  etud['email']:
+                etud['_email_target'] = 'mailto:' + etud['email']
+            else:
+                etud['_email_target'] = ''
+            etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+            etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+            
+            if etud['etat'] == 'D':                
+                etud['_css_row_class'] = 'etuddem'
+            # et groupes:
+            for partition_id in etud['partitions']:
+                etud[partition_id] = etud['partitions'][partition_id]['group_name']
         
         if nbdem > 1:
             s = 's'
         else:
             s = ''
         
-        tab = GenTable( rows=T, columns_ids=columns_ids, 
-                        titles={ 'nom' : 'Nom', 'prenom' : 'Prénom',
-                                 'groupetd' : sem['nomgroupetd'],
-                                 'groupeta' : sem['nomgroupeta'],
-                                 'groupetp' : sem['nomgroupetp'],
-                                 'email' : 'Mail',
-                                 'etat':'Etat',
-                                 'etudid':'etudid',
-                                 'code_nip':'code_nip', 'code_ine':'code_ine'
-                                 },
-                        caption='soit %d étudiants inscrits et %d démissionaire%s.' % (len(T)-nbdem,nbdem,s),
+        tab = GenTable( rows=members, columns_ids=columns_ids, titles=titles,
+                        caption='soit %d étudiants inscrits et %d démissionaire%s.' 
+                        % (len(members)-nbdem,nbdem,s),
                         base_url=base_url,
                         pdf_link=False, # pas d'export pdf
                         html_sortable=True,
@@ -994,27 +927,28 @@ class ZScolar(ObjectManager,
                         preferences=self.get_preferences(formsemestre_id) )
         #
         if format == 'html':
-            amail=','.join([x['email'] for x in T ])
-            if ng:
-                htitle = 'Etudiants du %s' % ng
-            elif len(T):
-                htitle = 'Les %d étudiants inscrits' % len(T)
+            amail=','.join([x['email'] for x in members if x['email'] ])
+            
+            if len(members):
+                if group['group_name'] != None:
+                    htitle = 'Groupe %s (%d étudiants)' % (group['group_name'],len(members))
+                else:
+                    htitle = 'Les %d étudiants inscrits' % len(members)
             else:
                 htitle = 'Aucun étudiant'
             H = [ self.Notes.html_sem_header(REQUEST, htitle, sem),
                   tab.html(),
                   """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
                   % base_url,
-                  """<li><a class="stdlink" href="trombino?formsemestre_id=%s&groupetd=%s&groupetp=%s&groupeanglais=%s&etat=I">Photos</a></li>"""
-                  % (formsemestre_id,groupetd,groupetp,groupeanglais),
-                  '<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe %s</a></li>' % (amail,nomgroupe)
+                  """<li><a class="stdlink" href="trombino?group_id=%s&etat=I">Photos</a></li>"""
+                  % (group_id,),
+                  '<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe de %s</a></li>' % (amail, group_tit)
                   ]
             
             # Lien pour verif codes INE/NIP
             if authuser.has_permission(ScoEtudInscrit,self):
-                H.append('<li><a class="stdlink" href="check_group_apogee?formsemestre_id=%s&%s">Vérifier codes Apogée</a></li>'
-                         % (formsemestre_id,
-                            self.make_query_groups(groupetd,groupetp,groupeanglais,etat)))
+                H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a></li>'
+                         % (group_id,etat))
             
             H.append('</ul>')
             
@@ -1023,100 +957,60 @@ class ZScolar(ObjectManager,
         elif format=='pdf':
             return tab.make_page(self, format=format, REQUEST=REQUEST)
         
-        elif format == 'csv':
-            Th = [ x[k] for k in columns_ids ]
-            fs = [ (t['nom'], t['prenom'], t['groupetd'], t['etat'], t['email']) for t in T ]
-            CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in [Th]+fs ] )
-            title = 'liste_%s' % nomgroupe
-            filename = title + '.csv'
-            return sendCSVFile(REQUEST,CSV, filename )
-        
         elif format == 'xls':
-            title = 'liste_%s' % nomgroupe
-#             xls = sco_excel.Excel_SimpleTable(
-#                 titles= [ 'Nom', 'Prénom', 'Groupe', 'Etat', 'Mail' ],
-#                 lines = lines,
-#                 SheetName = title )
-            xls = sco_excel.Excel_feuille_listeappel(self, sem, nomgroupe, T,
-                                                     groups_excel=groups_excel,
+            title = 'liste_%s' % group_tit
+            xls = sco_excel.Excel_feuille_listeappel(self, sem, group_tit, members,
+                                                     partitions= [ group ] + other_partitions,
                                                      with_codes=with_codes,
                                                      server_name=REQUEST.BASE0)
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename )
         elif format == 'allxls':
             # feuille Excel avec toutes les infos etudiants
-            Ld = [ self.getEtudInfo(etudid=i['etudid'],filled=True)[0] for i in T ]
-            if not Ld:
+            if not members:
                 return ''            
-            cols = Ld[0].keys()
-            def dicttakestr(d, keys):
-                r = []
-                for k in keys:
-                    r.append(str(d[k]))
-                return r
-            keys = ('etudid', 'code_nip', 'etatincursem',
+            keys = ['etudid', 'code_nip', 'etat',
                     'sexe', 'nom','prenom',
-                    'inscriptionstr', 'groupetd', 'groupeanglais', 'groupetp',
+                    'inscriptionstr', 
                     'email', 'domicile', 'villedomicile', 'codepostaldomicile', 'paysdomicile',
                     'telephone', 'telephonemobile', 'fax',
                     'date_naissance', 'lieu_naissance',
                     'bac', 'specialite', 'annee_bac',
                     'nomlycee', 'villelycee', 'codepostallycee', 'codelycee'
-                    )
+                    ]
+            titles = keys[:]
+            keys += [ p['partition_id'] for p in other_partitions ]
+            titles += [ p['partition_name'] for p in other_partitions ]
             # remplis infos lycee si on a que le code lycée
-            for i in range(len(Ld)):
-                d = Ld[i]
-                if d['codelycee']:
-                    e = d.copy()
-                    il = scolars.get_lycee_infos(d['codelycee'])
+            # et ajoute infos inscription
+            for m in members:
+                etud = self.getEtudInfo(m['etudid'], filled=True)[0]
+                m.update(etud)
+                if m['codelycee']:
+                    il = scolars.get_lycee_infos(m['codelycee'])
                     if il:
-                        if not d['codepostallycee']:
-                            e['codepostallycee'] = il['codepostal']
-                        if not d['nomlycee']:
-                            e['nomlycee'] = il['name']
-                        if not d['villelycee']:
-                            e['villelycee'] = il['commune']
-                        Ld[i] = e
-            L = [ dicttakestr(d, keys) for d in Ld ]            
-            title = 'etudiants_%s' % nomgroupe
+                        if not m['codepostallycee']:
+                            m['codepostallycee'] = il['codepostal']
+                        if not m['nomlycee']:
+                            m['nomlycee'] = il['name']
+                        if not m['villelycee']:
+                            m['villelycee'] = il['commune']
+            
+            def dicttakestr(d, keys):
+                r = []
+                for k in keys:
+                    r.append(str(d.get(k, '')))
+                return r
+            L = [ dicttakestr(m, keys) for m in members ]            
+            title = ('etudiants_%s' % group_tit).replace(' ', '_')
             xls = sco_excel.Excel_SimpleTable(
-                titles=keys,
+                titles=titles,
                 lines = L,
                 SheetName = title )
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename)
-        
-        elif format == 'xml':
-            doc = jaxml.XML_document( encoding=SCO_ENCODING )
-            if REQUEST:
-                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-            a = { 'formsemestre_id' : formsemestre_id }
-            if groupetd:
-                a['groupetd'] = groupetd
-            if groupeanglais:
-                a['groupeta'] = groupeanglais
-            if groupetp:
-                a['groupetp'] = groupetp
-            if etat:
-                a['etat'] = etat
-            a = dict_quote_xml_attr(a)
-            doc.groupe( **a )
-            doc._push()
-            for t in T:
-                a = { 'etudid' : t['etudid'],
-                      'nom' : t['nom'], 'prenom' : t['prenom'],
-                      'groupe' : t['groupetd'], # backward compat
-                      'groupetd' : t['groupetd'],
-                      'groupeta' : t['groupeta'],
-                      'groupetp' : t['groupetp'],
-                      'etat' : t['etat'], 
-                      'mail' : 'email' }
-                doc._push()
-                a = dict_quote_xml_attr(a)
-                doc.etudiant(**a)
-                doc._pop()
-            doc._pop()
-            return repr(doc)
+
+        # format XML supprimé (était inutile, à vérifier)
         else:
             raise ValueError('unsupported format')
 
@@ -1125,86 +1019,16 @@ class ZScolar(ObjectManager,
 
     security.declareProtected(ScoView,'trombino_copy_photos')
     trombino_copy_photos = sco_trombino.trombino_copy_photos
-
-    def _getlisteetud(self, formsemestre_id,
-                      groupetd=None, groupetp=None, groupeanglais=None, etat=None ):
-        """utilise par listegroupe et trombino
-        ( liste de dicts t,  nomgroupe, ng, sem, nbdem )
-        """
-        cnx = self.GetDBConnexion()
-        sem = self.Notes.do_formsemestre_list( args={'formsemestre_id':formsemestre_id} )[0]
-        args,nomgroupe=self._make_groupes_args(groupetd,groupetp,groupeanglais,
-                                               etat)
-        args['formsemestre_id'] = formsemestre_id
-        ins = self.Notes.do_formsemestre_inscription_list( args=args )
-        if nomgroupe:
-            ng = 'groupe ' + nomgroupe
-        else:
-            ng = ''
-        # --- recuperation infos sur les etudiants, tri
-        T = []
-        nbdem = 0 # nombre d'inscrits demissionnaires
-        for i in ins:
-            etud = scolars.etudident_list(cnx, {'etudid':i['etudid']})[0]
-            t = { 'nom' :format_nom(etud['nom']),
-                  'prenom' : format_prenom(etud['prenom']),
-                  'sexe' : etud['sexe'],
-                  'etud' : etud['etudid'],
-                  'email' : scolars.getEmail(cnx,etud['etudid']),
-                  'etat' : i['etat'],
-                  'groupetd' : i['groupetd'],
-                  'groupeta' : i['groupeanglais'],
-                  'groupetp' : i['groupetp'],
-                  'foto' : etud['foto'],
-                  'etudid' : etud['etudid'],
-                  'code_ine' : etud['code_ine'],
-                  'code_nip' : etud['code_nip']
-                  }
-            if t['etat'] == 'I':
-                t['etath'] = '' # etudiant inscrit, ne l'indique pas dans la liste HTML
-            elif t['etat'] == 'D':
-                t['etath'] = '(dem.)'
-                nbdem += 1
-            T.append(t)
-        def cmpnom(x,y):
-            return cmp( x['nom']+x['prenom'], y['nom']+y['prenom'] )
-        T.sort(cmpnom) # sort by nom
-        return T, nomgroupe, ng, sem, nbdem
     
-    def _make_groupes_args(self,groupetd,groupetp,groupeanglais,etat):
-        args = {}
-        grs = []
-        if groupetd:
-            args['groupetd'] = groupetd
-            grs.append(groupetd)
-        if groupeanglais:
-            args['groupeanglais'] = groupeanglais
-            grs.append(groupeanglais)
-        if groupetp:
-            args['groupetp'] = groupetp
-            grs.append(groupetp)
-        nomgroupe = '/'.join(grs) # pour affichage dans le resultat
-        if etat:
-            args['etat'] = etat
-        return args, nomgroupe
-        
     security.declareProtected(ScoView,'getEtudInfoGroupe')
-    def getEtudInfoGroupe(self, formsemestre_id,
-                         groupetd=None, groupetp=None, groupeanglais=None,
-                         etat=None ):
+    def getEtudInfoGroupe(self, group_id, etat=None):
         """liste triée d'infos (dict) sur les etudiants du groupe indiqué.
-        Attention: peut etre lent, car plusieurs requetes SQL par etudiant !
+        Attention: lent, car plusieurs requetes SQL par etudiant !
         """
-        cnx = self.GetDBConnexion()
-        sem = self.Notes.do_formsemestre_list(
-            args={'formsemestre_id':formsemestre_id} )[0]
-        args,nomgroupe=self._make_groupes_args(groupetd,groupetp,groupeanglais,
-                                               etat)
-        args['formsemestre_id'] = formsemestre_id
-        ins = self.Notes.do_formsemestre_inscription_list( args=args )
+        members = sco_groups.get_group_members(self, group_id, etat=etat)
         etuds = []
-        for i in ins:
-            etud = self.getEtudInfo(etudid=i['etudid'],filled=True)[0]
+        for m in members:
+            etud = self.getEtudInfo(etudid=m['etudid'],filled=True)[0]
             etuds.append(etud)
         # tri par nom
         etuds.sort( lambda x,y: cmp(x['nom'],y['nom']) )
@@ -1280,7 +1104,6 @@ class ZScolar(ObjectManager,
             return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
 
         if len(etuds) > 0:
-
             # Choix dans la liste des résultats:
             H.append("""<h2>%d résultats pour "%s": choisissez un étudiant:</h2>""" % (len(etuds),expnom))
             H.append(self.formChercheEtud(dest_url=dest_url,
@@ -1290,11 +1113,12 @@ class ZScolar(ObjectManager,
                 target = dest_url + '?etudid=%s&' % e['etudid'] + query_string
                 e['_nomprenom_target'] = target
                 e['inscription_target'] = target
+                sco_groups.etud_add_group_infos(self, e, e['cursem'])
 
-            tab = GenTable( columns_ids=('nomprenom', 'inscription', 'groupetd'),
+            tab = GenTable( columns_ids=('nomprenom', 'inscription', 'groupes'),
                             titles={ 'nomprenom' : 'Etudiant',
                                      'inscription' : 'Inscription', 
-                                     'groupetd' : 'Groupe' },
+                                     'groupes' : 'Groupes' },
                             rows = etuds,
                             html_sortable=True,
                             html_class='gt_table table_leftalign',
@@ -1381,11 +1205,9 @@ class ZScolar(ObjectManager,
                 etud['inscription'] = cursem['titremois']
                 etud['inscriptionstr'] = 'Inscrit en ' + cursem['titremois']
                 etud['inscription_formsemestre_id'] = cursem['formsemestre_id']
-                etud['groupetd'] = curi['groupetd']
-                etud['groupeanglais'] = curi['groupeanglais']
-                etud['groupetp'] = curi['groupetp']
                 etud['etatincursem'] = curi['etat']
                 etud['situation'] = self._descr_situation_etud(etudid,etud['ne'])
+                # XXX est-ce utile ? sco_groups.etud_add_group_infos(self, etud, cursem)
             else:
                 if etud['sems']:
                     if etud['sems'][0]['dateord'] > time.strftime('%Y-%m-%d',time.localtime()):
@@ -1399,14 +1221,9 @@ class ZScolar(ObjectManager,
                     etud['situation'] = etud['inscription']
                 etud['inscriptionstr'] = etud['inscription']
                 etud['inscription_formsemestre_id'] = None
-                etud['groupetd'] = ''
-                etud['groupeanglais'] = ''
-                etud['groupetp'] = ''
+                #XXXetud['partitions'] = {} # ne va pas chercher les groupes des anciens semestres
                 etud['etatincursem'] = '?'
-            # situation et parcours
-            etud['groupes'] = ' '.join( [etud['groupetd'],
-                                         etud['groupeanglais'],etud['groupetp']] )
-
+            
             # nettoyage champs souvents vides
             if etud['nomlycee']:
                 etud['ilycee'] = 'Lycée ' + format_lycee(etud['nomlycee'])
@@ -1468,10 +1285,8 @@ class ZScolar(ObjectManager,
                             formsemestre_id=sem['formsemestre_id'],
                             date_debut=DateDMYtoISO(sem['date_debut']),
                             date_fin=DateDMYtoISO(sem['date_fin']),
-                            groupetd=quote_xml_attr(sem['ins']['groupetd']),
-                            groupeta=quote_xml_attr(sem['ins']['groupeanglais']),
-                            groupetp=quote_xml_attr(sem['ins']['groupetp']),
-                            etat=quote_xml_attr(sem['ins']['etat'])
+                            etat=quote_xml_attr(sem['ins']['etat']),
+                            groupes=quote_xml_attr(etud['groupes']) # slt pour semestre courant
                             )
             doc._pop()
         for sem in etud['sems']:
@@ -1481,9 +1296,6 @@ class ZScolar(ObjectManager,
                     formsemestre_id=sem['formsemestre_id'],
                     date_debut=DateDMYtoISO(sem['date_debut']),
                     date_fin=DateDMYtoISO(sem['date_fin']),
-                    groupetd=quote_xml_attr(sem['ins']['groupetd']),
-                    groupeta=quote_xml_attr(sem['ins']['groupeanglais']),
-                    groupetp=quote_xml_attr(sem['ins']['groupetp']),
                     etat=quote_xml_attr(sem['ins']['etat'])
                     )
                 doc._pop()
@@ -1627,8 +1439,8 @@ class ZScolar(ObjectManager,
             logdb(REQUEST,cnx,method='changeCoordonnees', etudid=etudid)
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
-    security.declareProtected(ScoView, 'formChangeGroupe')
-    def formChangeGroupe(self, formsemestre_id, etudid, REQUEST):
+    security.declareProtected(ScoView, 'formChangeGroup')
+    def formChangeGroup(self, formsemestre_id, etudid, REQUEST):
         "changement groupe etudiant dans semestre"
         if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
             raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
@@ -1647,31 +1459,11 @@ class ZScolar(ObjectManager,
         H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         header = self.sco_header(
             REQUEST, page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
-        # Liste des groupes existant (== ou il y a des inscrits)
-        gr_td,gr_tp,gr_anglais = self.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
+        # Liste des groupes existants
+        raise NotImplementedError # XXX utiliser form_group_choice ou supprimer completement ?
         #
-        H.append("""<form action="doChangeGroupe" method="GET" name="cg">
-<table>
-<tr><th></th><th>%s</th><th>%s</th><th>%s</th></tr>"""
-                 % (sem['nomgroupetd'],sem['nomgroupeta'],sem['nomgroupetp']) )
-        H.append("""
-<tr><td><b>Groupes actuels&nbsp;:</b></td><td>%(groupetd)s</td><td>%(groupeanglais)s</td><td>%(groupetp)s</td></tr>
-<tr><td><b>Nouveaux groupes&nbsp;:</b></td>
-""" % ins)
-        for (glist, gname) in (
-            (gr_td,'groupetd'),
-            (gr_anglais, 'groupeanglais'),
-            (gr_tp, 'groupetp') ):
-            H.append('<td><select name="%s" id="%s">' % (gname,gname) )
-            for g in glist:
-                if ins[gname] == g:
-                    selected = 'selected'
-                else:
-                    selected = ''
-                H.append('<option value="%s" %s>%s</option>' % (g,selected,g))
-            H.append('<option value="">Aucun</option>')
-            H.append('</select></td>')
-        H.append('</tr></table>')
+        H.append("""<form action="doChangeGroup" method="GET" name="cg">""")
+        
         H.append("""<input type="hidden" name="etudid" value="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
 <p>
@@ -1713,67 +1505,62 @@ function tweakmenu( gname ) {
         
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
 
-    security.declareProtected(ScoView, 'doChangeGroupe')
-    def doChangeGroupe(self, etudid, formsemestre_id, groupetd=None,
-                       groupeanglais=None, groupetp=None, REQUEST=None,
-                       redirect=1):
-        """Change le groupe. Si la valeur du groupe est '' (vide) ou 'None',
-        le met à NULL (aucun groupe).
+    security.declareProtected(ScoView, 'doChangeGroup') # XXX unused
+    def _xxx_doChangeGroup(self, etudid, partition_id, group_id, REQUEST=None,
+                       redirect=True):
+        """Change le groupe de l'etudiant dans cette partition. 
+        Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
         """
+        # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
+        partition = sco_groups.get_partition(context, partition_id)
+        formsemestre_id=partition['formsemestre_id']
         if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
             raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
-        cnx = self.GetDBConnexion()
-        log('doChangeGroupe(etudid=%s,formsemestre_id=%s) len=%d'%(etudid,formsemestre_id, len(formsemestre_id)))
-        
-        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})
-        #log( 'sem=' + str(sem))
-
-        sem = sem[0]
+        sem = self.Notes.get_formsemestre(partition['formsemestre_id'])        
         if sem['etat'] != '1':
-            raise ScoValueError('Modification impossible: semestre verrouille')
-        #
-        ins = self.Notes.do_formsemestre_inscription_list(
-            { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
-        if groupetd != None:
-            if groupetd == '' or groupetd == 'None':
-                groupetd = None
-            ins['groupetd'] = groupetd
-        if groupetp != None:
-            if groupetp == '' or groupetp == 'None':
-                groupetp = None
-            ins['groupetp'] = groupetp
-        if groupeanglais != None:
-            if groupeanglais == '' or groupeanglais == 'None':
-                groupeanglais = None
-            ins['groupeanglais'] = groupeanglais
-        #self.Notes.do_formsemestre_inscription_edit( args=ins )
-        # on ne peut pas utiliser do_formsemestre_inscription_edit car le groupe peut
-        # etre null et les nulls sont filtrés par dictfilter dans notesdb
-        cursor = cnx.cursor()
-        cursor.execute("update notes_formsemestre_inscription set groupetd=%(groupetd)s, groupetp=%(groupetp)s, groupeanglais=%(groupeanglais)s where formsemestre_id=%(formsemestre_id)s and etudid=%(etudid)s", ins)
-        logdb(REQUEST,cnx,method='changeGroupe', etudid=etudid,
-              msg='groupetd=%s,groupeanglais=%s,groupetp=%s,formsemestre_id=%s' %
-              (groupetd,groupeanglais,groupetp,formsemestre_id))
-        cnx.commit()
-        self.Notes._inval_cache(formsemestre_id=formsemestre_id)
+            raise ScoValueError('Modification impossible: semestre verrouillé')
+        
+        log('doChangeGroup(etudid=%s,partition_id=%s,group_id=%s)'%(etudid,formsemestre_id, group_id))
+        sco_groups.change_etud_group_in_partition(self, etudid, group_id, partition, REQUEST=REQUEST)        
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
-
+    
     # --- Affectation initiale des groupes
-    security.declareProtected(ScoView, 'affectGroupes')
-    affectGroupes = DTMLFile('dtml/groups/affectGroupes', globals()) 
+    security.declareProtected(ScoView, 'affectGroups')
+    affectGroups = sco_groups_edit.affectGroups
 
-    security.declareProtected(ScoView, 'XMLgetGroupesTD')
-    XMLgetGroupesTD = sco_groupes.XMLgetGroupesTD
+    security.declareProtected(ScoView, 'XMLgetGroupsInPartition')
+    XMLgetGroupsInPartition = sco_groups.XMLgetGroupsInPartition
 
-    security.declareProtected(ScoView, 'setGroupes')
-    setGroupes = sco_groupes.setGroupes
+    security.declareProtected(ScoView, 'setGroups')
+    setGroups = sco_groups.setGroups
+
+    security.declareProtected(ScoView, 'createGroup')
+    createGroup = sco_groups.createGroup
 
     security.declareProtected(ScoView, 'suppressGroup')
-    suppressGroup = sco_groupes.suppressGroup
+    suppressGroup = sco_groups.suppressGroup
 
-    security.declareProtected(ScoView, 'groupes_auto_repartition')
-    groupes_auto_repartition = sco_groupes.groupes_auto_repartition
+    security.declareProtected(ScoView, 'groups_auto_repartition')
+    groups_auto_repartition = sco_groups.groups_auto_repartition
+    
+    security.declareProtected(ScoView,'editPartitionForm')
+    editPartitionForm = sco_groups.editPartitionForm
+    
+    security.declareProtected(ScoView, 'partition_delete')
+    partition_delete = sco_groups.partition_delete
+
+    security.declareProtected(ScoView, 'partition_move')
+    partition_move = sco_groups.partition_move
+
+    security.declareProtected(ScoView, 'partition_set_name')
+    partition_set_name = sco_groups.partition_set_name
+
+    security.declareProtected(ScoView, 'partition_rename')
+    partition_rename = sco_groups.partition_rename
+
+    security.declareProtected(ScoView, 'partition_create')
+    partition_create = sco_groups.partition_create
     
     # --- Trombi: gestion photos
     # Ancien systeme (www-gtr):
@@ -2287,17 +2074,15 @@ function tweakmenu( gname ) {
         self.Notes._inval_cache()    
     
     security.declareProtected(ScoEtudInscrit, "check_group_apogee")
-    def check_group_apogee(self, formsemestre_id, REQUEST=None,
-                           groupetd=None,groupetp=None,groupeanglais=None, etat=None,
+    def check_group_apogee(self, group_id, REQUEST=None,
+                           etat=None,
                            fix=False,
                            fixmail = False):
         """Verification des codes Apogee et mail de tout un groupe.
         Si fix == True, change les codes avec Apogée.
-        """
-        T, nomgroupe, ng, sem, nbdem = self._getlisteetud(formsemestre_id,
-                                                          groupetd,groupetp,groupeanglais,etat )
-        if not nomgroupe:
-            nomgroupe = 'tous'
+        """        
+        members, group, group_tit, sem, nbdem, other_partitions = get_group_infos(self, group_id, etat=etat)
+
         cnx = self.GetDBConnexion()
         H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % ng, sem),
               '<table class="sortable" id="listegroupe">',
@@ -2305,7 +2090,7 @@ function tweakmenu( gname ) {
         nerrs = 0 # nombre d'anomalies détectées
         nfix = 0 # nb codes changes
         nmailmissing = 0 # nb etuds sans mail
-        for t in T:
+        for t in members:
             nom, prenom, etudid, email, code_nip = t['nom'], t['prenom'], t['etudid'], t['email'], t['code_nip']
             infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
             if not infos:
@@ -2362,30 +2147,24 @@ function tweakmenu( gname ) {
         H.append("""
         <form method="get" action="%s">
         <input type="hidden" name="formsemestre_id" value="%s"/>
-        <input type="hidden" name="groupetd" value="%s"/>
-        <input type="hidden" name="groupetp" value="%s"/>
-        <input type="hidden" name="groupeanglais" value="%s"/>
+        <input type="hidden" name="group_id" value="%s"/>
         <input type="hidden" name="etat" value="%s"/>
         <input type="hidden" name="fix" value="1"/>
         <input type="submit" value="Mettre à jour les codes NIP depuis Apogée"/>
         </form>
         <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
-        """ % (REQUEST.URL0,formsemestre_id,strnone(groupetd),strnone(groupetp),
-               strnone(groupeanglais),strnone(etat),formsemestre_id ))
+        """ % (REQUEST.URL0,formsemestre_id,strnone(group_id),strnone(etat),formsemestre_id ))
         H.append("""
         <form method="get" action="%s">
         <input type="hidden" name="formsemestre_id" value="%s"/>
-        <input type="hidden" name="groupetd" value="%s"/>
-        <input type="hidden" name="groupetp" value="%s"/>
-        <input type="hidden" name="groupeanglais" value="%s"/>
+        <input type="hidden" name="group_id" value="%s"/>
         <input type="hidden" name="etat" value="%s"/>
         <input type="hidden" name="fixmail" value="1"/>
         <input type="submit" value="Renseigner les e-mail manquants (adresse institutionnelle)"/>
         </form>
         <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
-        """ % (REQUEST.URL0,formsemestre_id,strnone(groupetd),strnone(groupetp),
-               strnone(groupeanglais),strnone(etat),formsemestre_id ))
-
+        """ % (REQUEST.URL0,formsemestre_id,strnone(group_id),strnone(etat),formsemestre_id))
+        
         return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
         
     security.declareProtected(ScoEtudInscrit, "form_students_import_excel")

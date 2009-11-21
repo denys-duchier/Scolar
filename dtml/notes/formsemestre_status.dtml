@@ -85,7 +85,6 @@ title="<dtml-var ModEns>">
 
 <!-- LISTE DES ETUDIANTS -->
 <div id="groupes">
-<h3>Listes des étudiants</h3>
 <dtml-var "make_listes_sem(sem, REQUEST)">
 </div>
 

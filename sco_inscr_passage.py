@@ -34,6 +34,7 @@ from sco_utils import *
 from notes_log import log
 import sco_codes_parcours
 import sco_pvjury
+import sco_formsemestre_inscriptions
 from sets import Set
 from gen_tables import GenTable
 
@@ -133,13 +134,9 @@ def do_inscrit(context, sem, etudids, REQUEST):
     """
     log('do_inscrit: %s' % etudids)
     for etudid in etudids:
-        args={ 'formsemestre_id' : sem['formsemestre_id'],
-               'etudid' : etudid,
-               'groupetd' : 'A', # groupe par défaut
-               'etat' : 'I'
-               }
-        context.do_formsemestre_inscription_with_modules(
-            args = args, 
+        sco_formsemestre_inscriptions.do_formsemestre_inscription_with_modules(
+            context, sem['formsemestre_id'], etudid,
+            etat = 'I',
             REQUEST = REQUEST,
             method = 'formsemestre_inscr_passage' )
 
@@ -271,9 +268,11 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
             
             H.append("""<h3>Opération effectuée</h3>
             <ul><li><a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=%s">Continuer les inscriptions</a></li>
-                <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>
-                <li><a class="stdlink" href="affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s">Répartir les groupes de %s</a></li>
-                """ % (formsemestre_id,formsemestre_id,formsemestre_id,sem['nomgroupetd'],sem['nomgroupetd']))
+                <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>""" % (formsemestre_id,formsemestre_id))
+            partition = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)
+            if partition['partition_id'] != formsemestre_get_main_partition(context, formsemestre_id)['partition_id']: # il y a au moins une vraie partition
+                H.append("""<li><a class="stdlink" href="affectGroups?partition_id=%s">Répartir les groupes de %s</a></li>
+                """ % (partition['partition_id'],partition['partition_name']))
             
     #
     H.append(footer)

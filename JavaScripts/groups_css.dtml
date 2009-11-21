@@ -1,0 +1,59 @@
+/* # -*- mode: css -*- 
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2010
+ */
+<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
+<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
+
+
+.simpleDropPanel { 
+    float: left;
+    border-width: 1px;
+    border-style: solid;
+    width: 15em;
+    margin: 1em;
+}
+
+#_none_ { /* boite des sans groupes */
+    border-width: 5px;
+    border-style: solid;
+    border-color: #707070;
+}
+
+.groupTitle {
+    font-weight: bold;
+}
+
+div.groupTitle {
+    background-color: #A0E0FF;
+    padding-left: 2px;
+}
+
+
+div.box {
+    margin-left:4px;
+}
+
+#ginfo {
+    margin: 1em;
+}
+
+#savedinfo {
+    text-align: center;
+    font-style: italic; 
+    font-weight: bold;
+    color: red;
+    
+}
+
+#formGroup {
+  margin: 1em;
+}
+
+span.groupDelete {
+    padding-left:3em;
+}
+
+span.newgroup {
+    font-style: italic; 
+    color: red;
+}

@@ -31,6 +31,7 @@ from types import StringType
 import pdb
 
 import scolars
+import sco_groups
 from notes_log import log
 from sco_utils import *
 from notesdb import *
@@ -123,7 +124,7 @@ class NotesTable:
     ou les moyennes par module.
 
     Attributs publics (en lecture):
-    - inscrlist: étudiants inscrits à ce semestre, par ordre alphabétique
+    - inscrlist: étudiants inscrits à ce semestre, par ordre alphabétique (avec demissions)
     - identdict: { etudid : ident }
     - sem : le formsemestre
     get_table_moyennes_triees: [ (moy_gen, moy_ue1, moy_ue2, ... moy_ues, moy_mod1, ..., moy_modn, etudid) ] 
@@ -136,17 +137,17 @@ class NotesTable:
     - _ues : liste des UE de ce semestre
     
     """
-    def __init__(self, znotes, formsemestre_id):
+    def __init__(self, context, formsemestre_id):
         log('NotesTable( formsemestre_id=%s )' % formsemestre_id)
         #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG
         if not formsemestre_id:
             raise ScoValueError('invalid formsemestre_id (%s)' % formsemestre_id)
-        self.znotes = znotes
+        self.context = context
         self.formsemestre_id = formsemestre_id
-        cnx = znotes.GetDBConnexion()
-        self.sem = znotes.get_formsemestre(formsemestre_id)
+        cnx = context.GetDBConnexion()
+        self.sem = context.get_formsemestre(formsemestre_id)
         # Infos sur les etudiants
-        self.inscrlist = znotes.do_formsemestre_inscription_list(
+        self.inscrlist = context.do_formsemestre_inscription_list(
             args = { 'formsemestre_id' : formsemestre_id })
         # infos identite etudiant
         # xxx sous-optimal: 1/select par etudiant -> 0.17" pour identdict sur GTR1 !
@@ -167,19 +168,19 @@ class NotesTable:
         self.bonus = DictDefault(defaultvalue=0)
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
         self._modmoys, self._modimpls, valid_evals, mods_att =\
-                       znotes.do_formsemestre_moyennes(formsemestre_id)
+                       context.do_formsemestre_moyennes(formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
         self._valid_evals = {} # { evaluation_id : eval }
         for e in valid_evals:
             self._valid_evals[e['evaluation_id']] = e        # Liste des modules et UE
         uedict = {}
         for modimpl in self._modimpls:
-            mod = znotes.do_module_list(args={'module_id' : modimpl['module_id']} )[0]
+            mod = context.do_module_list(args={'module_id' : modimpl['module_id']} )[0]
             modimpl['module'] = mod # add module dict to moduleimpl
-            ue = znotes.do_ue_list(args={'ue_id' : mod['ue_id']})[0]
+            ue = context.do_ue_list(args={'ue_id' : mod['ue_id']})[0]
             modimpl['ue'] = ue # add ue dict to moduleimpl            
             uedict[ue['ue_id']] = ue
-            mat = znotes.do_matiere_list(args={'matiere_id': mod['matiere_id']})[0]
+            mat = context.do_matiere_list(args={'matiere_id': mod['matiere_id']})[0]
             modimpl['mat'] = mat # add matiere dict to moduleimpl 
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
@@ -256,14 +257,15 @@ class NotesTable:
                     # fallback *** should not occur ***
                     #txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
                     #txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
-                    #znotes.send_debug_alert(txt, REQUEST=None)
+                    #context.send_debug_alert(txt, REQUEST=None)
                     #return cmp(x,y) 
         T.sort(cmprows)
         self.T = T
         
         # calcul rangs (/ moyenne generale)
         self.rangs = comp_ranks(T)
-        self.rangs_groupes = {} # { groupe : { etudid : rang } }
+        self.rangs_groupes = {} # { group_id : { etudid : rang } }  (lazy, see get_etud_rang_group)
+        self.group_etuds = {} # { group_id : set of etudids } (lazy, see get_etud_rang_group)
 
         # calcul rangs dans chaque UE
         ue_rangs = {} # ue_rangs[ue_id] = ({ etudid : rang }, nb_inscrits) (rang est une chaine)
@@ -301,11 +303,7 @@ class NotesTable:
         "formatte nom d'un etud"
         etud =  self.identdict[etudid]
         return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom'])])
-
-    def get_groupetd(self,etudid):
-        "groupe de TD de l'etudiant dans ce semestre"
-        return self.inscrdict[etudid]['groupetd']
-
+    
     def get_etud_etat(self, etudid):
         "Etat de l'etudiant: 'I', 'D' ou '' (si pas connu dans ce semestre)"
         if self.inscrdict.has_key(etudid):
@@ -573,29 +571,28 @@ class NotesTable:
         return self.T
     def get_etud_rang(self, etudid):
         return self.rangs[etudid]
-    def get_etud_rang_groupe(self, etudid, group):
+    def get_etud_rang_group(self, etudid, group_id):
         """Returns rank of etud in this group and number of etuds in group.
         If etud not in group, returns None.
-        group is a group specification in the form groupType + groupeName
-        ('tdA', 'tpC', 'taX'...)
         """
-        if not group in self.rangs_groupes:
+        if not group_id in self.rangs_groupes:
             # lazy: fill rangs_groupes on demand
             # { groupe : { etudid : rang } }
-            group_type = group[:2]
-            group_name = group[2:]
-            gkey = sql_groupe_type(group_type)
+            if not group_id in self.group_etuds:
+                # lazy fill: list of etud in group_id
+                etuds = sco_groups.get_group_members(self.context, group_id)
+                self.group_etuds[group_id] = set( [ x['etudid'] for x in etuds ] )
             # 1- build T restricted to group
             Tr = []
             for t in self.get_table_moyennes_triees():
                 t_etudid = t[-1]
-                if self.inscrdict[t_etudid][gkey] == group_name:
+                if t_etudid in self.group_etuds[group_id]:
                     Tr.append(t)
             #
-            self.rangs_groupes[group] = comp_ranks(Tr)
+            self.rangs_groupes[group_id] = comp_ranks(Tr)
         
-        return self.rangs_groupes[group].get(etudid, None), len(self.rangs_groupes[group])
-
+        return self.rangs_groupes[group_id].get(etudid, None), len(self.rangs_groupes[group_id])
+    
     def get_table_moyennes_dict(self):
         """{ etudid : (liste des moyennes) } comme get_table_moyennes_triees
         """
@@ -616,7 +613,7 @@ class NotesTable:
         decision_jury_ues={ etudid : { ue_id : { 'code' : Note|ADM|CMP, 'event_date' }}}
         Si la decision n'a pas été prise, la clé etudid n'est pas présente.
         """
-        cnx = self.znotes.GetDBConnexion()
+        cnx = self.context.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("select etudid, code, assidu, compense_formsemestre_id, event_date from scolar_formsemestre_validation where formsemestre_id=%(formsemestre_id)s and ue_id is NULL;",
                        {'formsemestre_id' : self.formsemestre_id} )
@@ -658,7 +655,7 @@ class NotesTable:
         """
         self.ue_capitalisees = DictDefault(defaultvalue=[])
         for etudid in self.get_etudids():
-            capital = formsemestre_get_etud_capitalisation(self.znotes, self.sem, etudid)
+            capital = formsemestre_get_etud_capitalisation(self.context, self.sem, etudid)
             for ue_capital in capital:
                 self.ue_capitalisees[etudid].append(ue_capital)
     
@@ -714,7 +711,7 @@ class NotesTable:
                     # Retrouve la moyenne de l'UE capitalisee
                     # ce qui demande de construire le semestre correspondant
                     # qui est la plupart du temps dans le cache
-                    nt_cap = self.znotes._getNotesCache().get_NotesTable(self.znotes, ue_cap['formsemestre_id'] )
+                    nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] )
                     moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
                         max_moy_ue = moy_ue_cap
@@ -775,7 +772,7 @@ class CacheNotesTable:
             self.lock.release()
             self.owner_thread = None
     
-    def get_NotesTable(self, znotes, formsemestre_id):
+    def get_NotesTable(self, context, formsemestre_id):
         try:
             self.acquire()
             if self.cache.has_key(formsemestre_id):
@@ -784,7 +781,7 @@ class CacheNotesTable:
                 return self.cache[formsemestre_id]
             else:
                 t0 = time.time()
-                nt = NotesTable( znotes, formsemestre_id)
+                nt = NotesTable( context, formsemestre_id)
                 dt = time.time() - t0
                 self.cache[formsemestre_id] = nt
                 log('caching formsemestre_id=%s (id=%s) (%gs)' % (formsemestre_id,id(self),dt) ) 
@@ -796,10 +793,10 @@ class CacheNotesTable:
         "List of currently cached formsemestre_id"
         return self.cache.keys() 
     
-    def inval_cache(self, znotes, formsemestre_id=None, pdfonly=False):
+    def inval_cache(self, context, formsemestre_id=None, pdfonly=False):
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
-            (formsemestre_id,pdfonly,id(self)))
+        #log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
+        #    (formsemestre_id,pdfonly,id(self)))
         try:
             self.acquire()
             if not hasattr(self,'pdfcache'):
@@ -813,11 +810,11 @@ class CacheNotesTable:
                 # formsemestre_id modifié:
                 # on doit virer formsemestre_id et tous les semestres
                 # susceptibles d'utiliser des UE capitalisées de ce semestre.
-                to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(znotes, formsemestre_id)
-                log('to_trash: ' + str(to_trash) )
+                to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(context, formsemestre_id)
                 if not pdfonly:
                     for formsemestre_id in to_trash:
                         if self.cache.has_key(formsemestre_id):
+                            log('delete %s from cache (id=%s)' % (formsemestre_id, id(self)))
                             del self.cache[formsemestre_id]
                 for formsemestre_id in to_trash:
                     for (cached_formsemestre_id, cached_version) in self.pdfcache.keys():
@@ -856,3 +853,4 @@ class CacheNotesTable:
 # qui est recréé à la demande (voir ZNotes._getNotesCache() )
 #
 NOTES_CACHE_INST = {} # { URL : CacheNotesTable instance }
+

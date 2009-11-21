@@ -234,7 +234,11 @@ class GenTable:
                 for cid in self.columns_ids:
                     if not cid in row and not self.generate_cells:
                         continue # skip cell
-                    content = str(row.get(cid,''))
+                    content = row.get(cid,'')
+                    if content is None:
+                        content = ''
+                    else:
+                        content = str(content)
                     help = row.get('_%s_help'%cid, '')
                     if help:
                         target=row.get('_%s_target'%cid, '#')

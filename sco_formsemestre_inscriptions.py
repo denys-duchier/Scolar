@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,52 +36,65 @@ from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 
 def do_formsemestre_inscription_with_modules(
-    self, args=None, REQUEST=None,
+    context, formsemestre_id, etudid, group_ids=[], etat='I', REQUEST=None,
     method='inscription_with_modules'
     ):
     """Inscrit cet etudiant a ce semestre et TOUS ses modules STANDARDS
     (donc sauf le sport)
     """
-    etudid = args['etudid']
-    formsemestre_id = args['formsemestre_id']
     # inscription au semestre
-    self.do_formsemestre_inscription_create( args, REQUEST, method=method )
+    args = {'formsemestre_id': formsemestre_id, 'etudid' : etudid }
+    if etat is not None:
+        args['etat'] = etat
+    context.do_formsemestre_inscription_create(args, REQUEST, method=method )
     log('do_formsemestre_inscription_with_modules: etudid=%s formsemestre_id=%s' % (etudid,formsemestre_id))
+    # inscriptions aux groupes
+    # 1- inscrit au groupe 'tous'
+    group_id = sco_groups.get_default_group(context, formsemestre_id)
+    sco_groups.set_group(context, etudid, group_id)
+    gdone = { group_id : 1 } # empeche doublons
+    
+    # 2- inscrit aux groupes
+    for group_id in group_ids:
+        if group_id and not group_id in gdone:
+            sco_groups.set_group(context, etudid, group_id)
+            gdone[group_id] = 1
+    
     # inscription a tous les modules de ce semestre
-    modimpls = self.do_moduleimpl_withmodule_list(
+    modimpls = context.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
     for mod in modimpls:
         if mod['ue']['type'] == UE_STANDARD:
-            self.do_moduleimpl_inscription_create(
+            context.do_moduleimpl_inscription_create(
                 {'moduleimpl_id' : mod['moduleimpl_id'],
                  'etudid' : etudid} )
 
 
-def formsemestre_inscription_with_modules_etud(self, formsemestre_id, etudid=None,
-                                               groupetd=None, groupeanglais=None, groupetp=None,
+def formsemestre_inscription_with_modules_etud(context, formsemestre_id, etudid=None, group_ids=None,
                                                REQUEST=None):
     """Form. inscription d'un étudiant au semestre.
     Si etudid n'est pas specifié, form. choix etudiant.
     """
     if not etudid:
-        return self.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre", add_headers=True,
-                                 dest_url='formsemestre_inscription_with_modules_etud',
-                                 parameters={ 'formsemestre_id' : formsemestre_id },
-                                 REQUEST=REQUEST )
-    return formsemestre_inscription_with_modules(self, etudid, formsemestre_id, REQUEST=REQUEST,
-                                                 groupetd=groupetd, groupeanglais=groupeanglais, groupetp=groupetp)
+        return self.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre",
+                                     add_headers=True,
+                                     dest_url='formsemestre_inscription_with_modules_etud',
+                                     parameters={ 'formsemestre_id' : formsemestre_id },
+                                     REQUEST=REQUEST )
+    return formsemestre_inscription_with_modules(context, etudid, formsemestre_id, REQUEST=REQUEST,
+                                                 group_ids=group_ids)
 
-def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
-    """Formulaire inscription de l'etud dans l'une des sessions existantes
+def formsemestre_inscription_with_modules_form(context,etudid,REQUEST):
+    """Formulaire inscription de l'etud dans l'un des semestres existants
     """
-    etud = self.getEtudInfo(etudid=etudid,filled=1)[0]        
-    H = [ self.sco_header(REQUEST)
+    etud = context.getEtudInfo(etudid=etudid,filled=1)[0]        
+    H = [ context.sco_header(REQUEST)
           + "<h2>Inscription de %s</h2>" % etud['nomprenom']
           + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie (sauf Sport &amp; Culture).</p>" 
           ]
-    F = self.sco_footer(REQUEST)
-    sems = self.do_formsemestre_list( args={ 'etat' : '1' } )
-    insem = self.do_formsemestre_inscription_list(
+    F = context.sco_footer(REQUEST)
+    sems = context.do_formsemestre_list( args={ 'etat' : '1' } )
+    insem = context.do_formsemestre_inscription_list(
         args={ 'etudid' : etudid, 'etat' : 'I' } )
     if sems:
         H.append('<ul>')
@@ -98,28 +111,26 @@ def formsemestre_inscription_with_modules_form(self,etudid,REQUEST):
     else:
         H.append('<p>aucune session de formation !</p>')
     H.append('<a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche de %s</a>'
-             % (self.ScoURL(), etudid, etud['nomprenom']) )
+             % (context.ScoURL(), etudid, etud['nomprenom']) )
     return '\n'.join(H) + F
 
 
 def formsemestre_inscription_with_modules(
-    self, etudid, formsemestre_id,
-    groupetd=None, groupeanglais=None, groupetp=None,
-    multiple_ok=False,
-    REQUEST=None):
+    context, etudid, formsemestre_id, group_ids=None, multiple_ok=False, REQUEST=None):
     """
     Inscription de l'etud dans ce semestre.
     Formulaire avec choix groupe.
     """
-    # log( 'formsemestre_inscription_with_modules: etudid=%s groupetd=%s' % (etudid,groupetd))
+    log('formsemestre_inscription_with_modules: etudid=%s formsemestre_id=%s group_ids=%s'
+        % (etudid, formsemestre_id, group_ids))
     if multiple_ok:
         multiple_ok = int(multiple_ok)
-    sem = self.get_formsemestre(formsemestre_id)
-    etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-    H = [ self.html_sem_header(REQUEST, 'Inscription de %s dans ce semestre' % etud['nomprenom'], sem) ]
-    F = self.sco_footer(REQUEST)
+    sem = context.get_formsemestre(formsemestre_id)
+    etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+    H = [ context.html_sem_header(REQUEST, 'Inscription de %s dans ce semestre' % etud['nomprenom'], sem) ]
+    F = context.sco_footer(REQUEST)
     # Check 1: déjà inscrit ici ?
-    ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
+    ins = context.Notes.do_formsemestre_inscription_list({'etudid':etudid})
     already = False
     for i in ins:
         if i['formsemestre_id'] == formsemestre_id:
@@ -132,7 +143,7 @@ def formsemestre_inscription_with_modules(
         return '\n'.join(H) + F
     # Check 2: déjà inscrit dans un semestre recouvrant les même dates ?
     # Informe et propose dé-inscriptions
-    others = est_inscrit_ailleurs(self, etudid, formsemestre_id)
+    others = est_inscrit_ailleurs(context, etudid, formsemestre_id)
     if others and not multiple_ok:
         l = []
         for s in others:
@@ -144,91 +155,54 @@ def formsemestre_inscription_with_modules(
         for s in others:
             H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&etudid=%s">déinscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
         H.append('</ul>')
-        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, self.make_query_groups(groupetd, groupetp, groupeanglais)))
+        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, sco_groups.make_query_groups(group_ids)))
         return '\n'.join(H) + F
     #
-    if groupetd:
+    if group_ids is not None:
         # OK, inscription
-        self.do_formsemestre_inscription_with_modules(
-            args={'formsemestre_id' : formsemestre_id,
-                  'etudid' : etudid,
-                  'etat' : 'I',
-                  'groupetd' : groupetd, 'groupeanglais' : groupeanglais,
-                  'groupetp' : groupetp
-                  },
-            REQUEST = REQUEST, method='formsemestre_inscription_with_modules')
-        return REQUEST.RESPONSE.redirect(self.ScoURL()+'/ficheEtud?etudid='+etudid)
+        do_formsemestre_inscription_with_modules(
+            context, formsemestre_id, etudid, group_ids=group_ids, etat='I', 
+            REQUEST = REQUEST, method='formsemestre_inscription_with_modules' )
+        return REQUEST.RESPONSE.redirect(context.ScoURL()+'/ficheEtud?etudid='+etudid)
     else:
         # formulaire choix groupe
-        # Liste des groupes existant (== où il y a des inscrits)
-        gr_td,gr_tp,gr_anglais = self.do_formsemestre_inscription_listgroupnames(formsemestre_id=formsemestre_id)
-        if not gr_td:
-            gr_td = ['A']
-        if not gr_anglais:
-            gr_anglais = ['']
-        if not gr_tp:
-            gr_tp = ['']
         H.append("""<form method="GET" name="groupesel" action="%s">
         <input type="hidden" name="etudid" value="%s">
         <input type="hidden" name="formsemestre_id" value="%s">
-        <table>
-        <tr><td>Groupe de %s</td><td>
-        <select name="groupetdmenu" onChange="document.groupesel.groupetd.value=this.options[this.selectedIndex].value;">""" %(REQUEST.URL0,etudid,formsemestre_id,sem['nomgroupetd']))
-        for g in gr_td:
-            H.append('<option value="%s">%s</option>'%(g,g))
-        H.append("""</select>
-        </td><td><input type="text" name="groupetd" size="12" value="%s">
-        </input></td></tr>
-        """ % gr_td[0])
-        # anglais
-        H.append("""<tr><td>Groupe de %s</td><td>
-        <select name="groupeanglaismenu" onChange="document.groupesel.groupeanglais.value=this.options[this.selectedIndex].value;">""" % sem['nomgroupeta'] )
-        for g in gr_anglais:
-            H.append('<option value="%s">%s</option>'%(g,g))
-        H.append("""</select>
-        </td><td><input type="text" name="groupeanglais" size="12" value="%s">
-        </input></td></tr>
-        """% gr_anglais[0])
-        # tp
-        H.append("""<tr><td>Groupe de %s</td><td>
-        <select name="groupetpmenu" onChange="document.groupesel.groupetp.value=this.options[this.selectedIndex].value;">"""%sem['nomgroupetp'])
-        for g in gr_tp:
-            H.append('<option value="%s">%s</option>'%(g,g))
-        H.append("""</select>
-        </td><td><input type="text" name="groupetp" size="12" value="%s">
-        </input></td></tr>
-        """ % gr_tp[0])
+        """ %(REQUEST.URL0,etudid,formsemestre_id))
+
+        H.append( sco_groups.form_group_choice(context, formsemestre_id, allow_none=True) )
+
         #
-        H.append("""</table>
+        H.append("""
         <input type="submit" value="Inscrire"/>
-        <p>Note: vous pouvez choisir l'un des groupes existants (figurant dans les menus) ou bien décider de créer un nouveau groupe (saisir son identifiant dans les champs textes).</p>
-        <p>Note 2: le groupe primaire (%s) doit être non vide. Les autres groupes sont facultatifs.</p>
+        <p>Note: l'étudiant sera inscrit dans les groupes sélectionnés</p>
         </form>            
-        """ % sem['nomgroupetd'])
+        """ )
         return '\n'.join(H) + F
 
 
 
-def formsemestre_inscription_option(self, etudid, formsemestre_id, REQUEST=None):
+def formsemestre_inscription_option(context, etudid, formsemestre_id, REQUEST=None):
     """Dialogue pour (des)inscription a des modules optionnels
     """
-    sem = self.get_formsemestre(formsemestre_id)
+    sem = context.get_formsemestre(formsemestre_id)
     if sem['etat'] != '1':
         raise ScoValueError('Modification impossible: semestre verrouille')
 
-    etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
-    nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+    etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
 
-    F = self.sco_footer(REQUEST)
-    H = [ self.sco_header(REQUEST)
+    F = context.sco_footer(REQUEST)
+    H = [ context.sco_header(REQUEST)
           + "<h2>Inscription de %s aux modules de %s (%s - %s)</h2>" %
           (etud['nomprenom'],sem['titre_num'],
            sem['date_debut'],sem['date_fin']) ]
 
     # Cherche les moduleimpls et les inscriptions
-    mods = self.do_moduleimpl_withmodule_list(
+    mods = context.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
-    inscr= self.do_moduleimpl_inscription_list( args={'etudid':etudid} )
+    inscr= context.do_moduleimpl_inscription_list( args={'etudid':etudid} )
     # Formulaire
     modimpls_by_ue_ids = DictDefault(defaultvalue=[])  # ue_id : [ moduleimpl_id ]
     modimpls_by_ue_names= DictDefault(defaultvalue=[]) # ue_id : [ moduleimpl_name ]
@@ -265,7 +239,7 @@ def formsemestre_inscription_option(self, etudid, formsemestre_id, REQUEST=None)
             ue_descr += ' <em>%s</em>' % UE_TYPE_NAME[ue['type']]
         ue_status = nt.get_etud_ue_status(etudid, ue_id)
         if ue_status['is_capitalized']:
-            sem_origin = self.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
+            sem_origin = context.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
             ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s">(capitalisée le %s)' % (sem_origin['formsemestre_id'], 
 etudid, sem_origin['titreannee'], DateISOtoDMY(ue_status['event_date']))
         descr.append( 
@@ -302,7 +276,7 @@ function chkbx_select(field_id, state) {
     """)
         return '\n'.join(H) + '\n' + tf[1] + F
     elif tf[0] == -1:
-        return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=%s" %(self.ScoURL(), etudid))
+        return REQUEST.RESPONSE.redirect( "%s/ficheEtud?etudid=%s" %(context.ScoURL(), etudid))
     else:
         # Inscriptions aux modules choisis
         # il faut desinscrire des modules qui ne figurent pas
@@ -336,7 +310,7 @@ function chkbx_select(field_id, state) {
         #
         if (not a_inscrire) and (not a_desinscrire):
             H.append("""<h3>Aucune modification à effectuer</h3>
-            <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % (self.ScoURL(), etudid))
+            <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % (context.ScoURL(), etudid))
             return '\n'.join(H) + F
 
         H.append("<h3>Confirmer les modifications:</h3>")
@@ -367,12 +341,12 @@ function chkbx_select(field_id, state) {
         <input type ="submit" value="Confirmer"/>
         <input type ="button" value="Annuler" onclick="document.location='%s/ficheEtud?etudid=%s';"/>
         </form>
-        """ % (etudid,modulesimpls_ainscrire,modulesimpls_adesinscrire,self.ScoURL(),etudid))
+        """ % (etudid,modulesimpls_ainscrire,modulesimpls_adesinscrire,context.ScoURL(),etudid))
         return '\n'.join(H) + F
 
 
 def do_moduleimpl_incription_options(
-    self,etudid,
+    context,etudid,
     modulesimpls_ainscrire,modulesimpls_adesinscrire,
     REQUEST=None):
     """
@@ -389,31 +363,31 @@ def do_moduleimpl_incription_options(
     # inscriptions
     for moduleimpl_id in a_inscrire:
         # verifie que ce module existe bien
-        mod = self.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
+        mod = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
         if len(mod) != 1:
             raise ScoValueError('inscription: invalid moduleimpl_id: %s' % moduleimpl_id)
-        self.do_moduleimpl_inscription_create(
+        context.do_moduleimpl_inscription_create(
             {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid })
     # desinscriptions
     for moduleimpl_id in a_desinscrire:
         # verifie que ce module existe bien
-        mod = self.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
+        mod = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
         if len(mod) != 1:
             raise ScoValueError('desinscription: invalid moduleimpl_id: %s' % moduleimpl_id)
-        inscr = self.do_moduleimpl_inscription_list( args=
+        inscr = context.do_moduleimpl_inscription_list( args=
             {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid })
         if not inscr:
             raise ScoValueError('pas inscrit a ce module ! (etudid=%s, moduleimpl_id=%)'%(etudid,moduleimpl_id))
         oid = inscr[0]['moduleimpl_inscription_id']
-        self.do_moduleimpl_inscription_delete(oid)
+        context.do_moduleimpl_inscription_delete(oid)
 
     if REQUEST:
-        H = [ self.sco_header(REQUEST),
+        H = [ context.sco_header(REQUEST),
               """<h3>Modifications effectuées</h3>
               <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">
               Retour à la fiche étudiant</a></p>
-              """ % (self.ScoURL(), etudid),
-              self.sco_footer(REQUEST)]
+              """ % (context.ScoURL(), etudid),
+              context.sco_footer(REQUEST)]
         return '\n'.join(H)
 
 

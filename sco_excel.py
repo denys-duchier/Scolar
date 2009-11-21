@@ -351,7 +351,7 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
 
 #
 def Excel_feuille_listeappel(context, sem, groupname, lines,
-                             groups_excel=[], # types de groupes a montrer
+                             partitions=[], # partitions a montrer (colonnes)
                              with_codes=False, # indique codes etuds
                              server_name=None ):
     "generation feuille appel"
@@ -437,9 +437,10 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
     li += 1
     ws0.write(li,1, "Nom", style3)
     co = 2
-    for groupetype in groups_excel:
-        ws0.write(li,co, sem['nom'+groupetype], style3)
-        co += 1
+    for partition in partitions:
+        if partition['partition_name']:
+            ws0.write(li,co, partition['partition_name'], style3)
+            co += 1
     if with_codes:
         coc=co
         ws0.write(li,coc, "etudid", style3)
@@ -456,9 +457,10 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         ws0.write(li, 0, n, style1b)
         ws0.write(li, 1, t['prenom'] + ' ' + t['nom'], style2t3) 
         co = 2
-        for groupetype in groups_excel:
-            ws0.write(li,co, t[groupetype], style2t3)
-            co += 1
+        for partition in partitions:
+            if partition['partition_name']:
+                ws0.write(li,co, t.get(partition['partition_id'], ''), style2t3)
+                co += 1
         if with_codes:
             ws0.write(li,coc, t['etudid'], style2t3)
             ws0.write(li,coc+1, t['code_nip'], style2t3)

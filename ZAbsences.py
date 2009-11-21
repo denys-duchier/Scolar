@@ -54,6 +54,7 @@ from sco_utils import *
 from TrivialFormulator import TrivialFormulator, TF
 from gen_tables import GenTable
 import scolars
+import sco_groups
 import sco_excel
 import string, re
 import time, calendar 
@@ -194,12 +195,6 @@ class ddmmyyyy:
 # d = ddmmyyyy( '21/12/99' )
 
 
-def semestregroupe_decode(semestregroupe):
-    """return formsemestre_id, groupetd, groupeanglais, groupetp
-    from variable passed in URL"""
-    formsemestre_id, groupetd, groupeanglais, groupetp = tuple(semestregroupe.split('!'))
-    return formsemestre_id, groupetd, groupeanglais, groupetp
-
 # ---------------
 
 class ZAbsences(ObjectManager,
@@ -265,8 +260,6 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoView, 'EtatAbsences')
     EtatAbsences = DTMLFile('dtml/absences/EtatAbsences', globals())
 
-    security.declareProtected(ScoView, 'EtatAbsencesDate')
-    EtatAbsencesDate = DTMLFile('dtml/absences/EtatAbsencesDate', globals())
     security.declareProtected(ScoView, 'CalAbs')
     CalAbs = DTMLFile('dtml/absences/CalAbs', globals())
 
@@ -732,40 +725,6 @@ class ZAbsences(ObjectManager,
             cur = cur.next()
         return map( lambda x: x.ISO(), r )
 
-    security.declareProtected(ScoView, 'DateDDMMYYYY2ISO')
-    def DateDDMMYYYY2ISO(self,  dmy ):
-        "convert dmy to ISO date format"
-        day, month, year = string.split(dmy, '/')
-        year = string.atoi(year)
-        month = string.atoi(month)
-        day = string.atoi(day)
-        # accept years YYYY or YYY, uses 1970 as pivot
-        if year < 1970:
-            if year > 100:
-                raise ValueError, 'invalid year'
-            if year < 70:
-                year = year + 2000
-            else:
-                year = year + 1900
-        if month < 1 or month > 12:
-            raise ValueError, 'invalid month'
-        # compute nb of day in month:
-        mo = month
-        if mo > 7:
-            mo = mo+1
-        if mo % 2:
-            MonthNbDays = 31
-        elif mo == 2:
-            if year % 4 == 0 and (year % 100 <> 0 or year % 400 == 0):
-                MonthNbDays = 29 # leap
-            else:
-                MonthNbDays = 28
-        else:
-            MonthNbDays = 30    
-        if day < 1 or day > MonthNbDays:
-            raise ValueError, 'invalid day'    
-        return '%d-%d-%d' % (year, month, day)
-
     def YearTable(self, year, events=[],
                   firstmonth=9, lastmonth=6, halfday=0, dayattributes='' ):
         """Generate a calendar table
@@ -795,29 +754,30 @@ class ZAbsences(ObjectManager,
 
     # ------------ HTML Interfaces
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
-    def SignaleAbsenceGrHebdo(self, datelundi, semestregroupe,
+    def SignaleAbsenceGrHebdo(self, datelundi, group_id,
                               destination, REQUEST=None):
         "Saisie hebdomadaire des absences"
-        formsemestre_id, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
+        group = sco_groups.get_group(self, group_id)
+        formsemestre_id = group['formsemestre_id']
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         # calcule dates jours de cette semaine
-        datessem = [ self.DateDDMMYYYY2ISO(datelundi) ]
+        datessem = [ DateDMYtoISO(datelundi) ]
         for jour in self.day_names()[1:]:
             datessem.append( self.NextISODay(datessem[-1]) )
         #                
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
                               no_side_bar=1,REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
-              <h2>Saisie des absences pour le groupe %s %s %s de %s, 
+              <h2>Saisie des absences pour le groupe %s %s de %s, 
               semaine du lundi %s</h2>
 
               <p><a href="index_html">Annuler</a></p>
 
               <p>
               <form action="doSignaleAbsenceGrHebdo" method="post" action="%s">              
-              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'], datelundi, REQUEST.URL0) ]
+              """ % (group['partition_name'], group['group_name'], sem['titre_num'], datelundi, REQUEST.URL0) ]
         #
-        etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
+        etuds = self.getEtudInfoGroupe(group_id)
 
         H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination)
 
@@ -825,13 +785,14 @@ class ZAbsences(ObjectManager,
         return '\n'.join(H)
 
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrSemestre')
-    def SignaleAbsenceGrSemestre(self, datedebut, datefin, semestregroupe,
-                                 destination,
+    def SignaleAbsenceGrSemestre(self, datedebut, datefin, 
+                                 destination, group_id,
                                  nbweeks=4, # ne montre que les nbweeks dernieres semaines
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre
         (ou intervalle de dates) entier"""
-        formsemestre_id, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
+        group = sco_groups.get_group(self, group_id)
+        formsemestre_id = group['formsemestre_id']
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         jourdebut = ddmmyyyy(datedebut, work_saturday=self.is_work_saturday())
         jourfin = ddmmyyyy(datefin, work_saturday=self.is_work_saturday())
@@ -867,16 +828,16 @@ class ZAbsences(ObjectManager,
         H = [ self.sco_header(page_title='Saisie des absences',
                               no_side_bar=1,REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
-              <h2>Saisie des absences pour le groupe %s %s %s de %s, 
+              <h2>Saisie des absences pour le groupe %s %s de %s, 
               les %s</h2>
               <p>
-              <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&semestregroupe=%s&destination=%s&nbweeks=%d">%s</a>
+              <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&formsemestre_id=%s&group_id=%s&destination=%s&nbweeks=%d">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
-              """ % (groupetd, groupeanglais, groupetp, sem['titre_num'],
+              """ % (group['partition_name'], group['group_name'], sem['titre_num'],
                      dayname,
-                     datedebut, datefin, semestregroupe, destination, nwl, msg) ]
+                     datedebut, datefin, formsemestre_id, group_id, destination, nwl, msg) ]
         #
-        etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
+        etuds = self.getEtudInfoGroupe(group_id)
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname)
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
@@ -924,11 +885,7 @@ class ZAbsences(ObjectManager,
                 capstr = ' <span class="capstr">(%s cap.)</span>' % ', '.join(cap)
             else:
                 capstr = ''
-            # XXX
-            if etudid == '339691':
-                log('\n****\netud=%s\n\n' % etud)
-                #log('\n****\netud=%s\ncap=%s\nues=%s\n\n'%(etud, cap,nt.get_ues()))
-            #
+            
             bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
             matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
             H.append('<tr %s><td><b><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
@@ -1080,22 +1037,18 @@ class ZAbsences(ObjectManager,
         return '\n'.join(H) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
-    def EtatAbsencesGr(self, semestregroupe, debut, fin, format='html', formsemestre_id=None, REQUEST=None): 
+    def EtatAbsencesGr(self, group_id, debut, fin, format='html', REQUEST=None): 
         """Liste les absences d'un groupe
-        """
-        # NB: formsemestre_id passed in semestregroupe (historical) but also
-        # in formsemestre_id in order to display page header.
-        formsemestre_id_sg, groupetd, groupeanglais, groupetp = semestregroupe_decode(semestregroupe)
-        if not formsemestre_id:
-            formsemestre_id = formsemestre_id_sg
-        if formsemestre_id !=  formsemestre_id_sg:
-            raise ValueError('inconsistent formsemestre_id !')
-        datedebut = self.DateDDMMYYYY2ISO(debut)
-        datefin = self.DateDDMMYYYY2ISO(fin)
+        """        
+        datedebut = DateDMYtoISO(debut)
+        datefin = DateDMYtoISO(fin)
         #
+        group = sco_groups.get_group(self, group_id)
+        formsemestre_id = group['formsemestre_id']
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        
         # Construit tableau (etudid, statut, nomprenom, nbJust, nbNonJust, NbTotal)
-        etuds = self.getEtudInfoGroupe(formsemestre_id,groupetd,groupeanglais,groupetp)
+        etuds = self.getEtudInfoGroupe(group_id)
         T = []
         for etud in etuds:
             nbabs = self.CountAbs(etudid=etud['etudid'],debut=datedebut,fin=datefin)
@@ -1117,7 +1070,7 @@ class ZAbsences(ObjectManager,
                 T[-1]['_css_row_class'] = 'etuddem'
                 T[-1]['nomprenom'] += ' (dem)'
         columns_ids = ['nomprenom', 'nbabsjust', 'nbabsnonjust', 'nbabs']
-        title = 'Etat des absences du groupe %s %s %s' % (groupetd, groupeanglais, groupetp)
+        title = 'Etat des absences du groupe %(partition_name)s %(group_name)s' % group
         if format == 'xls' or format == 'xml':
             columns_ids = ['etudid'] + columns_ids
         tab =GenTable( columns_ids=columns_ids, rows=T,  
@@ -1133,8 +1086,8 @@ class ZAbsences(ObjectManager,
                                                                 with_page_header=False) 
                        +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
                        
-                       base_url = '%s?semestregroupe=%s&debut=%s&fin=%s' % (REQUEST.URL0, semestregroupe,debut, fin),
-                       filename='etat_abs__'+make_filename('%s %s %s de %s'%(groupetd, groupeanglais, groupetp, sem['titreannee'])),
+                       base_url = '%s?formsemestre_id=%s&group_id=%s&debut=%s&fin=%s' % (REQUEST.URL0, formsemestre_id, group_id,debut, fin),
+                       filename='etat_abs__'+make_filename('%s de %s'%(group['group_name'], sem['titreannee'])),
                        caption=title,
                        html_next_section="""</table>
 <p class="help">
@@ -1142,12 +1095,57 @@ Cliquez sur un nom pour afficher le calendrier des absences<br/>
 ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 </p>
 <form action="EtatAbsencesDate" method="get" action="%s">
-<input type="hidden" name="semestregroupe" value="%s">
+<input type="hidden" name="formsemestre_id" value="%s">
+<input type="hidden" name="group_id" value="%s">
 <script>DateInput('date', true, 'DD/MM/YYYY')</script>
 <input type="submit" name="" value="visualiser les absences">
 </form>
-                        """ % (REQUEST.URL0,semestregroupe))
+                        """ % (REQUEST.URL0,formsemestre_id,group_id))
         return tab.make_page(self, format=format, REQUEST=REQUEST)
+    
+    security.declareProtected(ScoView, 'EtatAbsencesDate') # ported from dtml
+    def EtatAbsencesDate(self, group_id, date=None, REQUEST=None): 
+        """Etat des absences pour un groupe à une date donnée
+        """
+        group = sco_groups.get_group(self, group_id)
+        formsemestre_id = group['formsemestre_id']
+        sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        H = [ self.sco_header(page_title='Etat des absences',REQUEST=REQUEST) ]
+        if date:
+            dateiso=DateDMYtoISO(date)
+            nbetud=0
+            etuds = self.getEtudInfoGroupe(group_id)
+            H.append( """<table border="0" cellspacing="4" cellpadding="0">
+             <tr><th>&nbsp;</th>
+            <th style="width: 10em;">Matin</th><th style="width: 10em;">Après-midi</th></tr>
+            """)
+            for etud in etuds:
+                nbabsam = self.CountAbs(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=1)
+                nbabspm = self.CountAbs(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=0)
+                if (nbabsam != 0) or (nbabspm != 0):
+                    nbetud += 1
+                    nbabsjustam=self.CountAbsJust(etudid=etudid,debut=dateiso,fin=dateiso,matin=1)
+                    nbabsjustpm=self.CountAbsJust(etudid=etudid,debut=dateiso,fin=dateiso,matin=0)
+                    H.append("""<tr bgcolor="#FFFFFF"><td>
+                     <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s></font></a></td><td align="center">""" % etud )
+                    if nbabsam != 0:
+                        H.append("Just.")
+                    else:
+                        H.append("Abs.")
+                    H.append('</td><td align="center">')
+                    if nbabspm != 0:
+                        H.append("Just.")
+                    else:
+                        H.append("Abs.")
+                    H.append('</td></tr>')
+            H.append('</table>')
+            if nbetud == 0:
+                H.append('<p>Aucune absence !</p>')
+        else:
+            H.append("""<h2>Erreur: vous n'avez pas choisi de date !</h2>
+              <a class="stdlink" href="%s">Continuer</a>""" % REQUEST.HTTP_REFERER)
+            
+        return '\n'.join(H) + self.sco_footer(REQUEST)
     
     # ----- Gestion des "billets d'absence": signalement par les etudiants eux mêmes (à travers le portail)
     security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')

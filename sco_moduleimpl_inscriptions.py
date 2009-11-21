@@ -33,7 +33,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from notes_table import *
-from sets import Set
+import sco_groups
 
 def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
                                  submitted=False, REQUEST=None):
@@ -77,16 +77,18 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         ins['etud'] = etuds_info[0]
     inscrits.sort( lambda x,y: cmp(x['etud']['nom'],y['etud']['nom']) )
     in_m = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
-    in_module= Set( [ x['etudid'] for x in in_m ] )
+    in_module= set( [ x['etudid'] for x in in_m ] )
+    #
+    partitions = sco_groups.get_partitions_list(context, formsemestre_id)
     #
     if not submitted:
         H.append("""<script type="text/javascript">
-    function group_select(groupName, groupIdx, check) {
+    function group_select(groupName, partitionIdx, check) {
     var nb_inputs_to_skip = 2; // nb d'input avant les checkbox !!!
     var elems = document.getElementById("mi_form").getElementsByTagName("input");
 
     for (var i =nb_inputs_to_skip; i < elems.length; i++) {
-      var cells = elems[i].parentNode.parentNode.getElementsByTagName("td")[groupIdx].childNodes;
+      var cells = elems[i].parentNode.parentNode.getElementsByTagName("td")[partitionIdx].childNodes;
       if (cells.length && cells[0].nodeValue == groupName) {
          elems[i].checked=check;
       }      
@@ -98,12 +100,15 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         <input type="hidden" name="moduleimpl_id" value="%(moduleimpl_id)s"/>
         <input type="submit" name="submitted" value="Appliquer les modifications"/><p></p>
         """ % M )
-        H.append(_make_menu(context, sem, 'Ajouter', 'true'))
-        H.append(_make_menu(context, sem, 'Enlever', 'false'))        
+        H.append(_make_menu(context, partitions, 'Ajouter', 'true'))
+        H.append(_make_menu(context, partitions, 'Enlever', 'false'))        
         H.append("""<p><br/></p>
         <table class="sortable" id="mi_table"><tr>
-        <th>Nom</th>
-        <th>%(nomgroupetd)s</th><th>%(nomgroupeta)s</th><th>%(nomgroupetp)s</th></tr>""" % sem )
+        <th>Nom</th>""" % sem)
+        for partition in partitions:
+            if partition['partition_name']:
+                H.append("<th>%s</th>" % partition['partition_name'])
+        H.append('</tr>')
 
         for ins in inscrits:
             etud = ins['etud']
@@ -116,8 +121,17 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
             H.append("""<a class="discretelink" href="ficheEtud?etudid=%s">%s</a>""" % (
                         etud['etudid'], etud['nomprenom'] ))
             H.append("""</input></td>""")
-            H.append("""<td>%(groupetd)s</td><td>%(groupeanglais)s</td><td>%(groupetp)s</td></tr>"""
-                     % ins )        
+            
+            groups = sco_groups.get_etud_groups(context, etud['etudid'], sem)
+            for partition in partitions:
+                if partition['partition_name']:
+                    gr_name = ''
+                    for group in groups:
+                        if group['partition_id'] == partition['partition_id']:
+                            gr_name = group['group_name']
+                            break
+                    # gr_name == '' si etud non inscrit dans un groupe de cette partition
+                    H.append('<td>%s</td>' % gr_name)
         H.append("""</table></form>""")
     else: # SUBMISSION
         # inscrit a ce module tous les etuds selectionnes 
@@ -129,19 +143,19 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     H.append(footer)
     return '\n'.join(H)
 
-def _make_menu(context, sem, title='', check='true'):
+def _make_menu(context, partitions, title='', check='true'):
     H = [ """<div class="barrenav"><ul class="nav">
     <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu custommenu">%s</a><ul>""" % title
           ]
-
-    gr_td,gr_tp,gr_anglais = context.Notes.do_formsemestre_inscription_listgroupnames(formsemestre_id=sem['formsemestre_id'])
-    for (groupeTypeName, idx, groupNames) in (('groupetd', 1, gr_td),
-                                              ('groupeta', 2, gr_anglais),
-                                              ('groupetp', 3, gr_tp)):
-        for groupName in groupNames:
-            H.append("""<li><a href="#" onclick="group_select('%s', %s, %s)">%s %s</a></li>"""
-                     % (groupName, idx, check, sem['nom'+groupeTypeName], groupName))
-
+    
+    p_idx = 0
+    for partition in partitions:
+        if partition['partition_name'] != None:
+            p_idx += 1
+            for group in sco_groups.get_partition_groups(context, partition):
+                H.append("""<li><a href="#" onclick="group_select('%s', %s, %s)">%s %s</a></li>"""
+                         % (group['group_name'], p_idx, check, partition['partition_name'], group['group_name'] ))
+    
     H.append('</ul></ul></div>')
     
     return ''.join(H)
@@ -164,20 +178,21 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
     descriptions:
       groupes de TD A, B et C
       tous sauf groupe de TP Z (?)
-      tous sauf <liste des noms de  moins de 10% de la promo>
+      tous sauf <liste d'au plus 7 noms>
       
     """
     sem = context.get_formsemestre(formsemestre_id)
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
-    set_all = Set( [ x['etudid'] for x in inscrits ] )
-    sets_td, sets_ta, sets_tp = _get_groups_sets(inscrits)
+    set_all = set( [ x['etudid'] for x in inscrits ] )
+    partitions, partitions_etud_groups = sco_groups.get_formsemestre_groups(context, formsemestre_id)
+    
     # Liste des modules
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     # Decrit les inscriptions aux modules:
     commons = [] # modules communs a tous les etuds du semestre
     options = [] # modules ou seuls quelques etudiants sont inscrits
     for mod in Mlist:
-        all, nb_inscrits, descr = descr_inscrs_module(context, sem, mod['moduleimpl_id'], set_all, sets_td, sets_ta, sets_tp)
+        all, nb_inscrits, descr = descr_inscrs_module(context, sem, mod['moduleimpl_id'], set_all, partitions, partitions_etud_groups)
         if all:
             commons.append(mod)
         else:
@@ -219,73 +234,32 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
-
-def _get_groups_sets(inscrits):
-    """inscrits: liste d'inscriptions au semestre
-    construit 3 dicts { groupe : set of etudids }
-    """
-    sets_td, sets_ta, sets_tp = {}, {}, {}
-    for ins in inscrits:
-        gr = ins['groupetd']
-        if gr:
-            if sets_td.has_key(gr):
-                sets_td[gr].add(ins['etudid'])
-            else:
-                sets_td[gr] = Set([ins['etudid']])
-        gr = ins['groupeanglais']
-        if gr:
-            if sets_ta.has_key(gr):
-                sets_ta[gr].add(ins['etudid'])
-            else:
-                sets_ta[gr] = Set([ins['etudid']])
-        gr = ins['groupetp']
-        if gr:
-            if sets_tp.has_key(gr):
-                sets_tp[gr].add(ins['etudid'])
-            else:
-                sets_tp[gr] = Set([ins['etudid']])
-    
-    return sets_td, sets_ta, sets_tp
-
-def descr_inscrs_module(context, sem, moduleimpl_id, set_all, sets_td, sets_ta, sets_tp):
+def descr_inscrs_module(context, sem, moduleimpl_id, set_all, partitions, partitions_etud_groups):
     """returns All, nb_inscrits, descr      All true si tous inscrits
     """
     ins = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : moduleimpl_id } )
-    set_m = Set( [ x['etudid'] for x in ins ] )
+    set_m = set( [ x['etudid'] for x in ins ] ) # ens. des inscrits au module
     non_inscrits = set_all - set_m
     if len(non_inscrits) == 0:
         return True, len(ins), '' # tous inscrits
     if len(non_inscrits) <= 7: # seuil arbitraire
         return False, len(ins), 'tous sauf ' + _fmt_etud_set(context,non_inscrits)
-    # Cherche les groupes de TD:
-    if sem['nomgroupetd']:
-        gr_td = []
-        for (gr, set_g) in sets_td.items():
+    # Cherche les groupes:
+    gr = [] #  [ ( partition_name , [ group_names ] ) ]
+    for partition in partitions:
+        grp = [] # groupe de cette partition
+        for group in sco_groups.get_partition_groups(context, partition):
+            members = sco_groups.get_group_members(context, group['group_id'])
+            set_g = set( [ m['etudid'] for m in members ] )
             if set_g.issubset(set_m):
-                gr_td.append(gr)
+                grp.append(group['group_name'])
                 set_m = set_m - set_g
-    # TA
-    gr_ta = []
-    if sem['nomgroupeta']:
-        for (gr, set_g) in sets_ta.items():
-            if set_g.issubset(set_m):
-                gr_ta.append(gr)
-                set_m = set_m - set_g
-    # TP
-    gr_tp = []
-    if sem['nomgroupetp']:
-        for (gr, set_g) in sets_tp.items():
-            if set_g.issubset(set_m):
-                gr_tp.append(gr)
-                set_m = set_m - set_g
+        gr.append( (partition['partition_name'], grp) )
     #
     d = []
-    if gr_td:
-        d.append( "groupes de %s: %s" % (sem['nomgroupetd'], ', '.join(gr_td)) )
-    if gr_ta:
-        d.append( "groupes de %s: %s" % (sem['nomgroupeta'], ', '.join(gr_ta)) )
-    if gr_tp:
-        d.append( "groupes de %s: %s" % (sem['nomgroupetp'], ', '.join(gr_tp)) )    
+    for (partition_name, grp) in gr:
+        if grp:
+            d.append( "groupes de %s: %s" % (partition_name, ', '.join(grp)) )
     r = []
     if d:
         r.append(', '.join(d))

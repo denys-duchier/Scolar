@@ -30,9 +30,10 @@
 
 from notes_table import *
 import sco_bulletins, sco_excel
+import sco_groups
 
 def do_formsemestre_recapcomplet(
-    znotes=None, REQUEST=None, formsemestre_id=None,
+    context=None, REQUEST=None, formsemestre_id=None,
     format='html', # html, xml, xls
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
@@ -54,7 +55,7 @@ def do_formsemestre_recapcomplet(
         raise ValueError('unknown format %s' % format)
 
 def make_formsemestre_recapcomplet(
-    znotes=None, REQUEST=None, formsemestre_id=None,
+    context=None, REQUEST=None, formsemestre_id=None,
     format='html', # html, xml, xls
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
@@ -68,17 +69,20 @@ def make_formsemestre_recapcomplet(
     trié par moyenne générale décroissante.
     """
     if format=='xml':
-        return _formsemestre_recapcomplet_xml(znotes, formsemestre_id,
+        return _formsemestre_recapcomplet_xml(context, formsemestre_id,
                                               xml_nodate, xml_with_decisions=xml_with_decisions)
     if format == 'xls':
         keep_numeric = True # pas de conversion des notes en strings
     else:
         keep_numeric = False
     
-    sem = znotes.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)    
+    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)    
     modimpls = nt.get_modimpls()
     ues = nt.get_ues() # incluant le(s) UE de sport
+    #
+    partitions, partitions_etud_groups = sco_groups.get_formsemestre_groups(context, formsemestre_id)
+    
     #pdb.set_trace()
     T = nt.get_table_moyennes_triees()
     if not T:
@@ -86,10 +90,19 @@ def make_formsemestre_recapcomplet(
 
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
-    h = [ 'Rg', 'Nom', 'Gr', 'Moy' ]
+    h = [ 'Rg', 'Nom' ]
+    # Si CSV ou XLS, indique tous les groupes
+    if format == 'xls' or format == 'csv':
+        for partition in partitions:
+            h.append( '%s' % partition['partition_name'] )
+    else:
+        h.append( 'Gr' )
+    h.append( 'Moy' )
     # Ajoute rangs dans groupe seulement si CSV ou XLS
     if format == 'xls' or format == 'csv':
-        h += [ 'rang_td', 'rang_tp', 'rang_ta' ]
+        for partition in partitions:
+            h.append( 'rang_%s' % partition['partition_name'] )
+    
     cod2mod ={} # code : moduleimpl
     for ue in ues:
         if ue['type'] == UE_STANDARD:            
@@ -119,7 +132,7 @@ def make_formsemestre_recapcomplet(
         else:
             return val
     # Compte les decisions de jury
-    codes_nb = DictDefault(defaultvalue=0)
+    codes_nb = DictDefault(defaultvalue=0)    
     #
     is_dem = {} # etudid : bool
     for t in T:
@@ -128,19 +141,31 @@ def make_formsemestre_recapcomplet(
         if dec:
             codes_nb[dec['code']] += 1
         if nt.get_etud_etat(etudid) == 'D':
-            gr = 'dem'
+            gr_name = 'dem'
             is_dem[etudid] = True
         else:
-            gr = nt.get_groupetd(etudid)
+            group = sco_groups.get_etud_main_group(context, etudid, sem)
+            gr_name = group['group_name'] or ''
             is_dem[etudid] = False
-        l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid),
-              gr,
-              fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))] # rang, nom,  groupe, moy_gen
-        # Ajoute rangs dans groupe seulement si CSV ou XLS
+        l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid) ]  # rang, nom, 
+        if format == 'xls' or format == 'csv': # tous les groupes
+            for partition in partitions:                
+                group = partitions_etud_groups[partition['partition_id']].get(etudid, None)
+                if group:
+                    l.append(group['group_name'])
+                else:
+                    l.append('')
+        else:
+            l.append(gr_name) # groupe
+              
+        l.append(fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))) # moy_gen
+        # Ajoute rangs dans groupes seulement si CSV ou XLS
         if format == 'xls' or format == 'csv':
-            rang_gr, ninscrits_gr, gr_name = sco_bulletins.get_etud_rangs_groupes(znotes, etudid, formsemestre_id, nt)
-            for group_type in ('td', 'tp', 'ta'):
-                l.append( rang_gr[group_type] )
+            rang_gr, ninscrits_gr, gr_name = sco_bulletins.get_etud_rangs_groups(
+                context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
+            
+            for partition in partitions:                
+                l.append(rang_gr[partition['partition_id']])
         i = 0
         for ue in ues:
             i += 1
@@ -166,9 +191,15 @@ def make_formsemestre_recapcomplet(
             mods_stats[modimpl['moduleimpl_id']] = nt.get_mod_stats(modimpl['moduleimpl_id'])
     
     def add_bottom_stat( key, title, corner_value='' ):
-        l = [ '', title, '', corner_value ] 
+        l = [ '', title ] 
         if format == 'xls' or format == 'csv':
-            l += [ '', '', '' ] # rangs td, tp, ta
+            l += ['']*len(partitions)
+        else:
+            l += ['']
+        l.append(corner_value)
+        if format == 'xls' or format == 'csv':
+            for partition in partitions:
+                l += [ '' ] # rangs dans les groupes
         for ue in ues:
             if ue['type'] == UE_STANDARD:
                 l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
@@ -186,7 +217,7 @@ def make_formsemestre_recapcomplet(
             l.append('') # case vide sur ligne "Moyennes"
         F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
     
-    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy) )
+    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'min', 'Min')
     add_bottom_stat( 'max', 'Max')
     
@@ -271,7 +302,7 @@ def make_formsemestre_recapcomplet(
             nsn = [ x.replace('NA0', '-') for x in l[:-1] ] # notes sans le NA0
             cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
             cells += '<td class="recap_col">%s</td>' % el # nom etud (lien)
-            cells += '<td class="recap_col">%s</td>' % nsn[2] # groupetd
+            cells += '<td class="recap_col">%s</td>' % nsn[2] # group name
             # grise si moyenne generale < barre
             cssclass = 'recap_col_moy'
             try:
@@ -342,11 +373,11 @@ def make_formsemestre_recapcomplet(
     else:
         raise ValueError('unknown format %s' % format)
 
-def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with_decisions=False):
+def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_with_decisions=False):
     "XML export: liste tous les bulletins XML"
     # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
 
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)    
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)    
     T = nt.get_table_moyennes_triees()
     if not T:
         return '', '', 'xml'
@@ -358,7 +389,7 @@ def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with
         docdate = datetime.datetime.now().isoformat()
     doc.recapsemestre( formsemestre_id=formsemestre_id,
                        date=docdate)
-    evals=znotes.do_evaluation_etat_in_sem(formsemestre_id)[0]
+    evals=context.do_evaluation_etat_in_sem(formsemestre_id)[0]
     doc._push()
     doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
                     nb_evals_en_cours=evals['nb_evals_en_cours'],
@@ -369,7 +400,7 @@ def _formsemestre_recapcomplet_xml(znotes, formsemestre_id, xml_nodate, xml_with
         etudid = t[-1]
         doc._push()
         sco_bulletins.make_xml_formsemestre_bulletinetud(
-            znotes, formsemestre_id, etudid,
+            context, formsemestre_id, etudid,
             doc=doc, force_publishing=True,
             xml_nodate=xml_nodate, xml_with_decisions=xml_with_decisions )
         doc._pop()

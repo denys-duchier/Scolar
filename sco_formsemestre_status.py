@@ -28,7 +28,7 @@
 """Tableau de bord semestre
 """
 
-# XXX migration code en cours: etait en DTML
+# Rewritten from ancient DTML code
 
 from notesdb import *
 from notes_log import log
@@ -36,6 +36,7 @@ from sco_utils import *
 from sco_formsemestre_custommenu import formsemestre_custommenu_html
 from gen_tables import GenTable
 import sco_archives
+import sco_groups
 
 def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
@@ -166,19 +167,19 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Voir les inscriptions aux modules',
           'url' : 'moduleimpl_inscriptions_stats?formsemestre_id=' + formsemestre_id,
-          },
-        { 'title' : 'Modifier les groupes de ' + sem['nomgroupetd'],
-          'url' : 'affectGroupes?formsemestre_id=%s&groupType=TD&groupTypeName=%s'% (formsemestre_id,sem['nomgroupetd']),
+          } ]
+    # 1 item / partition:
+    for partition in sco_groups.get_partitions_list(context, formsemestre_id, with_default=False):
+        menuInscriptions.append(
+            { 'title' : 'Modifier les groupes de %s' % partition['partition_name'],
+              'url' : 'affectGroups?partition_id=%s'% partition['partition_id'],
+              'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
+              })
+    menuInscriptions += [
+        { 'title' : 'Editer les partitions...',
+          'url' : 'editPartitionForm?formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
           },
-        { 'title' : 'Modifier les groupes de ' + sem['nomgroupeta'],
-          'url' : 'affectGroupes?formsemestre_id=%s&groupType=TA&groupTypeName=%s'% (formsemestre_id,sem['nomgroupeta']),
-          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
-          },
-        { 'title' : 'Modifier les groupes de ' + sem['nomgroupetp'],
-          'url' : 'affectGroupes?formsemestre_id=%s&groupType=TP&groupTypeName=%s'% (formsemestre_id,sem['nomgroupetp']),
-          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
-          },        
         { 'title' : 'Passage des étudiants depuis d\'autres semestres',
           'url' : 'formsemestre_inscr_passage?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
@@ -205,7 +206,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
 
         { 'title' : 'Exporter table des étudiants',
-          'url' : 'listegroupe?format=allxls&formsemestre_id='+ formsemestre_id,
+          'url' : 'listegroupe?format=allxls&group_id='+ sco_groups.get_default_group(context, formsemestre_id),
           },
         { 'title' : 'Vérifier inscriptions multiples',
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
@@ -267,7 +268,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
 # Element HTML decrivant un semestre (barre de menu et infos)
 def formsemestre_page_title(context, REQUEST):
     """Element HTML decrivant un semestre (barre de menu et infos)
-    Cherche dans REQUEST si un semestre esi défini (formsemestre_id ou moduleimpl ou evaluation)
+    Cherche dans REQUEST si un semestre est défini (formsemestre_id ou moduleimpl ou evaluation ou group)
     """
     try:
         notes = context.Notes
@@ -289,8 +290,12 @@ def formsemestre_page_title(context, REQUEST):
         E = E[0]
         modimpl = notes.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
         formsemestre_id = modimpl['formsemestre_id']
-    elif REQUEST.form.has_key('semestregroupe'):
-        formsemestre_id = REQUEST.form['semestregroupe'].split('!')[0]
+    elif REQUEST.form.has_key('group_id'):
+        group = sco_groups.get_group(context, REQUEST.form['group_id'])        
+        formsemestre_id = group['formsemestre_id']
+    elif REQUEST.form.has_key('partition_id'):
+        partition = sco_groups.get_partition(context, REQUEST.form['partition_id'])
+        formsemestre_id = partition['formsemestre_id']
     else:
         return '' # no current formsemestre
     #

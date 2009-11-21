@@ -34,9 +34,11 @@ from sco_utils import *
 from notesdb import *
 from notes_log import log
 import scolars
-import sco_excel, sco_groupes
+import sco_excel
+import sco_groups
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
+from sco_formsemestre_inscriptions import do_formsemestre_inscription_with_modules
 
 # format description (relative to Product directory))
 FORMAT_FILE = "misc/format_import_etudiants.txt"
@@ -169,6 +171,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
     # Start inserting data, abort whole transaction in case of error
     created_etudids = []    
     NbImportedHomonyms = 0
+    GroupIdInferers = {}
     try: # --- begin DB transaction
         linenum = 0
         for line in data[1:]:
@@ -252,20 +255,20 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
                 args['formsemestre_id'] = formsemestre_id
             else:
                 args['formsemestre_id'] = values['codesemestre']
-            # fix nom groupe si besoin:
-            for groupType in ('groupetd', 'groupetp', 'groupeanglais'):                
-                if args[groupType]:
-                    if args[groupType][-2:] == '.0':
-                        # si nom groupe numerique, excel ajoute parfois ".0" !
-                        args[groupType] = args[groupType][:-2]
-                    try:
-                        sco_groupes.checkGroupName(args[groupType])
-                    except:
-                        raise ScoValueError("Nom de groupe invalide: %s" % args[groupType])
+            # recupere liste des groupes:
+            if formsemestre_id not in GroupIdInferers:
+                GroupIdInferers[formsemestre_id] = sco_groups.GroupIdInferer(context, formsemestre_id)
+            gi = GroupIdInferers[formsemestre_id]
+            groupes = args['groupes'].split(';')
+            group_ids = [ gi[group_name] for group_name in groupes ]
+            group_ids = {}.fromkeys(group_ids).keys() # uniq
+            if None in group_ids:
+                raise ScoValueError("groupe invalide sur la ligne %d" % (linenum))
             
-            Notes.do_formsemestre_inscription_with_modules(args=args,
-                                                           REQUEST=REQUEST,
-                                                           method='import_csv_file')
+            do_formsemestre_inscription_with_modules(context, formsemestre_id, etudid, group_ids,
+                                                     etat='I',
+                                                     REQUEST=REQUEST,
+                                                     method='import_csv_file')
         # Verification proportion d'homonymes: si > 10%, abandonne
         log('scolars_import_excel_file: detected %d homonyms' % NbImportedHomonyms)
         if check_homonyms and NbImportedHomonyms > len(created_etudids) / 10:
