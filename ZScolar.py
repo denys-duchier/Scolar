@@ -1280,6 +1280,7 @@ class ZScolar(ObjectManager,
         doc._push()
         sem = etud['cursem']
         if sem:
+            sco_groups.etud_add_group_infos(self, etud, sem)
             doc._push()
             doc.insemestre( current='1',
                             formsemestre_id=sem['formsemestre_id'],
