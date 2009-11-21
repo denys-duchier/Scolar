@@ -521,7 +521,7 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     try: 
         a = context.icons.arrow_up
     except:
-        context._build_icons_folder(REQUEST)
+        context.do_build_icons_folder(REQUEST)
     #
     arrow_up = context.icons.arrow_up.tag(title='remonter', border='0') 
     arrow_down = context.icons.arrow_down.tag(title='descendre', border='0')     

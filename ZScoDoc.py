@@ -814,11 +814,11 @@ subversion: %(svn_version)s
         e = self._check_admin_perm(REQUEST)
         if e:
             return e
-        return self._build_icons_folder(REQUEST=REQUEST)
+        return self.do_build_icons_folder(REQUEST=REQUEST)
     
-    def _build_icons_folder(self,REQUEST=None): # not published
-        """Build folder with Zope images
-        """
+    security.declareProtected('View', 'do_build_icons_folder')
+    def do_build_icons_folder(self,REQUEST=None): # not published
+        # Build folder with Zope images
         path = self.file_path + '/icons'
         id = 'icons'
         try:
