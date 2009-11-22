@@ -184,6 +184,8 @@ for dept in get_depts():
                 # TD : create partition
                 cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
                 nomgroupetd = cursor.dictfetchone()['nomgroupetd']
+                if not nomgroupetd: # pas de nom ??? on invente un nom stupide et unique
+                    nomgroupetd = 'TD_'+str(time.time()).replace('.','')[-3:]
                 cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupetd)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupetd' : nomgroupetd } )
                 cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
                 partition_id = cursor.fetchone()[0]
@@ -201,6 +203,8 @@ for dept in get_depts():
                 # TA : create partition
                 cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
                 nomgroupetd = cursor.dictfetchone()['nomgroupeta']
+                if not nomgroupetd: # pas de nom ??? on invente un nom stupide et unique
+                    nomgroupetd = 'TA_'+str(time.time()).replace('.','')[-3:]
                 cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupeta)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupeta' : nomgroupetd } )
                 cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
                 partition_id = cursor.fetchone()[0]
@@ -219,6 +223,8 @@ for dept in get_depts():
                 # TP : create partition
                 cursor.execute("SELECT * from notes_formsemestre where formsemestre_id=%(formsemestre_id)s", { 'formsemestre_id' : formsemestre_id } )
                 nomgroupetd = cursor.dictfetchone()['nomgroupetp']
+                if not nomgroupetd: # pas de nom ??? on invente un nom stupide et unique
+                    nomgroupetd = 'TP_'+str(time.time()).replace('.','')[-3:]
                 cursor.execute("INSERT into partition (formsemestre_id, partition_name) VALUES (%(formsemestre_id)s,%(nomgroupeta)s)", { 'formsemestre_id' : formsemestre_id, 'nomgroupeta' : nomgroupetd } )
                 cursor.execute("select partition_id from partition where oid=%(oid)s", { 'oid' : cursor.lastoid() })
                 partition_id = cursor.fetchone()[0]
