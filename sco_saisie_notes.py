@@ -366,6 +366,8 @@ def do_evaluation_formnotes(context, REQUEST ):
                 msg += """</p><p class="fontred">Cette évaluation n'est pas encore prise en compte sur les bulletins et dans les calculs de moyennes car il manque des notes."""
             if existing_decisions:
                 existing_msg = """<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification de notes.</p>"""
+            else:
+                existing_msg = ''
             #
             return """<h3>%s</h3>
             <p>%s notes modifiées (%d supprimées)<br/></p>
