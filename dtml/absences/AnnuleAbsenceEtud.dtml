@@ -11,7 +11,7 @@
 
 <table><tr><td>
 <h2><font color="#FF0000">Annulation</font> d'une absence pour
-	  <dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h2>
+	  <dtml-var nomprenom> (<dtml-var inscription>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
 <dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>

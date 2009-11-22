@@ -11,7 +11,7 @@
 
 <table>
 <tr><td>
-<h2>Absences de <b><dtml-var nomprenom> (<dtml-var inscription> <dtml-var groupetd>)</h2>
+<h2>Absences de <b><dtml-var nomprenom> (<dtml-var inscription>)</h2>
 <p>
 <font color="#EE0000">A : absence NON justifi&eacute;e</font><br>
 <font color="#F8B7B0">a : absence justifi&eacute;e</font><br>
