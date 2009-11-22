@@ -448,7 +448,7 @@ class ZAbsences(ObjectManager,
      AND A.jour <= %(end_date)s 
          """, vars() )
         Abs = cursor.dictfetchall()
-        log('ListeAbsDate: abs=%s' % Abs)
+        # log('ListeAbsDate: abs=%s' % Abs)
         # remove duplicates        
         A = {} # { (jour, matin) : abs }
         for a in Abs:

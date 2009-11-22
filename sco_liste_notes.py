@@ -120,7 +120,6 @@ def do_evaluation_listenotes(context, REQUEST):
     else:
         anonymous_listing = tf[2]['anonymous_listing']
         note_sur_20 = tf[2]['note_sur_20']
-        log('tf2=%s' % tf[2])
         return _make_table_notes(context, REQUEST, tf[1], evals, 
                                  format=format, note_sur_20=note_sur_20,
                                  anonymous_listing=anonymous_listing, group_ids=tf[2]['group_ids'])
