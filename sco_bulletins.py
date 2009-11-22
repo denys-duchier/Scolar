@@ -281,6 +281,7 @@ def make_xml_formsemestre_bulletinetud(
     xml_with_decisions=False # inlue les decisions même si non publiées
     ):
     "bulletin au format XML"
+    log('xml_bulletin( formsemestre_id=%s, etudid=%s )' % (formsemestre_id, etudid))
     if REQUEST:
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
     if not doc:            
