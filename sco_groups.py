@@ -124,7 +124,7 @@ def get_default_partition(context, formsemestre_id):
     """Get partition for 'all' students (this one always exists, with NULL name)"""
     r = SimpleDictFetch(context, 'SELECT * FROM partition WHERE formsemestre_id=%(formsemestre_id)s AND partition_name is NULL', {'formsemestre_id' : formsemestre_id} )
     if len(r) != 1:
-        raise ScoException('inconsistent partition: %d with NULL name for formsemestre_id=%s'%(len(r),formsemestre['formsemestre_id'])) 
+        raise ScoException('inconsistent partition: %d with NULL name for formsemestre_id=%s'%(len(r),formsemestre_id))
     return r[0]
 
 def get_formsemestre_groups(context, formsemestre_id):
