@@ -1,6 +1,0 @@
-<dtml-if _read_only>ACCESS INTERDIT<dtml-else><dtml-let isFile="REQUEST.form.get('note_method','html') in ('csv','xls')"><dtml-if "not isFile">
-<dtml-var "sco_header(REQUEST)">
-<h2>Saisie des notes</h2>
-</dtml-if isFile><dtml-var "do_evaluation_formnotes(REQUEST)"><dtml-if "not isFile">
-<dtml-var sco_footer>
-</dtml-if isFile></dtml-let isFile></dtml-if _read_only>

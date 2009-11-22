@@ -8,7 +8,7 @@ This script is runned by upgrade.sh after each SVN update.
 Runned as "www-data" with Zope shutted down and postgresql up.
 
 
-Useful to update databse schema (eg add new tables or columns to 
+Useful to update database schema (eg add new tables or columns to 
 existing scodoc instances).
 
 E. Viennet, june 2008
@@ -128,7 +128,7 @@ for dept in get_depts():
                   'update billet_absence set justified=0'
                   ])
     
-    # New groups
+    # ----------------------- New groups
     # 1- Create new tables
     check_table( cnx, 'partition', [
             """CREATE TABLE partition(
@@ -238,7 +238,13 @@ for dept in get_depts():
         cursor.execute( """alter table notes_formsemestre_inscription drop column groupetd""" )
         cursor.execute( """alter table notes_formsemestre_inscription drop column groupetp""" )
         cursor.execute( """alter table notes_formsemestre_inscription drop column groupeanglais""" )
+    # ----------------------- /New groups
 
+    # Add moy_ue to validations:
+    check_field(cnx, 'scolar_formsemestre_validation', 'moy_ue',
+                ['alter table scolar_formsemestre_validation add column moy_ue real',
+                 ])
+    
     # Add here actions to performs after upgrades:
 
     cnx.commit()

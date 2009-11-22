@@ -736,7 +736,7 @@ def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
                        (etud['nomprenom'],ue_id, existing_code, code_ue) )
                 modifs.append(msg)
                 log(msg)
-                sco_parcours_dut.do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code_ue)
+                sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
     #
     H = [znotes.sco_header(REQUEST, page_title='Réparation des codes UE'),
          znotes.formsemestre_status_head(znotes, REQUEST=REQUEST,

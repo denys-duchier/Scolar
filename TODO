@@ -1,25 +1,15 @@
 
   NOTES EN VRAC : voir plutôt le Trac !!!
 
-
-Reset password:
- - declenche par admin 
-    passwd aleatoire, envoye par mail, passwd_temp=1
-    => envoi mail
-
- - si passwd_temp= 1:
-    header renvoie sur page changement passwd
+* Optim:
+porcodeb4, avant memorisation des moy_ue:
+S1 SEM14133 cold start: min 9s, max 12s, avg > 11s
+            inval (add note): 1.33s (pas de recalcul des autres)
+            inval (add abs) : min8s, max 12s (recalcule tout :-()
+LP SEM14946 cold start: 0.7s - 0.86s
 
 
-
-A VERIFIER (?):
-
-
- - inscrire a un autre semestre:
-     . choisir modules (options, sport)
-     . donner les dates des semestres !
-
-
+----------------- LISTE OBSOLETE (eventuellement à trier) -----------------------
 BUGS
 ----
 

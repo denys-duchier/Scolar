@@ -130,6 +130,20 @@ def do_evaluation_selectetuds(context, REQUEST ):
         else:
             raise ValueError, "invalid note_method (%s)" % tf[2]['note_method'] 
 
+def evaluation_formnotes(context, REQUEST ):
+    """Formulaire soumission notes pour une evaluation.
+    """
+    isFile = REQUEST.form.get('note_method','html') in ('csv','xls')
+    H = []
+    if not isFile:
+        H += [ context.sco_header(REQUEST),
+               "<h2>Saisie des notes</h2>" ]
+    
+    H += [do_evaluation_formnotes(context, REQUEST)]
+    if not isFile:
+        H += [ context.sco_footer(REQUEST) ]
+    
+    return ''.join(H)
 
 def do_evaluation_formnotes(context, REQUEST ):
     """Formulaire soumission notes pour une evaluation.
@@ -145,12 +159,11 @@ def do_evaluation_formnotes(context, REQUEST ):
     # Check access
     # (admin, respformation, and responsable_id)
     if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
-        return context.sco_header(REQUEST)\
-               + '<h2>Modification des notes impossible pour %s</h2>' % authusername\
+        return '<h2>Modification des notes impossible pour %s</h2>' % authusername\
                + """<p>(vérifiez que le semestre n'est pas verrouillé et que vous
                avez l'autorisation d'effectuer cette opération)</p>
                <p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>
-               """ % E['moduleimpl_id']  + context.sco_footer(REQUEST)                
+               """ % E['moduleimpl_id']
            #
     cnx = context.GetDBConnexion()
     note_method = REQUEST.form['note_method']
@@ -300,8 +313,9 @@ def do_evaluation_formnotes(context, REQUEST ):
         notes = [ (etudid, tf.result['note_'+etudid]) for etudid in etudids ]
         L, invalids, withoutnotes, absents, tosuppress = _check_notes(notes, E)
         oknow = int(not len(invalids))
+        existing_decisions = []
         if oknow:
-            nbchanged, nbsuppress = context._notes_add(authuser, evaluation_id, L, do_it=False )
+            nbchanged, nbsuppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, do_it=False )
             msg_chg = ' (%d modifiées, %d supprimées)' % (nbchanged, nbsuppress)
         else:
             msg_chg = ''
@@ -317,11 +331,11 @@ def do_evaluation_formnotes(context, REQUEST ):
             H.append( '<li class="tf-msg-notice">%d étudiants absents !</li>' % len(absents) )
         if tosuppress:
             H.append( '<li class="tf-msg-notice">%d notes à supprimer !</li>' % len(tosuppress) )
-        H.append("""<p class="redboldtext">Les notes ne sont pas enregistrées; n'oubliez pas d'appuyer sur le bouton en bas du formulaire.</p>""")
-
+        if existing_decisions:
+            H.append( """<li class="tf-msg">Attention: il y a déjà des <b>décisions de jury</b> enregistrées pour %d étudiants. Après changement des notes, vérifiez la situation !</li>""" % len(existing_decisions))
         H.append( '</ul>' )
-
-
+        H.append("""<p class="redboldtext">Les notes ne sont pas enregistrées; n'oubliez pas d'appuyer sur le bouton en bas du formulaire.</p>""")
+        
         tf.formdescription.append(
             ('okbefore', { 'input_type':'hidden', 'default' : oknow } ) )
         tf.values['okbefore'] = oknow        
@@ -329,7 +343,7 @@ def do_evaluation_formnotes(context, REQUEST ):
         # ('reviewed', { 'input_type':'hidden', 'default' : oknow } ) )        
         if oknow and okbefore and not changed:
             # ---------------  ok, on rentre ces notes
-            nbchanged, nbsuppress = context._notes_add(authuser, evaluation_id, L, tf.result['comment'])
+            nbchanged, nbsuppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, tf.result['comment'])
             if nbchanged > 0 or nbsuppress > 0:
                 Mod['moduleimpl_id'] = M['moduleimpl_id']
                 Mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s" % Mod
@@ -350,16 +364,19 @@ def do_evaluation_formnotes(context, REQUEST ):
                     msg += '.'
             else:
                 msg += """</p><p class="fontred">Cette évaluation n'est pas encore prise en compte sur les bulletins et dans les calculs de moyennes car il manque des notes."""
+            if existing_decisions:
+                existing_msg = """<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification de notes.</p>"""
             #
             return """<h3>%s</h3>
             <p>%s notes modifiées (%d supprimées)<br/></p>
             <p>%s</p>
+            %s
             <p>
             <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Aller au tableau de bord module</a>
             &nbsp;&nbsp;
             <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%s">Charger d'autres notes dans cette évaluation</a>
             </p>
-            """ % (description,nbchanged,nbsuppress,msg,E['moduleimpl_id'],evaluation_id)
+            """ % (description,nbchanged,nbsuppress,msg,existing_msg,E['moduleimpl_id'],evaluation_id)
         else:
             if oknow:
                 tf.submitlabel = 'Entrer ces notes'
@@ -422,7 +439,7 @@ def _XXX_do_evaluation_upload_csv(context, REQUEST): # XXX UNUSED
     if len(invalids):
         return '<p class="boldredmsg">Le fichier contient %d notes invalides</p>' % len(invalids)
     else:
-        nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
+        nb_changed, nb_suppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, comment )
         return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
 
@@ -490,10 +507,12 @@ def do_evaluation_upload_xls(context, REQUEST):
         if len(invalids):
             diag.append('Erreur: la feuille contient %d notes invalides</p>' % len(invalids))
             if len(invalids) < 25:
-                diag.append('Notes invalides pour les id: ' + str(invalids) )
+                etudsnames = [ context.getEtudInfo(etudid=etudid,filled=True)[0]['nomprenom'] 
+                               for etudid in invalids ]
+                diag.append('Notes invalides pour: ' + ', '.join(etudsnames) )
             raise FormatError()
         else:
-            nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
+            nb_changed, nb_suppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, comment )
             # news
             cnx = context.GetDBConnexion()
             E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
@@ -505,7 +524,11 @@ def do_evaluation_upload_xls(context, REQUEST):
                          text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                          url = mod['url'])
 
-            return 1, '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
+            msg = '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress)
+            if existing_decisions:
+                msg += '''<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification !</p>'''
+            # msg += '<p>' + str(notes) # debug
+            return 1, msg
 
     except FormatError:
         if diag:
@@ -558,7 +581,7 @@ def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialo
             parameters={'evaluation_id' : evaluation_id, 'value' : value})
     # ok
     comment = 'Initialisation notes manquantes'
-    nb_changed, nb_suppress = context._notes_add(authuser, evaluation_id, L, comment )
+    nb_changed, nb_suppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, comment )
     # news
     cnx = context.GetDBConnexion()
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
@@ -585,23 +608,31 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
         # NB: les chargés de TD n'ont pas le droit.
         # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
-    if not dialog_confirmed:
-        return context.confirmDialog(
-            '<p>Confirmer la suppression des notes ?</p>',
-            dest_url="", REQUEST=REQUEST,
-            cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
-            parameters={'evaluation_id':evaluation_id})
+
     # recupere les etuds ayant une note
     NotesDB = context._notes_getall(evaluation_id)
     notes = [ (etudid, NOTES_SUPPRESS) for etudid in NotesDB.keys() ]
+
+    if not dialog_confirmed:
+        nb_changed, nb_suppress, existing_decisions = _notes_add(
+            context, authuser, evaluation_id, notes, do_it=False)
+        msg = '<p>Confirmer la suppression des %d notes ?</p>' % nb_suppress
+        if existing_decisions:
+            msg += '''<p class="warning">Important: il y a déjà des décisions de jury enregistrées, qui seront potentiellement à revoir suite à cette modification !</p>'''
+        return context.confirmDialog(
+            msg, dest_url="", REQUEST=REQUEST, OK='Supprimer les notes',
+            cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
+            parameters={'evaluation_id':evaluation_id})
+    
     # modif
-    nb_changed, nb_suppress = context._notes_add(
-        authuser, evaluation_id, notes, comment='suppress all' )
+    nb_changed, nb_suppress, existing_decisions = _notes_add(
+        context, authuser, evaluation_id, notes, comment='suppress all' )
     assert nb_changed == nb_suppress       
-    H = [ '<p>%s notes supprimées</p>' % nb_suppress,
-          '<p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">continuer</a>'
-          % E['moduleimpl_id']
-          ]
+    H = [ '<p>%s notes supprimées</p>' % nb_suppress ]
+    if existing_decisions:
+        H.append( '''<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification !</p>''')
+    H += [ '<p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">continuer</a>'
+           % E['moduleimpl_id'] ]
     # news
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id':E['moduleimpl_id'] } )[0]
     mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
@@ -618,14 +649,15 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
 def _check_notes( notes, evaluation ):
     """notes is a list of tuples (etudid, value)
     returns list of valid notes (etudid, float value)
-    and 4 lists of etudid: invalids, withoutnotes, absents, tosuppress
+    and 4 lists of etudid: invalids, withoutnotes, absents, tosuppress, existingjury
     """
     note_max = evaluation['note_max']
     L = [] # liste (etudid, note) des notes ok (ou absent) 
     invalids = [] # etudid avec notes invalides
     withoutnotes = [] # etudid sans notes (champs vides)
     absents = [] # etudid absents
-    tosuppress = [] # etudids avaec ancienne note à supprimer
+    tosuppress = [] # etudids avec ancienne note à supprimer
+    existingjury = [] # etudids avec decision de jury (sem et/ou UE) a revoir eventuellement
     for (etudid, note) in notes:
         note = str(note)        
         if note:
@@ -690,9 +722,10 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     nb_suppress = 0
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     M = context.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
-
+    existing_decisions = [] # etudids pour lesquels il y a une decision de jury et que la note change
     try:
         for (etudid,value) in notes:
+            changed = False
             if not NotesDB.has_key(etudid):
                 # nouvelle note
                 if value != NOTES_SUPPRESS:
@@ -702,11 +735,10 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
                               'date' : now}
                         quote_dict(aa)
                         cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(date)s,%(uid)s)', aa )
-                    nb_changed = nb_changed + 1
+                    changed = True
             else:
                 # il y a deja une note
                 oldval = NotesDB[etudid]['value']
-                changed = False
                 if type(value) != type(oldval):
                     changed = True
                 elif type(value) == type(1.0) and (abs(value-oldval) > NOTES_PRECISION):
@@ -735,7 +767,10 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
                             aa['value'] = NOTES_SUPPRESS
                             cursor.execute('insert into notes_notes_log (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s, %(evaluation_id)s, %(value)s, %(comment)s, %(date)s, %(uid)s)', aa)
                         nb_suppress += 1
-                    nb_changed += 1                    
+            if changed:
+                nb_changed += 1
+                if has_existing_decision(context, M, E, etudid):
+                    existing_decisions.append(etudid)
     except:
         log('*** exception in _notes_add')
         if do_it:
@@ -746,7 +781,7 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     if do_it:
         cnx.commit()
         context._inval_cache(formsemestre_id=M['formsemestre_id']) 
-    return nb_changed, nb_suppress
+    return nb_changed, nb_suppress, existing_decisions
 
 
 def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
@@ -757,7 +792,7 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     formid = 'notesfile'
     if not REQUEST.form.get('%s-submitted'%formid,False):
         # not submitted, choix groupe
-        r = context.do_evaluation_selectetuds(REQUEST)
+        r = do_evaluation_selectetuds(context, REQUEST)
         if r:
             H.append(r)            
 
@@ -782,8 +817,9 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     elif nf[0] == -1:
         H.append('<p>Annulation</p>')
     elif nf[0] == 1:
-        updiag = context.do_evaluation_upload_xls(REQUEST)
+        updiag = do_evaluation_upload_xls(context, REQUEST)
         if updiag[0]:
+            H.append(updiag[1])
             H.append('''<p>Notes chargées.&nbsp;&nbsp;&nbsp;
             <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">
             Revenir au tableau de bord du module</a>
@@ -837,3 +873,19 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     H.append( context.sco_footer(REQUEST) )
     return '\n'.join(H)
 
+def has_existing_decision(context, M, E, etudid):
+    """Verifie s'il y a une validation pour cette etudiant dans ce semestre ou UE
+    Si oui, return True
+    """
+    formsemestre_id = M['formsemestre_id']
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    if nt.get_etud_decision_sem(etudid):
+        return True
+    dec_ues = nt.get_etud_decision_ues(etudid)
+    if dec_ues:
+        mod = context.do_module_list({ 'module_id' : M['module_id']})[0]
+        ue_id = mod['ue_id']
+        if ue_id in dec_ues:
+            return True # decision pour l'UE a laquelle appartient cette evaluation
+    
+    return False # pas de decision de jury affectee par cette note

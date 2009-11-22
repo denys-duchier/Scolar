@@ -223,9 +223,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'moduleimpl_status')
     moduleimpl_status = sco_moduleimpl_status.moduleimpl_status
 
-    security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
-    notes_evaluation_formnotes = DTMLFile('dtml/notes/notes_evaluation_formnotes', globals(), title='Saisie des notes')
-
     # Python methods:
     security.declareProtected(ScoView, 'formsemestre_description')
     formsemestre_description = sco_formsemestre_status.formsemestre_description
@@ -270,9 +267,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'module_list')
     module_list = sco_edit_module.module_list
     
-    security.declareProtected(ScoEnsView, 'notes_eval_selectetuds')
-    notes_eval_selectetuds = sco_saisie_notes.notes_eval_selectetuds
-
     # 
     security.declareProtected(ScoView, 'index_html')
     def index_html(self, REQUEST=None):
@@ -2110,30 +2104,23 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_check_absences_html')
     formsemestre_check_absences_html = sco_liste_notes.formsemestre_check_absences_html
 
-    # --- Saisie des notes
-    security.declareProtected(ScoEnsView, 'do_evaluation_selectetuds')
-    do_evaluation_selectetuds = sco_saisie_notes.do_evaluation_selectetuds
+    # --- Saisie des notes    
+    security.declareProtected(ScoEnsView, 'notes_eval_selectetuds')
+    notes_eval_selectetuds = sco_saisie_notes.notes_eval_selectetuds
     
-    security.declareProtected(ScoEnsView, 'do_evaluation_formnotes')
-    do_evaluation_formnotes = sco_saisie_notes.do_evaluation_formnotes
-
+    security.declareProtected(ScoEnsView, 'notes_evaluation_formnotes')
+    notes_evaluation_formnotes = sco_saisie_notes.evaluation_formnotes
+    
     # now unused:
     #security.declareProtected(ScoEnsView, 'do_evaluation_upload_csv')
     #do_evaluation_upload_csv = sco_saisie_notes.do_evaluation_upload_csv
-
-
-    security.declareProtected(ScoEnsView, 'do_evaluation_upload_xls')
-    do_evaluation_upload_xls = sco_saisie_notes.do_evaluation_upload_xls
-
+    
     security.declareProtected(ScoEnsView, 'do_evaluation_set_missing')
     do_evaluation_set_missing = sco_saisie_notes.do_evaluation_set_missing
 
     security.declareProtected(ScoView, 'evaluation_suppress_alln')
     evaluation_suppress_alln = sco_saisie_notes.evaluation_suppress_alln
 
-    # not accessible through the web
-    _notes_add = sco_saisie_notes._notes_add
-            
     security.declareProtected(ScoView, 'can_edit_notes')
     def can_edit_notes(self, authuser, moduleimpl_id, allow_ens=True ):
         """True if authuser can enter or edit notes in this module.

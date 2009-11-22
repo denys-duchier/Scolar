@@ -467,7 +467,7 @@ _scolar_formsemestre_validation_editor = EditableTable(
     'scolar_formsemestre_validation',
     'formsemestre_validation_id',
     ('formsemestre_validation_id', 'etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
-     'compense_formsemestre_id' ),
+     'compense_formsemestre_id', 'moy_ue' ),
     output_formators = { 'event_date' : DateISOtoDMY,
                          'assidu' : str },
     input_formators  = { 'event_date' : DateDMYtoISO,
@@ -569,13 +569,13 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
             else:
                 code_ue = AJ
         # log('code_ue=%s' % code_ue)
-        do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code_ue)
+        do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
         if REQUEST:
             logdb(REQUEST, cnx, method='validate_ue', etudid=etudid,
                   msg='ue_id=%s code=%s'%(ue_id, code_ue))
 
             
-def do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
+def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code):
     "Ajoute ou change validation UE"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'ue_id' : ue_id }
     # delete existing
@@ -585,7 +585,11 @@ def do_formsemestre_validate_ue(cnx, formsemestre_id, etudid, ue_id, code):
         where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id=%(ue_id)s""", args )
         # insert
         args['code'] = code
-        # log('formsemestre_validate_ue: %s' % args)
+        if code == 'ADM':
+            # stocke la moyenne d'UE capitalisée:
+            moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy_ue']            
+            args['moy_ue'] = moy_ue
+        log('formsemestre_validate_ue: %s' % args)
         scolar_formsemestre_validation_create(cnx, args)
     except:
         cnx.rollback()

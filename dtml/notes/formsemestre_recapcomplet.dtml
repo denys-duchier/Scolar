@@ -33,9 +33,12 @@
 <p>
 <dtml-if modejury>
  <a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=<dtml-var formsemestre_id>">Calcul automatique des décisions du jury</a>
-</p><p>
+</p>
+<p>
  <a class="stdlink" href="formsemestre_fix_validation_ues?formsemestre_id=<dtml-var formsemestre_id>">Vérification décisions UE</a> 
 <span style="font-size: 75%;">(corrige incohérences éventuelles introduites avant juin 2008)<span>
+</p>
+
 <dtml-else>
  <a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=<dtml-var formsemestre_id>&modejury=1&hidemodules=1">Saisie des décisions du jury</a>
 </dtml-if>

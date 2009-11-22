@@ -37,6 +37,7 @@ from sco_utils import *
 from notesdb import *
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
 from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
+import sco_parcours_dut 
 from sco_formsemestre_edit import formsemestre_uecoef_list
 
 
@@ -128,7 +129,7 @@ class NotesTable:
     - identdict: { etudid : ident }
     - sem : le formsemestre
     get_table_moyennes_triees: [ (moy_gen, moy_ue1, moy_ue2, ... moy_ues, moy_mod1, ..., moy_modn, etudid) ] 
-    (où toutes les valeurs sont formatéees (fmt_note), incluant les UE de sport
+    (où toutes les valeurs sont formatées (fmt_note), incluant les UE de sport
 
     - bonus[etudid] : valeur du bonus "sport".
 
@@ -284,6 +285,8 @@ class NotesTable:
             self.mod_rangs[modimpl['moduleimpl_id']] = (comp_ranks(val_ids), len(vals))
         #
         self.compute_moy_moy()
+        #
+        log('NotesTable( formsemestre_id=%s ) done.' % formsemestre_id)
     
     def get_etudids(self, sorted=False):
         if sorted:
@@ -654,10 +657,24 @@ class NotesTable:
                              [{ 'moy_ue':, 'event_date' : ,'formsemestre_id' : }, ...] }
         """
         self.ue_capitalisees = DictDefault(defaultvalue=[])
+        cnx = None
         for etudid in self.get_etudids():
             capital = formsemestre_get_etud_capitalisation(self.context, self.sem, etudid)
-            for ue_capital in capital:
-                self.ue_capitalisees[etudid].append(ue_capital)
+            for ue_cap in capital:
+                # Si la moyenne d'UE n'avait pas été stockée (anaciennes versions de ScoDoc)
+                # il faut la calculer ici et l'enregistrer
+                if ue_cap['moy_ue'] is None:
+                    log('comp_ue_capitalisees: recomputing UE moy (etudid=%s, ue_id=%s formsemestre_id=%s)' % (etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
+                    nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] )
+                    moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
+                    ue_cap['moy_ue'] = moy_ue_cap
+                    if type(moy_ue_cap) == FloatType and moy_ue_cap >= NOTES_BARRE_VALID_UE:
+                        if not cnx:
+                            cnx = self.context.GetDBConnexion()
+                        sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt_cap, ue_cap['formsemestre_id'], etudid,  ue_cap['ue_id'], ue_cap['code'])
+                    else:
+                        log('*** valid inconsistency: moy_ue_cap=%s (etudid=%s, ue_id=%s formsemestre_id=%s)' % (moy_ue_cap, etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
+                self.ue_capitalisees[etudid].append(ue_cap)
     
     def comp_ue_coefs(self, cnx):
         """Les coefficients sont attribués aux modules, pas aux UE.
@@ -708,11 +725,7 @@ class NotesTable:
             coef_ue = cur_coef_ue
             for ue_cap in self.ue_capitalisees[etudid]:
                 if ue_cap['ue_code'] == ue['ue_code']:
-                    # Retrouve la moyenne de l'UE capitalisee
-                    # ce qui demande de construire le semestre correspondant
-                    # qui est la plupart du temps dans le cache
-                    nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] )
-                    moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
+                    moy_ue_cap = ue_cap['moy_ue']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
                         max_moy_ue = moy_ue_cap
                         is_capitalized = True
@@ -776,8 +789,8 @@ class CacheNotesTable:
         try:
             self.acquire()
             if self.cache.has_key(formsemestre_id):
-                log('cache hit %s (id=%s, thread=%s)'
-                    % (formsemestre_id, id(self), thread.get_ident()))
+                #log('cache hit %s (id=%s, thread=%s)'
+                #    % (formsemestre_id, id(self), thread.get_ident()))
                 return self.cache[formsemestre_id]
             else:
                 t0 = time.time()
