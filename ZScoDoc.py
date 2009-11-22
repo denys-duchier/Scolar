@@ -409,7 +409,7 @@ h4 {
         try:
             deptfoldername = REQUEST.URL0.split('ScoDoc')[1].split('/')[1]
             if deptfoldername in [ x.id for x in self.list_depts() ]:
-                return self.index_dept(deptfoldername=deptfoldername)
+                return self.index_dept(deptfoldername=deptfoldername, REQUEST=REQUEST)
         except:
             pass
         
@@ -484,7 +484,49 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         return '\n'.join(H)
 
     security.declareProtected('View', 'index_dept')
-    index_dept = DTMLFile('dtml/index_dept', globals())
+    def index_dept(self, deptfoldername='', REQUEST=None):
+        """Page d'accueil departement"""
+        authuser = REQUEST.AUTHENTICATED_USER
+        if authuser.has_permission(ScoView,self):
+            return REQUEST.RESPONSE.redirect('ScoDoc/%s/Scolarite'%deptfoldername)
+        H = [ self.standard_html_header(self),
+              """<div style="margin: 1em;">
+
+<h2>Scolarité du département %s</h2>
+<p>
+
+Ce site est 
+<font color="#FF0000"><b>réservé au personnel du département</b></font>.
+</p>
+
+
+<!-- login -->
+<form action="doLogin" method="post">
+   <input type="hidden" name="destination" value="Scolarite">
+<p>
+ <table border="0" cellpadding="3">
+    <tr>
+      <td><b>Nom:</b></td>
+      <td><input type="text" name="__ac_name" size="20"></td>
+    </tr><tr>
+      <td><b>Mot de passe:</b></td>
+      <td><input type="password" name="__ac_password" size="20"></td>
+      <td><input type="submit" value="OK "></td>
+    </tr>
+ </table>
+</form>
+
+
+<p>Pour quitter, <a href="acl_users/logout">logout</a>
+
+<p>Ce site est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
+ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</p>
+<a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
+
+</div>
+""" % (deptfoldername, self.icons.firefox_fr.tag(border='0')),
+              self.standard_html_footer(self)]
+        return '\n'.join(H)
 
     security.declareProtected('View', 'doLogin')
     def doLogin(self, REQUEST=None, destination=None):
