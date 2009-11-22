@@ -166,7 +166,7 @@ def trombino_copy_photos(context, group_id, etat=None,REQUEST=None):
                     else:
                         msg.append('%s: <b>%s</b>' % (context.nomprenom(etud), diag))
     msg.append('<b>%d photos correctement chargées</b>' % nok )
-    args='group_id=%s' % formsemestre_id
+    args='group_id=%s' % group_id
     if etat:
         args += '&etat=%s' % etat            
 
