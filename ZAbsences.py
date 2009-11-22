@@ -1459,7 +1459,7 @@ def MonthTableTail():
     return '</table>\n'
 
 def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_saturday=False ):
-    log('XXX events=%s' % events)
+    #log('XXX events=%s' % events)
     firstday, nbdays = calendar.monthrange(year,month)
     localtime = time.localtime()
     current_weeknum = time.strftime( '%U', localtime )

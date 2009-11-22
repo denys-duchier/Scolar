@@ -41,7 +41,7 @@
 <dtml-var formChoixSemestreGroupe>
 </p>
 
-<dtml-var CalSelectWeek>
+<dtml-var "CalSelectWeek(REQUEST=REQUEST)">
 
 <p class="help">Sélectionner le groupe d'étudiants, puis cliquez sur une semaine pour
 saisir les absences de toute cette semaine.</p>

@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-import pdb,os,sys,time
+import pdb,os,sys,time,re,inspect
 from sco_utils import SCO_ENCODING
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -36,12 +36,45 @@ class _logguer:
         if not self.file:
             self._open()
         if self.file:
-            self.file.write( '[%s] %s\n' %(time.strftime('%a %b %d %H:%M:%S %Y'), msg) )
+            dept = retreive_dept()
+            if dept:
+                dept = ' (%s)' % dept
+            self.file.write( '[%s]%s %s\n' %(time.strftime('%a %b %d %H:%M:%S %Y'), dept, msg) )
+            #if not dept:
+            #    import traceback
+            #    traceback.print_stack(file=self.file) # hunt missing REQUESTS
+            
             self.file.flush()
 
 
 log = _logguer()
 
+def retreive_request():
+    """Try to retreive a REQUEST variable in caller stack"""
+    def search(frame):
+        if frame.f_locals.has_key('REQUEST'):
+            return frame.f_locals['REQUEST']
+        if frame.f_back:
+            return search(frame.f_back)
+        else:
+            return None
+    frame = inspect.currentframe()
+    if frame: # not supported by all pythons
+        return search(inspect.currentframe())
+    else:
+        return None
+
+def retreive_dept():
+    """Try to retreive departement (from REQUEST URL)"""
+    REQUEST = retreive_request()
+    if not REQUEST:
+        return ''
+    try:
+        url = REQUEST.URL
+        m = re.match('^.*ScoDoc/(\w+).*$', url)
+        return m.group(1)
+    except:
+        return ''
 
 # Alarms by email:
 def sendAlarm( context, subj, txt ):

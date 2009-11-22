@@ -2052,7 +2052,7 @@ class ZNotes(ObjectManager,
                    'last_modif':last_modif } ]
 
     security.declareProtected(ScoView, 'do_evaluation_etat_in_sem')
-    def do_evaluation_etat_in_sem(self, formsemestre_id):
+    def do_evaluation_etat_in_sem(self, formsemestre_id, REQUEST=None):
         """-> nb_eval_completes, nb_evals_en_cours, nb_evals_vides,
         date derniere modif, attente"""
         evals = self.do_evaluation_list_in_sem(formsemestre_id)
@@ -2064,7 +2064,7 @@ class ZNotes(ObjectManager,
     
 
     security.declareProtected(ScoView, 'do_evaluation_etat_in_mod')
-    def do_evaluation_etat_in_mod(self, moduleimpl_id):
+    def do_evaluation_etat_in_mod(self, moduleimpl_id, REQUEST=None):
         evals = self.do_evaluation_list( { 'moduleimpl_id' : moduleimpl_id } )
         evaluation_ids = [ x['evaluation_id'] for x in evals ]
         R = []
@@ -2082,7 +2082,7 @@ class ZNotes(ObjectManager,
 
 
     security.declareProtected(ScoView, 'evaluation_listenotes')
-    def evaluation_listenotes(self, REQUEST ):
+    def evaluation_listenotes(self, REQUEST=None ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('format','html')=='html':
             H = self.sco_header(REQUEST, cssstyles=['verticalhisto_css']) 
