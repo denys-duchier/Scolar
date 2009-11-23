@@ -575,7 +575,7 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
 
 <link HREF="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css">
 
-</head><body>%s""" % (SCO_ENCODING, self.absolute_url(), CUSTOM_HTML_HEADER_CNX)
+</head><body>%s""" % (SCO_ENCODING, CUSTOM_HTML_HEADER_CNX)
 
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
