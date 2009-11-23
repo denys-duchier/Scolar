@@ -487,8 +487,13 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
     def index_dept(self, deptfoldername='', REQUEST=None):
         """Page d'accueil departement"""
         authuser = REQUEST.AUTHENTICATED_USER
-        if authuser.has_permission(ScoView,self):
-            return REQUEST.RESPONSE.redirect('ScoDoc/%s/Scolarite'%deptfoldername)
+        try:
+            dept = getattr(self, deptfoldername)
+            if authuser.has_permission(ScoView,dept):
+                return REQUEST.RESPONSE.redirect('ScoDoc/%s/Scolarite'%deptfoldername)
+        except:
+            log('*** problem in index_dept (%s) user=%s' % (deptfoldername,str(authuser)))
+        
         H = [ self.standard_html_header(self),
               """<div style="margin: 1em;">
 
