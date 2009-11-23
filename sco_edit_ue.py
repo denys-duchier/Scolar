@@ -75,10 +75,9 @@ def ue_edit(context, ue_id=None, REQUEST=None):
         raise ScoValueError("UE inexistante !")
     U = U[0]
     Fo = context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
-    JSD = REQUEST.BASE0 + '/ScoDoc/static/'
     H = [ context.sco_header(REQUEST, page_title="Modification d'une UE",
-                             javascripts=[ JSD + 'jQuery/jquery.js', 
-                                           JSD + 'edit_ue.js' ]
+                             javascripts=[ 'jQuery/jquery.js', 
+                                           'js/edit_ue.js' ]
                              ),
           "<h2>Modification de l'UE %(titre)s" % U,
           '(formation %(acronyme)s, version %(version)s)</h2>' % Fo,

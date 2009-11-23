@@ -1,6 +1,5 @@
 /* -*- mode: javascript -*-
  */
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 addEvent(window, "load", sortables_init);
 

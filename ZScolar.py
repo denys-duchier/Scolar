@@ -236,7 +236,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'essaiform')
     def essaiform(self,REQUEST=None):
         """essai autocompletion"""
-        H = [ self.sco_header(REQUEST, javascripts=['AutoSuggest_js'],
+        H = [ self.sco_header(REQUEST, javascripts=['libjs/AutoSuggest.js'],
                               cssstyles=['autosuggest_inquisitor.css'],
                               bodyOnLoad="initform()"),
               """<form method="get" action="essai">
@@ -318,27 +318,6 @@ class ZScolar(ObjectManager,
 
         return self.sco_header(REQUEST)+ str(b) + self.sco_footer(REQUEST)
         
-    # Ajout des JavaScripts 
-    security.declareProtected(ScoView, 'groupmgr_js')
-    groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
-    
-    security.declareProtected(ScoView, 'sorttable_js')
-    sorttable_js = DTMLFile('JavaScripts/sorttable_js', globals())
-
-    security.declareProtected(ScoView, 'menu_js')
-    menu_js = DTMLFile('JavaScripts/menu_js', globals())
-
-    security.declareProtected(ScoView, 'bubble_js')
-    bubble_js = DTMLFile('JavaScripts/bubble_js', globals())
-
-    security.declareProtected(ScoView, 'calendarDateInput_js')
-    calendarDateInput_js = DTMLFile('JavaScripts/calendarDateInput_js',
-                                    globals())
-
-    security.declareProtected(ScoView, 'AutoSuggest_js')
-    AutoSuggest_js = DTMLFile('JavaScripts/AutoSuggest_2.1.3_comp_js',
-                              globals())
-    
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
@@ -1810,7 +1789,7 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = [self.sco_header(REQUEST, javascripts=['calendarDateInput_js'])]
+        H = [self.sco_header(REQUEST, javascripts=['libjs/calendarDateInput_js'])]
         F = self.sco_footer(REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)

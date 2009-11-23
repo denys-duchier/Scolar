@@ -48,10 +48,10 @@ def affectGroups(context, partition_id, REQUEST=None):
     sem = context.Notes.get_formsemestre(formsemestre_id)
     
     H = [ context.sco_header(REQUEST, page_title='Affectation aux groupes',
-                             javascripts=[ REQUEST.BASE0 + '/ScoDoc/static/Rico/src/prototype.js',
-                                           REQUEST.BASE0+ '/ScoDoc/static/Rico/src/min.rico.js', 
-                                           REQUEST.BASE0+ '/ScoDoc/static/Rico/src/ricoAjaxEngine.js',
-                                           'groupmgr_js' ],
+                             javascripts=[ 'Rico/src/prototype.js',
+                                           'Rico/src/min.rico.js', 
+                                           'Rico/src/ricoAjaxEngine.js',
+                                           'js/groupmgr.js' ],
                              cssstyles=['groups.css'],
                              bodyOnLoad='javascript:bodyOnLoad()' ),
           """<h2 class="formsemestre">Affectation aux groupes de %s</h2><form id="sp">""" % partition['partition_name']]    

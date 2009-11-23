@@ -1,6 +1,5 @@
 /* -*- mode: javascript -*-
  */
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 function getMouseXY(e) // works on IE6,FF,Moz,Opera7
 { 

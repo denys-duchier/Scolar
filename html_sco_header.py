@@ -102,20 +102,16 @@ def sco_header(context, REQUEST=None,
                   % cssstyle )
     
     H.append( """
-<script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>
-<script language="javascript" type="text/javascript" src="%(ScoURL)s/sorttable_js"></script>
-<script language="javascript" type="text/javascript" src="%(ScoURL)s/bubble_js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/menu.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/sorttable.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/bubble.js"></script>
 <script type="text/javascript">
 window.onload=function(){enableTooltips("gtrcontent")};
 </script>""" % params )
     # JS additionels
     for js in javascripts:
-        if js[:4] != 'http':
-            u = params['ScoURL'] + '/' + js
-        else:
-            u = js
-        H.append( """<script language="javascript" type="text/javascript" src="%s"></script>"""
-                  % (u) )
+        H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>"""
+                  % js )
 
     H.append( """<style>
 .gtrcontent {

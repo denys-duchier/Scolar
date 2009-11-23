@@ -5,7 +5,7 @@
      Description..: Etat des absences: choix du groupe
   -->
 </dtml-comment>
-<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
+<dtml-var "sco_header(page_title='Etat des absences',REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
 
 <h2>Etat des absences</h2>
 

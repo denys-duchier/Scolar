@@ -1046,7 +1046,7 @@ class ZNotes(ObjectManager,
             'Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
             % (moduleimpl_id, M['module']['titre']), 
             sem,
-            javascripts=['AutoSuggest_js'],
+            javascripts=['libjs/AutoSuggest.js'],
             cssstyles=['autosuggest_inquisitor.css'], 
             bodyOnLoad="init_tf_form('')"
             )
@@ -1124,7 +1124,7 @@ class ZNotes(ObjectManager,
                     'Modification du responsable du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
                     % (moduleimpl_id, M['module']['titre']), 
                     sem,
-                    javascripts=['AutoSuggest_js'],
+                    javascripts=['libjs/AutoSuggest.js'],
                     cssstyles=['autosuggest_inquisitor.css'], 
                     bodyOnLoad="init_tf_form('')"
                     )
@@ -1852,7 +1852,7 @@ class ZNotes(ObjectManager,
 
         dest_url = 'moduleimpl_status?moduleimpl_id=%s' % M['moduleimpl_id']
         if  tf[0] == 0:
-            return self.sco_header(REQUEST, javascripts=['calendarDateInput_js']) + '\n'.join(H) + '\n' + tf[1] + help + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, javascripts=['libjs/calendarDateInput_js']) + '\n'.join(H) + '\n' + tf[1] + help + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( dest_url )
         else:

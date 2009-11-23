@@ -1,7 +1,6 @@
 /* -*- mode: javascript -*-
  *                 JavaScript for Help Bubbles (aka tooltips) 
  */
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 function enableTooltips(id){
 var links,i,h;
@@ -74,7 +73,7 @@ function AddCss(){
   var l=CreateEl("link");
   l.setAttribute("type","text/css");
   l.setAttribute("rel","stylesheet");
-  l.setAttribute("href","bubble_js");
+  l.setAttribute("href","bubble.js");
   l.setAttribute("media","screen");
   document.getElementsByTagName("head")[0].appendChild(l);
 }

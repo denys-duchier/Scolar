@@ -6,7 +6,7 @@
 
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 
-<dtml-var "sco_header(page_title='Justification d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
+<dtml-var "sco_header(page_title='Justification d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
 
 <!--
 /***********************************************

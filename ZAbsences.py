@@ -280,9 +280,6 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoAbsChange, 'doAnnuleJustif')
     doAnnuleJustif=DTMLFile('dtml/absences/doAnnuleJustif', globals())
 
-    security.declareProtected(ScoView, 'calabs_js')
-    calabs_js = DTMLFile('JavaScripts/calabs_js', globals())
-    
     # --------------------------------------------------------------------
     #
     #   SQL METHODS
@@ -1078,7 +1075,7 @@ class ZAbsences(ObjectManager,
                        html_sortable=True,
                        html_class='gt_table table_leftalign',
                        html_header=self.sco_header(REQUEST, page_title=title,
-                                                   javascripts=['calendarDateInput_js']),
+                                                   javascripts=['libjs/calendarDateInput.js']),
 
                        html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
                                                                 with_page_header=False) 
@@ -1186,7 +1183,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         étant sur le portail étudiant).
         """
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
-        H = [ self.sco_header(REQUEST,page_title="Billet d'absence de %s" % etud['nomprenom'], javascripts=['calendarDateInput_js']) ]
+        H = [ self.sco_header(REQUEST,page_title="Billet d'absence de %s" % etud['nomprenom'], 
+                              javascripts=['libjs/calendarDateInput.js']) ]
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('etudid',  { 'input_type' : 'hidden' }),

@@ -7,7 +7,7 @@
 
 <dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
 
-<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['calendarDateInput_js'])">
+<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
 
 <table><tr><td>
 <h2><font color="#FF0000">Annulation</font> d'une absence pour

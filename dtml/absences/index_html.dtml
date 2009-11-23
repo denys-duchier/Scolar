@@ -10,7 +10,7 @@
 
 <dtml-var "sco_header(page_title='Gestion des absences',
             REQUEST=REQUEST, 
-            cssstyles=['calabs.css'], javascripts=['Absences/calabs_js'])">
+            cssstyles=['calabs.css'], javascripts=['js/calabs.js'])">
 
 <h2>Gestion des Absences</h2>
 
