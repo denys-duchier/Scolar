@@ -1,5 +1,3 @@
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 /* feuille style calendrier absences */
 

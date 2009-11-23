@@ -1,9 +1,7 @@
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 #vhist-q-graph {
-/* Ceci est la classe du UL principal qui contient toute les autres données */
-/* Définir un With est un Height est essentiel, c'est ça qui donne les dimension du graphique */
+/* Ceci est la classe du UL principal qui contient toute sles autres données */
+/* Définir un Width et un Height est essentiel, c'est ca qui donne les dimension du graphique */
   width: 428px;
   height: 200px;
 /* Ne pas oublier d'enlever le point qui se trouve a coté des LI */

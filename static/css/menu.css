@@ -1,8 +1,6 @@
 /* # -*- mode: css -*- 
-           ScoDoc, (c) Emmanuel Viennet 1998 - 2008
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2010
  */
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 ul.nav {
     padding: 0px 0px 0px 0px;
@@ -70,7 +68,7 @@ ul.nav {
 }
 
 .barrenav ul li a.menu:after {
-     content:" "url(<dtml-var "icons.menuarrow1_img.absolute_url()">);
+    content:" "url(/ScoDoc/static/icons/menuarrow1_img.png);
 }
 .formsemestre_menubar .barrenav ul li a.menu:after {
      content:"";
@@ -104,7 +102,7 @@ ul.nav {
  font-weight: normal;
  color: black;
 /* ce float none permet d'annuler l'heritage du float left precedent */
-	float: none ;
+ float: none ;
 /* permet de contrebalancer l'heritage precedent */
  text-align: left ;
 }

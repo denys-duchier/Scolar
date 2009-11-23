@@ -52,7 +52,7 @@ def affectGroups(context, partition_id, REQUEST=None):
                                            REQUEST.BASE0+ '/ScoDoc/static/Rico/src/min.rico.js', 
                                            REQUEST.BASE0+ '/ScoDoc/static/Rico/src/ricoAjaxEngine.js',
                                            'groupmgr_js' ],
-                             cssstyles=['groups_css'],
+                             cssstyles=['groups.css'],
                              bodyOnLoad='javascript:bodyOnLoad()' ),
           """<h2 class="formsemestre">Affectation aux groupes de %s</h2><form id="sp">""" % partition['partition_name']]    
     

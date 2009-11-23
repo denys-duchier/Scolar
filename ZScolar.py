@@ -237,7 +237,7 @@ class ZScolar(ObjectManager,
     def essaiform(self,REQUEST=None):
         """essai autocompletion"""
         H = [ self.sco_header(REQUEST, javascripts=['AutoSuggest_js'],
-                              cssstyles=['autosuggest_inquisitor_css'],
+                              cssstyles=['autosuggest_inquisitor.css'],
                               bodyOnLoad="initform()"),
               """<form method="get" action="essai">
               <input type="text" style="width: 200px" id="testinput_c" value=""/>
@@ -322,9 +322,6 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
     
-    security.declareProtected(ScoView, 'groups_css')
-    groups_css = DTMLFile('JavaScripts/groups_css', globals())
-
     security.declareProtected(ScoView, 'jquery_1_2_6_min_js')
     jquery_1_2_6_min_js = DTMLFile('JavaScripts/jquery_1_2_6_min_js', globals())
     
@@ -344,10 +341,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'AutoSuggest_js')
     AutoSuggest_js = DTMLFile('JavaScripts/AutoSuggest_2.1.3_comp_js',
                               globals())
-    security.declareProtected(ScoView, 'autosuggest_inquisitor_css')
-    autosuggest_inquisitor_css = DTMLFile('JavaScripts/autosuggest_inquisitor_css', 
-                                          globals())
-
+    
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"

@@ -1,9 +1,6 @@
 /* # -*- mode: css -*- 
-           ScoDoc, (c) Emmanuel Viennet 1998 - 2008
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2010
  */
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
-
 
 html,body {
   margin:0;
@@ -989,7 +986,7 @@ ul.tf-msg {
 }
 
 li.tf-msg {  
-  list-style-image: url("<dtml-var "ScoDocURL()">/icons/warning16_img");
+  list-style-image: url(/ScoDoc/static/icons/warning16_img);
   padding-top: 5px;
   padding-bottom: 5px;
 }
@@ -998,7 +995,7 @@ p.warning {
   font-weight: bold;
   color: red;
 }
-/* ---- ? ne fonctionne pas :  p.warning:before { url("<dtml-var "ScoDocURL">/icons/warning16_img"); } */
+/* ---- ? ne fonctionne pas :  p.warning:before { /ScoDoc/static/icons/warning16_img"); } */
 
 form.sco_pref table.tf {
   border-spacing: 5px 15px;
@@ -1142,18 +1139,18 @@ h2.entreprise {
 }
 
 h2.entreprise_contact:before { 
-  content: url("<dtml-var "ScoDocURL()">/icons/contact_img");
+  content: url(/ScoDoc/static/icons/contact_img.gif);
   vertical-align: -80%;  
   padding-right: 1em; 
 }
 h2.entreprise_correspondant:before { 
-  content: url("<dtml-var "ScoDocURL()">/icons/correspondant_img");
+  content: url(/ScoDoc/static/icons/correspondant_img.gif);
   vertical-align: -80%;  
   padding-right: 1em; 
 }
 
 h2.entreprise_new:before { 
-  content: url("<dtml-var "ScoDocURL()">/icons/entreprise_img");
+  content: url(/ScoDoc/static/icons/entreprise_img.gif);
   vertical-align: -80%; 
   padding-right: 2em; 
 }
@@ -1164,15 +1161,15 @@ p.entreprise_warning, p.gtr_warning, p.gtr_interdit, p.gtr_devel {
   margin-top: -1em;
 }
 P.entreprise_warning:before { 
-  content: url("<dtml-var "ScoDocURL()">/icons/warning_img");
+  content: url(/ScoDoc/static/icons/warning_img.png);
   vertical-align: -80%;  
 }
 P.gtr_interdit:before {
-  content: url("<dtml-var "ScoDocURL()">/icons/interdit_img");
+  content: url(/ScoDoc/static/icons/interdit_img.png);
   vertical-align: -80%;  
 }
 P.gtr_devel:before {
-  content: url("<dtml-var "ScoDocURL()">/icons/devel_img");
+  content: url(/ScoDoc/static/icons/devel_img.png);
   vertical-align: -80%;  
 }
 div.entreprise-insidebar { 
@@ -1420,13 +1417,13 @@ div.module_check_absences ul {
 
 .tooltip span.top{
   padding: 30px 8px 0;
-  background: url("<dtml-var "ScoDocURL()">/icons/bt_gif") no-repeat top;
+  background: url(/ScoDoc/static/icons/bt_gif.gif) no-repeat top;
 }
 
 .tooltip b.bottom{
   padding:3px 8px 15px;
   color: #548912;
-  background: url("<dtml-var "ScoDocURL()">/icons/bt_gif") no-repeat bottom;
+  background: url(/ScoDoc/static/icons/bt_gif.gif) no-repeat bottom;
 }
 /* ----------------------------------------------- */
 

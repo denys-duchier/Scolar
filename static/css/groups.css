@@ -1,9 +1,6 @@
 /* # -*- mode: css -*- 
            ScoDoc, (c) Emmanuel Viennet 1998 - 2010
  */
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
-
 
 .simpleDropPanel { 
     float: left;

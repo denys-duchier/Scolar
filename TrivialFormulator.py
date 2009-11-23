@@ -67,7 +67,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
              vertical: for checkbox; if true, vertical layout
           To use text_suggest elements, one must:
             - specify options in text_suggest_options (a dict)
-            - HTML page must load JS AutoSuggest_js and CSS autosuggest_inquisitor_css
+            - HTML page must load JS AutoSuggest_js and CSS autosuggest_inquisitor.css
             - bodyOnLoad must call JS function init_tf_form(formid)
     """
     method = method.lower()

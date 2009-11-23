@@ -72,15 +72,9 @@ def sco_header(context, REQUEST=None,
         'no_side_bar': no_side_bar,
         'ScoURL' : context.ScoURL(),
         'encoding' : SCO_ENCODING,
-        # 'maincss_url' : context.gtrintranetstyle.absolute_url(), (si style Zope)
-        'maincss_url' : context.ScoURL() + '/' + 'scodoc_css',
         'titrebandeau_mkup' : '<td>' + titrebandeau + '</td>',
         'authuser' : str(REQUEST.AUTHENTICATED_USER),
         }
-    if no_side_bar:
-        params['maincss_args'] = '?no_side_bar=1'
-    else:
-        params['maincss_args'] = ''
     if bodyOnLoad:
         params['bodyOnLoad_mkup'] = """onload="%s" """ % bodyOnLoad
     else:
@@ -99,13 +93,13 @@ def sco_header(context, REQUEST=None,
 <meta name="LANG" content="fr" />
 <meta name="DESCRIPTION" content="ScoDoc" />
 
-<link href="%(maincss_url)s%(maincss_args)s" rel="stylesheet" type="text/css" />
-<link href="%(ScoURL)s/menu_css" rel="stylesheet" type="text/css" />""" % params ]
+<link href="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css" />
+<link href="/ScoDoc/static/css/menu.css" rel="stylesheet" type="text/css" />""" % params ]
     
     # Feuilles de style additionnelles:
     for cssstyle in cssstyles:
-        H.append( """<link type="text/css" rel="stylesheet" href="%s/%s" />"""
-                  % (params['ScoURL'], cssstyle) )
+        H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/%s" />"""
+                  % cssstyle )
     
     H.append( """
 <script language="javascript" type="text/javascript" src="%(ScoURL)s/menu_js"></script>

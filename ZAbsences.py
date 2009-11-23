@@ -280,8 +280,6 @@ class ZAbsences(ObjectManager,
     security.declareProtected(ScoAbsChange, 'doAnnuleJustif')
     doAnnuleJustif=DTMLFile('dtml/absences/doAnnuleJustif', globals())
 
-    security.declareProtected(ScoView, 'calabs_css')
-    calabs_css = DTMLFile('JavaScripts/calabs_css', globals())
     security.declareProtected(ScoView, 'calabs_js')
     calabs_js = DTMLFile('JavaScripts/calabs_js', globals())
     

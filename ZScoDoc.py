@@ -573,7 +573,7 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
 <META name="LANG" content="fr">
 <META name="DESCRIPTION" content="ScoDoc: gestion scolarite">
 
-<link HREF="%s/scodoc_css" rel="stylesheet" type="text/css">
+<link HREF="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css">
 
 </head><body>%s""" % (SCO_ENCODING, self.absolute_url(), CUSTOM_HTML_HEADER_CNX)
 
@@ -866,7 +866,6 @@ subversion: %(svn_version)s
     security.declareProtected('View', 'do_build_icons_folder')
     def do_build_icons_folder(self,REQUEST=None): # not published
         # Build folder with Zope images
-        path = self.file_path + '/icons'
         id = 'icons'
         try:
             o = self[id]
@@ -881,8 +880,8 @@ subversion: %(svn_version)s
         log('build_image_folder: building new %s folder' % id )
         self.manage_addProduct['OFSP'].manage_addFolder(id, title='ScoDoc icons')
         folder = self[id]
-        # Create Zope images instances for each file in .../icons/*        
-        path = self.file_path + '/icons/'
+        # Create Zope images instances for each file in .../static/icons/*
+        path = self.file_path + '/static/icons/'
         add_method = folder.manage_addProduct['OFSP'].manage_addImage
         for filename in os.listdir(path):
             if filename != '.svn':
@@ -897,17 +896,6 @@ subversion: %(svn_version)s
         "http expiration date for cachable elements (css, ...)"
         d = datetime.timedelta(minutes=10)
         return (datetime.datetime.utcnow() + d).strftime("%a, %d %b %Y %H:%M:%S GMT")
-
-    # Styles CSS
-    security.declareProtected('View', 'scodoc_css')
-    scodoc_css = DTMLFile('JavaScripts/scodoc_css', globals())
-
-    security.declareProtected('View', 'menu_css')
-    menu_css = DTMLFile('JavaScripts/menu_css', globals())
-
-    security.declareProtected('View', 'verticalhisto_css')
-    verticalhisto_css = DTMLFile('JavaScripts/verticalhisto_css', globals())
-    
 
 
 def manage_addZScoDoc(self, id= 'ScoDoc',

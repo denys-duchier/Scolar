@@ -43,7 +43,7 @@ def initialize(context):
 	    manage_addZScolarForm, # this is called when someone adds the product
 	    manage_addZScolar
 	),
-        icon = 'icons/sco_icon.png'
+        icon = 'static/icons/sco_icon.png'
     )
 
     #context.registerHelp()
@@ -55,7 +55,7 @@ def initialize(context):
 	constructors = (
 	    manage_addZScoDoc,
 	),
-        icon = 'icons/sco_icon.png'
+        icon = 'static/icons/sco_icon.png'
     )
 
 
@@ -66,7 +66,7 @@ def initialize(context):
     #	    manage_addZNotesForm,                                   
     #	    manage_addZNotes
     #	),
-    #  icon = 'icons/notes_icon.png'
+    #  icon = 'static/icons/notes_icon.png'
     #)
 
     #context.registerHelp()

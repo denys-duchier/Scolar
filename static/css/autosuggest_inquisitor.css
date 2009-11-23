@@ -3,8 +3,6 @@
 autosuggest, inquisitor style
 ================================================
 */
-<dtml-call "RESPONSE.setHeader('Content-Type', 'text/css')">
-<dtml-call "RESPONSE.setHeader('Expires', http_expiration_date())">
 
 body
 {
@@ -15,7 +13,7 @@ body
 div.autosuggest
 {
 	position: absolute;
-	background-image: url(icons/as_pointer);
+	background-image: url(/ScoDoc/static/icons/as_pointer.gif);
 	background-position: top;
 	background-repeat: no-repeat;
 	padding: 10px 0 0 0;
@@ -27,14 +25,14 @@ div.autosuggest div.as_footer
 	position: relative;
 	height: 6px;
 	padding: 0 6px;
-	background-image: url(icons/ul_corner_tr);
+	background-image: url(/ScoDoc/static/icons/ul_corner_tr.gif);
 	background-position: top right;
 	background-repeat: no-repeat;
 	overflow: hidden;
 }
 div.autosuggest div.as_footer
 {
-	background-image: url(icons/ul_corner_br);
+	background-image: url(/ScoDoc/static/icons/ul_corner_br.gif);
 }
 
 div.autosuggest div.as_header div.as_corner,
@@ -45,13 +43,13 @@ div.autosuggest div.as_footer div.as_corner
 	left: 0;
 	height: 6px;
 	width: 6px;
-	background-image: url(icons/ul_corner_tl);
+	background-image: url(/ScoDoc/static/icons/ul_corner_tl.gif);
 	background-position: top left;
 	background-repeat: no-repeat;
 }
 div.autosuggest div.as_footer div.as_corner
 {
-	background-image: url(icons/ul_corner_bl);
+	background-image: url(/ScoDoc/static/icons/ul_corner_bl.gif);
 }
 div.autosuggest div.as_header div.as_bar,
 div.autosuggest div.as_footer div.as_bar
@@ -121,14 +119,14 @@ div.autosuggest ul li.as_highlight a
 {
 	color: #fff;
 	background-color: #1B5CCD;
-	background-image: url(icons/hl_corner_br);
+	background-image: url(/ScoDoc/static/icons/hl_corner_br.gif);
 	background-position: bottom right;
 	background-repeat: no-repeat;
 }
 
 div.autosuggest ul li.as_highlight a span
 {
-	background-image: url(icons/hl_corner_bl);
+	background-image: url(/ScoDoc/static/icons/hl_corner_bl.gif);
 	background-position: bottom left;
 	background-repeat: no-repeat;
 }
@@ -153,14 +151,14 @@ div.autosuggest ul li a .tr
 div.autosuggest ul li.as_highlight a .tl
 {
 	left: 0;
-	background-image: url(icons/hl_corner_tl);
+	background-image: url(/ScoDoc/static/icons/hl_corner_tl.gif);
 	background-position: bottom left;
 }
 
 div.autosuggest ul li.as_highlight a .tr
 {
 	right: 0;
-	background-image: url(icons/hl_corner_tr);
+	background-image: url(/ScoDoc/static/icons/hl_corner_tr.gif);
 	background-position: bottom right;
 }
 
