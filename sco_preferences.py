@@ -1045,26 +1045,4 @@ def doc_preferences(context):
                 L.append( [ pref_name, pref['title'], pref.get('explanation', '') ] )
     return '<br/>\n'.join( [ '|| ' + " || ".join(x)  + ' ||' for x in L ]) 
 
-# essais:
-def edit_preferences2(context, REQUEST):
-    """essai jQuery
-    """
-    H = [ context.sco_header(
-            page_title='Préférences', 
-            REQUEST=REQUEST,
-            javascripts=[ 'jquery_1_2_6_min_js' ],
-            scripts=[ """
-$(function() {
-   // $('#vide').html('hello !');
-   
-});
-          """ 
-                      ]),
-          """
-<form>
-<input type="text" id="essai" name="essai" size="16" value="blurps"/>
-</form>
-          """
-          ]
-    
-    return '\n'.join(H) + context.sco_footer(REQUEST)
+

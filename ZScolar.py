@@ -322,9 +322,6 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'groupmgr_js')
     groupmgr_js = DTMLFile('JavaScripts/groupmgr_js', globals())
     
-    security.declareProtected(ScoView, 'jquery_1_2_6_min_js')
-    jquery_1_2_6_min_js = DTMLFile('JavaScripts/jquery_1_2_6_min_js', globals())
-    
     security.declareProtected(ScoView, 'sorttable_js')
     sorttable_js = DTMLFile('JavaScripts/sorttable_js', globals())
 
@@ -508,9 +505,6 @@ class ZScolar(ObjectManager,
         else:
             raise AccessDenied('Modification impossible pour %s' % authuser)
     
-    security.declareProtected(ScoChangePreferences, 'edit_preferences2')
-    edit_preferences2 = sco_preferences.edit_preferences2
-
     security.declareProtected(ScoView, 'doc_preferences')
     def doc_preferences(self, REQUEST):
         """Liste preferences for wiki documentation"""
