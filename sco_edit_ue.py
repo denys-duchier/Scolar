@@ -75,7 +75,11 @@ def ue_edit(context, ue_id=None, REQUEST=None):
         raise ScoValueError("UE inexistante !")
     U = U[0]
     Fo = context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
-    H = [ context.sco_header(REQUEST, page_title="Modification d'une UE"),          
+    JSD = REQUEST.BASE0 + '/ScoDoc/static/'
+    H = [ context.sco_header(REQUEST, page_title="Modification d'une UE",
+                             javascripts=[ JSD + 'jQuery/jquery.js', 
+                                           JSD + 'edit_ue.js' ]
+                             ),
           "<h2>Modification de l'UE %(titre)s" % U,
           '(formation %(acronyme)s, version %(version)s)</h2>' % Fo,
           """
@@ -95,12 +99,14 @@ def ue_edit(context, ue_id=None, REQUEST=None):
                     'input_type' : 'menu',
                     'allowed_values': ('0','1'),
                     'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
-         ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE).' }),
+         ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
          ),
                             initvalues = U,
                             submitlabel = 'Modifier les valeurs' )
     if tf[0] == 0:
-        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+        X = """<div id="ue_list_code"></div>
+        """
+        return '\n'.join(H) + tf[1] + X + context.sco_footer(REQUEST)
     else:
         ue_id = context.do_ue_edit(tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(U['formation_id']))
@@ -227,4 +233,28 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 #   <li>(debug) <a class="stdlink" href="check_form_integrity?formation_id=%(formation_id)s">Vérifier cohérence</a></li>
 
     H.append(context.sco_footer(REQUEST))
+    return '\n'.join(H)
+
+
+def ue_sharing_code(context, ue_code, ue_id=None):
+    """HTML list of UE sharing this code"""
+    ue_list = context.do_ue_list( args={ 'ue_code' : ue_code } )
+    if ue_id: # enlève l'ue de depart
+        ue_list = [ ue for ue in ue_list if ue['ue_id'] != ue_id ]
+    if not ue_list:
+        if ue_id:
+            return """<span class="ue_share">Seule UE avec code %s</span>""" % ue_code
+        else:
+            return """<span class="ue_share">Aucune UE avec code %s</span>""" % ue_code
+    H = []
+    if ue_id:
+        H.append('<span class="ue_share">Autres UE avec le code %s:</span>' % ue_code)
+    else:
+        H.append('<span class="ue_share">UE avec le code %s:</span>' % ue_code)
+    H.append('<ul>')
+    for ue in ue_list:
+        F = context.do_formation_list( args={ 'formation_id' : ue['formation_id'] } )[0]
+        H.append( '<li>%s (%s) dans <a class="stdlink" href="ue_list?formation_id=%s">%s (%s)</a>, version %s</li>'
+                  % (ue['acronyme'], ue['titre'], F['formation_id'], F['acronyme'], F['titre'], F['version']))
+    H.append('</ul>')
     return '\n'.join(H)

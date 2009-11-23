@@ -765,6 +765,19 @@ ul.notes_module_list {
    font-style: normal; 
 }
 
+div#ue_list_code {
+    border: blue 1px;
+    background-color: rgb(220,220,220);
+    font-size: small;
+    padding-left: 4px;
+    padding-bottom: 1px;
+    margin-top: 10px;
+}
+
+span.ue_share {
+    font-weight: bold;
+}
+
 /* tableau recap notes */
 table.notes_recapcomplet {
    border: 2px solid blue;

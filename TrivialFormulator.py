@@ -106,7 +106,10 @@ class TF:
         self.method = method
         self.enctype = enctype
         self.submitlabel = submitlabel
-        self.name = name
+        if name:
+            self.name = name           
+        else:
+            self.name = formid # 'tf'        
         self.formid = formid
         self.cssclass = cssclass
         self.cancelbutton = cancelbutton
@@ -264,7 +267,7 @@ class TF:
         values = self.values
         add_no_enter_js = False # add JS function to prevent 'enter' -> submit
         # form template
-        # xxx
+        
         # default template for each input element
         itemtemplate = """<tr%(item_dom_attr)s>
         <td class="tf-fieldlabel">%(label)s</td><td class="tf-field">%(elem)s</td>
@@ -292,10 +295,7 @@ class TF:
             klass = ' class="%s"' % self.cssclass
         else:
             klass = ''
-        if self.name:
-            name = self.name
-        else:
-            name = 'tf'
+        name = self.name
         R.append( '<form action="%s" method="%s" id="%s" enctype="%s" name="%s" %s>'
                   % (self.form_url,self.method,self.formid,enctype,name,klass) )
         R.append('<input type="hidden" name="%s-submitted" value="1"/>'%self.formid)
@@ -311,6 +311,7 @@ class TF:
             if descr.get('readonly', False):
                 R.append(self._ReadOnlyElement(field, descr))
                 continue
+            wid = self.name + '_' + field
             size = descr.get('size', 12)
             rows = descr.get('rows',  5)
             cols = descr.get('cols', 60)
@@ -354,7 +355,7 @@ class TF:
                 attribs += ' disabled="true"'
             #
             if input_type == 'text':
-                lem.append( '<input type="text" name="%s" size="%d" %s' % (field,size,attribs) )
+                lem.append( '<input type="text" name="%s" size="%d" id="%s" %s' % (field,size,wid,attribs) )
                 if descr.get('return_focus_next',False): # and nextitemname:
                     # JS code to focus on next element on 'enter' key
                     # ceci ne marche que pour desactiver enter sous IE (pas Firefox)
@@ -366,7 +367,7 @@ class TF:
 #                    lem.append('onblur="document.%s.%s.focus()"'%(name,nextitemname))
                 lem.append( ('value="%('+field+')s" />') % values )
             elif input_type == 'password':
-                lem.append( '<input type="password" name="%s" size="%d" %s' % (field,size,attribs) )
+                lem.append( '<input type="password" name="%s" id="%s" size="%d" %s' % (field,wid,size,attribs) )
                 lem.append( ('value="%('+field+')s" />') % values )
             elif input_type == 'radio':
                 labels = descr.get('labels', descr['allowed_values'])
@@ -379,7 +380,7 @@ class TF:
                         '<input type="radio" name="%s" value="%s" %s %s>%s</input>'
                         % (field, descr['allowed_values'][i], checked, attribs, labels[i]) )
             elif input_type == 'menu':
-                lem.append('<select name="%s" %s>'%(field,attribs))
+                lem.append('<select name="%s" id="%s" %s>'%(field,wid,attribs))
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
                     if str(descr['allowed_values'][i]) == str(values[field]):
@@ -426,14 +427,14 @@ class TF:
                 if vertical:
                     lem.append('</table>')
             elif input_type == 'textarea':
-                lem.append('<textarea name="%s" rows="%d" cols="%d" %s>%s</textarea>'
-                           % (field,rows,cols,attribs,values[field]) )
+                lem.append('<textarea name="%s" id="%s" rows="%d" cols="%d" %s>%s</textarea>'
+                           % (field,wid,rows,cols,attribs,values[field]) )
             elif input_type == 'hidden':
                 if descr.get('type','') == 'list':
                     for v in values[field]:
                         lem.append('<input type="hidden" name="%s:list" value="%s" %s />' % (field,v,attribs))
                 else:
-                    lem.append('<input type="hidden" name="%s" value="%s" %s />' % (field,values[field],attribs))
+                    lem.append('<input type="hidden" name="%s" id="%s" value="%s" %s />' % (field,wid,values[field],attribs))
             elif input_type == 'separator':
                 pass
             elif input_type == 'file':
