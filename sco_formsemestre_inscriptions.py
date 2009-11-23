@@ -76,7 +76,7 @@ def formsemestre_inscription_with_modules_etud(context, formsemestre_id, etudid=
     Si etudid n'est pas specifié, form. choix etudiant.
     """
     if not etudid:
-        return self.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre",
+        return context.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre",
                                      add_headers=True,
                                      dest_url='formsemestre_inscription_with_modules_etud',
                                      parameters={ 'formsemestre_id' : formsemestre_id },

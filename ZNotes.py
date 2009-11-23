@@ -447,7 +447,7 @@ class ZNotes(ObjectManager,
         ues = self.do_ue_list({'formation_id' : args['formation_id'],
                                'acronyme' : args['acronyme'] })
         if ues:
-            raise ScoValueError('UE "%s" déjà existante !' % args['acronyme'])
+            raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args['acronyme'])
         # create
         r = self._ueEditor.create(cnx, args)
         self._inval_cache()
@@ -522,7 +522,7 @@ class ZNotes(ObjectManager,
             new_acro = args[0]['acronyme']
             ues = self.do_ue_list({'formation_id' : ue['formation_id'], 'acronyme' : new_acro })
             if ues and ues[0]['ue_id'] != ue_id:
-                raise ScoValueError('UE "%s" déjà existante !' % args[0]['acronyme'])
+                raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args[0]['acronyme'])
         
         cnx = self.GetDBConnexion()
         self._ueEditor.edit( cnx, *args, **kw )
