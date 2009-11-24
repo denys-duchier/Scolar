@@ -892,7 +892,10 @@ def form_group_choice(context, formsemestre_id,
     return '\n'.join(H) 
 
 def make_query_groups(group_ids):
-    return '&'.join( [ 'group_ids%3Alist=' + group_id for group_id in group_ids ] )
+    if group_ids:
+        return '&'.join( [ 'group_ids%3Alist=' + group_id for group_id in group_ids ] )
+    else:
+        return ''
 
 class GroupIdInferer:
     def __init__(context, formsemestre_id):
