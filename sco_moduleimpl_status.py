@@ -235,13 +235,13 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                     if gr_moyenne['group_id'] in etat['gr_incomplets']:
                         H.append("""[<font color="red">""")
                         if caneditnotes:
-                            H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&groupes=%s">incomplet</a></font>]""" % (eval['evaluation_id'], gr_moyenne['group_id']))
+                            H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&group_ids:list=%s">incomplet</a></font>]""" % (eval['evaluation_id'], gr_moyenne['group_id']))
                         else:
                             H.append("""incomplet</font>]""")
                 else:
                     H.append("""<span class="redboldtext">&nbsp; """)
                     if caneditnotes:
-                        H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&groupes=%s">""" % (eval['evaluation_id'], gr_moyenne['group_id']))
+                        H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&group_ids:list=%s">""" % (eval['evaluation_id'], gr_moyenne['group_id']))
                     H.append('pas de notes')
                     if caneditnotes:
                         H.append("""</a>""")

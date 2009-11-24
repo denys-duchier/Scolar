@@ -73,9 +73,10 @@ def do_evaluation_listenotes(context, REQUEST):
     else:
         H = []
     # groupes
-    groups = sco_groups.do_evaluation_listegroupes(context, E['evaluation_id'])
+    groups = sco_groups.do_evaluation_listegroupes(context, E['evaluation_id'], include_default=True)
     grlabs = [ g['group_name'] or 'tous' for g in groups ]  # legendes des boutons
     grnams  = [ g['group_id'] for g in groups ] # noms des checkbox
+ 
     if len(evals) > 1:
         descr = [
             ('moduleimpl_id',
@@ -84,14 +85,20 @@ def do_evaluation_listenotes(context, REQUEST):
         descr = [
             ('evaluation_id',
              { 'default' : E['evaluation_id'], 'input_type' : 'hidden' }) ]
+    if len(grnams) > 1:        
+        descr += [
+            ('s' ,
+             {'input_type' : 'separator',
+              'title': '<b>Choix du ou des groupes d\'étudiants:</b>' }),
+            ('group_ids',
+             { 'input_type' : 'checkbox', 'title':'',
+               'allowed_values' : grnams, 'labels' : grlabs,
+               'attributes' : ('onclick="document.tf.submit();"',) }) ]
+    else:
+        descr += [
+            ('group_ids',
+             { 'input_type' : 'hidden', 'type' : 'list', 'default' : grnams[0] }) ]
     descr += [
-        ('s' ,
-         {'input_type' : 'separator',
-          'title': '<b>Choix du ou des groupes d\'étudiants:</b>' }),
-        ('group_ids',
-         { 'input_type' : 'checkbox', 'title':'',
-           'allowed_values' : grnams, 'labels' : grlabs,
-           'attributes' : ('onclick="document.tf.submit();"',) }),
         ('anonymous_listing',
          { 'input_type' : 'checkbox', 'title':'',
            'allowed_values' : ('yes',), 'labels' : ('listing "anonyme"',),

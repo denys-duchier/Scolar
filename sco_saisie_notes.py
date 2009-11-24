@@ -69,7 +69,7 @@ def do_evaluation_selectetuds(context, REQUEST ):
         ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
                          'allowed_values' : [ 'xls', 'form' ],
                          'labels' : ['fichier tableur', 'formulaire web'],
-                         'title' : 'Méthode de saisie des notes :' }) ]
+                         'title' : 'Méthode de saisie :' }) ]
     if no_groups:
         submitbuttonattributes = []
         descr += [ 
@@ -77,11 +77,11 @@ def do_evaluation_selectetuds(context, REQUEST ):
     else:
         descr += [ 
             ('group_ids', { 'input_type' : 'checkbox',
-                          'title':'Choix du ou des groupes d\'étudiants :',
+                          'title':'Choix groupe(s) d\'étudiants :',
                           'allowed_values' : grnams, 'labels' : grlabs,
                           'attributes' : ['onchange="gr_change(this);"']
                           }) ]
-        if not(REQUEST.form.has_key('groupes') and REQUEST.form['groupes']):
+        if not(REQUEST.form.has_key('group_ids') and REQUEST.form['group_ids']):
             submitbuttonattributes = [ 'disabled="1"' ]
         else:
             submitbuttonattributes = [] # groupe(s) preselectionnés
