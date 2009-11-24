@@ -703,11 +703,16 @@ tr.mievr {
    background-color:#eee;
 }
 
-td.mievr_tit { 
+tr.mievr td.mievr_tit { 
   font-weight: bold;
+  background-color: #cccccc;
 }
 tr.mievr td {
   text-align: left;
+  background-color:white;
+}
+tr.mievr th {
+  background-color:white;
 }
 tr.mievr td.mievr {
   width: 90px;
@@ -730,6 +735,7 @@ tr td.mievr_grtit {
  font-weight: bold;
 }
 span.mievr_lastmodif { 
+ padding-left: 2em;
  font-weight: normal;
  font-style: italic; 
 }

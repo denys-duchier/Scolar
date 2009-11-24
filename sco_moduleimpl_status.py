@@ -165,7 +165,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
         H.append("""<tr class="mievr">
  <td class="mievr_tit" colspan="8">
- Le %(jour)s%(descrheure)s", <em>%(description)s</em>""" % eval )
+ Le %(jour)s%(descrheure)s:&nbsp;&nbsp;&nbsp; <em>%(description)s</em>""" % eval )
         if etat['last_modif']:
             H.append("""<span class="mievr_lastmodif">(dernière modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y à %Hh%M') )
         H.append("""</td></tr>""")
@@ -207,12 +207,13 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                  % etat )
         if etat['moy']:
             H.append( '%s / %g' % (etat['moy'], eval['note_max']))
+        else:
+            H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s">saisir notes</a>""" % (eval['evaluation_id']))
         H.append("""</td></tr>""")
         #
         if etat['nb_notes'] == 0:
-            H.append("""<tr class="mievr"><td colspan="8">""")
-            if caneditnotes:
-                H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s">saisir groupes %s</a>""" % (eval['evaluation_id'], ', '.join(etat['gr_incomplets'])) )
+            H.append("""<tr class="mievr"><td colspan="8">&nbsp;""")
+            # XXX
             H.append("""</td></tr>""")
         else: # il y a deja des notes saisies
             gr_moyennes = etat['gr_moyennes']
