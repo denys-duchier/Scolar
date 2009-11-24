@@ -688,7 +688,7 @@ table.moduleimpl_evaluations {
 }
 
 th.moduleimpl_evaluations {
-  font-weight: bold;
+  font-weight: normal;
   text-align: left;
   color: red;
 }
