@@ -739,17 +739,20 @@ class ZNotes(ObjectManager,
     def do_formsemestre_create(self, args, REQUEST):
         "create a formsemestre"
         cnx = self.GetDBConnexion()
-        r = self._formsemestreEditor.create(cnx, args)
+        formsemestre_id = self._formsemestreEditor.create(cnx, args)
+        # create default partition
+        partition_id = sco_groups.partition_create(self, formsemestre_id, default=True, redirect=0, REQUEST=REQUEST)
+        group_id = sco_groups.createGroup(self, partition_id, default=True, REQUEST=REQUEST)
         self._inval_cache()
         # news
         if not args.has_key('titre'):
             args['titre'] = 'sans titre'
-        args['formsemestre_id'] = r
+        args['formsemestre_id'] = formsemestre_id
         args['url'] = 'Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s'%args
         sco_news.add(REQUEST, cnx, typ=NEWS_SEM,
                      text='Création du semestre <a href="%(url)s">%(titre)s</a>' % args,
                      url=args['url'])
-        return r
+        return formsemestre_id
 
     security.declareProtected(ScoImplement, 'do_formsemestre_delete')
     def do_formsemestre_delete(self, formsemestre_id, REQUEST):

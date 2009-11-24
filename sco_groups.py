@@ -450,7 +450,7 @@ def setGroups(context, partition_id,
     return 'Groupes enregistrés'
 
 
-def createGroup(context, partition_id, group_name, REQUEST=None):
+def createGroup(context, partition_id, group_name='', default=False, REQUEST=None):
     """Create a new group in this partition
     (called from JS)
     """
@@ -459,8 +459,9 @@ def createGroup(context, partition_id, group_name, REQUEST=None):
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
     #
-    group_name = group_name.strip()
-    if not group_name:
+    if group_name:
+        group_name = group_name.strip()
+    if not group_name and not default:
         raise ValueError('invalid group name: ()')
     checkGroupName(group_name)
     if group_name in [ g['group_name'] for g in get_partition_groups(context, partition) ]:
@@ -490,18 +491,21 @@ def suppressGroup(context, group_id,  partition_id=None, REQUEST=None):
     log( 'suppressGroup: group_id=%s group_name=%s partition_name=%s' % (group_id, group['group_name'], partition['partition_name'] ) )
     group_delete(context, group )
 
-def partition_create(context, formsemestre_id, partition_name, numero=None, REQUEST=None, redirect=1):
+def partition_create(context, formsemestre_id, partition_name='', default=False, numero=None, REQUEST=None, redirect=1):
     """Create a new partition"""
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
-    partition_name = partition_name.strip()
-    if not partition_name:
+    if partition_name:
+        partition_name = partition_name.strip()
+    if default:
+        partition_name = None
+    if not partition_name and not default:
         raise ScoValueError('Nom de partition invalide (vide)')
     redirect = int(redirect)
     checkGroupName(partition_name)
     if partition_name in [ p['partition_name'] for p in get_partitions_list(context, formsemestre_id) ]:
         raise ScoValueError('Il existe déjà une partition %s dans ce semestre'%partition_name) 
-
+    
     cnx = context.GetDBConnexion()
     partition_id = partitionEditor.create(cnx, {'formsemestre_id':formsemestre_id, 'partition_name':partition_name} )
     log('createPartition: created partition_id=%s' % partition_id)
