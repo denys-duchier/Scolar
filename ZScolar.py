@@ -1789,7 +1789,7 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = [self.sco_header(REQUEST, javascripts=['libjs/calendarDateInput_js'])]
+        H = [self.sco_header(REQUEST, javascripts=['libjs/calendarDateInput.js'])]
         F = self.sco_footer(REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)

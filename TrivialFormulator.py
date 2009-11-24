@@ -49,7 +49,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           validator : function validating the field (called with (value,field)).
           max_value : maximum value (for floats and ints)
           explanation: text string to display next the input widget
-          title_buble: help bubble on field title (needs bubble_js or equivalent)
+          title_buble: help bubble on field title (needs bubble.js or equivalent)
           comment : comment, showed under input widget
           withcheckbox: if true, place a checkbox at the left of the input
                         elem. Checked items will be returned in 'tf-checked'

@@ -986,7 +986,7 @@ ul.tf-msg {
 }
 
 li.tf-msg {  
-  list-style-image: url(/ScoDoc/static/icons/warning16_img);
+  list-style-image: url(/ScoDoc/static/icons/warning16_img.png);
   padding-top: 5px;
   padding-bottom: 5px;
 }
