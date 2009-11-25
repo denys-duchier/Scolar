@@ -34,6 +34,7 @@ from notes_log import log
 import sco_portal_apogee
 import sco_inscr_passage
 import scolars
+import sco_groups
 import sco_news, sco_excel
 import sco_formsemestre_inscriptions
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
