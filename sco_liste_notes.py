@@ -97,7 +97,7 @@ def do_evaluation_listenotes(context, REQUEST):
     else:
         descr += [
             ('group_ids',
-             { 'input_type' : 'hidden', 'type' : 'list', 'default' : grnams[0] }) ]
+             { 'input_type' : 'hidden', 'type' : 'list', 'default' : [grnams[0]] }) ]
     descr += [
         ('anonymous_listing',
          { 'input_type' : 'checkbox', 'title':'',
