@@ -1148,8 +1148,9 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         """Memorise un "billet"
         begin et end sont au format ISO (eg "1999-01-08 04:05:06")
         """
+        t0 = time.time()
         # check etudid
-        etuds = self.getEtudInfo(etudid=etudid, code_nip=code_nip, REQUEST=REQUEST)        
+        etuds = self.getEtudInfo(etudid=etudid, code_nip=code_nip, REQUEST=REQUEST,filled=True)        
         if not etuds:
             return self.log_unknown_etud(REQUEST=REQUEST)
         etud = etuds[0]
@@ -1169,11 +1170,14 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                                                   'justified' : justified
                                                   } )
         if xml_reply:
+            # Renvoie le nouveau billet en XML
             if REQUEST:
                 REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-            doc = jaxml.XML_document( encoding=SCO_ENCODING )
-            doc.billet(id=billet_id)
-            return repr(doc)
+            
+            billets = billet_absence_list(cnx,  {'billet_id': billet_id } )
+            tab = self._tableBillets(billets, etud=etud)
+            log('AddBilletAbsence: new billet_id=%s (%gs)' % (billet_id, time.time()-t0))
+            return tab.make_page(self, REQUEST=REQUEST, format='xml')
         else:
             return billet_id
 
@@ -1201,7 +1205,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             begin = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
             e = tf[2]['end'].split('/')
             end = e[2] + '-' + e[1] + '-' + e[0] + ' 00:00:00'
-            self.AddBilletAbsence(begin, end, tf[2]['description'], etudid=etudid, xml_reply=False, justified=tf[2]['justified'])
+            log( self.AddBilletAbsence(begin, end, tf[2]['description'], etudid=etudid, xml_reply=True, justified=tf[2]['justified']) )
             return REQUEST.RESPONSE.redirect( 'listeBilletsEtud?etudid=' + etudid )
 
     def _tableBillets(self, billets, etud=None, title='' ):
@@ -1269,7 +1273,10 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     def XMLgetBilletsEtud(self, etudid=False, REQUEST=None):
         """Liste billets pour un etudiant
         """
-        return self.listeBilletsEtud(etudid, REQUEST=REQUEST, format='xml')
+        t0 = time.time()
+        r = self.listeBilletsEtud(etudid, REQUEST=REQUEST, format='xml')
+        log('XMLgetBilletsEtud (%gs)' % (time.time()-t0))
+        return r
 
     security.declareProtected(ScoView, 'listeBillets')
     def listeBillets(self, REQUEST=None):
@@ -1384,6 +1391,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     security.declareProtected(ScoView, 'XMLgetAbsEtud')
     def XMLgetAbsEtud(self, beg_date='', end_date='', REQUEST=None):
         """returns list of absences in date interval"""
+        t0 = time.time()
         etud = self.getEtudInfo(REQUEST=REQUEST)[0]
         exp = re.compile('^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$')
         if not exp.match(beg_date):
@@ -1404,6 +1412,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                          description=a['description'], justified=a['estjust'] )
                 doc._pop()
         doc._pop()
+        log('XMLgetAbsEtud (%gs)' % (time.time()-t0))
         return repr(doc)
 
 _billet_absenceEditor = EditableTable(

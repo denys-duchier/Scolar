@@ -1223,6 +1223,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'XMLgetEtudInfos')
     def XMLgetEtudInfos(self, etudid=None, REQUEST=None):
         "Donne les informations sur un etudiant"
+        t0 = time.time()
         args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
@@ -1268,6 +1269,7 @@ class ZScolar(ObjectManager,
                     )
                 doc._pop()
         doc._pop()
+        log('XMLgetEtudInfos (%gs)' % (time.time()-t0))
         return repr(doc)
 
     # -------------------------- FICHE ETUDIANT --------------------------
