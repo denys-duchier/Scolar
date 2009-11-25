@@ -859,7 +859,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'get_formsemestre')
     def get_formsemestre(self, formsemestre_id):
         "list ONE formsemestre"
-        return self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        try:
+            return self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+        except:
+            log('get_formsemestre: invalid formsemestre_id (%s)' % formsemestre_id)
+            raise
 
     security.declareProtected(ScoView, 'XMLgetFormsemestres')
     def XMLgetFormsemestres(self, etape_apo=None, formsemestre_id=None, REQUEST=None):
