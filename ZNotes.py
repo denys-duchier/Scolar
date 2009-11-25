@@ -785,6 +785,13 @@ class ZNotes(ObjectManager,
         # --- Suppression des preferences
         req = "DELETE FROM sco_prefs WHERE formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Suppression des groupes et partitions
+        req = "DELETE FROM group_membership  WHERE group_id IN (SELECT gm.group_id FROM group_membership gm, partition p, group_descr gd WHERE gm.group_id = gd.group_id AND gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"        
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        req = "DELETE FROM group_descr WHERE group_id IN (SELECT gd.group_id FROM group_descr gd, partition p WHERE gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        req = "DELETE FROM partition WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Destruction du semestre
         self._formsemestreEditor.delete(cnx, formsemestre_id)
         self._inval_cache()
