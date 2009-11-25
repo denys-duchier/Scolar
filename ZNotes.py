@@ -756,7 +756,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'do_formsemestre_delete')
     def do_formsemestre_delete(self, formsemestre_id, REQUEST):
-        "delete formsemestre, and all its moduleimpls"
+        """delete formsemestre, and all its moduleimpls.
+        No checks, no warnings: erase all !
+        """
         cnx = self.GetDBConnexion()
         sem = self.get_formsemestre(formsemestre_id)
         # --- Destruction des modules de ce semestre
@@ -775,6 +777,9 @@ class ZNotes(ObjectManager,
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Supression des validations (!!!)
         req = "DELETE FROM scolar_formsemestre_validation WHERE formsemestre_id=%(formsemestre_id)s"
+        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+        # --- Supression des references a ce semestre dans les compensations:
+        req = "UPDATE  scolar_formsemestre_validation SET compense_formsemestre_id=NULL WHERE compense_formsemestre_id=%(formsemestre_id)s"
         cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
         # --- Suppression des autorisations
         req = "DELETE FROM scolar_autorisation_inscription WHERE origin_formsemestre_id=%(formsemestre_id)s"

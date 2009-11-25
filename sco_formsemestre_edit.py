@@ -647,11 +647,15 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem),
           """<p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
-un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tous les événements liés à ce semestre !).</p>
+<b>un semestre ne doit jamais être supprimé</b> (on perd la mémoire des notes et de tous les événements liés à ce semestre !).</p>
 
  <p class="help">Tous les modules de ce semestre seront supprimés. Ceci n'est possible que
- si aucune évaluation n'a été définie (s'il y a des évaluations, allez d'abord 
- les supprimer)</p>"""
+ si :</p>
+ <ol><li>aucune évaluation n'a été définie (s'il y a des évaluations, allez d'abord 
+ les supprimer);</li> 
+  <li>aucune décision de jury n'a été entrée dans ce semestre;</li>
+  <li>et aucun étudiant de ce semestre ne le compense avec un autre semestre.</li>
+  </ol>"""
           ]
     
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, 
@@ -665,13 +669,26 @@ un semestre ne doit jamais être supprimé (on perd la mémoire des notes et de tou
         if evals:
             H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il reste %d évaluations)</b></p>""" %len(evals) )
         else:
-            H.append(tf[1])
+            if formsemestre_has_decisions_or_compensations(context, formsemestre_id):
+                H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il y a des décisions de jury ou des compensations par d'autres semestres)</b></p>"""  )
+            else:
+                H.append(tf[1])
         return '\n'.join(H) + context.sco_footer(REQUEST)
     elif tf[0] == -1: # cancel
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
         context.do_formsemestre_delete(formsemestre_id, REQUEST)
         return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
+
+def formsemestre_has_decisions_or_compensations(context, formsemestre_id):
+    """True if decision de jury dans ce semestre
+    ou bien compensation de ce semestre par d'autre ssemestres.
+    """
+    r = SimpleDictFetch(
+        context, 
+        'SELECT v.* FROM scolar_formsemestre_validation v WHERE v.formsemestre_id = %(formsemestre_id)s OR v.compense_formsemestre_id = %(formsemestre_id)s',
+        { 'formsemestre_id' : formsemestre_id } )
+    return r
 
 # ---------------------------------------------------------------------------------------
 def formsemestre_edit_options(context, formsemestre_id, 

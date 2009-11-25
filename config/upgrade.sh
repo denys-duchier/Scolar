@@ -30,12 +30,12 @@ else
   mode=install  
 fi
 SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn=$SVNVERSION\&sn=$SN)
-if [ ! -z $SVERSION ]; then
+if [ ! -z "$SVERSION" ]; then
   echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
 fi
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
-if [ -z $SCODOC_UPGRADE_RUNNING ]
+if [ -z "$SCODOC_UPGRADE_RUNNING" ]
 then
   export SCODOC_UPGRADE_RUNNING=1
   ./upgrade.sh
