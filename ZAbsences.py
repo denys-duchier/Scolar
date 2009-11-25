@@ -1119,8 +1119,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                 nbabspm = self.CountAbs(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=0)
                 if (nbabsam != 0) or (nbabspm != 0):
                     nbetud += 1
-                    nbabsjustam=self.CountAbsJust(etudid=etudid,debut=dateiso,fin=dateiso,matin=1)
-                    nbabsjustpm=self.CountAbsJust(etudid=etudid,debut=dateiso,fin=dateiso,matin=0)
+                    nbabsjustam=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=1)
+                    nbabsjustpm=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=0)
                     H.append("""<tr bgcolor="#FFFFFF"><td>
                      <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s></font></a></td><td align="center">""" % etud )
                     if nbabsam != 0:
