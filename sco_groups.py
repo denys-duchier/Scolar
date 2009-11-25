@@ -902,7 +902,7 @@ def make_query_groups(group_ids):
         return ''
 
 class GroupIdInferer:
-    def __init__(context, formsemestre_id):
+    def __init__(self, context, formsemestre_id):
         groups = get_sem_groups(context, formsemestre_id)
         name2group_id = {}
         for group in groups:

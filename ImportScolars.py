@@ -121,13 +121,13 @@ def sco_import_generate_excel_sample( format,
                                         lines=lines)
 
 
-def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
+def scolars_import_excel_file( datafile, product_file_path, context, REQUEST,
                                formsemestre_id=None, check_homonyms=True):
     """Importe etudiants depuis fichier Excel
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
     log('scolars_import_excel_file: formsemestre_id=%s'%formsemestre_id)
-    cnx = Notes.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     annee_courante = time.localtime()[0]
     exceldata = datafile.read()
@@ -238,7 +238,7 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             log( 'scolars_import_excel_file: values=%s' % str(values) ) 
             # Identite
             args = values.copy()
-            etudid = scolars.identite_create(cnx,args, context=Notes)
+            etudid = scolars.identite_create(cnx,args, context=context)
             
             created_etudids.append(etudid)
             # Admissions
@@ -259,7 +259,10 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
             if formsemestre_id not in GroupIdInferers:
                 GroupIdInferers[formsemestre_id] = sco_groups.GroupIdInferer(context, formsemestre_id)
             gi = GroupIdInferers[formsemestre_id]
-            groupes = args['groupes'].split(';')
+            if args['groupes']:
+                groupes = args['groupes'].split(';')
+            else:
+                groupes = []
             group_ids = [ gi[group_name] for group_name in groupes ]
             group_ids = {}.fromkeys(group_ids).keys() # uniq
             if None in group_ids:
@@ -300,12 +303,12 @@ def scolars_import_excel_file( datafile, product_file_path, Notes, REQUEST,
     return diag
 
 
-def scolars_import_admission( datafile, product_file_path, Notes, REQUEST,
+def scolars_import_admission( datafile, product_file_path, context, REQUEST,
                                formsemestre_id=None):
     """Importe données admission depuis fichier Excel
     """
     log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
-    cnx = Notes.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     annee_courante = time.localtime()[0]
     exceldata = datafile.read()
