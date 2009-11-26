@@ -182,10 +182,10 @@ def formsemestre_synchro_etuds(
             <ul>
                 <li><a class="stdlink" href="formsemestre_synchro_etuds?formsemestre_id=%s">Continuer la synchronisation</a></li>""" % formsemestre_id)
             #
-            partition = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)
-            if partition['partition_id'] != formsemestre_get_main_partition(context, formsemestre_id)['partition_id']: # il y a au moins une vraie partition
+            partitions = sco_groups.get_partitions_list(context, formsemestre_id, with_default=False)
+            if partitions: # il y a au moins une vraie partition
                 H.append("""<li><a class="stdlink" href="affectGroups?partition_id=%s">Répartir les groupes de %s</a></li>
-                """ % (partition['partition_id'],partition['partition_name']))
+                """ % (partitions[0]['partition_id'],partitions[0]['partition_name']))
     
     H.append(footer)    
     return '\n'.join(H)
