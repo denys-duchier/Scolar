@@ -553,9 +553,10 @@ def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialo
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
     #
     NotesDB = context._notes_getall(evaluation_id)        
-    etudids = context.do_evaluation_listeetuds_groups(evaluation_id,
-                                                   getallstudents=True,
-                                                   include_dems=False)
+    etudids = sco_groups.do_evaluation_listeetuds_groups(context,
+                                                         evaluation_id,
+                                                         getallstudents=True,
+                                                         include_dems=False)
     notes = []
     for etudid in etudids: # pour tous les inscrits
         if not NotesDB.has_key(etudid): # pas de note
