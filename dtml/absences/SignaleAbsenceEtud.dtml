@@ -4,7 +4,8 @@
   -->
 </dtml-comment>
 
-<dtml-in "getEtudInfo(filled=1,REQUEST=REQUEST)" mapping>
+<dtml-let etud="getEtudInfo(filled=1, REQUEST=REQUEST)">
+<dtml-in etud mapping>
 
 <dtml-var "sco_header(page_title='Signalement d\'une absence pour
     '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
@@ -22,7 +23,7 @@
 <h2>Signalement d'une absence pour <dtml-var nomprenom> (<dtml-var inscription>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
-<dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>
+<dtml-var "etud_photo_html(etud[0], title='fiche de '+nom, REQUEST=REQUEST)"></a>
 </td></tr></table>
 
 <form action="doSignaleAbsence" method="get"> 
@@ -62,3 +63,4 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 <dtml-var sco_footer>
 </dtml-in>
+</dtml-let etud>

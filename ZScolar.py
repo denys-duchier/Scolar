@@ -28,6 +28,7 @@
 """Site Scolarite pour département IUT
 """
 
+import sys
 import time, string, glob, re
 import urllib, urllib2, cgi, xml
 try: from cStringIO import StringIO
@@ -59,11 +60,7 @@ log("restarting...")
 
 # where we exist on the file system
 file_path = Globals.package_home(globals())
-
-# Hackery to use packages in pour product
-import sys
 log( 'ZScolar home=%s' % file_path )
-#sys.path.append( file_path )
 
 from sco_utils import *
 from notesdb import *
@@ -74,6 +71,7 @@ import sco_preferences
 import sco_formations
 from scolars import format_nom, format_prenom, format_sexe, format_lycee, format_lycee_from_code
 from scolars import format_telephone, format_pays, make_etud_args
+import sco_photos
 
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
@@ -1244,7 +1242,7 @@ class ZScolar(ObjectManager,
                       sexe=quote_xml_attr(etud['sexe']),
                       nomprenom=quote_xml_attr(etud['nomprenom']),
                       email=quote_xml_attr(etud['email']),
-                      photo_url=quote_xml_attr(self.etudfoto_url(etudid)))
+                      photo_url=quote_xml_attr(sco_photos.etud_photo_url(context, etud)))
         doc._push()
         sem = etud['cursem']
         if sem:
@@ -1531,96 +1529,16 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoView, 'partition_create')
     partition_create = sco_groups.partition_create
-    
-    # --- Trombi: gestion photos
-    # Ancien systeme (www-gtr):
-    #  fotos dans ZODB, folder Fotos, id=identite.foto
-    security.declareProtected(ScoView, 'etudfoto')
-    def etudfoto(self, etudid, foto=None, fototitle=''):
-        "html foto (taille petite)"        
-        url = self.etudfoto_url(etudid, foto=foto)
-        if self.etudfoto_islocal(etudid):
-            alt = "photo"
-        else:
-            alt = "photo (hors ScoDoc)"
-        return '<img src="%s" alt="%s" title="" height="90" border="0" />' % (url,alt)
-    # XXX la taille devrait etre paramétrable (seulement si photo locale)
 
-    def etudfoto_img(self, etudid, foto=None):
-        if foto is None:
-            cnx = self.GetDBConnexion()
-            etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
-            foto = etud['foto']
-        try:
-            img = getattr(self.Fotos, foto)
-        except:
-            try:
-                img = getattr(self.Fotos, foto + '.h90.jpg' )
-            except:
-                img = getattr(self.icons, 'unknown_img')        
-        return img
+    security.declareProtected(ScoView, 'etud_photo_html')
+    etud_photo_html = sco_photos.etud_photo_html # used from legacy DTML
 
-    security.declareProtected(ScoView, 'etudfoto_islocal')
-    def etudfoto_islocal(self, etudid):
-        "True if ScoDoc has a copy of the photo"
-        cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
-        foto = etud['foto']
-        if not foto:
-            return False # no photo data
-        try:
-            getattr(self.Fotos, foto)
-            return True
-        except:
-            try:
-                getattr(self.Fotos, foto + '.h90.jpg' )
-                return True
-            except:
-                pass
-        return False
-
-    def etudfoto_url(self, etudid, foto=None):
-        """URL de la photo (petit format):
-        soit sur ScoDoc, soit sur le portail, 
-        soit image 'inconnu'
-        """
-        etud = None
-        if foto is None:    
-            cnx = self.GetDBConnexion()
-            etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
-            foto = etud['foto']
-        if foto:
-            try:
-                img = getattr(self.Fotos, foto)
-                return img.absolute_url()
-            except:
-                try:
-                    img = getattr(self.Fotos, foto + '.h90.jpg' )
-                    return img.absolute_url()
-                except:
-                    pass
-        # Portail ?
-        if not etud:
-            cnx = self.GetDBConnexion()
-            etud = scolars.etudident_list(cnx, {'etudid': etudid })[0]
-        portal_url = sco_portal_apogee.get_portal_url(self)
-        if portal_url and etud['code_nip']:
-            return portal_url + '/getPhoto.php?nip=' + etud['code_nip']
-        
-        # fallback: Photo "inconnu"
-        try:
-            img = getattr(self.icons, 'unknown_img')
-            return img.absolute_url()
-        except AttributeError:
-            log('error: etudfoto_url: no icons ?')
-            return '' # install incorrecte, pas d'images !
-        
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     def formChangePhoto(self, etudid=None, REQUEST=None):
         """Formulaire changement photo étudiant
         """
         etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
-        if self.etudfoto_islocal(etudid):
+        if sco_photos.etud_photo_is_local(self,etud):
             etud['photoloc'] = 'dans ScoDoc'
         else:
             etud['photoloc'] = 'externe'
@@ -1628,7 +1546,7 @@ function tweakmenu( gname ) {
              """<h2>Changement de la photo de %(nomprenom)s</h2>
              <p>Photo actuelle (%(photoloc)s):             
              """ % etud,
-             self.etudfoto(etudid,fototitle='photo actuelle'),
+             sco_photos.etud_photo_html(self, etud, title='photo actuelle', REQUEST=REQUEST),
              """</p><p>Le fichier ne doit pas dépasser 500Ko (recadrer l'image, format "portrait" de préférence).</p>
              <p>L'image sera automagiquement réduite pour obtenir une hauteur de 90 pixels.</p>
              """ ]
@@ -1636,53 +1554,37 @@ function tweakmenu( gname ) {
             REQUEST.URL0, REQUEST.form, 
             ( ('etudid',  { 'default' : etudid, 'input_type' : 'hidden' }),
               ('photofile', { 'input_type' : 'file', 'title' : 'Fichier image', 'size' : 20 }),    
-              ('suppress', {'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'supprimer la photo actuelle' }),
               ),
             submitlabel = 'Valider', cancelbutton='Annuler'
             )
         if  tf[0] == 0:
-            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+            return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formSuppressPhoto?etudid=%s">Supprimer cette photo</a></p>'%etudid + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ficheEtud?etudid=' + etud['etudid'] )
         else:
-            r = self.doChangePhoto(tf[2]['etudid'],  tf[2]['photofile'], REQUEST, suppress=tf[2]['suppress'])
-            if r != 0:
+            data = tf[2]['photofile'].read()
+            status, diag = sco_photos.store_photo(self, etud, data, REQUEST=REQUEST)
+            if status != 0:
                 return REQUEST.RESPONSE.redirect( self.ScoURL() + '/ficheEtud?etudid=' + etud['etudid'] )
             else:
-                H.append('<p>Erreur:' + r[1] + '</p>')
+                H.append('<p class="warning">Erreur:' + diag + '</p>')
         return '\n'.join(H) + self.sco_footer(REQUEST)
 
-    security.declareProtected(ScoEtudChangeAdr, 'doChangePhoto')
-    def doChangePhoto(self, etudid, photofile, REQUEST, suppress=False, filesize=None):
-        """Change la photo d'un etudiant
-        Si suppress, supprime la photo existante.
+    security.declareProtected(ScoEtudChangeAdr, 'formSuppressPhoto')
+    def formSuppressPhoto(self, etudid=None, REQUEST=None, dialog_confirmed=False):
+        """Formulaire suppression photo étudiant
         """
-        cnx = self.GetDBConnexion() 
-        if photofile:
-            if not filesize:
-                # mesure la taille du fichier uploaded
-                filesize = len(photofile.read())
-                photofile.seek(0)
-            if filesize < 10 or filesize > 800*1024:
-                return 0, 'Fichier image de taille invalide ! (%d)' % filesize
-            # find a free id
-            num = 0
-            while hasattr( self.Fotos, 'img_n_%05d.h90.jpg' % num):
-                num = num + 1
-            nt = 'n_%05d' % num
-            photo_id='img_' + nt + '.h90.jpg'
-            try:
-                small_img = imageresize.ImageScaleH(photofile,H=90)
-            except:
-                return 0, 'impossible de redimensionner la photo'
-            self.Fotos.manage_addProduct['OFSP'].manage_addImage(photo_id, small_img, etudid )
-            # Update database
-            scolars.identite_edit(cnx,args={'etudid':etudid,'foto':photo_id})
-            logdb(REQUEST,cnx,method='changePhoto',msg=photo_id,etudid=etudid)
-        elif suppress:
-            scolars.identite_edit(cnx,args={'etudid':etudid,'foto':'unknown_img'})
-            logdb(REQUEST,cnx,method='changePhoto',msg='supression', etudid=etudid)
-        return 1, 'ok'
+        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        if not dialog_confirmed:
+            return self.confirmDialog(
+                '<p>Confirmer la suppression de la photo de %(nomprenom)s ?</p>' % etud,
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="ficheEtud?etudid=%s"%etudid,
+                parameters={'etudid' : etudid})
+        
+        sco_photos.suppress_photo(self, etud, REQUEST=REQUEST)
+        
+        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ficheEtud?etudid=' + etud['etudid'] )
     #
     security.declareProtected(ScoEtudInscrit, "formDem")
     def formDem(self, etudid, formsemestre_id, REQUEST):

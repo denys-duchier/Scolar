@@ -34,7 +34,7 @@ import pdfbulletins
 import sco_pvjury
 from sco_pdf import PDFLOCK
 import sco_formsemestre_status
-
+import sco_photos
 
 def make_formsemestre_bulletinetud(
     context, formsemestre_id, etudid,
@@ -309,7 +309,7 @@ def make_xml_formsemestre_bulletinetud(
         nom=quote_xml_attr(etudinfo['nom']),
         prenom=quote_xml_attr(etudinfo['prenom']),
         sexe=quote_xml_attr(etudinfo['sexe']),
-        photo_url=quote_xml_attr(context.etudfoto_url(etudid)),
+        photo_url=quote_xml_attr(sco_photos.etud_photo_url(context, etudinfo)),
         email=quote_xml_attr(etudinfo['email']))    
     doc._pop()
 
@@ -669,7 +669,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     #
     H.append("""</form></span></td><td class="bull_photo">
     <a href="%s/ficheEtud?etudid=%s">%s</a>
-    """ % (context.ScoURL(),etudid, context.etudfoto(foto=etud['foto'],etudid=etudid,fototitle='fiche de '+etud['nom'])))
+    """ % (context.ScoURL(), etudid, sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)))
     H.append("""</td></tr>
     </table>
     """)

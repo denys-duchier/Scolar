@@ -250,7 +250,10 @@ for dept in get_depts():
     check_field(cnx, 'scolar_formsemestre_validation', 'moy_ue',
                 ['alter table scolar_formsemestre_validation add column moy_ue real',
                  ])
-    
+    # Add photo_filename
+    check_field(cnx, 'identite', 'photo_filename',
+                ['alter table identite add column photo_filename text',
+                 ])
     # Add here actions to performs after upgrades:
 
     cnx.commit()

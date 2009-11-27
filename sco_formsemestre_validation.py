@@ -37,10 +37,11 @@ import notes_table
 
 import sco_parcours_dut, sco_codes_parcours
 import sco_pvjury
-    
+import sco_photos
+
 # ------------------------------------------------------------------------------------
 def formsemestre_validation_etud_form(
-    znotes, # ZNotes instance
+    context, # ZNotes instance
     formsemestre_id=None, # required
     etudid=None, # one of etudid or etud_index is required
     etud_index=None,
@@ -49,7 +50,7 @@ def formsemestre_validation_etud_form(
     sortcol=None,
     readonly=True,
     REQUEST=None):
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     T = nt.get_table_moyennes_triees()
     if not etudid and not etud_index:
         raise ValueError('formsemestre_validation_etud_form: missing argument etudid')
@@ -76,12 +77,12 @@ def formsemestre_validation_etud_form(
     if readonly:
         check = True
     
-    etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
-    Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+    etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
     if Se.sem['etat'] != '1':
         raise ScoValueError('validation: semestre verrouille')
     
-    H = [ znotes.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
+    H = [ context.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
@@ -90,10 +91,10 @@ def formsemestre_validation_etud_form(
         H.append('<h2 class="formsemestre">Parcours de %s</h2>' % (etud['nomprenom']) )
     
     H.append('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
-             % (znotes.ScoURL(), etudid,
-                znotes.etudfoto(etudid, foto=etud['foto'],
-                                fototitle='fiche de %s'%etud['nom'])))
-    H.append( formsemestre_recap_parcours_table(znotes, Se, etudid, check and not readonly) )
+             % (context.ScoURL(), etudid,    
+                sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST)))
+    
+    H.append( formsemestre_recap_parcours_table(context, Se, etudid, check and not readonly) )
     if check:
         if not desturl:
             desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id='+formsemestre_id
@@ -102,13 +103,13 @@ def formsemestre_validation_etud_form(
             desturl += '#etudid%s' % etudid # va a la bonne ligne
         H.append('<ul><li><a href="%s">Continuer</a></li>' % desturl)
         if etud_index_prev != None:
-            etud = znotes.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
+            etud = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
             H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant précédent (%s)</a></li>""" % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
         if etud_index_next != None:
-            etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
+            etud = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
             H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant suivant (%s)</a></li>""" % (formsemestre_id,etud_index_next, etud['nomprenom']) )
         H.append('</ul>')
-        H.append(znotes.sco_footer(REQUEST))
+        H.append(context.sco_footer(REQUEST))
         return '\n'.join(H)
 
     # Infos si pas de semestre précédent
@@ -120,7 +121,7 @@ def formsemestre_validation_etud_form(
     else:
         if not Se.prev_decision:
             H.append(tf_error_message("""Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
-            H.append(znotes.sco_footer(REQUEST))
+            H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
 
     # Infos sur decisions déjà saisies
@@ -133,7 +134,7 @@ def formsemestre_validation_etud_form(
         H.append('<p>Décision existante du %(event_date)s: %(code)s' % decision_jury )
         H.append(' (%s)' % ass )
         auts = sco_parcours_dut.formsemestre_get_autorisation_inscription(
-            znotes, etudid, formsemestre_id)
+            context, etudid, formsemestre_id)
         if auts:
             H.append( '. Autorisé%s à s\'inscrire en ' % etud['ne'] )
             alist = []
@@ -160,7 +161,7 @@ def formsemestre_validation_etud_form(
             H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
         H.append('</form></div>')
 
-        H.append(znotes.sco_footer(REQUEST))
+        H.append(context.sco_footer(REQUEST))
         return '\n'.join(H)
 
     # Explication sur barres actuelles
@@ -201,7 +202,7 @@ def formsemestre_validation_etud_form(
     H.append('<p><br/></p><input type="submit" value="Valider ce choix" disabled="1" id="subut"/>')
     H.append('</form>')
 
-    H.append( form_decision_manuelle(znotes, Se, formsemestre_id, etudid) )
+    H.append( form_decision_manuelle(context, Se, formsemestre_id, etudid) )
 
     H.append('<p style="font-size: 50%;">Formation ' )
     if Se.sem['gestion_semestrielle'] == '1':
@@ -212,25 +213,25 @@ def formsemestre_validation_etud_form(
     # navigation suivant/precedent
     H.append('<p>')
     if etud_index_prev != None:
-        etud = znotes.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
+        etud = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
         H.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
     if etud_index_next != None:
-        etud = znotes.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
+        etud = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
         H.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud['nomprenom']) )
     H.append('</p>')
-    H.append(znotes.sco_footer(REQUEST))
+    H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
 def formsemestre_validation_etud(
-    znotes, # ZNotes instance
+    context, # ZNotes instance
     formsemestre_id=None, # required
     etudid=None, # required
     codechoice=None, # required
     desturl='', sortcol=None,
     REQUEST=None):
     """Enregistre validation"""
-    etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
-    Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+    etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
     # retrouve la decision correspondant au code:
     choices = Se.get_possible_choices(assiduite=True)
     choices += Se.get_possible_choices(assiduite=False)
@@ -246,7 +247,7 @@ def formsemestre_validation_etud(
     _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST)
 
 def formsemestre_validation_etud_manu(
-    znotes, # ZNotes instance
+    context, # ZNotes instance
     formsemestre_id=None, # required
     etudid=None, # required
     code_etat='', new_code_prev='', devenir='', # required (la decision manuelle)
@@ -257,8 +258,8 @@ def formsemestre_validation_etud_manu(
     """Enregistre validation"""    
     if assidu:
         assidu = 1
-    etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
-    Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+    etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
     # Si code ADC, extrait le semestre utilisé:
     if code_etat[:3] == 'ADC':
         formsemestre_id_utilise_pour_compenser = code_etat.split('_')[1]
@@ -335,7 +336,7 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
     return '\n'.join(H)
 
 
-def formsemestre_recap_parcours_table( znotes, Se, etudid, with_links=False,
+def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
                                        with_all_columns=True,
                                        a_url='',
                                        sem_info={},
@@ -379,11 +380,11 @@ function toggle_vis(e) { // change visi of following row in table
     }
 }
 </script>
-        """ % (znotes.icons.minus_img.tag(border="0", alt="-"), 
-               znotes.icons.plus_img.tag(border="0", alt="+"))]
+        """ % (context.icons.minus_img.tag(border="0", alt="-"), 
+               context.icons.plus_img.tag(border="0", alt="+"))]
     linktmpl  = '<span onclick="toggle_vis(this);">%s</span>'
-    minuslink = linktmpl % znotes.icons.minus_img.tag(border="0", alt="-")
-    pluslink  = linktmpl % znotes.icons.plus_img.tag(border="0", alt="+")
+    minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
+    pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
     if show_details:
         sd = ' recap_show_details'
         plusminus = minuslink
@@ -408,12 +409,12 @@ function toggle_vis(e) { // change visi of following row in table
         is_cur = (Se.formsemestre_id == sem['formsemestre_id'])        
         num_sem += 1
         
-        dpv = sco_pvjury.dict_pvjury(znotes, sem['formsemestre_id'], etudids=[etudid])
+        dpv = sco_pvjury.dict_pvjury(context, sem['formsemestre_id'], etudids=[etudid])
         pv = dpv['decisions'][0]
         decision_sem = pv['decision_sem']
         decisions_ue = pv['decisions_ue']
 
-        nt = znotes._getNotesCache().get_NotesTable(znotes, sem['formsemestre_id'] )
+        nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id'] )
         if is_cur:
             type_sem = '*' # now unused
             class_sem = 'sem_courant'
@@ -474,8 +475,8 @@ function toggle_vis(e) { // change visi of following row in table
         # Absences (nb d'abs non just. dans ce semestre)
         debut_sem = DateDMYtoISO(sem['date_debut'])
         fin_sem = DateDMYtoISO(sem['date_fin'])
-        nbabs = znotes.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = znotes.Absences.CountAbsJust(etudid=etudid,
+        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
+        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
                                                  debut=debut_sem,fin=fin_sem)
         H.append('<td class="rcp_abs">%d</td>' % (nbabs-nbabsjust) )
         # Moy Gen
@@ -499,7 +500,7 @@ function toggle_vis(e) { // change visi of following row in table
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
         # indique le semestre compensé par celui ci:
         if decision_sem and decision_sem['compense_formsemestre_id']:
-            csem = znotes.do_formsemestre_list(
+            csem = context.do_formsemestre_list(
                 {'formsemestre_id' : decision_sem['compense_formsemestre_id']})[0]
             H.append('<td><em>compense S%s</em></td>' % csem['semestre_id'] )
         else:
@@ -512,7 +513,7 @@ function toggle_vis(e) { // change visi of following row in table
     return '\n'.join(H)
 
 
-def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sortcol=None):
+def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sortcol=None):
     """Formulaire pour saisie décision manuelle
     """
     H = [ """
@@ -603,10 +604,10 @@ def form_decision_manuelle(znotes, Se, formsemestre_id, etudid, desturl='', sort
     return '\n'.join(H)
 
 # ----------- 
-def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
+def  formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     "Formulaire saisie automatisee des decisions d'un semestre"
-    sem= znotes.get_formsemestre(formsemestre_id)
-    H = [ znotes.html_sem_header(REQUEST, 'Saisie automatique des décisions du semestre', sem),
+    sem= context.get_formsemestre(formsemestre_id)
+    H = [ context.html_sem_header(REQUEST, 'Saisie automatique des décisions du semestre', sem),
           """
     <ul>
     <li>Seuls les étudiants qui obtiennent le semestre seront affectés (code ADM, moyenne générale et
@@ -623,22 +624,22 @@ def  formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
     <p><em>Le calcul prend quelques minutes, soyez patients !</em></p>
     </form>
     """  % formsemestre_id,
-          znotes.sco_footer(REQUEST)
+          context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)
 
-def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
+def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     "Saisie automatisee des decisions d'un semestre"
-    sem= znotes.get_formsemestre(formsemestre_id)
+    sem= context.get_formsemestre(formsemestre_id)
     next_semestre_id = sem['semestre_id'] + 1
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
     nb_valid = 0
     conflicts = [] # liste des etudiants avec decision differente déjà saisie
     for etudid in etudids:
-        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
-        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
-        ins = znotes.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
+        ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
         
         # Conditions pour validation automatique:
         if ins['etat'] == 'I' and ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
@@ -651,7 +652,7 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
                 ok = False
                 conflicts.append(etud)
             autorisations = sco_parcours_dut.formsemestre_get_autorisation_inscription(
-                znotes, etudid, formsemestre_id)
+                context, etudid, formsemestre_id)
             if len(autorisations) != 0: # accepte le cas ou il n'y a pas d'autorisation : BUG 23/6/7, A RETIRER ENSUITE
                 if len(autorisations) != 1 or autorisations[0]['semestre_id'] != next_semestre_id:
                     if ok:
@@ -660,14 +661,14 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
                 
             # ok, valide !
             if ok:
-                formsemestre_validation_etud_manu(znotes, formsemestre_id, etudid,
+                formsemestre_validation_etud_manu(context, formsemestre_id, etudid,
                                                   code_etat='ADM',
                                                   devenir = 'NEXT',
                                                   assidu = True,
                                                   REQUEST=REQUEST, redirect=False)
                 nb_valid += 1
     log('do_formsemestre_validation_auto: %d validations, %d conflicts' % (nb_valid, len(conflicts)))
-    H = [ znotes.sco_header(REQUEST, page_title='Saisie automatique') ]
+    H = [ context.sco_header(REQUEST, page_title='Saisie automatique') ]
     H.append("""<h2>Saisie automatique des décisions du semestre %s</h2>
     <p>Opération effectuée.</p>
     <p>%d étudiants validés (sur %s)</p>""" % (sem['titreannee'], nb_valid, len(etudids)))
@@ -680,11 +681,11 @@ def do_formsemestre_validation_auto(znotes, formsemestre_id, REQUEST):
         H.append('</ul>')
     H.append('<a href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">continuer</a>'
              % formsemestre_id)
-    H.append(znotes.sco_footer(REQUEST))
+    H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
     
 
-def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
+def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
     """
     Suite à un bug (fix svn 502, 26 juin 2008), les UE sans notes ont parfois été validées
     avec un code ADM (au lieu de AJ ou ADC, suivant le code semestre).
@@ -698,15 +699,15 @@ def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
     N'affecte que le semestre indiqué, pas les précédents.
     """
     from sco_codes_parcours import *
-    sem= znotes.get_formsemestre(formsemestre_id)
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    sem= context.get_formsemestre(formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
     modifs = [] # liste d'étudiants modifiés
-    cnx = znotes.GetDBConnexion()
+    cnx = context.GetDBConnexion()
     for etudid in etudids:
-        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
-        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
-        ins = znotes.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+        Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
+        ins = context.do_formsemestre_inscription_list({'etudid':etudid, 'formsemestre_id' : formsemestre_id})[0]
         decision_sem = nt.get_etud_decision_sem(etudid)
         if not decision_sem:
             continue # pas encore de decision semestre
@@ -738,17 +739,17 @@ def formsemestre_fix_validation_ues(znotes, formsemestre_id, REQUEST=None):
                 log(msg)
                 sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
     #
-    H = [znotes.sco_header(REQUEST, page_title='Réparation des codes UE'),
-         znotes.formsemestre_status_head(znotes, REQUEST=REQUEST,
-                                         formsemestre_id=formsemestre_id )
+    H = [context.sco_header(REQUEST, page_title='Réparation des codes UE'),
+         context.formsemestre_status_head(context, REQUEST=REQUEST,
+                                          formsemestre_id=formsemestre_id )
          ]
     if modifs:
         H = H + [ '<h2>Modifications des codes UE</h2>', '<ul><li>',
                   '</li><li>'.join(modifs), '</li></ul>' ]
-        znotes._inval_cache(formsemestre_id=formsemestre_id)
+        context._inval_cache(formsemestre_id=formsemestre_id)
     else:
         H.append('<h2>Aucune modification: codes UE corrects ou inexistants</h2>')
-    H.append(znotes.sco_footer(REQUEST))
+    H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
 

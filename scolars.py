@@ -140,7 +140,7 @@ _identiteEditor = EditableTable(
     ('etudid','nom','prenom','sexe',
      'date_naissance','lieu_naissance',
      'nationalite',
-     'foto', 'code_ine', 'code_nip'),
+     'foto', 'photo_filename', 'code_ine', 'code_nip'),
     sortkey = 'nom',
     input_formators = { 'nom' : force_uppercase,
                         'prenom' : force_uppercase,

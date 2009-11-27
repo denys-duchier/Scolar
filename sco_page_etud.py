@@ -34,6 +34,7 @@
 from sco_utils import *
 from notesdb import *
 import scolars
+import sco_photos
 import sco_groups
 from scolars import format_telephone, format_pays, make_etud_args
 from sco_formsemestre_status import makeMenu
@@ -107,7 +108,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     info['info_naissance'] = info['date_naissance']
     if info['lieu_naissance']:
         info['info_naissance'] += ' à ' + info['lieu_naissance']
-    info['etudfoto'] = context.etudfoto(etudid,foto=etud['foto'])
+    info['etudfoto'] = sco_photos.etud_photo_html(context, etud, REQUEST=REQUEST)
     if ((not info['domicile']) and (not info['codepostaldomicile'])
         and (not info['villedomicile'])):
         info['domicile'] ='<em>inconnue</em>'

@@ -4,8 +4,8 @@
   -->
 </dtml-comment>
 
-
-<dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
+<dtml-let etud="getEtudInfo(filled=1, REQUEST=REQUEST)">
+<dtml-in etud mapping>
 
 <dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
 
@@ -14,7 +14,7 @@
 	  <dtml-var nomprenom> (<dtml-var inscription>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
-<dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a>
+<dtml-var "etud_photo_html(etud[0], title='fiche de '+nom, REQUEST=REQUEST)"></a>
 </td></tr></table>
 
 <p>A n'utiliser que suite à une erreur de saisie ou lorsqu'il s'avère
@@ -67,3 +67,5 @@
 
 <dtml-var sco_footer>
 </dtml-in getEtudInfo>
+
+</dtml-let etud>

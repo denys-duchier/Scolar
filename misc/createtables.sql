@@ -52,9 +52,10 @@ CREATE TABLE identite (
     date_naissance date, -- new: date en texte
     lieu_naissance text,
     nationalite text,    
-    foto text,
+    foto text, -- deprecated
+    photo_filename text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)
-    code_ine text UNIQUE  -- code INE Apogee
+    code_ine text UNIQUE  -- code INE Apogee    
 )  WITH OIDS;
 
 CREATE TABLE adresse (

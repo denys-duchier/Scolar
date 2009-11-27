@@ -5,7 +5,10 @@
      Description..: Calendrier des absences d'un etudiant
   -->
 </dtml-comment>
-<dtml-in "getEtudInfo(filled=1, REQUEST=REQUEST)" mapping>
+
+<dtml-let etud="getEtudInfo(filled=1, REQUEST=REQUEST)">
+<dtml-in etud mapping>
+
 <dtml-var "sco_header(page_title='Calendrier des absences de '+sexe+' '+nom,REQUEST=REQUEST,cssstyles=['calabs.css'])">
 
 
@@ -26,7 +29,7 @@
 
 </td>
 <td><a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
-<dtml-var "etudfoto(etudid,fototitle='fiche de '+nom)"></a></td>
+<dtml-var "etud_photo_html(etud[0], title='fiche de '+nom, REQUEST=REQUEST)"></a></td>
 </tr>
 </table>
 
@@ -60,3 +63,4 @@ Changer ann&eacute;e: <select name="sco_year" onChange="document.f.submit()">
 </form>
 </dtml-in getEtudInfo>
 <dtml-var sco_footer>
+</dtml-let etud>

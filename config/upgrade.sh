@@ -19,19 +19,24 @@ echo "Stopping ScoDoc..."
 
 echo
 echo "Using SVN to update $SCODOC_DIR..."
-(cd $SCODOC_DIR; svn update)
+(cd "$SCODOC_DIR"; svn update)
 
 SVNVERSION=$(cd ..; svnversion)
-if [ -e $SCODOC_DIR/config/scodoc.sn ]
+if [ -e "$SCODOC_DIR"/config/scodoc.sn ]
 then
-  SN=$(cat $SCODOC_DIR/config/scodoc.sn)
+  SN=$(cat "$SCODOC_DIR"/config/scodoc.sn)
+  if [ ${SN:0:5} == '<body' ] 
+  then
+    SN='' # fix for invalid previous replies
+  fi 
   mode=upgrade
 else
   mode=install  
 fi
-SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn=$SVNVERSION\&sn=$SN)
+
+SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn="$SVNVERSION"\&sn="$SN")
 if [ ! -z "$SVERSION" ]; then
-  echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
+  echo "${SVERSION}" > "${SCODOC_DIR}"/config/scodoc.sn
 fi
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
@@ -42,9 +47,14 @@ then
   exit 0
 fi
 
+# check permissions
+# ScoDoc must be able to write to this directory:
+chgrp -R www-data "${SCODOC_DIR}"/static/photos
+chmod -R g+w "${SCODOC_DIR}"/static/photos
+
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
-$SCODOC_DIR/config/postupgrade.py
+"$SCODOC_DIR"/config/postupgrade.py
 
 echo "Executing post-upgrade database script..."
 su -c "$SCODOC_DIR/config/postupgrade-db.py" $POSTGRES_USER

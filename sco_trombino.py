@@ -31,12 +31,13 @@
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
-import urllib, urllib2, xml
+import xml
 import tempfile
 
 from notes_log import log
 from sco_utils import *
 from scolars import format_nom, format_prenom, format_sexe
+import sco_photos
 import sco_groups
 import sco_portal_apogee
 from sco_formsemestre_status import makeMenu
@@ -55,16 +56,21 @@ def trombino(context,REQUEST, group_id,
     #
     if format != 'html' and not dialog_confirmed:
         # check that we have local copies of all images
+        nb_missing = 0
         for t in members:
             etudid = t['etudid']
-            if not context.etudfoto_islocal(etudid):
-                parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
-                return context.confirmDialog(
-                    """<p>Attention: certaines photos ne sont pas stockées dans ScoDoc et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino_copy_photos?%s">copier les photos du portail dans ScoDoc</a> ou bien <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (args, args),
-                    dest_url = 'trombino',
-                    OK = 'Exporter seulement les photos existantes',
-                    cancel_url="trombino?%s"%args,
-                    REQUEST=REQUEST, parameters=parameters )
+            url = sco_photos.etud_photo_url(context, t) # -> copy distant files if needed
+            if not sco_photos.etud_photo_is_local(context, t):
+                nb_missing += 1
+        if nb_missing > 0:
+            parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
+            return context.confirmDialog(
+                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args),
+                dest_url = 'trombino',
+                OK = 'Exporter seulement les photos existantes',
+                cancel_url="trombino?%s"%args,
+                REQUEST=REQUEST, parameters=parameters )
+    
     if format == 'zip':
         return _trombino_zip(context, members, REQUEST)
     elif format == 'pdf':
@@ -82,21 +88,24 @@ def trombino(context,REQUEST, group_id,
               }
             ]
         nbcols = int(nbcols)
-        if group['group_name'] != None:
-            ng = 'Groupe %s' % group['group_name']
+        if members:
+            if group['group_name'] != None:
+                ng = 'Groupe %s' % group['group_name']
+            else:
+                ng = 'Tous les étudiants'
         else:
-            ng = 'Tous les étudiants'
-        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]            
-        H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td></tr></table>' )
-
+            ng = "Aucun étudiant inscrit dans ce semestre !"
+        H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]
+        if members:
+            H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td>' )
+        H.append('</tr></table>')
         H.append('<div><table width="100%">')
         i = 0
         for t in members:
             if i % nbcols == 0:
                 H.append('<tr>')
             H.append('<td align="center">')
-            foto = context.etudfoto(t['etudid'],fototitle='fiche de '+ t['nom'],
-                                 foto=t['foto'] )
+            foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
             H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
             H.append('<br/>' + t['prenom'] + '<br/>' + t['nom'] )
             H.append('</td>')
@@ -112,14 +121,19 @@ def _trombino_zip(context, T, REQUEST ):
     data = StringIO()
     Z = ZipFile( data, 'w' )                        
     # assume we have the photos (or the user acknowledged the fact)
+    # Archive originals (not reduced) images, in JPEG
     for t in T:
-        fotoimg=context.etudfoto_img(t['etudid'],foto=t['foto'])
+        rel_path = sco_photos.has_photo(context, t)
+        if not rel_path:
+            continue
+        path = SCO_SRCDIR + '/' + rel_path
+        img = open(path).read()
         code_nip = t['code_nip']
         if code_nip:
             filename = code_nip + '.jpg'
         else:
             filename = t['nom'] + '_' + t['prenom'] + '_' + t['etudid'] + '.jpg'
-        Z.writestr( filename, fotoimg.data )
+        Z.writestr( filename, img )
     Z.close()
     size = data.tell()
     log('trombino_zip: %d bytes'%size)
@@ -132,39 +146,36 @@ def _trombino_zip(context, T, REQUEST ):
 
 
 # Copy photos from portal to ScoDoc
-def trombino_copy_photos(context, group_id, etat=None,REQUEST=None):
-    "Copy photos from portal to ScoDoc (only if we don't have a local copy)"
-    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
+def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False):
+    "Copy photos from portal to ScoDoc (overwriting local copy)"
+    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=None)
+    if group['group_name'] != None:
+        ng = 'Groupe %s' % group['group_name']
+    else:
+        ng = 'Tous les étudiants'
     portal_url = sco_portal_apogee.get_portal_url(context)
     header = context.sco_header(REQUEST, page_title='Chargement des photos') 
     footer = context.sco_footer(REQUEST)
     if not portal_url:
-        return header + '<p>portail non configuré</p>' + footer
+        return header + '<p>portail non configuré</p><p><a href="trombino?group_id=%s">Retour au trombinoscope</a></p>'%group_id + footer
+    if not dialog_confirmed:
+        return context.confirmDialog(
+                """<h2>Copier les photos du portail vers ScoDoc ?</h2>
+                <p>Les photos du groupe %s présentes dans ScoDoc seront remplacées par celles du portail (si elles existent).</p>
+                <p>(les photos sont normalement automatiquement copiées lors de leur première utilisation, l'usage de cette fonction n'est nécessaire que si les photos du portail ont été modifiées)</p>
+                """ % (ng),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="trombino?group_id=%s" % group_id,
+                parameters={'group_id': group_id})
+    
     msg = []
     nok = 0
     for etud in members:
-        etudid = etud['etudid']
-        if not context.etudfoto_islocal(etudid):
-            if not etud['code_nip']:
-                msg.append('%s: pas de code NIP' % context.nomprenom(etud))
-            else:
-                url = portal_url + '/getPhoto.php?nip=' + etud['code_nip']
-                f = None
-                try:
-                    f = urllib2.urlopen( url )
-                except:
-                    msg.append('%s: erreur chargement de %s' % (context.nomprenom(etud), url))
-                if f:
-                    # Store file in Zope
-                    buf = StringIO()
-                    buf.write( f.read() )
-                    buf.seek(0)
-                    status, diag = context.doChangePhoto( etudid, buf, REQUEST, suppress=True )
-                    if status == 1:
-                        msg.append('%s: photo chargée' % context.nomprenom(etud))
-                        nok += 1
-                    else:
-                        msg.append('%s: <b>%s</b>' % (context.nomprenom(etud), diag))
+        path, diag = sco_photos.copy_portal_photo_to_fs(context, etud)
+        msg.append(diag)
+        if path:
+            nok += 1
+    
     msg.append('<b>%d photos correctement chargées</b>' % nok )
     args='group_id=%s' % group_id
     if etat:
@@ -175,19 +186,7 @@ def trombino_copy_photos(context, group_id, etat=None,REQUEST=None):
 
 def _trombino_pdf(context, sem, ng, T, REQUEST):
     "Send photos as pdf page"
-    # 1-- Dump all images in a temp directory
-    # this is necessary because reportlab expects a filename,
-    # and our photos are stored in Zope ZODB (this could (or should ?) change in the futur
-    tmpdir = tempfile.mkdtemp(dir='/tmp')
-    files = []
-    for t in T:
-        fotoimg=context.etudfoto_img(t['etudid'],foto=t['foto'])
-        filename = tmpdir + '/' + t['etudid'] + '.jpg'
-        files.append(filename)
-        f = open(filename, 'w')
-        f.write(fotoimg.data)
-        f.close()
-    # 2-- Generate PDF page
+    # Generate PDF page
     objects = []
     StyleSheet = styles.getSampleStyleSheet()
     report = StringIO() # in-memory document, no disk file
@@ -200,15 +199,19 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     n = 0
     currow = []
     for t in T:
+        rel_path = sco_photos.has_photo(context, t, version=sco_photos.H90)
+        if not rel_path:
+            continue
+        path = SCO_SRCDIR + '/' + rel_path
         try:
             elem = Table(
-                [ [ Image( tmpdir + '/' + t['etudid'] + '.jpg', width=PHOTOWIDTH ) ],
+                [ [ Image( path, width=PHOTOWIDTH ) ],
                   [ Paragraph(
                 SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
                    + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
                 colWidths=[ PHOTOWIDTH ] )
         except:
-            log('*** exception while processing photo of %s (%s) (tmpdir=%s)' % (t['nom'], t['etudid'], tmpdir))
+            log('*** exception while processing photo of %s (%s) (path=%s)' % (t['nom'], t['etudid'], path))
             raise 
         currow.append( elem )
         if n == (N_PER_ROW-1):
@@ -231,8 +234,5 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
     document.build(objects)
     data = report.getvalue()
-    # Clean temporary files
-    for f in files:
-        os.remove(f)
-    os.rmdir(tmpdir)
+    
     return sendPDFFile(REQUEST, data, filename)

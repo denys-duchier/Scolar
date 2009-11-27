@@ -38,12 +38,22 @@ def has_portal(context):
     "True if we are connected to a portal"
     return get_portal_url(context)
 
-def get_portal_url(context):
-    "URL of portal"
-    portal_url = context.get_preference('portal_url')
-    if not portal_url:
-        log('get_portal_url: undefined "portal_url"')
-    return portal_url
+class PortalInterface:
+    def __init__(self):
+        self.warning = False
+    def get_portal_url(self, context):
+        "URL of portal"
+        portal_url = context.get_preference('portal_url')
+        if not self.warning:
+            if portal_url:
+                log('Portal URL=%s' % portal_url)
+            else:
+                log('Portal not configured')
+            self.warning = True
+        return portal_url
+
+_PI = PortalInterface()
+get_portal_url = _PI.get_portal_url
 
 def get_inscrits_etape(context, code_etape, anneeapogee=None):
     """Liste des inscrits à une étape Apogée
