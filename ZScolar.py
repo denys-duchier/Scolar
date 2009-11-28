@@ -1531,9 +1531,9 @@ function tweakmenu( gname ) {
     partition_create = sco_groups.partition_create
 
     security.declareProtected(ScoView, 'etud_photo_html')
-    def etud_photo_html(self, title=None, REQUEST=None):
+    def etud_photo_html(self, etudid=None, title=None, REQUEST=None):
         "HTML tag for etud photo"
-        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         return sco_photos.etud_photo_html(self, etud, title=title)
 
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
