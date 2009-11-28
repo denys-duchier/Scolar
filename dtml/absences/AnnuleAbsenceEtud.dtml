@@ -14,7 +14,7 @@
 	  <dtml-var nomprenom> (<dtml-var inscription>)</h2>
 </td><td>
 <a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
-<dtml-var "etud_photo_html(etud[0], title='fiche de '+nom, REQUEST=REQUEST)"></a>
+<dtml-var "etud_photo_html(etudid=etudid, title='fiche de '+nom, REQUEST=REQUEST)"></a>
 </td></tr></table>
 
 <p>A n'utiliser que suite à une erreur de saisie ou lorsqu'il s'avère

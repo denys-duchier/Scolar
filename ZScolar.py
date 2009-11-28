@@ -1531,7 +1531,10 @@ function tweakmenu( gname ) {
     partition_create = sco_groups.partition_create
 
     security.declareProtected(ScoView, 'etud_photo_html')
-    etud_photo_html = sco_photos.etud_photo_html # used from legacy DTML
+    def etud_photo_html(self, title=None, REQUEST=None):
+        "HTML tag for etud photo"
+        etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+        return sco_photos.etud_photo_html(self, etud, title=title)
 
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     def formChangePhoto(self, etudid=None, REQUEST=None):

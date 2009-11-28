@@ -29,7 +29,7 @@
 
 </td>
 <td><a href="<dtml-var ScoURL>/ficheEtud?etudid=<dtml-var etudid>">
-<dtml-var "etud_photo_html(etud[0], title='fiche de '+nom, REQUEST=REQUEST)"></a></td>
+<dtml-var "etud_photo_html(etudid=etudid, title='fiche de '+nom, REQUEST=REQUEST)"></a></td>
 </tr>
 </table>
 

@@ -105,7 +105,10 @@ def trombino(context,REQUEST, group_id,
             if i % nbcols == 0:
                 H.append('<tr>')
             H.append('<td align="center">')
-            foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
+            if sco_photos.has_photo(context, t, version=sco_photos.H90):
+                foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
+            else: # la photo n'est pas immédiatement dispo
+                foto = '<span class="unloaded_img" id="%s"><img border="0" height="90" alt="en cours" src="/ScoDoc/static/photos/loading.jpg"/></span>' % t['etudid']
             H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
             H.append('<br/>' + t['prenom'] + '<br/>' + t['nom'] )
             H.append('</td>')
@@ -114,7 +117,8 @@ def trombino(context,REQUEST, group_id,
                 H.append('</tr>')
         H.append('</table><div>')
         # H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
-        return context.sco_header(REQUEST)+'\n'.join(H)+context.sco_footer(REQUEST)
+        return context.sco_header(REQUEST, javascripts=[ 'jQuery/jquery.js', 
+                                                         'js/trombino.js' ]) + '\n'.join(H)+context.sco_footer(REQUEST)
 
 def _trombino_zip(context, T, REQUEST ):
     "Send photos as zip archive"
