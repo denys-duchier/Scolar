@@ -11,7 +11,7 @@ sexe (MR ou MLLE);         text;     identite;   0;  sexe ('MR' ou 'MLLE')
 date_naissance;text;identite;   1;  date de naissance (jj/mm/aaaa)
 lieu_naissance;text;identite; 1; lieu de naissance
 nationalite;  text;     identite;   1;  nationalite
-foto;         text;     identite;   1;  nom du fichier photo (trombinoscope)
+photo_filename; text; identite; 1; nom fichier image
 #
 # Informations pour inscription:
 codesemestre; text;     INS;        0;  code semestre inscription

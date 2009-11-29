@@ -580,10 +580,10 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
         return """<p class="footer">
-Probl&egrave;mes et suggestions: <a href="mailto:%s">%s</a>
-ou <a href="mailto:scodoc-devel@rt.iutv.univ-paris13.fr">scodoc-devel@rt.iutv.univ-paris13.fr</a>
+Probl&egrave;mes et suggestions: <a href="mailto:emmanuel.viennet@univ-paris13.fr">emmanuel.viennet@univ-paris13.fr</a>
+ou <a href="mailto:%s">%s</a>
 </p>
-</body></html>""" % (SCO_DEV_MAIL, SCO_DEV_MAIL)
+</body></html>""" % (SCO_USERS_LIST, SCO_USERS_LIST)
 
     # sendEmail is not used through the web
     def sendEmail(self,msg):

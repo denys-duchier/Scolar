@@ -1934,7 +1934,8 @@ function tweakmenu( gname ) {
         "import students from Excel file"
         diag = ImportScolars.scolars_import_excel_file( csvfile, file_path, self.Notes, REQUEST, 
                                                         formsemestre_id=formsemestre_id, 
-                                                        check_homonyms=check_homonyms )
+                                                        check_homonyms=check_homonyms,
+                                                        exclude_cols=['photo_filename'])
         if REQUEST:
             if formsemestre_id:
                 dest = 'formsemestre_status?formsemestre_id=%s' % formsemestre_id
@@ -2146,7 +2147,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         else:
             with_codesemestre = 0
         format = ImportScolars.sco_import_format(file_path)
-        data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre)
+        data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre, exclude_cols=['photo_filename'])
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
 
     # --- Données admission
@@ -2200,16 +2201,18 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
     security.declareProtected(ScoEtudInscrit,"import_generate_admission_sample")
     def import_generate_admission_sample(self, REQUEST, formsemestre_id):
         "une feuille excel pour importation données admissions"
+        group = sco_groups.get_group(self, sco_groups.get_default_group(self, formsemestre_id))
         format = ImportScolars.sco_import_format(file_path)
         data = ImportScolars.sco_import_generate_excel_sample(
-            format, only_tables=['identite', 'admissions'],
-            exclude_cols = ['nationalite', 'foto', 'code_ine' ],
-            formsemestre_id=formsemestre_id,context=self.Notes)
+            format, 
+            only_tables=['identite', 'admissions'],
+            exclude_cols = ['nationalite', 'foto', 'photo_filename' ],
+            group_id=group['group_id'], 
+            context=self.Notes)
         return sco_excel.sendExcelFile(REQUEST,data,'AdmissionEtudiants.xls')
 
     security.declareProtected(ScoEtudInscrit, "students_import_excel")
-    def students_import_admission(self, csvfile, REQUEST=None,
-                                  formsemestre_id=None):
+    def students_import_admission(self, csvfile, REQUEST=None, formsemestre_id=None):
         "import donnees admission from Excel file"
         diag = ImportScolars.scolars_import_admission(
             csvfile, file_path, self.Notes, REQUEST,
@@ -2234,6 +2237,12 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         if unknowns:
             H.append('<p>Attention: étudiants inconnus du portail: codes NIP=' + str(unknowns) + '</p>')
         return '\n'.join(H) + self.sco_footer(REQUEST)
+
+    security.declareProtected(ScoEtudChangeAdr, "photos_import_files_form")
+    photos_import_files_form = sco_trombino.photos_import_files_form
+    security.declareProtected(ScoEtudChangeAdr, "photos_generate_excel_sample")
+    photos_generate_excel_sample = sco_trombino.photos_generate_excel_sample
+    
 
     # --- Statistiques
     security.declareProtected(ScoView, "stat_bac")

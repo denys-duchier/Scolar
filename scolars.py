@@ -85,6 +85,15 @@ def format_sexe(sexe):
     else:
         return sexe.capitalize()
 
+def normalize_sexe(sexe):
+    "returns 'mr' ou 'mlle'"
+    sexe = sexe.upper().strip()
+    if sexe in ('M.', 'M', 'MR'):
+        return 'MR'
+    elif sexe in ('MLLE', 'MLLE.', 'MME', 'F'):
+        return 'MLLE'
+    raise ValueError('valeur invalide pour le sexe: %s' % sexe)
+    
 def format_lycee(nomlycee):
     nomlycee = nomlycee.strip()
     s = nomlycee.lower()

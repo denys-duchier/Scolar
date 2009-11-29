@@ -98,6 +98,7 @@ SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 # Valeurs utilisées pour affichage seulement, pas de requetes ni de mails envoyés:
 SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
 SCO_DEVEL_LIST = 'scodoc-devel@rt.iutv.univ-paris13.fr'
+SCO_USERS_LIST = 'notes@rt.iutv.univ-paris13.fr'
 
 # Mails avec exceptions (erreurs) anormales envoyés à cette adresse:
 # mettre '' pour désactiver completement l'envois de mails d'erreurs.

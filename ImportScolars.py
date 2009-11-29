@@ -71,13 +71,14 @@ def sco_import_generate_excel_sample( format,
                                       with_codesemestre=True,
                                       only_tables=None,
                                       exclude_cols=[],
-                                      formsemestre_id=None,
+                                      extra_cols=[],
+                                      group_id=None,
                                       context=None):
     """generates an excel document based on format
     (format is the result of sco_import_format())
     If not None, only_tables can specify a list of sql table names
     (only columns from these tables will be generated)
-    If formsemestre_id, indique les codes nom et prenom des etudiants du semestre
+    If group_id, indique les codes nom et prenom des etudiants de ce groupe
     """    
     style = sco_excel.Excel_MakeStyle(bold=True)
     style_required = sco_excel.Excel_MakeStyle(bold=True, color='red')
@@ -96,25 +97,25 @@ def sco_import_generate_excel_sample( format,
         else:
             titlesStyles.append(style_required)
         titles.append(name)
-    
-    if formsemestre_id and context:
-        nt = context.Notes._getNotesCache().get_NotesTable(context, formsemestre_id)
-        inscrlist = nt.inscrlist
+    titles += extra_cols
+    titlesStyles += [style]*len(extra_cols)
+    if group_id and context:
+        group = sco_groups.get_group(context, group_id)
+        members = sco_groups.get_group_members(context, group['group_id'])
+        log('sco_import_generate_excel_sample: group_id=%s  %d members' % (group_id, len(members)))
         titles = [ 'etudid' ] + titles
         titlesStyles = [ style ] + titlesStyles
-        #log('(%d) titles=%s' %(len(titles), titles))  # XXX
         # rempli table avec données actuelles 
         lines = []
-        for i in inscrlist:
+        for i in members:
             etud = context.getEtudInfo(etudid=i['etudid'], filled=True)[0]
-            #log('etud=%s' % etud)
             l = []
             for field in titles:
-                l.append(etud.get(field.lower(), ''))
+                key = field.lower().split()[0]
+                l.append(etud.get(key, ''))
             lines.append(l)
     else:
         lines = [[]] # empty content, titles only
-    #log('(%d) lines[0]=%s' % (len(lines[0]),lines[0]))
     return sco_excel.Excel_SimpleTable( titles=titles,
                                         titlesStyles=titlesStyles,
                                         SheetName="Etudiants",
@@ -122,7 +123,8 @@ def sco_import_generate_excel_sample( format,
 
 
 def scolars_import_excel_file( datafile, product_file_path, context, REQUEST,
-                               formsemestre_id=None, check_homonyms=True):
+                               formsemestre_id=None, check_homonyms=True,
+                               exclude_cols=[]):
     """Importe etudiants depuis fichier Excel
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
@@ -141,7 +143,7 @@ def scolars_import_excel_file( datafile, product_file_path, context, REQUEST,
     fmt = sco_import_format(product_file_path)
     for l in fmt:
         tit = l[0].lower().split()[0] # titles in lowercase, and take 1st word
-        if (not formsemestre_id) or (tit != 'codesemestre'):
+        if ((not formsemestre_id) or (tit != 'codesemestre')) and tit not in exclude_cols:
             titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
 
     #log("titles=%s" % titles)
@@ -217,9 +219,9 @@ def scolars_import_excel_file( datafile, product_file_path, context, REQUEST,
                                 % (val, linenum, titleslist[i]))
                 # xxx Ad-hoc checks (should be in format description)
                 if  titleslist[i].lower() == 'sexe':
-                    if val:
-                        val = val.upper()
-                    if not val in ('MR', 'MLLE'):
+                    try:
+                        val = scolars.normalize_sexe(val)
+                    except:
                         raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
                 # Excel date conversion:
                 if titleslist[i].lower() == 'date_naissance':
@@ -319,8 +321,10 @@ def scolars_import_admission( datafile, product_file_path, context, REQUEST,
         raise FormatError('scolars_import_admission: empty file !')
     #
     titles = data[0]
-    ietudid= titles.index('etudid')
-
+    try:
+        ietudid= titles.index('etudid')
+    except:
+        raise FormatError('scolars_import_admission: pas de colonne "etudid"')
     modifiable_fields = Set( ADMISSION_MODIFIABLE_FIELDS )
     
     for line in data[1:]:        
@@ -331,7 +335,12 @@ def scolars_import_admission( datafile, product_file_path, context, REQUEST,
         i = 0
         for tit in titles:
             if tit in modifiable_fields:
-                args[tit] = line[i]
+                val = line[i]
+                # Excel date conversion:
+                if val and tit.lower() == 'date_naissance':
+                    if re.match('^[0-9]*\.?[0-9]*$', str(val)):
+                        val = sco_excel.xldate_as_datetime(float(val)) 
+                args[tit] = val
             i += 1
         scolars.etudident_edit(cnx, args )
 

@@ -1028,7 +1028,7 @@ class ZAbsences(ObjectManager,
         H.append("""<p style="top-margin: 1cm; font-size: small;">
         Si vous avez besoin d'autres formats pour les listes d'absences,
         envoyez un message sur la <a href="mailto:%s">liste</a>
-        ou déclarez un ticket sur <a href="%s">le site web</a>.</p>""" % (SCO_DEVEL_LIST, SCO_WEBSITE) )
+        ou déclarez un ticket sur <a href="%s">le site web</a>.</p>""" % (SCO_USERS_LIST, SCO_WEBSITE) )
         return '\n'.join(H) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
