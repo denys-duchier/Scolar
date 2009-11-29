@@ -1242,7 +1242,7 @@ class ZScolar(ObjectManager,
                       sexe=quote_xml_attr(etud['sexe']),
                       nomprenom=quote_xml_attr(etud['nomprenom']),
                       email=quote_xml_attr(etud['email']),
-                      photo_url=quote_xml_attr(sco_photos.etud_photo_url(context, etud)))
+                      photo_url=quote_xml_attr(sco_photos.etud_photo_url(self, etud)))
         doc._push()
         sem = etud['cursem']
         if sem:
@@ -1480,7 +1480,7 @@ function tweakmenu( gname ) {
         Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
         """
         # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
-        partition = sco_groups.get_partition(context, partition_id)
+        partition = sco_groups.get_partition(self, partition_id)
         formsemestre_id=partition['formsemestre_id']
         if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
             raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")

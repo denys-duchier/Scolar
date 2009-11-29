@@ -292,6 +292,7 @@ def scolars_import_excel_file( datafile, product_file_path, context, REQUEST,
             cursor.execute('delete from scolar_events where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from adresse where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from admissions where etudid=%(etudid)s', { 'etudid':etudid })
+            cursor.execute('delete from group_membership where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })
         cnx.commit()
         log('scolars_import_excel_file: re-raising exception')
