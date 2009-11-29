@@ -6,7 +6,7 @@
     float: left;
     border-width: 1px;
     border-style: solid;
-    width: 15em;
+    width: 18em;
     margin: 1em;
 }
 
@@ -25,6 +25,20 @@ div.groupTitle {
     padding-left: 2px;
 }
 
+div.groupTitle0 {
+    background-color: #A0E0FF; 
+}
+
+#groups .barrenav ul li a.custommenu {
+    background-color: #A0E0FF; 
+    font-size: 12pt;
+    height: 18px;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    text-transform: none;
+}
 
 div.box {
     margin-left:4px;

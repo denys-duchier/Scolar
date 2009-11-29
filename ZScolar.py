@@ -1493,7 +1493,7 @@ function tweakmenu( gname ) {
         if redirect:
             REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
-    # --- Affectation initiale des groupes
+    # --- Gestion des groupes:
     security.declareProtected(ScoView, 'affectGroups')
     affectGroups = sco_groups_edit.affectGroups
 
@@ -1508,6 +1508,12 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoView, 'suppressGroup')
     suppressGroup = sco_groups.suppressGroup
+
+    security.declareProtected(ScoView, 'group_set_name')
+    group_set_name = sco_groups.group_set_name
+
+    security.declareProtected(ScoView, 'group_rename')
+    group_rename = sco_groups.group_rename
 
     security.declareProtected(ScoView, 'groups_auto_repartition')
     groups_auto_repartition = sco_groups.groups_auto_repartition
@@ -1529,7 +1535,8 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoView, 'partition_create')
     partition_create = sco_groups.partition_create
-
+    
+    # --- Gestion des photos:
     security.declareProtected(ScoView, 'etud_photo_html')
     def etud_photo_html(self, etudid=None, title=None, REQUEST=None):
         "HTML tag for etud photo"

@@ -672,6 +672,8 @@ def partition_rename(context, partition_id, REQUEST=None):
 def partition_set_name(context, partition_id, partition_name, REQUEST=None, redirect=1):
     """Set partition name"""
     partition = get_partition(context, partition_id)
+    if partition['partition_name'] is None:
+        raise ValueError("can't set a name to default partition")
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
@@ -683,6 +685,43 @@ def partition_set_name(context, partition_id, partition_name, REQUEST=None, redi
     if redirect:
         return REQUEST.RESPONSE.redirect('editPartitionForm?formsemestre_id='+formsemestre_id)
 
+def group_set_name(context, group_id, group_name, REQUEST=None, redirect=1):
+    """Set group name"""
+    group = get_group(context, group_id)
+    if group['group_name'] is None:
+        raise ValueError("can't set a name to default group")
+    formsemestre_id = group['formsemestre_id']
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+    redirect = int(redirect)
+    cnx = context.GetDBConnexion()
+    groupEditor.edit(cnx, { 'group_id' : group_id, 'group_name' : group_name })
+    
+    # redirect to partition edit page:
+    if redirect:
+        return REQUEST.RESPONSE.redirect('affectGroups?partition_id='+group['partition_id'])
+
+def group_rename(context, group_id, REQUEST=None):
+    """Form to rename a group"""
+    group = get_group(context, group_id)
+    formsemestre_id = group['formsemestre_id']
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+    H = [ '<h2>Renommer un groupe de %s</h2>' % group['partition_name'] ]
+    tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
+                            ( ('group_id', { 'default' : group_id, 'input_type' : 'hidden' }),
+                              ('group_name', { 'title' : 'Nouveau nom', 'default' : group['group_name'],
+                                               'size' : 12 })
+                              ),
+                            submitlabel = 'Renommer',
+                            cancelbutton = 'Annuler')
+    if  tf[0] == 0:
+        return context.sco_header(REQUEST) + '\n'.join(H) + '\n' + tf[1] + context.sco_footer(REQUEST)
+    elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect('affectGroups?partition_id='+group['partition_id'])
+    else:
+        # form submission
+        return group_set_name(context, group_id, tf[2]['group_name'], REQUEST=REQUEST, redirect=1)
 
 def groups_auto_repartition(context, partition_id=None, REQUEST=None):
     """Reparti les etudiants dans des groupes dans une partition, en respectant le niveau

@@ -108,28 +108,33 @@ CGroupBox.prototype = {
     this.isNew = false; // true for newly user-created groups
     this.sorting = true; // false to disable sorting
     
-    this.titleSpan = document.createElement("span");
-    this.titleSpan.className = "groupTitle";    
     this.groupBox = document.createElement("div");
     this.groupBox.className = "simpleDropPanel";
     this.groupBox.id = group_id;
     var titleDiv = document.createElement("div");
-    titleDiv.className = "groupTitle";
-    titleDiv.appendChild(this.titleSpan);
+    titleDiv.className = "groupTitle0";
+    titleDiv.appendChild(this.groupTitle());
     this.groupBox.appendChild(titleDiv);
     
-    if (group_id != '_none_') {
-      this.deleteSpan = document.createElement("span");
-      this.deleteSpan.className = "groupDelete";
-      this.deleteSpan.innerHTML = "<a class=\"stdlink\" href=\"#\" onClick=\"suppressGroup('" + group_id + "');\">suppr.</a>";
-      titleDiv.appendChild(this.deleteSpan);
-    }
     var gdiv = document.getElementById('groups');
     gdiv.appendChild(this.groupBox);
     this.updateTitle();
     dndMgr.registerDropZone( new Rico.Dropzone(group_id) );
     groupBoxes[group_id] = this; // register
     updateginfo();
+  },
+  // menu for group title
+  groupTitle : function() {
+    var menuSpan = document.createElement("span");
+    menuSpan.className = "barrenav";
+    var h = "<table><tr><td><ul class=\"nav\"><li onmouseover=\"MenuDisplay(this)\" onmouseout=\"MenuHide(this)\"><a href=\"#\" class=\"menu custommenu\"><span id=\"titleSpan" + this.group_id + "\" class=\"groupTitle\">menu</span></a><ul>";
+    if (this.group_id != '_none_') {
+	h += "<li><a href=\"#\" onClick=\"suppressGroup('" + this.group_id + "');\">Supprimer</a></li>";    
+	h += "<li><a href=\"#\" onClick=\"renameGroup('" + this.group_id + "');\">Renommer</a></li>";
+    }
+    h += "</ul></li></ul></td></tr></table>";
+    menuSpan.innerHTML = h;
+    return menuSpan;
   },
   // add etud to group, attach to DOM 
   createEtudInGroup: function(etud) {
@@ -155,10 +160,11 @@ CGroupBox.prototype = {
     if (this.isNew) {
       tclass = ' class="newgroup"'
     }
+    var titleSpan = document.getElementById('titleSpan'+this.group_id);
     if (this.group_id != '_none_') 
-      this.titleSpan.innerHTML = '<span'+tclass+'>Groupe ' + this.group_name + ' (' + this.nbetuds + ')</span>';
+      titleSpan.innerHTML = '<span'+tclass+'>Groupe ' + this.group_name + ' (' + this.nbetuds + ')</span>';
     else
-      this.titleSpan.innerHTML = '<span'+tclass+'>Etudiants sans groupe' + ' (' + this.nbetuds + ')</span>';
+      titleSpan.innerHTML = '<span'+tclass+'>Etudiants sans groupe' + ' (' + this.nbetuds + ')</span>';
     this.sortList(); // maintient toujours la liste triee
   },
   // Tri de la boite par nom
@@ -210,6 +216,16 @@ function suppressGroup( group_id ) {
   delete groupBoxes[group_id];
   groups_unsaved = true;
   updateginfo();
+}
+
+function renameGroup( group_id ) {
+    // 1-- save modifications
+    if (groups_unsaved) {
+	alert("Enregistrez ou annulez vos changement avant !");
+    } else {
+	// 2- form rename
+	document.location='group_rename?group_id=' + group_id; 
+    }
 }
 
 var createdGroupId = 0;
@@ -325,7 +341,7 @@ function handleError( errType, errMsg ) {
 }
 
 function submitGroups(target) {
-  var url = 'Notes/setGroups';
+  var url = 'setGroups';
   // build post request body: groupname \n etudid; ...
   var groupsLists = '';
   var groupsToCreate='';
