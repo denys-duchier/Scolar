@@ -1918,14 +1918,15 @@ function tweakmenu( gname ) {
                    'notes_notes',
                    'notes_moduleimpl_inscription',
                    'notes_formsemestre_inscription',
+                   'group_membership',
                    'entreprise_contact',
                    'etud_annotations',
                    'scolog',
                    'admissions',
                    'adresse',
-                   'identite',
                    'absences', 
-                   'billet_absence' ]
+                   'billet_absence',
+                   'identite' ]
         cursor = cnx.cursor()
         for table in tables:
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
