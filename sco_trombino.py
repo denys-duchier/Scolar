@@ -261,7 +261,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
 def photos_generate_excel_sample(context, group_id=None, REQUEST=None):
     """Feuille excel pour import fichiers photos
     """    
-    format = ImportScolars.sco_import_format(SCO_SRCDIR)
+    format = ImportScolars.sco_import_format()
     data = ImportScolars.sco_import_generate_excel_sample(
         format, context=context, group_id=group_id,
         only_tables=['identite'], 

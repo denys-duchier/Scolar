@@ -1954,27 +1954,6 @@ function tweakmenu( gname ) {
         self.Notes._inval_cache()  
         return REQUEST.RESPONSE.redirect(REQUEST.URL1)
     
-    # ---- inscriptions "en masse"
-    security.declareProtected(ScoEtudInscrit, "students_import_excel")
-    def students_import_excel(self, csvfile, REQUEST=None, formsemestre_id=None, check_homonyms=True):
-        "import students from Excel file"
-        diag = ImportScolars.scolars_import_excel_file( csvfile, file_path, self.Notes, REQUEST, 
-                                                        formsemestre_id=formsemestre_id, 
-                                                        check_homonyms=check_homonyms,
-                                                        exclude_cols=['photo_filename'])
-        if REQUEST:
-            if formsemestre_id:
-                dest = 'formsemestre_status?formsemestre_id=%s' % formsemestre_id
-            else:
-                dest = REQUEST.URL1
-            H = [self.sco_header(REQUEST, page_title='Import etudiants')]
-            H.append('<p>Import excel: %s</p>'% diag)
-            H.append('<p>OK, import terminé !</p>')
-            H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % dest)
-            return '\n'.join(H) + self.sco_footer(REQUEST)
-        # invalid all caches
-        self.Notes._inval_cache()    
-    
     security.declareProtected(ScoEtudInscrit, "check_group_apogee")
     def check_group_apogee(self, group_id, REQUEST=None,
                            etat=None,
@@ -2130,9 +2109,15 @@ function tweakmenu( gname ) {
                  'explanation' : "arrète l'importation si plus de 10% d'homonymes"
                  }
                ),
+             ( 'require_ine',
+               { 'title' : "Importer INE",
+                 'input_type' : 'boolcheckbox',
+                 'explanation' : "n'importe QUE les étudiants avec nouveau code INE"
+                 }
+               ),
              ('formsemestre_id', {'input_type' : 'hidden' }), 
              ), 
-            initvalues = { 'check_homonyms' : True },
+            initvalues = { 'check_homonyms' : True, 'require_ine' : False },
             submitlabel = 'Télécharger')
         S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
 <p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
@@ -2146,9 +2131,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
 <p>
 <table>
 <tr><td><b>Attribut</b></td><td><b>Type</b></td><td><b>Description</b></td></tr>"""]
-        for t in ImportScolars.sco_import_format(
-                    file_path,
-                    with_codesemestre=(formsemestre_id == None)):
+        for t in ImportScolars.sco_import_format(with_codesemestre=(formsemestre_id == None)):
             if int(t[3]):
                 ast = ''
             else:
@@ -2160,10 +2143,11 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
-            return self.students_import_excel(tf[2]['csvfile'],
-                                              REQUEST=REQUEST,
-                                              formsemestre_id=formsemestre_id,
-                                              check_homonyms=tf[2]['check_homonyms'])
+            return ImportScolars.students_import_excel(self, tf[2]['csvfile'],
+                                                       REQUEST=REQUEST,
+                                                       formsemestre_id=formsemestre_id,
+                                                       check_homonyms=tf[2]['check_homonyms'],
+                                                       require_ine=tf[2]['require_ine'])
 
     security.declareProtected(ScoEtudInscrit,"import_generate_excel_sample")
     def import_generate_excel_sample(self, REQUEST, with_codesemestre='1'):
@@ -2172,7 +2156,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             with_codesemestre = int(with_codesemestre)
         else:
             with_codesemestre = 0
-        format = ImportScolars.sco_import_format(file_path)
+        format = ImportScolars.sco_import_format()
         data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre, exclude_cols=['photo_filename'])
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
 
@@ -2228,7 +2212,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
     def import_generate_admission_sample(self, REQUEST, formsemestre_id):
         "une feuille excel pour importation données admissions"
         group = sco_groups.get_group(self, sco_groups.get_default_group(self, formsemestre_id))
-        format = ImportScolars.sco_import_format(file_path)
+        format = ImportScolars.sco_import_format()
         data = ImportScolars.sco_import_generate_excel_sample(
             format, 
             only_tables=['identite', 'admissions'],
@@ -2237,12 +2221,11 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             context=self.Notes)
         return sco_excel.sendExcelFile(REQUEST,data,'AdmissionEtudiants.xls')
 
-    security.declareProtected(ScoEtudInscrit, "students_import_excel")
+    security.declareProtected(ScoEtudInscrit, "students_import_admission")
     def students_import_admission(self, csvfile, REQUEST=None, formsemestre_id=None):
         "import donnees admission from Excel file"
-        diag = ImportScolars.scolars_import_admission(
-            csvfile, file_path, self.Notes, REQUEST,
-            formsemestre_id=formsemestre_id )
+        diag = ImportScolars.scolars_import_admission(csvfile, self.Notes, REQUEST,
+                                                      formsemestre_id=formsemestre_id )
         if REQUEST:
             H = [self.sco_header(REQUEST, page_title='Import données admissions')]
             H.append('<p>Import terminé !</p>')
