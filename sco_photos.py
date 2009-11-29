@@ -203,7 +203,7 @@ def save_image(context, etudid, data):
     data_file.write(data)
     data_file.seek(0)
     img = Image.open(data_file)
-    filename = get_new_filename(etudid)
+    filename = get_new_filename(context, etudid)
     path = PHOTO_DIR + filename
     log('saving %dx%d jpeg to %s' % (img.size[0], img.size[1], path))
     img.save(path + EXT, format = 'JPEG', quality = 92.)
@@ -226,11 +226,12 @@ def get_photo_rel_path(etud):
     else:
         return REL_DIR + etud['photo_filename']
 
-def get_new_filename(etudid):
+def get_new_filename(context, etudid):
     """Constructs a random filename to store a new image.
     The path is constructed as: Fxx/etudid
     """
-    return find_new_dir() + etudid
+    dept = context.DeptId()
+    return find_new_dir() + dept + '_' + etudid
 
 def find_new_dir():
     """select randomly a new subdirectory to store a new file.
