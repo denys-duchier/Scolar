@@ -194,10 +194,12 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
             H.append(context.icons.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires'))
         else:
             H.append('&nbsp;')
+        H.append( '</td><td class="mievr_menu">')
         if caneditnotes:
-            H.append( '<td class="mievr_menu">'+moduleimpl_evaluation_menu(context, eval['evaluation_id'], nbnotes=etat['nb_notes'], REQUEST=REQUEST )+'</td>' )
+            H.append( moduleimpl_evaluation_menu(context, eval['evaluation_id'], nbnotes=etat['nb_notes'], REQUEST=REQUEST))
+        H.append('</td>')
         #
-        H.append("""</td>
+        H.append("""
 <td class="mievr_dur">%s</td><td class="rightcell mievr_coef">%s</td>"""
                  % (eval['duree'], '%g' % eval['coefficient']) )
         H.append("""<td class="rightcell mievr_nbnotes">%(nb_notes)s / %(nb_inscrits)s</td>
