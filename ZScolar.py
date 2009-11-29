@@ -1543,6 +1543,24 @@ function tweakmenu( gname ) {
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         return sco_photos.etud_photo_html(self, etud, title=title)
 
+    security.declareProtected(ScoView, 'etud_photo_orig_html')
+    def etud_photo_orig_html(self, etudid=None, title=None, REQUEST=None):
+        "HTML tag for etud photo"
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        return sco_photos.etud_photo_orig_html(self, etud, title=title)
+
+    security.declareProtected(ScoView, 'etud_photo_orig_page')
+    def etud_photo_orig_page(self, etudid=None, REQUEST=None):
+        "Page with photo in orig. size"
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
+        H = [self.sco_header(REQUEST, page_title=etud['nomprenom']),
+             '<h2>%s</h2>' % etud['nomprenom'],
+             '<div><a href="ficheEtud?etudid=%s">' % etudid,
+             sco_photos.etud_photo_orig_html(self, etud),
+             '</a></div>',
+             self.sco_footer(REQUEST)]
+        return '\n'.join(H)
+             
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     def formChangePhoto(self, etudid=None, REQUEST=None):
         """Formulaire changement photo étudiant

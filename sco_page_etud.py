@@ -241,7 +241,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 
 <span>%(emaillink)s</span> 
 </td><td class="photocell">
-%(etudfoto)s
+<a href="etud_photo_orig_page?etudid=%(etudid)s">%(etudfoto)s</a>
 </td></tr></table>
 
 <div class="fichesituation">

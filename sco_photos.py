@@ -119,15 +119,19 @@ def etud_photo_html(context, etud, title=None, REQUEST=None):
         title = nom
     return '<img src="%s" alt="photo %s" title="%s" height="%s" border="0" />' % (path, nom, title, REDUCED_HEIGHT)
 
-def etud_photo_orig_html(context, etud):
+def etud_photo_orig_html(context, etud, title=None):
     """HTML img tag for the photo, in full size.
     Full-size images are always stored locally in the filesystem.
     They are the original uploaded images, converted in jpeg.
     """
     path = has_photo(context, etud)
+    nom = etud.get('nomprenom', etud['nom'])
     if not path:
         path = unknown_image_path()
-    return '<img src="%s" alt="photo %s" title="%s" border="0" />' % (path, etud['nomprenom'], etud['nomprenom'])
+    path = url_from_rel_path(path)
+    if title is None:
+        title = nom
+    return '<img src="%s" alt="photo %s" title="%s" border="0" />' % (path, nom, title)
 
 def has_photo(context, etud, version=''):
     """Returns (relative) path if etud has a photo (in the filesystem), or False"""
