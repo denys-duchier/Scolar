@@ -615,6 +615,8 @@ Z 27s  => cache des semestres pour nt
 B: etuds sets: 2.4s => lent: N x getEtudInfo (non caché)
 """
 
+EXP_LIC = re.compile( r'licence', re.I )
+EXP_LPRO = re.compile( r'professionnelle', re.I )
 
 def _codesem(sem, short=True, prefix=''):
     "code semestre: S1 ou S1d"
@@ -632,6 +634,8 @@ def _codesem(sem, short=True, prefix=''):
             idx = 'Autre '
         else:
             idx = sem['titre'] + ' '
+            idx = EXP_LPRO.sub('pro.', idx)
+            idx = EXP_LIC.sub('Lic.', idx)
             prefix = '' # indique titre au lieu de Sn
     return '%s%s%s' % (prefix, idx, d)
 
@@ -726,6 +730,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     etudids = nt.get_etudids()
+    log('graph_parcours: %s etuds' % len(etudids))
     if not etudids:
         return ''
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
@@ -734,12 +739,20 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     isolated_nodes = []
     connected_nodes = Set()
     diploma_nodes = []
+    dem_nodes = {} # formsemestre_id : noeud pour demissionnaires
+    nar_nodes = {} # formsemestre_id : noeud pour NAR
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         next = None
         for s in etud['sems']: # du plus recent au plus ancien
+            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+            dec = nt.get_etud_decision_sem(etudid)
             if next:
-                edges[(s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
+                if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec and dec['code'] == 'ADM'and nt.get_etud_etat(etudid) == 'I':
+                    # cas particulier du diplome puis poursuite etude
+                    edges[('_dipl_'+s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
+                else:
+                    edges[(s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
                 connected_nodes.add(s['formsemestre_id'])
                 connected_nodes.add(next['formsemestre_id'])
             else:
@@ -747,11 +760,19 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             sems[s['formsemestre_id']] = s
             effectifs[s['formsemestre_id']].add(etudid)
             next = s
+            # ajout noeud pour demissionnaires
+            if nt.get_etud_etat(etudid) == 'D':
+                nid = '_dem_' + s['formsemestre_id']
+                dem_nodes[s['formsemestre_id']] = nid
+                edges[(s['formsemestre_id'], nid)].add(etudid)
+            # ajout noeud pour NAR (seulement pour noeud de depart)
+            if s['formsemestre_id'] == formsemestre_id and dec and dec['code'] == 'NAR':
+                nid = '_nar_' + s['formsemestre_id']
+                nar_nodes[s['formsemestre_id']] = nid
+                edges[(s['formsemestre_id'], nid)].add(etudid)
             # si "terminal", ajoute noeud pour diplomes
-            if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
-                nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
-                dec = nt.get_etud_decision_sem(etudid)
-                if dec and dec['code'] == 'ADM':
+            if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:                
+                if dec and dec['code'] == 'ADM'and nt.get_etud_etat(etudid) == 'I':
                     nid = '_dipl_'+s['formsemestre_id']
                     edges[(s['formsemestre_id'], nid)].add(etudid)
                     diploma_nodes.append(nid)
@@ -785,6 +806,18 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     # semestre de depart en vert
     n = g.get_node(formsemestre_id)
     n.set_color('green')
+    # demissions en rouge, octagonal
+    for nid in dem_nodes.values():
+        n = g.get_node(nid)
+        n.set_color('red')
+        n.set_shape('octagon')
+        n.set('label', 'Dem.')
+    # NAR en rouge, Mcircle
+    for nid in nar_nodes.values():
+        n = g.get_node(nid)
+        n.set_color('red')
+        n.set_shape('Mcircle')
+        n.set('label', 'NAR')
     # diplomes:
     for nid in diploma_nodes:
         n = g.get_node(nid)
@@ -810,6 +843,8 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     g.write(path=path, format=format)
     data = open(path,'r').read()
     log('dot generated %d bytes in %s format' % (len(data),format))
+    if not data:
+        raise ValueError('Erreur lors de la génération du document au format %s' % format)
     os.unlink(path)
     if format == 'svg':
         # dot génère un document XML complet, il faut enlever l'en-tête
@@ -846,8 +881,9 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
           graph_parcours(context, formsemestre_id),
 
           """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
-          """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
-
+          # dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot (???)
+          # """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
+          """</p>""",
           """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs récents.</p>""",
 
           """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
