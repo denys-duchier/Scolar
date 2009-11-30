@@ -228,7 +228,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
     # Ajoute les notes de chaque évaluation:
     for e in evals:
         e['eval_state'] = context.do_evaluation_etat(e['evaluation_id'])[0]
-        notes = _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
+        notes, nb_abs, nb_att = _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
                           note_sur_20, keep_numeric)
         columns_ids.append(e['evaluation_id'])
     #
@@ -279,6 +279,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         pdf_title = '%(description)s (%(jour)s)' % e
         html_title= ''
         base_url = 'evaluation_listenotes?evaluation_id=%s'%E['evaluation_id'] + gl
+        html_next_section = '<div class="notes_evaluation_stats">%d absents, %d en attente.</div>' % (nb_abs, nb_att)
     else:
         filename = make_filename('notes_%s_%s' % (Mod['code'],gr_title_filename))
         title = 'Notes du module %(code)s %(titre)s' % Mod
@@ -286,6 +287,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         if gr_title and gr_title != 'tous':
             title += ' %s' % gr_title
         caption = title
+        html_next_section = ''
         if format == 'pdf':
             caption = '' # same as pdf_title
         pdf_title = title
@@ -299,9 +301,10 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                     filename=filename,
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = caption,
+                    html_next_section = html_next_section,
                     page_title = 'Notes de ' + sem['titremois'],
                     html_title=html_title,
-                    pdf_title = pdf_title,
+                    pdf_title = pdf_title,                    
                     html_class='gt_table table_leftalign notes_evaluation',
                     preferences=context.get_preferences(M['formsemestre_id']),
                     #generate_cells=False # la derniere ligne (moyennes) est incomplete
@@ -349,6 +352,8 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
                       note_sur_20, keep_numeric):
     """Add eval e"""
     nb_notes = 0
+    nb_abs = 0
+    nb_att = 0
     sum_notes = 0
     notes = [] # liste des notes numeriques, pour calcul histogramme uniquement
     evaluation_id = e['evaluation_id']
@@ -357,6 +362,10 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
         etudid = row['etudid']
         if NotesDB.has_key(etudid):
             val = NotesDB[etudid]['value']
+            if val is None:
+                nb_abs += 1
+            if val == NOTES_ATTENTE:
+                nb_att += 1
             # calcul moyenne SANS LES ABSENTS
             if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE: 
                 valsur20 = val * 20. / e['note_max'] # remet sur 20
@@ -423,7 +432,7 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
         else:
             titles['_'+evaluation_id+'_td_attrs'] = 'class="eval_incomplete"'
 
-    return notes # pour histogramme
+    return notes, nb_abs, nb_att # pour histogramme
 
 def _add_moymod_column(context, formsemestre_id, e, rows, titles, coefs, note_max, moys, 
                        note_sur_20, keep_numeric):

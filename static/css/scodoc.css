@@ -485,6 +485,10 @@ table.notes_evaluation tr td {
     padding-right: 0.5em;
 }
 
+div.notes_evaluation_stats {
+    margin-top: -15px;
+}
+
 .eval_description p {
     margin-bottom: 5px;
     margin-top: 5px;
