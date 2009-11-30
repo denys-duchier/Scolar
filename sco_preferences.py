@@ -262,6 +262,15 @@ PREFS = (
         'only_global' : True
         }
       ),
+    ( 'always_require_ine',
+      { 'initvalue' : 0,
+        'title' : 'Impose la présence du code INE',
+        'explanation' : "lors de toute création d'étudiant (manuelle ou non)",
+        'input_type' : 'boolcheckbox',
+        'category' : 'portal',
+        'only_global' : True
+        }
+      ),
     # pdf
     ('SCOLAR_FONT',
      { 'initvalue' : 'Helvetica',

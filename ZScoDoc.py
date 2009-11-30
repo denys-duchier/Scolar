@@ -642,7 +642,7 @@ ou <a href="mailto:%s">%s</a>
         
         log('exception caught: %s' % error_type)
         if error_type == 'ScoGenError':
-            return '<p>' + error_value + '</p>'
+            return '<p>' + str(error_value) + '</p>'
         elif error_type == 'ScoValueError':
             # Not a bug, presents a gentle message to the user:
             H = [ self.standard_html_header(self),

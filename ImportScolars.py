@@ -159,6 +159,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     annee_courante = time.localtime()[0]
+    always_require_ine = context.get_preference('always_require_ine') 
     exceldata = datafile.read()
     if not exceldata:
         raise ScoValueError("Ficher excel vide ou invalide")
@@ -255,15 +256,21 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                     if val:
                         if re.match('^[0-9]*\.?[0-9]*$', str(val)):
                             val = sco_excel.xldate_as_datetime(float(val))                        
+                # INE
+                if titleslist[i].lower() == 'code_ine' and always_require_ine and  not val:
+                    raise ScoValueError('Code INE manquant sur ligne %d, colonne %s' % (linenum, titleslist[i]))
+
                 # --
                 values[titleslist[i]] = val
-            skip = False
-            # INE ?            
-            if require_ine and ((not values['code_ine']) or (not _is_new_ine(cnx, values['code_ine']))):
+            skip = False            
+            is_new_ine = values['code_ine'] and  _is_new_ine(cnx, values['code_ine'])
+            if require_ine and not is_new_ine:
                 log('skipping %s (code_ine=%s)' % (values['nom'], values['code_ine']))
                 skip = True
-            
+                
             if not skip:
+                if values['code_ine'] and not is_new_ine:
+                    raise ScoValueError("Code INE dupliqué (%s)" % values['code_ine'])
                 # Check nom/prenom
                 ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=values['nom'], prenom=values['prenom'])
                 if not ok:

@@ -1795,6 +1795,8 @@ function tweakmenu( gname ) {
             </div>""" % (m, '\n'.join(formatted_infos))
         else:
             A = """<div class="infoapogee"><p>Pas d'informations d'Apogée</p></div>"""
+
+        require_ine = self.get_preference('always_require_ine')
         
         descr += [
             ('adm_id', { 'input_type' : 'hidden' }),
@@ -1847,7 +1849,8 @@ function tweakmenu( gname ) {
             ('sep', { 'input_type' : 'separator', 'title' : 'Codes Apogée: (optionnels)' }),
             ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':True,
                            'explanation' : 'numéro identité étudiant (Apogée)'}),
-            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE (optionnel)', 'allow_null':True,
+            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE', 
+                           'allow_null': not require_ine,
                            'explanation' : 'numéro INE'}),
             ( 'dont_check_homonyms',
                { 'title' : "Autoriser les homonymes",

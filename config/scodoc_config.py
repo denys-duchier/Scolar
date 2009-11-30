@@ -20,6 +20,7 @@ class CFG :
 
 CONFIG = CFG()
 
+CONFIG.always_require_ine = 0 # set to 1 if you want to require INE
 
 #
 #   ------------- Documents PDF -------------
