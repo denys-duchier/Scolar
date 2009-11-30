@@ -36,51 +36,32 @@ from TrivialFormulator import TrivialFormulator, TF
 def ue_create(context, formation_id=None, REQUEST=None):
     """Creation d'une UE
     """
-    Fo = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
-    H = [ context.sco_header(REQUEST, page_title="Création d'une UE"),
-          """
-          <h2>Ajout d'une UE dans la formation %(acronyme)s, version %(version)s</h2>
+    return ue_edit(context, create=True, formation_id=formation_id, REQUEST=REQUEST)
 
-<p class="help">Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation (on calcule des moyennes par UE et applique des seuils ("barres")). 
-</p>
-
-<p class="help">Note: L'UE n'a pas de coefficient associé. Seuls les <em>modules</em> ont des coefficients.
-</p>"""
-          % Fo ]
-    
-    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, ( 
-        ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
-        ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
-        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
-                        'type' : 'int' }),
-        ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
-                   'input_type' : 'menu',
-                   'allowed_values': ('0','1'),
-                   'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
-        ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id }),
-        ), submitlabel = 'Créer cette UE')
-    
-    if tf[0] == 0:
-        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
-    else:
-        ue_id = context.do_ue_create(tf[2],REQUEST)
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(formation_id))
-
-
-def ue_edit(context, ue_id=None, REQUEST=None):
-    """Modification d'une UE
+def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
+    """Modification ou creation d'une UE    
     """
-    U = context.do_ue_list( args={ 'ue_id' : ue_id } )
-    if not U:
-        raise ScoValueError("UE inexistante !")
-    U = U[0]
-    Fo = context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
-    H = [ context.sco_header(REQUEST, page_title="Modification d'une UE",
+    create = int(create)
+    if not create:
+        U = context.do_ue_list( args={ 'ue_id' : ue_id } )
+        if not U:
+            raise ScoValueError("UE inexistante !")
+        U = U[0]
+        formation_id = U['formation_id']
+        title = "Modification de l'UE %(titre)s" % U
+        initvalues = U
+        submitlabel = 'Modifier les valeurs'
+    else:
+        title = "Creation d'une UE"
+        initvalues = {}
+        submitlabel = 'Créer cette UE'
+    Fo = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    H = [ context.sco_header(REQUEST, page_title=title,
                              javascripts=[ 'jQuery/jquery.js', 
                                            'js/edit_ue.js' ]
                              ),
-          "<h2>Modification de l'UE %(titre)s" % U,
-          '(formation %(acronyme)s, version %(version)s)</h2>' % Fo,
+          "<h2>" + title,
+          ' (formation %(acronyme)s, version %(version)s)</h2>' % Fo,
           """
 <p class="help">Les UE sont des groupes de modules dans une formation donnée, utilisés pour l'évaluation (on calcule des moyennes par UE et applique des seuils ("barres")). 
 </p>
@@ -90,6 +71,8 @@ def ue_edit(context, ue_id=None, REQUEST=None):
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
          ('ue_id', { 'input_type' : 'hidden' }),
+         ('create', { 'input_type' : 'hidden', 'default' : create }),
+         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id }),
          ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
          ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
          ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
@@ -100,15 +83,20 @@ def ue_edit(context, ue_id=None, REQUEST=None):
                     'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
          ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
          ),
-                            initvalues = U,
-                            submitlabel = 'Modifier les valeurs' )
+                            initvalues = initvalues,
+                            submitlabel = submitlabel )
     if tf[0] == 0:
         X = """<div id="ue_list_code"></div>
         """
         return '\n'.join(H) + tf[1] + X + context.sco_footer(REQUEST)
     else:
-        ue_id = context.do_ue_edit(tf[2])
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + str(U['formation_id']))
+        if create:
+            if not tf[2]['ue_code']:
+                del tf[2]['ue_code']
+            ue_id = context.do_ue_create(tf[2],REQUEST)
+        else:
+            ue_id = context.do_ue_edit(tf[2])
+        return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + formation_id )
 
 
 def ue_delete(context, ue_id=None, delete_validations=False, dialog_confirmed=False, REQUEST=None):
