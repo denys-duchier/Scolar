@@ -252,6 +252,7 @@ def find_new_dir():
 
 def zope_has_photo(context, etud):
     """True if photo in ZODB"""
+    foto = etud['foto']
     img = None
     try:
         img = getattr(context.Fotos, foto)
