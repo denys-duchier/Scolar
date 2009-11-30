@@ -616,12 +616,13 @@ class ZNotes(ObjectManager,
          'heures_cours','heures_td','heures_tp',
          'coefficient',
          'ue_id', 'matiere_id', 'formation_id',
-         'semestre_id', 'numero' ),
+         'semestre_id', 'numero', 'ects' ),
         sortkey='numero',
         output_formators = { 'heures_cours' : float_null_is_zero,
                              'heures_td' : float_null_is_zero,
                              'heures_tp' :  float_null_is_zero,
-                             'numero' : int_null_is_zero
+                             'numero' : int_null_is_zero,
+                             'ects' : float_null_is_null
                              },
         )
 

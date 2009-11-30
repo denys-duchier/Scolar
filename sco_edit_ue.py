@@ -167,7 +167,10 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 H.append('<li class="notes_module_list">')
                 if editable:
                     H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)
-                H.append('%(code)s %(titre)s (semestre %(semestre_id)s) (%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s)' % Mod)
+                heurescoef = '%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s' % Mod
+                if Mod['ects'] is not None:
+                    heurescoef += ', %g ECTS' % Mod['ects']
+                H.append('%(code)s %(titre)s (semestre %(semestre_id)s)' % Mod + ' (%s)' % heurescoef )
                 if editable:
                     H.append('</a>')
                     if Mod['nb_moduleimpls'] == 0:

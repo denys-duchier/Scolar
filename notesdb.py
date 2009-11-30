@@ -459,7 +459,13 @@ def int_null_is_zero(x):
         return 0
     else:
         return int(x)
-    
+
+def float_null_is_null(x):
+    if x is None or x == '':
+        return None
+    else:
+        return float(x)
+
 # post filtering
 #
 def UniqListofDicts( L, key ):

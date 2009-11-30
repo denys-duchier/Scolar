@@ -254,6 +254,10 @@ for dept in get_depts():
     check_field(cnx, 'identite', 'photo_filename',
                 ['alter table identite add column photo_filename text',
                  ])
+    # Add module's ECTS
+    check_field(cnx, 'notes_modules', 'ects',
+                ['alter table notes_modules add column ects real',
+                 ])
     # Add here actions to performs after upgrades:
 
     cnx.commit()

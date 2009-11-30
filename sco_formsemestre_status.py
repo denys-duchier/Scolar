@@ -351,6 +351,8 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     
     R = []
+    sum_coef = 0
+    sum_ects = 0
     for M in Mlist:
         ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] })
         l = { 'UE' : M['ue']['acronyme'],
@@ -358,11 +360,19 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
               'Module' : M['module']['abbrev'] or M['module']['titre'],
               'Inscrits' : len(ModInscrits),
               'Responsable' : context.Users.user_info(M['responsable_id'],REQUEST)['nomprenom'],
-              'Coef.' : M['module']['coefficient']
+              'Coef.' : M['module']['coefficient'],
+              'ECTS' : M['module']['ects'],
               }
         R.append(l)
-    
-    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
+        if M['module']['coefficient']:
+            sum_coef += M['module']['coefficient']
+        if M['module']['ects']:
+            sum_ects += M['module']['ects']
+    sums = { '_css_row_class' : 'moyenne sortbottom',
+             'ECTS' : sum_ects,
+             'Coef.' : sum_coef }
+    R.append(sums)
+    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'ECTS', 'Inscrits', 'Responsable' ]
     titles = columns_ids
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:

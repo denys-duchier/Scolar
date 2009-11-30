@@ -291,7 +291,8 @@ CREATE TABLE notes_modules (
 	matiere_id text  REFERENCES notes_matieres(matiere_id),
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
 	numero int, -- ordre de presentation
-	abbrev text -- nom court
+	abbrev text, -- nom court
+	ects real -- nombre de credits ECTS
 ) WITH OIDS;
 
 -- Mise en oeuvre d'un semestre de formation

@@ -78,6 +78,7 @@ def module_create(context, matiere_id=None, REQUEST=None):
         ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
         
         ('coefficient'  , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False }),
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
 
         ('formation_id', { 'default' : UE['formation_id'], 'input_type' : 'hidden' }),
         ('ue_id', { 'default' : M['ue_id'], 'input_type' : 'hidden' }),
@@ -148,7 +149,7 @@ def module_edit(context, module_id=None, REQUEST=None):
         ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
         
         ('coefficient'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False }),
-        
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
         ('formation_id', { 'input_type' : 'hidden' }),
         ('ue_id',        { 'input_type' : 'hidden' }),
         ('module_id',    { 'input_type' : 'hidden' }),
