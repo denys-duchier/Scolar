@@ -874,26 +874,38 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
         doc = graph_parcours(context, formsemestre_id, format='pdf')
         filename = make_filename('flux ' + sem['titreannee'])
         return sco_pdf.sendPDFFile(REQUEST, doc, filename + '.pdf' )
-    url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format=pdf"%sem)
-    H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
-          """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
+    elif format == 'png':
+        # 
+        doc = graph_parcours(context, formsemestre_id, format='png')
+        filename = make_filename('flux ' + sem['titreannee'])
+        REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
+        REQUEST.RESPONSE.setHeader('Content-type', 'image/png' )
+        return doc
+    elif format == 'html':
+        url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format="%sem)
+        H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
+              """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
 
-          graph_parcours(context, formsemestre_id),
+              graph_parcours(context, formsemestre_id),
 
-          """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
-          # dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot (???)
-          # """(<a href="%s">version pdf</a> <span class="help">[non disponible partout]</span>)</p>""" % url,
-          """</p>""",
-          """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs récents.</p>""",
+              """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
+              # En Debian 4, dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot
+              # mais c'est OK en Debian 5
+              """(<a href="%spdf">version pdf</a> <span class="help">[non disponible partout]</span>""" % url,
+              """, <a href="%spng">image PNG</a>)""" % url,
+              """</p>""",
+              """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs récents.</p>""",
 
-          """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
-          sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
-          pour afficher son tableau de bord). Les flèches indiquent le nombre d'étudiants passant
-          d'un semestre à l'autre (s'il y en a moins de 10, vous pouvez visualiser leurs noms en
-          passant la souris sur le chiffre).
-          </p>""",
-          context.sco_footer(REQUEST)
-          ]
-    REQUEST.RESPONSE.setHeader('Content-type', 'application/xhtml+xml' )
-    return '\n'.join(H)
-          
+              """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
+              sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
+              pour afficher son tableau de bord). Les flèches indiquent le nombre d'étudiants passant
+              d'un semestre à l'autre (s'il y en a moins de 10, vous pouvez visualiser leurs noms en
+              passant la souris sur le chiffre).
+              </p>""",
+              context.sco_footer(REQUEST)
+              ]
+        REQUEST.RESPONSE.setHeader('Content-type', 'application/xhtml+xml' )
+        return '\n'.join(H)
+    else:
+        raise ValueError('invalid format: %s' % format)
+
