@@ -271,9 +271,9 @@ def copy_zope_photo_to_fs(context, etud, REQUEST=None):
     # get Zope photo
     foto = etud['foto']
     try:
-        img = getattr(self.Fotos, foto)
+        img = getattr(context.Fotos, foto)
     except:
-        img = getattr(self.Fotos, foto + '.h90.jpg' )
+        img = getattr(context.Fotos, foto + '.h90.jpg' )
     log('copying zope image %s to local fs' % foto)
     status, msg = store_photo(context, etud, img.data, REQUEST=REQUEST)
     return has_photo(context, etud)
