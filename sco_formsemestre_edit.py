@@ -35,7 +35,6 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee, scolars, sco_parcours_dut
 
-
 def _default_sem_title(F):
     """Default title for a semestre in formation F"""
     return F['titre']
@@ -651,33 +650,34 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
 
  <p class="help">Tous les modules de ce semestre seront supprimés. Ceci n'est possible que
  si :</p>
- <ol><li>aucune évaluation n'a été définie (s'il y a des évaluations, allez d'abord 
- les supprimer);</li> 
+ <ol>
   <li>aucune décision de jury n'a été entrée dans ce semestre;</li>
   <li>et aucun étudiant de ce semestre ne le compense avec un autre semestre.</li>
   </ol>"""
           ]
-    
+
+    evals = context.do_evaluation_list_in_formsemestre(formsemestre_id)
+    if evals:
+        H.append("""<p class="warning">Attention: il y a %d évaluations dans ce semestre (sa suppression entrainera l'effacement définif des notes) !</p>""" % len(evals) ) 
+        submit_label = 'Confirmer la suppression (du semestre et des %d évaluations !)' % len(evals)
+    else:
+        submit_label = 'Confirmer la suppression du semestre'
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, 
                             ( ('formsemestre_id', { 'input_type' : 'hidden' }),
                               ),
                             initvalues = F,
-                            submitlabel = 'Confirmer la suppression',
+                            submitlabel = submit_label,
                             cancelbutton = 'Annuler' )
     if tf[0] == 0:
-        evals = context.do_evaluation_list_in_formsemestre(formsemestre_id)
-        if evals:
-            H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il reste %d évaluations)</b></p>""" %len(evals) )
+        if formsemestre_has_decisions_or_compensations(context, formsemestre_id):
+            H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il y a des décisions de jury ou des compensations par d'autres semestres)</b></p>"""  )
         else:
-            if formsemestre_has_decisions_or_compensations(context, formsemestre_id):
-                H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il y a des décisions de jury ou des compensations par d'autres semestres)</b></p>"""  )
-            else:
-                H.append(tf[1])
+            H.append(tf[1])
         return '\n'.join(H) + context.sco_footer(REQUEST)
     elif tf[0] == -1: # cancel
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
-        context.do_formsemestre_delete(formsemestre_id, REQUEST)
+        do_formsemestre_delete(context, formsemestre_id, REQUEST)
         return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
 
 def formsemestre_has_decisions_or_compensations(context, formsemestre_id):
@@ -689,6 +689,65 @@ def formsemestre_has_decisions_or_compensations(context, formsemestre_id):
         'SELECT v.* FROM scolar_formsemestre_validation v WHERE v.formsemestre_id = %(formsemestre_id)s OR v.compense_formsemestre_id = %(formsemestre_id)s',
         { 'formsemestre_id' : formsemestre_id } )
     return r
+
+def do_formsemestre_delete(context, formsemestre_id, REQUEST):
+    """delete formsemestre, and all its moduleimpls.
+    No checks, no warnings: erase all !
+    """
+    cnx = context.GetDBConnexion()
+    sem = context.get_formsemestre(formsemestre_id)
+
+    # --- Destruction des modules de ce semestre
+    mods = context.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
+    for mod in mods:
+        # evaluations
+        evals = context.do_evaluation_list( args={ 'moduleimpl_id' :  mod['moduleimpl_id']} )
+        for e in evals:            
+            SimpleQuery(context, "DELETE FROM notes_notes WHERE evaluation_id=%(evaluation_id)s", e)
+            SimpleQuery(context, "DELETE FROM notes_notes_log WHERE evaluation_id=%(evaluation_id)s", e)
+            SimpleQuery(context, "DELETE FROM notes_evaluation WHERE evaluation_id=%(evaluation_id)s", e)
+        
+        context.do_moduleimpl_delete(mod['moduleimpl_id'])
+    # --- Desinscription des etudiants
+    cursor = cnx.cursor()
+    req = "DELETE FROM notes_formsemestre_inscription WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des evenements
+    req = "DELETE FROM scolar_events WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des appreciations
+    req = "DELETE FROM notes_appreciations WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Supression des validations (!!!)
+    req = "DELETE FROM scolar_formsemestre_validation WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Supression des references a ce semestre dans les compensations:
+    req = "UPDATE  scolar_formsemestre_validation SET compense_formsemestre_id=NULL WHERE compense_formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des autorisations
+    req = "DELETE FROM scolar_autorisation_inscription WHERE origin_formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des item du menu custom
+    req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des preferences
+    req = "DELETE FROM sco_prefs WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des groupes et partitions
+    req = "DELETE FROM group_membership  WHERE group_id IN (SELECT gm.group_id FROM group_membership gm, partition p, group_descr gd WHERE gm.group_id = gd.group_id AND gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"        
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    req = "DELETE FROM group_descr WHERE group_id IN (SELECT gd.group_id FROM group_descr gd, partition p WHERE gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    req = "DELETE FROM partition WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Destruction du semestre
+    context._formsemestreEditor.delete(cnx, formsemestre_id)
+    context._inval_cache()
+    # news
+    import sco_news
+    sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_SEM, object=formsemestre_id,
+                 text='Suppression du semestre %(titre)s' % sem )
+
 
 # ---------------------------------------------------------------------------------------
 def formsemestre_edit_options(context, formsemestre_id, 
@@ -704,190 +763,6 @@ def formsemestre_edit_options(context, formsemestre_id,
     return context.get_preferences(formsemestre_id).edit(
         REQUEST=REQUEST,
         categories=[ 'bul' ] )
-
-# XXX Obsolete, à supprimer !
-# def formsemestre_edit_options(context, formsemestre_id, 
-#                               target_url=None,
-#                               REQUEST=None):
-#     """dialog to change formsemestre options
-#     (accessible par ScoImplement ou dir. etudes)
-#     """        
-#     ok, err = context._check_access_diretud(formsemestre_id,REQUEST)
-#     if not ok:
-#         return err
-#     if not target_url:
-#         target_url = 'formsemestre_status?formsemestre_id=' + formsemestre_id
-#     sem = context.get_formsemestre(formsemestre_id)
-#     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
-#     footer = context.sco_footer(REQUEST)
-#     H = [ context.html_sem_header(REQUEST, 'Réglages des bulletins de notes', sem)
-#           ]
-#     modform = [
-#         ('formsemestre_id', { 'input_type' : 'hidden' }),
-#         ('target_url', { 'input_type' : 'hidden' }),
-#         ('gestion_absence_lst', { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'indiquer les absences sur les bulletins',
-#                                    'labels' : [''] }),
-#         ('bul_show_decision_lst', { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'faire figurer les décisions sur les bulletins',
-#                                    'labels' : [''] }),
-#         ('bul_show_codemodules_lst',  { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'afficher codes des modules sur les bulletins',
-#                                    'labels' : [''] }),
-#         ('bul_show_rangs_lst',  { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'afficher le classement sur les bulletins',
-#                                   'labels' : [''] }),
-#         ('bul_show_ue_rangs_lst',  { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'afficher le classement dans chaque UE sur les bulletins',
-#                                    'labels' : [''] }),
-#         ('bul_show_mod_rangs_lst',  { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'afficher le classement dans chaque module sur les bulletins',
-#                                    'labels' : [''] }),
-#         ('bul_show_uevalid_lst', { 'input_type' : 'checkbox',
-#                                'title' : '',
-#                                'allowed_values' : ['X'],
-#                                'explanation' : 'faire figurer les UE validées sur les bulletins',
-#                                'labels' : [''] }),
-# 
-#         ('bul_publish_xml_lst', { 'input_type' : 'checkbox',
-#                                   'title' : '',
-#                                   'allowed_values' : ['X'],
-#                                   'explanation' : 'publier le bulletin sur le portail étudiants',
-#                                   'labels' : [''] }),
-#         ]
-#     initvalues = sem
-#     initvalues['target_url'] = target_url
-#     initvalues['gestion_absence'] = initvalues.get('gestion_absence','1')
-#     if initvalues['gestion_absence'] == '1':
-#         initvalues['gestion_absence_lst'] = ['X']
-#     else:
-#         initvalues['gestion_absence_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('gestion_absence_lst'):
-#         REQUEST.form['gestion_absence_lst'] = []
-# 
-#     initvalues['bul_show_decision'] = initvalues.get('bul_show_decision','1')
-#     if initvalues['bul_show_decision'] == '1':
-#         initvalues['bul_show_decision_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_decision_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_decision_lst'):
-#         REQUEST.form['bul_show_decision_lst'] = []
-# 
-#     initvalues['bul_show_uevalid'] = initvalues.get('bul_show_uevalid','1')
-#     if initvalues['bul_show_uevalid'] == '1':
-#         initvalues['bul_show_uevalid_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_uevalid_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_uevalid_lst'):
-#         REQUEST.form['bul_show_uevalid_lst'] = []
-# 
-#     initvalues['bul_show_codemodules'] = initvalues.get('bul_show_codemodules','1')
-#     if initvalues['bul_show_codemodules'] == '1':
-#         initvalues['bul_show_codemodules_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_codemodules_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_codemodules_lst'):
-#         REQUEST.form['bul_show_codemodules_lst'] = []
-# 
-#     initvalues['bul_show_rangs'] = initvalues.get('bul_show_rangs','1')
-#     if initvalues['bul_show_rangs'] == '1':
-#         initvalues['bul_show_rangs_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_rangs_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_rangs_lst'):
-#         REQUEST.form['bul_show_rangs_lst'] = []
-# 
-#     initvalues['bul_show_ue_rangs'] = initvalues.get('bul_show_ue_rangs','1')
-#     if initvalues['bul_show_ue_rangs'] == '1':
-#         initvalues['bul_show_ue_rangs_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_ue_rangs_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_ue_rangs_lst'):
-#         REQUEST.form['bul_show_ue_rangs_lst'] = []
-# 
-#     initvalues['bul_show_mod_rangs'] = initvalues.get('bul_show_mod_rangs','1')
-#     if initvalues['bul_show_mod_rangs'] == '1':
-#         initvalues['bul_show_mod_rangs_lst'] = ['X']
-#     else:
-#         initvalues['bul_show_mod_rangs_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_show_mod_rangs_lst'):
-#         REQUEST.form['bul_show_mod_rangs_lst'] = []
-# 
-#     initvalues['bul_hide_xml'] = initvalues.get('bul_hide_xml','1')
-#     if initvalues['bul_hide_xml'] == '0':
-#         initvalues['bul_publish_xml_lst'] = ['X']
-#     else:
-#         initvalues['bul_publish_xml_lst'] = []
-#     if REQUEST.form.get('tf-submitted',False) and not REQUEST.form.has_key('bul_publish_xml_lst'):
-#         REQUEST.form['bul_publish_xml_lst'] = []
-# 
-# 
-#     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
-#                             submitlabel = 'Modifier',
-#                             cancelbutton = 'Annuler',
-#                             initvalues = initvalues)
-#     if tf[0] == 0:
-#         return '\n'.join(H) + tf[1] + '<p><a class="stdlink" href="formsemestre_pagebulletin_dialog?formsemestre_id=%s">Réglage de la mise en page et envoi mail des bulletins</a>' % formsemestre_id + footer
-#     elif tf[0] == -1:
-#         return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s'%formsemestre_id )
-#     else:
-#         if tf[2]['gestion_absence_lst']:
-#             tf[2]['gestion_absence'] = 1
-#         else:
-#             tf[2]['gestion_absence'] = 0
-# 
-#         if tf[2]['bul_show_decision_lst']:
-#             tf[2]['bul_show_decision'] = 1
-#         else:
-#             tf[2]['bul_show_decision'] = 0
-# 
-#         if tf[2]['bul_show_uevalid_lst']:
-#             tf[2]['bul_show_uevalid'] = 1
-#         else:
-#             tf[2]['bul_show_uevalid'] = 0
-# 
-#         if tf[2]['bul_show_codemodules_lst']:
-#             tf[2]['bul_show_codemodules'] = 1
-#         else:
-#             tf[2]['bul_show_codemodules'] = 0
-# 
-#         if tf[2]['bul_show_rangs_lst']:
-#             tf[2]['bul_show_rangs'] = 1
-#         else:
-#             tf[2]['bul_show_rangs'] = 0
-# 
-#         if tf[2]['bul_show_ue_rangs_lst']:
-#             tf[2]['bul_show_ue_rangs'] = 1
-#         else:
-#             tf[2]['bul_show_ue_rangs'] = 0
-# 
-#         if tf[2]['bul_show_mod_rangs_lst']:
-#             tf[2]['bul_show_mod_rangs'] = 1
-#         else:
-#             tf[2]['bul_show_mod_rangs'] = 0
-# 
-#         if tf[2]['bul_publish_xml_lst']:
-#             tf[2]['bul_hide_xml'] = 0
-#         else:
-#             tf[2]['bul_hide_xml'] = 1 
-# 
-#         # modification du semestre:
-#         context.do_formsemestre_edit(tf[2])
-#         url = target_url%sem + '&head_message=' + urllib.quote('modification options semestre effectuée')
-#         return REQUEST.RESPONSE.redirect(url)
-
 
 def formsemestre_change_lock(context, formsemestre_id,
                       REQUEST=None, dialog_confirmed=False):

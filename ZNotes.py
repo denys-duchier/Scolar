@@ -754,56 +754,6 @@ class ZNotes(ObjectManager,
                      url=args['url'])
         return formsemestre_id
 
-    security.declareProtected(ScoImplement, 'do_formsemestre_delete')
-    def do_formsemestre_delete(self, formsemestre_id, REQUEST):
-        """delete formsemestre, and all its moduleimpls.
-        No checks, no warnings: erase all !
-        """
-        cnx = self.GetDBConnexion()
-        sem = self.get_formsemestre(formsemestre_id)
-        # --- Destruction des modules de ce semestre
-        mods = self.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
-        for mod in mods:
-            self.do_moduleimpl_delete(mod['moduleimpl_id'])
-        # --- Desinscription des etudiants
-        cursor = cnx.cursor()
-        req = "DELETE FROM notes_formsemestre_inscription WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des evenements
-        req = "DELETE FROM scolar_events WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des appreciations
-        req = "DELETE FROM notes_appreciations WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Supression des validations (!!!)
-        req = "DELETE FROM scolar_formsemestre_validation WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Supression des references a ce semestre dans les compensations:
-        req = "UPDATE  scolar_formsemestre_validation SET compense_formsemestre_id=NULL WHERE compense_formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des autorisations
-        req = "DELETE FROM scolar_autorisation_inscription WHERE origin_formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des item du menu custom
-        req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des preferences
-        req = "DELETE FROM sco_prefs WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Suppression des groupes et partitions
-        req = "DELETE FROM group_membership  WHERE group_id IN (SELECT gm.group_id FROM group_membership gm, partition p, group_descr gd WHERE gm.group_id = gd.group_id AND gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"        
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        req = "DELETE FROM group_descr WHERE group_id IN (SELECT gd.group_id FROM group_descr gd, partition p WHERE gd.partition_id = p.partition_id AND p.formsemestre_id=%(formsemestre_id)s)"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        req = "DELETE FROM partition WHERE formsemestre_id=%(formsemestre_id)s"
-        cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-        # --- Destruction du semestre
-        self._formsemestreEditor.delete(cnx, formsemestre_id)
-        self._inval_cache()
-        # news
-        sco_news.add(REQUEST, cnx, typ=NEWS_SEM, object=formsemestre_id,
-                     text='Suppression du semestre %(titre)s' % sem )
-
     security.declareProtected(ScoView, 'do_formsemestre_list')
     def do_formsemestre_list(self, *a, **kw ):
         "list formsemestres"
@@ -973,7 +923,7 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_delete')
     def do_moduleimpl_delete(self, oid):
-        "delete moduleimpl (desinscrit tous ls etudiants)"
+        "delete moduleimpl (desinscrit tous les etudiants)"
         cnx = self.GetDBConnexion()
         # --- desinscription des etudiants
         cursor = cnx.cursor()
