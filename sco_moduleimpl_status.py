@@ -109,9 +109,15 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     ]
     try:
         context.can_change_module_resp(REQUEST, moduleimpl_id)
-        H.append("""<a class="stdlink" href="edit_enseignants_form?moduleimpl_id=%s">modifier les enseignants</a>""" % moduleimpl_id)
+        H.append("""<a class="stdlink" href="edit_moduleimpl_resp?moduleimpl_id=%s">modifier</a>""" % moduleimpl_id)
     except:
         pass
+    H.append("""</td><td>""")
+    H.append(', '.join( [ context.Users.user_info(m['ens_id'],REQUEST)['nomprenom'] for m in M['ens'] ]))
+    H.append("""</td><td>""")
+    if context.can_change_ens(REQUEST, moduleimpl_id):
+        H.append("""<a class="stdlink" href="edit_enseignants_form?moduleimpl_id=%s">modifier les enseignants</a>""" % moduleimpl_id)
+
     H.append("""</td></tr>""")
     
     # 2ieme ligne: Semestre, Coef
