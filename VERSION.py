@@ -7,6 +7,14 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Novembre 2009</h4>
+<ul>
+<li>Gestion des partitions et groupes en nombres quelconques</li>
+<li>Nouvelle gestion des photos</li>
+<lI>Imports d'étudiants excel incrémentaux</li>
+<li>Optimisations et petites améliorations</li>
+</ul>
+
 <h4>Septembre 2009</h4>
 <ul>
 <li>Traitement de "billets d'absences" (saisis par les étudiants sur le portail)</li>
