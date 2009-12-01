@@ -280,7 +280,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                 # Insert in DB tables
                 _import_one_student(context, cnx, REQUEST,
                                     formsemestre_id, values, GroupIdInferers, 
-                                    annee_courante, created_etudids)
+                                    annee_courante, created_etudids, linenum)
         
         # Verification proportion d'homonymes: si > 10%, abandonne
         log('scolars_import_excel_file: detected %d homonyms' % NbImportedHomonyms)
@@ -316,7 +316,8 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     cnx.commit()
     return diag
 
-def _import_one_student(context, cnx, REQUEST, formsemestre_id, values, GroupIdInferers, annee_courante, created_etudids):
+def _import_one_student(context, cnx, REQUEST, formsemestre_id, values, 
+                        GroupIdInferers, annee_courante, created_etudids, linenum):
         log( 'scolars_import_excel_file: values=%s' % str(values) ) 
         # Identite
         args = values.copy()
