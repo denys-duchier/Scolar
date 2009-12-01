@@ -352,8 +352,14 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                             cancelbutton = 'Annuler',
                             top_buttons=True,
                             initvalues = initvalues)
-    if tf[0] == 0:
-        return '<p>Formation <a class="discretelink" href="ue_list?formation_id=%(formation_id)s"><em>%(titre)s</em> (%(acronyme)s), version %(version)d, code %(formation_code)s</a></p>' % F + tf[1] # + '<p>' + str(initvalues)
+    msg = ''
+    if tf[0] == 1:
+        # check dates
+        if DateDMYtoISO(tf[2]['date_debut']) > DateDMYtoISO(tf[2]['date_fin']):
+            msg = '<ul class="tf-msg"><li class="tf-msg">Dates de début et fin incompatibles !</li></ul>'            
+    
+    if tf[0] == 0 or msg:
+        return '<p>Formation <a class="discretelink" href="ue_list?formation_id=%(formation_id)s"><em>%(titre)s</em> (%(acronyme)s), version %(version)d, code %(formation_code)s</a></p>' % F + msg + tf[1]
     elif tf[0] == -1:
         return '<h4>annulation</h4>'
     else:
