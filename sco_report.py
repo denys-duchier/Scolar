@@ -39,7 +39,7 @@ from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
 import tempfile, urllib, re
 import sco_formsemestre_status
-
+from sco_pdf import SU
 
 def formsemestre_etuds_stats(context, sem):
     """Récupère liste d'etudiants avec etat et decision.
@@ -812,6 +812,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n.set_color('red')
         n.set_shape('octagon')
         n.set('label', 'Dem.')
+        
     # NAR en rouge, Mcircle
     for nid in nar_nodes.values():
         n = g.get_node(nid)
@@ -823,7 +824,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n = g.get_node(nid)
         n.set_color('red')
         n.set_shape('ellipse')
-        n.set('label', 'Diplôme')
+        n.set('label', 'Diplome') # bug si accent (pas compris pourquoi)
     # Arètes:
     bubbles = {} # substitue titres pour bulle aides: src_id:dst_id : etud_descr
     for (src_id,dst_id) in edges.keys():
