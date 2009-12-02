@@ -116,7 +116,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     H.append(', '.join( [ context.Users.user_info(m['ens_id'],REQUEST)['nomprenom'] for m in M['ens'] ]))
     H.append("""</td><td>""")
     try:
-        context.can_change_ens(REQUEST, moduleimpl_id):
+        context.can_change_ens(REQUEST, moduleimpl_id)
         H.append("""<a class="stdlink" href="edit_enseignants_form?moduleimpl_id=%s">modifier les enseignants</a>""" % moduleimpl_id)
     except:
         pass
