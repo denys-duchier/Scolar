@@ -357,19 +357,7 @@ class ZNotes(ObjectManager,
     def do_formation_list(self, **kw ):
         "list formations"
         cnx = self.GetDBConnexion()        
-        return self._formationEditor.list( cnx, **kw )
-
-    security.declareProtected(ScoChangeFormation, 'do_formation_edit')
-    def do_formation_edit(self, *args, **kw ):
-        "edit a formation"
-        log('do_formation_edit( args=%s kw=%s )'%(args,kw))
-        #if self.formation_has_locked_sems(args[0]['formation_id']):
-        #    raise ScoLockedFormError()
-        # nb: on autorise finalement la modif de la formation meme si elle est verrouillee
-        # car cela ne change que du cosmetique, (sauf eventuellement le code formation ?)
-        cnx = self.GetDBConnexion()
-        self._formationEditor.edit( cnx, *args, **kw )
-        self._inval_cache()
+        return self._formationEditor.list( cnx, **kw )    
 
     security.declareProtected(ScoView, 'formation_export_xml')
     def formation_export_xml(self, formation_id, REQUEST):

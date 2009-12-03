@@ -130,5 +130,22 @@ def formation_edit(context, formation_id=None, REQUEST=None):
         if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
             return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe déjà une formation avec même titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
         #
-        context.do_formation_edit(tf[2])
+        do_formation_edit(context, tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+
+def do_formation_edit(context, args):
+    "edit a formation"
+    log('do_formation_edit( args=%s )'%args)
+    
+    #if context.formation_has_locked_sems(args[0]['formation_id']):
+    #    raise ScoLockedFormError()
+    # nb: on autorise finalement la modif de la formation meme si elle est verrouillee
+    # car cela ne change que du cosmetique, (sauf eventuellement le code formation ?)
+
+    # On ne peut pas supprimer le code formation:
+    if args.has_key('formation_code') and not args['formation_code']:
+        del args['formation_code']
+    
+    cnx = context.GetDBConnexion()
+    context._formationEditor.edit( cnx, args )
+    context._inval_cache()
