@@ -95,3 +95,25 @@ def check_table(cnx, table, sql_create_commands):
         else:
             log('table %s added successfully.' % table)
 
+def sequence_exists(cnx, seq_name):
+    "true if SQL sequence exists"
+    cursor = cnx.cursor()
+    cursor.execute("""SELECT relname FROM pg_class
+     WHERE relkind = 'S' and relname = '%s'
+     AND relnamespace IN (
+        SELECT oid FROM pg_namespace WHERE nspname NOT LIKE 'pg_%%' AND nspname != 'information_schema'
+     );
+    """ % seq_name )
+    r = cursor.fetchall()
+    return len(r) > 0
+
+def function_exists(cnx, func_name):
+    "true if SQL function exists"
+    cursor = cnx.cursor()
+    cursor.execute("""SELECT routine_name FROM information_schema.routines
+      WHERE specific_schema NOT IN ('pg_catalog', 'information_schema')
+      AND type_udt_name != 'trigger' 
+      AND routine_name = '%s';""" % func_name )
+    r = cursor.fetchall()
+    return len(r) > 0
+

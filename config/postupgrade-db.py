@@ -84,13 +84,18 @@ for dept in get_depts():
     cursor.execute("update sco_prefs set name = 'bul_show_codemodules' where name = 'bul_showcodemodules'")
 
     # billets d'absences
-    check_table( cnx, 'billet_absence', [
-            """CREATE SEQUENCE notes_idgen_billets;""",
-            """CREATE FUNCTION notes_newid_billet( text ) returns text as '
+    if not sequence_exists(cnx, 'notes_idgen_billets'):
+        log('creating sequence notes_idgen_billets')
+        cursor.execute('CREATE SEQUENCE notes_idgen_billets;')
+    
+    if not function_exists(cnx, 'notes_newid_billet'):
+        log('creating function notes_newid_billet')
+        cursor.execute("""CREATE FUNCTION notes_newid_billet( text ) returns text as '
 	select $1 || to_char(  nextval(''notes_idgen_billets''), ''FM999999999'' ) 
 	as result;
-	' language SQL;
-""",
+	' language SQL;""")
+    
+    check_table( cnx, 'billet_absence', [            
             """CREATE TABLE billet_absence (
     billet_id text DEFAULT notes_newid_billet('B'::text) NOT NULL,
     etudid text NOT NULL,
@@ -100,6 +105,7 @@ for dept in get_depts():
     etat integer default 0 -- 0 new, 1 processed    
 ) WITH OIDS;
 """] )
+    
     # description absence
     check_field(cnx, 'absences', 'description',
                 ['alter table absences add column description text'
