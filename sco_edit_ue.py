@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
                 del tf[2]['ue_code']
             ue_id = context.do_ue_create(tf[2],REQUEST)
         else:
-            ue_id = context.do_ue_edit(tf[2])
+            ue_id = do_ue_edit(context, tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + formation_id )
 
 
@@ -248,3 +248,25 @@ def ue_sharing_code(context, ue_code, ue_id=None):
                   % (ue['acronyme'], ue['titre'], F['formation_id'], F['acronyme'], F['titre'], F['version']))
     H.append('</ul>')
     return '\n'.join(H)
+
+def do_ue_edit(context, args):
+    "edit an UE"
+    # check
+    ue_id = args['ue_id']
+    ue = context.do_ue_list({ 'ue_id' : ue_id })[0]
+    if context.formation_has_locked_sems(ue['formation_id']):
+        raise ScoLockedFormError()        
+    # check: acronyme unique dans cette formation
+    if args.has_key('acronyme'):
+        new_acro = args['acronyme']
+        ues = context.do_ue_list({'formation_id' : ue['formation_id'], 'acronyme' : new_acro })
+        if ues and ues[0]['ue_id'] != ue_id:
+            raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args['acronyme'])
+
+    # On ne peut pas supprimer le code UE:
+    if args.has_key('ue_code') and not args['ue_code']:
+        del args['ue_code']
+    
+    cnx = context.GetDBConnexion()
+    context._ueEditor.edit( cnx, args )
+    context._inval_cache()

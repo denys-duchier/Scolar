@@ -497,24 +497,7 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         return self._ueEditor.list(cnx, *args, **kw)
 
-    security.declareProtected(ScoChangeFormation, 'do_ue_edit')
-    def do_ue_edit(self, *args, **kw ):
-        "edit an UE"
-        # check
-        ue_id = args[0]['ue_id']
-        ue = self.do_ue_list({ 'ue_id' : ue_id })[0]
-        if self.formation_has_locked_sems(ue['formation_id']):
-            raise ScoLockedFormError()        
-        # check: acronyme unique dans cette formation
-        if args[0].has_key('acronyme'):
-            new_acro = args[0]['acronyme']
-            ues = self.do_ue_list({'formation_id' : ue['formation_id'], 'acronyme' : new_acro })
-            if ues and ues[0]['ue_id'] != ue_id:
-                raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args[0]['acronyme'])
-        
-        cnx = self.GetDBConnexion()
-        self._ueEditor.edit( cnx, *args, **kw )
-        self._inval_cache()
+ 
 
     # --- Matieres
     _matiereEditor = EditableTable(
