@@ -594,12 +594,23 @@ class ZScoUsers(ObjectManager,
                  force = int(vals['force'][0])
              except:
                  force = 0
-             #log('create_user_form: force=%s, vals=%s' % (force,str(vals)))
+             
+             if edit:
+                 user_name = initvalues['user_name']
+             else:
+                 user_name = vals['user_name']
+             # ce login existe ?
+             err = None
+             users = self._user_list( args={'user_name':user_name} )  
+             if edit and not users: # safety net, le user_name ne devrait pas changer
+                 err = "identifiant %s inexistant" % user_name
+             if not edit and users:
+                 err = "identifiant %s déjà utilisé" % user_name
+             if err:
+                 H.append(tf_error_message("""Erreur: %s""" % err))
+                 return '\n'.join(H) + '\n' + tf[1] + F
+             
              if not force:
-                 if edit:
-                     user_name = initvalues['user_name']
-                 else:
-                     user_name = vals['user_name']
                  ok, msg = self._check_modif_user(
                      edit, user_name=user_name,
                      nom=vals['nom'], prenom=vals['prenom'],
