@@ -69,7 +69,7 @@ def trombino(context,REQUEST, group_id,
         if nb_missing > 0:
             parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
             return context.confirmDialog(
-                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a href="trombino?%s&format=zip&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args),
+                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="trombino?%s&format=%s&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args, format ),
                 dest_url = 'trombino',
                 OK = 'Exporter seulement les photos existantes',
                 cancel_url="trombino?%s"%args,
@@ -221,7 +221,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     for t in T:
         rel_path = sco_photos.has_photo(context, t, version=sco_photos.H90)
         if not rel_path:
-            continue
+            rel_path = sco_photos.unknown_image_path()
         path = SCO_SRCDIR + '/' + rel_path
         try:
             elem = Table(
