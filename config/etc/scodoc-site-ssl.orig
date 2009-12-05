@@ -20,7 +20,7 @@ NameVirtualHost *:443
   SSLCertificateFile /etc/apache2/scodoc-ssl/apache.pem
   # SSLCertificateKeyFile /etc/apache2/ssl/iutv.univ-paris13.fr.key
 
-  # Votre authorite de caertification:
+  # Votre authorite de certification:
   #  SSLCACertificateFile /etc/apache2/scodoc-ssl/ct_root.pem
   #  SSLCACertificateFile /etc/apache2/scodoc-ssl/sureserverEDU.pem
 
