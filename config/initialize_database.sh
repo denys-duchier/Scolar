@@ -15,7 +15,7 @@ then
 fi
 
 echo 'Initializing tables in database ' $db_name
-$PSQL -U $POSTGRES_USER -p $POSTGRES_PORT $db_name < $SCODOC_DIR/misc/createtables.sql
+$PSQL -U $POSTGRES_USER -p $POSTGRES_PORT $db_name -f $SCODOC_DIR/misc/createtables.sql
 
 
 # Set DeptName in preferences:
