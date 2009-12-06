@@ -59,3 +59,23 @@ def bonus_colmar(notes_sport, coefs):
     bonus = points / 20. # 5%
     return bonus
 
+def bonus_iutva(notes_sport, coefs):
+    """Calcul bonus modules optionels (sport, culture), règle IUT Ville d'Avray
+
+    Les étudiants de l'IUT peuvent suivre des enseignements optionnels
+    de l'Université Paris 10 (C2I) non rattachés à une unité d'enseignement.
+    Si la note est >= 10 et < 12, bonus de 0.1 point
+    Si la note est >= 12 et < 16, bonus de 0.2 point
+    Si la note est >= 16, bonus de 0.3 point
+    Ce bonus s'ajoute à la moyenne générale du semestre déjà obtenue par
+    l'étudiant.
+    """
+    sumc = sum(coefs) # assumes sum. coefs > 0
+    note_sport = sum(map(mul, notes_sport, coefs)) / sumc # moyenne pondérée
+    if note_sport >= 16.0:
+        return 0.3
+    if note_sport >= 12.0:
+        return 0.2
+    if note_sport >= 10.0:
+        return 0.1
+    return 0

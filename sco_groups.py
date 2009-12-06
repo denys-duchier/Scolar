@@ -180,7 +180,17 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
         if t['etat'] == 'I':
             t['etath'] = '' # etudiant inscrit, ne l'indique pas dans la liste HTML
         elif t['etat'] == 'D':
-            t['etath'] = '(dem.)'
+            events = scolars.scolar_events_list(
+                cnx, args={'etudid':t['etudid'], 'formsemestre_id':group['formsemestre_id']} )
+            for event in events:
+                event_type = event['event_type']
+                if event_type == 'DEMISSION':
+                    t['date_dem'] = event['event_date']
+                    break            
+            if 'date_dem' in t:
+                t['etath'] = 'démission le %s' % t['date_dem']
+            else:
+                t['etath'] = '(dem.)'
             nbdem += 1
     # Add membership for all partitions, 'partition_id' : group
     for etud in members: # long: comment eviter ces boucles ?  

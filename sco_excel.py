@@ -417,6 +417,8 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
     font3.height = 14*0x14
     style3.font = font3
     
+    NbWeeks = 4 # nombre de colonnes pour remplir absences
+
     # ligne 1
     li = 0
     ws0.write(li,1, "%s %s (%s - %s)"
@@ -447,9 +449,9 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         ws0.write(li,coc+1, "code_nip", style3)
         ws0.write(li,coc+2, "code_ine", style3)
         co += 3
-    ws0.write(li,co, "Date", style3)
-    for i in range(4):
-        ws0.write(li, co+1+i, '', style2b)
+    
+    for i in range(NbWeeks):
+        ws0.write(li, co+i, '', style2b)
     n = 0
     for t in lines:
         n += 1
@@ -465,9 +467,9 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
             ws0.write(li,coc, t['etudid'], style2t3)
             ws0.write(li,coc+1, t['code_nip'], style2t3)
             ws0.write(li,coc+2, t['code_ine'], style2t3)
-        ws0.write(li, co, '', style2tb) # vide
-        for i in range(4):
-            ws0.write(li, co+1+i, t['etath'], style2b) # etat
+        ws0.write(li, co, t['etath'], style2b) # etat
+        for i in range(1,NbWeeks):
+            ws0.write(li, co+i, '',  style2b) # cellules vides
         ws0.row(li).height = 850 # sans effet ?
     #
     li += 2
