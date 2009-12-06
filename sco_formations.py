@@ -74,6 +74,8 @@ def formation_export_xml( context, formation_id, export_ids=False ):
                     del mod['matiere_id']
                     del mod['module_id']
                     del mod['formation_id']
+                if mod['ects'] is None:
+                    del mod['ects']
                 doc._push()
                 mod = dict_quote_xml_attr(mod, fromhtml=True)
                 doc.module( **mod )

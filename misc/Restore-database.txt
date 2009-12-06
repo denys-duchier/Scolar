@@ -40,9 +40,15 @@ done
    /opt/scodoc/instance/Products/ScoDoc/config/depts
   de la machine origine vers la nouvelle
 
+ 1.4) Recopier les photos: copier le répertoire complet (avec ses sous-répertoires)
+   /opt/scodoc/instance/Products/ScoDoc/static/photos
+   
+
 Puis redemarrer ScoDoc:
   en tant que root: /etc/init.d/scodoc start
 
-(NB: si la version des sources a changer, lancer imperativement le script de mise a jour avant de redemarrer scodoc, afin qu'il change si besoin la base de donnees).
+NB: si la version des sources a changée, lancer imperativement le script de mise a jour 
+     avant de redemarrer scodoc, afin qu'il change si besoin la base de donnees:
+(en tant que root):
 cd /opt/scodoc/instance/Products/ScoDoc/config
 ./upgrade.sh

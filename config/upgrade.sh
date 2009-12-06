@@ -12,7 +12,10 @@ source utils.sh
 check_uid_root $0
 
 apt-get update
-apt-get -y install curl # now necessary
+
+if [ ! -e /usr/bin/curl ]; then
+  apt-get -y install curl # now necessary
+fi
 
 echo "Stopping ScoDoc..."
 /etc/init.d/scodoc stop

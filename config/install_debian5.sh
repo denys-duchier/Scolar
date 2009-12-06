@@ -84,11 +84,11 @@ apt-get -y install python2.4 python-jaxml python-psycopg python-pyrss2gen python
 
 SVNVERSION=$(cd ..; svnversion)
 SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install\&svn=$SVNVERSION)
-echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
+echo $SVERSION > "${SCODOC_DIR}"/config/scodoc.sn
 
 # python-pydot is currently bugged in Debian 5: install our 0.9.10
 echo '\nInstallation de pydot\n'
-(cd /tmp; tar xfz $SCODOC_DIR/config/softs/pydot-0.9.10.tar.gz)
+(cd /tmp; tar xfz "${SCODOC_DIR}"/config/softs/pydot-0.9.10.tar.gz)
 (cd /tmp/pydot-0.9.10;  /usr/bin/python2.4 setup.py install)
 
 # ------------ PYEXCELERATOR
@@ -96,7 +96,7 @@ echo
 echo 'Installation de pyExcelerator'
 echo
 
-(cd /tmp; tar xfz $SCODOC_DIR/config/softs/pyExcelerator-0.6.3a.patched.tgz)
+(cd /tmp; tar xfz "${SCODOC_DIR}"/config/softs/pyExcelerator-0.6.3a.patched.tgz)
 (cd /tmp/pyExcelerator-0.6.3a.patched; /usr/bin/python2.4 setup.py install)
 
 echo 'Done.'
@@ -123,7 +123,7 @@ then
     echo "  si ce n'est pas le cas, editer /etc/firehol/firehol.conf"
     echo "  et relancer: /etc/init.d/firehol restart"
     echo
-    cp $SCODOC_DIR/config/etc/firehol.conf /etc/firehol/
+    cp "${SCODOC_DIR}"/config/etc/firehol.conf /etc/firehol/
     mv /etc/default/firehol /etc/default/firehol.orig
     cat /etc/default/firehol.orig | sed 's/START_FIREHOL=NO/START_FIREHOL=YES/' > /tmp/firehol && mv /tmp/firehol /etc/default/firehol
 fi
@@ -170,7 +170,7 @@ then
     fi
     # ---
     echo 'generation de /etc/apache2/sites-available/scodoc-site-ssl'
-    cat $SCODOC_DIR/config/etc/scodoc-site-ssl.orig | sed -e "s:YOUR\.FULL\.HOST\.NAME:$server_name:g" > /etc/apache2/sites-available/scodoc-site-ssl
+    cat "${SCODOC_DIR}"/config/etc/scodoc-site-ssl.orig | sed -e "s:YOUR\.FULL\.HOST\.NAME:$server_name:g" > /etc/apache2/sites-available/scodoc-site-ssl
     echo 'activation du site...'
     a2ensite scodoc-site-ssl
 
@@ -180,7 +180,7 @@ then
     then
        mv $fn $fn.bak
     fi
-    cp $SCODOC_DIR/config/etc/scodoc-site.orig $fn
+    cp "${SCODOC_DIR}"/config/etc/scodoc-site.orig $fn
 
     if [ -z "$(grep Listen /etc/apache2/ports.conf | grep 443)" ]
     then
@@ -213,9 +213,14 @@ read ans
 if [ "$(norm_ans "$ans")" != 'N' ]
 then
     echo 'Installation du demarrage automatique de ScoDoc'
-    cp $SCODOC_DIR/config/etc/scodoc /etc/init.d/
+    cp "${SCODOC_DIR}"/config/etc/scodoc /etc/init.d/
     update-rc.d scodoc defaults
 fi
+
+# ----------------  check permissions
+# ScoDoc must be able to write to this directory:
+chgrp -R www-data "${SCODOC_DIR}"/static/photos
+chmod -R g+w "${SCODOC_DIR}"/static/photos
 
 # ------------ THE END
 echo
