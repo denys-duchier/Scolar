@@ -11,9 +11,8 @@ source utils.sh
 
 check_uid_root $0
 
-apt-get update
-
 if [ ! -e /usr/bin/curl ]; then
+  apt-get update
   apt-get -y install curl # now necessary
 fi
 
