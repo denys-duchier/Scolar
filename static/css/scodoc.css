@@ -746,7 +746,7 @@ span.mievr_lastmodif {
 
 /* Liste des formations */
 ul.notes_formation_list { 
-  list-style: square;
+  list-style-type: none;
   font-size: 110%;
 }
 li.notes_formation_list { 
@@ -772,6 +772,19 @@ ul.notes_module_list {
    font-style: normal; 
 }
 
+.notes_ue_list a.discretelink, .notes_ue_list a.stdlink  {
+    color: #001084;
+    text-decoration: underline;
+}
+.notes_ue_list span.locked {
+    font-weight: normal;
+}
+
+.notes_ue_list a.smallbutton img {
+    position: relative;
+    top: 2px;
+}
+
 div#ue_list_code {
     border: blue 1px;
     background-color: rgb(220,220,220);
@@ -780,6 +793,11 @@ div#ue_list_code {
     padding-bottom: 1px;
     margin-top: 10px;
 }
+
+ul.notes_module_list {
+    list-style-type: none;
+}
+
 
 span.ue_share {
     font-weight: bold;

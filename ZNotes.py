@@ -273,7 +273,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'index_html')
     def index_html(self, REQUEST=None):
         "Page accueil formations"
-        lockicon = self.icons.lock32_img.tag(title="formation verrouillé", border='0')
+        sco_groups.checkLastIcon(self, REQUEST)
+        lockicon = self.icons.lock32_img.tag(title="Comporte des semestres verrouillés", border='0')
+        suppricon= self.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer')
+        editicon = self.icons.edit_img.tag(border='0', alt='modifier', title='Modifier titres et code')
+
         editable = REQUEST.AUTHENTICATED_USER.has_permission(ScoChangeFormation,self)
 
         H = [ self.sco_header(REQUEST, page_title="Programmes formations"),
@@ -281,19 +285,24 @@ class ZNotes(ObjectManager,
               <ul class="notes_formation_list">""" ]
 
         for F in self.do_formation_list():
-            H.append('<li class="notes_formation_list">%(acronyme)s: <em>%(titre)s</em> (version %(version)s)' % F )
+            H.append('<li class="notes_formation_list">')
+            H.append('<a class="stdlink" href="formation_delete?formation_id=%s">%s</a>' % (F['formation_id'], suppricon))
+            if editable:
+                H.append('<a class="stdlink" href="formation_edit?formation_id=%s">%s</a>' % (F['formation_id'], editicon))
+            H.append('%(acronyme)s: <em>%(titre)s</em> (version %(version)s)' % F )
             locked = self.formation_has_locked_sems(F['formation_id'])
             if locked:
                 H.append(lockicon)
-            elif editable:
-                H.append("""<a class="stdlink" href="formation_edit?formation_id=%(formation_id)s">modifier</a>
- 	     <a class="stdlink" href="formation_delete?formation_id=%(formation_id)s">supprimer</a>""" % F )
-            H.append("""<a class="stdlink" href="ue_list?formation_id=%(formation_id)s">programme détaillé et semestres</a>""" % F )
+            
+            H.append("""<a class="stdlink" href="ue_list?formation_id=%(formation_id)s">éditer le programme</a>""" % F )
+            H.append(""" <a class="stdlink" href="ue_list?formation_id=%(formation_id)s#sems">créer semestre</a>""" % F )
             H.append('</li>')
         H.append('</ul>')
         if editable:
             H.append("""<p><a class="stdlink" href="formation_create">Créer une formation</a></p>
- 	 <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>""")
+ 	 <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>
+         <p class="help">blah blah</p>
+            """)
 
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
@@ -428,8 +437,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_ue_create')
     def do_ue_create(self, args, REQUEST):
         "create an ue"
-        if self.formation_has_locked_sems(args['formation_id']):
-            raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
         # check duplicates
         ues = self.do_ue_list({'formation_id' : args['formation_id'],
@@ -454,7 +461,7 @@ class ZNotes(ObjectManager,
         if not ue:
             raise ScoValueError('UE inexistante !')
         ue = ue[0]
-        if self.formation_has_locked_sems(ue['formation_id']):
+        if self.ue_is_locked(ue['ue_id']):
             raise ScoLockedFormError()      
         # Il y a-t-il des etudiants ayant validé cette UE ?
         # si oui, propose de supprimer les validations
@@ -514,8 +521,6 @@ class ZNotes(ObjectManager,
         cnx = self.GetDBConnexion()
         # check
         ue = self.do_ue_list({ 'ue_id' : args['ue_id'] })[0]
-        if self.formation_has_locked_sems(ue['formation_id']):
-            raise ScoLockedFormError()
         # create matiere
         r = self._matiereEditor.create(cnx, args)
         self._inval_cache()
@@ -532,7 +537,7 @@ class ZNotes(ObjectManager,
         # check
         mat = self.do_matiere_list({ 'matiere_id' : oid })[0]
         ue = self.do_ue_list({ 'ue_id' : mat['ue_id'] })[0]
-        locked = self.formation_has_locked_sems(ue['formation_id'])
+        locked = self.matiere_is_locked(mat['matiere_id'])
         if locked:
             log('do_matiere_delete: mat=%s' % mat)
             log('do_matiere_delete: ue=%s' % ue)
@@ -563,7 +568,7 @@ class ZNotes(ObjectManager,
         # check
         mat = self.do_matiere_list({ 'matiere_id' :args[0]['matiere_id']})[0]
         ue = self.do_ue_list({ 'ue_id' : mat['ue_id'] })[0]
-        if self.formation_has_locked_sems(ue['formation_id']):
+        if self.matiere_is_locked(mat['matiere_id']):
             raise ScoLockedFormError() 
         # edit
         self._matiereEditor.edit( cnx, *args, **kw )
@@ -600,9 +605,6 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'do_module_create')
     def do_module_create(self, args, REQUEST):
         "create a module"
-        # check
-        if self.formation_has_locked_sems(args['formation_id']):
-            raise ScoLockedFormError()
         # create
         cnx = self.GetDBConnexion()
         r = self._moduleEditor.create(cnx, args)
@@ -617,7 +619,7 @@ class ZNotes(ObjectManager,
     def do_module_delete(self, oid, REQUEST):
         "delete module"
         mod = self.do_module_list({ 'module_id' : oid})[0]
-        if self.formation_has_locked_sems(mod['formation_id']):
+        if self.module_is_locked(mod['module_id']):
             raise ScoLockedFormError()
 
         # S'il y a des moduleimpls, on ne peut pas detruire le module !
@@ -650,7 +652,7 @@ class ZNotes(ObjectManager,
         "edit a module"
         # check
         mod = self.do_module_list({'module_id' : args[0]['module_id']})[0]
-        if self.formation_has_locked_sems(mod['formation_id']):
+        if self.module_is_locked(mod['module_id']):
             raise ScoLockedFormError()
         # edit
         cnx = self.GetDBConnexion()
@@ -678,6 +680,79 @@ class ZNotes(ObjectManager,
         "Number of moduleimpls using this module"
         mods = self.do_moduleimpl_list({'module_id' : module_id })
         return len(mods)
+
+    security.declareProtected(ScoView, 'module_is_locked')
+    def module_is_locked(self, module_id):
+        """True if UE should not be modified
+        (used in a locked formsemestre)
+        """
+        r = SimpleDictFetch(
+            self, 
+            """SELECT mi.* from notes_modules mod, notes_formsemestre sem, notes_moduleimpl mi
+            WHERE mi.module_id = mod.module_id AND mi.formsemestre_id = sem.formsemestre_id
+            AND mi.module_id = %(module_id)s AND sem.etat = 0
+            """, { 'module_id' : module_id } )
+        return len(r) > 0
+    
+    security.declareProtected(ScoView, 'matiere_is_locked')
+    def matiere_is_locked(self, matiere_id):
+        """True if matiere should not be modified
+        (contains modules used in a locked formsemestre)
+        """
+        r = SimpleDictFetch(
+            self, 
+            """SELECT ma.* from notes_matieres ma, notes_modules mod, notes_formsemestre sem, notes_moduleimpl mi
+            WHERE ma.matiere_id = mod.matiere_id AND mi.module_id = mod.module_id AND mi.formsemestre_id = sem.formsemestre_id
+            AND ma.matiere_id = %(matiere_id)s AND sem.etat = 0
+            """, { 'matiere_id' : matiere_id } )
+        return len(r) > 0
+    
+    security.declareProtected(ScoView, 'ue_is_locked')
+    def ue_is_locked(self, ue_id):
+        """True if module should not be modified
+        (contains modules used in a locked formsemestre)
+        """
+        r = SimpleDictFetch(
+            self, 
+            """SELECT ue.* FROM notes_ue ue, notes_modules mod, notes_formsemestre sem, notes_moduleimpl mi
+               WHERE ue.ue_id = mod.ue_id
+               AND mi.module_id = mod.module_id AND mi.formsemestre_id = sem.formsemestre_id
+               AND ue.ue_id = %(ue_id)s AND sem.etat = 0
+            """, { 'ue_id' : ue_id } )
+        return len(r) > 0
+
+    security.declareProtected(ScoChangeFormation, 'module_move')
+    def module_move(self, module_id, after=0, REQUEST=None, redirect=1):
+        """Move before/after previous one (decrement/increment numero)"""
+        module = self.do_module_list({'module_id' : module_id})[0]
+        redirect = int(redirect)
+        after = int(after) # 0: deplace avant, 1 deplace apres
+        if after not in (0,1):
+            raise ValueError('invalid value for "after"')
+        formation_id = module['formation_id']
+        others = self.do_module_list({'matiere_id' : module['matiere_id']})
+        log('others=%s' % others)
+        if len(others) > 1:
+            idx = [ p['module_id'] for p in others ].index(module_id)
+            log('module_move: after=%s idx=%s' % (after, idx))
+            neigh = None # object to swap with
+            if after == 0 and idx > 0:
+                neigh = others[idx-1]            
+            elif after == 1 and idx < len(others)-1:
+                neigh = others[idx+1]
+            if neigh: # 
+                # swap numero between partition and its neighbor
+                log('moving module %s' % module_id)
+                cnx = self.GetDBConnexion()
+                module['numero'], neigh['numero'] = neigh['numero'], module['numero']
+                if module['numero'] == neigh['numero']:
+                    neigh['numero'] -= 2*after - 1
+                self._moduleEditor.edit(cnx, module)
+                self._moduleEditor.edit(cnx, neigh)
+        
+        # redirect to partition edit page:
+        if redirect:
+            return REQUEST.RESPONSE.redirect('ue_list?formation_id='+formation_id)
     
     # --- Semestres de formation
     _formsemestreEditor = EditableTable(

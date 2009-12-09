@@ -525,20 +525,31 @@ def partition_create(context, formsemestre_id, partition_name='', default=False,
     else:
         return partition_id 
 
+def checkLastIcon(context, REQUEST):
+    """Check that most recent icon is installed.
+    If not, rebuild icons in Zope.
+    """
+    try: 
+        a = context.icons.delete_small_img
+    except:
+        context.do_build_icons_folder(REQUEST)
+
+def getArrowIconsTags(context, REQUEST):
+    """returns html tags for arrows"""
+    # check that we have new icons:
+    checkLastIcon(context,REQUEST)
+    #
+    arrow_up = context.icons.arrow_up.tag(title='remonter', border='0') 
+    arrow_down = context.icons.arrow_down.tag(title='descendre', border='0')     
+    arrow_none = context.icons.arrow_none.tag(title='', border='0')     
+    return arrow_up, arrow_down, arrow_none
 
 def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     """Form to create/suppress partitions"""
     # ad-hoc form 
     canedit = context.Notes.can_change_groups(REQUEST, formsemestre_id)
     partitions = get_partitions_list(context, formsemestre_id)
-    # check that we have new icons:
-    try: 
-        a = context.icons.arrow_up
-    except:
-        context.do_build_icons_folder(REQUEST)
-    #
-    arrow_up = context.icons.arrow_up.tag(title='remonter', border='0') 
-    arrow_down = context.icons.arrow_down.tag(title='descendre', border='0')     
+    arrow_up, arrow_down, arrow_none = getArrowIconsTags(context, REQUEST)
     #
     H = [ context.sco_header(REQUEST, page_title="Partitions..."),
           """<script type="text/javascript">

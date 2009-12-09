@@ -32,6 +32,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
+import sco_groups
 
 def ue_create(context, formation_id=None, REQUEST=None):
     """Creation d'une UE
@@ -127,12 +128,20 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     locked = context.formation_has_locked_sems(formation_id)
 
     perm_change = authuser.has_permission(ScoChangeFormation,context)
-    editable = (not locked) and perm_change
+    # editable = (not locked) and perm_change
+    # On autorise maintanant la modification des formations qui ont des semestres verrouillés,
+    # sauf si cela affect les notes passées (verrouillées):
+    #   - pas de modif des modules utilisés dans des semestres verrouillés
+    #   - pas de changement des codes d'UE utilisés dans des semestres verrouillés
+    editable = perm_change
 
     if locked:
         lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
     else:
         lockicon = ''
+    
+    arrow_up, arrow_down, arrow_none = sco_groups.getArrowIconsTags(context, REQUEST)
+
     H = [ context.sco_header(REQUEST, page_title="Programme %s" % F['acronyme']),
           """<h2>Formation %(titre)s (%(acronyme)s) [version %(version)s] code %(formation_code)s""" % F,
           lockicon, '</h2>' ]
@@ -152,30 +161,47 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
     ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
     for UE in ue_list:
         H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s (code %(ue_code)s)' % UE)
-        if editable:
+        ue_editable = editable and not context.ue_is_locked(UE['ue_id'])
+        if ue_editable:
             H.append('<a class="stdlink" href="ue_edit?ue_id=%(ue_id)s">modifier</a>' % UE)
+        else:
+            H.append('<span class="locked">[verrouillé]</span>')
         H.append('<ul class="notes_matiere_list">')
         Matlist = context.do_matiere_list( args={ 'ue_id' : UE['ue_id'] } )
         for Mat in Matlist:
             H.append('<li class="notes_matiere_list">%(titre)s' % Mat)
-            if editable:
+            if editable and not context.matiere_is_locked(Mat['matiere_id']):
                 H.append('<a class="stdlink" href="matiere_edit?matiere_id=%(matiere_id)s">modifier</a>' % Mat)
             H.append('<ul class="notes_module_list">')
             Modlist = context.do_module_list( args={ 'matiere_id' : Mat['matiere_id'] } )
+            im = 0
             for Mod in Modlist:
                 Mod['nb_moduleimpls'] = context.module_count_moduleimpls(Mod['module_id'])
                 H.append('<li class="notes_module_list">')
-                if editable:
-                    H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)
+                if im != 0 and editable:
+                    H.append('<a href="module_move?module_id=%s&after=0" class="aud">%s</a>' % (Mod['module_id'], arrow_up))
+                else:
+                    H.append(arrow_none)
+                if im < len(Modlist) - 1 and editable:
+                    H.append('<a href="module_move?module_id=%s&after=1" class="aud">%s</a>' % (Mod['module_id'], arrow_down))
+                else:
+                    H.append(arrow_none)
+                im += 1
+                if Mod['nb_moduleimpls'] == 0 and editable:
+                    H.append('<a class="smallbutton" href="module_delete?module_id=%s">%s</a>'
+                             % (Mod['module_id'], context.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer (module inutilisé)')))
+                else:
+                    H.append(arrow_none)
+                mod_editable = editable and not context.module_is_locked(Mod['module_id'])
+                if mod_editable:
+                    H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)                    
+                H.append('%(code)s %(titre)s' % Mod )
+                if mod_editable:
+                    H.append('</a>')
                 heurescoef = '%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s' % Mod
                 if Mod['ects'] is not None:
                     heurescoef += ', %g ECTS' % Mod['ects']
-                H.append('%(code)s %(titre)s (semestre %(semestre_id)s)' % Mod + ' (%s)' % heurescoef )
-                if editable:
-                    H.append('</a>')
-                    if Mod['nb_moduleimpls'] == 0:
-                        H.append(' <a class="discretelink" href="module_delete?module_id=%(module_id)s">supprimer ce module</a> (inutilisé)' % Mod)
-                
+                H.append(' (semestre %(semestre_id)s)' % Mod + ' (%s)' % heurescoef )
                 H.append('</li>')
             if not Modlist:
                 H.append('<li>Aucun module dans cette matière !')
@@ -198,20 +224,27 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
         H.append('<a class="stdlink" href="ue_create?formation_id=%s">Ajouter une UE</a></li>' % formation_id)
     H.append('</ul>')
 
-    H.append("""    
-<p>
-<ul>
+    H.append('<p><ul>')
+    if editable:
+        H.append("""
 <li><a class="stdlink" href="formation_create_new_version?formation_id=%(formation_id)s">Créer une nouvelle version (non verrouillée)</a></li>
-<li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
+""")
+    H.append("""
 <li><a class="stdlink" href="formation_export_xml?formation_id=%(formation_id)s">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
+<li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
 </ul>
 </p>""" % F )
     if perm_change:
         H.append("""
-        <h3>Semestres ou sessions de cette formation</h3>
+        <h3> <a name="sems">Semestres ou sessions de cette formation</a></h3>
         <p><ul>""")
         for sem in context.do_formsemestre_list(args={ 'formation_id' : formation_id } ):
-            H.append('<li><a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier le semestre %(titremois)s</a></li>' % sem)
+            H.append('<li><a class="stdlink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titremois)s</a>' % sem)
+            if sem['etat'] != '1':
+                H.append(' [verrouillé]')
+            else:
+                H.append(' <a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier</a>' % sem )
+            H.append('</li>')
         H.append('</ul>')
     
     if authuser.has_permission(ScoImplement,context):
@@ -254,7 +287,7 @@ def do_ue_edit(context, args):
     # check
     ue_id = args['ue_id']
     ue = context.do_ue_list({ 'ue_id' : ue_id })[0]
-    if context.formation_has_locked_sems(ue['formation_id']):
+    if context.ue_is_locked(ue['ue_id']):
         raise ScoLockedFormError()        
     # check: acronyme unique dans cette formation
     if args.has_key('acronyme'):
