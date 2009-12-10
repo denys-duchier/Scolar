@@ -55,25 +55,13 @@ import scolars
 import sco_parcours_dut
 
 
-def checkGroupName(groupName):
+def checkGroupName(groupName): # XXX unused: now allow any string as a  gropu or partition name
     "Raises exception if not a valid group name"
     if groupName and (
         not re.match( '^\w+$', groupName ) 
         or (simplesqlquote(groupName) != groupName)):
         log('!!! invalid group name: ' + groupName)
         raise ValueError('invalid group name: ' + groupName)
-
-def fixGroupName(groupName):
-    """bacward compat: fix old group names wich can be invalid"""    
-    try:
-        checkGroupName(groupName)
-    except:
-        log('fixing groupe name: %s' % groupName)
-        if groupName[-2:] == '.0':
-            groupName = groupName[:-2]
-        groupName = re.sub('[^a-zA-Z0-9_]', '_', groupName)
-        log('new group name: %s' % groupName)
-    return groupName
 
 partitionEditor = EditableTable(
     'partition',
@@ -448,9 +436,11 @@ def setGroups(context, partition_id,
     # Crée les nouveaux groupes
     for line in groupsToCreate.split('\n'): # for each group_name (one per line)
         fs = line.split(';')
-        group_name = fs[0].strip()
+        group_name = fs[0].strip()        
         if not group_name:
             continue
+        # ajax arguments are encoded in utf-8:
+        group_name = unicode(group_name, 'utf-8').encode(SCO_ENCODING)
         group_id = createGroup(context, partition_id, group_name, REQUEST=REQUEST)
         # Place dans ce groupe les etudiants indiqués:
         for etudid in fs[1:-1]:
@@ -473,7 +463,7 @@ def createGroup(context, partition_id, group_name='', default=False, REQUEST=Non
         group_name = group_name.strip()
     if not group_name and not default:
         raise ValueError('invalid group name: ()')
-    checkGroupName(group_name)
+    # checkGroupName(group_name)
     if group_name in [ g['group_name'] for g in get_partition_groups(context, partition) ]:
         raise ValueError('group_name %s already exists in partition'%group_name) # XXX FIX: incorrect error handling (in AJAX)
     cnx = context.GetDBConnexion()
@@ -512,7 +502,7 @@ def partition_create(context, formsemestre_id, partition_name='', default=False,
     if not partition_name and not default:
         raise ScoValueError('Nom de partition invalide (vide)')
     redirect = int(redirect)
-    checkGroupName(partition_name)
+    # checkGroupName(partition_name)
     if partition_name in [ p['partition_name'] for p in get_partitions_list(context, formsemestre_id) ]:
         raise ScoValueError('Il existe déjà une partition %s dans ce semestre'%partition_name) 
     
@@ -789,11 +779,11 @@ def groups_auto_repartition(context, partition_id=None, REQUEST=None):
         # Crée les nouveaux groupes
         group_ids = []
         for group_name in group_names:
-            try:
-                checkGroupName(group_name)
-            except:
-                H.append('<p class="warning">Nom de groupe invalide: %s</p>'%group_name)
-                return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+            # try:
+            #     checkGroupName(group_name)
+            # except:
+            #     H.append('<p class="warning">Nom de groupe invalide: %s</p>'%group_name)
+            #     return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
             group_ids.append(createGroup(context, partition_id, group_name, REQUEST=REQUEST))
         #
         nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,formsemestre_id )

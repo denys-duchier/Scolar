@@ -544,10 +544,14 @@ class ZScolar(ObjectManager,
         nbgroups = 0
         for sem in sems:
             for p in sco_groups.get_partitions_list(self, sem['formsemestre_id']):
-                if p['partition_name'] != None:
-                    for group in sco_groups.get_partition_groups(self, p):
-                        H.append('<option value="%s">%s: %s %s</option>' 
-                                 % (group['group_id'], sem['titremois'], p['partition_name'], group['group_name']))        
+                for group in sco_groups.get_partition_groups(self, p):
+                    if group['group_name']:
+                        group_tit = '%s %s' % (p['partition_name'], group['group_name'])
+                    else:
+                        group_tit = 'tous'
+                    H.append('<option value="%s">%s: %s</option>' 
+                             % (group['group_id'], sem['titremois'], group_tit))
+                    
         H.append('</select>')
         return '\n'.join(H)    
 

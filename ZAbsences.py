@@ -760,17 +760,22 @@ class ZAbsences(ObjectManager,
         for jour in self.day_names()[1:]:
             datessem.append( self.NextISODay(datessem[-1]) )
         #                
+        if group['partition_name']:
+            gr_tit = 'du groupe <span class="fontred">%s %s</span> de' % (group['partition_name'], group['group_name'])
+        else:
+            gr_tit = 'en'
+        
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
                               no_side_bar=1,REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
-              <h2>Saisie des absences pour le groupe %s %s de %s, 
-              semaine du lundi %s</h2>
+              <h2>Saisie des absences %s %s, 
+              <span class="fontred">semaine du lundi %s</span></h2>
 
               <p><a href="index_html">Annuler</a></p>
 
               <p>
               <form action="doSignaleAbsenceGrHebdo" method="post" action="%s">              
-              """ % (group['partition_name'], group['group_name'], sem['titre_num'], datelundi, REQUEST.URL0) ]
+              """ % (gr_tit, sem['titre_num'], datelundi, REQUEST.URL0) ]
         #
         etuds = self.getEtudInfoGroupe(group_id)
 
@@ -819,16 +824,21 @@ class ZAbsences(ObjectManager,
         colnames = [ str(x) for x in dates ]
         dates = [ x.ISO() for x in dates ]
         dayname = self.day_names()[jourdebut.weekday]
+
+        if group['partition_name']:
+            gr_tit = 'du groupe <span class="fontred">%s %s</span> de' % (group['partition_name'], group['group_name'])
+        else:
+            gr_tit = 'en'
         
         H = [ self.sco_header(page_title='Saisie des absences',
                               no_side_bar=1,REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
-              <h2>Saisie des absences pour le groupe %s %s de %s, 
-              les %s</h2>
+              <h2>Saisie des absences %s %s, 
+              les <span class="fontred">%s</span></h2>
               <p>
               <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&formsemestre_id=%s&group_id=%s&destination=%s&nbweeks=%d">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
-              """ % (group['partition_name'], group['group_name'], sem['titre_num'],
+              """ % (gr_tit, sem['titre_num'],
                      dayname,
                      datedebut, datefin, formsemestre_id, group_id, destination, nwl, msg) ]
         #

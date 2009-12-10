@@ -63,7 +63,7 @@ def do_evaluation_listenotes(context, REQUEST):
         return '<p>Aucune évaluation !</p>'
 
     format = REQUEST.form.get('format', 'html')
-    E = evals[0]
+    E = evals[0] # il y a au moins une evaluation
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
     formsemestre_id = M['formsemestre_id']
     
