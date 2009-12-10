@@ -83,7 +83,7 @@ def formsemestre_validation_etud_form(
         raise ScoValueError('validation: semestre verrouille')
     
     H = [ context.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud,
-                             javascripts=['js/recap_parcours.js']
+                             javascripts=['jQuery/jquery.js', 'js/recap_parcours.js']
                              ) ]
 
     H.append('<table style="width: 100%"><tr><td>')
@@ -349,7 +349,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
     with_all_columns: si faux, pas de colonne "assiduité".
     """
     H = []
-    linktmpl  = '<span onclick="toggle_vis(this);">%s</span>'
+    linktmpl  = '<span onclick="toggle_vis(this);" class="toggle_sem">%s</span>'
     minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
     pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
     if show_details:
@@ -359,7 +359,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         sd = ' recap_hide_details'
         plusminus = pluslink
     H.append( '<table class="recap_parcours%s"><tr>' % sd )
-    H.append('<th></th><th></th><th>Semestre</th>')
+    H.append('<th><span onclick="toggle_all_sems(this);" title="Ouvrir/fermer tous les semestres">+</span></th><th></th><th>Semestre</th>')
     if with_all_columns:
         H.append('<th>Assidu</th>')
     H.append('<th>Etat</th><th>Abs</th><th>Moy.</th>')
