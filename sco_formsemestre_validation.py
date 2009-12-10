@@ -82,7 +82,9 @@ def formsemestre_validation_etud_form(
     if Se.sem['etat'] != '1':
         raise ScoValueError('validation: semestre verrouille')
     
-    H = [ context.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud) ]
+    H = [ context.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud,
+                             javascripts=['js/recap_parcours.js']
+                             ) ]
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
@@ -346,42 +348,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
     sem_info = { formsemestre_id : txt } permet d'ajouter des informations associées à chaque semestre
     with_all_columns: si faux, pas de colonne "assiduité".
     """
-    H = ["""<script type="text/javascript">
-function toggle_vis(e) { // change visi of following row in table
-    var tr = e.parentNode.parentNode;
-    // current state: use alt attribute of current image
-    if (e.childNodes[0].alt == '+') {
-        state=1;
-    } else {
-        state=0;
-    }
-    // find next tr in siblings
-    var sibl = tr.nextSibling;
-    while ((sibl != null) && sibl.nodeType != 1 && sibl.tagName != 'TR') {
-        sibl = sibl.nextSibling;
-    }
-    if (sibl) {
-        var td_disp = 'none';
-        if (state) {
-            sibl.style.display = 'table-row';
-            e.innerHTML = '%s';
-            td_disp = 'inline';
-        } else {
-            sibl.style.display = 'none';
-            e.innerHTML = '%s';
-        }
-        // acronymes d'UE
-        sibl = e.parentNode.nextSibling;
-        while (sibl != null) {
-            if (sibl.nodeType == 1 && sibl.className == 'ue_acro')
-                sibl.childNodes[0].style.display = td_disp; 
-            sibl = sibl.nextSibling;
-        }
-    }
-}
-</script>
-        """ % (context.icons.minus_img.tag(border="0", alt="-"), 
-               context.icons.plus_img.tag(border="0", alt="+"))]
+    H = []
     linktmpl  = '<span onclick="toggle_vis(this);">%s</span>'
     minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
     pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")

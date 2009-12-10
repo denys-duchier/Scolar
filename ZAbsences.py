@@ -1075,7 +1075,11 @@ class ZAbsences(ObjectManager,
                 T[-1]['_css_row_class'] = 'etuddem'
                 T[-1]['nomprenom'] += ' (dem)'
         columns_ids = ['nomprenom', 'nbabsjust', 'nbabsnonjust', 'nbabs']
-        title = 'Etat des absences du groupe %(partition_name)s %(group_name)s' % group
+        if group['partition_name']:
+            gr_tit = 'du groupe <span class="fontred">%s %s</span>' % (group['partition_name'], group['group_name'])
+        else:
+            gr_tit = ''
+        title = 'Etat des absences %s' % gr_tit
         if format == 'xls' or format == 'xml':
             columns_ids = ['etudid'] + columns_ids
         tab =GenTable( columns_ids=columns_ids, rows=T,  
