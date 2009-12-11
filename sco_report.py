@@ -793,11 +793,12 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             modalite = ' ' + s['modalite']
         else:
             modalite = ''
-        n.set( 'label', '%s%s\\n%d/%s - %d/%s\\n%d' %
-               (_codesem(s, short=False, prefix='S'), modalite,
-                s['mois_debut_ord'], s['annee_debut'][2:],
-                s['mois_fin_ord'], s['annee_fin'][2:],
-                len(effectifs[s['formsemestre_id']])))
+        label = ('%s%s\\n%d/%s - %d/%s\\n%d' %
+                 (_codesem(s, short=False, prefix='S'), modalite,
+                  s['mois_debut_ord'], s['annee_debut'][2:],
+                  s['mois_fin_ord'], s['annee_fin'][2:],
+                  len(effectifs[s['formsemestre_id']])))
+        n.set( 'label', suppress_accents(label) )
         n.set_fontname('Helvetica')
         n.set_fontsize(8.0)
         n.set_width(1.2)
@@ -845,6 +846,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     data = open(path,'r').read()
     log('dot generated %d bytes in %s format' % (len(data),format))
     if not data:
+        log('graph.to_string=%s' % g.to_string() )
         raise ValueError('Erreur lors de la génération du document au format %s' % format)
     os.unlink(path)
     if format == 'svg':
