@@ -240,7 +240,7 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
         ues = [ context.do_ue_list({ 'ue_id' : ue_id })[0] for ue_id in UECaps.keys() ]
         ues.sort(key=lambda u:u['numero'])        
         for ue in ues:
-            H.append('<li><span class="tit">%(acronyme)s: %(titre)s</span>' % ue )
+            H.append('<li class="tit"><span class="tit">%(acronyme)s: %(titre)s</span>' % ue )
             H.append( '<ul>' )
             for info in UECaps[ue['ue_id']]:
                 etud = context.getEtudInfo(etudid=info['etudid'],filled=True)[0]
@@ -252,9 +252,11 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
                     dm = ', '.join([ m['code'] for m in info['is_ins'] ])
                     H.append('actuellement inscrit dans <a title="%s" class="discretelink">%d modules</a>' % (dm,len(info['is_ins'])))
                     if info['ue_status']['is_capitalized']:
-                        H.append("""<div><em style="font-size: 80%">UE actuelle moins bonne que l'UE capitalisée</em></div>""")
-                        if can_change:
-                            H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">désinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
+                        H.append("""<div><em style="font-size: 70%">UE actuelle moins bonne que l'UE capitalisée</em></div>""")
+                    else:
+                        H.append("""<div><em style="font-size: 70%">UE actuelle meilleure que l'UE capitalisée</em></div>""")
+                    if can_change:
+                        H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">désinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
                 else:
                     H.append('(non réinscrit dans cette UE)')
                     if can_change:

@@ -665,9 +665,11 @@ table.formsemestre_inscr td {
 ul.ue_inscr_list li span.tit {
     font-weight: bold;
 }
-
+ul.ue_inscr_list li.tit {
+    padding-top: 1ex;
+}
 ul.ue_inscr_list li.etud {
-    padding-top: 0.5ex;
+    padding-top: 0.7ex;
 }
 
 /* Liste des groupes sur tableau bord semestre */
