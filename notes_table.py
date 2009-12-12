@@ -717,7 +717,9 @@ class NotesTable:
         for ue in self.get_ues():
             ue_id=ue['ue_id']
             cur_moy_ue, cur_coef_ue = self._etud_moycoef_ue[etudid][ue_id]
-            is_capitalized = False
+            is_capitalized = False # l'UE prise en compte est une UE capitalisée
+            was_capitalized = False # il y a precedemment une UE capitalisée 
+            #                    (pas forcément pris een compte si les notes courantes sont meilleures)
             formsemestre_id = None
             event_date = None
             # compare aux UE capitalisées
@@ -726,21 +728,24 @@ class NotesTable:
             for ue_cap in self.ue_capitalisees[etudid]:
                 if ue_cap['ue_code'] == ue['ue_code']:
                     moy_ue_cap = ue_cap['moy_ue']
+                    was_capitalized = True
+                    event_date = ue_cap['event_date']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
                         max_moy_ue = moy_ue_cap
                         is_capitalized = True
                         formsemestre_id = ue_cap['formsemestre_id']
-                        event_date = ue_cap['event_date']
                         coef_ue = self.ue_coefs[ue_id]
             d[ue_id] = {
                 'moy_ue' : max_moy_ue,
                 'coef_ue' : coef_ue, # coef reel ou coef de l'ue si capitalisee
                 'cur_moy_ue' : cur_moy_ue,
                 'cur_coef_ue' : cur_coef_ue,
-                'is_capitalized' : is_capitalized }
+                'is_capitalized' : is_capitalized,
+                'was_capitalized' : was_capitalized }
+            if is_capitalized or was_capitalized:
+                d[ue_id]['event_date'] = event_date
             if is_capitalized:
                 d[ue_id]['formsemestre_id'] = formsemestre_id
-                d[ue_id]['event_date'] = event_date
         
         return d
 

@@ -1523,6 +1523,23 @@ class ZNotes(ObjectManager,
             if not etudid in inmod_set:
                 self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
         
+        self._inval_cache(formsemestre_id=formsemestre_id)
+
+    security.declareProtected(ScoEtudInscrit,'etud_desinscrit_ue')
+    def etud_desinscrit_ue(self, etudid, formsemestre_id, ue_id, REQUEST=None):
+        """Desinscrit l'etudiant de tous les modules de cette UE dans ce semestre.
+        """
+        sco_moduleimpl_inscriptions.do_etud_desinscrit_ue(self, etudid, formsemestre_id, ue_id, REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/moduleimpl_inscriptions_stats?formsemestre_id='+formsemestre_id)
+
+    security.declareProtected(ScoEtudInscrit,'etud_inscrit_ue')
+    def etud_inscrit_ue(self, etudid, formsemestre_id, ue_id, REQUEST=None):
+        """Inscrit l'etudiant de tous les modules de cette UE dans ce semestre.
+        """
+        sco_moduleimpl_inscriptions.do_etud_inscrit_ue(self, etudid, formsemestre_id, ue_id, REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/moduleimpl_inscriptions_stats?formsemestre_id='+formsemestre_id)
+    
+
     # --- Inscriptions
     security.declareProtected(ScoEtudInscrit,'formsemestre_inscription_with_modules_form')
     formsemestre_inscription_with_modules_form = sco_formsemestre_inscriptions.formsemestre_inscription_with_modules_form

@@ -658,6 +658,17 @@ td.formsemestre_status_cell {
 span.status_ue_acro { font-weight: bold; }
 span.status_ue_title { font-style: italic; padding-left: 1cm;}
 
+table.formsemestre_inscr td {
+    padding-right: 1.25em;
+}
+
+ul.ue_inscr_list li span.tit {
+    font-weight: bold;
+}
+
+ul.ue_inscr_list li.etud {
+    padding-top: 0.5ex;
+}
 
 /* Liste des groupes sur tableau bord semestre */
 .formsemestre_status h3 {

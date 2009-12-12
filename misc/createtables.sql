@@ -365,9 +365,6 @@ CREATE TABLE notes_formsemestre_inscription (
 	formsemestre_inscription_id text default notes_newid2('SI') PRIMARY KEY,
 	etudid text REFERENCES identite(etudid),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	-- groupetd text, -- XXX obsolete
-	-- groupetp text, -- XXX obsolete
-	-- groupeanglais text, -- XXX obsolete
 	etat text, -- I inscrit, D demission en cours de semestre
 	UNIQUE(formsemestre_id, etudid)
 ) WITH OIDS;
@@ -376,8 +373,6 @@ CREATE TABLE notes_formsemestre_inscription (
 CREATE TABLE notes_moduleimpl_inscription (
 	moduleimpl_inscription_id text default notes_newid2('MI') PRIMARY KEY,
 	moduleimpl_id text REFERENCES notes_moduleimpl(moduleimpl_id),
-	-- cherche les infos sur les etudiants dans la table "identites" SCOGTR
-	-- Futur: a adapter dans d'autres departements...
 	etudid text REFERENCES identite(etudid),
 	UNIQUE( moduleimpl_id, etudid)
 ) WITH OIDS;
