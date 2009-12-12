@@ -2635,6 +2635,27 @@ class ZNotes(ObjectManager,
             code_etat=code_etat, new_code_prev=new_code_prev, devenir=devenir,
             assidu=assidu, desturl=desturl, sortcol=sortcol, REQUEST=REQUEST )
 
+    security.declareProtected(ScoView, 'formsemestre_validate_previous_ue')
+    def formsemestre_validate_previous_ue(self, formsemestre_id, etudid=None, REQUEST=None):
+        "Form. saisie UE validée hors ScoDoc "
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        return sco_formsemestre_validation.formsemestre_validate_previous_ue(self, formsemestre_id, etudid, REQUEST=REQUEST)
+    
+    security.declareProtected(ScoView, 'get_etud_ue_cap_html')
+    get_etud_ue_cap_html = sco_formsemestre_validation.get_etud_ue_cap_html
+
+    security.declareProtected(ScoView, 'etud_ue_suppress_validation')
+    def etud_ue_suppress_validation(self,  etudid, formsemestre_id, ue_id, REQUEST=None):
+        """Suppress a validation (ue_id, etudid) and redirect to formsemestre"""
+        if not self.can_validate_sem(REQUEST, formsemestre_id):
+            return self.confirmDialog(
+                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                dest_url=self.ScoURL(), REQUEST=REQUEST)
+        return sco_formsemestre_validation.etud_ue_suppress_validation(self, etudid, formsemestre_id, ue_id, REQUEST=REQUEST)
+    
     security.declareProtected(ScoView, 'formsemestre_validation_auto')
     def formsemestre_validation_auto(self, formsemestre_id, REQUEST):
         "Formulaire saisie automatisee des decisions d'un semestre"

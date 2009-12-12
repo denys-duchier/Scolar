@@ -575,19 +575,24 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
                   msg='ue_id=%s code=%s'%(ue_id, code_ue))
 
             
-def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code):
+def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None):
     "Ajoute ou change validation UE"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'ue_id' : ue_id }
+    if date:
+        args['event_date'] = date
     # delete existing
     cursor = cnx.cursor()
     try:
-        cursor.execute("""delete from scolar_formsemestre_validation
-        where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id=%(ue_id)s""", args )
+        cond =  "etudid = %(etudid)s and ue_id=%(ue_id)s"
+        if formsemestre_id:
+            cond += " and formsemestre_id=%(formsemestre_id)s"
+        cursor.execute("delete from scolar_formsemestre_validation where " + cond, args )
         # insert
         args['code'] = code
         if code == 'ADM':
-            # stocke la moyenne d'UE capitalisée:
-            moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy_ue']            
+            if moy_ue is None:
+                # stocke la moyenne d'UE capitalisée:
+                moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy_ue']            
             args['moy_ue'] = moy_ue
         log('formsemestre_validate_ue: %s' % args)
         scolar_formsemestre_validation_create(cnx, args)
@@ -637,11 +642,12 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
 
     and SFV.ue_id = ue.ue_id
     and SFV.code = 'ADM'
+    and SFV.etudid = %(etudid)s
     
-    and sem.formsemestre_id = SFV.formsemestre_id
-    and sem.date_debut < %(date_debut)s
-    and sem.semestre_id = %(semestre_id)s
-    and SFV.etudid = %(etudid)s;
+    and (  (sem.formsemestre_id = SFV.formsemestre_id
+           and sem.date_debut < %(date_debut)s
+           and sem.semestre_id = %(semestre_id)s )
+         or (SFV.formsemestre_id is NULL) )
     """, { 'etudid' : etudid,
            'formation_id' : sem['formation_id'],
            'semestre_id' : sem['semestre_id'],

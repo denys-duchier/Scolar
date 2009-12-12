@@ -33,6 +33,7 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_groups
+import sco_formsemestre_validation
 
 def ue_create(context, formation_id=None, REQUEST=None):
     """Creation d'une UE
@@ -255,15 +256,27 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 </ul>""" % F)
 #   <li>(debug) <a class="stdlink" href="check_form_integrity?formation_id=%(formation_id)s">Vérifier cohérence</a></li>
 
+
+    warn, ue_multiples = sco_formsemestre_validation.check_formation_ues(context, formation_id)
+    H.append(warn)
+    
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
 
-def ue_sharing_code(context, ue_code, ue_id=None):
-    """HTML list of UE sharing this code"""
+def ue_sharing_code(context, ue_code=None, ue_id=None, hide_ue_id=None):
+    """HTML list of UE sharing this code
+    Either ue_code or ue_id may be specified.
+    """
+    if ue_id:
+        ue = context.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+        ue_code = ue['ue_code']
+
     ue_list = context.do_ue_list( args={ 'ue_code' : ue_code } )
-    if ue_id: # enlève l'ue de depart
-        ue_list = [ ue for ue in ue_list if ue['ue_id'] != ue_id ]
+    
+    if hide_ue_id: # enlève l'ue de depart
+        ue_list = [ ue for ue in ue_list if ue['ue_id'] != hide_ue_id ]
+    
     if not ue_list:
         if ue_id:
             return """<span class="ue_share">Seule UE avec code %s</span>""" % ue_code

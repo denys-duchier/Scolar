@@ -32,6 +32,7 @@ import urllib, time, datetime
 from notesdb import *
 from sco_utils import *
 from notes_log import log
+from scolog import logdb
 from notes_table import *
 import notes_table
 
@@ -738,3 +739,159 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
         cnx.rollback()
         raise
     context._inval_cache(formsemestre_id=formsemestre_id)
+
+def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=None):
+    """Form. saisie UE validée hors ScoDoc 
+    (pour étudiants arrivant avec un UE antérieurement validée).
+    """
+    etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    sem = context.get_formsemestre(formsemestre_id)
+    Fo = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    
+    H = [ context.sco_header(REQUEST, page_title="Validation UE",
+                             javascripts=[ 'jQuery/jquery.js', 
+                                           'js/validate_previous_ue.js',
+                                           'libjs/calendarDateInput.js']),
+          '<table style="width: 100%"><tr><td>',
+          '''<h2 class="formsemestre">%s: validation d'une UE antérieure</h2>''' % etud['nomprenom'],
+          ('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
+           % (context.ScoURL(), etudid,    
+              sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST))),
+          '''<p class="help">Utiliser cette page pour enregistrer une UE validée antérieurement, 
+    <em>dans un semestres hors ScoDoc</em>. Les UE validées dans ScoDoc sont déjà
+    automatiquement prises en compte. Cette page n'est utile que pour les étudiants ayant 
+    suivi un début de cursus dans un autre établissement, ou dans un semestre géré sans 
+    ScoDoc.</p>''',
+          '<p>On ne peut prendre en compte ici que les UE du cursus <b>%(titre)s</b></p>' % Fo,
+          ]
+    
+    # Toutes les UE de cette formation sont présentées (même celles des autres semestres)
+    ues = context.do_ue_list({ 'formation_id' : Fo['formation_id'] })
+    ue_names = ['Choisir...'] + [ '%(acronyme)s %(titre)s' % ue for ue in ues ]
+    ue_ids = [''] + [ ue['ue_id'] for ue in ues ]
+    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
+            ('etudid', { 'input_type' : 'hidden' }),
+            ('formsemestre_id', { 'input_type' : 'hidden' }),
+            ('ue_id', { 'input_type' : 'menu',
+                        'title' : 'Unité d\'Enseignement (UE)',
+                        'allow_null' : False,
+                        'allowed_values': ue_ids,
+                        'labels' : ue_names }),
+            ('date', { 'input_type' : 'date', 'size' : 9,
+                       'default' : time.strftime('%d/%m/%Y')}),
+            ('moy_ue', { 'type' : 'float', 
+                         'allow_null' : False,
+                         'min_value' : 0,
+                         'max_value' : 20,
+                         'title' : 'Moyenne (/20) obtenue dans cette UE:' }),
+            ),
+                           cancelbutton = 'Annuler',
+                           submitlabel = "Enregistrer validation d'UE",
+                           )
+    if tf[0] == 0:
+        X = """
+           <div id="ue_list_etud_validations"></div>
+           <div id="ue_list_code"></div>
+        """
+        warn, ue_multiples = check_formation_ues(context, Fo['formation_id'])
+        return '\n'.join(H) + tf[1] + X + warn + context.sco_footer(REQUEST)
+    elif tf[0] == -1:
+        return REQUEST.RESPONSE.redirect( context.ScoURL()+'/Notes/formsemestre_status?formsemestre_id='+formsemestre_id )
+    else:
+        do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, 
+                                             tf[2]['ue_id'], tf[2]['moy_ue'], tf[2]['date'],
+                                             REQUEST=REQUEST)
+        return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&head_message=Validation%%20d'UE%%20enregistree" % (formsemestre_id, etudid))
+    
+def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id, moy_ue, date,
+                                         REQUEST=None):
+    """Enregistre validation d'UE"""
+    sem = context.get_formsemestre(formsemestre_id)
+    cnx = context.GetDBConnexion()
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id )
+
+    sco_parcours_dut.do_formsemestre_validate_ue(
+        cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date)
+
+    logdb(REQUEST, cnx, method='formsemestre_validate_previous_ue',
+          etudid=etudid, msg='Validation UE %s' % ue_id)
+    # Invalide tous les semestres de cette formation où l'etudiant est inscrit...
+    r = SimpleDictFetch(context, """SELECT sem.* 
+        FROM notes_formsemestre sem, notes_formsemestre_inscription i
+        WHERE sem.formation_id = %(formation_id)s
+        AND i.formsemestre_id = sem.formsemestre_id 
+        AND i.etudid = %(etudid)s
+        """, { 'etudid' : etudid, 'formation_id' : sem['formation_id'] } )
+    for fsid in [ s['formsemestre_id'] for s in r ]:
+        context._inval_cache(formsemestre_id=fsid)
+
+def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
+    """Ramene bout de HTML pour pouvoir supprimer une validation de cette UE
+    """
+    valids = SimpleDictFetch(context, """SELECT SFV.* FROM scolar_formsemestre_validation SFV
+        WHERE ue_id=%(ue_id)s AND etudid=%(etudid)s""", { 'etudid' : etudid, 'ue_id' : ue_id })
+    if not valids:
+        return ''
+    H = [ '<div class="existing_valids"><span>Validations existantes pour cette UE:</span><ul>' ]
+    for valid in valids:
+        valid['event_date'] = DateISOtoDMY(valid['event_date'])
+        if valid['moy_ue'] != None:
+            valid['m'] = ', moyenne %(moy_ue)g/20' % valid
+        else:
+            valid['m'] = ''
+        if valid['formsemestre_id']:
+            sem = context.get_formsemestre(valid['formsemestre_id'])
+            valid['s'] = ', du semestre %s' % sem['titreannee']
+        else:
+            valid['s'] = " enregistrée d'un parcours antérieur (hors ScoDoc)"
+        valid['ds'] = formsemestre_id
+        H.append('<li>%(code)s%(m)s%(s)s, le %(event_date)s  <a class="stdlink" href="etud_ue_suppress_validation?etudid=%(etudid)s&ue_id=%(ue_id)s&formsemestre_id=%(ds)s" title="supprime cette validation">effacer</a></li>' % valid )
+    H.append('</ul></div>')
+    return '\n'.join(H)
+
+def etud_ue_suppress_validation(context, etudid, formsemestre_id, ue_id, REQUEST=None):
+    """Suppress a validation (ue_id, etudid) and redirect to formsemestre"""
+    cnx = context.GetDBConnexion()
+    cursor = cnx.cursor()
+    cursor.execute("DELETE FROM scolar_formsemestre_validation WHERE etudid=%(etudid)s and ue_id=%(ue_id)s", 
+                   { 'etudid' : etudid, 'ue_id' : ue_id } )
+    return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s" % (etudid, formsemestre_id))
+
+def check_formation_ues(context, formation_id):
+    """Verifie que les UE d'une formation sont chacune utilisée dans un seul semestre_id
+    Si ce n'est pas le cas, c'est probablement (mais pas forcément) une erreur de
+    définition du programme: cette fonction retourne un bout de HTML
+    à afficher pour prévenir l'utilisateur, ou '' si tout est ok.
+    """
+    ues = context.do_ue_list({ 'formation_id' : formation_id })
+    ue_multiples = {} # { ue_id : [ liste des formsemestre ] }
+    for ue in ues:
+        # formsemestres utilisant cette ue ?
+        sems = SimpleDictFetch(context, """SELECT DISTINCT sem.* 
+             FROM notes_formsemestre sem, notes_modules mod, notes_moduleimpl mi
+             WHERE sem.formation_id = %(formation_id)s
+             AND mod.module_id = mi.module_id
+             AND mi.formsemestre_id = sem.formsemestre_id
+             AND mod.ue_id = %(ue_id)s""",
+                            {'ue_id' : ue['ue_id'], 'formation_id' : formation_id })
+        semestre_ids = set( [ x['semestre_id'] for x in sems ])
+        if len(semestre_ids) > 1: # plusieurs semestres d'indices differents dans le cursus
+            ue_multiples[ue['ue_id']] = sems
+    
+    if not ue_multiples:
+        return '', {}
+    # Genere message HTML:
+    H = [ """<div class="ue_warning"><span>Attention:</span> les UE suivantes de cette formation 
+        sont utilisées dans des
+        semestres de rangs différents (eg S1 et S3). <br/>Cela peut engendrer des problèmes pour 
+        la capitalisation des UE. Il serait préférable d'essayer de rectifier cette situation.
+        <ul>
+        """ ]
+    for ue in ues:
+        if ue['ue_id'] in ue_multiples:
+            sems = [ context.get_formsemestre(x['formsemestre_id']) for x in ue_multiples[ue['ue_id']]]
+            slist = ', '.join([ '%(titreannee)s (<em>semestre %(semestre_id)s</em>)' % s for s in sems ])
+            H.append('<li><b>%s</b> : %s</li>' % (ue['acronyme'], slist))
+    H.append( "</ul></div>" )
+
+    return '\n'.join(H), ue_multiples

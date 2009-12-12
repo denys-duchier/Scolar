@@ -480,13 +480,13 @@ CREATE FUNCTION notes_newidsvalid( text ) returns text as '
 CREATE TABLE scolar_formsemestre_validation (
 	formsemestre_validation_id text default notes_newidsvalid('VAL') PRIMARY KEY,
 	etudid text NOT NULL,
-	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id), -- NULL si validation d'une UE hors ScoDoc
 	ue_id text REFERENCES notes_ue(ue_id), -- NULL si validation de semestre
 	code text NOT NULL,
 	assidu integer, -- NULL pour les UE, 0|1 pour les semestres
 	event_date timestamp default now(),
 	compense_formsemestre_id text, -- null sauf si compense un semestre
-	moy_ue real, -- moyenne UE capitalisee (NULL si non calculee)
+	moy_ue real, -- moyenne UE capitalisee (/20, NULL si non calculee)
 	UNIQUE(etudid,formsemestre_id,ue_id) -- une seule decision
 ) WITH OIDS;
 

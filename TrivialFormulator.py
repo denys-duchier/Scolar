@@ -47,6 +47,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
           convert_numbers: covert int and float values (from string)
           allowed_values : list of possible values (default: any value)
           validator : function validating the field (called with (value,field)).
+          min_value : minimum value (for floats and ints)
           max_value : maximum value (for floats and ints)
           explanation: text string to display next the input widget
           title_buble: help bubble on field title (needs bubble.js or equivalent)
@@ -204,10 +205,6 @@ class TF:
                 if typ[:3] == 'int':
                     try:
                         val = int(val)
-                        if descr.has_key('max_value') and val > descr['max_value']:
-                            msg.append("La valeur (%d) du champ '%s' est trop grande (max=%s)"
-                                       % (val,field,descr['max_value']))
-                            ok = 0
                         self.values[field] = val
                     except:
                         msg.append(
@@ -217,14 +214,21 @@ class TF:
                     self.values[field] = self.values[field].replace(',','.')
                     try:                        
                         val = float(val.replace(',','.')) # allow ,
-                        if descr.has_key('max_value') and val > descr['max_value']:
-                            msg.append("La valeur (%f) du champ '%s' est trop grande (max=%s)"
-                                       % (val,field,descr['max_value']))
-                            ok = 0
                         self.values[field] = val
                     except:
                         msg.append("La valeur du champ '%s' doit être un nombre" % field )
                         ok = 0
+                if typ[:3] == 'int' or typ == 'float' or typ == 'real':
+                    if descr.has_key('min_value') and val < descr['min_value']:
+                        msg.append("La valeur (%d) du champ '%s' est trop petite (min=%s)"
+                                   % (val,field,descr['min_value']))
+                        ok = 0
+                    
+                    if descr.has_key('max_value') and val > descr['max_value']:
+                        msg.append("La valeur (%d) du champ '%s' est trop grande (max=%s)"
+                                   % (val,field,descr['max_value']))
+                        ok = 0
+
             # allowed values
             if descr.has_key('allowed_values'):
                 if descr.get('input_type',None) == 'checkbox':

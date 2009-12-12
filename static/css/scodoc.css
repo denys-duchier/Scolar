@@ -799,20 +799,46 @@ ul.notes_module_list {
 }
 
 div#ue_list_code {
-    border: blue 1px;
     background-color: rgb(220,220,220);
     font-size: small;
     padding-left: 4px;
     padding-bottom: 1px;
     margin-top: 10px;
+    margin: 3ex;
 }
 
 ul.notes_module_list {
     list-style-type: none;
 }
 
+div#ue_list_etud_validations {
+    background-color: rgb(220,250,220);
+    padding-left: 4px;
+    padding-bottom: 1px;
+    margin: 3ex;
+}
+div#ue_list_etud_validations span {
+    font-weight: bold;
+}
 
 span.ue_share {
+    font-weight: bold;
+}
+
+div.ue_warning {
+    border: 1px solid red;
+    background-color: rgb(250,220,220);
+    margin: 3ex;
+    padding-left: 1ex;
+    padding-right: 1ex;
+}
+
+div.ue_warning span:before {
+    content: url(/ScoDoc/static/icons/warning_img.png);
+    vertical-align: -80%;  
+}
+
+div.ue_warning span {
     font-weight: bold;
 }
 
