@@ -37,7 +37,7 @@ import sco_pvjury
 import sco_formsemestre_inscriptions
 from sets import Set
 from gen_tables import GenTable
-
+import sco_groups
 
 def list_authorized_etuds_by_sem(context, sem, delai=274):
     """Liste des etudiants autorisés à s'inscrire dans sem.
@@ -270,7 +270,7 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
             <ul><li><a class="stdlink" href="formsemestre_inscr_passage?formsemestre_id=%s">Continuer les inscriptions</a></li>
                 <li><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">Tableau de bord du semestre</a></li>""" % (formsemestre_id,formsemestre_id))
             partition = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)
-            if partition['partition_id'] != formsemestre_get_main_partition(context, formsemestre_id)['partition_id']: # il y a au moins une vraie partition
+            if partition['partition_id'] != sco_groups.formsemestre_get_main_partition(context, formsemestre_id)['partition_id']: # il y a au moins une vraie partition
                 H.append("""<li><a class="stdlink" href="affectGroups?partition_id=%s">Répartir les groupes de %s</a></li>
                 """ % (partition['partition_id'],partition['partition_name']))
             
