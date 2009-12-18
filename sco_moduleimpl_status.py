@@ -51,6 +51,8 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
     E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
     modimpl = context.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
 
+    group_id = sco_groups.get_default_group(context, modimpl['formsemestre_id'])
+
     menuEval = [
         { 'title' : 'Saisir notes',
           'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id,
@@ -69,8 +71,8 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           'enabled' : nbnotes > 0
           },            
         { 'title' : 'Absences ce jour',
-          'url' : 'Absences/EtatAbsencesDate?date=%s&formsemestre_id=%s'
-          % (urllib.quote(E['jour'],safe=''), modimpl['formsemestre_id']),
+          'url' : 'Absences/EtatAbsencesDate?date=%s&group_id=%s'
+          % (urllib.quote(E['jour'],safe=''), group_id),
           'enabled' : E['jour']
           },
         { 'title' : 'Vérifier notes vs absents',

@@ -1123,7 +1123,12 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         if date:
             dateiso=DateDMYtoISO(date)
             nbetud=0
+            t_nbabsjustam=0
+            t_nbabsam=0
+            t_nbabsjustpm=0
+            t_nbabspm=0
             etuds = self.getEtudInfoGroupe(group_id)
+            H.append( '<h2>Etat des absences le %s</h2>' % date )
             H.append( """<table border="0" cellspacing="4" cellpadding="0">
              <tr><th>&nbsp;</th>
             <th style="width: 10em;">Matin</th><th style="width: 10em;">Après-midi</th></tr>
@@ -1136,17 +1141,29 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                     nbabsjustam=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=1)
                     nbabsjustpm=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=0)
                     H.append("""<tr bgcolor="#FFFFFF"><td>
-                     <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s></font></a></td><td align="center">""" % etud )
+                     <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s</font></a></td><td align="center">""" % etud )
                     if nbabsam != 0:
-                        H.append("Just.")
+                        if nbabsjustam:
+                            H.append("Just.")
+                            t_nbabsjustam += 1
+                        else:
+                            H.append("Abs.")
+                            t_nbabsam += 1
                     else:
-                        H.append("Abs.")
+                        H.append("")
                     H.append('</td><td align="center">')
                     if nbabspm != 0:
-                        H.append("Just.")
+                        if nbabsjustpm:
+                            H.append("Just.")
+                            t_nbabsjustam += 1
+                        else:
+                            H.append("Abs.")
+                            t_nbabspm += 1
                     else:
-                        H.append("Abs.")
+                        H.append("")
                     H.append('</td></tr>')
+            H.append("""<tr bgcolor="#FFFFFF"><td></td><td>%d abs, %d just.</td><td>%d abs, %d just.</td></tr>"""
+                     % (t_nbabsam, t_nbabsjustam, t_nbabspm, t_nbabsjustpm))
             H.append('</table>')
             if nbetud == 0:
                 H.append('<p>Aucune absence !</p>')
