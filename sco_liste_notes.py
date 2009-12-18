@@ -179,11 +179,12 @@ def _make_table_notes(context, REQUEST, html_form, evals,
 
     class keymgr(dict): # comment : key (pour regrouper les comments a la fin)
         def __init__(self):
-            self.lastkey = 'a'
+            self.lastkey = 1
         def nextkey(self):
             r = self.lastkey
-            self.lastkey = chr(ord(self.lastkey)+1)
-            return r
+            self.lastkey += 1
+            # self.lastkey = chr(ord(self.lastkey)+1)                
+            return str(r)
 
     K = keymgr() 
     for etudid in etudids:
@@ -331,7 +332,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         C = ['<table><tr><td><div><h4>Répartition des notes:</h4>' + histo + '</div></td>\n',
              '<td style="padding-left: 50px; vertical-align: top;"><p>' ]
         commentkeys = K.items() # [ (comment, key), ... ]
-        commentkeys.sort( lambda x,y: cmp(x[1], y[1]) )
+        commentkeys.sort( lambda x,y: cmp(int(x[1]), int(y[1])) )
         for (comment,key) in commentkeys:
             C.append('<span class="colcomment">(%s)</span> <em>%s</em><br/>' % (key, comment))
         if commentkeys:
