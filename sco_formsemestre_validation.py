@@ -115,6 +115,8 @@ def formsemestre_validation_etud_form(
         H.append(context.sco_footer(REQUEST))
         return '\n'.join(H)
 
+    decision_jury = Se.nt.get_etud_decision_sem(etudid)
+    
     # Infos si pas de semestre précédent
     if not Se.prev:
         if Se.sem['semestre_id'] == 1:
@@ -124,11 +126,12 @@ def formsemestre_validation_etud_form(
     else:
         if not Se.prev_decision:
             H.append(tf_error_message("""Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
+            if decision_jury:
+                H.append('<a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer décision existante</a>'% (etudid, formsemestre_id))
             H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
 
     # Infos sur decisions déjà saisies
-    decision_jury = Se.nt.get_etud_decision_sem(etudid)
     if decision_jury:
         if decision_jury['assidu']:
             ass = 'assidu'
@@ -426,9 +429,16 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         H.append('<tr class="%s rcp_l2">' % class_sem)
         H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
                  % (bgcolor) )
+        if is_prev:
+            default_sem_info = '<span class="fontred">[sem. précédent]</span>'
+        else:
+            default_sem_info = ''
+        if sem['etat'] != '1': # locked
+            lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+            default_sem_info += lockicon
         H.append('<td class="datefin">%s</td><td>%s</td>'
                  % (sem['mois_fin'], 
-                    sem_info.get(sem['formsemestre_id'], '')))
+                    sem_info.get(sem['formsemestre_id'], default_sem_info)))
         if decision_sem:
             if with_all_columns:
                 ass = {0:'non',1:'oui', None:'-', '':'-'}[decision_sem['assidu']]

@@ -2696,11 +2696,18 @@ class ZNotes(ObjectManager,
         if not dialog_confirmed:
             sem = self.get_formsemestre(formsemestre_id)
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
+            nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
+            decision_jury = nt.get_etud_decision_sem(etudid)
+            if decision_jury:
+                existing = '<p>Décision existante: %(code)s du %(event_date)s</p>' % decision_jury
+            else:
+                existing = ''
             return self.confirmDialog(
-                """<h2>Confirmer la suppression des décisions du semestre %s (%s - %s) pour %s ?</h2>
+                """<h2>Confirmer la suppression des décisions du semestre %s (%s - %s) pour %s ?</h2>%s
                 <p>Cette opération est irréversible.
                 </p>
-                """ % (sem['titre_num'],sem['date_debut'],sem['date_fin'], etud['nomprenom']),
+                """ % (sem['titre_num'],sem['date_debut'],sem['date_fin'], etud['nomprenom'],existing),
+                OK = "Supprimer", 
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s" % (formsemestre_id, etudid),
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
