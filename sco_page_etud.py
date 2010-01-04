@@ -47,7 +47,10 @@ def _menuScolarite(context, authuser, sem, etudid):
     Le contenu du menu depend des droits de l'utilisateur et de l'état de l'étudiant.
     """
     locked = (sem['etat'] != '1')
-    if locked or (not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context)):
+    if locked: 
+        lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+        return lockicon # no menu
+    if not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context):
         return '' # no menu
     ins = sem['ins']
     args = { 'etudid' : etudid,
