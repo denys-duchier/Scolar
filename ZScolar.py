@@ -2222,7 +2222,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         format = ImportScolars.sco_import_format()
         data = ImportScolars.sco_import_generate_excel_sample(
             format, 
-            only_tables=['identite', 'admissions'],
+            only_tables=['identite', 'admissions', 'adresse' ],
             exclude_cols = ['nationalite', 'foto', 'photo_filename' ],
             group_id=group['group_id'], 
             context=self.Notes)

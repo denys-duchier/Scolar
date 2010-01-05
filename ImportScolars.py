@@ -49,7 +49,10 @@ ADMISSION_MODIFIABLE_FIELDS = (
     'bac', 'specialite', 'annee_bac',
     'math', 'physique', 'anglais', 'francais',
     'qualite', 'rapporteur', 'score', 'commentaire',
-    'nomlycee', 'villelycee', 'codepostallycee', 'codelycee' )
+    'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
+    # Adresse:
+    'email', 'domicile', 'codepostaldomicile', 'villedomicile', 'paysdomicile', 'telephone', 'telephonemobile'
+    )
 
 # ----
 
@@ -361,7 +364,7 @@ def _is_new_ine(cnx, code_ine):
     return not etuds
 
 def scolars_import_admission( datafile, context, REQUEST,
-                               formsemestre_id=None):
+                              formsemestre_id=None):
     """Importe données admission depuis fichier Excel
     """
     log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
@@ -398,4 +401,10 @@ def scolars_import_admission( datafile, context, REQUEST,
                 args[tit] = val
             i += 1
         scolars.etudident_edit(cnx, args )
-
+        # Modifie adresse:
+        adr = scolars.adresse_list(cnx, args={'etudid':line[ietudid]})
+        if adr:
+            args['adresse_id'] = adr[0]['adresse_id']
+            scolars.adresse_edit(cnx, args) # ne passe pas le contexte: pas de notification ici
+        else:
+            log('scolars_import_admission: no address for %s !' % line[ietudid])
