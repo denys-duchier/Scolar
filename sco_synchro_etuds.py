@@ -90,7 +90,10 @@ def formsemestre_synchro_etuds(
     base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if anneeapogee:
         base_url += '&anneeapogee=%s' % anneeapogee
-
+    
+    if anneeapogee == None:
+        anneeapogee = sem['annee_debut']
+    
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation
     if type(inscrits_without_key) == type(''):
@@ -197,15 +200,26 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         return sco_inscr_passage.etuds_select_boxes(context, etuds_by_cat,
                                                     export_cat_xls=export_cat_xls,
                                                     base_url=base_url)
-    year = time.localtime()[0]
-    years_lab = ( str(year), str(year-1), 'tous' )
-    years_vals = ( str(year), str(year-1), '' )
-    if anneeapogee == str(year) or anneeapogee==None:
-        sel = [ 'selected', '', '']
-    elif anneeapogee == str(year-1):
-        sel = [ '', 'selected', '']
+    year = time.localtime()[0]    
+    if anneeapogee and abs(year - int(anneeapogee)) < 50:
+        years = range( min(year-1, int(anneeapogee)-1),
+                       max(year,  int(anneeapogee)) + 1 )
     else:
-        sel = [ '', '', 'selected']
+        years = range(year-1, year+1)
+        anneeapogee = ''
+    options = []
+    for y in years:
+        if str(y) == anneeapogee:
+            sel = 'selected'
+        else:
+            sel = ''
+        options.append('<option value="%s" %s>%s</option>' % (str(y), sel, str(y)))
+    if anneeapogee:
+        sel = ''
+    else:
+        sel = 'selected'
+    options.append('<option value="" %s>toutes</option>' % sel)
+    
     H = [
         """<h2 class="formsemestre">Synchronisation des étudiants du semestre avec Apogée</h2>""",
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
@@ -214,10 +228,11 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         <form method="post">
         """ % sem,
         """
-        Année Apogée: <select id="anneeapogee" name="anneeapogee" onchange="document.location='formsemestre_synchro_etuds?formsemestre_id=%s&anneeapogee='+document.getElementById('anneeapogee').value">
-        <option value="%s" ww %s>%s</option><option value="%s" %s>%s</option><option value="%s" %s>%s</option>
+        Année Apogée: <select id="anneeapogee" name="anneeapogee" onchange="document.location='formsemestre_synchro_etuds?formsemestre_id=%s&anneeapogee='+document.getElementById('anneeapogee').value">""" % (sem['formsemestre_id']),
+        '\n'.join(options),
+        """
         </select>
-        """ % (sem['formsemestre_id'], str(year),sel[0],str(year), str(year-1),sel[1],str(year-1), '*', sel[-1], 'toutes'),
+        """,
         """
         <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
         <input type="submit" name="submitted" value="Appliquer les modifications"/>

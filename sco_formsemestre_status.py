@@ -182,19 +182,19 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Passage des étudiants depuis d\'autres semestres',
           'url' : 'formsemestre_inscr_passage?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
         { 'title' : 'Synchroniser avec étape Apogée',
           'url' : 'formsemestre_synchro_etuds?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url')
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url') and (sem['etat']== '1')
           },
         { 'title' : 'Inscrire un étudiant',
           'url' : 'formsemestre_inscription_with_modules_etud?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
         { 'title' : 'Importer des étudiants dans ce semestre (table Excel)',
           'url' : 'form_students_import_excel?formsemestre_id=' + formsemestre_id,
-          'enabled' : authuser.has_permission(ScoEtudInscrit, context)
+          'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
         { 'title' : 'Importer données admission',
           'url' : 'form_students_import_infos_admissions?formsemestre_id=' + formsemestre_id,

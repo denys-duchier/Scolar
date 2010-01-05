@@ -59,6 +59,7 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
     """Liste des inscrits à une étape Apogée
     Result = list of dicts
     """
+    log('get_inscrits_etape: code=%s anneeapogee=%s' % (code_etape, anneeapogee))
     if anneeapogee is None:
         anneeapogee = str(time.localtime()[0])
     
