@@ -839,7 +839,8 @@ subversion: %(svn_version)s
         return ids
     
     def _check_icons_folder(self,REQUEST=None): # not published
-        """Vérifie icons folder et le crée s'il le faut
+        """Vérifie icons folder Zope et le crée s'il le faut
+        XXX deprecated: on utilisera maintenant les images statiques via sco_utils.icontag()
         """
         try:
             icons = self.icons

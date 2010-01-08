@@ -363,7 +363,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         sd = ' recap_hide_details'
         plusminus = pluslink
     H.append( '<table class="recap_parcours%s"><tr>' % sd )
-    H.append('<th><span onclick="toggle_all_sems(this);" title="Ouvrir/fermer tous les semestres">+</span></th><th></th><th>Semestre</th>')
+    H.append('<th><span onclick="toggle_all_sems(this);" title="Ouvrir/fermer tous les semestres">%s</span></th><th></th><th>Semestre</th>' %  icontag('plus18_img', width=18, height=18, border=0, title="", alt="+"))
     if with_all_columns:
         H.append('<th>Assidu</th>')
     H.append('<th>Etat</th><th>Abs</th><th>Moy.</th>')

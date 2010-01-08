@@ -146,6 +146,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         log('P=%s' % P )
         # compris: reportlab is not thread safe !
         #   see http://two.pairlist.net/pipermail/reportlab-users/2006-June/005037.html
+        # (donc maintenant protégé dans ScoDoc par un Lock global)
         diag = 'erreur lors de la génération du PDF<br/>'
         diag += '<pre>' + traceback.format_exc() + '</pre>'
         return [], diag

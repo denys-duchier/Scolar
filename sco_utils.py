@@ -37,6 +37,8 @@ import thread
 import urllib, time, datetime, cgi
 from sets import Set
 import xml.sax.saxutils
+from PIL import Image
+
 # XML generation package (apt-get install jaxml)
 import jaxml
 from SuppressAccents import suppression_diacritics
@@ -329,3 +331,25 @@ def scodoc_html2txt(html):
 def is_valid_mail(email):
     """True if well-formed email address"""
     return re.match( "^.+@.+\..{2,3}$", email)
+
+ICONSIZES = {} # name : (width, height) cache image sizes
+def icontag(name, **attrs):
+    """tag HTML pour un icone.
+    (dans les versions anterieures on utilisait Zope)
+    Les icones sont des fichiers PNG dans .../static/icons
+    Si la taille (width et height) n'ets pas spécifiée, lit l'image 
+    pour la mesurer (et cache le résultat).
+    """
+    if ('width' not in attrs) or ('height' not in attrs):
+        if name not in ICONSIZES:
+            img_file = 'static/icons/%s.png' % name
+            im = Image.open(img_file)
+            width, height = im.size[0], im.size[1]
+            ICONSIZES[name] = (width, height) # cache
+        else:
+            width, height = ICONSIZES[name]
+        attrs['width'] = width
+        attrs['height'] = height
+
+    s = ' '.join([ '%s="%s"' % (k, attrs[k]) for k in attrs ])
+    return '<img %s src="/ScoDoc/static/icons/%s.png" />' % (s, name)
