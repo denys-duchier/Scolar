@@ -201,15 +201,18 @@ def make_formsemestre_bulletinetud(
     </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
     # --- Decision Jury
-    if context.get_preference('bul_show_decision', formsemestre_id):
-        situation, dpv = _etud_descr_situation_semestre(
-            context, etudid, formsemestre_id,
-            format=format,
-            show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
-    else:
-        situation = ''
+    situation, dpv = _etud_descr_situation_semestre(
+        context, etudid, formsemestre_id,
+        format=format,
+        show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
+    decision_sem = dpv['decisions'][0]['decision_sem']
+    
+    if not context.get_preference('bul_show_decision', formsemestre_id):
+        situation = '' # hide situation
+    
     if situation:
         H.append( """<p class="bull_situation">%s</p>""" % situation )
+    
     # --- Appreciations
     # le dir. des etud peut ajouter des appreciation,
     # mais aussi le chef (perm. ScoEtudInscrit)
@@ -244,6 +247,8 @@ def make_formsemestre_bulletinetud(
         stand_alone = (format != 'pdfpart')
         if nt.get_etud_etat(etudid) == 'D':
             filigranne = 'DEMISSION'
+        elif context.get_preference('bul_show_temporary', formsemestre_id) and not decision_sem:
+            filigranne = 'Provisoire'
         else:
             filigranne = ''
         diag = ''

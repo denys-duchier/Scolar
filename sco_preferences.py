@@ -541,6 +541,14 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
+    ( 'bul_show_temporary', 
+      { 'initvalue' : 1,
+        'title' : 'Bannière "provisoire" si pas de décision de jury',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
     ( 'bul_show_uevalid', 
       { 'initvalue' : 1,
         'title' : 'Faire figurer les UE validées sur les bulletins',

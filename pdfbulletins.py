@@ -81,7 +81,7 @@ def process_field(field, cdict, style, suppress_empty_pars=False):
     
     return makeParas(text, style, suppress_empty=suppress_empty_pars)
 
-def essaipdf(REQUEST):
+def essaipdf(REQUEST): # XXX essais...
     PDFLOCK.acquire()
     filename = 'essai.pdf'
     report = cStringIO.StringIO() # in-memory document, no disk file
@@ -221,6 +221,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                                 subject='Bulletin de note',
                                 margins=margins,
                                 server_name = server_name,
+                                filigranne=filigranne,
                                 preferences=context.get_preferences(formsemestre_id)))
         document.build(objects)
         data = report.getvalue()

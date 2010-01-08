@@ -112,6 +112,7 @@ class ScolarsPageTemplate(PageTemplate) :
                  margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
                  server_name = '',
                  footer_template = DEFAULT_PDF_FOOTER_TEMPLATE,
+                 filigranne=None,
                  preferences=None # dictionnary with preferences, required
                  ):
         """Initialise our page template."""
@@ -121,6 +122,7 @@ class ScolarsPageTemplate(PageTemplate) :
         self.pdfmeta_title = title
         self.pdfmeta_subject = subject
         self.server_name = server_name
+        self.filigranne = filigranne
         self.footer_template = footer_template
         # Our doc is made of a single frame
         left, top, right, bottom = [ float(x) for x in margins ]
@@ -148,6 +150,17 @@ class ScolarsPageTemplate(PageTemplate) :
             # draws the logo if it exists
             ((width, height), image) = self.logo
             canvas.drawImage(image, inch, doc.pagesize[1] - inch, width, height)
+        
+        # ---- Filigranne (texte en diagonal en haut a gauche de chaque page)
+        if self.filigranne:
+            canvas.saveState()
+            canvas.translate( 9 * cm, 27.6 * cm )
+            canvas.rotate( 30 )
+            canvas.scale( 4.5, 4.5 )
+            canvas.setFillColorRGB(1.,0.65,0.65)
+            canvas.drawRightString( 0, 0, SU(self.filigranne) )
+            canvas.restoreState()
+        
         # ---- Add some meta data and bookmarks
         if self.pdfmeta_author:
             canvas.setAuthor(SU(self.pdfmeta_author))
