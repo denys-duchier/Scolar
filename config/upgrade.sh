@@ -54,6 +54,9 @@ fi
 chgrp -R www-data "${SCODOC_DIR}"/static/photos
 chmod -R g+w "${SCODOC_DIR}"/static/photos
 
+# check and upgrade reportlab
+./install_reportlab23.sh
+
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
 "$SCODOC_DIR"/config/postupgrade.py

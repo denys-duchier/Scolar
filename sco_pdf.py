@@ -103,6 +103,7 @@ def makeParas(txt, style, suppress_empty=False):
             paras = r
         return [ Paragraph( SU(s), style ) for s in paras ]
     except:
+        log('Invalid pdf para format: %s' % txt)
         return [ Paragraph( SU('<font color="red"><i>Erreur: format invalide</i></font>'), style ) ]
 
 class ScolarsPageTemplate(PageTemplate) :

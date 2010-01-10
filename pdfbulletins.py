@@ -43,8 +43,9 @@ Balises img: actuellement interdites.
 from sco_pdf import *
 import sco_preferences
 import traceback, re
+from notes_log import log
 
-def make_context_dict(context, sem, etud, filigranne='', situation=''):
+def make_context_dict(context, sem, etud, filigranne='', situation='', demission=''):
     """Construit dictionnaire avec valeurs pour substitution des textes
     (preferences bul_pdf_*)
     """
@@ -58,7 +59,7 @@ def make_context_dict(context, sem, etud, filigranne='', situation=''):
         annee = annee_debut
     C['anneesem'] = annee
     C.update(etud)
-    C['demission'] = filigranne
+    C['demission'] = demission
     C['situation'] = situation
     # copie preferences
     for name in sco_preferences.PREFS_NAMES:
@@ -66,19 +67,28 @@ def make_context_dict(context, sem, etud, filigranne='', situation=''):
     
     return C
 
-def process_field(field, cdict, style, suppress_empty_pars=False):
+def process_field(context, field, cdict, style, suppress_empty_pars=False):
     """Process a field given in preferences, returns list of Platypus objects
-    Substitutes all %()s markup
+    Substitutes all %()s markup    
     Remove potentialy harmful <img> tags
+    Replaces <logo name="header" width="xxx" height="xxx">
+     by <img src=".../logos/logo_header" width="xxx" height="xxx">
     """
     try:
         text = field % cdict
     except:
         log('process_field: invalid format=%s' % field)
-        text = '<para><i>format invalide !<i></para><para>' + traceback.format_exc() + '</para>'
+        text = '<para><i>format invalide !<i></para><para>' + traceback.format_exc() + '</para>'    
     # remove unhandled or dangerous tags:
     text = re.sub( r'<\s*img', '', text)
-    
+    # handle logos:
+    image_dir = context.file_path + '/logos'
+    text = re.sub( r'<(\s*)logo(.*?)src\s*=\s*(.*?)>', r'<\1logo\2\3>', text) # remove forbidden src attribute
+    text = re.sub(r'<\s*logo(.*?)name\s*=\s*"(\w*?)"(.*?)/?>', 
+                  r'<img\1src="%s/logo_\2.jpg"\3/>' % image_dir, text)
+    # nota: le match sur \w*? donne le nom du logo et interdit les .. et autres 
+    # tentatives d'acceder à d'autres fichiers !
+    #log('field: %s' % (text))
     return makeParas(text, style, suppress_empty=suppress_empty_pars)
 
 def essaipdf(REQUEST): # XXX essais...
@@ -110,7 +120,7 @@ def essaipdf(REQUEST): # XXX essais...
 
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
-                     filigranne='', appreciations=[], situation='',
+                     filigranne='', appreciations=[], situation='', demission='',
                      server_name=None,
                      context=None       # required for preferences
                      ):
@@ -157,9 +167,10 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     FieldStyle.firstLineIndent = 0
 
     # --- Build doc using ReportLab's platypus
-    infos = make_context_dict(context, sem, etud, filigranne=filigranne, situation=situation)
+    infos = make_context_dict(context, sem, etud, filigranne=filigranne, 
+                              situation=situation, demission=demission)
     # Title
-    objects += process_field(context.get_preference('bul_pdf_title', formsemestre_id), 
+    objects += process_field(context, context.get_preference('bul_pdf_title', formsemestre_id), 
                                  infos, FieldStyle)
     objects.append(Spacer(1, 5*mm))
     # customize table style
@@ -184,19 +195,19 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                                   CellStyle) )
     
     if context.get_preference('bul_show_decision', formsemestre_id):
-        objects += process_field(context.get_preference('bul_pdf_caption', formsemestre_id), 
+        objects += process_field(context, context.get_preference('bul_pdf_caption', formsemestre_id), 
                                  infos, FieldStyle)
     
     show_left = context.get_preference('bul_show_sig_left', formsemestre_id)
     show_right = context.get_preference('bul_show_sig_right', formsemestre_id)
     if show_left or show_right:
         if show_left:
-            L = [[process_field(context.get_preference('bul_pdf_sig_left', formsemestre_id), 
+            L = [[process_field(context, context.get_preference('bul_pdf_sig_left', formsemestre_id), 
                                 infos, FieldStyle)]]
         else:
             L = [['']]
         if show_right:
-            L[0].append(process_field(context.get_preference('bul_pdf_sig_right', formsemestre_id), infos, FieldStyle))
+            L[0].append(process_field(context, context.get_preference('bul_pdf_sig_right', formsemestre_id), infos, FieldStyle))
         else:
             L[0].append('')
         t = Table(L)

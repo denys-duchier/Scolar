@@ -205,8 +205,10 @@ def make_formsemestre_bulletinetud(
         context, etudid, formsemestre_id,
         format=format,
         show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
-    decision_sem = dpv['decisions'][0]['decision_sem']
-    
+    if dpv:
+        decision_sem = dpv['decisions'][0]['decision_sem']
+    else:
+        decision_sem = ''
     if not context.get_preference('bul_show_decision', formsemestre_id):
         situation = '' # hide situation
     
@@ -245,12 +247,13 @@ def make_formsemestre_bulletinetud(
             etud['nbabsjust'] = nbabsjust
         infos = { 'DeptName' : context.get_preference('DeptName', formsemestre_id) }
         stand_alone = (format != 'pdfpart')
+        filigranne = ''
+        demission = ''
         if nt.get_etud_etat(etudid) == 'D':
-            filigranne = 'DEMISSION'
+            demission = '(Démission)'
+            filigranne = 'Démission'
         elif context.get_preference('bul_show_temporary', formsemestre_id) and not decision_sem:
             filigranne = 'Provisoire'
-        else:
-            filigranne = ''
         diag = ''
         try:
             PDFLOCK.acquire()
@@ -258,7 +261,7 @@ def make_formsemestre_bulletinetud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
                 appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
-                situation=situation,
+                situation=situation, demission=demission,
                 server_name=server_name, 
                 context=context )
         finally:
