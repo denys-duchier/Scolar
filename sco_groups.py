@@ -46,6 +46,8 @@ import re, sets
 import jaxml
 import xml.dom.minidom
 
+from odict import odict
+
 from sco_utils import *
 from notesdb import *
 from notes_log import log
@@ -231,7 +233,7 @@ def formsemestre_get_etud_groupnames(context, formsemestre_id, attr='group_name'
 def etud_add_group_infos(context, etud, sem):
     """Add informations on partitions and group memberships to etud (a dict with an etudid)
     """
-    etud['partitions'] = {} # partition_id : group + partition_name
+    etud['partitions'] = odict() # partition_id : group + partition_name
     if not sem:
         etud['groupes'] = ''
         return etud

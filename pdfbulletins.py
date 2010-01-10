@@ -44,6 +44,7 @@ from sco_pdf import *
 import sco_preferences
 import traceback, re
 from notes_log import log
+import sco_groups
 
 def make_context_dict(context, sem, etud, filigranne='', situation='', demission=''):
     """Construit dictionnaire avec valeurs pour substitution des textes
@@ -64,7 +65,14 @@ def make_context_dict(context, sem, etud, filigranne='', situation='', demission
     # copie preferences
     for name in sco_preferences.PREFS_NAMES:
         C[name] = context.get_preference(name, sem['formsemestre_id'])
-    
+
+    # ajoute groupes et group_0, group_1, ...
+    sco_groups.etud_add_group_infos(context, etud, sem)
+    C['groupes'] = etud['groupes']
+    n = 0
+    for partition_id in etud['partitions']:
+        C['group_%d' % n] = etud['partitions'][partition_id]['group_name']
+        n += 1
     return C
 
 def process_field(context, field, cdict, style, suppress_empty_pars=False):
