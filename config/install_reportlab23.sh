@@ -24,7 +24,7 @@ then
  fi
  tar xfz ReportLab_2_3.tar.gz
  apt-get -y install gcc python2.4-dev
- apt-get remove python-reportlab
+ apt-get -y remove python-reportlab
  cd ReportLab_2_3
  python2.4 setup.py install
  popd
