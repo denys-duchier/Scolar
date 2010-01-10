@@ -46,8 +46,8 @@ function toggle_all_sems(e) {
     }
     sems_state = !sems_state;
     if (sems_state) {
-	e.innerHTML = '<img width="18" height="18" border="0" title="" alt="-" src="/ScoDoc/icons/minus18_img"/>';
+	e.innerHTML = '<img width="18" height="18" border="0" title="" alt="-" src="/ScoDoc/static/icons/minus18_img.png"/>';
     } else {
-	e.innerHTML = '<img width="18" height="18" border="0" title="" alt="+" src="/ScoDoc/icons/plus18_img"/>';
+	e.innerHTML = '<img width="18" height="18" border="0" title="" alt="+" src="/ScoDoc/static/icons/plus18_img.png"/>';
     }
 }

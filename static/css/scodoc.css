@@ -1326,6 +1326,13 @@ table.recap_parcours td {
   border-right: 0px;
   border-left: 0px;
   color: blue;
+  vertical-align: top;
+}
+td.rcp_dec {
+  color: rgb(0%,0%,50%);;
+}
+td.rcp_nonass {
+  color: red;
 }
 
 .recap_hide_details tr.rcp_l2 { display: none; } 

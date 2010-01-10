@@ -364,9 +364,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         plusminus = pluslink
     H.append( '<table class="recap_parcours%s"><tr>' % sd )
     H.append('<th><span onclick="toggle_all_sems(this);" title="Ouvrir/fermer tous les semestres">%s</span></th><th></th><th>Semestre</th>' %  icontag('plus18_img', width=18, height=18, border=0, title="", alt="+"))
-    if with_all_columns:
-        H.append('<th>Assidu</th>')
-    H.append('<th>Etat</th><th>Abs</th><th>Moy.</th>')
+    H.append('<th>Etat</th><th>Abs</th>')
     # titres des UE
     H.append( '<th></th>' * Se.nb_max_ue )
     #
@@ -384,7 +382,11 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         pv = dpv['decisions'][0]
         decision_sem = pv['decision_sem']
         decisions_ue = pv['decisions_ue']
-
+        if with_all_columns and decision_sem and decision_sem['assidu'] == 0:
+            ass = ' (non ass.)'
+        else:
+            ass = ''
+        
         nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id'] )
         if is_cur:
             type_sem = '*' # now unused
@@ -399,7 +401,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             bgcolor = sem['bul_bgcolor']
         else:
             bgcolor = 'background-color: rgb(255,255,240)'
-        # 1ere ligne: titre sem, acronymes UE
+        # 1ere ligne: titre sem, decision, acronymes UE
         H.append('<tr class="%s rcp_l1">' % class_sem)
         if is_cur:
             pm = ''
@@ -411,21 +413,28 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
                  % (bgcolor, num_sem, pm) )
         H.append('<td class="datedebut">%(mois_debut)s</td>' % sem )
         H.append('<td><a class="formsemestre_status_link" href="%sformsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="Bulletin de notes">%s</a></td>' % (a_url,sem['formsemestre_id'], etudid,sem['titreannee']))
-        if with_all_columns:
-            nc = 4
+        if decision_sem:
+            H.append('<td class="rcp_dec">%s</td>' % decision_sem['code'])
         else:
-            nc = 3
-        H.append('<td></td>'*nc) # [assidu,] etat, abs, moy
+            H.append('<td colspan="%d"><em>en cours</em></td>')
+        H.append('<td class="rcp_nonass">%s</td>' % ass) # abs
         # acronymes UEs
         ues = nt.get_ues(filter_sport=True) 
         for ue in ues:
             H.append('<td class="ue_acro"><span>%s</span></td>' % ue['acronyme'])
         if len(ues) < Se.nb_max_ue:
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
+        # indique le semestre compensé par celui ci:
+        if decision_sem and decision_sem['compense_formsemestre_id']:
+            csem = context.do_formsemestre_list(
+                {'formsemestre_id' : decision_sem['compense_formsemestre_id']})[0]
+            H.append('<td><em>compense S%s</em></td>' % csem['semestre_id'] )
+        else:
+            H.append('<td></td>')
         if with_links:
             H.append('<td></td>')
-        H.append('<td></td></tr>')
-        # 2eme ligne: etat et notes
+        H.append('</tr>')
+        # 2eme ligne: notes
         H.append('<tr class="%s rcp_l2">' % class_sem)
         H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
                  % (bgcolor) )
@@ -439,17 +448,8 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         H.append('<td class="datefin">%s</td><td>%s</td>'
                  % (sem['mois_fin'], 
                     sem_info.get(sem['formsemestre_id'], default_sem_info)))
-        if decision_sem:
-            if with_all_columns:
-                ass = {0:'non',1:'oui', None:'-', '':'-'}[decision_sem['assidu']]
-                H.append('<td>%s</td>' % ass)
-            H.append('<td>%s</td>' % decision_sem['code'])
-        else:
-            if with_all_columns:
-                nc = 2
-            else:
-                nc = 1
-            H.append('<td colspan="%d"><em>pas de décision</em></td>'%nc)
+        # Moy Gen (sous le code decision)
+        H.append('<td class="rcp_moy">%s</td>' % notes_table.fmt_note( nt.get_etud_moy_gen(etudid)) )
         # Absences (nb d'abs non just. dans ce semestre)
         debut_sem = DateDMYtoISO(sem['date_debut'])
         fin_sem = DateDMYtoISO(sem['date_fin'])
@@ -457,8 +457,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
                                                  debut=debut_sem,fin=fin_sem)
         H.append('<td class="rcp_abs">%d</td>' % (nbabs-nbabsjust) )
-        # Moy Gen
-        H.append('<td class="rcp_moy">%s</td>' % notes_table.fmt_note( nt.get_etud_moy_gen(etudid)) )
+        
         # UEs
         for ue in ues:            
             if decisions_ue and decisions_ue.has_key(ue['ue_id']):
@@ -476,13 +475,8 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td class="%s">%s</td>' % (class_ue, notes_table.fmt_note(moy_ue)) )
         if len(ues) < Se.nb_max_ue:
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
-        # indique le semestre compensé par celui ci:
-        if decision_sem and decision_sem['compense_formsemestre_id']:
-            csem = context.do_formsemestre_list(
-                {'formsemestre_id' : decision_sem['compense_formsemestre_id']})[0]
-            H.append('<td><em>compense S%s</em></td>' % csem['semestre_id'] )
-        else:
-            H.append('<td></td>')
+        
+        H.append('<td></td>')
         if with_links:
             H.append('<td><a href="%sformsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">modifier</a></td>' % (a_url,sem['formsemestre_id'],etudid))
 
