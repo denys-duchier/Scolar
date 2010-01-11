@@ -343,7 +343,7 @@ def icontag(name, **attrs):
     if ('width' not in attrs) or ('height' not in attrs):
         if name not in ICONSIZES:
             img_file = 'static/icons/%s.png' % name
-            im = Image.open(img_file)
+            im = PILImage.open(img_file)
             width, height = im.size[0], im.size[1]
             ICONSIZES[name] = (width, height) # cache
         else:
