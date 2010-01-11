@@ -299,7 +299,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
         params['diplome_txt'] = ''
     
     # Corps de la lettre:
-    objects += pdfbulletins.process_field(context.get_preference('PV_LETTER_TEMPLATE', sem['formsemestre_id']), params, style, suppress_empty_pars=True)
+    objects += pdfbulletins.process_field(context, context.get_preference('PV_LETTER_TEMPLATE', sem['formsemestre_id']), params, style, suppress_empty_pars=True)
     
     # Signature:
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par

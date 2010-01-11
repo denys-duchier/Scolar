@@ -43,7 +43,7 @@ Opérations:
 import random
 import urllib2
 import traceback
-from PIL import Image
+from PIL import Image as PILImage
 from cStringIO import StringIO
 import glob
 
@@ -206,7 +206,7 @@ def save_image(context, etudid, data):
     data_file = StringIO()
     data_file.write(data)
     data_file.seek(0)
-    img = Image.open(data_file)
+    img = PILImage.open(data_file)
     filename = get_new_filename(context, etudid)
     path = PHOTO_DIR + filename
     log('saving %dx%d jpeg to %s' % (img.size[0], img.size[1], path))
@@ -221,7 +221,7 @@ def scale_height(img, W=None, H=REDUCED_HEIGHT):
     if W is None:
         # keep aspect
         W = (img.size[0] * H) / img.size[1]
-    img.thumbnail((W, H), Image.ANTIALIAS)
+    img.thumbnail((W, H), PILImage.ANTIALIAS)
     return img
 
 def get_photo_rel_path(etud):

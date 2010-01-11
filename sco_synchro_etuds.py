@@ -245,7 +245,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
                                              base_url=base_url),
         """<p/><input type="submit" name="submitted" value="Appliquer les modifications"/>""",
 
-        formsemestre_synchro_etuds_help(sem),
+        formsemestre_synchro_etuds_help(context, sem),
         """</form>""",          
         ]
     return H
@@ -373,7 +373,8 @@ def list_all(context, etudsapo_set):
     a_importer  = etudsapo_set - all_set # dans Apogee, mais inconnus dans ScoDoc
     return etuds_aposco, a_importer, key2etudid
 
-def formsemestre_synchro_etuds_help(sem):
+def formsemestre_synchro_etuds_help(context, sem):
+    sem['default_group_id'] = sco_groups.get_default_group(context, sem['formsemestre_id'])
     return """<div class="pas_help"><h3><a name="help">Explications</a></h3>
     <p>Cette page permet d'importer dans le semestre destination
     <a class="stdlink"
@@ -387,7 +388,7 @@ def formsemestre_synchro_etuds_help(sem):
 
     <h4>Autres fonctions utiles</h4>
     <ul>
-    <li><a href="check_group_apogee?formsemestre_id=%(formsemestre_id)s">vérification
+    <li><a href="check_group_apogee?group_id=%(default_group_id)s">vérification
     des codes Apogée</a> (des étudiants déjà inscrits)</li>
     <li>le <a href="formsemestre_inscr_passage?formsemestre_id=%(formsemestre_id)s">
     formulaire de passage</a> qui permet aussi de désinscrire des étudiants

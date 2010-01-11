@@ -37,7 +37,7 @@ import thread
 import urllib, time, datetime, cgi
 from sets import Set
 import xml.sax.saxutils
-from PIL import Image
+from PIL import Image as PILImage
 
 # XML generation package (apt-get install jaxml)
 import jaxml

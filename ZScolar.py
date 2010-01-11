@@ -1968,11 +1968,12 @@ function tweakmenu( gname ) {
                            fixmail = False):
         """Verification des codes Apogee et mail de tout un groupe.
         Si fix == True, change les codes avec Apogée.
-        """        
-        members, group, group_tit, sem, nbdem, other_partitions = get_group_infos(self, group_id, etat=etat)
-
+        """
+        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
+        formsemestre_id = group['formsemestre_id']
+        
         cnx = self.GetDBConnexion()
-        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % ng, sem),
+        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % group['group_name'], sem),
               '<table class="sortable" id="listegroupe">',
               '<tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
         nerrs = 0 # nombre d'anomalies détectées
@@ -2053,7 +2054,7 @@ function tweakmenu( gname ) {
         <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
         """ % (REQUEST.URL0,formsemestre_id,strnone(group_id),strnone(etat),formsemestre_id))
         
-        return self.sco_header(REQUEST)+'\n'.join(H)+self.sco_footer(REQUEST)
+        return '\n'.join(H)+self.sco_footer(REQUEST)
         
     security.declareProtected(ScoEtudInscrit, "form_students_import_excel")
     def form_students_import_excel(self, REQUEST, formsemestre_id=None):
