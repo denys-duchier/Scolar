@@ -225,7 +225,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
         path = SCO_SRCDIR + '/' + rel_path
         try:
             elem = Table(
-                [ [ Image( path, width=PHOTOWIDTH ) ],
+                [ [ reportlab.platypus.Image( path, width=PHOTOWIDTH ) ],
                   [ Paragraph(
                 SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
                    + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
