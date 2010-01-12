@@ -218,11 +218,14 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     L = []
     n = 0
     currow = []
+    log('_trombino_pdf %d elements' % len(T))
     for t in T:
         rel_path = sco_photos.has_photo(context, t, version=sco_photos.H90)
         if not rel_path:
+            # log('> unknown')
             rel_path = sco_photos.unknown_image_path()
         path = SCO_SRCDIR + '/' + rel_path
+        # log('path=%s' % path)
         try:
             elem = Table(
                 [ [ reportlab.platypus.Image( path, width=PHOTOWIDTH ) ],
@@ -241,13 +244,15 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     if currow:
         currow += [' ']*(N_PER_ROW-len(currow))
         L.append(currow)
-    # log(L)
-    table = Table( L, colWidths=[ COLWIDTH ]*N_PER_ROW,
-                   style = TableStyle( [
-        # ('RIGHTPADDING', (0,0), (-1,-1), -5*mm),
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('GRID', (0,0), (-1,-1), 0.25, colors.grey)
-        ] ) )
+    if not L:
+        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+    else:
+        table = Table( L, colWidths=[ COLWIDTH ]*N_PER_ROW,
+                       style = TableStyle( [
+            # ('RIGHTPADDING', (0,0), (-1,-1), -5*mm),
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.25, colors.grey)
+            ] ) )
     objects.append(table)
     # Build document
     document = BaseDocTemplate(report)
