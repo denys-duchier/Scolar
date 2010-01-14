@@ -17,7 +17,7 @@ if [ ! -z "$(dpkg -l | grep postgresql-7.4)" ]
 then
    echo
    echo "Attention:  postgresql-7.4 est deja installe"
-   echo "ScoDoc va installer et utiliser postgresql-8.1"
+   echo "ScoDoc va installer et utiliser postgresql-8.3"
    echo "Verifiez les ports dans postgresql.conf (5432 ou 5433)"
    echo "et dans ScoDoc: config.sh et sco_utils.py"
    echo
@@ -67,11 +67,25 @@ done
 if [ "$LANG" != "en_US.iso88591" ]
 then
    # ceci est necessaire a cause de postgresql 8.3 qui 
-   # cree son cluser lors de l'install avec la locale par defaut !
+   # cree son cluster lors de l'install avec la locale par defaut !
    echo "Attention: changement de la locale par defaut"
    mv /etc/default/locale /etc/default/locale.orig
    echo "LANG=\"en_US.iso88591\"" > /etc/default/locale
    export LANG=en_US.iso88591
+   if [ ! -z "$(dpkg -l | grep postgresql-8.3)" ]
+   then
+     # souvent cree avec mauvaise locale (utf-8): fait le menage
+     echo "Attention: postgresql etatit deja installe !"
+     echo " si vous n'avez pas d'autre base de donnees, il est"
+     echo " preferable de le desinstaller et de le reconfigurer"
+     echo " (ceci efface vos eventuelles bases de donnees !)"
+     echo " Puis-je desinstaller postgresql (recommande) ? (y/n) [n] "
+     read ans
+     if [ "$(norm_ans "$ans")" = 'Y' ]
+     then
+       apt-get --yes --purge remove  postgresql-8.3 postgresql-common postgresql-client-common postgresql-client-8.3
+     fi
+   fi
 fi
 echo 'Done.'
 
