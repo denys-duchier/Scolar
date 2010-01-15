@@ -520,6 +520,7 @@ def partition_create(context, formsemestre_id, partition_name='', default=False,
 def checkLastIcon(context, REQUEST):
     """Check that most recent icon is installed.
     If not, rebuild icons in Zope.
+    XXX now unnecessary (was for Zope icons), we now use icontag() from sco_utils.py
     """
     try: 
         a = context.icons.delete_small_img
@@ -531,9 +532,10 @@ def getArrowIconsTags(context, REQUEST):
     # check that we have new icons:
     checkLastIcon(context,REQUEST)
     #
-    arrow_up = context.icons.arrow_up.tag(title='remonter', border='0') 
-    arrow_down = context.icons.arrow_down.tag(title='descendre', border='0')     
-    arrow_none = context.icons.arrow_none.tag(title='', border='0')     
+    arrow_up   = icontag('arrow_up', title='remonter')
+    arrow_down = icontag('arrow_down', title='descendre')
+    arrow_none = icontag('arrow_none', title='')
+    
     return arrow_up, arrow_down, arrow_none
 
 def editPartitionForm(context, formsemestre_id=None, REQUEST=None):

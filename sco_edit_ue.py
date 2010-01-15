@@ -137,12 +137,13 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     editable = perm_change
 
     if locked:
-        lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = icontag('lock32_img', title="verrouillé")
     else:
         lockicon = ''
     
     arrow_up, arrow_down, arrow_none = sco_groups.getArrowIconsTags(context, REQUEST)
-
+    delete_icon = icontag('delete_small_img', title="Supprimer (module inutilisé)", alt="supprimer")
+    delete_disabled_icon = icontag('delete_small_dis_img', title="Suppression impossible (module utilisé)")
     H = [ context.sco_header(REQUEST, page_title="Programme %s" % F['acronyme']),
           """<h2>Formation %(titre)s (%(acronyme)s) [version %(version)s] code %(formation_code)s""" % F,
           lockicon, '</h2>' ]
@@ -190,9 +191,9 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 im += 1
                 if Mod['nb_moduleimpls'] == 0 and editable:
                     H.append('<a class="smallbutton" href="module_delete?module_id=%s">%s</a>'
-                             % (Mod['module_id'], context.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer (module inutilisé)')))
+                             % (Mod['module_id'], delete_icon))
                 else:
-                    H.append(arrow_none)
+                    H.append(delete_disabled_icon)
                 mod_editable = editable and not context.module_is_locked(Mod['module_id'])
                 if mod_editable:
                     H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)                    

@@ -342,7 +342,7 @@ def icontag(name, **attrs):
     """
     if ('width' not in attrs) or ('height' not in attrs):
         if name not in ICONSIZES:
-            img_file = 'static/icons/%s.png' % name
+            img_file = SCO_SRCDIR + '/static/icons/%s.png' % name
             im = PILImage.open(img_file)
             width, height = im.size[0], im.size[1]
             ICONSIZES[name] = (width, height) # cache
@@ -350,6 +350,7 @@ def icontag(name, **attrs):
             width, height = ICONSIZES[name]
         attrs['width'] = width
         attrs['height'] = height
-
+    if 'border' not in attrs:
+        attrs['border'] = 0
     s = ' '.join([ '%s="%s"' % (k, attrs[k]) for k in attrs ])
     return '<img %s src="/ScoDoc/static/icons/%s.png" />' % (s, name)
