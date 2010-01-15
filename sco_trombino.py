@@ -227,8 +227,16 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
         path = SCO_SRCDIR + '/' + rel_path
         # log('path=%s' % path)
         try:
+            im = PILImage.open(path)
+            w0, h0 = im.size[0], im.size[1]
+            if w0 > h0:
+                W = PHOTOWIDTH
+                H = h0 * W / w0
+            else:
+                H = PHOTOWIDTH
+                W = w0 * H / h0
             elem = Table(
-                [ [ reportlab.platypus.Image( path, width=PHOTOWIDTH ) ],
+                [ [ reportlab.platypus.Image( path, width=W, height=H ) ],
                   [ Paragraph(
                 SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
                    + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
