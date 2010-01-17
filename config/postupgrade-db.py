@@ -264,6 +264,10 @@ for dept in get_depts():
     check_field(cnx, 'notes_modules', 'ects',
                 ['alter table notes_modules add column ects real',
                  ])
+    # Add "statut" to identite (default to NULL)
+    check_field(cnx, 'identite', 'statut',
+                ['alter table identite add column statut text',
+                 ])
     # Add here actions to performs after upgrades:
 
     cnx.commit()

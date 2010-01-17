@@ -51,7 +51,8 @@ CREATE TABLE identite (
     sexe text,
     date_naissance date, -- new: date en texte
     lieu_naissance text,
-    nationalite text,    
+    nationalite text,   
+    statut text, -- NULL ou 'SALARIE' 
     foto text, -- deprecated
     photo_filename text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)

@@ -278,7 +278,7 @@ def photos_generate_excel_sample(context, group_id=None, REQUEST=None):
     data = ImportScolars.sco_import_generate_excel_sample(
         format, context=context, group_id=group_id,
         only_tables=['identite'], 
-        exclude_cols=[ 'date_naissance', 'lieu_naissance', 'nationalite', 'photo_filename' ],
+        exclude_cols=[ 'date_naissance', 'lieu_naissance', 'nationalite', 'statut', 'photo_filename' ],
         extra_cols = ['fichier_photo'])
     return sco_excel.sendExcelFile(REQUEST, data, 'ImportPhotos.xls')
 

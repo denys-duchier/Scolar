@@ -1812,6 +1812,8 @@ function tweakmenu( gname ) {
             ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date' }),
             ('lieu_naissance', {  'title' : 'Lieu de naissance', 'size' : 32 }),
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
+            ('statut',  { 'size' : 25, 'title' : 'Statut', 
+                          'explanation' : '("salarie", ...) inutilisé par ScoDoc' }),
 
             ('annee', { 'size' : 5, 'title' : 'Année admission IUT',
                         'type' : 'int', 'allow_null' : False,
