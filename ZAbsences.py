@@ -481,7 +481,7 @@ class ZAbsences(ObjectManager,
         cursor.execute("""SELECT DISTINCT A.ETUDID, A.JOUR, A.MATIN FROM ABSENCES A, ABSENCES B
  WHERE A.ETUDID = %(etudid)s
  AND A.ETUDID = B.ETUDID 
- AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN AND A.JOUR > %(datedebut)s
+ AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN AND A.JOUR >= %(datedebut)s
  AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)
         """, vars() )
         A = cursor.dictfetchall()
@@ -497,7 +497,7 @@ class ZAbsences(ObjectManager,
         cursor.execute("""SELECT ETUDID, JOUR, MATIN FROM ABSENCES A 
     WHERE A.ETUDID = %(etudid)s
     AND A.estabs 
-    AND A.jour > %(datedebut)s
+    AND A.jour >= %(datedebut)s
     EXCEPT SELECT ETUDID, JOUR, MATIN FROM ABSENCES B 
     WHERE B.estjust 
     AND B.ETUDID = %(etudid)s
