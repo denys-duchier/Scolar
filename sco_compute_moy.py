@@ -208,7 +208,7 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
                     if note is None:
                         note = 0
                     if note != NOTES_NEUTRALISE and note != NOTES_ATTENTE:
-                        notes.append( (note * 20. / e['note_max']) * e['coefficient'] )
+                        notes.append( note * 20. / e['note_max'] )
                         coefs.append(e['coefficient'])
                         coefs_mask.append(1)
                         nb_notes += 1
@@ -226,7 +226,7 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
                     log('coefs=%s' % coefs)
                     user_moy = eval_user_expression(context, M['computation_expr'], notes, coefs, coefs_mask)
                     if user_moy > 20 or user_moy < 0:
-                        raise ScoException("valeur moyenne hors limite ! (%s)" % user_moy)
+                        raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
                 except:
                     log('invalid expression !')
                     log('Exception during evaluation:\n%s\n' % traceback.format_exc())
