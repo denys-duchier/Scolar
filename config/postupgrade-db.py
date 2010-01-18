@@ -268,6 +268,10 @@ for dept in get_depts():
     check_field(cnx, 'identite', 'statut',
                 ['alter table identite add column statut text',
                  ])
+    # Add user-defined expressions
+    check_field(cnx, 'notes_moduleimpl', 'computation_expr',
+                ['alter table notes_moduleimpl add column computation_expr text'])
+    
     # Add here actions to performs after upgrades:
 
     cnx.commit()

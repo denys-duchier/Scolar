@@ -351,6 +351,7 @@ CREATE TABLE notes_moduleimpl (
 	module_id text REFERENCES notes_modules(module_id),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
 	responsable_id text,
+	computation_expr text, -- formule de calcul moyenne
 	UNIQUE(module_id,formsemestre_id) -- ajoute
 ) WITH OIDS;
 
@@ -413,6 +414,7 @@ CREATE TABLE notes_evaluation (
 	note_max real,
 	coefficient real,
         visibulletin integer default 1
+	--	numero_expr integer; idée abandonnée
 ) WITH OIDS;
 
 -- Les notes...

@@ -756,6 +756,10 @@ span.mievr_lastmodif {
  font-weight: normal;
  font-style: italic; 
 }
+span.evalindex {
+ font-weight: normal;
+ padding-left: 4em;
+}
 
 /* Liste des formations */
 ul.notes_formation_list { 

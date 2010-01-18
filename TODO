@@ -8,6 +8,28 @@ S1 SEM14133 cold start: min 9s, max 12s, avg > 11s
             inval (add abs) : min8s, max 12s (recalcule tout :-()
 LP SEM14946 cold start: 0.7s - 0.86s
 
+* Numerotation des evaluations (pidee abandonnée: on tri par date seulement)
+        if has_expression:
+            H.append('&nbsp;%02d' % eval['numero_expr'])
+            if ie != 0 and caneditevals:
+                H.append('<a href="eval_move?evaluation_id=%s&after=0" class="aud">%s</a>' % (eval['evaluation_id'], arrow_up))
+            else:
+                H.append(arrow_none)
+            if ie < len(ModEvals)-1 and caneditevals:
+                H.append('<a href="eval_move?evaluation_id=%s&after=1" class="aud">%s</a>' % (eval['evaluation_id'], arrow_down))
+            else:
+                H.append(arrow_none)
+        ie += 1
+
+
+    check_field(cnx, 'notes_evaluation', 'numero_expr',
+                ['alter table notes_evaluation add column numero_expr integer'])
+
+        # Backward compatibility: si pas de numero, lui en attribue un
+        if user_expr and e['numero_expr'] is None:
+            e['numero_expr'] = ne
+            context._evaluationEditor.edit(cnx,e)
+        ne += 1
 
 ----------------- LISTE OBSOLETE (eventuellement à trier) -----------------------
 BUGS

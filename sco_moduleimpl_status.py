@@ -39,6 +39,7 @@ import sco_excel
 from gen_tables import GenTable
 from htmlutils import histogram_notes
 from sco_formsemestre_status import makeMenu
+import sco_compute_moy
 
 from sets import Set
 
@@ -97,6 +98,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     #
     caneditevals=context.can_edit_notes(authuser,moduleimpl_id,allow_ens=False)
     caneditnotes=context.can_edit_notes(authuser,moduleimpl_id)
+    arrow_up, arrow_down, arrow_none = sco_groups.getArrowIconsTags(context, REQUEST)
     #
     H = [ context.sco_header(REQUEST, page_title="Module %(titre)s" % Mod),
     """<h2 class="formsemestre">Module <tt>%(code)s</tt> %(titre)s</h2>""" % Mod,
@@ -137,9 +139,14 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     H.append("""<tr><td class="fichetitre2">Formation: </td><td>%(titre)s</td></tr>""" % F )
     # Ligne: Inscrits
     H.append("""<tr><td class="fichetitre2">Inscrits: </td><td> %d étudiants</td></tr>""" % len(ModInscrits) )
-    # Ligne: Evaluations
-    H.append("""<tr><td class="fichetitre2">Evaluations: </td><td> %d évaluations</td></tr>
-</table>""" % len(ModEvals))
+    # Ligne: règle de calcul
+    has_expression = sco_compute_moy.moduleimpl_has_expression(context, M)
+    if has_expression:
+        H.append("""<tr><td class="fichetitre2" colspan="2">Règle de calcul: <tt>%s</tt> (<a href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)</td></tr>""" % (M['computation_expr'],moduleimpl_id))
+    else:
+        t0, t1 = '<em>règle de calcul standard</em>', ''
+        H.append("""<tr><td colspan="2"><em>règle de calcul standard</em> (<a href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)</td></tr>""" % (moduleimpl_id))
+    H.append('</table>')
     #
     #
     H.append("""<p><form name="f"><span style="font-size:120%%; font-weight: bold;">%d évaluations :</span>
@@ -167,8 +174,8 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
 """ % M)
     
     # -------- Tableau des evaluations
-
     H.append("""<table class="moduleimpl_evaluations">""")
+    eval_index = len(ModEvals) - 1
     for eval in ModEvals:
         etat = context.do_evaluation_etat( eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)[0]
 
@@ -178,6 +185,9 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
  Le %(jour)s%(descrheure)s:&nbsp;&nbsp;&nbsp; <em>%(description)s</em>""" % eval )
         if etat['last_modif']:
             H.append("""<span class="mievr_lastmodif">(dernière modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y à %Hh%M') )
+        if has_expression:
+             H.append("""<span class="evalindex" title="Indice dans les vecteurs (formules)">%02d</span>""" % eval_index)
+        eval_index -= 1
         H.append("""</td></tr>""")
         H.append("""<tr class="mievr"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne</th></tr>""")
 

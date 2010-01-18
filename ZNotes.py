@@ -79,6 +79,7 @@ import sco_formsemestre_custommenu
 import sco_moduleimpl_status
 import sco_moduleimpl_inscriptions
 import sco_groups
+import sco_compute_moy
 import sco_bulletins, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_report
@@ -951,7 +952,7 @@ class ZNotes(ObjectManager,
     _moduleimplEditor = EditableTable(
         'notes_moduleimpl',
         'moduleimpl_id',
-        ('moduleimpl_id','module_id','formsemestre_id','responsable_id'),
+        ('moduleimpl_id','module_id','formsemestre_id','responsable_id', 'computation_expr'),
         )
 
     _modules_enseignantsEditor = EditableTable(
@@ -1185,6 +1186,53 @@ class ZNotes(ObjectManager,
             self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
                                        'responsable_id' : responsable_id } )
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
+
+    security.declareProtected(ScoView, 'edit_moduleimpl_expr')
+    def edit_moduleimpl_expr(self, REQUEST, moduleimpl_id):
+        """Edition formule calcul moyenne module
+        Accessible par Admin, dir des etud et responsable module
+        """
+        M, sem = self.can_change_module_resp(REQUEST, moduleimpl_id)
+        H = [ 
+            self.html_sem_header(
+                    REQUEST, 
+                    'Modification règle de calcul du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+                    % (moduleimpl_id, M['module']['titre']), 
+                    sem
+                    ),
+            """<p class="help">Expérimental: formule de calcul de la moyenne du module</p>
+        <p class="help">Dans la formule, les variables suivantes sont définies:</p>
+        <ul class="help">
+        <li><tt>notes</tt> vecteur des notes (/20) aux évaluations
+        <li><tt>coefs</tt> vecteur des coefficients des évaluations, les coefs des évaluations sans notes (ATT, EXC) étant mis à zéro</li>
+        <li><tt>coefs_mask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
+        </ul>
+        <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des évaluations (le premier élément est la plus ancienne évaluation).</p>
+        <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum</tt></p>
+        <p class="help">La notation <tt>V( 1, 2, 3 )</tt> représente un vecteur <tt>(1,2,3)</tt></p>
+        <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
+        en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
+        """
+            ]
+        initvalues = M
+        form = [
+            ('moduleimpl_id', { 'input_type' : 'hidden' }),
+            ('computation_expr', { 'title' : 'Formule de calcul',
+                                   'input_type' : 'textarea', 'rows' : 4, 'cols' : 60,
+                                   'explanation' : 'formule de calcul (expérimental)' }),
+            ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
+                                submitlabel = 'Modifier formule de calcul',
+                                cancelbutton = 'Annuler',
+                                initvalues=initvalues)
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
+        else:            
+            self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
+                                       'computation_expr' : tf[2]['computation_expr'] } )
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
 
 
     security.declareProtected(ScoView, 'formsemestre_enseignants_list')
@@ -1878,7 +1926,7 @@ class ZNotes(ObjectManager,
                                    'allowed_values' : ['X'], 'labels' : [ '' ],
                                    'title' : 'Visible sur bulletins' ,
                                    'explanation' : '(pour les bulletins en version intermédiaire)'}),
-            ),
+            ),                                
                                 cancelbutton = 'Annuler',
                                 submitlabel = submitlabel,
                                 initvalues = initvalues, readonly=readonly)
@@ -2221,77 +2269,7 @@ class ZNotes(ObjectManager,
                 d[x['etudid']] = x
         return d
 
-    # --- Bulletins
-    security.declareProtected(ScoView, 'do_moduleimpl_moyennes')
-    def do_moduleimpl_moyennes(self,moduleimpl_id):
-        """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
-        à ce module, la liste des evaluations "valides" (toutes notes entrées
-        ou en attente), et att (vrai s'il y a des notes en attente dans ce module).
-        La moyenne est calculée en utilisant les coefs des évaluations.
-        Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
-        Les notes ABS sont remplacées par des zéros.
-        S'il manque des notes et que le coef n'est pas nul,
-        la moyenne n'est pas calculée: NA
-        Ne prend en compte que les evaluations où toutes les notes sont entrées.
-        Le résultat est une note sur 20.
-        """
-        M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
-        etudids = self.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
-        # Inscrits au semestre (pour traiter les demissions):
-        inssem_set = Set( [x['etudid'] for x in
-                           self.do_formsemestre_inscription_listinscrits(M['formsemestre_id'])])
-        insmod_set = inssem_set.intersection(etudids) # inscrits au semestre et au module
-        evals = self.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
-        attente = False
-        # recupere les notes de toutes les evaluations
-        for e in evals:
-            e['nb_inscrits'] = len(
-                sco_groups.do_evaluation_listeetuds_groups(self, e['evaluation_id'],
-                                                           getallstudents=True))
-            NotesDB = self._notes_getall(e['evaluation_id']) # toutes, y compris demissions
-            # restreint aux étudiants encore inscrits à ce module        
-            notes = [ NotesDB[etudid]['value'] for etudid in NotesDB 
-                      if (etudid in insmod_set) ]
-            e['nb_notes'] = len(notes)
-            e['nb_abs'] = len( [ x for x in notes if x is None ] )
-            e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
-            e['nb_att'] = len( [ x for x in notes if x == NOTES_ATTENTE ] )
-            e['notes'] = NotesDB
-            e['etat'] = self.do_evaluation_etat(e['evaluation_id'])[0]
-            if e['nb_att']:
-                attente = True
-        # filtre les evals valides (toutes les notes entrées)        
-        valid_evals = [ e for e in evals
-                        if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
-        # 
-        R = {}
-        for etudid in insmod_set: # inscrits au semestre et au module
-            nb_notes = 0
-            sum_notes = 0.
-            sum_coefs = 0.
-            nb_missing = 0
-            for e in valid_evals:
-                if e['notes'].has_key(etudid):
-                    note = e['notes'][etudid]['value']
-                    if note == None: # ABSENT
-                        note = 0            
-                    if note != NOTES_NEUTRALISE and note != NOTES_ATTENTE:
-                        nb_notes += 1
-                        sum_notes += (note * 20. / e['note_max']) * e['coefficient']
-                        sum_coefs += e['coefficient']
-                else:
-                    # il manque une note !
-                    if e['coefficient'] > 0:
-                        nb_missing += 1
-            if nb_missing == 0 and sum_coefs > 0:
-                if sum_coefs > 0:
-                    R[etudid] = sum_notes / sum_coefs
-                else:
-                    R[etudid] = 'na'
-            else:
-                R[etudid] = 'NA%d' % nb_missing
-        return R, valid_evals, attente
-
+    # --- Bulletins    
     security.declareProtected(ScoView, 'do_formsemestre_moyennes')
     def do_formsemestre_moyennes(self, formsemestre_id):
         """retourne dict { moduleimpl_id : { etudid, note_moyenne_dans_ce_module } },
@@ -2310,7 +2288,7 @@ class ZNotes(ObjectManager,
         for mod in mods:
             assert not D.has_key(mod['moduleimpl_id'])
             D[mod['moduleimpl_id']], valid_evals_mod, attente =\
-                                     self.do_moduleimpl_moyennes(mod['moduleimpl_id'])
+                sco_compute_moy.do_moduleimpl_moyennes(self, mod['moduleimpl_id'])
             valid_evals += valid_evals_mod
             if attente:
                 mods_att.append(mod)
