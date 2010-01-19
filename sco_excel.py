@@ -457,7 +457,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        ws0.write(li, 1, t['prenom'] + ' ' + t['nom'], style2t3) 
+        ws0.write(li, 1, t['nom'] + ' ' + t['prenom'].lower().capitalize(), style2t3) 
         co = 2
         for partition in partitions:
             if partition['partition_name']:
