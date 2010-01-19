@@ -92,6 +92,22 @@ def dot(u,v):
     """Dot product between 2 lists or vectors"""
     return sum([ x*y for (x,y) in zip(u,v) ])
 
+def ternary_op(cond, a, b):    
+    if cond:
+        return a
+    else:
+        return b
+
+def geometrical_mean(v, w=None):
+    """Geometrical mean of v, with optional weights w"""
+    if w is None:
+        return pow(reduce(operator.mul, v), 1./len(v))
+    else:
+        if len(w) != len(v):
+            raise ValueError("vectors sizes don't match")
+        vw = [ pow(x,y) for (x,y) in zip(v,w) ]
+        return pow(reduce(operator.mul, vw), 1./sum(w))
+
 # Les builtins autorisées dans les formules utilisateur:
 formula_builtins = {
     'V' : NoteVector,
@@ -105,7 +121,9 @@ formula_builtins = {
     'pow' : pow,
     'reduce' : reduce,
     'round' : round,
-    'sum' : sum
+    'sum' : sum,
+    'if'  : ternary_op,
+    'geomean' : geometrical_mean
 }
 
 # v = NoteVector(1,2)
