@@ -76,6 +76,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
 <p class="help">Les modules ont toujours un responsable. Par défaut, c'est le directeur des études.</p>""")
             if authuser.has_permission(ScoImplement,context):
                 H.append("""
+<hr/>
 <h2>Autres opérations</h2>
 <p><a class="stdlink" href="formsemestre_delete?formsemestre_id=%s">Supprimer ce semestre</a></p>""" % formsemestre_id)
     
@@ -450,11 +451,11 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
             
             if msg:
-                msg_html = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
+                msg_html = '<div class="ue_warning"><span>Attention !<ul><li>' + '</li><li>'.join(msg) + '</li></ul></span></div>'
                 if ok:
                     msg_html += '<p>Modification effectuée</p>'
                 else:
-                    msg_html += '<p>Modification effectuée (<b>mais modules non supprimés</b>)</p>'
+                    msg_html += '<p>Modification effectuée (<b>mais modules cités non supprimés</b>)</p>'
                 msg_html += '<a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
                 return msg_html            
             else:
@@ -477,7 +478,7 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
         # Evaluations dans ce module ?
         evals = context.do_evaluation_list( { 'moduleimpl_id' : moduleimpl_id} )
         if evals:
-            msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (supprimer les d\'abord)</b>' % (mod['code'], mod['titre'], len(evals)) ]
+            msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (<a href="moduleimpl_status?moduleimpl_id=%s" class="stdlink">supprimer les d\'abord</a>)</b>' % (mod['code'], mod['titre'], len(evals), moduleimpl_id) ]
             ok = False
         else:
             msg += [ 'suppression de %s (%s)'
