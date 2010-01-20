@@ -37,6 +37,7 @@ from sco_utils import *
 from notes_log import log, sendAlarm
 from notes_table import *
 import sco_groups
+import sco_evaluations
 
 class NoteVector:
     """Vecteur de notes (ou coefficients) utilisé pour les formules définies par l'utilisateur.
@@ -183,7 +184,7 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
         e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
         e['nb_att'] = len( [ x for x in notes if x == NOTES_ATTENTE ] )
         e['notes'] = NotesDB
-        e['etat'] = context.do_evaluation_etat(e['evaluation_id'])[0]
+        e['etat'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])[0]
         if e['nb_att']:
             attente = True
     # filtre les evals valides (toutes les notes entrées)        

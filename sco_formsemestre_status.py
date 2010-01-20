@@ -29,6 +29,7 @@
 """
 
 # Rewritten from ancient DTML code
+from mx.DateTime import DateTime as mxDateTime
 
 from notesdb import *
 from notes_log import log
@@ -37,6 +38,7 @@ from sco_formsemestre_custommenu import formsemestre_custommenu_html
 from gen_tables import GenTable
 import sco_archives
 import sco_groups
+import sco_evaluations
 
 def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
@@ -407,3 +409,118 @@ def formsemestre_lists(context, formsemestre_id, REQUEST=None):
           context.make_listes_sem(sem, REQUEST),
           context.sco_footer(REQUEST) ]
     return '\n'.join(H)
+
+
+def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_title=None):
+    """En-tête HTML des pages "semestre"
+    """
+    semlist = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )
+    if not semlist:
+        raise ScoValueError( 'Semestre inexistant (il a peut être été supprimé ?)' )
+    sem = semlist[0]
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+
+    page_title = page_title or 'Modules de '
+    
+    H = [ context.html_sem_header(REQUEST, page_title, sem, with_page_header=False, with_h2=False),
+          """<table>
+          <tr><td class="fichetitre2">Formation: </td><td>
+         <a href="Notes/ue_list?formation_id=%(formation_id)s" class="discretelink" title="Formation %(acronyme)s, v%(version)s">%(titre)s</a>""" % F ]
+    if sem['semestre_id'] >= 0:
+        H.append(", semestre %(semestre_id)s" % sem )
+    if sem['modalite']:
+        H.append('&nbsp;en %(modalite)s' % sem )
+    if sem['etape_apo']:
+        H.append('&nbsp;&nbsp;&nbsp;(étape <b><tt>%(etape_apo)s</tt></b>)' % sem )
+    H.append('</td></tr>')
+    
+    evals = sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)[0]    
+    H.append('<tr><td class="fichetitre2">Evaluations: </td><td> %(nb_evals_completes)s ok, %(nb_evals_en_cours)s en cours, %(nb_evals_vides)s vides' % evals)
+    if evals['last_modif']:
+        H.append(' <em>(dernière note saisie le %s)</em>' % evals['last_modif'].strftime('%d/%m/%Y à %Hh%M'))
+    H.append('</td></tr>')
+    if evals['attente']:
+        H.append("""<tr><td class="fichetitre2"></td><td class="redboldtext">
+Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indicative. 
+</td></tr>""")
+    H.append('</table>')
+    if sem['bul_hide_xml'] != '0':
+        H.append('<p><em>Bulletins non publiés sur le portail</em></p>')
+    
+    return ''.join(H)
+
+
+def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
+    """Tableau de bord semestre HTML"""
+    # porté du DTML
+    status_head = formsemestre_status_head(context, formsemestre_id=formsemestre_id, REQUEST=REQUEST)
+    sem = context.get_formsemestre(formsemestre_id)
+    Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
+    inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    prev_ue_id = None
+
+    H = [ context.sco_header(REQUEST, page_title='Semestre %s' % sem['titreannee'] ),
+          '<div class="formsemestre_status">',
+          formsemestre_status_head(context, formsemestre_id=formsemestre_id, page_title='Tableau de bord'),
+          """<p><b style="font-size: 130%">Tableau de bord: </b><span class="help">cliquez sur un module pour saisir des notes</span>
+</p>
+<p>
+<table class="formsemestre_status">
+<tr>
+<th class="formsemestre_status">Code</th>
+<th class="formsemestre_status">Module</th>
+<th class="formsemestre_status">Inscrits</th>
+<th class="resp">Responsable</th>
+<th class="evals">Evaluations</th></tr>"""
+          ]
+    for M in Mlist:
+        Mod = M['module']
+        ModDescr = 'Module ' + M['module']['titre'] + ', coef. ' + str(M['module']['coefficient'])
+        ModEns = context.Users.user_info(M['responsable_id'],REQUEST)['nomcomplet']
+        if M['ens']:
+            ModEns += ' (resp.), ' + ', '.join( [ context.Users.user_info(e['ens_id'],REQUEST)['nomcomplet'] for e in M['ens'] ] )
+        ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
+        if prev_ue_id != M['ue']['ue_id']:
+            prev_ue_id = M['ue']['ue_id']
+            H.append("""<tr class="formsemestre_status_ue"><td colspan="5">
+<span class="status_ue_acro">%(acronyme)s</span>
+<span class="status_ue_title">%(titre)s</span>
+</td></tr>""" % M['ue'] )
+        if M['ue']['type'] != 0:
+            fontorange = ' fontorange' # style css additionnel
+        else:
+            fontorange = ''
+        etat = sco_evaluations.do_evaluation_etat_in_mod(context, M['moduleimpl_id'])[0]
+        if etat['nb_evals_completes'] > 0 and etat['nb_evals_en_cours'] == 0 and etat['nb_evals_vides'] == 0:
+            H.append('<tr class="formsemestre_status_green%s">' % fontorange)
+        else:
+            H.append('<tr class="formsemestre_status%s">' % fontorange)
+
+        H.append('<td class="formsemestre_status_code"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s" class="stdlink">%s</a></td>' % 
+                 (M['moduleimpl_id'],ModDescr,Mod['code']))
+        H.append('<td><a href="moduleimpl_status?moduleimpl_id=%s" title="%s" class="formsemestre_status_link">%s</a></td>'
+                 % (M['moduleimpl_id'], ModDescr, Mod['abbrev'] or Mod['titre']))
+        H.append('<td class="formsemestre_status_inscrits">%s</td>' % len( ModInscrits ))
+        H.append('<td class="resp"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>'
+                 % (M['moduleimpl_id'], ModEns, context.Users.user_info(M['responsable_id'],REQUEST)['prenomnom']))
+        
+        H.append('<td class="evals">')
+        nb_evals = etat['nb_evals_completes']+etat['nb_evals_en_cours']+etat['nb_evals_vides']
+        if nb_evals != 0:
+            H.append('<a href="moduleimpl_status?moduleimpl_id=%s" class="formsemestre_status_link">%s prévues, %s ok' 
+                     % (M['moduleimpl_id'], nb_evals, etat['nb_evals_completes']))
+            if etat['nb_evals_en_cours'] > 0:
+                H.append(', %s en cours' % etat['nb_evals_en_cours'])
+            H.append('</a>')
+            if etat['attente']:
+                H.append(' <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=%s">[en attente]</a></span>'
+                         % M['moduleimpl_id'])
+        H.append('</td></tr>')
+    H.append('</table></p>')
+    # --- LISTE DES ETUDIANTS 
+    H += [ '<div id="groupes">',
+           context.make_listes_sem(sem, REQUEST),
+           '</div>' ]
+    
+    return ''.join(H) + context.sco_footer(REQUEST)
+

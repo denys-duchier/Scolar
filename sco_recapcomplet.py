@@ -31,6 +31,76 @@
 from notes_table import *
 import sco_bulletins, sco_excel
 import sco_groups
+import sco_formsemestre_status
+
+def formsemestre_recapcomplet(context, formsemestre_id=None, 
+                              modejury=False, # affiche lien saisie decision jury
+                              hidemodules=False, # cache colonnes notes modules
+                              tabformat='html',
+                              sortcol=None,
+                              xml_with_decisions=False, # XML avec decisions
+                              REQUEST=None
+                              ):
+    """Page récapitulant les notes d'un semestre.
+    Grand tableau récapitulatif avec toutes les notes de modules
+    pour tous les étudiants, les moyennes par UE et générale,
+    trié par moyenne générale décroissante.
+    """
+    # traduit du DTML
+    modejury=int(modejury)
+    hidemodules=int(hidemodules)
+    xml_with_decisions=int(xml_with_decisions)
+    isFile = tabformat in ('csv','xls','xml')
+    H = []
+    if not isFile:
+        H += [ context.sco_header(REQUEST, page_title='Récapitulatif', no_side_bar=True),
+               sco_formsemestre_status.formsemestre_status_head(
+                context, formsemestre_id=formsemestre_id, REQUEST=REQUEST),
+                 '<form name="f" method="get" action="%s">' % REQUEST.URL0,
+                 '<input type="hidden" name="formsemestre_id" value="%s"></input>' % formsemestre_id ]
+        if modejury:
+            H.append('<input type="hidden" name="modejury" value="%s"></input>' % modejury)
+        H.append('<select name="tabformat" onChange="document.f.submit()" class="noprint">')
+        for (format, label) in (('html', 'HTML'), 
+                                ('xls', 'Fichier tableur (Excel)'),
+                                ('csv', 'Fichier tableur (CSV)'),
+                                ('xml', 'Fichier XML')):
+            if format == tabformat:
+                selected = ' selected'
+            else:
+                selected = ''
+            H.append('<option value="%s"%s>%s</option>' % (format, selected, label))
+        H.append('</select>')
+        
+        H.append("""(cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="%s/Notes/formsemestre_bulletins_pdf?formsemestre_id=%s">ici avoir le classeur papier</a>)""" % (context.ScoURL(), formsemestre_id))
+        H.append( """<input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" """)
+        if hidemodules:
+            H.append('checked')
+        H.append(""" >cacher les modules</input></form>""")
+
+    if tabformat == 'xml':
+        REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')
+    
+    H.append( do_formsemestre_recapcomplet(
+            context, REQUEST, 
+            formsemestre_id, format=tabformat, hidemodules=hidemodules, 
+            modejury=modejury, sortcol=sortcol, xml_with_decisions=xml_with_decisions,
+            ) )
+    
+    if not isFile:
+        H.append("""<p><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s">Voir les décisions du jury</a></p>""" % formsemestre_id)
+        if context.can_validate_sem(REQUEST, formsemestre_id):
+            H.append('<p>')
+            if modejury:
+                H.append("""<a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=%s">Calcul automatique des décisions du jury</a></p><p><a class="stdlink" href="formsemestre_fix_validation_ues?formsemestre_id=%s">Vérification décisions UE</a> 
+<span style="font-size: 75%%;">(corrige incohérences éventuelles introduites avant juin 2008)<span>
+</p>""" % (formsemestre_id, formsemestre_id))
+            else:
+                H.append("""<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">Saisie des décisions du jury</a>""" % formsemestre_id)
+            H.append('</p>')
+        H.append(context.sco_footer(REQUEST))
+    return ''.join(H) # HTML or binary data...
+
 
 def do_formsemestre_recapcomplet(
     context=None, REQUEST=None, formsemestre_id=None,
@@ -389,7 +459,7 @@ def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_wit
         docdate = datetime.datetime.now().isoformat()
     doc.recapsemestre( formsemestre_id=formsemestre_id,
                        date=docdate)
-    evals=context.do_evaluation_etat_in_sem(formsemestre_id)[0]
+    evals=sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)[0]
     doc._push()
     doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
                     nb_evals_en_cours=evals['nb_evals_en_cours'],

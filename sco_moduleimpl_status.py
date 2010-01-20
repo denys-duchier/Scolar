@@ -34,6 +34,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 import sco_groups
+import sco_evaluations
 import htmlutils
 import sco_excel
 from gen_tables import GenTable
@@ -177,7 +178,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     H.append("""<table class="moduleimpl_evaluations">""")
     eval_index = len(ModEvals) - 1
     for eval in ModEvals:
-        etat = context.do_evaluation_etat( eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)[0]
+        etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)[0]
 
         H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
         H.append("""<tr class="mievr">

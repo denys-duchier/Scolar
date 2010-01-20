@@ -36,6 +36,7 @@ from scolog import logdb
 from notes_table import *
 import notes_table
 
+import sco_formsemestre_status
 import sco_parcours_dut, sco_codes_parcours
 import sco_pvjury
 import sco_photos
@@ -712,8 +713,8 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
                 sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
     #
     H = [context.sco_header(REQUEST, page_title='Réparation des codes UE'),
-         context.formsemestre_status_head(context, REQUEST=REQUEST,
-                                          formsemestre_id=formsemestre_id )
+         sco_formsemestre_status.formsemestre_status_head(context, REQUEST=REQUEST,
+                                                          formsemestre_id=formsemestre_id )
          ]
     if modifs:
         H = H + [ '<h2>Modifications des codes UE</h2>', '<ul><li>',

@@ -394,16 +394,7 @@ class ZScolar(ObjectManager,
         # 
         #d = "<p>locale=%s, g=%s -> %s</p>"% (locale.getlocale(), g, g.lower() )
         return self.sco_header(REQUEST)+ '\n'.join(H) + d + self.sco_footer(REQUEST)
-
     
-    security.declareProtected(ScoView, 'raiseScoValueError')
-    def raiseScoValueError(self,msg):
-        """raise ScoValueError exception
-        (used from legacy dtml code, where class-based exception
-        cannot be raised...)
-        """
-        raise ScoValueError(msg)
-
     security.declareProtected(ScoView, 'ScoErrorResponse')
     def ScoErrorResponse(self, msg, format='html', REQUEST=None):
         """Send an error message to the client, in html or xml format.

@@ -35,6 +35,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 import sco_groups
+import sco_evaluations
 import htmlutils
 import sco_excel
 import scolars
@@ -351,7 +352,7 @@ def do_evaluation_formnotes(context, REQUEST ):
                              text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                              url=Mod['url'])
             # affiche etat evaluation
-            etat = context.do_evaluation_etat(evaluation_id)[0]             
+            etat = sco_evaluations.do_evaluation_etat(context, evaluation_id)[0]             
             msg = '%d notes / %d inscrits' % (
                 etat['nb_notes'], etat['nb_inscrits'])
             if etat['nb_att']:

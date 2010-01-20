@@ -34,6 +34,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
 import sco_groups
+import sco_evaluations
 import htmlutils
 import sco_excel
 from gen_tables import GenTable
@@ -228,7 +229,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
              'comment' : '' }
     # Ajoute les notes de chaque évaluation:
     for e in evals:
-        e['eval_state'] = context.do_evaluation_etat(e['evaluation_id'])[0]
+        e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])[0]
         notes, nb_abs, nb_att = _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
                           note_sur_20, keep_numeric)
         columns_ids.append(e['evaluation_id'])
