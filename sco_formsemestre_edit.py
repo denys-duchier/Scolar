@@ -449,7 +449,13 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
             
             if msg:
-                return '<ul><li>' + '</li><li>'.join(msg) + '</li></ul><p>Modification effectuée</p><p><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
+                msg_html = '<ul><li>' + '</li><li>'.join(msg) + '</li></ul>'
+                if ok:
+                    msg_html += '<p>Modification effectuée</p>'
+                else:
+                    msg_html += '<p>Modification effectuée (<b>mais modules non supprimés</b>)</p>'
+                msg_html += '<a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
+                return msg_html            
             else:
                 return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifié' %  formsemestre_id)
 
