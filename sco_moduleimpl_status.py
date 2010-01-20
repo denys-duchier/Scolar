@@ -133,7 +133,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     else:
         H.append("""</td><td>""")
     if sem['etat'] != '1':
-        H.append(context.icons.lock32_img.tag(title="verrouillé", border='0'))
+        H.append( icontag('lock32_img', title="verrouillé") )
     H.append("""</td><td class="fichetitre2">Coef dans le semestre: %(coefficient)s</td><td></td></tr>""" % Mod)
     # 3ieme ligne: Formation
     H.append("""<tr><td class="fichetitre2">Formation: </td><td>%(titre)s</td></tr>""" % F )
@@ -193,25 +193,25 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
 
         H.append("""<tr class="mievr"><td class="mievr">""")
         if caneditevals:
-            H.append("""<a class="smallbutton" href="evaluation_edit?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], context.icons.edit_img.tag(border='0', alt='modifier', title='Modifier informations')))
+            H.append("""<a class="smallbutton" href="evaluation_edit?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('edit_img', alt='modifier', title='Modifier informations')))
         if caneditnotes:
-            H.append("""<a class="smallbutton" href="notes_eval_selectetuds?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], context.icons.notes_img.tag(border='0',alt='saisie notes', title='Saisie des notes')))
+            H.append("""<a class="smallbutton" href="notes_eval_selectetuds?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('notes_img', alt='saisie notes', title='Saisie des notes')))
         if etat['nb_notes'] == 0:
             if caneditevals:
                 H.append("""<a class="smallbutton" href="evaluation_delete?evaluation_id=%(evaluation_id)s">""" % eval)
-            H.append( context.icons.delete_img.tag(border='0', alt='supprimer', title='Supprimer'))
+            H.append( icontag('delete_img', alt='supprimer', title='Supprimer') )
             if caneditevals:
                 H.append("""</a>""")
         elif etat['evalcomplete']:
-             H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], context.icons.status_green_img.tag(border='0',title='ok')))
+             H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('status_green_img', title='ok')))
         else:
             if etat['evalattente']:
-                H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], context.icons.status_greenorange_img.tag(border='0',title='notes en attente')))
+                H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag("status_greenorange_img", file_format='gif',title='notes en attente')))
             else:
-                H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], context.icons.status_orange_img.tag(border='0',title='il manque des notes')))
+                H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('status_orange_img', title='il manque des notes')))
         #
         if eval['visibulletin']=='1':
-            H.append(context.icons.status_visible_img.tag(border='0',title='visible dans bulletins intermédiaires'))
+            H.append(icontag('status_visible_img', title='visible dans bulletins intermédiaires'))
         else:
             H.append('&nbsp;')
         H.append( '</td><td class="mievr_menu">')
@@ -274,7 +274,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     if caneditevals or sem['etat'] != '1':
         H.append("""<tr><td colspan="7">""")
         if sem['etat'] != '1':
-            H.append("""%s semestre verrouillé""" % context.icons.lock32_img.tag(border='0'))
+            H.append("""%s semestre verrouillé""" % icontag('lock32_img'))
         else:
             H.append("""<a class="stdlink" href="evaluation_create?moduleimpl_id=%s">Créer nouvelle évaluation</a>""" % M['moduleimpl_id'] )
             if authuser.has_permission(ScoEtudInscrit,context):
@@ -299,11 +299,11 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
 
 <p>Rappel : seules les notes des évaluations complètement saisies (affichées en vert) apparaissent dans les bulletins.
 </p>
-    """ % (context.icons.edit_img.tag(border='0'), 
-           context.icons.notes_img.tag(border='0'),
-           context.icons.delete_img.tag(border='0'),
-           context.icons.status_orange_img.tag(border='0'),
-           context.icons.status_green_img.tag(border='0'),
-           context.icons.status_visible_img.tag(border='0')))
+    """ % (icontag('edit_img'), 
+           icontag('notes_img'),
+           icontag('delete_img'),
+           icontag('status_orange_img'),
+           icontag('status_green_img'),
+           icontag('status_visible_img')))
     H.append(context.sco_footer(REQUEST))
     return ''.join(H) 

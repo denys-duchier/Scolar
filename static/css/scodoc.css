@@ -436,6 +436,7 @@ table.tablegrid td, table.tablegrid th {
 a.smallbutton {
     border-width: 0;
     margin: 0;
+    margin-left: 2px;
     text-decoration: none;
 }
 span.evallink {
