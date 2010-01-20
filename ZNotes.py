@@ -216,6 +216,8 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoImplement, 'formsemestre_delete')
     formsemestre_delete = sco_formsemestre_edit.formsemestre_delete
+    security.declareProtected(ScoImplement, 'formsemestre_delete2')
+    formsemestre_delete2 = sco_formsemestre_edit.formsemestre_delete2
     
     security.declareProtected(ScoView, 'formsemestre_recapcomplet')
     formsemestre_recapcomplet = sco_recapcomplet.formsemestre_recapcomplet

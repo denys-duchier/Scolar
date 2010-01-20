@@ -76,6 +76,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
 <p class="help">Les modules ont toujours un responsable. Par défaut, c'est le directeur des études.</p>""")
             if authuser.has_permission(ScoImplement,context):
                 H.append("""
+<h2>Autres opérations</h2>
 <p><a class="stdlink" href="formsemestre_delete?formsemestre_id=%s">Supprimer ce semestre</a></p>""" % formsemestre_id)
     
     return '\n'.join(H) + context.sco_footer(REQUEST)
@@ -653,11 +654,12 @@ def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None
 
 
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
-    """Delete a formsemstre"""
+    """Delete a formsemestre (affiche avertissements)"""
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem),
-          """<p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
+          """<div class="ue_warning"><span>Attention !</span>
+<p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
 <b>un semestre ne doit jamais être supprimé</b> (on perd la mémoire des notes et de tous les événements liés à ce semestre !).</p>
 
  <p class="help">Tous les modules de ce semestre seront supprimés. Ceci n'est possible que
@@ -665,7 +667,7 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
  <ol>
   <li>aucune décision de jury n'a été entrée dans ce semestre;</li>
   <li>et aucun étudiant de ce semestre ne le compense avec un autre semestre.</li>
-  </ol>"""
+  </ol></div>"""
           ]
 
     evals = context.do_evaluation_list_in_formsemestre(formsemestre_id)
@@ -689,8 +691,23 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     elif tf[0] == -1: # cancel
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
-        do_formsemestre_delete(context, formsemestre_id, REQUEST)
-        return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
+        return REQUEST.RESPONSE.redirect( 'formsemestre_delete2?formsemestre_id=' + formsemestre_id  )
+
+def formsemestre_delete2(context, formsemestre_id, dialog_confirmed=False, REQUEST=None):
+    """Delete a formsemestre (confirmation)"""
+    sem = context.get_formsemestre(formsemestre_id)
+    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem) ]
+    # Confirmation dialog
+    if not dialog_confirmed:
+        return context.confirmDialog(
+            """<h2>Vous voulez vraiment supprimer ce semestre ???</h2><p>(opération irréversible)</p>""",
+            dest_url="", REQUEST=REQUEST,
+            cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
+            parameters={'formsemestre_id' : formsemestre_id})
+    # Bon, s'il le faut...
+    do_formsemestre_delete(context, formsemestre_id, REQUEST)
+    return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
 
 def formsemestre_has_decisions_or_compensations(context, formsemestre_id):
     """True if decision de jury dans ce semestre
