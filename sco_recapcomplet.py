@@ -459,7 +459,7 @@ def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_wit
         docdate = datetime.datetime.now().isoformat()
     doc.recapsemestre( formsemestre_id=formsemestre_id,
                        date=docdate)
-    evals=sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)[0]
+    evals=sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)
     doc._push()
     doc.evals_info( nb_evals_completes=evals['nb_evals_completes'],
                     nb_evals_en_cours=evals['nb_evals_en_cours'],

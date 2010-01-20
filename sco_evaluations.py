@@ -27,8 +27,11 @@
 
 """Evaluations
 """
+from sets import Set
 
+from notes_log import log
 from notes_table import *
+import sco_news
 import sco_groups
 
 # --------------------------------------------------------------------
@@ -59,6 +62,29 @@ def ListMedian( L ):
 
 # --------------------------------------------------------------------
 
+def do_evaluation_delete(context, REQUEST, evaluation_id):
+    "delete evaluation"
+    the_evals = context.do_evaluation_list( 
+            {'evaluation_id' : evaluation_id})
+    if not the_evals:
+        raise ValueError("evaluation inexistante !")
+
+    moduleimpl_id = the_evals[0]['moduleimpl_id']
+    context._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)
+    cnx = context.GetDBConnexion()
+    context._evaluationEditor.delete(cnx, evaluation_id)
+    # inval cache pour ce semestre
+    M = context.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
+    context._inval_cache(formsemestre_id=M['formsemestre_id'])
+    # news
+    mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
+    mod['moduleimpl_id'] = M['moduleimpl_id']
+    mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
+    sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_NOTE, object=moduleimpl_id,
+                 text='Suppression d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                 url=mod['url'])
+
+
 def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_partition=False):
     """donne infos sur l'etat du evaluation
     { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
@@ -71,7 +97,6 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
     nb_inscrits = len(sco_groups.do_evaluation_listeetuds_groups(context, evaluation_id,getallstudents=True))
     NotesDB = context._notes_getall(evaluation_id) # { etudid : value }
     notes = [ x['value'] for x in NotesDB.values() ]
-    nb_notes = len(notes)
     nb_abs = len( [ x for x in notes if x is None ] )
     nb_neutre = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
     nb_att = len( [ x for x in notes if x == NOTES_ATTENTE ] )
@@ -106,10 +131,15 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
     insem = context.do_formsemestre_inscription_listinscrits(formsemestre_id)
     insmod = context.do_moduleimpl_inscription_list(
         args={ 'moduleimpl_id' : E['moduleimpl_id'] } )
-    insmoddict = {}.fromkeys( [ x['etudid'] for x in insmod ] )
+    insmodset = Set( [ x['etudid'] for x in insmod ] )
     # retire de insem ceux qui ne sont pas inscrits au module
-    ins = [ i for i in insem if insmoddict.has_key(i['etudid']) ]
-
+    ins = [ i for i in insem if i['etudid'] in insmodset ]
+    
+    # Nombre de notes valides d'étudiants inscrits au module
+    # (car il peut y avoir des notes d'étudiants désinscrits depuis l'évaluation)
+    nb_notes = len( insmodset.intersection(NotesDB) )
+    nb_notes_total = len(NotesDB)
+    
     # On considere une note "manquante" lorsqu'elle n'existe pas
     # ou qu'elle est en attente (ATT)
     GrNbMissing = DictDefault() # group_id : nb notes manquantes
@@ -165,11 +195,13 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
              'gr_nb_att' : len([ x for x in notes if x == NOTES_ATTENTE ])
              } )
     gr_moyennes.sort(key=operator.itemgetter('group_name'))
-    # retourne mapping
     #log('gr_moyennes=%s' % gr_moyennes) 
-    return [ {
+    # retourne mapping
+    return {
         'evaluation_id' : evaluation_id,
-        'nb_inscrits':nb_inscrits, 'nb_notes':nb_notes,
+        'nb_inscrits':nb_inscrits, 
+        'nb_notes':nb_notes, # nb notes etudiants inscrits
+        'nb_notes_total' : nb_notes_total, # nb de notes (incluant desinscrits)
         'nb_abs':nb_abs, 'nb_neutre':nb_neutre, 'nb_att' : nb_att,
         'moy':moy, 'median':median,
         'last_modif':last_modif,
@@ -177,7 +209,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
         'gr_moyennes' : gr_moyennes,
         'groups' : groups,
         'evalcomplete' : complete,
-        'evalattente' : evalattente } ]
+        'evalattente' : evalattente }
 
 
 def do_evaluation_list_in_sem(context, formsemestre_id):
@@ -194,7 +226,7 @@ def do_evaluation_list_in_sem(context, formsemestre_id):
     #
     R = []
     for evaluation_id in evaluation_ids:
-        R.append( do_evaluation_etat(context, evaluation_id)[0] )
+        R.append( do_evaluation_etat(context, evaluation_id) )
     return R 
 
 def _eval_etat(evals):
@@ -221,10 +253,10 @@ def _eval_etat(evals):
     else:
         last_modif = ''
 
-    return [ { 'nb_evals_completes':nb_evals_completes,
-               'nb_evals_en_cours':nb_evals_en_cours,
-               'nb_evals_vides':nb_evals_vides,
-               'last_modif':last_modif } ]
+    return { 'nb_evals_completes':nb_evals_completes,
+             'nb_evals_en_cours':nb_evals_en_cours,
+             'nb_evals_vides':nb_evals_vides,
+             'last_modif':last_modif }
 
 def do_evaluation_etat_in_sem(context, formsemestre_id, REQUEST=None):
     """-> nb_eval_completes, nb_evals_en_cours, nb_evals_vides,
@@ -233,7 +265,7 @@ def do_evaluation_etat_in_sem(context, formsemestre_id, REQUEST=None):
     etat = _eval_etat(evals)
     # Ajoute information sur notes en attente
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
-    etat[0]['attente'] = len(nt.get_moduleimpls_attente()) > 0
+    etat['attente'] = len(nt.get_moduleimpls_attente()) > 0
     return etat
 
 def do_evaluation_etat_in_mod(context, moduleimpl_id, REQUEST=None):
@@ -241,13 +273,13 @@ def do_evaluation_etat_in_mod(context, moduleimpl_id, REQUEST=None):
     evaluation_ids = [ x['evaluation_id'] for x in evals ]
     R = []
     for evaluation_id in evaluation_ids:
-        R.append( do_evaluation_etat(context, evaluation_id)[0] )
+        R.append( do_evaluation_etat(context, evaluation_id) )
     etat = _eval_etat(R)
     # Ajoute information sur notes en attente
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id})[0]
     formsemestre_id = M['formsemestre_id']
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
 
-    etat[0]['attente'] = moduleimpl_id in [
+    etat['attente'] = moduleimpl_id in [
         m['moduleimpl_id'] for m in nt.get_moduleimpls_attente() ]
     return etat

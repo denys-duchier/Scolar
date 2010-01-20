@@ -352,7 +352,7 @@ def do_evaluation_formnotes(context, REQUEST ):
                              text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                              url=Mod['url'])
             # affiche etat evaluation
-            etat = sco_evaluations.do_evaluation_etat(context, evaluation_id)[0]             
+            etat = sco_evaluations.do_evaluation_etat(context, evaluation_id)         
             msg = '%d notes / %d inscrits' % (
                 etat['nb_notes'], etat['nb_inscrits'])
             if etat['nb_att']:
@@ -610,7 +610,6 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     if not context.can_edit_notes( authuser, E['moduleimpl_id'], allow_ens=False ):
         # NB: les chargés de TD n'ont pas le droit.
-        # XXX imaginer un redirect + msg erreur
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
 
     # recupere les etuds ayant une note
@@ -702,8 +701,6 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     If do_it is False, simulate the process and returns the number of values that
     WOULD be changed or suppressed.
     Nota:
-    - va verifier si tous les etudiants sont inscrits
-    au moduleimpl correspond a cet eval_id.
     - si la note existe deja avec valeur distincte, ajoute une entree au log (notes_notes_log)
     Return number of changed notes
     """
@@ -713,8 +710,6 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     inscrits = {}.fromkeys(sco_groups.do_evaluation_listeetuds_groups(
             context, evaluation_id, getallstudents=True, include_dems=True))
     for (etudid,value) in notes:
-        if not inscrits.has_key(etudid):
-            raise NoteProcessError("etudiant %s non inscrit a l'evaluation %s" %(etudid,evaluation_id))
         if not ((value is None) or (type(value) == type(1.0))):
             raise NoteProcessError( "etudiant %s: valeur de note invalide (%s)" %(etudid,value))
     # Recherche notes existantes

@@ -1694,18 +1694,36 @@ class ZNotes(ObjectManager,
         if d and ((d < 0) or (d > 60*12)):
             raise ScoValueError("Heures de l'évaluation incohérentes !")            
 
-    security.declareProtected(ScoEnsView, 'do_evaluation_delete')
+    security.declareProtected(ScoEnsView, 'evaluation_delete')
     def evaluation_delete(self, REQUEST, evaluation_id):
         """Form delete evaluation"""
         E = self.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
         tit = "Suppression de l'évaluation %(description)s (%(jour)s)" % E
+        etat = sco_evaluations.do_evaluation_etat(self, evaluation_id)
         H = [ self.html_sem_header( REQUEST, tit, with_h2=False ),
               """<h2 class="formsemestre">Module <tt>%(code)s</tt> %(titre)s</h2>""" % Mod,
               """<h3>%s</h3>""" % tit,
-              """<p class="help">Seules les évaluations pour lesquelles aucune note n'a été entrée peuvent être supprimées.</p>"""
+              """<p class="help">Opération <span class="redboldtext">irréversible</span>. Si vous supprimez l'évaluation, vous ne pourrez pas retrouver les notes associées.</p>"""
               ]
+        warning = False
+        if etat['nb_notes_total']:
+            warning = True
+            nb_desinscrits = etat['nb_notes_total'] - etat['nb_notes']
+            H.append("""<div class="ue_warning"><span>Il y a %s notes""" % etat['nb_notes_total'])
+            if nb_desinscrits:
+                H.append(""" (dont %s d'étudiants qui ne sont plus inscrits)""" % nb_desinscrits)
+            H.append(""" dans l'évaluation</span>""")
+            if etat['nb_notes'] == 0:
+                H.append("""<p>Vous pouvez quand même supprimer l'évaluation, les notes des étudiants désincrits seront effacées.</p>""")
+        
+        if etat['nb_notes']:
+            H.append("""<p>Suppression impossible (effacer les notes d'abord)</p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">retour au tableau de bord du module</a></p></div>""" % E['moduleimpl_id'])
+            return '\n'.join(H) + self.sco_footer(REQUEST)
+        if warning:
+            H.append("""</div>""" )
+
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
                                 ( ('evaluation_id', { 'input_type' : 'hidden' }),
                                   ),
@@ -1717,32 +1735,10 @@ class ZNotes(ObjectManager,
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id'] )
         else:
-            self.do_evaluation_delete( REQUEST, E['evaluation_id'] )
+            sco_evaluations.do_evaluation_delete(self, REQUEST, E['evaluation_id'])
             return '\n'.join(H) + """<p>OK, évaluation supprimée.</p>
             <p><a class="stdlink" href="%s">Continuer</a></p>""" % (self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id']) + self.sco_footer(REQUEST)
         
-    security.declareProtected(ScoEnsView, 'do_evaluation_delete')
-    def do_evaluation_delete(self, REQUEST, evaluation_id):
-        "delete evaluation"
-        the_evals = self.do_evaluation_list( 
-                {'evaluation_id' : evaluation_id})
-        if not the_evals:
-            raise ValueError("evaluation inexistante !")
-        
-        moduleimpl_id = the_evals[0]['moduleimpl_id']
-        self._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)
-        cnx = self.GetDBConnexion()
-        self._evaluationEditor.delete(cnx, evaluation_id)
-        # inval cache pour ce semestre
-        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-        self._inval_cache(formsemestre_id=M['formsemestre_id'])
-        # news
-        mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
-        mod['moduleimpl_id'] = M['moduleimpl_id']
-        mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
-                     text='Suppression d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
-                     url=mod['url'])
 
     security.declareProtected(ScoView, 'do_evaluation_list')
     def do_evaluation_list(self, args ):
@@ -2051,6 +2047,7 @@ class ZNotes(ObjectManager,
 
     def _notes_getall(self, evaluation_id, table='notes_notes', filter_suppressed=True):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
+        Attention: inclue aussi les notes des étudiants qui ne sont plus inscrits au module.
         """
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()

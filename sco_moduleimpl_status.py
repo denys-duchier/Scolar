@@ -55,6 +55,11 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
 
     group_id = sco_groups.get_default_group(context, modimpl['formsemestre_id'])
 
+    if context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False) and nbnotes != 0:
+        sup_label = "Supprimer évaluation impossible (il y a des notes)"
+    else:
+        sup_label = "Supprimer évaluation"
+
     menuEval = [
         { 'title' : 'Saisir notes',
           'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id,
@@ -64,9 +69,13 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           'url' : 'evaluation_edit?evaluation_id=' + evaluation_id,
           'enabled' : context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
           },
-        { 'title' : 'Supprimer évaluation',
+        { 'title' : sup_label,
           'url' : 'evaluation_delete?evaluation_id=' + evaluation_id,
           'enabled' : nbnotes == 0 and context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
+          },
+        { 'title' : 'Supprimer toutes les notes',
+          'url' : 'evaluation_suppress_alln?evaluation_id=' + evaluation_id,
+          'enabled' : context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
           },
         { 'title' : 'Afficher les notes',
           'url' : 'evaluation_listenotes?evaluation_id=' + evaluation_id,
@@ -178,7 +187,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     H.append("""<table class="moduleimpl_evaluations">""")
     eval_index = len(ModEvals) - 1
     for eval in ModEvals:
-        etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)[0]
+        etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)
 
         H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
         H.append("""<tr class="mievr">

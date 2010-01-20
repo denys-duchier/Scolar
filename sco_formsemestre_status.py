@@ -439,7 +439,7 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
         H.append('&nbsp;&nbsp;&nbsp;(étape <b><tt>%(etape_apo)s</tt></b>)' % sem )
     H.append('</td></tr>')
     
-    evals = sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)[0]    
+    evals = sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)   
     H.append('<tr><td class="fichetitre2">Evaluations: </td><td> %(nb_evals_completes)s ok, %(nb_evals_en_cours)s en cours, %(nb_evals_vides)s vides' % evals)
     if evals['last_modif']:
         H.append(' <em>(dernière note saisie le %s)</em>' % evals['last_modif'].strftime('%d/%m/%Y à %Hh%M'))
@@ -495,7 +495,7 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
             fontorange = ' fontorange' # style css additionnel
         else:
             fontorange = ''
-        etat = sco_evaluations.do_evaluation_etat_in_mod(context, M['moduleimpl_id'])[0]
+        etat = sco_evaluations.do_evaluation_etat_in_mod(context, M['moduleimpl_id'])
         if etat['nb_evals_completes'] > 0 and etat['nb_evals_en_cours'] == 0 and etat['nb_evals_vides'] == 0:
             H.append('<tr class="formsemestre_status_green%s">' % fontorange)
         else:
