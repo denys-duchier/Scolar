@@ -162,26 +162,10 @@ def formsemestre_status_menubar(context, sem, REQUEST):
                                'enabled' : True })
 
     menuInscriptions = [
-        { 'title' : 'Listes des étudiants',
-          'url' : 'formsemestre_lists?formsemestre_id=' + formsemestre_id,
-          'enabled' : True,
-          'helpmsg' : 'Accès aux listes des groues d\'étudiants'
-          },
         { 'title' : 'Voir les inscriptions aux modules',
           'url' : 'moduleimpl_inscriptions_stats?formsemestre_id=' + formsemestre_id,
           } ]
-    # 1 item / partition:
-    for partition in sco_groups.get_partitions_list(context, formsemestre_id, with_default=False):
-        menuInscriptions.append(
-            { 'title' : 'Modifier les groupes de %s' % partition['partition_name'],
-              'url' : 'affectGroups?partition_id=%s'% partition['partition_id'],
-              'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
-              })
-    menuInscriptions += [
-        { 'title' : 'Editer les partitions...',
-          'url' : 'editPartitionForm?formsemestre_id=' + formsemestre_id,
-          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
-          },
+    menuInscriptions += [        
         { 'title' : 'Passage des étudiants depuis d\'autres semestres',
           'url' : 'formsemestre_inscr_passage?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
@@ -214,6 +198,26 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
           }
         ]
+
+    menuGroupes = [
+        { 'title' : 'Listes des étudiants',
+          'url' : 'formsemestre_lists?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          'helpmsg' : 'Accès aux listes des groupes d\'étudiants'
+          },
+        { 'title' : 'Créer/modifier les partitions...',
+          'url' : 'editPartitionForm?formsemestre_id=' + formsemestre_id,
+          'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
+          },        
+        ]
+    # 1 item / partition:
+    for partition in sco_groups.get_partitions_list(context, formsemestre_id, with_default=False):
+        menuGroupes.append(
+            { 'title' : 'Modifier les groupes de %s' % partition['partition_name'],
+              'url' : 'affectGroups?partition_id=%s'% partition['partition_id'],
+              'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
+              })
+
 
     menuNotes = [
         { 'title' : 'Tableau des moyennes (et liens bulletins)',
@@ -259,6 +263,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         '<div class="formsemestre_menubar"><table><tr>', 
         '<td>', makeMenu( 'Semestre', menuSemestre, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Inscriptions', menuInscriptions, base_url=base_url ), '</td>',
+        '<td>', makeMenu( 'Groupes', menuGroupes, base_url=base_url ), '</td>',
         '<td>',  makeMenu( 'Notes', menuNotes, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Jury', menuJury, base_url=base_url ), '</td>',
         '<td>', makeMenu( 'Statistiques', menuStats, base_url=base_url ), '</td>',
