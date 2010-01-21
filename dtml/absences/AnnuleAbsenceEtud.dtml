@@ -7,7 +7,7 @@
 <dtml-let etud="getEtudInfo(filled=1, REQUEST=REQUEST)">
 <dtml-in etud mapping>
 
-<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
+<dtml-var "sco_header(page_title='Annulation d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, init_jquery_ui=True)">
 
 <table><tr><td>
 <h2><font color="#FF0000">Annulation</font> d'une absence pour
@@ -30,9 +30,13 @@
 <p>
 <table><tr>
 <td>Date d&eacute;but :  </td>
-<td><script>DateInput('datedebut', true, 'DD/MM/YYYY')</script></td>
-<td>Date Fin (optionnel):</td>
-<td><script>DateInput('datefin', false, 'DD/MM/YYYY' )</script></td>
+<td>
+<input type="text" name="datedebut" size="10" class="datepicker"/> <em>j/m/a</em>
+</td>
+<td>&nbsp;&nbsp;&nbsp;Date Fin (optionnel):</td>
+<td>
+<input type="text" name="datefin" size="10" class="datepicker"/> <em>j/m/a</em>
+</td>
 </tr>
 </table>
 
@@ -54,9 +58,13 @@
 <p>
 <table><tr>
 <td>Date d&eacute;but :  </td>
-<td><script>DateInput('datedebut0', true, 'DD/MM/YYYY')</script></td>
-<td>Date Fin (optionnel):</td>
-<td><script>DateInput('datefin0', false, 'DD/MM/YYYY' )</script></td>
+<td>
+<input type="text" name="datedebut0" size="10" class="datepicker"/> <em>j/m/a</em>
+</td>
+<td>&nbsp;&nbsp;&nbsp;Date Fin (optionnel):</td>
+<td>
+<input type="text" name="datefin0" size="10" class="datepicker"/> <em>j/m/a</em>
+</td>
 </tr>
 </table>
 <p>

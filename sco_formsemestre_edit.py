@@ -43,7 +43,8 @@ def _default_sem_title(F):
 def formsemestre_createwithmodules(context, REQUEST=None):
     """Page création d'un semestre"""
     H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
-                             javascripts=['libjs/AutoSuggest.js', 'libjs/calendarDateInput.js'],
+                             init_jquery_ui=True,
+                             javascripts=['libjs/AutoSuggest.js'],
                              cssstyles=['autosuggest_inquisitor.css'], 
                              bodyOnLoad="init_tf_form('')"
                              ),
@@ -60,7 +61,8 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     sem = context.get_formsemestre(formsemestre_id)
     F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem,
-                                  javascripts=['libjs/AutoSuggest.js', 'libjs/calendarDateInput.js'],
+                                  init_jquery_ui=True,
+                                  javascripts=['libjs/AutoSuggest.js'],
                                   cssstyles=['autosuggest_inquisitor.css'], 
                                   bodyOnLoad="init_tf_form('')"
                                   ) ]
@@ -176,11 +178,13 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id}),
         ('date_debut', { 'title' : 'Date de début', # j/m/a
-                         'input_type' : 'date',
+                         'input_type' : 'date', 
+                         'explanation' : 'j/m/a',
                          'size' : 9, 'allow_null' : False }),
         ('date_fin', { 'title' : 'Date de fin',  # j/m/a
-                         'input_type' : 'date',
-                         'size' : 9, 'allow_null' : False }),
+                       'input_type' : 'date', 
+                       'explanation' : 'j/m/a',
+                       'size' : 9, 'allow_null' : False }),
         ('responsable_id', { 'input_type' : 'text_suggest',
                              'size' : 50,
                              'title' : 'Directeur des études',
@@ -487,19 +491,13 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
 
     return ok, msg
 
+
 def formsemestre_clone(context, formsemestre_id, REQUEST=None):
     """
     Formulaire clonage d'un semestre
     """
     authuser = REQUEST.AUTHENTICATED_USER
     sem = context.get_formsemestre(formsemestre_id)
-    H = [ context.html_sem_header(REQUEST, 'Copie du semestre', sem,
-                                  javascripts=['libjs/AutoSuggest.js', 'libjs/calendarDateInput.js'],
-                                  cssstyles=['autosuggest_inquisitor.css'], 
-                                  bodyOnLoad="init_tf_form('')"
-                                  ),
-          """<p class="help">Cette opération duplique un semestre: on reprend les mêmes modules et responsables. Aucun étudiant n'est inscrit.</p>
-          """]
     # Liste des enseignants avec forme pour affichage / saisie avec suggestion
     userlist = context.Users.get_userlist()
     login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
@@ -510,35 +508,47 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
     initvalues = {
         'formsemestre_id' : sem['formsemestre_id'],
         'responsable_id' : login2display.get(sem['responsable_id'], sem['responsable_id']) }
+    
+    H = [
+        context.html_sem_header(REQUEST, 'Copie du semestre', sem,
+                                init_jquery_ui=True,
+                                javascripts=['libjs/AutoSuggest.js'],
+                                cssstyles=['autosuggest_inquisitor.css'],
+                                bodyOnLoad="init_tf_form('')"),
+        """<p class="help">Cette opération duplique un semestre: on reprend les mêmes modules et responsables. Aucun étudiant n'est inscrit.</p>"""
+    ]
 
-    descr = [ ('formsemestre_id', { 'input_type' : 'hidden' }), 
-          ('date_debut', { 'title' : 'Date de début',  # j/m/a
-                           'input_type' : 'date',
-                         'size' : 9, 'allow_null' : False }),
-          ('date_fin', { 'title' : 'Date de fin',  # j/m/a
+    descr = [
+        ('formsemestre_id', { 'input_type' : 'hidden' }), 
+        ('date_debut', { 'title' : 'Date de début',  # j/m/a
                          'input_type' : 'date',
+                         'explanation' : 'j/m/a',
                          'size' : 9, 'allow_null' : False }),
-          ('responsable_id',  { 'input_type' : 'text_suggest',
-                             'size' : 50,
-                             'title' : 'Directeur des études',
-                             'explanation' : 'taper le début du nom et choisir dans le menu',
-                             'allowed_values' : allowed_user_names,
-                             'allow_null' : False,
-                             'text_suggest_options' : { 
-                                             'script' : 'Users/get_userlist_xml?',
-                                             'varname' : 'start',
-                                             'json': False,
-                                             'noresults' : 'Valeur invalide !',
-                                             'timeout':60000 } }), 
-              ]
-
+        ('date_fin', { 'title' : 'Date de fin',  # j/m/a
+                       'input_type' : 'date',
+                       'explanation' : 'j/m/a',
+                       'size' : 9, 'allow_null' : False }),
+        ('responsable_id',  { 'input_type' : 'text_suggest',
+                              'size' : 50,
+                              'title' : 'Directeur des études',
+                              'explanation' : 'taper le début du nom et choisir dans le menu',
+                              'allowed_values' : allowed_user_names,
+                              'allow_null' : False,
+                              'text_suggest_options' : { 
+                    'script' : 'Users/get_userlist_xml?',
+                    'varname' : 'start',
+                    'json': False,
+                    'noresults' : 'Valeur invalide !',
+                    'timeout':60000 } }), 
+        ]
     tf = TrivialFormulator( 
         REQUEST.URL0, REQUEST.form, descr,
         submitlabel = 'Dupliquer ce semestre',
         cancelbutton = 'Annuler',
         initvalues = initvalues)
+    
     if tf[0] == 0:
-        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
+        return ''.join(H) + tf[1] + context.sco_footer(REQUEST)
     elif tf[0] == -1: # cancel
         return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s' % formsemestre_id )
     else:
@@ -547,7 +557,8 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
             context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id']),
             tf[2]['date_debut'], tf[2]['date_fin'],
             REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )               
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
+
 
 def do_formsemestre_clone(context, orig_formsemestre_id, 
                           responsable_id, 

@@ -1716,7 +1716,7 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit,"etudident_create_or_edit_form")
     def etudident_create_or_edit_form(self, REQUEST, edit ):
         "Le formulaire HTML"
-        H = [self.sco_header(REQUEST, javascripts=['libjs/calendarDateInput.js'])]
+        H = [self.sco_header(REQUEST, init_jquery_ui=True)]
         F = self.sco_footer(REQUEST)
         AUTHENTICATED_USER = REQUEST.AUTHENTICATED_USER
         etudid = REQUEST.form.get('etudid',None)
@@ -1800,7 +1800,7 @@ function tweakmenu( gname ) {
             ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':False }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
                             'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
-            ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date' }),
+            ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date', 'explanation' : 'j/m/a' }),
             ('lieu_naissance', {  'title' : 'Lieu de naissance', 'size' : 32 }),
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
             ('statut',  { 'size' : 25, 'title' : 'Statut', 

@@ -7,15 +7,7 @@
 <dtml-let etud="getEtudInfo(filled=1, REQUEST=REQUEST)">
 <dtml-in etud mapping>
 
-<dtml-var "sco_header(page_title='Justification d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, javascripts=['libjs/calendarDateInput.js'])">
-
-<!--
-/***********************************************
-* Jason's Date Input Calendar- By Jason Moon http://calendar.moonscript.com/dateinput.cfm
-* Script featured on and available at http://www.dynamicdrive.com
-* Keep this notice intact for use.
-***********************************************/
--->
+<dtml-var "sco_header(page_title='Justification d\'une absence pour '+sexe+' '+nom,REQUEST=REQUEST, init_jquery_ui=True)">
 
 <table><tr><td>
 <h2>Justification d'une absence pour <dtml-var nomprenom> (<dtml-var inscription>)</h2>
@@ -31,9 +23,11 @@
 <p>
 <table><tr>
 <td>Date d&eacute;but :  </td>
-<td><script>DateInput('datedebut', true, 'DD/MM/YYYY')</script></td>
-<td>Date Fin (optionnel):</td>
-<td><script>DateInput('datefin', false, 'DD/MM/YYYY' )</script></td>
+<td>
+<input type="text" name="datedebut" size="10" class="datepicker"/>
+</td>
+<td>&nbsp;&nbsp;&nbsp;Date Fin (optionnel):</td>
+<td><input type="text" name="datefin" size="10" class="datepicker"/></td>
 </tr>
 </table>
 <br/>
@@ -44,7 +38,7 @@
        <option value="0">Apr&egrave;s midi seulement</option>
        </select>
 
-<br/>
+<br/><br/>
 Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 <p>

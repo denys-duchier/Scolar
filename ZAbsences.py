@@ -1088,8 +1088,7 @@ class ZAbsences(ObjectManager,
                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
                        html_sortable=True,
                        html_class='gt_table table_leftalign',
-                       html_header=self.sco_header(REQUEST, page_title=title,
-                                                   javascripts=['libjs/calendarDateInput.js']),
+                       html_header=self.sco_header(REQUEST, page_title=title, init_jquery_ui=True),
 
                        html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
                                                                 with_page_header=False) 
@@ -1106,7 +1105,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 <form action="EtatAbsencesDate" method="get" action="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
 <input type="hidden" name="group_id" value="%s">
-<script>DateInput('date', true, 'DD/MM/YYYY')</script>
+<input type="text" name="date" size="10" class="datepicker"/>
 <input type="submit" name="" value="visualiser les absences">
 </form>
                         """ % (REQUEST.URL0,formsemestre_id,group_id))
@@ -1219,7 +1218,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         """
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         H = [ self.sco_header(REQUEST,page_title="Billet d'absence de %s" % etud['nomprenom'], 
-                              javascripts=['libjs/calendarDateInput.js']) ]
+                              init_jquery_ui=True) ]
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('etudid',  { 'input_type' : 'hidden' }),

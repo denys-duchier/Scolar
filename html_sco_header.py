@@ -41,6 +41,8 @@ def sco_header(context, REQUEST=None,
                javascripts=[],     # additionals JS filenames to load
                scripts=[],         # script to put in page header
                bodyOnLoad='',      # JS
+               init_jquery=False,  # load and init jQuery
+               init_jquery_ui=False,# include all stuff for jquery-ui and initialize scripts
                titrebandeau='',    # titre dans bandeau superieur
                head_message='',    # message action (petit cadre jaune en haut)
                user_check=True     # verifie passwords temporaires
@@ -83,6 +85,10 @@ def sco_header(context, REQUEST=None,
         params['margin_left'] = "1em"
     else:
         params['margin_left'] = "140px"
+
+    if init_jquery_ui:
+        init_jquery = True
+
     H = [ """<?xml version="1.0" encoding="%(encoding)s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -95,10 +101,14 @@ def sco_header(context, REQUEST=None,
 
 <link href="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css" />
 <link href="/ScoDoc/static/css/menu.css" rel="stylesheet" type="text/css" />""" % params ]
+    # jQuery UI
+    if init_jquery_ui:
+        # can modify loaded theme here
+        H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/libjs/jquery-ui/css/custom-theme/jquery-ui-1.7.2.custom.css" />\n')
     
     # Feuilles de style additionnelles:
     for cssstyle in cssstyles:
-        H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/%s" />"""
+        H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/%s" />\n"""
                   % cssstyle )
     
     H.append( """
@@ -106,11 +116,19 @@ def sco_header(context, REQUEST=None,
 <script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/sorttable.js"></script>
 <script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/bubble.js"></script>
 <script type="text/javascript">
-window.onload=function(){enableTooltips("gtrcontent")};
+ window.onload=function(){enableTooltips("gtrcontent")};
 </script>""" % params )
+
+    # jQuery
+    if init_jquery:
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery.js"></script>')
+    if init_jquery_ui:
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-1.7.2.custom.min.js"></script>')
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-i18n.js"></script>')
+    
     # JS additionels
     for js in javascripts:
-        H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>"""
+        H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>\n"""
                   % js )
 
     H.append( """<style>
@@ -120,6 +138,22 @@ window.onload=function(){enableTooltips("gtrcontent")};
 }
 </style>
 """ % params )
+    # jQuery initialization
+    if init_jquery_ui:
+        H.append( """<script language="javascript" type="text/javascript">
+           $(function() {
+		$(".datepicker").datepicker({
+                      showOn: 'button', 
+                      buttonImage: '/ScoDoc/static/icons/calendar_img.png', 
+                      buttonImageOnly: true,
+                      dateFormat: 'dd/mm/yy',   
+                      duration : 'fast',                   
+                  });
+                $('.datepicker').datepicker('option', $.extend({showMonthAfterYear: false},
+				$.datepicker.regional['fr']));
+
+	    });
+        </script>""" )
     # Scripts de la page:
     if scripts:
         H.append( """<script language="javascript" type="text/javascript">""" )

@@ -444,11 +444,7 @@ class TF:
             elif input_type == 'file':
                 lem.append('<input type="file" name="%s" size="%s" value="%s" %s/>' % (field,size,values[field], attribs))
             elif input_type == 'date': # JavaScript widget for date input
-                if values[field]:
-                    cv = ", '%s'" % values[field]
-                else:
-                    cv = ''
-                lem.append("<script>DateInput( '%s', false, 'DD/MM/YYYY' %s )</script>" % (field,cv))
+                lem.append( '<input type="text" name="%s" size="10" value="%s" class="datepicker"/>' % (field,values[field]) )
             elif input_type == 'text_suggest':
                 lem.append( '<input type="text" name="%s" id="%s" size="%d" %s' % (field,field,size,attribs) )
                 lem.append( ('value="%('+field+')s" />') % values )
@@ -500,7 +496,7 @@ class TF:
             # nota: formid is currently ignored 
             # => only one form with text_suggest field on a page.
             R.append("""<script type="text/javascript">
-            function init_tf_form(formid) {
+            function init_tf_form(formid) {                
                 %s
             }
             </script>""" % '\n'.join(suggest_js))

@@ -754,9 +754,9 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
     Fo = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     
     H = [ context.sco_header(REQUEST, page_title="Validation UE",
-                             javascripts=[ 'jQuery/jquery.js', 
-                                           'js/validate_previous_ue.js',
-                                           'libjs/calendarDateInput.js']),
+                             init_jquery_ui=True,
+                             javascripts=[ 'js/validate_previous_ue.js'
+                                           ]),
           '<table style="width: 100%"><tr><td>',
           '''<h2 class="formsemestre">%s: validation d'une UE antérieure</h2>''' % etud['nomprenom'],
           ('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
@@ -782,7 +782,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
                         'allow_null' : False,
                         'allowed_values': ue_ids,
                         'labels' : ue_names }),
-            ('date', { 'input_type' : 'date', 'size' : 9,
+            ('date', { 'input_type' : 'date', 'size' : 9, 'explanation' : 'j/m/a',
                        'default' : time.strftime('%d/%m/%Y')}),
             ('moy_ue', { 'type' : 'float', 
                          'allow_null' : False,
