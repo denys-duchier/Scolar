@@ -512,13 +512,12 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
         H.append('<td class="evals">')
         nb_evals = etat['nb_evals_completes']+etat['nb_evals_en_cours']+etat['nb_evals_vides']
         if nb_evals != 0:
-            H.append('<a href="moduleimpl_status?moduleimpl_id=%s" class="formsemestre_status_link">%s prévues, %s ok' 
+            H.append('<a href="moduleimpl_status?moduleimpl_id=%s" class="formsemestre_status_link">%s prévues, %s ok</a>' 
                      % (M['moduleimpl_id'], nb_evals, etat['nb_evals_completes']))
             if etat['nb_evals_en_cours'] > 0:
-                H.append(', %s en cours' % etat['nb_evals_en_cours'])
-            H.append('</a>')
+                H.append(', <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=%s" title="Il manque des notes">%s en cours</a></span>' % (M['moduleimpl_id'], etat['nb_evals_en_cours']))
             if etat['attente']:
-                H.append(' <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=%s">[en attente]</a></span>'
+                H.append(' <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=%s" title="Il y a des notes en attente">[en attente]</a></span>'
                          % M['moduleimpl_id'])
         H.append('</td></tr>')
     H.append('</table></p>')
