@@ -31,6 +31,7 @@
 from notes_table import *
 import sco_bulletins, sco_excel
 import sco_groups
+import sco_evaluations
 import sco_formsemestre_status
 
 def formsemestre_recapcomplet(context, formsemestre_id=None, 
