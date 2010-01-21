@@ -496,6 +496,9 @@ def evaluation_check_absences(context, evaluation_id):
     Ramene 3 listes d'etudid
     """
     E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
+    if not E['jour']:
+        return [], [], [], [] # evaluation sans date
+    
     M = context.do_moduleimpl_list({'moduleimpl_id' : E['moduleimpl_id']})[0]
     formsemestre_id = M['formsemestre_id']
     etudids = sco_groups.do_evaluation_listeetuds_groups(context, evaluation_id, getallstudents=True)

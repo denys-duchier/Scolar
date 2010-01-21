@@ -412,9 +412,9 @@ def make_xml_formsemestre_bulletinetud(
             evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
             for e in evals:
                 doc._push()
-                doc.evaluation(jour=DateDMYtoISO(e['jour']),
-                               heure_debut=TimetoISO8601(e['heure_debut']),
-                               heure_fin=TimetoISO8601(e['heure_fin']),
+                doc.evaluation(jour=DateDMYtoISO(e['jour'], null_is_empty=True),
+                               heure_debut=TimetoISO8601(e['heure_debut'], null_is_empty=True),
+                               heure_fin=TimetoISO8601(e['heure_fin'], null_is_empty=True),
                                coefficient=e['coefficient'],
                                description=quote_xml_attr(e['description']))
                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire

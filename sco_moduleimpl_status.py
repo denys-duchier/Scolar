@@ -88,7 +88,7 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           },
         { 'title' : 'Vérifier notes vs absents',
           'url' : 'evaluation_check_absences_html?evaluation_id=%s' %(evaluation_id),
-          'enabled' : nbnotes > 0
+          'enabled' : nbnotes > 0 and E['jour']
           },
         ]
 
@@ -190,9 +190,13 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)
 
         H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
-        H.append("""<tr class="mievr">
- <td class="mievr_tit" colspan="8">
- Le %(jour)s%(descrheure)s:&nbsp;&nbsp;&nbsp; <em>%(description)s</em>""" % eval )
+        H.append("""<tr class="mievr"><td class="mievr_tit" colspan="8">""")
+        if eval['jour']:
+            H.append("""Le %(jour)s%(descrheure)s""" % eval )
+        else:
+            H.append("""<a href="evaluation_edit?evaluation_id=%(evaluation_id)s" class="mievr_evalnodate">Evaluation sans date</a>""" % eval )
+        H.append('&nbsp;&nbsp;&nbsp; <em>%(description)s</em>' % eval)
+        
         if etat['last_modif']:
             H.append("""<span class="mievr_lastmodif">(dernière modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y à %Hh%M') )
         if has_expression:

@@ -347,10 +347,13 @@ def dictfilter( d, fields, filter_nulls=True ):
 # --------------------------------------------------------------------
 # --- Misc Tools
 
-def DateDMYtoISO(dmy):
+def DateDMYtoISO(dmy, null_is_empty=False):
     "convert date string from french format to ISO"
     if not dmy:
-        return None
+        if null_is_empty:
+            return ''
+        else:
+            return None
     if type(dmy) != StringType:
         return dmy.strftime("%Y-%m-%d")
     
@@ -414,8 +417,10 @@ def DateISOtoDMY(isodate):
         raise ValueError, 'invalid day'
     return '%02d/%02d/%04d' % (day,month,year)
 
-def TimetoISO8601(t):
+def TimetoISO8601(t, null_is_empty=False):
     "convert time string to ISO 8601 (allow 16:03, 16h03, 16)"
+    if not t and null_is_empty:
+        return ''
     t = t.strip().upper().replace('H', ':')
     if t and t.count(':') == 0 and len(t) < 3:
         t = t + ':00'

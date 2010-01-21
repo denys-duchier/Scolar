@@ -757,6 +757,15 @@ span.mievr_lastmodif {
  font-weight: normal;
  font-style: italic; 
 }
+a.mievr_evalnodate {
+ color: rgb(215, 90, 0);
+ font-style: italic;
+ text-decoration: none;
+}
+a.mievr_evalnodate:hover {
+   color: rgb(153,51,51);
+   text-decoration: underline;
+}
 span.evalindex {
  font-weight: normal;
  padding-left: 4em;
