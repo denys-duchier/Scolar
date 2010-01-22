@@ -540,6 +540,11 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
                     'json': False,
                     'noresults' : 'Valeur invalide !',
                     'timeout':60000 } }), 
+        ('clone_evaluations', 
+         { 'title' : "Copier aussi les évaluations",
+           'input_type' : 'boolcheckbox',
+           'explanation' : "copie toutes les évaluations, sans les dates (ni les notes!)"
+           }),
         ]
     tf = TrivialFormulator( 
         REQUEST.URL0, REQUEST.form, descr,
@@ -556,6 +561,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
             context, formsemestre_id, 
             context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id']),
             tf[2]['date_debut'], tf[2]['date_fin'],
+            clone_evaluations=tf[2]['clone_evaluations'],
             REQUEST=REQUEST)
         return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
 
@@ -563,6 +569,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
 def do_formsemestre_clone(context, orig_formsemestre_id, 
                           responsable_id, 
                           date_debut, date_fin,  # 'dd/mm/yyyy'
+                          clone_evaluations=False,
                           REQUEST=None):
     """Clone a semestre: make copy, same modules, same options, same resps.
     New dates, responsable_id    
@@ -591,6 +598,15 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
             args = e.copy()
             args['moduleimpl_id'] = mid
             context.do_ens_create(args)
+        # optionally, copy evaluations
+        if clone_evaluations:
+            evals = context.do_evaluation_list( args={ 'moduleimpl_id' : mod_orig['moduleimpl_id']} )
+            for e in evals:
+                args = e.copy()
+                del args['jour'] # erase date
+                args['moduleimpl_id'] = mid
+                evaluation_id = context.do_evaluation_create( REQUEST, args )
+    
     # 3- copy uecoefs
     objs = formsemestre_uecoef_list(cnx, args={'formsemestre_id':orig_formsemestre_id})
     for obj in objs:
