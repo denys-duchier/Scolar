@@ -934,11 +934,11 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView,'html_sem_header')
     def html_sem_header(self, REQUEST, title, sem=None, with_page_header=True, with_h2=True,
-                        **args):
+                        page_title=None, **args):
         "Titre d'une page semestre avec lien vers tableau de bord"
         # sem now unused and thus optional...
         if with_page_header:
-            h = self.sco_header(REQUEST, page_title="%s" % (title), **args)
+            h = self.sco_header(REQUEST, page_title="%s" % (page_title or title), **args)
         else:
             h = ''
         if with_h2:            
@@ -1062,7 +1062,7 @@ class ZNotes(ObjectManager,
             REQUEST, 
             'Enseignants du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
             % (moduleimpl_id, M['module']['titre']), 
-            sem,
+            page_title='Enseignants du module %s' % M['module']['titre'],
             javascripts=['libjs/AutoSuggest.js'],
             cssstyles=['autosuggest_inquisitor.css'], 
             bodyOnLoad="init_tf_form('')"
@@ -1192,7 +1192,7 @@ class ZNotes(ObjectManager,
         """Edition formule calcul moyenne module
         Accessible par Admin, dir des etud et responsable module
         """
-        M, sem = self.can_change_module_resp(REQUEST, moduleimpl_id)
+        M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
         H = [ 
             self.html_sem_header(
                     REQUEST, 
@@ -1308,7 +1308,7 @@ class ZNotes(ObjectManager,
         return REQUEST.RESPONSE.redirect('edit_enseignants_form?moduleimpl_id=%s'%moduleimpl_id)
 
     security.declareProtected(ScoView,'can_change_ens')
-    def can_change_ens(self, REQUEST, moduleimpl_id):
+    def can_change_ens(self, REQUEST, moduleimpl_id, raise_exc=True):
         "check if current user can modify ens list (raise exception if not)"
         M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         # -- check lock
@@ -1322,12 +1322,17 @@ class ZNotes(ObjectManager,
         if (uid != M['responsable_id']
             and not authuser.has_permission(ScoImplement, self)
             and uid != sem['responsable_id']):
-            raise AccessDenied('Modification impossible pour %s' % uid)
+            if raise_exc:
+                raise AccessDenied('Modification impossible pour %s' % uid)
+            else:
+                return False
         return M, sem
 
     security.declareProtected(ScoView,'can_change_module_resp')
     def can_change_module_resp(self, REQUEST, moduleimpl_id):
-        "check if current user can modify module resp. (raise exception if not)"
+        """Check if current user can modify module resp. (raise exception if not).
+        = Admin, et dir des etud. (si option l'y autorise)
+        """
         M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         # -- check lock
         sem = self.get_formsemestre(M['formsemestre_id'])

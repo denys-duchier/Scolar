@@ -318,6 +318,19 @@ td.fichetitre2 {
    vertical-align: top;
 }
 
+td.fichetitre2 .formula {
+   font-weight: normal;
+   color: rgb(0,64,0);
+   border: 1px solid red;
+   padding-left: 1em;
+   padding-right: 1em;
+   padding-top: 3px;
+   padding-bottom: 3px;
+   margin-right: 1em;
+}
+td.fichetitre2 .fl {
+   font-weight: normal;
+}
 
 .ficheannotations {
   background-color: #ddffdd; 

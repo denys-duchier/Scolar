@@ -152,10 +152,16 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     # Ligne: règle de calcul
     has_expression = sco_compute_moy.moduleimpl_has_expression(context, M)
     if has_expression:
-        H.append("""<tr><td class="fichetitre2" colspan="2">Règle de calcul: <tt>%s</tt> (<a href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)</td></tr>""" % (M['computation_expr'],moduleimpl_id))
+        H.append('<tr><td class="fichetitre2" colspan="2">Règle de calcul: <span class="formula" title="mode de calcul de la moyenne du module">moyenne=<tt>%s</tt></span>' % M['computation_expr'])
+        if context.can_change_ens(REQUEST, moduleimpl_id, raise_exc=False):
+            H.append('<span class="fl"><a class="stdlink"  href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a></span>'  % moduleimpl_id)
+        H.append('</td></tr>')
     else:
         t0, t1 = '<em>règle de calcul standard</em>', ''
-        H.append("""<tr><td colspan="2"><em>règle de calcul standard</em> (<a href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)</td></tr>""" % (moduleimpl_id))
+        H.append('<tr><td colspan="2"><em title="mode de calcul de la moyenne du module">règle de calcul standard</em>')
+        if context.can_change_ens(REQUEST, moduleimpl_id, raise_exc=False):
+            H.append(' (<a class="stdlink" href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)' % moduleimpl_id)
+        H.append('</td></tr>')
     H.append('</table>')
     #
     #
