@@ -53,7 +53,7 @@ def make_formsemestre_bulletinetud(
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     ues = nt.get_ues( filter_empty=True, etudid=etudid )
     modimpls = nt.get_modimpls()
-    nbetuds = len(nt.rangs)
+    nbetuds = len(nt.rangs) # incluant les demissionnaires (dont on genere le bulletin)
     bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     # Genere le HTML H, une table P pour le PDF
     if sem['bul_bgcolor']:
@@ -89,7 +89,7 @@ def make_formsemestre_bulletinetud(
         # notes en attente dans ce semestre
         rang = '(notes en attente)'
     elif context.get_preference('bul_show_rangs', formsemestre_id):
-        rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds)
+        rang = 'Rang %s / %d' % (nt.get_etud_rang(etudid), nbetuds-nt.nb_demissions)
     else:
         rang = ''
 
@@ -127,7 +127,7 @@ def make_formsemestre_bulletinetud(
             ue_comment = '(en cours, non prise en compte)'
         else:
             if context.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
-                ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1])
+                ue_comment = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
             else:
                 ue_comment = ''
         if (not ue_status['is_capitalized']) or ue_status['cur_moy_ue'] != 'NA':
@@ -383,7 +383,7 @@ def make_xml_formsemestre_bulletinetud(
         doc.rang( value=str(nt.ue_rangs[ue['ue_id']][0][etudid]) )
         doc._pop()
         doc._push()
-        doc.effectif( value=str(nt.ue_rangs[ue['ue_id']][1]) )
+        doc.effectif( value=str(nt.ue_rangs[ue['ue_id']][1] - nt.nb_demissions) )
         doc._pop()
         # Liste les modules de l'UE 
         ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]

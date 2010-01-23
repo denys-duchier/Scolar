@@ -418,12 +418,13 @@ class NotesTable:
         nb_moy = 0
         for ue in ues:
             ue['_notes'] = [] # liste tmp des valeurs de notes valides dans l'ue
-
+        nb_dem = 0 #
         T = self.get_table_moyennes_triees()
         for t in T:
             etudid = t[-1]
             # saute les demissionnaires:
             if self.inscrdict[etudid]['etat'] != 'I':
+                nb_dem += 1
                 continue
             try:
                 sum_moy += float(t[0])
@@ -437,6 +438,7 @@ class NotesTable:
                     ue['_notes'].append(float(t[i]))
                 except:
                     pass
+        self.nb_demissions = nb_dem
         if nb_moy > 0:
             self.moy_moy = sum_moy / nb_moy
         else:

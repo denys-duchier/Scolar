@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Generation de PDF: définitions diverses et gestion du verro
+"""Generation de PDF: définitions diverses et gestion du verrou
 
     reportlab n'est pas réentrante: il ne faut qu'une seule opération PDF au même moment.
     Tout accès à ReportLab doit donc être précédé d'un PDFLOCK.acquire()
