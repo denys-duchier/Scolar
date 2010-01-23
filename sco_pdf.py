@@ -32,6 +32,7 @@
     et terminé par un PDFLOCK.release()
 """
 import time, cStringIO
+from types import StringType
 
 import reportlab
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Frame, PageBreak
@@ -154,13 +155,18 @@ class ScolarsPageTemplate(PageTemplate) :
         
         # ---- Filigranne (texte en diagonal en haut a gauche de chaque page)
         if self.filigranne:
-            canvas.saveState()
-            canvas.translate( 9 * cm, 27.6 * cm )
-            canvas.rotate( 30 )
-            canvas.scale( 4.5, 4.5 )
-            canvas.setFillColorRGB(1.,0.65,0.65)
-            canvas.drawRightString( 0, 0, SU(self.filigranne) )
-            canvas.restoreState()
+            if type(self.filigranne) == StringType:
+                filigranne = self.filigranne # same for all pages
+            else:
+                filigranne = self.filigranne.get(doc.page, None)
+            if filigranne:
+                canvas.saveState()
+                canvas.translate( 9 * cm, 27.6 * cm )
+                canvas.rotate( 30 )
+                canvas.scale( 4.5, 4.5 )
+                canvas.setFillColorRGB(1.,0.65,0.65)
+                canvas.drawRightString( 0, 0, SU(filigranne) )
+                canvas.restoreState()
         
         # ---- Add some meta data and bookmarks
         if self.pdfmeta_author:

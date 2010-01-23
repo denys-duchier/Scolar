@@ -145,7 +145,7 @@ class Archiver:
         The file is created or replaced.
         """
         filename = self.sanitize_filename(filename)
-        log("storing %s (%d bytes) in %s" % (archive_id, len(data), filename))
+        log("storing %s (%d bytes) in %s" % (filename, len(data), archive_id))
         fname = os.path.join(archive_id, filename)
         f = open(fname, 'w')
         f.write(data)

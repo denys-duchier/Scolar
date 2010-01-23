@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2009 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ def essaipdf(REQUEST): # XXX essais...
 
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
-                     filigranne='', appreciations=[], situation='', demission='',
+                     filigranne=None, appreciations=[], situation='', demission='',
                      server_name=None,
                      context=None       # required for preferences
                      ):
@@ -142,6 +142,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     #log('pdfbulletin_etud: P=' + str(P))
     #log('pdfbulletin_etud: style=' + str(TableStyle))
     objects = []
+
     diag = '' # diagnostic (empty == ok)
     StyleSheet = styles.getSampleStyleSheet()
     # Paramètres de mise en page
@@ -247,7 +248,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         return data, diag
 
 def pdfassemblebulletins( formsemestre_id,
-                          objects, sem, infos, pagesbookmarks,
+                          objects, sem, infos, pagesbookmarks, 
+                          filigranne=None,
                           server_name='', context=None ):
     "generate PDF document from a list of PLATYPUS objects"
     if not objects:
@@ -268,6 +270,7 @@ def pdfassemblebulletins( formsemestre_id,
                             server_name=server_name,
                             margins=margins,
                             pagesbookmarks=pagesbookmarks,
+                            filigranne=filigranne,
                             preferences=context.get_preferences(formsemestre_id)))
     document.build(objects)
     data = report.getvalue()

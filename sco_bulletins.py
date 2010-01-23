@@ -239,7 +239,7 @@ def make_formsemestre_bulletinetud(
     H.append('</div>')
     # ---------------
     if format == 'html':
-        return '\n'.join(H), None, None
+        return '\n'.join(H), None, None, None
     elif format == 'pdf' or format == 'pdfpart':
         etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
         if context.get_preference('bul_show_abs', formsemestre_id):
@@ -272,7 +272,7 @@ def make_formsemestre_bulletinetud(
         dt = time.strftime( '%Y-%m-%d' )
         filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, etud['nom'])
         filename = unescape_html(filename).replace(' ','_').replace('&','')
-        return pdfbul, etud, filename
+        return pdfbul, etud, filename, filigranne
     else:
         raise ValueError('invalid parameter: format')
 
@@ -572,6 +572,9 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     return inscr + ' ' + dec, dpv
 
 
+
+
+
 # ------ page bulletin (traduite du DTML)
 def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
                               format='html', version='long',
@@ -594,7 +597,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
     R.append(context.do_formsemestre_bulletinetud(formsemestre_id, etudid,
                                                   format=format, version=version,
                                                   xml_with_decisions=xml_with_decisions,
-                                                  REQUEST=REQUEST))
+                                                  REQUEST=REQUEST)[0])
     if format == 'html' or format == 'mailpdf':
         R.append("""<p>Situation actuelle: """)
         if etud['inscription_formsemestre_id']:

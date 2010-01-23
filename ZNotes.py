@@ -2110,29 +2110,31 @@ class ZNotes(ObjectManager,
                 bul = repr(sco_bulletins.make_xml_formsemestre_bulletinetud(
                     self, formsemestre_id,  etudid, REQUEST=REQUEST,
                     xml_with_decisions=xml_with_decisions))
+                filigranne = None
             else:
-                bul, etud, filename = sco_bulletins.make_formsemestre_bulletinetud(
+                bul, etud, filename, filigranne = sco_bulletins.make_formsemestre_bulletinetud(
                     self, formsemestre_id, etudid,
                     version=version,format=format,
                     REQUEST=REQUEST)
             if format == 'pdf':
-                return sendPDFFile(REQUEST, bul, filename)        
+                return sendPDFFile(REQUEST, bul, filename), filigranne # unused ret. value
             else:
-                return bul
+                return bul, filigranne # Attention: retourne un tuple !
         else:
             # format mailpdf: envoie le pdf par mail a l'etud, et affiche le html
             if nohtml:
                 htm = '' # speed up if html version not needed
             else:
-                htm, junk, junk = sco_bulletins.make_formsemestre_bulletinetud(self,
+                htm, junk, junk, junk = sco_bulletins.make_formsemestre_bulletinetud(
+                    self,
                     formsemestre_id, etudid, version=version,format='html',
                     REQUEST=REQUEST)
-            pdf, etud, filename = sco_bulletins.make_formsemestre_bulletinetud(self,
+            pdf, etud, filename, filigranne = sco_bulletins.make_formsemestre_bulletinetud(self,
                 formsemestre_id, etudid, version=version,format='pdf',
                 REQUEST=REQUEST)
             if not etud['email']:
                 return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'
-                        % etud['nomprenom']) + htm
+                        % etud['nomprenom']) + htm, filigranne
             #
             webmaster = self.get_preference('bul_mail_contact_addr', formsemestre_id)
             dept = unescape_html(self.get_preference('DeptName',formsemestre_id))
@@ -2162,7 +2164,7 @@ class ZNotes(ObjectManager,
             log('mail bulletin a %s' % msg['To'] )
             self.sendEmail(msg)
             return ('<div class="head_message">Message mail envoyé à %s</div>'
-                    % (etud['emaillink'])) + htm
+                    % (etud['emaillink'])) + htm, filigranne
 
 
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
@@ -2189,12 +2191,15 @@ class ZNotes(ObjectManager,
         # Make each bulletin
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id)
         bookmarks = {}
+        filigrannes = {}
         i = 1
         for etudid in nt.get_etudids():
-            fragments += self.do_formsemestre_bulletinetud(
+            frag, filigranne = self.do_formsemestre_bulletinetud(
                 formsemestre_id, etudid, format='pdfpart',
                 version=version, 
                 REQUEST=REQUEST )
+            fragments += frag
+            filigrannes[i] = filigranne
             bookmarks[i] = nt.get_sexnom(etudid)
             i = i + 1
         #
@@ -2208,6 +2213,7 @@ class ZNotes(ObjectManager,
             pdfdoc = pdfbulletins.pdfassemblebulletins(
                 formsemestre_id,
                 fragments, sem, infos, bookmarks,
+                filigranne=filigrannes,
                 server_name=server_name,
                 context=self )
         finally:

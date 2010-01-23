@@ -73,8 +73,8 @@ div.about-logo {
 
 div.head_message {
    margin-top: 2px;
-   margin-bottom: 0px;
-   padding:  0.1em;
+   margin-bottom: 8px;
+   padding:  5px;
    margin-left: auto;
    margin-right: auto;
    background-color: #ffff73;
@@ -85,7 +85,6 @@ div.head_message {
    font-weight: bold;
    width: 40%;
    text-align: center;
-   
 }
 
 div.passwd_warn {
