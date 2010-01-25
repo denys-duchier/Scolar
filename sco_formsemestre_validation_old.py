@@ -665,7 +665,7 @@ def _do_formsemestre_validation(
                                     suppress_previously_validated=True,
                                     REQUEST=REQUEST)
     # Inval cache bulletins
-    self._inval_cache(formsemestre_id=formsemestre_id)
+    self._inval_cache(formsemestre_id=formsemestre_id) #> modif decision jury XXX bug: si valide et capitalise UE, peut affecter d'autres semestres (utilisant cette UE) XXX a revoir
     #
     return REQUEST.RESPONSE.redirect(
         'formsemestre_validation_list?formsemestre_id=%s'%formsemestre_id)

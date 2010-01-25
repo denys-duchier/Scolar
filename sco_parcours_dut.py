@@ -76,7 +76,8 @@ class SituationEtudParcours:
         self.sem= znotes.do_formsemestre_list(
             args={ 'formsemestre_id' : formsemestre_id } )[0]
         self.formation = znotes.do_formation_list(args={ 'formation_id' : self.sem['formation_id'] })[0]
-        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id )
+        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_etud_decision_sem, etud_count_ues_under_threshold, get_etud_moy_gen, get_ues, get_etud_ue_status, etud_has_all_ue_over_threshold
+        
         # Ce semestre est-il le dernier de la formation ? (e.g. semestre 4 du DUT)
         # pour le DUT, le dernier est toujours S4.
         # Si on voulait gérer d'autres formations, il faudrait un flag sur les formsemestre
@@ -189,7 +190,7 @@ class SituationEtudParcours:
                 to_validate.remove(self.sem['semestre_id'])
             for sem in self.get_semestres():
                 if sem['formation_code'] == self.formation['formation_code']:
-                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
+                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id']) #> get_etud_decision_sem
                     decision = nt.get_etud_decision_sem(self.etudid)
                     if decision and code_semestre_validant(decision['code']):
                         # validé
@@ -205,7 +206,7 @@ class SituationEtudParcours:
         ue_acros = {} # acronyme ue : 1
         nb_max_ue = 0
         for sem in sems:
-            nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'] )
+            nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'] ) #> get_ues 
             ues = nt.get_ues(filter_sport=True)
             for ue in ues:
                 ue_acros[ue['acronyme']] = 1
@@ -282,7 +283,7 @@ class SituationEtudParcours:
         # Verifications basiques:
         # ?
         # Code etat du semestre precedent:
-        nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, prev['formsemestre_id'] )
+        nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, prev['formsemestre_id'] ) #> get_etud_decision_sem, get_etud_moy_gen, etud_has_all_ue_over_threshold
         self.prev_decision = nt.get_etud_decision_sem(self.etudid)
         self.prev_moy_gen = nt.get_etud_moy_gen(self.etudid)
         self.prev_barres_ue_ok = nt.etud_has_all_ue_over_threshold(self.etudid)
@@ -327,7 +328,7 @@ class SituationEtudParcours:
             for sem in self.sems:
                 if sem['formation_code'] == self.formation['formation_code'] \
                    and sem['semestre_id'] == s:
-                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id'])
+                    nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id']) #> get_etud_decision_sem
                     decision = nt.get_etud_decision_sem(self.etudid)
                     if decision and code_semestre_validant(decision['code']):
                         validated = True
@@ -386,7 +387,7 @@ class SituationEtudParcours:
                                       decision.assiduite, # XXX attention: en toute rigueur il faudrait utiliser une indication de l'assiduite au sem. precedent, que nous n'avons pas...
                                       REQUEST=REQUEST)
             
-            self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id'])
+            self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id']) #> modif decisions jury (sem, UE)
 
         # -- supprime autorisations venant de ce formsemestre        
         cursor = cnx.cursor()
@@ -409,12 +410,12 @@ class SituationEtudParcours:
         except:
             cnx.rollback()
             raise
-        self.znotes._inval_cache(formsemestre_id=self.formsemestre_id)
+        self.znotes._inval_cache(formsemestre_id=self.formsemestre_id) #> modif decisions jury et autorisations inscription
         if decision.formsemestre_id_utilise_pour_compenser:
             # inval aussi le semestre utilisé pour compenser:
-            self.znotes._inval_cache(formsemestre_id=decision.formsemestre_id_utilise_pour_compenser)
+            self.znotes._inval_cache(formsemestre_id=decision.formsemestre_id_utilise_pour_compenser) #> modif decision jury
         for formsemestre_id in to_invalidate:
-            self.znotes._inval_cache(formsemestre_id=formsemestre_id)
+            self.znotes._inval_cache(formsemestre_id=formsemestre_id) #> modif decision jury
 
 
 def check_compensation( etudid, sem, nt, semc, ntc ):
@@ -554,7 +555,7 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
     from notes_table import NOTES_BARRE_VALID_UE
     valid_semestre = CODES_SEM_VALIDES.get(code_etat_sem, False)
     cnx = znotes.GetDBConnexion()
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id )
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_ues, get_etud_ue_status
     ue_ids = [ x['ue_id'] for x in nt.get_ues(etudid=etudid, filter_sport=True) ]
     for ue_id in ue_ids:
         ue_status = nt.get_etud_ue_status(etudid, ue_id)

@@ -35,9 +35,9 @@ import thread, time
 # Cache data
 class simpleCache:
     def __init__(self):
-        self.inval_cache()
+        self.inval_cache() #>
     
-    def inval_cache(self, key=None):
+    def inval_cache(self, key=None): #>
         if key:
             if key in self.cache:
                 del self.cache[key]
@@ -73,7 +73,7 @@ class expiringCache(simpleCache):
                 return data
             else:
                 # expired
-                self.inval_cache(key)
+                self.inval_cache(key) #>
                 return None
         else:
             return None # not in cache

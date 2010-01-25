@@ -50,7 +50,7 @@ def make_formsemestre_bulletinetud(
     if not version in ('short','long','selectedevals'):
         raise ValueError('invalid version code !')
     sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> toutes notes
     ues = nt.get_ues( filter_empty=True, etudid=etudid )
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs) # incluant les demissionnaires (dont on genere le bulletin)
@@ -332,7 +332,7 @@ def make_xml_formsemestre_bulletinetud(
         pid=partition['partition_id']
         partitions_etud_groups[pid] = sco_groups.get_etud_groups_in_partition(context, pid)
 
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> toutes notes
     ues = nt.get_ues()
     modimpls = nt.get_modimpls()
     nbetuds = len(nt.rangs)

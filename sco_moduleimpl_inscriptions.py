@@ -326,7 +326,7 @@ def get_etuds_with_capitalized_ue(context, formsemestre_id):
     returns { ue_id : [ { infos } ] }
     """
     UECaps = DictDefault(defaultvalue=[])
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_ues, get_etud_ue_status
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     ues = nt.get_ues()
     for ue in ues:
@@ -380,7 +380,7 @@ def do_etud_desinscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None)
               etudid=etudid,
               msg='desinscription UE %s' % ue_id,
               commit=False )
-    context._inval_cache(formsemestre_id=formsemestre_id)
+    context._inval_cache(formsemestre_id=formsemestre_id) #> desinscription etudiant des modules
 
 def do_etud_inscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None):
     """Incrit l'etudiant de tous les modules de cette UE dans ce semestre.
@@ -404,4 +404,4 @@ def do_etud_inscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None):
         context.do_moduleimpl_inscription_create( 
             { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
     
-    context._inval_cache(formsemestre_id=formsemestre_id)
+    context._inval_cache(formsemestre_id=formsemestre_id) #> inscription etudiant a des modules

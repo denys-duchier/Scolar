@@ -191,7 +191,7 @@ def formsemestre_inscription_option(context, etudid, formsemestre_id, REQUEST=No
         raise ScoValueError('Modification impossible: semestre verrouille')
 
     etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etud_ue_status
 
     F = context.sco_footer(REQUEST)
     H = [ context.sco_header(REQUEST)
@@ -414,7 +414,7 @@ def list_inscrits_ailleurs(context, formsemestre_id):
     Pour chacun, donne la liste des semestres.
     { etudid : [ liste de sems ] }
     """
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids
     etudids = nt.get_etudids()
     d = {}
     for etudid in etudids:

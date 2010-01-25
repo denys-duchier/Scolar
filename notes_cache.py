@@ -52,13 +52,13 @@ class CacheFunc:
             log('caching %s(%s)' % (str(self.func),str(args)))
             return val
     
-    def inval_cache_entry(self, *args):
+    def inval_cache_entry(self, *args): #>
         "expire cache for these args"
-        log('inval_cache_entry %s(%s)' % (str(self.func),str(args)))
+        log('inval_cache_entry %s(%s)' % (str(self.func),str(args))) #>
         del self.cache[args]
 
-    def inval_cache(self):
+    def inval_cache(self): #>
         "clear whole cache"
-        log('inval_cache %s(%s)' % (str(self.func),str(args)))
+        log('inval_cache %s(%s)' % (str(self.func),str(args))) #>
         self.cache = {}
 

@@ -52,7 +52,7 @@ def formsemestre_validation_etud_form(
     sortcol=None,
     readonly=True,
     REQUEST=None):
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_table_moyennes_triees, get_etud_decision_sem 
     T = nt.get_table_moyennes_triees()
     if not etudid and not etud_index:
         raise ValueError('formsemestre_validation_etud_form: missing argument etudid')
@@ -388,7 +388,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         else:
             ass = ''
         
-        nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id'] )
+        nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id'] ) #> get_ues, get_etud_moy_gen, get_etud_ue_status
         if is_cur:
             type_sem = '*' # now unused
             class_sem = 'sem_courant'
@@ -605,7 +605,7 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     "Saisie automatisee des decisions d'un semestre"
     sem= context.get_formsemestre(formsemestre_id)
     next_semestre_id = sem['semestre_id'] + 1
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, 
     etudids = nt.get_etudids()
     nb_valid = 0
     conflicts = [] # liste des etudiants avec decision differente déjà saisie
@@ -673,7 +673,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
     """
     from sco_codes_parcours import *
     sem= context.get_formsemestre(formsemestre_id)
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, get_ues, get_etud_decision_ues, get_etud_ue_status
     etudids = nt.get_etudids()
     modifs = [] # liste d'étudiants modifiés
     cnx = context.GetDBConnexion()
@@ -719,7 +719,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
     if modifs:
         H = H + [ '<h2>Modifications des codes UE</h2>', '<ul><li>',
                   '</li><li>'.join(modifs), '</li></ul>' ]
-        context._inval_cache(formsemestre_id=formsemestre_id)
+        context._inval_cache(formsemestre_id=formsemestre_id) #> modif decision UE
     else:
         H.append('<h2>Aucune modification: codes UE corrects ou inexistants</h2>')
     H.append(context.sco_footer(REQUEST))
@@ -743,7 +743,7 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
     except:
         cnx.rollback()
         raise
-    context._inval_cache(formsemestre_id=formsemestre_id)
+    context._inval_cache(formsemestre_id=formsemestre_id) #> suppr. decision jury XXX bug: pourrait affecter d'autres semestre cachés, s'ils utilisent UE capitalisées 
 
 def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=None):
     """Form. saisie UE validée hors ScoDoc 
@@ -813,7 +813,7 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
     """Enregistre validation d'UE"""
     sem = context.get_formsemestre(formsemestre_id)
     cnx = context.GetDBConnexion()
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id )
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id ) #> get_etud_ue_status
 
     sco_parcours_dut.do_formsemestre_validate_ue(
         cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date)
@@ -828,7 +828,7 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
         AND i.etudid = %(etudid)s
         """, { 'etudid' : etudid, 'formation_id' : sem['formation_id'] } )
     for fsid in [ s['formsemestre_id'] for s in r ]:
-        context._inval_cache(formsemestre_id=fsid)
+        context._inval_cache(formsemestre_id=fsid) #> modif decision UE (inval tous semestres avec cet etudiant, ok mais conservatif)
 
 def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
     """Ramene bout de HTML pour pouvoir supprimer une validation de cette UE

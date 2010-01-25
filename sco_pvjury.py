@@ -121,7 +121,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                   }
     }    
     """
-    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id)
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id) #> get_etudids, 
     if etudids is None:
         etudids = nt.get_etudids()
     if not etudids:

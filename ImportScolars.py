@@ -134,7 +134,7 @@ def students_import_excel(context, csvfile, REQUEST=None, formsemestre_id=None,
                                       require_ine=require_ine,
                                       exclude_cols=['photo_filename'])
     # invalidate all caches
-    context.Notes._inval_cache()
+    context.Notes._inval_cache() #> nouveaux etudiants TODO: slt les semestres concernés !
 
     if REQUEST:
         if formsemestre_id:

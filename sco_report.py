@@ -44,7 +44,7 @@ from sco_pdf import SU
 def formsemestre_etuds_stats(context, sem):
     """Récupère liste d'etudiants avec etat et decision.
     """
-    nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id'])
+    nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id']) #> get_table_moyennes_triees, identdict, get_etud_decision_sem, get_etud_etat, 
     T = nt.get_table_moyennes_triees()
     # Construit liste d'étudiants du semestre avec leur decision
     etuds = []
@@ -276,7 +276,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             log('%s: %s' % (op, time.time()-t0))
     logt('table_suivi_cohorte: start')
     # 1-- Liste des semestres posterieurs dans lesquels ont été les etudiants de sem
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem
     etudids = nt.get_etudids()
 
     # Elimine les etudiants non primo-entrants dans sem
@@ -321,7 +321,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         s['members'] = orig_set.intersection(inset)
         nb_dipl = 0 # combien de diplomes dans ce semestre ?
         if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
-            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem
             for etudid in s['members']:
                 dec = nt.get_etud_decision_sem(etudid)
                 if dec and dec['code'] == 'ADM':
@@ -593,7 +593,7 @@ def _descr_etud_set(context, etudids):
                    
 def _count_dem_reo(context, formsemestre_id, etudids):
     "count nb of demissions and reorientation in this etud set"
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etud_etat, get_etud_decision_sem 
     dems = Set()
     reos = Set()
     for etudid in etudids:
@@ -652,7 +652,7 @@ def _codeparcoursetud(context, etud):
     i = len(sems)-1
     while i >= 0:
         s = sems[i] # 'sems' est a l'envers, du plus recent au plus ancien        
-        nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+        nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_etat, get_etud_decision_sem
         p.append( _codesem(s) )
         # code etat sur dernier semestre seulement
         if i == 0:
@@ -672,7 +672,7 @@ def table_suivi_parcours(context, formsemestre_id):
     """Tableau recapitulant tous les parcours
     """
     sem = context.get_formsemestre(formsemestre_id)
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, 
     etudids = nt.get_etudids()
     codes_etuds = DictDefault(defaultvalue=[])
     for etudid in etudids:
@@ -728,7 +728,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     if not WITH_PYDOT:
         raise ScoValueError('pydot module is not installed')
     sem = context.get_formsemestre(formsemestre_id)
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, 
     etudids = nt.get_etudids()
     log('graph_parcours: %s etuds' % len(etudids))
     if not etudids:
@@ -745,7 +745,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         next = None
         for s in etud['sems']: # du plus recent au plus ancien
-            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
+            nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem, get_etud_etat
             dec = nt.get_etud_decision_sem(etudid)
             if next:
                 if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec and dec['code'] == 'ADM'and nt.get_etud_etat(etudid) == 'I':

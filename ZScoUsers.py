@@ -209,14 +209,14 @@ class ZScoUsers(ObjectManager,
         # edit user
         cnx = self.GetUsersDBConnexion()
         self._userEditor.edit( cnx, *args, **kw )
-        self.get_userlist_cache().inval_cache()
+        self.get_userlist_cache().inval_cache() #>
 
     def _user_delete(self, user_name):
         # delete user
         cnx = self.GetUsersDBConnexion()
         user_id = self._user_list( args={'user_name':user_name} )[0]['user_id']
         self._userEditor.delete( cnx, user_id )
-        self.get_userlist_cache().inval_cache()
+        self.get_userlist_cache().inval_cache() #>
 
     def _all_roles(self):
         "ensemble de tous les roles attribués ou attribuables"
@@ -330,7 +330,7 @@ class ZScoUsers(ObjectManager,
         self.acl_users.manage_editUser( user_name, req )
         
         log("change_password: change ok for %s" % user_name)
-        self.get_userlist_cache().inval_cache()
+        self.get_userlist_cache().inval_cache() #>
 
     security.declareProtected(ScoView, 'change_password')
     def change_password(self, user_name, password, password2, REQUEST):
@@ -755,7 +755,7 @@ class ZScoUsers(ObjectManager,
             del args['passwd2']
         log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
-        self.get_userlist_cache().inval_cache()
+        self.get_userlist_cache().inval_cache() #>
         # call exUserFolder to set passwd
         args['password'] = passwd
         args['password_confirm'] = passwd

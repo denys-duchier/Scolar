@@ -316,4 +316,4 @@ def do_ue_edit(context, args):
     
     cnx = context.GetDBConnexion()
     context._ueEditor.edit( cnx, args )
-    context._inval_cache()
+    context._inval_cache() #> formation modif. TODO: slt semestres concernés !

@@ -268,7 +268,7 @@ def XMLgetGroupsInPartition(context, partition_id, REQUEST=None): # was XMLgetGr
     formsemestre_id = partition['formsemestre_id']
     sem = context.Notes.get_formsemestre(formsemestre_id)
     groups = get_partition_groups(context, partition)
-    nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
+    nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id) #> inscrdict
     etuds_set = set(nt.inscrdict)
     # XML response:
     REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
@@ -356,7 +356,7 @@ def set_group(context, etudid, group_id):
 
 
 def change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST=None):
-    """Inscrit etud au group de cetet partition, et le desinscrit d'autres groupes de cette partition.
+    """Inscrit etud au group de cette partition, et le desinscrit d'autres groupes de cette partition.
     """
     log('change_etud_group_in_partition: etudid=%s group_id=%s' % (etudid, group_id))
     formsemestre_id = partition['formsemestre_id']
@@ -379,7 +379,7 @@ def change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST
               (formsemestre_id,partition['partition_name'],group['group_name']))
         cnx.commit()
     # 4- invalidate cache
-    context.Notes._inval_cache(formsemestre_id=formsemestre_id)
+    context.Notes._inval_cache(formsemestre_id=formsemestre_id) #> change etud group
 
 def setGroups(context, partition_id,
               groupsLists='',  # members of each existing group
@@ -790,7 +790,7 @@ def groups_auto_repartition(context, partition_id=None, REQUEST=None):
             #     return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
             group_ids.append(createGroup(context, partition_id, group_name, REQUEST=REQUEST))
         #
-        nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,formsemestre_id )
+        nt = context.Notes._getNotesCache().get_NotesTable(context.Notes,formsemestre_id ) #> identdict 
         identdict = nt.identdict
         # build:  { sexe : liste etudids trie par niveau croissant }
         sexes = sets.Set([ x['sexe'] for x in identdict.values() ])
@@ -829,7 +829,7 @@ def get_prev_moy(znotes, etudid, formsemestre_id):
     etud = info[0]
     Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
     if Se.prev:
-        nt = znotes._getNotesCache().get_NotesTable(znotes, Se.prev['formsemestre_id'] )
+        nt = znotes._getNotesCache().get_NotesTable(znotes, Se.prev['formsemestre_id'] ) #> get_etud_moy_gen
         return nt.get_etud_moy_gen(etudid)
     else:
         return 0.

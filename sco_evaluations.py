@@ -75,7 +75,7 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
     context._evaluationEditor.delete(cnx, evaluation_id)
     # inval cache pour ce semestre
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
-    context._inval_cache(formsemestre_id=M['formsemestre_id'])
+    context._inval_cache(formsemestre_id=M['formsemestre_id']) #> eval delete
     # news
     mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
     mod['moduleimpl_id'] = M['moduleimpl_id']
@@ -264,7 +264,7 @@ def do_evaluation_etat_in_sem(context, formsemestre_id, REQUEST=None):
     evals = do_evaluation_list_in_sem(context, formsemestre_id)
     etat = _eval_etat(evals)
     # Ajoute information sur notes en attente
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> liste moduleimpl en attente
     etat['attente'] = len(nt.get_moduleimpls_attente()) > 0
     return etat
 
@@ -281,5 +281,5 @@ def do_evaluation_etat_in_mod(context, moduleimpl_id, REQUEST=None):
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
 
     etat['attente'] = moduleimpl_id in [
-        m['moduleimpl_id'] for m in nt.get_moduleimpls_attente() ]
+        m['moduleimpl_id'] for m in nt.get_moduleimpls_attente() ] #> liste moduleimpl en attente
     return etat

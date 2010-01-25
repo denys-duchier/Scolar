@@ -41,7 +41,7 @@ from scolars import format_nom, format_prenom, format_sexe, format_lycee
 
 def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     "Feuille excel pour preparation des jurys"
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_moy_gen, get_ues, get_etud_ue_status, get_etud_decision_sem, identdict, 
     etudids = nt.get_etudids( sorted=True ) # tri par moy gen
     sem= context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
     debut_sem = DateDMYtoISO(sem['date_debut'])
@@ -69,7 +69,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         etud = info[0]
         Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
         if Se.prev:
-            ntp = context._getNotesCache().get_NotesTable(context, Se.prev['formsemestre_id'])
+            ntp = context._getNotesCache().get_NotesTable(context, Se.prev['formsemestre_id']) #> get_ues, get_etud_ue_status, get_etud_moy_gen, get_etud_decision_sem
             for ue in ntp.get_ues(filter_sport=True):
                 ue_status = ntp.get_etud_ue_status(etudid, ue['ue_id'])
                 prev_moy_ue[ue['acronyme']][etudid] = ue_status['moy_ue']

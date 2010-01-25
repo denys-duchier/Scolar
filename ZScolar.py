@@ -1902,7 +1902,7 @@ function tweakmenu( gname ) {
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2], context=self, REQUEST=REQUEST)
             # inval all caches
-            self.Notes._inval_cache()
+            self.Notes._inval_cache() #> etudident_create_or_edit TODO: seulement ceux ou l'etudiant est inscrit
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1951,7 +1951,7 @@ function tweakmenu( gname ) {
                             etud )            
         cnx.commit()
         # invalid all caches
-        self.Notes._inval_cache()  
+        self.Notes._inval_cache()  #> etudident_delete TODO: seulement ceux ou l'etudiant est inscrit
         return REQUEST.RESPONSE.redirect(REQUEST.URL1)
     
     security.declareProtected(ScoEtudInscrit, "check_group_apogee")

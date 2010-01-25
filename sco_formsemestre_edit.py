@@ -799,7 +799,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Destruction du semestre
     context._formsemestreEditor.delete(cnx, formsemestre_id)
-    context._inval_cache()
+    context._inval_cache() #> suppression semestre TODO: inutile !? (oui!)XXX
     # news
     import sco_news
     sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_SEM, object=formsemestre_id,
@@ -905,7 +905,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
           ]
     #
     cnx = context.GetDBConnexion()
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_ues
     ues = nt.get_ues()
     for ue in ues:
         ue['coef_auto'] = nt.ue_coefs[ue['ue_id']]
@@ -991,7 +991,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
                 z.append('</ul>')
         else:
             z = [ """<h3>Aucune modification</h3>""" ]
-        context._inval_cache(formsemestre_id=formsemestre_id)
+        context._inval_cache(formsemestre_id=formsemestre_id) #> modif coef UE cap (modifs notes de _certains_ etudiants)
         
         header = context.html_sem_header(REQUEST,  'Coefficients des UE du semestre', sem)
         return header + '\n'.join(z) + """<p><a href="formsemestre_status?formsemestre_id=%s">Revenir au tableau de bord</a></p>""" % formsemestre_id + footer

@@ -299,7 +299,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()
+        self.Notes._inval_cache()  #> abs AddAbsence
 
     security.declareProtected(ScoAbsChange, 'AddJustif')
     def AddJustif(self, etudid, jour, matin, REQUEST, description=None):
@@ -314,7 +314,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()
+        self.Notes._inval_cache() #> abs AddJustif
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsence')
     def AnnuleAbsence(self, etudid, jour, matin, REQUEST):
@@ -327,7 +327,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()
+        self.Notes._inval_cache()  #> abs AnnuleAbsence
 
     security.declareProtected(ScoAbsChange, 'AnnuleJustif')
     def AnnuleJustif(self,etudid, jour, matin, REQUEST):
@@ -340,7 +340,7 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()
+        self.Notes._inval_cache() #> abs AnnuleJustif
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesPeriodNoJust' )
     def AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
@@ -881,7 +881,7 @@ class ZAbsences(ObjectManager,
             # UE capitalisee dans semestre courant ?
             cap = []
             if etud['cursem']:
-                nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, etud['cursem']['formsemestre_id'])
+                nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, etud['cursem']['formsemestre_id']) #> get_ues, get_etud_ue_status
                 for ue in nt.get_ues():
                     status = nt.get_etud_ue_status(etudid, ue['ue_id'])
                     if status['is_capitalized']:

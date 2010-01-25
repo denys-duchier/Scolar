@@ -439,7 +439,7 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
 def _add_moymod_column(context, formsemestre_id, e, rows, titles, coefs, note_max, moys, 
                        note_sur_20, keep_numeric):
     col_id = 'moymod'
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etud_mod_moy
     nb_notes = 0
     sum_notes = 0
     notes = [] # liste des notes numeriques, pour calcul histogramme uniquement

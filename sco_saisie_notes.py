@@ -774,12 +774,12 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
         log('*** exception in _notes_add')
         if do_it:
             # inval cache
-            context._inval_cache(formsemestre_id=M['formsemestre_id'])
+            context._inval_cache(formsemestre_id=M['formsemestre_id']) #> modif notes (exception)
             cnx.rollback() # abort
         raise # re-raise exception
     if do_it:
         cnx.commit()
-        context._inval_cache(formsemestre_id=M['formsemestre_id']) 
+        context._inval_cache(formsemestre_id=M['formsemestre_id']) #> modif notes
     return nb_changed, nb_suppress, existing_decisions
 
 
@@ -877,7 +877,7 @@ def has_existing_decision(context, M, E, etudid):
     Si oui, return True
     """
     formsemestre_id = M['formsemestre_id']
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etud_decision_sem, get_etud_decision_ues
     if nt.get_etud_decision_sem(etudid):
         return True
     dec_ues = nt.get_etud_decision_ues(etudid)

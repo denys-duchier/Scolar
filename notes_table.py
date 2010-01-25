@@ -667,7 +667,7 @@ class NotesTable:
                 # il faut la calculer ici et l'enregistrer
                 if ue_cap['moy_ue'] is None:
                     log('comp_ue_capitalisees: recomputing UE moy (etudid=%s, ue_id=%s formsemestre_id=%s)' % (etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
-                    nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] )
+                    nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] ) #> UE capitalisees par un etud
                     moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
                     ue_cap['moy_ue'] = moy_ue_cap
                     if type(moy_ue_cap) == FloatType and moy_ue_cap >= NOTES_BARRE_VALID_UE:
@@ -792,7 +792,7 @@ class CacheNotesTable:
             self.lock.release()
             self.owner_thread = None
     
-    def get_NotesTable(self, context, formsemestre_id):
+    def get_NotesTable(self, context, formsemestre_id): #>
         try:
             self.acquire()
             if self.cache.has_key(formsemestre_id):
@@ -813,9 +813,9 @@ class CacheNotesTable:
         "List of currently cached formsemestre_id"
         return self.cache.keys() 
     
-    def inval_cache(self, context, formsemestre_id=None, pdfonly=False):
+    def inval_cache(self, context, formsemestre_id=None, pdfonly=False): #>
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        #log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' %
+        #log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' % #>
         #    (formsemestre_id,pdfonly,id(self)))
         try:
             self.acquire()

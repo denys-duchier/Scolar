@@ -483,7 +483,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })
         cnx.commit()
         log('do_import_etuds_from_portal: re-raising exception')
-        context._inval_cache()
+        context._inval_cache() #> import: modif identite, adresses, inscriptions
         raise
 
     sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,

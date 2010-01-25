@@ -148,7 +148,7 @@ def make_formsemestre_recapcomplet(
         keep_numeric = False
     
     sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)    
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #>  get_modimpls, get_ues, get_table_moyennes_triees, get_etud_decision_sem, get_etud_etat, get_etud_rang, get_nom_short, get_mod_stats, nt.moy_moy, get_nom_long, get_etud_decision_sem, 
     modimpls = nt.get_modimpls()
     ues = nt.get_ues() # incluant le(s) UE de sport
     #
@@ -448,7 +448,7 @@ def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_wit
     "XML export: liste tous les bulletins XML"
     # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
 
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)    
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_table_moyennes_triees   
     T = nt.get_table_moyennes_triees()
     if not T:
         return '', '', 'xml'

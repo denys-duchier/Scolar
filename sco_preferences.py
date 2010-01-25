@@ -831,7 +831,7 @@ class sco_base_preferences:
             
             # les preferences peuvent affecter les PDF cachés:
             if modif:
-                self.context.Notes._inval_cache(pdfonly=True)
+                self.context.Notes._inval_cache(pdfonly=True) #> modif preferences
         finally:
             GSL.release()
     
