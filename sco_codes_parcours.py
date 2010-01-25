@@ -53,9 +53,9 @@ BUG='BUG'
 ALL='ALL'
 
 CODES_EXPL = {
-    ADM : 'Admis',
-    ADC : 'Admis par compensation',
-    ADJ : 'Admis par le Jury',
+    ADM : 'Validé',
+    ADC : 'Validé par compensation',
+    ADJ : 'Validé par le Jury',
     ATT : 'Décision en attente du semestre suivant (faute d\'atteindre la moyenne)',
     ATB : 'Décision en attente du semestre suivant (une UE n\'atteint pas la barre)',
     ATJ : 'Décision en attente du semestre suivant (assiduité insuffisante)',
