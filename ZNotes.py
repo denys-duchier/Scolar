@@ -153,11 +153,20 @@ class ZNotes(ObjectManager,
             NOTES_CACHE_INST[u] = CacheNotesTable()
         return NOTES_CACHE_INST[u]
 
-    def _inval_cache(self, formsemestre_id=None, pdfonly=False): #>
+    def _inval_cache(self, formsemestre_id=None, 
+                     pdfonly=False,
+                     formsemestre_id_list=None,
+                     ): #>
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        self._getNotesCache().inval_cache(self, formsemestre_id=formsemestre_id, pdfonly=pdfonly) #>
-        # Affecte aussi cache inscriptions
-        self.get_formsemestre_inscription_cache().inval_cache(key=formsemestre_id) #>
+        if formsemestre_id_list:
+            for formsemestre_id in formsemestre_id_list:
+                self._getNotesCache().inval_cache(self, formsemestre_id=formsemestre_id, pdfonly=pdfonly)
+                # Affecte aussi cache inscriptions
+                self.get_formsemestre_inscription_cache().inval_cache(key=formsemestre_id) #>
+        else:
+            self._getNotesCache().inval_cache(self, formsemestre_id=formsemestre_id, pdfonly=pdfonly) #>
+            # Affecte aussi cache inscriptions
+            self.get_formsemestre_inscription_cache().inval_cache(key=formsemestre_id) #>
     
     security.declareProtected(ScoView, 'clearcache')
     def clearcache(self, REQUEST=None):

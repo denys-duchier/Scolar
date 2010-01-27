@@ -133,9 +133,6 @@ def students_import_excel(context, csvfile, REQUEST=None, formsemestre_id=None,
                                       check_homonyms=check_homonyms,
                                       require_ine=require_ine,
                                       exclude_cols=['photo_filename'])
-    # invalidate all caches
-    context.Notes._inval_cache() #> nouveaux etudiants TODO: slt les semestres concernés !
-
     if REQUEST:
         if formsemestre_id:
             dest = 'formsemestre_status?formsemestre_id=%s' % formsemestre_id
@@ -169,6 +166,9 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
         raise FormatError('scolars_import_excel_file: empty file !')
+
+    formsemestre_to_invalidate = Set()
+    
     # 1-  --- check title line
     titles = {}
     fmt = sco_import_format()
@@ -281,9 +281,10 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                 if NbHomonyms:
                     NbImportedHomonyms += 1
                 # Insert in DB tables
-                _import_one_student(context, cnx, REQUEST,
-                                    formsemestre_id, values, GroupIdInferers, 
-                                    annee_courante, created_etudids, linenum)
+                formsemestre_to_invalidate.add(
+                    _import_one_student(context, cnx, REQUEST,
+                                        formsemestre_id, values, GroupIdInferers, 
+                                        annee_courante, created_etudids, linenum) )
         
         # Verification proportion d'homonymes: si > 10%, abandonne
         log('scolars_import_excel_file: detected %d homonyms' % NbImportedHomonyms)
@@ -317,46 +318,56 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     
     log('scolars_import_excel_file: completing transaction')
     cnx.commit()
+
+    # Invalide les caches des semestres dans lesquels on a inscrit des etudiants:
+    context.Notes._inval_cache(formsemestre_id_list=formsemestre_to_invalidate)
+    
     return diag
 
 def _import_one_student(context, cnx, REQUEST, formsemestre_id, values, 
                         GroupIdInferers, annee_courante, created_etudids, linenum):
-        log( 'scolars_import_excel_file: values=%s' % str(values) ) 
-        # Identite
-        args = values.copy()
-        etudid = scolars.identite_create(cnx, args, context=context)
-        created_etudids.append(etudid)
-        # Admissions
-        args['etudid'] = etudid
-        args['annee'] = annee_courante                        
-        adm_id = scolars.admission_create(cnx, args)
-        # Adresse
-        args['typeadresse'] = 'domicile'
-        args['description'] = '(infos admission)'
-        adresse_id = scolars.adresse_create(cnx,args)
-        # Inscription au semestre
-        args['etat'] = 'I' # etat insc. semestre
-        if formsemestre_id:
-            args['formsemestre_id'] = formsemestre_id
-        else:
-            args['formsemestre_id'] = values['codesemestre']
-        # recupere liste des groupes:
-        if formsemestre_id not in GroupIdInferers:
-            GroupIdInferers[formsemestre_id] = sco_groups.GroupIdInferer(context, formsemestre_id)
-        gi = GroupIdInferers[formsemestre_id]
-        if args['groupes']:
-            groupes = args['groupes'].split(';')
-        else:
-            groupes = []
-        group_ids = [ gi[group_name] for group_name in groupes ]
-        group_ids = {}.fromkeys(group_ids).keys() # uniq
-        if None in group_ids:
-            raise ScoValueError("groupe invalide sur la ligne %d" % (linenum))
+    """
+    Import d'un étudiant et inscription dans le semestre.
+    Return: id du semestre dans lequel il a été inscrit.
+    """
+    log( 'scolars_import_excel_file: values=%s' % str(values) ) 
+    # Identite
+    args = values.copy()
+    etudid = scolars.identite_create(cnx, args, context=context)
+    created_etudids.append(etudid)
+    # Admissions
+    args['etudid'] = etudid
+    args['annee'] = annee_courante                        
+    adm_id = scolars.admission_create(cnx, args)
+    # Adresse
+    args['typeadresse'] = 'domicile'
+    args['description'] = '(infos admission)'
+    adresse_id = scolars.adresse_create(cnx,args)
+    # Inscription au semestre
+    args['etat'] = 'I' # etat insc. semestre
+    if formsemestre_id:
+        args['formsemestre_id'] = formsemestre_id
+    else:
+        args['formsemestre_id'] = values['codesemestre']
+    # recupere liste des groupes:
+    if formsemestre_id not in GroupIdInferers:
+        GroupIdInferers[formsemestre_id] = sco_groups.GroupIdInferer(context, formsemestre_id)
+    gi = GroupIdInferers[formsemestre_id]
+    if args['groupes']:
+        groupes = args['groupes'].split(';')
+    else:
+        groupes = []
+    group_ids = [ gi[group_name] for group_name in groupes ]
+    group_ids = {}.fromkeys(group_ids).keys() # uniq
+    if None in group_ids:
+        raise ScoValueError("groupe invalide sur la ligne %d" % (linenum))
 
-        do_formsemestre_inscription_with_modules(context, formsemestre_id, etudid, group_ids,
-                                                 etat='I',
-                                                 REQUEST=REQUEST,
-                                                 method='import_csv_file')
+    do_formsemestre_inscription_with_modules(context, args['formsemestre_id'], 
+                                             etudid, group_ids,
+                                             etat='I',
+                                             REQUEST=REQUEST,
+                                             method='import_csv_file')
+    return args['formsemestre_id']
 
 def _is_new_ine(cnx, code_ine):
     "True if this code is not in DB"    

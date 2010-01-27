@@ -815,14 +815,15 @@ class CacheNotesTable:
     
     def inval_cache(self, context, formsemestre_id=None, pdfonly=False): #>
         "expire cache pour un semestre (ou tous si pas d'argument)"
-        #log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' % #>
-        #    (formsemestre_id,pdfonly,id(self)))
+        log('inval_cache, formsemestre_id=%s pdfonly=%s (id=%s)' % #>
+            (formsemestre_id,pdfonly,id(self)))
         try:
             self.acquire()
             if not hasattr(self,'pdfcache'):
                 self.pdfcache = {} # fix for old zope instances...
             if formsemestre_id is None:
                 # clear all caches
+                log('----- inval_cache: clearing all caches -----')
                 if not pdfonly:
                     self.cache = {}
                 self.pdfcache = {}

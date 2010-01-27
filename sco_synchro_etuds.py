@@ -474,7 +474,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
         # here we try to remove all created students
         cursor = cnx.cursor()
         for etudid in created_etudids:
-            log('scolars_import_excel_file: deleting etudid=%s'%etudid)
+            log('do_import_etuds_from_portal: deleting etudid=%s'%etudid)
             cursor.execute('delete from notes_moduleimpl_inscription where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from notes_formsemestre_inscription where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from scolar_events where etudid=%(etudid)s', { 'etudid':etudid })
