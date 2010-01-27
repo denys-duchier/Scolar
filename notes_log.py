@@ -6,6 +6,7 @@ from sco_utils import SCO_ENCODING
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.Header import Header
+import traceback
 
 # Simple & stupid file logguer, used only to debug
 # (logging to SQL is done in scolog)
@@ -87,3 +88,8 @@ def sendAlarm( context, subj, txt ):
     txt = MIMEText( txt, 'plain', SCO_ENCODING )
     msg.attach(txt)
     context.sendEmail(msg)
+
+# Debug: log call stack
+def logCallStack():
+    log( 'Call stack:\n' + '\n'.join( x.strip() for x in traceback.format_stack()[:-1] ) )
+

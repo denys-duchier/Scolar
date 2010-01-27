@@ -148,4 +148,7 @@ def do_formation_edit(context, args):
     
     cnx = context.GetDBConnexion()
     context._formationEditor.edit( cnx, args )
-    context._inval_cache() #> formation modif. TODO: slt semestres concernés !
+    
+    # Invalide les semestres utilisant cette formation:
+    for sem in context.do_formsemestre_list(args={ 'formation_id' : formation_id } ):
+        context._inval_cache(formsemestre_id=sem['formsemestre_id']) #> formation modif.     

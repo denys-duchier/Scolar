@@ -316,4 +316,7 @@ def do_ue_edit(context, args):
     
     cnx = context.GetDBConnexion()
     context._ueEditor.edit( cnx, args )
-    context._inval_cache() #> formation modif. TODO: slt semestres concernés !
+    
+    # Invalide les semestres utilisant cette formation:
+    for sem in context.do_formsemestre_list(args={ 'formation_id' : ue['formation_id'] } ):
+        context._inval_cache(formsemestre_id=sem['formsemestre_id']) #> formation (ue) modif.  

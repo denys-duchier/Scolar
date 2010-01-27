@@ -32,7 +32,7 @@ import pdb
 
 import scolars
 import sco_groups
-from notes_log import log
+from notes_log import log, logCallStack
 from sco_utils import *
 from notesdb import *
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
@@ -824,6 +824,7 @@ class CacheNotesTable:
             if formsemestre_id is None:
                 # clear all caches
                 log('----- inval_cache: clearing all caches -----')
+                # logCallStack() # >>> DEBUG <<<
                 if not pdfonly:
                     self.cache = {}
                 self.pdfcache = {}

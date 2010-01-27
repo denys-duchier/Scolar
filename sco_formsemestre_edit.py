@@ -451,7 +451,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     'module_id' : module_id,
                     'formsemestre_id' : formsemestre_id,
                     'responsable_id' :  tf[2][module_id] }
-                context.do_moduleimpl_edit(modargs)
+                context.do_moduleimpl_edit(modargs, formsemestre_id=formsemestre_id)
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
             
             if msg:
@@ -487,7 +487,7 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
         else:
             msg += [ 'suppression de %s (%s)'
                      % (mod['code'], mod['titre']) ]
-            context.do_moduleimpl_delete(moduleimpl_id)
+            context.do_moduleimpl_delete(moduleimpl_id, formsemestre_id=formsemestre_id)
 
     return ok, msg
 
@@ -664,7 +664,7 @@ def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None
     modimpls = context.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
     for mod in modimpls:
         mod['module_id'] = modules_old2new[mod['module_id']]
-        context.do_moduleimpl_edit(mod)
+        context.do_moduleimpl_edit(mod, formsemestre_id=formsemestre_id)
     # update decisions:
     events = scolars.scolar_events_list(cnx, args={'formsemestre_id' : formsemestre_id} )
     for e in events:
@@ -764,7 +764,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
             SimpleQuery(context, "DELETE FROM notes_notes_log WHERE evaluation_id=%(evaluation_id)s", e)
             SimpleQuery(context, "DELETE FROM notes_evaluation WHERE evaluation_id=%(evaluation_id)s", e)
         
-        context.do_moduleimpl_delete(mod['moduleimpl_id'])
+        context.do_moduleimpl_delete(mod['moduleimpl_id'], formsemestre_id=formsemestre_id)
     # --- Desinscription des etudiants
     cursor = cnx.cursor()
     req = "DELETE FROM notes_formsemestre_inscription WHERE formsemestre_id=%(formsemestre_id)s"
@@ -799,7 +799,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Destruction du semestre
     context._formsemestreEditor.delete(cnx, formsemestre_id)
-    context._inval_cache() #> suppression semestre TODO: inutile !? (oui!)XXX
+    
     # news
     import sco_news
     sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_SEM, object=formsemestre_id,

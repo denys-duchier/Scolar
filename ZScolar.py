@@ -1658,7 +1658,7 @@ function tweakmenu( gname ) {
         if ins['etat'] != 'I':
             raise ScoException('etudiant non inscrit !')
         ins['etat'] = 'D'
-        self.Notes.do_formsemestre_inscription_edit( args=ins )
+        self.Notes.do_formsemestre_inscription_edit(args=ins, formsemestre_id=formsemestre_id)
         logdb(REQUEST,cnx,method='demEtudiant', etudid=etudid)
         scolars.scolar_events_create( cnx, args = {
             'etudid' : etudid,
@@ -1701,7 +1701,7 @@ function tweakmenu( gname ) {
             raise ScoException('etudiant non dem. !!!') # obviously a bug
         ins['etat'] = 'I'
         cnx = self.GetDBConnexion()
-        self.Notes.do_formsemestre_inscription_edit( args=ins )
+        self.Notes.do_formsemestre_inscription_edit(args=ins, formsemestre_id=formsemestre_id)
         logdb(REQUEST,cnx,method='cancelDem', etudid=etudid)
         cursor = cnx.cursor()
         cursor.execute( "delete from scolar_events where etudid=%(etudid)s and formsemestre_id=%(formsemestre_id)s and event_type='DEMISSION'",
@@ -1912,8 +1912,12 @@ function tweakmenu( gname ) {
             else:
                 # modif d'un etudiant
                 scolars.etudident_edit(cnx, tf[2], context=self, REQUEST=REQUEST)
-            # inval all caches
-            self.Notes._inval_cache() #> etudident_create_or_edit TODO: seulement ceux ou l'etudiant est inscrit
+                etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+                self.fillEtudsInfo([etud])
+            # Inval semesters with this student:
+            to_inval = [s['formsemestre_id'] for s in etud['sems']]
+            if to_inval:
+                self.Notes._inval_cache(formsemestre_id_list=to_inval) #> etudident_create_or_edit
             #
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
@@ -1961,8 +1965,10 @@ function tweakmenu( gname ) {
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
                             etud )            
         cnx.commit()
-        # invalid all caches
-        self.Notes._inval_cache()  #> etudident_delete TODO: seulement ceux ou l'etudiant est inscrit
+        # Inval semestres où il était inscrit:
+        to_inval = [s['formsemestre_id'] for s in etud['sems']]
+        if to_inval:
+            self.Notes._inval_cache(formsemestre_id_list=to_inval)  #> 
         return REQUEST.RESPONSE.redirect(REQUEST.URL1)
     
     security.declareProtected(ScoEtudInscrit, "check_group_apogee")

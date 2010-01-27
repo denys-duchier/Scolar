@@ -67,7 +67,7 @@ def do_formsemestre_inscription_with_modules(
         if mod['ue']['type'] == UE_STANDARD:
             context.do_moduleimpl_inscription_create(
                 {'moduleimpl_id' : mod['moduleimpl_id'],
-                 'etudid' : etudid} )
+                 'etudid' : etudid},  REQUEST=REQUEST, formsemestre_id=formsemestre_id)
 
 
 def formsemestre_inscription_with_modules_etud(context, formsemestre_id, etudid=None, group_ids=None,
@@ -367,7 +367,8 @@ def do_moduleimpl_incription_options(
         if len(mod) != 1:
             raise ScoValueError('inscription: invalid moduleimpl_id: %s' % moduleimpl_id)
         context.do_moduleimpl_inscription_create(
-            {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid })
+            {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid }, 
+            REQUEST=REQUEST, formsemestre_id=mod['formsemestre_id'])
     # desinscriptions
     for moduleimpl_id in a_desinscrire:
         # verifie que ce module existe bien
@@ -379,7 +380,7 @@ def do_moduleimpl_incription_options(
         if not inscr:
             raise ScoValueError('pas inscrit a ce module ! (etudid=%s, moduleimpl_id=%)'%(etudid,moduleimpl_id))
         oid = inscr[0]['moduleimpl_inscription_id']
-        context.do_moduleimpl_inscription_delete(oid)
+        context.do_moduleimpl_inscription_delete(oid, formsemestre_id=mod['formsemestre_id'])
 
     if REQUEST:
         H = [ context.sco_header(REQUEST),

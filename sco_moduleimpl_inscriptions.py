@@ -402,6 +402,6 @@ def do_etud_inscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None):
     res = cursor.dictfetchall()
     for moduleimpl_id in [ x['moduleimpl_id'] for x in res ]:
         context.do_moduleimpl_inscription_create( 
-            { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
-    
-    context._inval_cache(formsemestre_id=formsemestre_id) #> inscription etudiant a des modules
+            { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, 
+            REQUEST=REQUEST, formsemestre_id=formsemestre_id)
+

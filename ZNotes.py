@@ -347,7 +347,7 @@ class ZNotes(ObjectManager,
             del args['formation_code']
         #
         r = self._formationEditor.create(cnx, args)
-        self._inval_cache() #> nouvelle formation TODO: inutile !?
+        
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM,
                      text='Création de la formation %(titre)s (%(acronyme)s)' % args )
         return r
@@ -367,7 +367,7 @@ class ZNotes(ObjectManager,
             self._do_ue_delete(ue['ue_id'], REQUEST=REQUEST, force=True)
         
         self._formationEditor.delete(cnx, oid)
-        self._inval_cache() #> suppression formation TODO: inutile !?
+        
         # news
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=oid,
                      text='Suppression de la formation %(acronyme)s' % F )
@@ -455,7 +455,7 @@ class ZNotes(ObjectManager,
             raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args['acronyme'])
         # create
         r = self._ueEditor.create(cnx, args)
-        self._inval_cache() #> UE create TODO inutile !?
+        
         # news
         F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
@@ -533,7 +533,7 @@ class ZNotes(ObjectManager,
         ue = self.do_ue_list({ 'ue_id' : args['ue_id'] })[0]
         # create matiere
         r = self._matiereEditor.create(cnx, args)
-        self._inval_cache() #> creation matiere TODO: inutile !?
+        
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
@@ -559,7 +559,7 @@ class ZNotes(ObjectManager,
         for mod in mods:
             self.do_module_delete(mod['module_id'],REQUEST)
         self._matiereEditor.delete(cnx, oid)
-        self._inval_cache() #> suppression matiere  TODO: inutile !?
+        
         # news
         F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
@@ -618,7 +618,7 @@ class ZNotes(ObjectManager,
         # create
         cnx = self.GetDBConnexion()
         r = self._moduleEditor.create(cnx, args)
-        self._inval_cache() #> creation module TODO inutile !?
+        
         # news
         F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
@@ -645,7 +645,7 @@ class ZNotes(ObjectManager,
         # delete
         cnx = self.GetDBConnexion()
         self._moduleEditor.delete(cnx, oid)
-        self._inval_cache() #> suppression module TODO inutile !?
+        
         # news
         F = self.do_formation_list(args={ 'formation_id' :mod['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=mod['formation_id'],
@@ -800,7 +800,7 @@ class ZNotes(ObjectManager,
         # create default partition
         partition_id = sco_groups.partition_create(self, formsemestre_id, default=True, redirect=0, REQUEST=REQUEST)
         group_id = sco_groups.createGroup(self, partition_id, default=True, REQUEST=REQUEST)
-        self._inval_cache() #> formsemestre_create TODO: inutile !?
+        
         # news
         if not args.has_key('titre'):
             args['titre'] = 'sans titre'
@@ -900,7 +900,7 @@ class ZNotes(ObjectManager,
         "edit a formsemestre"
         cnx = self.GetDBConnexion()
         self._formsemestreEditor.edit(cnx, *a, **kw )
-        self._inval_cache() #> modif formsemestre TODO !!! n'invalider que ce semestre ! (et ceux qui l'utilise pour compenser ??? à voir)
+        self._inval_cache(formsemestre_id=a[0]['formsemestre_id']) #> modif formsemestre
     
     security.declareProtected(ScoView,'formsemestre_edit_uecoefs')
     formsemestre_edit_uecoefs = sco_formsemestre_edit.formsemestre_edit_uecoefs
@@ -975,11 +975,11 @@ class ZNotes(ObjectManager,
         "create a moduleimpl"
         cnx = self.GetDBConnexion()
         r = self._moduleimplEditor.create(cnx, args)
-        self._inval_cache() #> creation moduleimpl TODO inutile !? (!! et surtout pas tous les semestres!)
+        self._inval_cache(formsemestre_id=args['formsemestre_id']) #> creation moduleimpl 
         return r
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_delete')
-    def do_moduleimpl_delete(self, oid):
+    def do_moduleimpl_delete(self, oid, formsemestre_id=None):
         "delete moduleimpl (desinscrit tous les etudiants)"
         cnx = self.GetDBConnexion()
         # --- desinscription des etudiants
@@ -990,7 +990,7 @@ class ZNotes(ObjectManager,
         cursor.execute( "DELETE FROM notes_modules_enseignants WHERE moduleimpl_id=%(moduleimpl_id)s", { 'moduleimpl_id' : oid } )
         # --- destruction du moduleimpl
         self._moduleimplEditor.delete(cnx, oid)
-        self._inval_cache() #> moduleimpl_delete TODO inutile !? (!! et surtout pas tous les semestres!)
+        self._inval_cache(formsemestre_id=formsemestre_id) #> moduleimpl_delete
 
     security.declareProtected(ScoView, 'do_moduleimpl_list')
     def do_moduleimpl_list(self, *args, **kw ):
@@ -1004,12 +1004,13 @@ class ZNotes(ObjectManager,
         return modimpls
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_edit')
-    def do_moduleimpl_edit(self, *args, **kw ):
+    def do_moduleimpl_edit(self, args, formsemestre_id=None):
         "edit a moduleimpl"
         cnx = self.GetDBConnexion()
-        self._moduleimplEditor.edit(cnx, *args, **kw )
-        self._inval_cache() #> modif moduleimpl (ne devrait invalider que si la formule change) TODO: slt ce semestre !
-
+        self._moduleimplEditor.edit(cnx, args)
+        
+        self._inval_cache(formsemestre_id=formsemestre_id) #> modif moduleimpl 
+        
     security.declareProtected(ScoView, 'do_moduleimpl_withmodule_list')
     def do_moduleimpl_withmodule_list(self,args):
         """Liste les moduleimpls et ajoute dans chacun le module correspondant
@@ -1193,7 +1194,9 @@ class ZNotes(ObjectManager,
             if not responsable_id: # presque impossible: tf verifie les valeurs (mais qui peuvent changer entre temps)
                 return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
             self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
-                                       'responsable_id' : responsable_id } )
+                                       'responsable_id' : responsable_id },
+                                     formsemestre_id=sem['formsemestre_id']
+                                     )
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
 
     security.declareProtected(ScoView, 'edit_moduleimpl_expr')
@@ -1240,7 +1243,8 @@ class ZNotes(ObjectManager,
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id)
         else:            
             self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
-                                       'computation_expr' : tf[2]['computation_expr'] } )
+                                       'computation_expr' : tf[2]['computation_expr'] },
+                                     formsemestre_id=sem['formsemestre_id'])
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
 
 
@@ -1392,15 +1396,16 @@ class ZNotes(ObjectManager,
               etudid=args['etudid'], msg='inscription en semestre %s' % args['formsemestre_id'],
               commit=False )
         #
-        self._inval_cache() #> inscription au semestre TODO: slt ce semestre
+        self._inval_cache(formsemestre_id=args['formsemestre_id']) #> inscription au semestre
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_delete')
-    def do_formsemestre_inscription_delete(self, oid):
+    def do_formsemestre_inscription_delete(self, oid, formsemestre_id=None):
         "delete formsemestre_inscription"
         cnx = self.GetDBConnexion()
         self._formsemestre_inscriptionEditor.delete(cnx, oid)
-        self._inval_cache() #> desinscription du semestre TODO: slt ce semestre
+        
+        self._inval_cache(formsemestre_id=formsemestre_id) #> desinscription du semestre
 
     security.declareProtected(ScoView, 'do_formsemestre_inscription_list')
     def do_formsemestre_inscription_list(self, *args, **kw ):
@@ -1421,11 +1426,11 @@ class ZNotes(ObjectManager,
         return r
 
     security.declareProtected(ScoImplement, 'do_formsemestre_inscription_edit')
-    def do_formsemestre_inscription_edit(self, **kw ):
+    def do_formsemestre_inscription_edit(self, args=None, formsemestre_id=None):
         "edit a formsemestre_inscription"
         cnx = self.GetDBConnexion()
-        self._formsemestre_inscriptionEditor.edit(cnx, **kw )
-        self._inval_cache() #> modif inscription semestre (demission ?) TODO: seulement ce semestre + assert (formsemestre_id, etudid) constant (methode)
+        self._formsemestre_inscriptionEditor.edit(cnx, args)
+        self._inval_cache(formsemestre_id=formsemestre_id) #> modif inscription semestre (demission ?)
     
     # Cache inscriptions semestres
     def get_formsemestre_inscription_cache(self):
@@ -1484,9 +1489,10 @@ class ZNotes(ObjectManager,
         res = cursor.fetchall()
         moduleimpl_inscription_ids = [ x[0] for x in res ]
         for moduleimpl_inscription_id in moduleimpl_inscription_ids:
-            self.do_moduleimpl_inscription_delete(moduleimpl_inscription_id)
+            self.do_moduleimpl_inscription_delete(moduleimpl_inscription_id, formsemestre_id=formsemestre_id)
         # -- desincription du semestre        
-        self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'] )
+        self.do_formsemestre_inscription_delete( insem['formsemestre_inscription_id'], 
+                                                 formsemestre_id=formsemestre_id )
         if REQUEST:
             logdb(REQUEST, cnx, method='formsemestre_desinscription',
                   etudid=etudid,
@@ -1501,12 +1507,12 @@ class ZNotes(ObjectManager,
         )
 
     security.declareProtected(ScoEtudInscrit,'do_moduleimpl_inscription_create')
-    def do_moduleimpl_inscription_create(self, args, REQUEST=None):
+    def do_moduleimpl_inscription_create(self, args, REQUEST=None, formsemestre_id=None):
         "create a moduleimpl_inscription"
         cnx = self.GetDBConnexion()
         log('do_moduleimpl_inscription_create: '+ str(args))
         r = self._moduleimpl_inscriptionEditor.create(cnx, args)
-        self._inval_cache() #> moduleimpl_inscription TODO: slt ce semestre
+        self._inval_cache(formsemestre_id=formsemestre_id) #> moduleimpl_inscription 
         if REQUEST:
             logdb(REQUEST, cnx, method='moduleimpl_inscription',
                   etudid=args['etudid'],
@@ -1515,24 +1521,17 @@ class ZNotes(ObjectManager,
         return r
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_inscription_delete')
-    def do_moduleimpl_inscription_delete(self, oid):
+    def do_moduleimpl_inscription_delete(self, oid, formsemestre_id=None):
         "delete moduleimpl_inscription"
         cnx = self.GetDBConnexion()
         self._moduleimpl_inscriptionEditor.delete(cnx, oid)
-        self._inval_cache() #> moduleimpl_inscription TODO: slt ce semestre
+        self._inval_cache(formsemestre_id=formsemestre_id) #> moduleimpl_inscription
 
     security.declareProtected(ScoView, 'do_moduleimpl_inscription_list')
     def do_moduleimpl_inscription_list(self, **kw ):
         "list moduleimpl_inscriptions"
         cnx = self.GetDBConnexion()
         return self._moduleimpl_inscriptionEditor.list(cnx, **kw)
-
-    security.declareProtected(ScoEtudInscrit, 'do_moduleimpl_inscription_edit')
-    def do_moduleimpl_inscription_edit(self, *args, **kw ):
-        "edit a moduleimpl_inscription"
-        cnx = self.GetDBConnexion()
-        self._moduleimpl_inscriptionEditor.edit(cnx, *args, **kw )
-        self._inval_cache() #> moduleimpl_inscription TODO: slt ce semestre
 
     security.declareProtected(ScoView, 'do_moduleimpl_listeetuds')
     def do_moduleimpl_listeetuds(self, moduleimpl_id):
@@ -1583,7 +1582,7 @@ class ZNotes(ObjectManager,
         for etudid in etudids:
             # deja inscrit ?
             if not etudid in inmod_set:
-                self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST )
+                self.do_moduleimpl_inscription_create( { 'moduleimpl_id' :moduleimpl_id, 'etudid' :etudid }, REQUEST=REQUEST, formsemestre_id=formsemestre_id)
         
         self._inval_cache(formsemestre_id=formsemestre_id) #> moduleimpl_inscrit_etuds
 
@@ -1673,11 +1672,9 @@ class ZNotes(ObjectManager,
         #
         cnx = self.GetDBConnexion()
         r = self._evaluationEditor.create(cnx, args)
-        # inval cache pour ce semestre
-        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         
-        self._inval_cache(formsemestre_id=M['formsemestre_id']) #> evaluation_create TODO inutile !?
         # news
+        M = self.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
         mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
@@ -2340,7 +2337,7 @@ class ZNotes(ObjectManager,
             logdb(REQUEST, cnx, method='appreciation_add',
                   etudid=etudid, msg=tf[2]['comment'])
             # ennuyeux mais necessaire (pour le PDF seulement)
-            self._inval_cache(pdfonly=True) #> appreciation_add TODO: pas pour tous semestres !!!
+            self._inval_cache(pdfonly=True, formsemestre_id=formsemestre_id) #> appreciation_add
             return REQUEST.RESPONSE.redirect( bull_url )
 
     security.declareProtected(ScoView,'can_change_groups')
