@@ -10,8 +10,8 @@ SCONEWS = """
 <h4>Janvier 2010</h4>
 <ul>
 <li>Suivez l'actualité du développement sur Twitter: <a href="https://twitter.com/ScoDoc">@ScoDoc</a></li>
-<li>Nouveau menu "Groupes" pour facilietr la prise en main</li>
-<li>Possibilité de définir des règles ad hoc de calcul des moyenens de modules (formules)</li>
+<li>Nouveau menu "Groupes" pour faciliter la prise en main</li>
+<li>Possibilité de définir des règles ad hoc de calcul des moyennes de modules (formules)</li>
 <li>Possibilité d'inclure des images (logos) dans les bulletins PDF</li>
 <li>Bandeau "provisoire" sur les bulletins en cours de semestre</li>
 <li>Possibilite de valider (capitaliser) une UE passee hors ScoDoc</li>

@@ -790,29 +790,35 @@ class ZScolar(ObjectManager,
                 H.append('<h4>Tous les étudiants</h4>' % partition)
             else:
                 H.append('<h4>Groupes de %(partition_name)s</h4>' % partition)
-            H.append('<table>')
-            for group in sco_groups.get_partition_groups(context, partition):
-                n_members = len(sco_groups.get_group_members(context, group['group_id']))
-                group['url'] = r
-                if group['group_name']:
-                    group['label'] = 'groupe %(group_name)s' % group
-                else:
-                    group['label'] = 'liste'
-                H.append('<tr class="listegroupelink">')                
-                H.append("""<td>
-                    <a href="%(url)s/listegroupe?group_id=%(group_id)s">%(label)s</a>
-                    </td><td>
-                    (<a href="%(url)s/listegroupe?&group_id=%(group_id)s&format=xls">format tableur</a>)
-                    <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
-                    </td>""" % group )
-                H.append('<td>(%d étudiants)</td>' % n_members )
-                
-                if with_absences:
-                    H.append( FormAbs % group )
-                
-                H.append('</tr>')
-            H.append('</table>')
-        
+            groups = sco_groups.get_partition_groups(context, partition)
+            if groups:
+                H.append('<table>')
+                for group in groups:
+                    n_members = len(sco_groups.get_group_members(context, group['group_id']))
+                    group['url'] = r
+                    if group['group_name']:
+                        group['label'] = 'groupe %(group_name)s' % group
+                    else:
+                        group['label'] = 'liste'
+                    H.append('<tr class="listegroupelink">')                
+                    H.append("""<td>
+                        <a href="%(url)s/listegroupe?group_id=%(group_id)s">%(label)s</a>
+                        </td><td>
+                        (<a href="%(url)s/listegroupe?&group_id=%(group_id)s&format=xls">format tableur</a>)
+                        <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
+                        </td>""" % group )
+                    H.append('<td>(%d étudiants)</td>' % n_members )
+
+                    if with_absences:
+                        H.append( FormAbs % group )
+
+                    H.append('</tr>')
+                H.append('</table>')
+            else:
+                H.append('<p class="help indent">Aucun groupe dans cette partition')
+                if self.Notes.can_change_groups(REQUEST, formsemestre_id):
+                    H.append(' (<a href="affectGroups?partition_id=%s" class="stdlink">créer</a>)' % partition['partition_id'])
+                H.append('</p>')
         H.append('</div>')        
         return '\n'.join(H)
 
@@ -1883,6 +1889,11 @@ function tweakmenu( gname ) {
             if not edit:
                 # creation d'un etudiant
                 etudid = scolars.etudident_create(cnx, tf[2], context=self, REQUEST=REQUEST)
+                # crée une adresse vide (chaque etudiant doit etre dans la table "adresse" !)
+                adresse_id = scolars.adresse_create(
+                    cnx, {'etudid' : etudid, 'typeadresse' : 'domicile',
+                          'description' : '(creation individuelle)'})
+                
                 # event
                 scolars.scolar_events_create( cnx, args = {
                     'etudid' : etudid,
