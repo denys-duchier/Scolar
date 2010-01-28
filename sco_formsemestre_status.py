@@ -154,6 +154,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : authuser.has_permission(ScoChangeFormation, context) and (sem['etat']== '1'),
           'helpmsg' : ''
           },
+        { 'title' : 'Supprimer ce semestre',
+          'url' : 'formsemestre_delete?formsemestre_id=' + formsemestre_id,
+          'enabled' : authuser.has_permission(ScoImplement, context),
+          'helpmsg' : ''
+          },
         ]
     # debug :
     if uid == 'root' or uid[:7] == 'viennet':

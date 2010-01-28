@@ -76,11 +76,6 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
 </p>
 <p class="help">Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</p>
 <p class="help">Les modules ont toujours un responsable. Par défaut, c'est le directeur des études.</p>""")
-            if authuser.has_permission(ScoImplement,context):
-                H.append("""
-<hr/>
-<h2>Autres opérations</h2>
-<p><a class="stdlink" href="formsemestre_delete?formsemestre_id=%s">Supprimer ce semestre</a></p>""" % formsemestre_id)
     
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
