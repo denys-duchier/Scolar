@@ -667,8 +667,11 @@ class ZNotes(ObjectManager,
         # edit
         cnx = self.GetDBConnexion()
         self._moduleEditor.edit(cnx, *args, **kw )
-        self._inval_cache() #> modif module
 
+        sems = self.do_formsemestre_list(args={ 'formation_id' : mod['formation_id'] })
+        if sems:
+            self._inval_cache(formsemestre_id_list=[s['formsemestre_id'] for s in sems]) #> modif module
+    
     #
     security.declareProtected(ScoView, 'formation_has_locked_sems')
     def formation_has_locked_sems(self, formation_id):

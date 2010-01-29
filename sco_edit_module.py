@@ -130,8 +130,8 @@ def module_edit(context, module_id=None, REQUEST=None):
         raise ScoValueError('invalid module !')
     Mod= context.do_module_list( args={ 'module_id' : module_id } )[0]
     Fo = context.do_formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
-    M  = context.do_matiere_list( args={'ue_id' : Mod['ue_id']} )
-    Mnames = [ x['titre'] for x in M ]
+    M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
+    Mnames = [ '%s / %s' % (x['acronyme'], x['titre']) for x in M ]
     Mids = [ x['matiere_id'] for x in M ]
     dest_url = REQUEST.URL1 + '/ue_list?formation_id=' + Mod['formation_id']
 
