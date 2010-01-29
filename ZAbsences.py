@@ -142,7 +142,7 @@ class ddmmyyyy:
 	return '%02d/%02d/%04d' % (self.day,self.month, self.year)
     def ISO(self):
 	"iso8601 representation of the date"
-	return '%d-%d-%d' % (self.year, self.month, self.day)
+	return '%04d-%02d-%02d' % (self.year, self.month, self.day)
     
     def next(self,days=1):
 	"date for the next day (nota: may be a non workable day)"
@@ -298,9 +298,8 @@ class ZAbsences(ObjectManager,
         logdb(REQUEST, cnx, 'AddAbsence', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s'%vars())
         cnx.commit()
-        # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()  #> abs AddAbsence
-
+        invalidateAbsEtudDate(self, etudid, jour)
+    
     security.declareProtected(ScoAbsChange, 'AddJustif')
     def AddJustif(self, etudid, jour, matin, REQUEST, description=None):
         "Ajoute un justificatif dans la base"
@@ -313,9 +312,8 @@ class ZAbsences(ObjectManager,
         logdb(REQUEST, cnx, 'AddJustif', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
-        # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache() #> abs AddJustif
-
+        invalidateAbsEtudDate(self, etudid, jour)
+    
     security.declareProtected(ScoAbsChange, 'AnnuleAbsence')
     def AnnuleAbsence(self, etudid, jour, matin, REQUEST):
         "Annule une absence ds base"
@@ -326,11 +324,10 @@ class ZAbsences(ObjectManager,
         logdb(REQUEST, cnx, 'AnnuleAbsence', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
-        # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache()  #> abs AnnuleAbsence
-
+        invalidateAbsEtudDate(self, etudid, jour)
+    
     security.declareProtected(ScoAbsChange, 'AnnuleJustif')
-    def AnnuleJustif(self,etudid, jour, matin, REQUEST):
+    def AnnuleJustif(self, etudid, jour, matin, REQUEST):
         "Annule un justificatif"
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
@@ -339,9 +336,8 @@ class ZAbsences(ObjectManager,
         logdb(REQUEST, cnx, 'AnnuleJustif', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
-        # Invalid cache (nbabs sur bulletins)
-        self.Notes._inval_cache() #> abs AnnuleJustif
-
+        invalidateAbsEtudDate(self, etudid, jour)
+    
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesPeriodNoJust' )
     def AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
         """Supprime les absences entre ces dates (incluses).
@@ -357,6 +353,8 @@ class ZAbsences(ObjectManager,
         logdb(REQUEST, cnx, 'AnnuleAbsencesPeriodNoJust', etudid=etudid,
               msg='%(datedebut)s - %(datefin)s'%vars())
         cnx.commit()
+        invalidateAbsEtudDate(self, etudid, datedebut)
+        invalidateAbsEtudDate(self, etudid, datefin) # si un semestre commence apres datedebut et termine avant datefin, il ne sera pas invalide. Tant pis ;-)
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesDatesNoJust')
     def AnnuleAbsencesDatesNoJust(self, etudid, dates, REQUEST=None):
@@ -372,6 +370,7 @@ class ZAbsences(ObjectManager,
             cursor.execute(
                 "delete from absences where etudid=%(etudid)s and (not estjust) and jour=%(date)s",
                 vars() )
+            invalidateAbsEtudDate(self, etudid, date)
         # s'assure que les justificatifs ne sont pas "absents"
         for date in dates:
             cursor.execute(
@@ -718,6 +717,7 @@ class ZAbsences(ObjectManager,
             if (not workable) or cur.iswork():
                 r.append(cur)
             cur = cur.next()
+        
         return map( lambda x: x.ISO(), r )
 
     def YearTable(self, year, events=[],
@@ -1656,4 +1656,89 @@ def manage_addZAbsences(self, id= 'id_ZAbsences', title='The Title for ZAbsences
 
     
 
+
+
+# --------------------------------------------------------------------
+#
+# Cache absences
+#
+# On cache simplement (à la demande) le nombre d'absences de chaque etudiant
+# dans un semestre donné.
+# Toute modification du semestre (invalidation) invalide le cache 
+#  (simple mécanisme de "listener" sur le cache de semestres)
+# Toute modification des absences d'un étudiant invalide les caches des semestres 
+# concernés à cette date (en général un seul semestre)
+#
+# On ne cache pas la liste des absences car elle est rarement utilisée (calendrier, 
+#  absences à une date donnée).
+#
+# --------------------------------------------------------------------
+class CAbsSemEtud:
+    """Comptes d'absences d'un etudiant dans un semestre"""
+    def __init__(self, context, formsemestre_id, etudid):
+        self.context = context
+        self.formsemestre_id = formsemestre_id
+        self.etudid = etudid
+        self._loaded = False
+        context.Notes._getNotesCache().add_listener(self.invalidate, formsemestre_id, (etudid, formsemestre_id))
+        
+    def CountAbs(self):
+        if not self._loaded:
+            self.load()
+        return self._CountAbs
+    def CountAbsJust(self):
+        if not self._loaded:
+            self.load()
+        return self._CountAbsJust
+    
+    def load(self):
+        "Load state from DB"
+        log('loading CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
+        sem = self.context.Notes.get_formsemestre(self.formsemestre_id)
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
+        
+        self._CountAbs = self.context.Absences.CountAbs(etudid=self.etudid, debut=debut_sem, fin=fin_sem)
+        self._CountAbsJust = self.context.Absences.CountAbsJust(etudid=self.etudid, debut=debut_sem,fin=fin_sem)        
+        self._loaded = True
+    
+    def invalidate(self, args=None):
+        "Notify me that DB has been modified"
+        log('invalidate CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
+        self._loaded = False
+        
+
+# Accès au cache des absences
+ABS_CACHE_INST = {} # { DeptId : { formsemestre_id : { etudid :  CAbsEtudSem } } }
+
+def getAbsSemEtud(context, formsemestre_id, etudid):
+    AbsSemEtuds = getAbsSemEtuds(context, formsemestre_id)
+    if not etudid in AbsSemEtuds:
+       AbsSemEtuds[etudid] = CAbsSemEtud(context, formsemestre_id, etudid)
+    return AbsSemEtuds[etudid]
+
+def getAbsSemEtuds(context, formsemestre_id):
+    u = context.GetDBConnexionString() # identifie le dept de facon fiable
+    if not u in ABS_CACHE_INST:
+        ABS_CACHE_INST[u] = {}
+    C = ABS_CACHE_INST[u]
+    if formsemestre_id not in C:
+        C[formsemestre_id] = {}
+    return C[formsemestre_id]
+
+def invalidateAbsEtudDate(context, etudid, date):
+    """Doit etre appelé à chaque modification des absences pour cet étudiant et cette date.
+    Invalide cache absence et PDF bulletins si nécessaire.
+    date: date au format ISO
+    """
+    # Semestres a cette date:
+    etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
+    sems = [ sem for sem in etud['sems'] if sem['date_debut_iso'] <= date and sem['date_fin_iso'] >= date ]
+    
+    # Invalide les PDF et les abscences
+    for sem in sems:
+        context.Notes._inval_cache(pdfonly=True, formsemestre_id=sem['formsemestre_id'])
+        AbsSemEtuds = getAbsSemEtuds(context, sem['formsemestre_id'])
+        if etudid in AbsSemEtuds:
+            AbsSemEtuds[etudid].invalidate()
 

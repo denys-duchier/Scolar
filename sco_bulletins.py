@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import sco_pvjury
 from sco_pdf import PDFLOCK
 import sco_formsemestre_status
 import sco_photos
+from ZAbsences import getAbsSemEtud
 
 def make_formsemestre_bulletinetud(
     context, formsemestre_id, etudid,
@@ -189,11 +190,10 @@ def make_formsemestre_bulletinetud(
     H.append('</table>')
     # --- Absences
     if context.get_preference('bul_show_abs', formsemestre_id):
-        debut_sem = DateDMYtoISO(sem['date_debut'])
-        fin_sem = DateDMYtoISO(sem['date_fin'])
-        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
-                                           debut=debut_sem,fin=fin_sem)
+        AbsSemEtud = getAbsSemEtud(context, formsemestre_id, etudid)
+        nbabs = AbsSemEtud.CountAbs()
+        nbabsjust = AbsSemEtud.CountAbsJust()
+        
         H.append("""<p>
     <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
     <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
@@ -445,9 +445,9 @@ def make_xml_formsemestre_bulletinetud(
     if  context.get_preference('bul_show_abs', formsemestre_id):
         debut_sem = DateDMYtoISO(sem['date_debut'])
         fin_sem = DateDMYtoISO(sem['date_fin'])
-        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
-                                           debut=debut_sem,fin=fin_sem)
+        AbsEtudSem = getAbsSemEtud(context, formsemestre_id, etudid)
+        nbabs = AbsEtudSem.CountAbs()
+        nbabsjust = AbsEtudSem.CountAbsJust()
         doc._push()
         doc.absences(nbabs=nbabs, nbabsjust=nbabsjust )
         doc._pop()

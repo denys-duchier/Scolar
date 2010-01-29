@@ -35,6 +35,7 @@ from notes_log import log
 from scolog import logdb
 from notes_table import *
 import notes_table
+from ZAbsences import getAbsSemEtud
 
 import sco_formsemestre_status
 import sco_parcours_dut, sco_codes_parcours
@@ -452,11 +453,9 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         # Moy Gen (sous le code decision)
         H.append('<td class="rcp_moy">%s</td>' % notes_table.fmt_note( nt.get_etud_moy_gen(etudid)) )
         # Absences (nb d'abs non just. dans ce semestre)
-        debut_sem = DateDMYtoISO(sem['date_debut'])
-        fin_sem = DateDMYtoISO(sem['date_fin'])
-        nbabs = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust = context.Absences.CountAbsJust(etudid=etudid,
-                                                 debut=debut_sem,fin=fin_sem)
+        AbsEtudSem = getAbsSemEtud(context, sem['formsemestre_id'], etudid)
+        nbabs = AbsEtudSem.CountAbs()
+        nbabsjust = AbsEtudSem.CountAbsJust()
         H.append('<td class="rcp_abs">%d</td>' % (nbabs-nbabsjust) )
         
         # UEs

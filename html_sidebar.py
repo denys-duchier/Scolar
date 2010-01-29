@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,9 +26,10 @@
 ##############################################################################
 
 from sco_utils import *
+from ZAbsences import getAbsSemEtud
 
 """
-
+Génération de la "sidebar" (marge gauche des pages HTML)
 """
 
 
@@ -81,21 +82,22 @@ def sidebar(context, REQUEST=None):
         etudid = REQUEST.form['etudid']
         etud = context.getEtudInfo(filled=1, etudid=etudid)[0]
         params.update(etud)
-        # compte les absences de l'annee scolaire en cours (du 1 sept au 31 juil)
-        # XXX Devrait afficher les absences du semestre courant ! 
-        # (ou rien si pas de sem. courant)
-        annee = int(context.AnneeScolaire(REQUEST))
-        date_debut = str(annee) + '-08-31'
-        date_fin = str(annee+1) + '-07-31'
-        params['nbabs']= context.Absences.CountAbs(etudid=etudid, debut=date_debut, fin=date_fin)
-        params['nbabsjust'] = context.Absences.CountAbsJust(etudid=etudid, debut=date_debut, fin=date_fin)
-        params['nbabsnj'] =  params['nbabs'] - params['nbabsjust']
+        # compte les absences du semestre en cours
         H.append("""<h2 id="insidebar-etud"><a href="%(ScoURL)s/ficheEtud?etudid=%(etudid)s" class="sidebar">
-<font color="#FF0000">%(sexe)s %(nom)s</font></a>
-</h2>
-<b>Absences</b> (1/2 j.)<br/>%(nbabsjust)s J., %(nbabsnj)s N.J. 
-
-<ul>""" % params ) # """
+    <font color="#FF0000">%(sexe)s %(nom)s</font></a>
+    </h2>
+    <b>Absences</b>""" % params)
+        if etud['cursem']:
+            AbsEtudSem = getAbsSemEtud(context, etud['cursem']['formsemestre_id'], etudid)
+            params['nbabs']= AbsEtudSem.CountAbs()
+            params['nbabsjust'] = AbsEtudSem.CountAbsJust()
+            params['nbabsnj'] =  params['nbabs'] - params['nbabsjust']
+            params['date_debut'] = etud['cursem']['date_debut']
+            params['date_fin'] = etud['cursem']['date_fin']
+            H.append("""<span title="absences du %(date_debut)s au %(date_fin)s">(1/2 j.)<br/>%(nbabsjust)s J., %(nbabsnj)s N.J.</span>"""
+                     % params)
+            
+        H.append('<ul>')
         if REQUEST.AUTHENTICATED_USER.has_permission(ScoAbsChange,context):
             H.append("""
 <li>     <a href="%(ScoURL)s/Absences/SignaleAbsenceEtud?etudid=%(etudid)s">Ajouter</a></li>

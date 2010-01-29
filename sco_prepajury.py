@@ -37,6 +37,7 @@ import sco_groups
 import sco_excel
 import sco_parcours_dut, sco_codes_parcours
 from scolars import format_nom, format_prenom, format_sexe, format_lycee
+from ZAbsences import getAbsSemEtud
 
 
 def feuille_preparation_jury(context, formsemestre_id, REQUEST):
@@ -44,8 +45,6 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_moy_gen, get_ues, get_etud_ue_status, get_etud_decision_sem, identdict, 
     etudids = nt.get_etudids( sorted=True ) # tri par moy gen
     sem= context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
-    debut_sem = DateDMYtoISO(sem['date_debut'])
-    fin_sem = DateDMYtoISO(sem['date_fin'])
 
     etud_groups = sco_groups.formsemestre_get_etud_groupnames(context, formsemestre_id)
     main_partition_id = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)['partition_id']
@@ -111,8 +110,9 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             if s['formsemestre_id'] == formsemestre_id:       
                 groupestd[etudid] = etud_groups.get(etudid, {}).get(main_partition_id, '')        
         # absences:
-        nbabs[etudid] = context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem)
-        nbabsjust[etudid] = context.Absences.CountAbsJust(etudid=etudid, debut=debut_sem,fin=fin_sem)
+        AbsEtudSem = getAbsSemEtud(context, formsemestre_id, etudid)
+        nbabs[etudid] = AbsEtudSem.CountAbs()
+        nbabsjust[etudid] = AbsEtudSem.CountAbsJust()
     
     # Construit table
     L = [ [] ]

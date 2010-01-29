@@ -833,6 +833,8 @@ class ZNotes(ObjectManager,
                 sem['titre_num'] += ', semestre %s' % sem['semestre_id']
 
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
+            sem['date_debut_iso'] = DateDMYtoISO(sem['date_debut'])
+            sem['date_fin_iso'] = DateDMYtoISO(sem['date_fin'])
             try:
                 mois_debut, annee_debut = sem['date_debut'].split('/')[1:]
             except:

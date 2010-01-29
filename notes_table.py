@@ -770,6 +770,8 @@ class CacheNotesTable:
         self.cache = {} # { formsemestre_id : NoteTable instance }
         # Cache des classeur PDF (bulletins)
         self.pdfcache = {} # { formsemestre_id : (filename, pdfdoc) }
+        # Listeners:
+        self.listeners = DictDefault(defaultvalue={}) # {formsemestre_id : {listener_id : callback }}
 
     def acquire(self):
         "If this thread does not own the cache, acquire the lock"
@@ -828,6 +830,7 @@ class CacheNotesTable:
                 if not pdfonly:
                     self.cache = {}
                 self.pdfcache = {}
+                self._call_all_listeners()
             else:
                 # formsemestre_id modifié:
                 # on doit virer formsemestre_id et tous les semestres
@@ -838,6 +841,8 @@ class CacheNotesTable:
                         if self.cache.has_key(formsemestre_id):
                             log('delete %s from cache (id=%s)' % (formsemestre_id, id(self)))
                             del self.cache[formsemestre_id]
+                            self._call_listeners(formsemestre_id)
+                
                 for formsemestre_id in to_trash:
                     for (cached_formsemestre_id, cached_version) in self.pdfcache.keys():
                         if cached_formsemestre_id == formsemestre_id:
@@ -869,6 +874,24 @@ class CacheNotesTable:
             return r
         finally:
              self.release()
+
+    def add_listener(self, callback, formsemestre_id, listener_id):
+        """Add a "listener": a function called each time a formsemestre is modified"""
+        self.listeners[formsemestre_id][listener_id] = callback
+    
+    def remove_listener(self, formsemestre_id, listener_id):
+        """Remove a listener.
+        May raise exception if does not exists.
+        """
+        del self.listeners[formsemestre_id][listener_id]
+
+    def _call_listeners(self, formsemestre_id):
+        for listener_id, callback in self.listeners[formsemestre_id].items():
+            callback(listener_id)
+    
+    def _call_all_listeners(self):
+        for formsemestre_id in self.listeners:
+            self._call_listeners(formsemestre_id)
 
 #
 # Cache global: chaque instance, repérée par son URL, a un cache
