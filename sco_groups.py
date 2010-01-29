@@ -750,7 +750,9 @@ def groups_auto_repartition(context, partition_id=None, REQUEST=None):
     
     descr = [
         ('partition_id', { 'input_type' : 'hidden' }),
-        ('groupNames', { 'size' : 40, 'title' : 'Groupes à créer',
+        ('groupNames', { 'size' : 40,
+                         'title' : 'Groupes à créer', 
+                         'allow_null' : False,
                          'explanation' : "noms des groupes à former, séparés par des virgules (les groupes existants seront effacés)"})
        ]
     

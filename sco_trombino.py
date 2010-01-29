@@ -198,9 +198,6 @@ def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False
     
     msg.append('<b>%d photos correctement chargées</b>' % nok )
     args='group_id=%s' % group_id
-    if etat:
-        args += '&etat=%s' % etat            
-
     return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="trombino?%s">retour au trombinoscope</a>' % args + footer
 
 
