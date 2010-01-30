@@ -1704,7 +1704,7 @@ class CAbsSemEtud:
     
     def invalidate(self, args=None):
         "Notify me that DB has been modified"
-        log('invalidate CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
+        # log('invalidate CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
         self._loaded = False
         
 

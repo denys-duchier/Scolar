@@ -201,19 +201,19 @@ def make_formsemestre_bulletinetud(
     </a></p>
         """ % {'etudid':etudid, 'nbabs' : nbabs, 'nbabsjust' : nbabsjust } )
     # --- Decision Jury
-    situation, dpv = _etud_descr_situation_semestre(
+    infos, dpv = _etud_descr_situation_semestre(
         context, etudid, formsemestre_id,
         format=format,
+        show_date_inscr=context.get_preference('bul_show_date_inscr', formsemestre_id),
+        show_decisions=context.get_preference('bul_show_decision', formsemestre_id),
         show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
     if dpv:
         decision_sem = dpv['decisions'][0]['decision_sem']
     else:
         decision_sem = ''
-    if not context.get_preference('bul_show_decision', formsemestre_id):
-        situation = '' # hide situation
     
-    if situation:
-        H.append( """<p class="bull_situation">%s</p>""" % situation )
+    if infos['situation']:
+        H.append( """<p class="bull_situation">%(situation)s</p>""" % infos )
     
     # --- Appreciations
     # le dir. des etud peut ajouter des appreciation,
@@ -245,7 +245,6 @@ def make_formsemestre_bulletinetud(
         if context.get_preference('bul_show_abs', formsemestre_id):
             etud['nbabs'] = nbabs
             etud['nbabsjust'] = nbabsjust
-        infos = { 'DeptName' : context.get_preference('DeptName', formsemestre_id) }
         stand_alone = (format != 'pdfpart')
         filigranne = ''
         demission = ''
@@ -255,13 +254,17 @@ def make_formsemestre_bulletinetud(
         elif context.get_preference('bul_show_temporary', formsemestre_id) and not decision_sem:
             filigranne = 'Provisoire'
         diag = ''
+        infos.update( {
+            'appreciations' : [ x['date'] + ': ' + x['comment'] for x in apprecs ],
+            'situation_jury' : infos['situation'],
+            'demission' : demission,
+            'filigranne' : filigranne,            
+            } )
         try:
             PDFLOCK.acquire()
             pdfbul, diag = pdfbulletins.pdfbulletin_etud(
                 etud, sem, P, PdfStyle,
                 infos, stand_alone=stand_alone, filigranne=filigranne,
-                appreciations=[ x['date'] + ': ' + x['comment'] for x in apprecs ],
-                situation=situation, demission=demission,
                 server_name=server_name, 
                 context=context )
         finally:
@@ -453,10 +456,10 @@ def make_xml_formsemestre_bulletinetud(
         doc._pop()
     # --- Decision Jury
     if context.get_preference('bul_show_decision', formsemestre_id) or xml_with_decisions:
-        situation, dpv = _etud_descr_situation_semestre(
+        infos, dpv = _etud_descr_situation_semestre(
             context, etudid, formsemestre_id, format='xml',
             show_uevalid=context.get_preference('bul_show_uevalid',formsemestre_id))
-        doc.situation( quote_xml_attr(situation) )
+        doc.situation( quote_xml_attr(infos['situation']) )
         if dpv:
             decision = dpv['decisions'][0]
             etat = decision['etat']
@@ -521,14 +524,29 @@ def get_etud_rangs_groups(context, etudid, formsemestre_id,
 
 
 def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
-                                   format='html',
+                                   format='html', # currently unused
+                                   show_decisions=True,
                                    show_uevalid=True,
                                    show_date_inscr=True
                                   ):
-    """chaine de caractères decrivant la situation de l'étudiant
-    dans ce semestre.
-    Si format == 'html', peut inclure du balisage html"""
+    """Dict décrivant la situation de l'étudiant dans ce semestre.
+    Si format == 'html', peut inclure du balisage html (actuellement inutilisé)
+
+    situation : chaine résumant en français la situation de l'étudiant.
+                Par ex. "Inscrit le 31/12/1999. Décision jury: Validé. ..."
+    
+    date_inscription : (vide si show_date_inscr est faux)
+    date_demission   : (vide si pas demission ou si show_date_inscr est faux)
+    descr_inscription : "Inscrit" ou "Pas inscrit[e]"
+    descr_demission   : "Démission le 01/02/2000" ou vide si pas de démission
+    decision_jury     :  "Validé", "Ajourné", ... (code semestre)
+    descr_decision_jury : "Décision jury: Validé" (une phrase)
+    decisions_ue        : noms (acronymes) des UE validées, séparées par des virgules.
+    descr_decisions_ue  : ' UE acquises: UE1, UE2', ou vide si pas de dec. ou si pas show_uevalid
+    """
     cnx = context.GetDBConnexion()
+    infos = DictDefault(defaultvalue='')
+    
     # --- Situation et décisions jury
 
     # demission/inscription ?
@@ -554,22 +572,45 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
             date_dem = event['event_date']
     if show_date_inscr: 
         if not date_inscr:
-            inscr = 'Pas inscrit%s.' % ne
+            infos['date_inscription'] = ''
+            infos['descr_inscription'] = 'Pas inscrit%s.' % ne            
         else:
-            inscr = 'Inscrit%s le %s.' % (ne, date_inscr)
+            infos['date_inscription'] = date_inscr            
+            infos['descr_inscription'] = 'Inscrit%s le %s.' % (ne, date_inscr)
     else:
-        inscr = ''
-    if date_dem:
-        return inscr + ' Démission le %s.' % date_dem, None
+        infos['date_inscription'] = ''
+        infos['descr_inscription'] = ''
 
+    infos['situation'] = infos['descr_inscription']
+    if date_dem:
+        infos['descr_demission'] = 'Démission le %s.' % date_dem
+        infos['date_demission'] = date_dem
+        infos['descr_decision_jury'] = 'Démission'
+        infos['situation'] += ' ' + infos['descr_demission']
+        return infos, None # ne donne pas les dec. de jury pour les demissionnaires
+    
     dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=[etudid])
+
+    if not show_decisions:
+        return infos, dpv
+
+    # Decisions de jury:
     pv = dpv['decisions'][0]
     dec = ''
     if pv['decision_sem_descr']:
-        dec = 'Décision jury: ' + pv['decision_sem_descr'] + '. '
+        infos['decision_jury'] = pv['decision_sem_descr']
+        infos['descr_decision_jury'] = 'Décision jury: ' + pv['decision_sem_descr'] + '. ' 
+        dec = infos['descr_decision_jury']
+    
     if pv['decisions_ue_descr'] and show_uevalid:
-        dec += ' UE acquises: ' + pv['decisions_ue_descr']
-    return inscr + ' ' + dec, dpv
+        infos['decisions_ue'] = pv['decisions_ue_descr']
+        infos['descr_decisions_ue'] = ' UE acquises: ' + pv['decisions_ue_descr']
+        dec += infos['descr_decisions_ue']
+    
+    infos['situation'] += ' ' + dec
+    
+    return infos, dpv
+
 
 
 

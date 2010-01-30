@@ -137,6 +137,17 @@ class DictDefault(dict):
         self[k] = value
         return value
 
+class WrapDict:
+    """Wrap a dict so that getitem returns '' when values are None"""
+    def __init__(self, adict, NoneValue=''):
+        self.dict = adict
+        self.NoneValue = NoneValue
+    def __getitem__(self,key):
+        value = self.dict[key]
+        if value is None:
+            return self.NoneValue
+        else:
+            return value
 
 MODALITY_NAMES = DictDefault(
     kv_dict = { 'FI' : 'Formations Initiales',

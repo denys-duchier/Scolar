@@ -46,7 +46,7 @@ import traceback, re
 from notes_log import log
 import sco_groups
 
-def make_context_dict(context, sem, etud, filigranne='', situation='', demission=''):
+def make_context_dict(context, sem, etud):
     """Construit dictionnaire avec valeurs pour substitution des textes
     (preferences bul_pdf_*)
     """
@@ -60,8 +60,6 @@ def make_context_dict(context, sem, etud, filigranne='', situation='', demission
         annee = annee_debut
     C['anneesem'] = annee
     C.update(etud)
-    C['demission'] = demission
-    C['situation'] = situation
     # copie preferences
     for name in sco_preferences.PREFS_NAMES:
         C[name] = context.get_preference(name, sem['formsemestre_id'])
@@ -83,7 +81,7 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
      by <img src=".../logos/logo_header" width="xxx" height="xxx">
     """
     try:
-        text = field % cdict
+        text = field % WrapDict(cdict) # note that None values are mapped to empty strings
     except:
         log('process_field: invalid format=%s' % field)
         text = '<para><i>format invalide !<i></para><para>' + traceback.format_exc() + '</para>'    
@@ -96,6 +94,7 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
                   r'<img\1src="%s/logo_\2.jpg"\3/>' % image_dir, text)
     # nota: le match sur \w*? donne le nom du logo et interdit les .. et autres 
     # tentatives d'acceder à d'autres fichiers !
+    
     #log('field: %s' % (text))
     return makeParas(text, style, suppress_empty=suppress_empty_pars)
 
@@ -128,7 +127,7 @@ def essaipdf(REQUEST): # XXX essais...
 
 def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
                      stand_alone=True,
-                     filigranne=None, appreciations=[], situation='', demission='',
+                     filigranne=None,
                      server_name=None,
                      context=None       # required for preferences
                      ):
@@ -175,9 +174,11 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     FieldStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id)
     FieldStyle.firstLineIndent = 0
 
+    infos.update( make_context_dict(context, sem, etud) )
+    infos['situation_inscr'] = infos['situation'] # inscription actuelle de l'étudiant
+    infos['situation'] = infos['situation_jury'] # backward compatibility
+
     # --- Build doc using ReportLab's platypus
-    infos = make_context_dict(context, sem, etud, filigranne=filigranne, 
-                              situation=situation, demission=demission)
     # Title
     objects += process_field(context, context.get_preference('bul_pdf_title', formsemestre_id), 
                                  infos, FieldStyle)
@@ -198,9 +199,9 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
         else:
             objects.append( Paragraph(SU("Pas d'absences signalées."), CellStyle) )
     #
-    if appreciations:
+    if infos.get('appreciations', False):
         objects.append( Spacer(1, 3*mm) )
-        objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(appreciations)),
+        objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(infos['appreciations'])),
                                   CellStyle) )
     
     if context.get_preference('bul_show_decision', formsemestre_id):

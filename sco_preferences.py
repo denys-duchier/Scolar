@@ -557,7 +557,14 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
-    
+    ( 'bul_show_date_inscr', 
+      { 'initvalue' : 1,
+        'title' : 'Faire figurer la date d\'inscription sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
     ( 'bul_show_sig_left', 
       { 'initvalue' : 0,
         'title' : 'Faire figurer la signature de gauche (nom du directeur) sur les bulletins',
