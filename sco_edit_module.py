@@ -132,7 +132,8 @@ def module_edit(context, module_id=None, REQUEST=None):
     Fo = context.do_formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
     M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
     Mnames = [ '%s / %s' % (x['acronyme'], x['titre']) for x in M ]
-    Mids = [ x['matiere_id'] for x in M ]
+    Mids = [ '%s!%s' % (x['ue_id'], x['matiere_id']) for x in M ]
+    Mod['ue_matiere_id'] = '%s!%s' % (Mod['ue_id'], Mod['matiere_id'])
     dest_url = REQUEST.URL1 + '/ue_list?formation_id=' + Mod['formation_id']
 
     H = [ context.sco_header(REQUEST, page_title="Modification du module %(titre)s" % Mod),
@@ -154,9 +155,9 @@ def module_edit(context, module_id=None, REQUEST=None):
         ('ue_id',        { 'input_type' : 'hidden' }),
         ('module_id',    { 'input_type' : 'hidden' }),
         
-        ('matiere_id', { 'input_type' : 'menu', 'title' : 'Matière', 
-                         'explanation' : 'un module appartient à une seule matière.',
-                         'labels' : Mnames, 'allowed_values' : Mids }),
+        ('ue_matiere_id', { 'input_type' : 'menu', 'title' : 'Matière', 
+                            'explanation' : 'un module appartient à une seule matière.',
+                            'labels' : Mnames, 'allowed_values' : Mids }),
 
         ('semestre_id', { 'input_type' : 'menu', 'title' : 'Semestre', 'type' : 'int',
                           'explanation' : 'semestre de début du module dans la formation standard',
@@ -171,6 +172,8 @@ def module_edit(context, module_id=None, REQUEST=None):
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect(dest_url)
     else:
+        # l'UE peut changer
+        tf[2]['ue_id'], tf[2]['matiere_id'] = tf[2]['ue_matiere_id'].split('!')
         context.do_module_edit(tf[2])
         return REQUEST.RESPONSE.redirect(dest_url)
 
