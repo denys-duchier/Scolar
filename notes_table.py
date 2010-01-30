@@ -663,7 +663,7 @@ class NotesTable:
         for etudid in self.get_etudids():
             capital = formsemestre_get_etud_capitalisation(self.context, self.sem, etudid)
             for ue_cap in capital:
-                # Si la moyenne d'UE n'avait pas été stockée (anaciennes versions de ScoDoc)
+                # Si la moyenne d'UE n'avait pas été stockée (anciennes versions de ScoDoc)
                 # il faut la calculer ici et l'enregistrer
                 if ue_cap['moy_ue'] is None:
                     log('comp_ue_capitalisees: recomputing UE moy (etudid=%s, ue_id=%s formsemestre_id=%s)' % (etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))

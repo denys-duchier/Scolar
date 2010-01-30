@@ -150,5 +150,5 @@ def do_formation_edit(context, args):
     context._formationEditor.edit( cnx, args )
     
     # Invalide les semestres utilisant cette formation:
-    for sem in context.do_formsemestre_list(args={ 'formation_id' : formation_id } ):
+    for sem in context.do_formsemestre_list(args={ 'formation_id' : args[0]['formation_id'] } ):
         context._inval_cache(formsemestre_id=sem['formsemestre_id']) #> formation modif.     
