@@ -672,6 +672,7 @@ def partition_rename(context, partition_id, REQUEST=None):
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
                             ( ('partition_id', { 'default' : partition_id, 'input_type' : 'hidden' }),
                               ('partition_name', { 'title' : 'Nouveau nom', 'default' : partition['partition_name'],
+                                                   'allow_null' : False,
                                                    'size' : 12 })
                               ),
                             submitlabel = 'Renommer',
@@ -686,6 +687,9 @@ def partition_rename(context, partition_id, REQUEST=None):
 
 def partition_set_name(context, partition_id, partition_name, REQUEST=None, redirect=1):
     """Set partition name"""
+    partition_name = partition_name.strip()
+    if not partition_name:
+        raise ValueError("partition name must be non empty")
     partition = get_partition(context, partition_id)
     if partition['partition_name'] is None:
         raise ValueError("can't set a name to default partition")
