@@ -490,6 +490,7 @@ CREATE TABLE scolar_formsemestre_validation (
 	event_date timestamp default now(),
 	compense_formsemestre_id text, -- null sauf si compense un semestre
 	moy_ue real, -- moyenne UE capitalisee (/20, NULL si non calculee)
+	semestre_id int, -- (normalement NULL) indice du semestre, utile seulement pour UE "antérieures" et si la formation définit des UE utilisées dans plusieurs semestres (cas R&T IUTV v2)
 	UNIQUE(etudid,formsemestre_id,ue_id) -- une seule decision
 ) WITH OIDS;
 

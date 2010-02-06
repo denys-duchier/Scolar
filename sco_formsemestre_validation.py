@@ -762,7 +762,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
            % (context.ScoURL(), etudid,    
               sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST))),
           '''<p class="help">Utiliser cette page pour enregistrer une UE validée antérieurement, 
-    <em>dans un semestres hors ScoDoc</em>. Les UE validées dans ScoDoc sont déjà
+    <em>dans un semestre hors ScoDoc</em>. Les UE validées dans ScoDoc sont déjà
     automatiquement prises en compte. Cette page n'est utile que pour les étudiants ayant 
     suivi un début de cursus dans un autre établissement, ou dans un semestre géré sans 
     ScoDoc.</p>''',
@@ -781,6 +781,12 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
                         'allow_null' : False,
                         'allowed_values': ue_ids,
                         'labels' : ue_names }),
+            ('semestre_id', { 'input_type' : 'menu',
+                              'title' : 'Indice du semestre',
+                              'explanation' : 'Facultatif: indice du semestre dans la formation',
+                              'allow_null' : True,
+                              'allowed_values': [''] + [ str(x) for x in range(11) ],
+                              'labels' : ['-']+range(11) }),
             ('date', { 'input_type' : 'date', 'size' : 9, 'explanation' : 'j/m/a',
                        'default' : time.strftime('%d/%m/%Y')}),
             ('moy_ue', { 'type' : 'float', 
@@ -794,20 +800,26 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
                            )
     if tf[0] == 0:
         X = """
-           <div id="ue_list_etud_validations"></div>
-           <div id="ue_list_code"></div>
+           <div id="ue_list_etud_validations"><!-- filled by get_etud_ue_cap_html --></div>
+           <div id="ue_list_code"><!-- filled by ue_sharing_code --></div>
         """
         warn, ue_multiples = check_formation_ues(context, Fo['formation_id'])
         return '\n'.join(H) + tf[1] + X + warn + context.sco_footer(REQUEST)
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( context.ScoURL()+'/Notes/formsemestre_status?formsemestre_id='+formsemestre_id )
     else:
+        if tf[2]['semestre_id']:
+            semestre_id = int(tf[2]['semestre_id'])
+        else:
+            semestre_id = None
         do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, 
                                              tf[2]['ue_id'], tf[2]['moy_ue'], tf[2]['date'],
+                                             semestre_id=semestre_id,
                                              REQUEST=REQUEST)
         return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&head_message=Validation%%20d'UE%%20enregistree" % (formsemestre_id, etudid))
-    
+
 def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id, moy_ue, date,
+                                         semestre_id=None,
                                          REQUEST=None):
     """Enregistre validation d'UE"""
     sem = context.get_formsemestre(formsemestre_id)
@@ -815,7 +827,7 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id ) #> get_etud_ue_status
 
     sco_parcours_dut.do_formsemestre_validate_ue(
-        cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date)
+        cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date, semestre_id=semestre_id)
 
     logdb(REQUEST, cnx, method='formsemestre_validate_previous_ue',
           etudid=etudid, msg='Validation UE %s' % ue_id)
@@ -848,6 +860,8 @@ def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
             valid['s'] = ', du semestre %s' % sem['titreannee']
         else:
             valid['s'] = " enregistrée d'un parcours antérieur (hors ScoDoc)"
+        if valid['semestre_id']:
+            valid['s'] += ' (<b>S%d</b>)' % valid['semestre_id']
         valid['ds'] = formsemestre_id
         H.append('<li>%(code)s%(m)s%(s)s, le %(event_date)s  <a class="stdlink" href="etud_ue_suppress_validation?etudid=%(etudid)s&ue_id=%(ue_id)s&formsemestre_id=%(ds)s" title="supprime cette validation">effacer</a></li>' % valid )
     H.append('</ul></div>')
@@ -888,7 +902,10 @@ def check_formation_ues(context, formation_id):
     H = [ """<div class="ue_warning"><span>Attention:</span> les UE suivantes de cette formation 
         sont utilisées dans des
         semestres de rangs différents (eg S1 et S3). <br/>Cela peut engendrer des problèmes pour 
-        la capitalisation des UE. Il serait préférable d'essayer de rectifier cette situation.
+        la capitalisation des UE. Il serait préférable d'essayer de rectifier cette situation: 
+        soit modifier le programme de la formation (définir des UE dans chaque semestre), 
+        soit veiller à saisir le bon indice de semestre dans le menu lors de la validation d'une
+        UE extérieure.
         <ul>
         """ ]
     for ue in ues:

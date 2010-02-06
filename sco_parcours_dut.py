@@ -468,7 +468,7 @@ _scolar_formsemestre_validation_editor = EditableTable(
     'scolar_formsemestre_validation',
     'formsemestre_validation_id',
     ('formsemestre_validation_id', 'etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
-     'compense_formsemestre_id', 'moy_ue' ),
+     'compense_formsemestre_id', 'moy_ue', 'semestre_id' ),
     output_formators = { 'event_date' : DateISOtoDMY,
                          'assidu' : str },
     input_formators  = { 'event_date' : DateDMYtoISO,
@@ -576,17 +576,23 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
                   msg='ue_id=%s code=%s'%(ue_id, code_ue))
 
             
-def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None):
+def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None, semestre_id=None):
     "Ajoute ou change validation UE"
-    args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'ue_id' : ue_id }
+    args = { 'formsemestre_id' : formsemestre_id, 
+             'etudid' : etudid, 
+             'ue_id' : ue_id, 
+             'semestre_id' : semestre_id }
     if date:
         args['event_date'] = date
+        
     # delete existing
     cursor = cnx.cursor()
     try:
         cond =  "etudid = %(etudid)s and ue_id=%(ue_id)s"
         if formsemestre_id:
             cond += " and formsemestre_id=%(formsemestre_id)s"
+        if semestre_id:
+            cond += " and semestre_id=%(semestre_id)s"
         cursor.execute("delete from scolar_formsemestre_validation where " + cond, args )
         # insert
         args['code'] = code
@@ -648,7 +654,10 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
     and (  (sem.formsemestre_id = SFV.formsemestre_id
            and sem.date_debut < %(date_debut)s
            and sem.semestre_id = %(semestre_id)s )
-         or (SFV.formsemestre_id is NULL) )
+         or (
+             (SFV.formsemestre_id is NULL) 
+             AND (SFV.semestre_id is NULL OR SFV.semestre_id=%(semestre_id)s)
+           ) )
     """, { 'etudid' : etudid,
            'formation_id' : sem['formation_id'],
            'semestre_id' : sem['semestre_id'],

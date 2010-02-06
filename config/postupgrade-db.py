@@ -18,7 +18,11 @@ from scodocutils import *
 
 for dept in get_depts():
     log('\nChecking database for dept %s' % dept)
-    cnx = psycopg.connect( get_dept_cnx_str(dept) )
+    try:
+        cnx = psycopg.connect( get_dept_cnx_str(dept) )
+    except:
+        log('\n*** Error: departement %s not upgraded ! ***\n' % dept)
+        continue
     cursor = cnx.cursor()
     # Apply upgrades:
     
@@ -271,6 +275,9 @@ for dept in get_depts():
     # Add user-defined expressions
     check_field(cnx, 'notes_moduleimpl', 'computation_expr',
                 ['alter table notes_moduleimpl add column computation_expr text'])
+    # Add semestre_id to scolar_formsemestre_validation
+    check_field(cnx, 'scolar_formsemestre_validation', 'semestre_id',
+                ['alter table scolar_formsemestre_validation add column semestre_id int'])
     
     # Add here actions to performs after upgrades:
 
