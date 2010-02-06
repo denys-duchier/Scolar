@@ -54,7 +54,13 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     isFile = tabformat in ('csv','xls','xml')
     H = []
     if not isFile:
-        H += [ context.sco_header(REQUEST, page_title='Récapitulatif', no_side_bar=True),
+        H += [ context.sco_header(REQUEST, 
+                                  page_title='Récapitulatif', 
+                                  no_side_bar=True,
+                                  javascripts=['jQuery/jquery.js', 
+                                               'libjs/qtip/jquery.qtip.js',
+                                               'js/etud_info.js']
+                                  ),
                sco_formsemestre_status.formsemestre_status_head(
                 context, formsemestre_id=formsemestre_id, REQUEST=REQUEST),
                  '<form name="f" method="get" action="%s">' % REQUEST.URL0,
@@ -353,7 +359,7 @@ def make_formsemestre_recapcomplet(
         if disable_etudlink:
             etudlink = '%(name)s'
         else:
-            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals" title="%(nomprenom)s">%(name)s</a>'
+            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals" id="%(etudid)s" class="etudinfo">%(name)s</a>'
         ir = 0
         nblines = len(F)-1
         for l in F[1:]:

@@ -334,3 +334,24 @@ def menus_etud(context, REQUEST=None):
         ]
        
     return makeMenu( 'Etudiant', menuEtud, base_url=context.absolute_url() + '/')
+
+
+def etud_info_html(context, etudid, REQUEST=None, debug=False):
+    """An HTML div with basic information and links about this etud.
+    Used for popups information windows.
+    """
+    etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
+    photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
+    etud['photo_html'] = photo_html
+    H = """<div class="etud_info_div">
+    <div class="eid_left">
+    <span class="eid_nom">%(nomprenom)s</span>
+    </div>
+    <span class="eid_right">
+    %(photo_html)s
+    </span>
+    </div>""" % etud
+    if debug:
+        return context.standard_html_header(context) + H + context.standard_html_footer(context)
+    else:
+        return H

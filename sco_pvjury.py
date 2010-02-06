@@ -226,6 +226,7 @@ def pvjury_table(znotes, dpv):
         l = { 'etudid' : e['identite']['etudid'],
               'nomprenom' : znotes.nomprenom(e['identite']),
               '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (znotes.ScoURL(),e['identite']['etudid']),
+              '_nomprenom_td_attrs' : 'id="%s" class="etudinfo"' % e['identite']['etudid'],
               'decision' : descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
               'ue_cap' : e['decisions_ue_descr'],
               'devenir' : e['autorisations_descr'],
@@ -240,13 +241,12 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
     """Page récapitulant les décisions de jury
     dpv: result of dict_pvjury
     """
-    header = context.sco_header(REQUEST)
     footer = context.sco_footer(REQUEST)
     
     dpv = dict_pvjury(context, formsemestre_id, with_prev=True)
     if not dpv:
         if format == 'html':
-            return header + '<h2>Aucune information disponible !</h2>' + footer
+            return context.sco_header(REQUEST) + '<h2>Aucune information disponible !</h2>' + footer
         else:
             return None
     sem = dpv['formsemestre']
@@ -269,7 +269,12 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
         return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST, publish=publish)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     H = [ context.html_sem_header(
-            REQUEST, 'Décisions du jury pour le semestre', sem),
+            REQUEST, 'Décisions du jury pour le semestre', sem,
+            javascripts=['jQuery/jquery.js', 
+                         'libjs/qtip/jquery.qtip.js',
+                         'js/etud_info.js'
+                         ],                
+            ),
           """<p>(dernière modif le %s)</p>""" % dpv['date'] ]
     
     H.append('<ul><li><a class="stdlink" href="formsemestre_lettres_individuelles?formsemestre_id=%s">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)

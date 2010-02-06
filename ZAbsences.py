@@ -1070,6 +1070,7 @@ class ZAbsences(ObjectManager,
                         'nomprenom' : etud['nomprenom'],
                         'nbabsjust' : nbabsjust, 'nbabsnonjust' : nbabs-nbabsjust, 'nbabs' : nbabs,
                         '_nomprenom_target' : 'CalAbs?etudid=%s' % etud['etudid'],
+                        '_nomprenom_td_attrs' : 'id="%s" class="etudinfo"' % etud['etudid'],
                         } )
             if s['ins']['etat'] == 'D':
                 T[-1]['_css_row_class'] = 'etuddem'
@@ -1088,8 +1089,12 @@ class ZAbsences(ObjectManager,
                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
                        html_sortable=True,
                        html_class='gt_table table_leftalign',
-                       html_header=self.sco_header(REQUEST, page_title=title, init_jquery_ui=True),
-
+                       html_header=self.sco_header(REQUEST, 
+                                                   page_title=title, 
+                                                   init_jquery_ui=True,
+                                                   javascripts=['libjs/qtip/jquery.qtip.js',
+                                                                'js/etud_info.js'
+                                                                ]),
                        html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
                                                                 with_page_header=False) 
                        +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),

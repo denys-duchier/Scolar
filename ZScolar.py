@@ -871,6 +871,8 @@ class ZScolar(ObjectManager,
                 etud['_email_target'] = ''
             etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
             etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+
+            etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
             
             if etud['etat'] == 'D':                
                 etud['_css_row_class'] = 'etuddem'
@@ -902,7 +904,12 @@ class ZScolar(ObjectManager,
                     htitle = 'Les %d étudiants inscrits' % len(members)
             else:
                 htitle = 'Aucun étudiant'
-            H = [ self.Notes.html_sem_header(REQUEST, htitle, sem),
+            H = [ self.Notes.html_sem_header(REQUEST, htitle, sem,
+                                             javascripts=['jQuery/jquery.js', 
+                                                          'libjs/qtip/jquery.qtip.js',
+                                                          'js/etud_info.js'
+                                                          ],                   
+                                             ),
                   tab.html(),
                   """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
                   % base_url,
@@ -1536,6 +1543,9 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoView, 'partition_create')
     partition_create = sco_groups.partition_create
+
+    security.declareProtected(ScoView, 'etud_info_html')
+    etud_info_html = sco_page_etud.etud_info_html
     
     # --- Gestion des photos:
     security.declareProtected(ScoView, 'etud_photo_html')
