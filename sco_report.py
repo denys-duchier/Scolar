@@ -35,6 +35,7 @@ from notes_log import log
 from gen_tables import GenTable
 import sco_excel, sco_pdf
 import sco_codes_parcours
+from sco_codes_parcours import code_semestre_validant
 from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
 import tempfile, urllib, re
@@ -324,7 +325,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem
             for etudid in s['members']:
                 dec = nt.get_etud_decision_sem(etudid)
-                if dec and dec['code'] == 'ADM':
+                if dec and code_semestre_validant(dec['code']):
                     nb_dipl += 1
         s['nb_dipl'] = nb_dipl
     
@@ -663,7 +664,7 @@ def _codeparcoursetud(context, etud):
                 dec = nt.get_etud_decision_sem(etud['etudid'])
                 if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
                     p.append(':R')
-                if dec and s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec['code'] == 'ADM':
+                if dec and s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and code_semestre_validant(dec['code']):
                     p.append(':A')
         i -= 1
     return ''.join(p)
@@ -748,7 +749,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem, get_etud_etat
             dec = nt.get_etud_decision_sem(etudid)
             if next:
-                if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec and dec['code'] == 'ADM'and nt.get_etud_etat(etudid) == 'I':
+                if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
                     # cas particulier du diplome puis poursuite etude
                     edges[('_dipl_'+s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
                 else:
@@ -772,7 +773,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
                 edges[(s['formsemestre_id'], nid)].add(etudid)
             # si "terminal", ajoute noeud pour diplomes
             if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:                
-                if dec and dec['code'] == 'ADM'and nt.get_etud_etat(etudid) == 'I':
+                if dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
                     nid = '_dipl_'+s['formsemestre_id']
                     edges[(s['formsemestre_id'], nid)].add(etudid)
                     diploma_nodes.append(nid)
