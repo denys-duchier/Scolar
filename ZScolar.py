@@ -1086,6 +1086,7 @@ class ZScolar(ObjectManager,
                 target = dest_url + '?etudid=%s&' % e['etudid'] + query_string
                 e['_nomprenom_target'] = target
                 e['inscription_target'] = target
+                e['_nomprenom_td_attrs'] = 'id="%s" class="etudinfo"' % (e['etudid'])
                 sco_groups.etud_add_group_infos(self, e, e['cursem'])
 
             tab = GenTable( columns_ids=('nomprenom', 'inscription', 'groupes'),
@@ -1107,7 +1108,13 @@ class ZScolar(ObjectManager,
             no_side_bar = False
         H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'étudiant</p>""")
         if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', no_side_bar=no_side_bar) + '\n'.join(H) + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', 
+                                   javascripts=['jQuery/jquery.js', 
+                                                'libjs/qtip/jquery.qtip.js',
+                                                'js/etud_info.js'
+                                                ],       
+                                   no_side_bar=no_side_bar
+                                   ) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
             return '\n'.join(H)
     

@@ -56,7 +56,10 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     # -- check lock
     if sem['etat'] != '1':
         raise ScoValueError('opération impossible: semestre verrouille')
-    header = context.sco_header(REQUEST, page_title='Inscription au module')
+    header = context.sco_header(REQUEST, page_title='Inscription au module',
+                                javascripts=['jQuery/jquery.js', 
+                                             'libjs/qtip/jquery.qtip.js',
+                                             'js/etud_info.js'])
     footer = context.sco_footer(REQUEST)
     H = [header, """<h2>Inscriptions au module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a> (%s)</a></h2>
     <p class="help">Cette page permet d'éditer les étudiants inscrits à ce module
@@ -119,8 +122,8 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
                 checked = ''
             H.append("""<tr><td><input type="checkbox" name="etuds:list" value="%s" %s>"""
                              % (etud['etudid'], checked) )
-            H.append("""<a class="discretelink" href="ficheEtud?etudid=%s">%s</a>""" % (
-                        etud['etudid'], etud['nomprenom'] ))
+            H.append("""<a class="discretelink etudinfo" href="ficheEtud?etudid=%s" id="%s">%s</a>""" % (
+                        etud['etudid'], etud['etudid'], etud['nomprenom'] ))
             H.append("""</input></td>""")
             
             groups = sco_groups.get_etud_groups(context, etud['etudid'], sem)

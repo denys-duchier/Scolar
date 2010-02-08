@@ -607,6 +607,8 @@ class ZAbsences(ObjectManager,
         Efface les absences aux dates indiquées par dates, et ajoute
         celles de abslist.
         """
+        if not etudids or not dates:
+            raise ScoValueError('paramètres manquants')
         etudids = etudids.split(',')
         dates = dates.split(',')
         H = [ self.sco_header(REQUEST,page_title='Absences') ]
