@@ -144,7 +144,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     for sem in info['sems']: 
         if sem['ins']['etat'] == 'D':
             descr, junk = _etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
-            grlink = '<span class="fontred">%s</span>' % descr
+            grlink = '<span class="fontred">%s</span>' % descr['situation']
         else:       
             group = sco_groups.get_etud_main_group(context, etudid, sem)
             if group['partition_name']:

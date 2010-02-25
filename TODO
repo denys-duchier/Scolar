@@ -1,6 +1,11 @@
 
   NOTES EN VRAC : voir plutôt le Trac !!!
 
+* Bulletins:
+
+
+
+
 * Optim:
 porcodeb4, avant memorisation des moy_ue:
 S1 SEM14133 cold start: min 9s, max 12s, avg > 11s
@@ -8,7 +13,7 @@ S1 SEM14133 cold start: min 9s, max 12s, avg > 11s
             inval (add abs) : min8s, max 12s (recalcule tout :-()
 LP SEM14946 cold start: 0.7s - 0.86s
 
-* Numerotation des evaluations (pidee abandonnée: on tri par date seulement)
+* Numerotation des evaluations (idee abandonnée: on tri par date seulement)
         if has_expression:
             H.append('&nbsp;%02d' % eval['numero_expr'])
             if ie != 0 and caneditevals:

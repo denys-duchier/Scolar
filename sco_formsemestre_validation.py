@@ -98,8 +98,11 @@ def formsemestre_validation_etud_form(
     H.append('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
              % (context.ScoURL(), etudid,    
                 sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST)))
+
+    if nt.get_etud_etat(etudid) == 'D':
+        H.append('<div class="ue_warning"><span>Etudiant démissionnaire</span></div>')
     
-    H.append( formsemestre_recap_parcours_table(context, Se, etudid, check and not readonly) )
+    H.append( formsemestre_recap_parcours_table(context, Se, etudid, with_links=(check and not readonly)) )
     if check:
         if not desturl:
             desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id='+formsemestre_id
@@ -228,7 +231,7 @@ def formsemestre_validation_etud_form(
         H.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud['nomprenom']) )
     H.append('</p>')
     H.append(context.sco_footer(REQUEST))
-    return '\n'.join(H)
+    return ''.join(H)
 
 def formsemestre_validation_etud(
     context, # ZNotes instance
@@ -447,7 +450,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         if sem['etat'] != '1': # locked
             lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
             default_sem_info += lockicon
-        H.append('<td class="datefin">%s</td><td>%s</td>'
+        H.append('<td class="datefin">%s</td><td class="sem_info">%s</td>'
                  % (sem['mois_fin'], 
                     sem_info.get(sem['formsemestre_id'], default_sem_info)))
         # Moy Gen (sous le code decision)
