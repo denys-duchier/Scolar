@@ -768,7 +768,11 @@ class ZAbsences(ObjectManager,
             gr_tit = 'en'
         
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
-                              no_side_bar=1,REQUEST=REQUEST),
+                              init_jquery_ui=True,
+                              javascripts=['libjs/qtip/jquery.qtip.js',
+                                           'js/etud_info.js'
+                                           ],
+                              no_side_bar=1, REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
               <h2>Saisie des absences %s %s, 
               <span class="fontred">semaine du lundi %s</span></h2>
@@ -833,7 +837,11 @@ class ZAbsences(ObjectManager,
             gr_tit = 'en'
         
         H = [ self.sco_header(page_title='Saisie des absences',
-                              no_side_bar=1,REQUEST=REQUEST),
+                              init_jquery_ui=True,
+                              javascripts=['libjs/qtip/jquery.qtip.js',
+                                           'js/etud_info.js'
+                                           ],
+                              no_side_bar=1, REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
               <h2>Saisie des absences %s %s, 
               les <span class="fontred">%s</span></h2>
@@ -895,8 +903,8 @@ class ZAbsences(ObjectManager,
             
             bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
             matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
-            H.append('<tr %s><td><b><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
-                     % (bgcolor, etudid, etud['nomprenom'], capstr))
+            H.append('<tr %s><td><b class="etudinfo" id="%s"><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
+                     % (bgcolor, etudid, etudid, etud['nomprenom'], capstr))
             for date in dates:
                 # matin
                 if self.CountAbs( etudid, date, date, True):
