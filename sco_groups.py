@@ -42,6 +42,7 @@ Optimisation possible:
 """
 
 import re, sets
+import operator
 # XML generation package (apt-get install jaxml)
 import jaxml
 import xml.dom.minidom
@@ -152,8 +153,12 @@ def get_group_members(context, group_id, etat=None):
     req = "SELECT i.*, a.*, gm.*, ins.etat FROM identite i, adresse a, group_membership gm, group_descr gd, partition p, notes_formsemestre_inscription ins WHERE i.etudid = gm.etudid and a.etudid = i.etudid and ins.etudid = i.etudid and ins.formsemestre_id = p.formsemestre_id and p.partition_id = gd.partition_id and gd.group_id = gm.group_id and gm.group_id=%(group_id)s"
     if etat is not None:
         req += " and ins.etat = %(etat)s"
-    req +=  " ORDER BY i.nom"
-    return SimpleDictFetch(context, req, { 'group_id' : group_id, 'etat' : etat} )
+    
+    r = SimpleDictFetch(context, req, { 'group_id' : group_id, 'etat' : etat} )
+
+    r.sort(key=operator.itemgetter('nom'))
+    
+    return r
 
 def get_group_infos(context, group_id, etat=None): # was _getlisteetud
     """legacy code: used by  listegroupe and trombino
@@ -866,7 +871,7 @@ def do_evaluation_listeetuds_groups(context, evaluation_id, groups=None,
         r = ''        
 
     # requete complete
-    req = "SELECT distinct Im.etudid from " + ', '.join(fromtables) + " WHERE Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and Isem.formsemestre_id=M.formsemestre_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
+    req = "SELECT distinct Im.etudid FROM " + ', '.join(fromtables) + " WHERE Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and Isem.formsemestre_id=M.formsemestre_id and E.moduleimpl_id=M.moduleimpl_id and E.evaluation_id = %(evaluation_id)s"
     if not include_dems:
         req += " and Isem.etat='I'"
     req += r

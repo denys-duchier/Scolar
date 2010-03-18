@@ -41,6 +41,12 @@ if [ ! -z "$SVERSION" ]; then
   echo "${SVERSION}" > "${SCODOC_DIR}"/config/scodoc.sn
 fi
 
+# Check that no Zope "access" file has been forgotten in the way:
+if [ -e $SCODOC_DIR/../../access ]
+then
+  mv $SCODOC_DIR/../../access $SCODOC_DIR/../../access.bak
+fi
+
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z "$SCODOC_UPGRADE_RUNNING" ]
 then
