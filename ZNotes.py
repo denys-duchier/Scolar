@@ -1332,7 +1332,10 @@ class ZNotes(ObjectManager,
         # -- check lock
         sem = self.get_formsemestre(M['formsemestre_id'])
         if sem['etat'] != '1':
-            raise ScoValueError('Modification impossible: semestre verrouille')
+            if raise_exc:
+                raise ScoValueError('Modification impossible: semestre verrouille')
+            else:
+                return False
         # -- check access
         authuser = REQUEST.AUTHENTICATED_USER
         uid = str(authuser)
