@@ -48,6 +48,7 @@ Opérations:
 from mx.DateTime import TimeDelta, DateTime
 
 from sco_utils import *
+from notesdb import *
 from notes_log import log
 from gen_tables import GenTable
 from intervals import intervalmap
@@ -140,3 +141,25 @@ def evaluation_list_operations(context, REQUEST, evaluation_id):
                     )
     return tab.make_page(context, REQUEST=REQUEST)
                     
+
+def formsemestre_list_saisies_notes(context, formsemestre_id, format='html', REQUEST=None):
+    """Table listant toutes les operations de saisies de notes, dans toutes les evaluations du semestre."""
+    sem = context.Notes.get_formsemestre(formsemestre_id)
+    r = SimpleDictFetch(
+        context, 
+        """select i.nom, n.*, mod.titre, e.description from notes_notes n, notes_evaluation e, notes_moduleimpl m, notes_modules mod, identite i where m.moduleimpl_id = e.moduleimpl_id and m.module_id = mod.module_id and e.evaluation_id=n.evaluation_id and i.etudid=n.etudid and m.formsemestre_id=%(formsemestre_id)s order by date desc""",
+        { 'formsemestre_id' : formsemestre_id,
+          } )
+    columns_ids=('date', 'nom', 'value', 'uid', 'titre', 'description', 'comment')
+    titles = { 'nom' : 'Etudiant', 'date':'Date', 'value' : 'Note', 'comment' : 'Remarque', 'uid' : 'Enseignant', 
+               'titre' : 'Module', 'description' : 'Evaluation' }
+    tab = GenTable( titles=titles, columns_ids=columns_ids, rows=r,
+                    html_title="<h2>Saisies de notes dans %s</h2>" % sem['titreannee'],
+                    html_class='gt_table table_leftalign table_coldate',
+                    html_sortable=True,
+                    caption='Saisies de notes dans %s' % sem['titreannee'],
+                    preferences=context.get_preferences(formsemestre_id),
+                    base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
+                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+                    )
+    return tab.make_page(context, format=format, REQUEST=REQUEST)

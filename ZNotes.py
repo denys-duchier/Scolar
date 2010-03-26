@@ -251,7 +251,10 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_bulletinetud')
     formsemestre_bulletinetud = sco_bulletins.formsemestre_bulletinetud
-    
+
+    security.declareProtected(ScoView, 'formsemestre_list_saisies_notes')
+    formsemestre_list_saisies_notes = sco_undo_notes.formsemestre_list_saisies_notes
+
     security.declareProtected(ScoChangeFormation, 'ue_create')
     ue_create = sco_edit_ue.ue_create
     security.declareProtected(ScoChangeFormation, 'ue_delete')

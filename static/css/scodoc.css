@@ -1590,6 +1590,11 @@ table.table_cohorte tr.sortbottom {
 table.table_leftalign tr td {  
   text-align: left;
 }
+table.table_coldate tr td:first-child { /* largeur col. date/time */
+  width: 12em;
+  color: rgb(0%,0%,50%);
+}
+
 
 table.table_listegroupe tr td { 
   padding-left: 0.5em;
