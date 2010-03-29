@@ -91,13 +91,20 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     var nb_inputs_to_skip = 2; // nb d'input avant les checkbox !!!
     var elems = document.getElementById("mi_form").getElementsByTagName("input");
 
-    for (var i =nb_inputs_to_skip; i < elems.length; i++) {
-      var cells = elems[i].parentNode.parentNode.getElementsByTagName("td")[partitionIdx].childNodes;
-      if (cells.length && cells[0].nodeValue == groupName) {
+    if (partitionIdx==-1) {
+      for (var i =nb_inputs_to_skip; i < elems.length; i++) {
          elems[i].checked=check;
-      }      
+      }
+    } else {
+     for (var i =nb_inputs_to_skip; i < elems.length; i++) {
+       var cells = elems[i].parentNode.parentNode.getElementsByTagName("td")[partitionIdx].childNodes;
+       if (cells.length && cells[0].nodeValue == groupName) {
+          elems[i].checked=check;
+       }      
+     }
     }
     }
+
     </script>""")
         H.append("""<form method="post" id="mi_form" action="%s">"""%REQUEST.URL0)
         H.append("""        
@@ -105,8 +112,9 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
         <input type="submit" name="submitted" value="Appliquer les modifications"/><p></p>
         """ % M )
         H.append(_make_menu(context, partitions, 'Ajouter', 'true'))
-        H.append(_make_menu(context, partitions, 'Enlever', 'false'))        
-        H.append("""<p><br/></p>
+        H.append(_make_menu(context, partitions, 'Enlever', 'false'))            
+        H.append("""
+        <p><br/></p>
         <table class="sortable" id="mi_table"><tr>
         <th>Nom</th>""" % sem)
         for partition in partitions:
@@ -151,7 +159,8 @@ def _make_menu(context, partitions, title='', check='true'):
     H = [ """<div class="barrenav"><ul class="nav">
     <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu custommenu">%s</a><ul>""" % title
           ]
-    
+    # 'tous'
+    H.append("""<li><a href="#" onclick="group_select('', -1, %s)">Tous</a></li>""" % (check))
     p_idx = 0
     for partition in partitions:
         if partition['partition_name'] != None:

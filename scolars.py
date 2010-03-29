@@ -90,7 +90,7 @@ def normalize_sexe(sexe):
     sexe = sexe.upper().strip()
     if sexe in ('M.', 'M', 'MR'):
         return 'MR'
-    elif sexe in ('MLLE', 'MLLE.', 'MME', 'F'):
+    elif sexe in ('MLLE', 'MLLE.', 'MELLE', 'MME', 'F'):
         return 'MLLE'
     raise ValueError('valeur invalide pour le sexe: %s' % sexe)
     
