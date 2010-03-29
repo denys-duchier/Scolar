@@ -13,7 +13,12 @@
 #
 # E. Viennet, 2002
 
-
+# Installation:
+# 1- Installer rsync:
+#     apt-get install rsync
+# 2- mettre en place un job cron:
+#     par exemple copier ce script dans /etc/cron.daily/
+#    (et le rendre executable avec chmod +x ...)
 
 # -------------------- CONFIGURATION A ADAPTER
 
