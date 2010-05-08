@@ -71,6 +71,12 @@ def make_context_dict(context, sem, etud):
     for partition_id in etud['partitions']:
         C['group_%d' % n] = etud['partitions'][partition_id]['group_name']
         n += 1
+
+    # ajoute date
+    t = time.localtime()
+    C['date_dmy'] = time.strftime("%d/%m/%Y",t)
+    C['date_iso'] = time.strftime("%Y-%m-%d",t)
+    
     return C
 
 def process_field(context, field, cdict, style, suppress_empty_pars=False):
