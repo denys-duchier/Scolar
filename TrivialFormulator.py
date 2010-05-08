@@ -225,7 +225,7 @@ class TF:
                         ok = 0
                     
                     if descr.has_key('max_value') and val > descr['max_value']:
-                        msg.append("La valeur (%d) du champ '%s' est trop grande (max=%s)"
+                        msg.append("La valeur (%s) du champ '%s' est trop grande (max=%s)"
                                    % (val,field,descr['max_value']))
                         ok = 0
 

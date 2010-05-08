@@ -250,18 +250,20 @@ class ZEntreprises(ObjectManager,
         # --- entreprise selectionnée:
         if REQUEST.form.has_key('entreprise_id'):
             entreprise_id = REQUEST.form['entreprise_id']
-            E = context.do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )[0]
-            params.update(E)
-            H.append("""<div class="entreprise-insidebar">
-  <h3 class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_edit?entreprise_id=%(entreprise_id)s" class="sidebar">%(nom)s</a></h2>
-  <ul class="insidebar">
-  <li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_list?entreprise_id=%(entreprise_id)s" class="sidebar">Corresp.</a></li>""" % params ) # """
-            if not REQUEST['_read_only']:
-                H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau Corresp.</a></li>""" % params )
-            H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_list?entreprise_id=%(entreprise_id)s" class="sidebar">Contacts</a></li>""" % params )
-            if not REQUEST['_read_only']:
-                H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau "contact"</a></li>""" % params )
-            H.append('</ul></div>')
+            E = context.do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )
+            if E:
+                E = E[0]
+                params.update(E)
+                H.append("""<div class="entreprise-insidebar">
+      <h3 class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_edit?entreprise_id=%(entreprise_id)s" class="sidebar">%(nom)s</a></h2>
+      <ul class="insidebar">
+      <li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_list?entreprise_id=%(entreprise_id)s" class="sidebar">Corresp.</a></li>""" % params ) # """
+                if not REQUEST['_read_only']:
+                    H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_correspondant_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau Corresp.</a></li>""" % params )
+                H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_list?entreprise_id=%(entreprise_id)s" class="sidebar">Contacts</a></li>""" % params )
+                if not REQUEST['_read_only']:
+                    H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_create?entreprise_id=%(entreprise_id)s" class="sidebar">Nouveau "contact"</a></li>""" % params )
+                H.append('</ul></div>')
 
         #
         H.append("""<br/><br/>%s""" % context.icons.entreprise_side_img.tag() )
