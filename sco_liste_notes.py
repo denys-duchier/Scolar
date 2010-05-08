@@ -96,9 +96,13 @@ def do_evaluation_listenotes(context, REQUEST):
                'allowed_values' : grnams, 'labels' : grlabs,
                'attributes' : ('onclick="document.tf.submit();"',) }) ]
     else:
+        if grnams:
+            def_nam = grnams[0]
+        else:
+            def_nam = ''
         descr += [
             ('group_ids',
-             { 'input_type' : 'hidden', 'type' : 'list', 'default' : [grnams[0]] }) ]
+             { 'input_type' : 'hidden', 'type' : 'list', 'default' : [def_nam] }) ]
     descr += [
         ('anonymous_listing',
          { 'input_type' : 'checkbox', 'title':'',

@@ -698,6 +698,11 @@ def partition_set_name(context, partition_id, partition_name, REQUEST=None, redi
     partition = get_partition(context, partition_id)
     if partition['partition_name'] is None:
         raise ValueError("can't set a name to default partition")
+    # check unicity
+    r = SimpleDictFetch(context, 'SELECT p.* FROM partition p WHERE p.partition_name = %(partition_name)s AND formsemestre_id = %(formsemestre_id)s', 
+                        {'partition_name' : partition_name, 'formsemestre_id' : formsemestre_id })
+    if len(r) > 1 or (len(r)==1 and r[0]['partition_id'] != partition_id):
+        raise ScoValueError("Partition %s déjà existante dans ce semestre !" % partition_name)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
         raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
