@@ -39,6 +39,7 @@ ATB='ATB'
 AJ ='AJ'
 CMP='CMP' # utile pour UE seulement
 NAR='NAR'
+RAT='RAT' # en attente rattrapage, pas dans Apogée
 
 # codes actions
 REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
@@ -60,7 +61,8 @@ CODES_EXPL = {
     ATB : 'Décision en attente du semestre suivant (une UE n\'atteint pas la barre)',
     ATJ : 'Décision en attente du semestre suivant (assiduité insuffisante)',
     AJ  : 'Ajourné (échec)',
-    NAR : 'Echec, non autorisé à redoubler'
+    NAR : 'Echec, non autorisé à redoubler',
+    RAT : "En attente d'un rattrapage",
     }
 
 CODES_SEM_VALIDES = { 'ADM' : True, 'ADC' : True, 'ADJ' : True } # semestre validé
