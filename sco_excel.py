@@ -45,7 +45,8 @@ COLOR_CODES = { 'black' : 0,
                 'mauve' : 0x19,
                 'marron' : 0x3c,
                 'blue' : 0x4,
-                'orange' : 0x34
+                'orange' : 0x34,
+                'lightyellow' : 0x2b,
                 }
 
 
@@ -127,12 +128,89 @@ def xldate_as_datetime(xldate, datemode=0):
 #         doc = XlsDocWithSave()
 #         return doc.savetostr(self.get_biff_data())
 
-# ------ Export simple type 'CSV': 1ere ligne en gras, le reste tel quel
+
+def Excel_MakeStyle( bold=False, color='black', bgcolor=None, halign=None, valign=None ):
+    style = XFStyle()
+    font = Font()
+    if bold:
+        font.bold = bold
+    font.name = 'Arial'                    
+    colour_index = COLOR_CODES.get(color, None)    
+    if colour_index:
+        font.colour_index = colour_index
+    if bgcolor:
+        style.pattern = Pattern()
+        style.pattern.pattern = Pattern.SOLID_PATTERN
+        style.pattern.pattern_fore_colour = COLOR_CODES.get(bgcolor, None)
+    al = None
+    if halign:
+        al = Alignment()
+        al.horz = { 'left' : Alignment.HORZ_LEFT, 'right' : Alignment.HORZ_RIGHT, 'center' : Alignment.HORZ_CENTER}[halign]
+    if valign:
+        if not al:
+            al = Alignment()
+        al.vert = { 'top' : Alignment.VERT_TOP, 'bottom' : VERT_BOTTOM, 'center' : VERT_CENTER }[valign]
+    if al:
+        style.alignment = al
+    style.font = font
+    return style
+
+class ScoExcelSheet:
+    def __init__(self, sheet_name='feuille', default_style=None):
+        self.sheet_name = sheet_name
+        self.cells = [] # list of list
+        self.cells_styles_lico = {} # { (li,co) : style }
+        self.cells_styles_li = {} # { li : style }
+        self.cells_styles_co = {} # { co : style }
+        if not default_style:
+            default_style = Excel_MakeStyle()
+        self.default_style = default_style
+    
+    def set_style(self, style=None, li=None, co=None):
+        if li != None and co != None:
+            self.cells_styles_lico[(li,co)] = style
+        elif li != None:
+            self.cells_styles_li[li] = style
+        elif co != None:
+            self.cells_styles_co[co] = style
+    
+    def append(self, l):
+        """Append a line of cells"""
+        self.cells.append(l)
+
+    def get_cell_style(self, li, co):
+        """Get style for specified cell"""
+        return (self.cells_styles_lico.get((li,co), None) 
+                or self.cells_styles_li.get(li, None) 
+                or self.cells_styles_co.get(co, None) 
+                or self.default_style)
+
+    def gen_workbook(self):
+        """Generates and returns a workbook from stored data"""
+        UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
+        wb = Workbook()
+        ws0 = wb.add_sheet(self.sheet_name)
+        li = 0
+        for l in self.cells:
+            co = 0
+            for c in l:
+                # safety net: allow only str, int and float
+                if type(c) == LongType:
+                    c = int(c) # assume all ScoDoc longs fits in int !
+                elif type(c) not in (StringType, IntType, FloatType):
+                    it = str(c)
+                ws0.write(li, co, c, self.get_cell_style(li,co))
+                co += 1
+            li += 1
+        return wb.savetostr()
+
 def Excel_SimpleTable( titles=[], lines=[[]],                       
                        SheetName='feuille',
                        titlesStyles=[]
                        ):
-    
+    """Export simple type 'CSV': 1ere ligne en gras, le reste tel quel
+    """
+    # XXX devrait maintenant utiliser ScoExcelSheet
     UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
     wb = Workbook()
     ws0 = wb.add_sheet(SheetName)
@@ -161,16 +239,7 @@ def Excel_SimpleTable( titles=[], lines=[[]],
     #
     return wb.savetostr()
 
-def Excel_MakeStyle( bold=False, color='black' ):
-    style = XFStyle()
-    font = Font()
-    font.bold = bold
-    font.name = 'Arial'                    
-    colour_index = COLOR_CODES.get(color, None)    
-    if colour_index:
-        font.colour_index = colour_index
-    style.font = font
-    return style
+
 
 def Excel_feuille_saisie( E, description, lines ):
     """Genere feuille excel pour saisie des notes.

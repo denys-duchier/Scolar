@@ -53,6 +53,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     prev_moy = {} # moyennes gen sem prec
     moy_ue = DictDefault(defaultvalue={}) # ue_acro : moyennes { etudid : moy ue }
     moy = {} # moyennes gen
+    moy_inter = {} # moyenne gen. sur les 2 derniers semestres
     code = {} # decision existantes s'il y en a
     autorisations = {}
     prev_code = {} # decisions sem prec
@@ -82,6 +83,13 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         for ue in nt.get_ues(filter_sport=True):
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
             moy_ue[ue['acronyme']][etudid] = ue_status['moy_ue']
+        
+        if Se.prev:
+            try:
+                moy_inter[etudid] = (moy[etudid]+prev_moy[etudid]) / 2.
+            except:
+                pass
+        
         decision = nt.get_etud_decision_sem(etudid)
         if decision:
             code[etudid] = decision['code']
@@ -115,7 +123,6 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         nbabsjust[etudid] = AbsEtudSem.CountAbsJust()
     
     # Construit table
-    L = [ [] ]
     all_ues =  context.do_ue_list(args={ 'formation_id' : sem['formation_id']})
     ue_prev_acros = [] # celles qui sont utilisees ici
     for ue in all_ues:
@@ -134,17 +141,35 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         if prev_moy: # si qq chose dans precedent
             sp = 'S%s' % (sid-1)
     
+    L = sco_excel.ScoExcelSheet( sheet_name='Prepa Jury %s' % sn )
+    L.append( ['Feuille préparation Jury %s' % unescape_html(sem['titreannee']) ] )
+    L.append( [] ) # empty line 
+    
     titles = ['', 'etudid', 'Civ.', 'Nom', 'Prénom', 'Naissance', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
         titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
-    titles += ue_acros + ['Moy %s' % sn, 'Abs', 'Abs Just.' ]
+    titles += ue_acros + ['Moy %s' % sn]
+    if moy_inter:
+        titles += ['Moy %s-%s' % (sp,sn)]
+    titles += [ 'Abs', 'Abs Just.' ]
     if code:
         titles.append('Décision %s' % sn)
     if autorisations:
         titles.append('Autorisations')
     titles.append('Assidu')
     L.append(titles)
-
+    style_bold = sco_excel.Excel_MakeStyle(bold=True)
+    style_moy  = sco_excel.Excel_MakeStyle(bold=True, bgcolor='lightyellow')
+    style_note = sco_excel.Excel_MakeStyle(halign='right')
+    style_note_bold = sco_excel.Excel_MakeStyle(halign='right',bold=True)
+    if prev_moy:
+        col_prev_moy = 7
+        col_prev_moy += len(ue_prev_acros) + 1
+        col_moy = col_prev_moy + len(ue_acros) + 2
+    else:
+        col_moy = 8 + len(ue_acros)
+    L.set_style( style_bold, li=0)
+    L.set_style( style_bold, li=2)
     def fmt(x):
         "reduit les notes a deux chiffres"
         x = notes_table.fmt_note(x, keep_numeric=False)
@@ -160,15 +185,28 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
               format_sexe(etud['sexe']), format_nom(etud['nom']), format_prenom(etud['prenom']),
               nt.identdict[etudid]['date_naissance'],
               parcours[etudid], groupestd[etudid] ]
-        i += 1
+        co = len(l)
         if prev_moy:
             for ue_acro in ue_prev_acros:
                 l.append(fmt(prev_moy_ue.get(ue_acro, {}).get(etudid,'')))
+                L.set_style(style_note, li=i+2, co=co)
+                co += 1
             l.append(fmt(prev_moy.get(etudid,'')))
             l.append(prev_code.get(etudid,''))
+            L.set_style(style_bold, li=i+2, co=col_prev_moy) # moy gen prev
+            L.set_style(style_moy,  li=i+2, co=col_prev_moy+1) # decision prev
+            co += 2
+
         for ue_acro in ue_acros:
             l.append(fmt(moy_ue.get(ue_acro, {}).get(etudid,'')))
+            L.set_style(style_note, li=i+2, co=co)
+            co += 1
         l.append(fmt(moy.get(etudid,'')))
+        L.set_style(style_note_bold, li=i+2, co=col_moy) # moy gen
+        co += 1
+        if moy_inter:
+            l.append(fmt(moy_inter.get(etudid,'')))
+            L.set_style(style_note, li=i+2, co=co)
         l.append(fmt(str(nbabs.get(etudid,''))))
         l.append(fmt(str(nbabsjust.get(etudid,''))))
         if code:
@@ -177,6 +215,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             l.append(autorisations.get(etudid, ''))
         l.append(assidu.get(etudid, ''))
         L.append(l)
+        i += 1
     #
     L.append( [''] )
     # Explications des codes
@@ -191,8 +230,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     L.append( ['Préparé par %s le %s sur %s pour %s' %
                (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
                 REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )
-    xls = sco_excel.Excel_SimpleTable(
-        titles=('Feuille préparation Jury %s' %
-                unescape_html(sem['titreannee']),),
-        lines=L, SheetName='Prepa Jury %s' % sn )
+    
+    xls = L.gen_workbook()
+    
     return sco_excel.sendExcelFile(REQUEST, xls, 'PrepaJury%s.xls' % sn )
