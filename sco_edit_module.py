@@ -128,7 +128,10 @@ def module_edit(context, module_id=None, REQUEST=None):
     """Edit a module"""
     if not module_id:
         raise ScoValueError('invalid module !')
-    Mod= context.do_module_list( args={ 'module_id' : module_id } )[0]
+    Mod= context.do_module_list( args={ 'module_id' : module_id } )
+    if not Mod:
+        raise ScoValueError('invalid module !')
+    Mod = Mod[0]
     Fo = context.do_formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
     M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
     Mnames = [ '%s / %s' % (x['acronyme'], x['titre']) for x in M ]
