@@ -277,8 +277,10 @@ class ZScoUsers(ObjectManager,
             info['nomnoacc'] = suppress_accents(info['nom'].lower())
             return info
 
-    def _can_handle_passwd(self, authuser, user_name):
+    def _can_handle_passwd(self, authuser, user_name, allow_admindepts=False):
         """true if authuser can see or change passwd of user_name.
+        If allow_admindepts, allow Admin from all depts (so they can view users from other depts
+        and add roles to them).
         authuser is a Zope user object. user_name is a string.
         """
         # Is authuser a zope admin ?
@@ -304,7 +306,7 @@ class ZScoUsers(ObjectManager,
         auth_dept = authuser_info[0]['dept']
         if not auth_dept:
             return True # if no dept, can access users from all depts !
-        if auth_dept == user[0]['dept']:
+        if auth_dept == user[0]['dept'] or allow_admindepts:
             return True
         else:
             return False
@@ -410,7 +412,7 @@ class ZScoUsers(ObjectManager,
         if not user_name:
             user_name = str(authuser)
         # peut on divulguer ces infos ?
-        if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, user_name):
+        if not self._can_handle_passwd(REQUEST.AUTHENTICATED_USER, user_name, allow_admindepts=True):
             raise AccessDenied("Vous n'avez pas la permission de voir cette page")
         H = [self.sco_header(REQUEST, page_title='Utilisateur %s'%user_name)]
         F = self.sco_footer(REQUEST)
@@ -502,10 +504,10 @@ class ZScoUsers(ObjectManager,
          # 
          if authuser.has_permission(ScoSuperAdmin,self):
              log('create_user_form called by %s (super admin)' %(auth_name, ))
-             valid_roles = Set(self._all_roles())
+             editable_roles = Set(self._all_roles())
          else:
-             valid_roles = Set(self.DeptUsersRoles())
-         log('create_user_form: valid_roles=%s' % valid_roles)
+             editable_roles = Set(self.DeptUsersRoles())
+         #log('create_user_form: editable_roles=%s' % editable_roles)
          #         
          if not edit:
              initvalues = {}
@@ -514,10 +516,17 @@ class ZScoUsers(ObjectManager,
          else:
              submitlabel = 'Modifier utilisateur'
              initvalues = self._user_list( args={'user_name': user_name})[0]
-             orig_roles = Set(initvalues['roles'].split(','))
+             initvalues['roles'] = initvalues['roles'].split(',')
+             orig_roles = Set(initvalues['roles'])
          # add existing user roles
-         valid_roles = list(valid_roles.union(orig_roles))
-         valid_roles.sort()
+         displayed_roles = list(editable_roles.union(orig_roles))
+         displayed_roles.sort()
+         disabled_roles = {} # pour desactiver les role que l'on ne peut pas editer
+         for i in range(len(displayed_roles)):
+             if displayed_roles[i] not in editable_roles:
+                 disabled_roles[i] = True
+         
+         #log('create_user_form: displayed_roles=%s' % displayed_roles)
          
          descr = [
              ('edit', {'input_type' : 'hidden', 'default' : edit }),
@@ -568,24 +577,27 @@ class ZScoUsers(ObjectManager,
          
          descr += [
              ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox', 'vertical' : True,
-                        'allowed_values' : valid_roles}),
+                        'allowed_values' : displayed_roles, 
+                        'disabled_items' : disabled_roles,
+                        }),
+             
              ('force', {'title' : 'Ignorer les avertissements', 'input_type' : 'checkbox',
                         'explanation' : 'passer outre les avertissements (homonymes, etc)',
                         'labels' : ('',), 'allowed_values' : ('1',)})
              ]
+
+         if 'tf-submitted' in REQUEST.form and not 'roles' in REQUEST.form:
+             REQUEST.form['roles'] = ''
          tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                  initvalues = initvalues,
                                  submitlabel = submitlabel )
-         if tf[0] == 0:
+         if tf[0] == 0:             
              return '\n'.join(H) + '\n' + tf[1] + F
          elif tf[0] == -1:
              return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
          else:
              vals = tf[2]
-             for role in vals['roles']:
-                 if not role in valid_roles:
-                     raise ScoValueError('Invalid role for new user: %s' % role)
-               
+             roles = set(vals['roles']).intersection(editable_roles)
              if REQUEST.form.has_key('edit'):
                  edit = int(REQUEST.form['edit'])
              else:
@@ -619,6 +631,7 @@ class ZScoUsers(ObjectManager,
                      H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>")""" % msg))
 
                      return '\n'.join(H) + '\n' + tf[1] + F
+             
              if edit: # modif utilisateur (mais pas passwd)
                  if (not can_choose_dept) and vals.has_key('dept'):
                      del vals['dept']
@@ -631,14 +644,15 @@ class ZScoUsers(ObjectManager,
                  # traitement des roles: ne doit pas affecter les roles
                  # que l'on en controle pas:
                  for role in orig_roles:
-                     if not role in valid_roles:
-                         vals['roles'].append(role)
-                 vals['roles'] = ','.join(vals['roles'])
+                     if not role in editable_roles:
+                         roles.add(role)
+
+                 vals['roles'] = ','.join(roles)
+                 
                  # ok, edit
-                 log('sco_users: by %s' % auth_name )
-                 log('sco_users: editing %s' % user_name)
-                 log('sco_users: previous_values=%s' % initvalues)                 
-                 log('sco_users: new_values=%s' % vals)
+                 log('sco_users: editing %s by %s' % (user_name, auth_name))
+                 #log('sco_users: previous_values=%s' % initvalues)                 
+                 #log('sco_users: new_values=%s' % vals)
                  self._user_edit(vals)
                  return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
              else: # creation utilisateur
@@ -768,6 +782,10 @@ class ZScoUsers(ObjectManager,
     security.declareProtected(ScoUsersAdmin, 'delete_user_form')
     def delete_user_form(self, REQUEST, user_name, dialog_confirmed=False):
         "delete user"
+        authuser = REQUEST.AUTHENTICATED_USER
+        if not self._can_handle_passwd(authuser, user_name):
+            return self.sco_header(REQUEST, user_check=False)+"<p>Vous n'avez pas la permission de supprimer cet utilisateur</p>" + self.sco_footer(REQUEST)
+        
         r = self._user_list( args={'user_name' : user_name})
         if len(r) != 1:
             return ScoValueError('utilisateur %s inexistant' % user_name)
@@ -800,7 +818,7 @@ class ZScoUsers(ObjectManager,
         # -- Add some information and links:
         for u in r:
             # Can current user modify this user ?
-            can_modify = self._can_handle_passwd(authuser,u['user_name'])
+            can_modify = self._can_handle_passwd(authuser,u['user_name'],allow_admindepts=True)
             
             # Add links
             if with_links and can_modify:

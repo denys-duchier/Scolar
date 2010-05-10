@@ -66,6 +66,7 @@ def TrivialFormulator(form_url, values, formdescription=(), initvalues={},
              rows, cols: textarea geometry
              labels : labels for radio or menu lists (associated to allowed_values)
              vertical: for checkbox; if true, vertical layout
+             disabled_items: for checkbox, dict such that disabled_items[i] true if disabled checkbox
           To use text_suggest elements, one must:
             - specify options in text_suggest_options (a dict)
             - HTML page must load JS AutoSuggest.js and CSS autosuggest_inquisitor.css
@@ -401,6 +402,7 @@ class TF:
                     labels = [ '' ]
                     descr['allowed_values'] = ['0', '1']
                 vertical=descr.get('vertical', False)
+                disabled_items=descr.get('disabled_items',{})
                 if vertical:
                     lem.append('<table>')
                 for i in range(len(labels)):
@@ -424,8 +426,14 @@ class TF:
                             checked=''
                     if vertical:
                         lem.append('<tr><td>')
-                    lem.append('<input type="checkbox" name="%s:list" value="%s" %s %s>%s</input>'
-                               % (field, descr['allowed_values'][i], attribs, checked, labels[i]) )
+                    if disabled_items.get(i,False):
+                        disab = 'disabled="1"'
+                        ilab = '<span class="tf-label-disabled">' + labels[i] + '</span> <em>(non modifiable)</em>'
+                    else:
+                        disab = ''
+                        ilab = '<span>' + labels[i] + '</span>'
+                    lem.append('<input type="checkbox" name="%s:list" value="%s" %s %s %s>%s</input>'
+                               % (field, descr['allowed_values'][i], attribs, disab, checked, ilab) )
                     if vertical:
                         lem.append('</tr></td>')
                 if vertical:

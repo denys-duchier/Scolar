@@ -220,10 +220,8 @@ class ZScolar(ObjectManager,
         """
         return self.aq_parent.id
 
-    security.declareProtected(ScoView, 'DeptUsersRoles')
-    def DeptUsersRoles(self):
-        """Donne les rôles utilises dans ce departement.
-        """
+    def DeptUsersRoles(self): # not published
+        # Donne les rôles utilisés dans ce departement.
         DeptId = self.DeptId()
         DeptRoles=[]
         for role_type in ('Ens', 'Secr', 'Admin'):
