@@ -56,7 +56,7 @@ Au niveau du code interface, on défini pour chaque préférence:
              ou pdf ou pvpdf ou ...
  - only_global (default False): si vraie, ne peut pas etre associée a un seul semestre.
 
-Les titre et sous-titre de chaque catégorie sont définis dans PREFS_CATEGORIES
+Les titres et sous-titres de chaque catégorie sont définis dans PREFS_CATEGORIES
 
 On peut éditer les préférences d'une ou plusieurs catégories au niveau d'un 
 semestre ou au niveau global. 
