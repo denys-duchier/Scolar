@@ -231,6 +231,7 @@ class ZScoUsers(ObjectManager,
     def user_info(self, user_name=None, user=None, REQUEST=None):        
         """Donne infos sur l'utilisateur (qui peut ne pas etre dans notre base).
         Si user_name est specifie, interroge la BD. Sinon, user doit etre un dict.        
+        XXX REQUEST is not used
         """
         if user_name:
             infos = self._user_list( args={'user_name':user_name} )

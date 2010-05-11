@@ -108,6 +108,14 @@ CREATE TABLE absences (
     entry_date timestamp with time zone DEFAULT now()
 ) WITH OIDS;
 
+CREATE TABLE absences_notifications (
+    etudid text NOT NULL,
+    notification_date timestamp with time zone DEFAULT now(),
+    email text NOT NULL,
+    nbabs integer,
+    nbabsjust integer    
+) WITH OIDS;
+
 CREATE SEQUENCE notes_idgen_billets;
 CREATE FUNCTION notes_newid_billet( text ) returns text as '
 	select $1 || to_char(  nextval(''notes_idgen_billets''), ''FM999999999'' ) 
