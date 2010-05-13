@@ -792,6 +792,9 @@ class ZScolar(ObjectManager,
                 if self.Notes.can_change_groups(REQUEST, formsemestre_id):
                     H.append(' (<a href="affectGroups?partition_id=%s" class="stdlink">créer</a>)' % partition['partition_id'])
                 H.append('</p>')
+        if self.Notes.can_change_groups(REQUEST, formsemestre_id):
+            H.append('<h4><a href="editPartitionForm?formsemestre_id=%s">Ajouter une partition</a></h4>' % formsemestre_id)
+
         H.append('</div>')        
         return '\n'.join(H)
 

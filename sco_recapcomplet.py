@@ -40,6 +40,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
                               tabformat='html',
                               sortcol=None,
                               xml_with_decisions=False, # XML avec decisions
+                              rank_partition_id=None, # si None, calcul rang global 
                               REQUEST=None
                               ):
     """Page récapitulant les notes d'un semestre.
@@ -83,7 +84,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append( """<input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" """)
         if hidemodules:
             H.append('checked')
-        H.append(""" >cacher les modules</input></form>""")
+        H.append(""" >cacher les modules</input>""")
 
     if tabformat == 'xml':
         REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')
@@ -92,9 +93,11 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
             context, REQUEST, 
             formsemestre_id, format=tabformat, hidemodules=hidemodules, 
             modejury=modejury, sortcol=sortcol, xml_with_decisions=xml_with_decisions,
+            rank_partition_id=rank_partition_id
             ) )
     
     if not isFile:
+        H.append('</form>')
         H.append("""<p><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s">Voir les décisions du jury</a></p>""" % formsemestre_id)
         if context.can_validate_sem(REQUEST, formsemestre_id):
             H.append('<p>')
@@ -117,7 +120,8 @@ def do_formsemestre_recapcomplet(
     modejury=False, # saisie décisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
-    disable_etudlink=False
+    disable_etudlink=False,
+    rank_partition_id=None # si None, calcul rang global 
     ):
     """Calcule et renvoie le tableau récapitulatif.
     """
@@ -139,7 +143,8 @@ def make_formsemestre_recapcomplet(
     modejury=False, # saisie décisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
-    disable_etudlink=False
+    disable_etudlink=False,
+    rank_partition_id=None # si None, calcul rang global 
     ):
     """Grand tableau récapitulatif avec toutes les notes de modules
     pour tous les étudiants, les moyennes par UE et générale,
@@ -159,7 +164,14 @@ def make_formsemestre_recapcomplet(
     ues = nt.get_ues() # incluant le(s) UE de sport
     #
     partitions, partitions_etud_groups = sco_groups.get_formsemestre_groups(context, formsemestre_id)
-    
+    if rank_partition_id and format=='html': 
+        # Calcul rang sur une partition et non sur l'ensemble
+        # seulement en format HTML (car colonnes rangs toujours presentes en xls)
+        rank_partition = sco_groups.get_partition(context, rank_partition_id)
+        rank_label = 'Rg (%s)' % rank_partition['partition_name']
+    else:
+        rank_partition = sco_groups.get_default_partition(context, formsemestre_id)
+        rank_label = 'Rg'    
     #pdb.set_trace()
     T = nt.get_table_moyennes_triees()
     if not T:
@@ -167,7 +179,7 @@ def make_formsemestre_recapcomplet(
 
     # Construit une liste de listes de chaines: le champs du tableau resultat (HTML ou CSV)
     F = []
-    h = [ 'Rg', 'Nom' ]
+    h = [ rank_label, 'Nom' ]
     # Si CSV ou XLS, indique tous les groupes
     if format == 'xls' or format == 'csv':
         for partition in partitions:
@@ -224,7 +236,17 @@ def make_formsemestre_recapcomplet(
             group = sco_groups.get_etud_main_group(context, etudid, sem)
             gr_name = group['group_name'] or ''
             is_dem[etudid] = False
-        l = [ nt.get_etud_rang(etudid),nt.get_nom_short(etudid) ]  # rang, nom, 
+        if rank_partition_id:
+            rang_gr, ninscrits_gr, rank_gr_name = sco_bulletins.get_etud_rangs_groups(
+                context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
+            if rank_gr_name[rank_partition_id]:
+                rank = '%s %s' % (rank_gr_name[rank_partition_id], rang_gr[rank_partition_id])
+            else:
+                rank = ''
+        else:
+            rank = nt.get_etud_rang(etudid)
+        
+        l = [ rank, nt.get_nom_short(etudid) ]  # rang, nom, 
         if format == 'xls' or format == 'csv': # tous les groupes
             for partition in partitions:                
                 group = partitions_etud_groups[partition['partition_id']].get(etudid, None)
@@ -423,9 +445,27 @@ def make_formsemestre_recapcomplet(
             #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')
         H.append( ligne_titres )
         H.append('</table>')
+        
+        # Form pour choisir partition de classement:
+        if not modejury and partitions:
+            H.append('Afficher le rang des groupes de: ')
+            if not rank_partition_id:
+                checked = 'checked'
+            else:
+                checked = ''
+            H.append('<input type="radio" name="rank_partition_id" value="" onChange="document.f.submit()" %s/>tous ' 
+                     %(checked))
+            for p in partitions:
+                if p['partition_id'] == rank_partition_id:
+                    checked = 'checked'
+                else:
+                    checked = ''
+                H.append('<input type="radio" name="rank_partition_id" value="%s" onChange="document.f.submit()" %s/>%s ' 
+                         %(p['partition_id'], checked, p['partition_name']))
+        
         # recap des decisions jury (nombre dans chaque code):
         if codes_nb:
-            H.append('<h3>Décisions du jury</h3><table>')
+            H.append('<h4>Décisions du jury</h4><table>')
             cods = codes_nb.keys()
             cods.sort()
             for cod in cods:
