@@ -519,32 +519,7 @@ class ZScolar(ObjectManager,
         else:
             return '\n'.join(H)
     
-    security.declareProtected(ScoView, 'formChoixSemestreGroupe')
-    def formChoixSemestreGroupe(self, all=False):
-        """partie de formulaire pour le choix d'un semestre et d'un groupe.
-        Si all, donne tous les semestres (meme ceux verrouillés).
-        """
-        # XXX assez primitif, a ameliorer
-        if all:
-            sems = self.Notes.do_formsemestre_list()
-        else:
-            sems = self.Notes.do_formsemestre_list( args={'etat':'1'} )
-        H = [ '<select  name="group_id">' ]        
-        nbgroups = 0
-        for sem in sems:
-            for p in sco_groups.get_partitions_list(self, sem['formsemestre_id']):
-                for group in sco_groups.get_partition_groups(self, p):
-                    if group['group_name']:
-                        group_tit = '%s %s' % (p['partition_name'], group['group_name'])
-                    else:
-                        group_tit = 'tous'
-                    H.append('<option value="%s">%s: %s</option>' 
-                             % (group['group_id'], sem['titremois'], group_tit))
-                    
-        H.append('</select>')
-        return '\n'.join(H)    
-
-
+    
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')
     sidebar = html_sidebar.sidebar

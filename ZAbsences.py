@@ -56,6 +56,7 @@ from gen_tables import GenTable
 import scolars
 import sco_groups
 import sco_excel
+import sco_abs_notification, sco_abs_views
 import string, re
 import time, calendar 
 from mx.DateTime import DateTime as mxDateTime
@@ -195,6 +196,34 @@ class ddmmyyyy:
 # d = ddmmyyyy( '21/12/99' )
 
 
+def YearTable(context, year, events=[],
+              firstmonth=9, lastmonth=6, halfday=0, dayattributes='' ):
+    """Generate a calendar table
+    events = list of tuples (date, text, color, href [,halfday])
+             where date is a string in ISO format (yyyy-mm-dd)
+             halfday is boolean (true: morning, false: afternoon)
+    text  = text to put in calendar (must be short, 1-5 cars) (optional)
+    if halfday, generate 2 cells per day (morning, afternoon)
+    """
+    T = [ '<table id="maincalendar" class="maincalendar" border="3" cellpadding="1" cellspacing="1" frame="box">' ]
+    T.append( '<tr>' )
+    month = firstmonth
+    while 1:
+        T.append( '<td valign="top">' )
+        T.append( MonthTableHead( month ) )
+        T.append( MonthTableBody( month, year, events, halfday, dayattributes, context.is_work_saturday() ) )
+        T.append( MonthTableTail() )
+        T.append( '</td>' )
+        if month == lastmonth:
+            break
+        month = month + 1
+        if month > 12:
+            month = 1
+            year = year + 1
+    T.append('</table>')
+    return string.join(T,'\n')
+
+
 # ---------------
 
 class ZAbsences(ObjectManager,
@@ -241,13 +270,6 @@ class ZAbsences(ObjectManager,
         self._p_changed = 1
         RESPONSE.redirect('manage_editForm')
 
-    # Ajout (dans l'instance) d'un dtml modifiable par Zope
-    def defaultDocFile(self,id,title,file):
-        f=open(file_path+'/dtml-editable/'+file+'.dtml')     
-        file=f.read()     
-        f.close()     
-        self.manage_addDTMLMethod(id,title,file)
-
     # --------------------------------------------------------------------
     #
     #   ABSENCES (top level)
@@ -255,39 +277,40 @@ class ZAbsences(ObjectManager,
     # --------------------------------------------------------------------
     # used to view content of the object
     security.declareProtected(ScoView, 'index_html')
-    index_html = DTMLFile('dtml/absences/index_html', globals())
+    index_html = sco_abs_views.absences_index_html
 
     security.declareProtected(ScoView, 'EtatAbsences')
-    EtatAbsences = DTMLFile('dtml/absences/EtatAbsences', globals())
+    EtatAbsences = sco_abs_views.EtatAbsences
 
     security.declareProtected(ScoView, 'CalAbs')
-    CalAbs = DTMLFile('dtml/absences/CalAbs', globals())
+    CalAbs = sco_abs_views.CalAbs
 
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceEtud')
-    SignaleAbsenceEtud=DTMLFile('dtml/absences/SignaleAbsenceEtud', globals())
+    SignaleAbsenceEtud = sco_abs_views.SignaleAbsenceEtud
     security.declareProtected(ScoAbsChange, 'doSignaleAbsence')
-    doSignaleAbsence=DTMLFile('dtml/absences/doSignaleAbsence', globals())
+    doSignaleAbsence = sco_abs_views.doSignaleAbsence
 
     security.declareProtected(ScoAbsChange, 'JustifAbsenceEtud')
-    JustifAbsenceEtud=DTMLFile('dtml/absences/JustifAbsenceEtud', globals())
+    JustifAbsenceEtud = sco_abs_views.JustifAbsenceEtud
     security.declareProtected(ScoAbsChange, 'doJustifAbsence')
-    doJustifAbsence=DTMLFile('dtml/absences/doJustifAbsence', globals())
+    doJustifAbsence = sco_abs_views.doJustifAbsence
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsenceEtud')
-    AnnuleAbsenceEtud=DTMLFile('dtml/absences/AnnuleAbsenceEtud', globals())
+    AnnuleAbsenceEtud = sco_abs_views.AnnuleAbsenceEtud
     security.declareProtected(ScoAbsChange, 'doAnnuleAbsence')
-    doAnnuleAbsence=DTMLFile('dtml/absences/doAnnuleAbsence', globals())
+    doAnnuleAbsence = sco_abs_views.doAnnuleAbsence
     security.declareProtected(ScoAbsChange, 'doAnnuleJustif')
-    doAnnuleJustif=DTMLFile('dtml/absences/doAnnuleJustif', globals())
+    doAnnuleJustif = sco_abs_views.doAnnuleJustif
 
     # --------------------------------------------------------------------
     #
     #   SQL METHODS
     #
     # --------------------------------------------------------------------
-    security.declareProtected(ScoAbsChange, 'AddAbsence')
-    def AddAbsence(self, etudid, jour, matin, estjust, REQUEST, description=None):
+
+    def _AddAbsence(self, etudid, jour, matin, estjust, REQUEST, description=None):
         "Ajoute une absence dans la bd"
+        # unpublished
         if self._isFarFutur(jour):
             raise ScoValueError('date absence trop loin dans le futur !')
         estjust = _toboolean(estjust)
@@ -299,10 +322,11 @@ class ZAbsences(ObjectManager,
               msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s'%vars())
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
+        sco_abs_notification.abs_notify(self, etudid, jour)
     
-    security.declareProtected(ScoAbsChange, 'AddJustif')
-    def AddJustif(self, etudid, jour, matin, REQUEST, description=None):
+    def _AddJustif(self, etudid, jour, matin, REQUEST, description=None):
         "Ajoute un justificatif dans la base"
+        # unpublished
         if self._isFarFutur(jour):
             raise ScoValueError('date justificatif trop loin dans le futur !')
         matin = _toboolean(matin)
@@ -314,9 +338,9 @@ class ZAbsences(ObjectManager,
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    security.declareProtected(ScoAbsChange, 'AnnuleAbsence')
-    def AnnuleAbsence(self, etudid, jour, matin, REQUEST):
+    def _AnnuleAbsence(self, etudid, jour, matin, REQUEST):
         "Annule une absence ds base"
+        # unpublished
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
@@ -326,23 +350,24 @@ class ZAbsences(ObjectManager,
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    security.declareProtected(ScoAbsChange, 'AnnuleJustif')
-    def AnnuleJustif(self, etudid, jour, matin, REQUEST):
+    def _AnnuleJustif(self, etudid, jour, matin, REQUEST):
         "Annule un justificatif"
+        # unpublished
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute('delete from absences where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s and ESTJUST AND NOT ESTABS', vars() )
+        cursor.execute('update absences set estjust=false where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s', vars() )
         logdb(REQUEST, cnx, 'AnnuleJustif', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    security.declareProtected(ScoAbsChange, 'AnnuleAbsencesPeriodNoJust' )
-    def AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
+    def _AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
         """Supprime les absences entre ces dates (incluses).
         mais ne supprime pas les justificatifs.
         """
+        # unpublished
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         # supr les absences non justifiees
@@ -587,7 +612,7 @@ class ZAbsences(ObjectManager,
         
         # 1- Efface les absences
         for etudid in etudids:
-            self.AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, REQUEST) 
+            self._AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, REQUEST) 
         
         # 2- Ajoute les absences        
         self._add_abslist(abslist, REQUEST)
@@ -640,7 +665,7 @@ class ZAbsences(ObjectManager,
                 raise ValueError, 'invalid ampm !'
              # ajoute abs si pas deja absent
             if self.CountAbs( etudid, jour, jour, matin) == 0:                
-                self.AddAbsence( etudid, jour, matin, 0, REQUEST )
+                self._AddAbsence( etudid, jour, matin, 0, REQUEST )
         
     #
     security.declareProtected(ScoView, 'CalSelectWeek')
@@ -653,7 +678,7 @@ class ZAbsences(ObjectManager,
             js = ''
         else:
             js = 'onmouseover="highlightweek(this);" onmouseout="deselectweeks();" onclick="wclick(this);"'
-        C = self.YearTable(int(year), dayattributes=js)
+        C = YearTable(self, int(year), dayattributes=js)
         return C
 
 
@@ -721,33 +746,6 @@ class ZAbsences(ObjectManager,
             cur = cur.next()
         
         return map( lambda x: x.ISO(), r )
-
-    def YearTable(self, year, events=[],
-                  firstmonth=9, lastmonth=6, halfday=0, dayattributes='' ):
-        """Generate a calendar table
-        events = list of tuples (date, text, color, href [,halfday])
-                 where date is a string in ISO format (yyyy-mm-dd)
-                 halfday is boolean (true: morning, false: afternoon)
-        text  = text to put in calendar (must be short, 1-5 cars) (optional)
-        if halday, generate 2 cells per day (morning, afternoon)
-        """
-        T = [ '<table id="maincalendar" class="maincalendar" border="3" cellpadding="1" cellspacing="1" frame="box">' ]
-        T.append( '<tr>' )
-        month = firstmonth
-        while 1:
-            T.append( '<td valign="top">' )
-            T.append( MonthTableHead( month ) )
-            T.append( MonthTableBody( month, year, events, halfday, dayattributes, self.is_work_saturday() ) )
-            T.append( MonthTableTail() )
-            T.append( '</td>' )
-            if month == lastmonth:
-                break
-            month = month + 1
-            if month > 12:
-                month = 1
-                year = year + 1
-        T.append('</table>')
-        return string.join(T,'\n')
 
     # ------------ HTML Interfaces
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
@@ -1361,18 +1359,18 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         dates = self.DateRangeISO( datedebut, datefin )
         # commence apres midi ?
         if dates and billet['abs_begin'].hour > 11:
-            self.AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=description)
+            self._AddAbsence(billet['etudid'], dates[0], 0, estjust, REQUEST, description=description)
             n += 1
             dates = dates[1:]
         # termine matin ?
         if dates and billet['abs_end'].hour < 12:
-            self.AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST, description=description)
+            self._AddAbsence(billet['etudid'], dates[-1], 1, estjust, REQUEST, description=description)
             n += 1
             dates = dates[:-1]
         
         for jour in dates:
-            self.AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST, description=description)
-            self.AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST, description=description)
+            self._AddAbsence(billet['etudid'], jour, 0, estjust, REQUEST, description=description)
+            self._AddAbsence(billet['etudid'], jour, 1, estjust, REQUEST, description=description)
             n += 2
         
         # 2- change etat du billet
@@ -1472,7 +1470,7 @@ billet_absence_delete = _billet_absenceEditor.delete
 billet_absence_list = _billet_absenceEditor.list
 billet_absence_edit = _billet_absenceEditor.edit
 
-# ------ HTML Calendar functions (see YearTable method)
+# ------ HTML Calendar functions (see YearTable function)
 
 # MONTH/DAY NAMES:
 

@@ -278,6 +278,19 @@ for dept in get_depts():
     # Add semestre_id to scolar_formsemestre_validation
     check_field(cnx, 'scolar_formsemestre_validation', 'semestre_id',
                 ['alter table scolar_formsemestre_validation add column semestre_id int'])
+
+    # Add 
+    check_table( cnx, 'absences_notifications', [ """
+     CREATE TABLE absences_notifications (
+       etudid text NOT NULL,
+       notification_date timestamp with time zone DEFAULT now(),
+       email text NOT NULL,
+       nbabs integer,
+       nbabsjust integer    
+      ) WITH OIDS;
+    """] )
+    # rename old preference "send_mail_absence_to_chef"
+    cursor.execute("update sco_prefs set name = 'abs_notify_chief' where name = 'send_mail_absence_to_chef'")
     
     # Add here actions to performs after upgrades:
 

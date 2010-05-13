@@ -29,14 +29,23 @@
 import pdb,os,sys,psycopg
 from sco_exceptions import *
 from notesdb import quote_dict
-
+from notes_log import retreive_request
 DB = psycopg
 
-def logdb(REQUEST, cnx, method=None, etudid=None, msg=None, commit=True ):
-    args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
-             'remote_addr' : REQUEST.REMOTE_ADDR,
-             'remote_host' : REQUEST.REMOTE_HOST,
-             'method' : method, 'etudid' : etudid, 'msg' : msg }
+def logdb(REQUEST=None, cnx=None, method=None, etudid=None, msg=None, commit=True ):
+    if not cnx:
+        raise ValueError('logdb: cnx is None')
+    if not REQUEST:
+        REQUEST = retreive_request(skip=1)
+    if REQUEST:
+        args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
+                 'remote_addr' : REQUEST.REMOTE_ADDR,
+                 'remote_host' : REQUEST.REMOTE_HOST }
+    else:
+        args = { 'authenticated_user' : None,
+                 'remote_addr' : None,
+                 'remote_host' : None }
+    args.update( { 'method' : method, 'etudid' : etudid, 'msg' : msg })
     quote_dict(args)
     cursor = cnx.cursor()
     cursor.execute('insert into scolog (authenticated_user,remote_addr,remote_host,method,etudid,msg) values (%(authenticated_user)s,%(remote_addr)s,%(remote_host)s,%(method)s,%(etudid)s,%(msg)s)', args )

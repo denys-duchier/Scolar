@@ -50,8 +50,10 @@ class _logguer:
 
 log = _logguer()
 
-def retreive_request():
-    """Try to retreive a REQUEST variable in caller stack"""
+def retreive_request(skip=0):
+    """Try to retreive a REQUEST variable in caller stack.
+    This is a hack, used only in log functions.
+    """
     def search(frame):
         if frame.f_locals.has_key('REQUEST'):
             return frame.f_locals['REQUEST']
@@ -61,7 +63,10 @@ def retreive_request():
             return None
     frame = inspect.currentframe()
     if frame: # not supported by all pythons
-        return search(inspect.currentframe())
+        startframe = frame
+        while skip and startframe.f_back:
+            startframe = startframe.f_back
+        return search(startframe)
     else:
         return None
 

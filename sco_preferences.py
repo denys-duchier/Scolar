@@ -201,14 +201,25 @@ PREFS = (
         'only_global' : True
         }
       ),
-
-    # abs
+    ( 'email_chefdpt',
+      { 'initvalue' : '',
+        'title' : 'e-mail chef du département',
+        'size' : 40,
+        'explanation' : 'utilisé pour envoi mail notification absences',
+        'category' : 'abs',
+        'only_global' : True
+        }
+      ),
+    
+    
+    # ------------------ Absences
+    
     ( 'work_saturday',
       { 'initvalue' : 0,
         'title' : "Considérer le samedi comme travaillé",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
-        'only_global' : True
+        'only_global' : True # devrait etre par semestre, mais demanderait modif gestion absences
         }
       ),
     ( 'handle_billets_abs',
@@ -220,23 +231,96 @@ PREFS = (
         'only_global' : True
         }
       ),
-    ( 'send_mail_absence_to_chef',
+    ( 'abs_notify_chief', # renamed from "send_mail_absence_to_chef"
       { 'initvalue' : 0,
-        'title' : "Envoyer un mail au chef si un étudiant a beaucoup d\'absences",
+        'title' : 'Notifier les absences au chef',
+        'explanation' : "Envoyer un mail au chef si un étudiant a beaucoup d\'absences",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         'only_global' : True
         }
       ),
-    ( 'email_chefdpt',
+    ( 'abs_notify_respsem', 
+      { 'initvalue' : 0,
+        'title' : 'Notifier les absences au dir. des études',
+        'explanation' : "Envoyer un mail au responsable du semestre si un étudiant a beaucoup d\'absences",
+        'input_type' : 'boolcheckbox',
+        'category' : 'abs',
+        }
+      ),
+    ( 'abs_notify_respeval', 
+      { 'initvalue' : 0,
+        'title' : 'Notifier les absences aux resp. de modules',
+        'explanation' : "Envoyer un mail à chaque absence aux responsable des modules avec évaluation à cette date",
+        'input_type' : 'boolcheckbox',
+        'category' : 'abs',
+        }
+      ),
+    ( 'abs_notify_email',
       { 'initvalue' : '',
-        'title' : 'e-mail chef du département',
+        'title' : "Notifier à:",
+        'explanation' : "e-mail à qui envoyer des notification d'absences (en sus des autres destinataires éventuels, comme le chef etc.)",
         'size' : 40,
         'explanation' : 'utilisé pour envoi mail absences',
         'category' : 'abs',
-        'only_global' : True
         }
       ),
+    ('abs_notify_max_freq',
+     { 'initvalue' : 7,
+       'title' : 'Fréquence maximale de notification',
+       'explanation' : 'en jours, envois de mail (pour chaque étudiant/destinataire)',
+       'size' : 4,
+       'type' : 'int',
+       'convert_numbers' : True,
+       'category' : 'abs'
+        }
+      ),
+    ('abs_notify_abs_threshold',
+     { 'initvalue' : 10,
+       'title' : 'Seuil de première notification',       
+       'explanation' : "nb minimum d'absences (en 1/2 journées) avant notification",
+       'size' : 4,
+       'type' : 'int',
+       'convert_numbers' : True,
+       'category' : 'abs'
+        }
+      ),
+    ('abs_notify_abs_increment',
+     { 'initvalue' : 20, # les notification suivantes seront donc rares
+       'title' : 'Seuil notifications suivantes',       
+       'explanation' : "nb minimum d'absences (en 1/2 journées supplémentaires)",
+       'size' : 4,
+       'type' : 'int',
+       'convert_numbers' : True,
+       'category' : 'abs'
+        }
+      ),
+    ('abs_notification_mail_tmpl',
+     { 'initvalue' : """
+--- Ceci est un message de notification automatique issu de ScoDoc ---
+
+L'étudiant %(nomprenom)s  
+inscrit en %(inscription)s) 
+
+a cumulé %(nbabsjust)s absences justifiées 
+et %(nbabsnonjust)s absences NON justifiées.
+
+Le compte a pu changer depuis cet envoi, voir la fiche sur %(url_ficheetud)s.
+
+
+Votre dévoué serveur ScoDoc.
+
+PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé toutes les %(abs_notify_abs_increment)s absences. Ces valeurs sont modifiables dans les préférences de ScoDoc.
+""",
+       'title' : """Message notification e-mail""",
+       'explanation' : """Balises remplacées, voir la documentation""",
+       'input_type' : 'textarea',
+       'rows' : 15,
+       'cols' : 64,
+       'category' : 'abs'
+       }
+     ),
+
     # portal
     ( 'portal_url',
       { 'initvalue' : '',

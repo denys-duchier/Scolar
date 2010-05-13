@@ -108,7 +108,7 @@ CREATE TABLE absences (
     entry_date timestamp with time zone DEFAULT now()
 ) WITH OIDS;
 
-CREATE TABLE absences_notifications (
+CREATE TABLE absences_notifications (    
     etudid text NOT NULL,
     notification_date timestamp with time zone DEFAULT now(),
     email text NOT NULL,
