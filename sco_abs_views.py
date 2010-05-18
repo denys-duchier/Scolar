@@ -469,12 +469,12 @@ def absences_index_html(context, REQUEST=None):
             H.append("""<li><a href="listeBillets">Traitement des billets d'absence en attente</a></li>""")
         H.append("""<p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'étudiant concerné:</p>""")
         H.append(context.formChercheEtud(REQUEST))
-        if authuser.has_permission('ScoAbsChange',context):
+        if authuser.has_permission(ScoAbsChange,context):
             H.extend(("""<hr/>
 <form action="SignaleAbsenceGrHebdo" id="formw">
 <input type="hidden" name="destination" value="%s"/>
 <p>
-<span  style="font-weight: bold; font-size:120%;">
+<span  style="font-weight: bold; font-size:120%%;">
  Saisie par semaine </span> - Choix du groupe:
 	      <input name="datelundi" type="hidden" value="x"/>""" % REQUEST.URL0,
                       formChoixSemestreGroupe(context),
