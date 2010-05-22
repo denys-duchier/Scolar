@@ -410,7 +410,7 @@ def CalAbs(context, REQUEST=None): # etud implied
     etudid = etud['etudid']
     AnneeScolaire = int(context.AnneeScolaire(REQUEST))
     datedebut = str(AnneeScolaire) +'-08-31'
-    datefin = str(AnneeScolaire) +'-07-31'
+    datefin = str(AnneeScolaire+1) +'-07-31'
     nbabs = context.CountAbs(etudid=etudid, debut=datedebut, fin=datefin)
     nbabsjust = context.CountAbsJust(etudid=etudid, debut=datedebut, fin=datefin)
     events = []
@@ -428,7 +428,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
           """<font color="#EE0000">A : absence NON justifiée</font><br>
              <font color="#F8B7B0">a : absence justifiée</font><br>
-             %d absences, %d justifiées (soit %d non justifiées)
+             %d absences sur l'année, dont %d justifiées (soit %d non justifiées)
            """  % (nbabs, nbabsjust, nbabs-nbabsjust),
            """</td>
 <td><a href="%s/ficheEtud?etudid=%s">%s</a></td>
