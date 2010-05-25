@@ -1007,6 +1007,14 @@ td.bull_coef_eval, td.bull_nom_eval {
    color: rgb(60,60,80);
 }
 
+span.bul_minmax {
+   font-weight: normal;
+   font-size: 66%;   
+}
+span.bul_minmax:before {
+   content: " ";
+}
+
 a.bull_link {
    text-decoration:none;
    color: rgb(20,30,30);

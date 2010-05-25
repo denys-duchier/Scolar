@@ -28,12 +28,6 @@
 """Interface Zope <-> Notes
 """
 
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.MIMEBase import MIMEBase
-from email.Header import Header
-from email import Encoders
-
 # XML generation package (apt-get install jaxml)
 import jaxml
 
@@ -180,14 +174,14 @@ class ZNotes(ObjectManager,
         docs_before = []        
         for formsemestre_id in formsemestre_ids:
             docs_before.append(
-                sco_recapcomplet.do_formsemestre_recapcomplet(context, REQUEST,formsemestre_id, format='xml', xml_nodate=True))
+                sco_recapcomplet.do_formsemestre_recapcomplet(self, REQUEST,formsemestre_id, format='xml', xml_nodate=True))
         #
         cache.inval_cache(self) #>
         # Rebuild cache (useful only to debug)
         docs_after = []
         for formsemestre_id in formsemestre_ids:
             docs_after.append(
-                sco_recapcomplet.do_formsemestre_recapcomplet(context, REQUEST,formsemestre_id, format='xml', xml_nodate=True))
+                sco_recapcomplet.do_formsemestre_recapcomplet(self, REQUEST,formsemestre_id, format='xml', xml_nodate=True))
         if docs_before != docs_after:
             log('clearcache: inconsistency !')
             txt = 'before=' + repr(docs_before) + '\n\nafter=' + repr(docs_after) + '\n'
@@ -2114,76 +2108,6 @@ class ZNotes(ObjectManager,
         #
         return D, mods, valid_evals, mods_att
     
-    security.declareProtected(ScoView, 'do_formsemestre_bulletinetud')
-    def do_formsemestre_bulletinetud(self, formsemestre_id, etudid,
-                                     version='long', # short, long, selectedevals
-                                     format='html',
-                                     REQUEST=None,
-                                     nohtml=False,
-                                     xml_with_decisions=False # force decisions dans XML
-                                     ):
-        if format != 'mailpdf':
-            if format == 'xml':
-                bul = repr(sco_bulletins.make_xml_formsemestre_bulletinetud(
-                    self, formsemestre_id,  etudid, REQUEST=REQUEST,
-                    xml_with_decisions=xml_with_decisions))
-                filigranne = None
-            else:
-                bul, etud, filename, filigranne = sco_bulletins.make_formsemestre_bulletinetud(
-                    self, formsemestre_id, etudid,
-                    version=version,format=format,
-                    REQUEST=REQUEST)
-            if format == 'pdf':
-                return sendPDFFile(REQUEST, bul, filename), filigranne # unused ret. value
-            else:
-                return bul, filigranne # Attention: retourne un tuple !
-        else:
-            # format mailpdf: envoie le pdf par mail a l'etud, et affiche le html
-            if nohtml:
-                htm = '' # speed up if html version not needed
-            else:
-                htm, junk, junk, junk = sco_bulletins.make_formsemestre_bulletinetud(
-                    self,
-                    formsemestre_id, etudid, version=version,format='html',
-                    REQUEST=REQUEST)
-            pdf, etud, filename, filigranne = sco_bulletins.make_formsemestre_bulletinetud(self,
-                formsemestre_id, etudid, version=version,format='pdf',
-                REQUEST=REQUEST)
-            if not etud['email']:
-                return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'
-                        % etud['nomprenom']) + htm, filigranne
-            #
-            webmaster = self.get_preference('bul_mail_contact_addr', formsemestre_id)
-            dept = unescape_html(self.get_preference('DeptName',formsemestre_id))
-            copy_addr = self.get_preference('email_copy_bulletins',formsemestre_id)            
-            intro_mail = self.get_preference('bul_intro_mail', formsemestre_id)
-            hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
-            
-            msg = MIMEMultipart()
-            subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
-            recipients = [ etud['email'] ] 
-            msg['Subject'] = subj
-            msg['From'] = self.get_preference('email_from_addr',formsemestre_id)
-            msg['To'] = ' ,'.join(recipients)
-            if copy_addr:
-                msg['Bcc'] = copy_addr.strip()
-            # Guarantees the message ends in a newline
-            msg.epilogue = ''
-            # Text
-            txt = MIMEText( hea, 'plain', SCO_ENCODING )
-            msg.attach(txt)
-            # Attach pdf
-            att = MIMEBase('application', 'pdf')
-            att.add_header('Content-Disposition', 'attachment', filename=filename)
-            att.set_payload( pdf )
-            Encoders.encode_base64(att)
-            msg.attach(att)
-            log('mail bulletin a %s' % msg['To'] )
-            self.sendEmail(msg)
-            return ('<div class="head_message">Message mail envoyé à %s</div>'
-                    % (etud['emaillink'])) + htm, filigranne
-
-
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
     def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
                                    version='selectedevals'):
@@ -2211,8 +2135,8 @@ class ZNotes(ObjectManager,
         filigrannes = {}
         i = 1
         for etudid in nt.get_etudids():
-            frag, filigranne = self.do_formsemestre_bulletinetud(
-                formsemestre_id, etudid, format='pdfpart',
+            frag, filigranne = sco_bulletins.do_formsemestre_bulletinetud(
+                self, formsemestre_id, etudid, format='pdfpart',
                 version=version, 
                 REQUEST=REQUEST )
             fragments += frag
@@ -2262,8 +2186,8 @@ class ZNotes(ObjectManager,
                                       
         # Make each bulletin
         for etudid in etudids:
-            self.do_formsemestre_bulletinetud(
-                formsemestre_id, etudid,
+            sco_bulletins.do_formsemestre_bulletinetud(
+                self, formsemestre_id, etudid,
                 version=version, 
                 format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
         #
