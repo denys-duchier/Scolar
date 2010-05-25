@@ -294,27 +294,29 @@ def make_formsemestre_bulletinetud_html(
     for ue in I['ues']:
         ue_descr = ue['ue_descr_html']
         coef_ue  = ue['coef_ue_txt']
+        rowstyle = ''
         if ue['ue_status']['is_capitalized']:
             H.append('<tr class="notes_bulletin_row_ue">')
             H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
                      %  (ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
-            coef_ue = ''
+            coef_ue  = ''
             ue_descr = '(en cours, non prise en compte)'
+            rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
 
-        H.append('<tr class="notes_bulletin_row_ue">')
+        H.append('<tr class="notes_bulletin_row_ue">' )
         H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
                  % (ue['acronyme'], ue['cur_moy_ue_txt'], ue_descr, '', coef_ue))
         for mod in ue['modules']:
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
-            H.append('<tr class="notes_bulletin_row_mod">')
+            H.append('<tr class="notes_bulletin_row_mod%s">' % rowstyle)
             H.append('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
                      % (mod['code_html'], mod['name_html'], mod['mod_rang_txt'], mod['mod_moy_txt'], mod['mod_coef_txt']))
             if version != 'short':
                 # --- notes de chaque eval:
                 for e in mod['evaluations']:
                     if e['visibulletin'] == '1' or version == 'long':
-                        H.append('<tr class="notes_bulletin_row_eval">')
+                        H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
                         H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>'
                                  % ('','', e['name_html'], e['note_txt'], e['coef_txt']))
     
