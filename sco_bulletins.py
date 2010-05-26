@@ -594,7 +594,7 @@ def make_xml_formsemestre_bulletinetud(
             doc._push()
             modstat = nt.get_mod_stats(modimpl['moduleimpl_id'])
             doc.note( value=mod_moy, 
-                      min=fmt_note(modstat[min]), max=fmt_note(modstat[max])
+                      min=fmt_note(modstat['min']), max=fmt_note(modstat['max'])
                       )
             doc._pop()
             if context.get_preference('bul_show_mod_rangs', formsemestre_id):
