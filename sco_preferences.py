@@ -633,6 +633,14 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
+    ( 'bul_show_minmax_mod', 
+      { 'initvalue' : 0,
+        'title' : 'Afficher min/max moyennes des modules sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
     ( 'bul_show_temporary', 
       { 'initvalue' : 1,
         'title' : 'Bannière "provisoire" si pas de décision de jury',

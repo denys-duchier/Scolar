@@ -140,13 +140,14 @@ class NotesTable:
     """
     def __init__(self, context, formsemestre_id):
         log('NotesTable( formsemestre_id=%s )' % formsemestre_id)
-        #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG
+        #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG        
         if not formsemestre_id:
             raise ScoValueError('invalid formsemestre_id (%s)' % formsemestre_id)
         self.context = context
         self.formsemestre_id = formsemestre_id
         cnx = context.GetDBConnexion()
         self.sem = context.get_formsemestre(formsemestre_id)
+        self.moduleimpl_stats = {} # { moduleimpl_id : {stats} }
         # Infos sur les etudiants
         self.inscrlist = context.do_formsemestre_inscription_list(
             args = { 'formsemestre_id' : formsemestre_id })
@@ -387,7 +388,10 @@ class NotesTable:
     def get_mod_stats(self, moduleimpl_id):
         """moyenne generale, min, max pour un module
         Ne prend en compte que les evaluations où toutes les notes sont entrées
+        Cache le resultat.
         """
+        if moduleimpl_id in self.moduleimpl_stats:
+            return self.moduleimpl_stats[moduleimpl_id]
         nb_notes = 0
         sum_notes = 0.
         nb_missing = 0
@@ -409,9 +413,11 @@ class NotesTable:
             max_note, min_note = max(vals), min(vals) 
         else:
             moy, min_note, max_note = 'NA', '-', '-'
-        return { 'moy' : moy, 'max' : max_note, 'min' : min_note,
-                 'nb_notes' : nb_notes, 'nb_missing' : nb_missing }
-
+        s = { 'moy' : moy, 'max' : max_note, 'min' : min_note,
+              'nb_notes' : nb_notes, 'nb_missing' : nb_missing }
+        self.moduleimpl_stats[moduleimpl_id] = s
+        return s
+    
     def compute_moy_moy(self):
         """precalcule les moyennes d'UE et generale (moyennes sur tous
         les etudiants), et les stocke dans self.moy_moy, self.ue['moy']
