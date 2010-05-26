@@ -468,9 +468,7 @@ class NotesTable:
         """Calcule moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
         Ne prend en compte que les evaluations où toutes les notes sont entrées
         Return a dict(moy, nb_notes, nb_missing, sum_coefs)
-        Si pas de notes, moy == 'NA' et sum_coefs==0
-
-        Ne tient pas compte des UE capitalisées, sauf si with_capitalized_ue True.
+        Si pas de notes, moy == 'NA' et sum_coefs==0                
         """
         modimpls = self.get_modimpls(ue_id)
         nb_notes = 0    # dans cette UE

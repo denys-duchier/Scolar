@@ -183,7 +183,7 @@ def unescape_html(s):
 
 
 def quote_xml_attr( data ):
-    """Escape &, <, >, quotes and doule quotes"""
+    """Escape &, <, >, quotes and double quotes"""
     return xml.sax.saxutils.escape( str(data),
                                     { "'" : '&apos;', '"' : '&quot;' } )
 

@@ -304,8 +304,13 @@ def make_formsemestre_bulletinetud_html(
             rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
 
         H.append('<tr class="notes_bulletin_row_ue">' )
+        if context.get_preference('bul_show_minmax', formsemestre_id):
+            moy_txt = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
+        else:
+            moy_txt = ue['cur_moy_ue_txt']
+
         H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                 % (ue['acronyme'], ue['cur_moy_ue_txt'], ue_descr, '', coef_ue))
+                 % (ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
         for mod in ue['modules']:
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
@@ -515,7 +520,7 @@ def make_xml_formsemestre_bulletinetud(
             context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
     
     doc._push()
-    doc.note( value=mg )
+    doc.note( value=mg, min=fmt_note(nt.moy_min), max=fmt_note(nt.moy_max) )
     doc._pop()
     doc._push()
     doc.rang( value=rang, ninscrits=nbetuds )
@@ -543,7 +548,8 @@ def make_xml_formsemestre_bulletinetud(
                 acronyme=quote_xml_attr(ue['acronyme']),
                 titre=quote_xml_attr(ue['titre']) )            
         doc._push()
-        doc.note( value=fmt_note(ue_status['cur_moy_ue']) )
+        doc.note( value=fmt_note(ue_status['cur_moy_ue']), 
+                  min=fmt_note(ue['min']), max=fmt_note(ue['max']) )
         doc._pop()
         doc._push()
         doc.rang( value=str(nt.ue_rangs[ue['ue_id']][0][etudid]) )
