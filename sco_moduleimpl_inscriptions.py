@@ -261,7 +261,7 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
                     H.append('(cap. le %s)' % (info['ue_status']['event_date']).strftime('%d/%m/%Y'))
                     
                 if info['is_ins']:
-                    dm = ', '.join([ m['code'] for m in info['is_ins'] ])
+                    dm = ', '.join([ m['code'] or m['abbrev'] or 'pas_de_code' for m in info['is_ins'] ])
                     H.append('actuellement inscrit dans <a title="%s" class="discretelink">%d modules</a>' % (dm,len(info['is_ins'])))
                     if info['ue_status']['is_capitalized']:
                         H.append("""<div><em style="font-size: 70%">UE actuelle moins bonne que l'UE capitalisée</em></div>""")
