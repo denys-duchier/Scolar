@@ -141,7 +141,7 @@ def eval_user_expression(context, expression, notes, coefs, cmask, AbsEtudSem ):
               'nbabs_just' : float(nbabs_just),
               'nbabs_nojust' : float(nbabs - nbabs_just)
               }
-    log('Evaluating %s with %s' % (expression, envir))
+    # log('Evaluating %s with %s' % (expression, envir))
     # may raise exception if user expression is invalid
     return eval( expression, envir, {} ) # this should be safe
 

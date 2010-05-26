@@ -424,6 +424,7 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
             tabline += 1
+            modline(tabline)
             if context.get_preference('bul_show_minmax_mod', formsemestre_id):
                 rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
             else:
