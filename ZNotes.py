@@ -74,7 +74,6 @@ import sco_moduleimpl_status
 import sco_moduleimpl_inscriptions
 import sco_evaluations
 import sco_groups
-import sco_compute_moy
 import sco_bulletins, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_report
@@ -2082,32 +2081,7 @@ class ZNotes(ObjectManager,
                 d[x['etudid']] = x
         return d
 
-    # --- Bulletins    
-    security.declareProtected(ScoView, 'do_formsemestre_moyennes')
-    def do_formsemestre_moyennes(self, formsemestre_id):
-        """retourne dict { moduleimpl_id : { etudid, note_moyenne_dans_ce_module } },
-        la liste des moduleimpls, la liste des evaluations valides,
-        liste des moduleimpls  avec notes en attente.
-        """
-        sem = self.get_formsemestre(formsemestre_id)
-        inscr = self.do_formsemestre_inscription_list(
-            args = { 'formsemestre_id' : formsemestre_id })
-        etudids = [ x['etudid'] for x in inscr ]
-        mods = self.do_moduleimpl_list( args={ 'formsemestre_id' : formsemestre_id})
-        # recupere les moyennes des etudiants de tous les modules
-        D = {}
-        valid_evals = []
-        mods_att = []
-        for mod in mods:
-            assert not D.has_key(mod['moduleimpl_id'])
-            D[mod['moduleimpl_id']], valid_evals_mod, attente =\
-                sco_compute_moy.do_moduleimpl_moyennes(self, mod['moduleimpl_id'])
-            valid_evals += valid_evals_mod
-            if attente:
-                mods_att.append(mod)
-        #
-        return D, mods, valid_evals, mods_att
-    
+    # --- Bulletins        
     security.declareProtected(ScoView, 'formsemestre_bulletins_pdf')
     def formsemestre_bulletins_pdf(self, formsemestre_id, REQUEST,
                                    version='selectedevals'):

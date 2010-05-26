@@ -34,8 +34,8 @@ import traceback
 from types import FloatType, IntType, LongType
 
 from sco_utils import *
+import ZAbsences
 from notes_log import log, sendAlarm
-from notes_table import *
 import sco_groups
 import sco_evaluations
 
@@ -130,12 +130,18 @@ formula_builtins = {
 # v = NoteVector(1,2)
 # eval("max(4,5)", {'__builtins__': formula_builtins, {'x' : 1, 'v' : NoteVector(1,2) }, {})
 
-def eval_user_expression(context, expression, notes, coefs, cmask ):
+def eval_user_expression(context, expression, notes, coefs, cmask, AbsEtudSem ):
+    nbabs = AbsEtudSem.CountAbs()
+    nbabs_just = AbsEtudSem.CountAbsJust()
     envir = { '__builtins__': formula_builtins,
               'cmask' : NoteVector(v=cmask),
               'notes' : NoteVector(v=notes), 
-              'coefs' : NoteVector(v=coefs) 
+              'coefs' : NoteVector(v=coefs),
+              'nbabs' : float(nbabs),
+              'nbabs_just' : float(nbabs_just),
+              'nbabs_nojust' : float(nbabs - nbabs_just)
               }
+    log('Evaluating %s with %s' % (expression, envir))
     # may raise exception if user expression is invalid
     return eval( expression, envir, {} ) # this should be safe
 
@@ -149,9 +155,9 @@ def moduleimpl_has_expression(context, mod):
         return False
     return True
 
-def do_moduleimpl_moyennes(context, moduleimpl_id):
+def do_moduleimpl_moyennes(context, mod):
     """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
-    à ce module, la liste des evaluations "valides" (toutes notes entrées
+    au moduleimpl mod, la liste des evaluations "valides" (toutes notes entrées
     ou en attente), et att (vrai s'il y a des notes en attente dans ce module).
     La moyenne est calculée en utilisant les coefs des évaluations.
     Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
@@ -161,14 +167,14 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
     Ne prend en compte que les evaluations où toutes les notes sont entrées.
     Le résultat est une note sur 20.
     """
-    M = context.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id })[0]
+    moduleimpl_id = mod['moduleimpl_id']
     etudids = context.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
     # Inscrits au semestre (pour traiter les demissions):
     inssem_set = Set( [x['etudid'] for x in
-                       context.do_formsemestre_inscription_listinscrits(M['formsemestre_id'])])
+                       context.do_formsemestre_inscription_listinscrits(mod['formsemestre_id'])])
     insmod_set = inssem_set.intersection(etudids) # inscrits au semestre et au module
     evals = context.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
-    user_expr = moduleimpl_has_expression(context, M)
+    user_expr = moduleimpl_has_expression(context, mod)
     attente = False
     # recupere les notes de toutes les evaluations
     for e in evals:
@@ -190,6 +196,7 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
     # filtre les evals valides (toutes les notes entrées)        
     valid_evals = [ e for e in evals
                     if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
+    
     # 
     R = {}
     for etudid in insmod_set: # inscrits au semestre et au module
@@ -240,10 +247,11 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
                     coefs.append(0.)
                     coefs_mask.append(0)
             if nb_notes > 0:
+                AbsSemEtud = ZAbsences.getAbsSemEtud(context, mod['formsemestre_id'], etudid)
                 try:
-                    log('notes=%s' % notes)
-                    log('coefs=%s' % coefs)
-                    user_moy = eval_user_expression(context, M['computation_expr'], notes, coefs, coefs_mask)
+                    #log('notes=%s' % notes)
+                    #log('coefs=%s' % coefs)
+                    user_moy = eval_user_expression(context, mod['computation_expr'], notes, coefs, coefs_mask, AbsSemEtud )
                     if user_moy > 20 or user_moy < 0:
                         raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
                 except:
@@ -255,3 +263,26 @@ def do_moduleimpl_moyennes(context, moduleimpl_id):
     return R, valid_evals, attente
 
 
+def do_formsemestre_moyennes(context, formsemestre_id):
+    """retourne dict { moduleimpl_id : { etudid, note_moyenne_dans_ce_module } },
+    la liste des moduleimpls, la liste des evaluations valides,
+    liste des moduleimpls  avec notes en attente.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    inscr = context.do_formsemestre_inscription_list(
+        args = { 'formsemestre_id' : formsemestre_id })
+    etudids = [ x['etudid'] for x in inscr ]
+    mods = context.do_moduleimpl_list( args={ 'formsemestre_id' : formsemestre_id})
+    # recupere les moyennes des etudiants de tous les modules
+    D = {}
+    valid_evals = []
+    mods_att = []
+    for mod in mods:
+        assert not D.has_key(mod['moduleimpl_id'])
+        D[mod['moduleimpl_id']], valid_evals_mod, attente =\
+            do_moduleimpl_moyennes(context, mod)
+        valid_evals += valid_evals_mod
+        if attente:
+            mods_att.append(mod)
+    #
+    return D, mods, valid_evals, mods_att

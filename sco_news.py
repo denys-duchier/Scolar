@@ -30,7 +30,7 @@
 
 from notesdb import *
 from notes_log import log
-from scolars import monthsnames, abbrvmonthsnames
+import scolars
 from sco_utils import SCO_ENCODING
 
 import PyRSS2Gen
@@ -109,7 +109,7 @@ def scolar_news_summary(context, n=5):
                 n[k] = _scolar_news_editor.output_formators[k](n[k])
         # date resumee
         j, m = n['date'].split('/')[:2]
-        mois = abbrvmonthsnames[int(m)-1]
+        mois = scolars.abbrvmonthsnames[int(m)-1]
         n['formatted_date'] = '%s %s %s' % (j,mois,n['hm'])
         # indication semestre si ajout notes:
         if n['type'] == NEWS_NOTE:

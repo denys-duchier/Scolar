@@ -30,7 +30,7 @@
 from sets import Set
 
 from notes_log import log
-from notes_table import *
+from sco_utils import *
 import sco_news
 import sco_groups
 

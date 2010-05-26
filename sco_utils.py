@@ -46,6 +46,56 @@ from sco_exceptions import *
 from sco_permissions import *
 from TrivialFormulator import TrivialFormulator, TF, tf_error_message
 
+
+# ----- CALCUL ET PRESENTATION DES NOTES
+NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
+NOTES_MIN = 0.       # valeur minimale admise pour une note
+NOTES_MAX = 100.
+NOTES_NEUTRALISE=-1000. # notes non prises en comptes dans moyennes
+NOTES_SUPPRESS=-1001.   # note a supprimer
+NOTES_ATTENTE=-1002.    # note "en attente" (se calcule comme une note neutralisee)
+
+NOTES_TOLERANCE = 0.00499999999999 # si note >= (BARRE-TOLERANCE), considere ok
+                                   # (permet d'eviter d'afficher 10.00 sous barre alors que la moyenne vaut 9.999)
+NOTES_BARRE_GEN = 10.-NOTES_TOLERANCE # barre sur moyenne generale
+NOTES_BARRE_UE = 8.-NOTES_TOLERANCE   # barre sur UE
+NOTES_BARRE_VALID_UE = 10.-NOTES_TOLERANCE # seuil pour valider UE
+
+UE_STANDARD = 0
+UE_SPORT = 1
+
+UE_TYPE_NAME = { UE_STANDARD : 'standard', UE_SPORT : 'sport' }
+
+def fmt_note(val, note_max=None, keep_numeric=False):
+    """conversion note en str pour affichage dans tables HTML ou PDF.
+    Si keep_numeric, laisse les valeur numeriques telles quelles (pour export Excel)
+    """
+    if val is None:
+        return 'ABS'
+    if val == NOTES_NEUTRALISE:
+        return 'EXC' # excuse, note neutralise
+    if val == NOTES_ATTENTE:
+        return 'ATT' # attente, note neutralisee
+    if type(val) == type(0.0) or type(val) == type(1):
+        if note_max != None:
+            val = val * 20. / note_max
+        if keep_numeric:
+            return val
+        else:
+            s = '%2.2f' % round(float(val),2) # 2 chiffres apres la virgule
+            s = '0'*(5-len(s)) + s
+            return s
+    else:
+        return val.replace('NA0', '-')  # notes sans le NA0
+
+def fmt_coef(val):
+    """Conversion valeur coefficient (float) en chaine
+    """
+    if val < 0.01:
+        return '%g' % val # unusually small value
+    return '%g' % round(val,2)
+
+
 # ----- Global lock for critical sections (except notes_tables caches)
 GSL = thread.allocate_lock() # Global ScoDoc Lock
 
