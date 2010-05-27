@@ -39,6 +39,8 @@ from gen_tables import GenTable
 import sco_archives
 import sco_groups
 import sco_evaluations
+import sco_formsemestre_edit
+import sco_compute_moy
 
 def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
@@ -466,11 +468,14 @@ Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indi
 def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
     """Tableau de bord semestre HTML"""
     # porté du DTML
+    cnx = context.GetDBConnexion()
     status_head = formsemestre_status_head(context, formsemestre_id=formsemestre_id, REQUEST=REQUEST)
     sem = context.get_formsemestre(formsemestre_id)
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     prev_ue_id = None
+
+    can_edit = sco_formsemestre_edit.can_edit_sem(context, REQUEST, formsemestre_id, sem=sem)
 
     H = [ context.sco_header(REQUEST, page_title='Semestre %s' % sem['titreannee'] ),
           '<div class="formsemestre_status">',
@@ -504,10 +509,23 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
         ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
         if prev_ue_id != M['ue']['ue_id']:
             prev_ue_id = M['ue']['ue_id']
-            H.append("""<tr class="formsemestre_status_ue"><td colspan="5">
+            H.append("""<tr class="formsemestre_status_ue"><td colspan="4">
 <span class="status_ue_acro">%(acronyme)s</span>
 <span class="status_ue_title">%(titre)s</span>
-</td></tr>""" % M['ue'] )
+</td><td>""" % M['ue'] )
+            
+            expr = sco_compute_moy.get_ue_expression(formsemestre_id, M['ue']['ue_id'], cnx)
+            
+            if can_edit:
+                H.append(' <a href="edit_ue_expr?formsemestre_id=%s&ue_id=%s">' % (formsemestre_id, M['ue']['ue_id']))
+            H.append(icontag('formula', title="Mode calcul moyenne d'UE", style="vertical-align:middle"))
+            if can_edit:
+                H.append('</a>')
+            if expr:
+                H.append(''' <span class="formula" title="mode de calcul de la moyenne d'UE">%s</span>''' % expr)
+
+            H.append('</td></tr>')
+
         if M['ue']['type'] != 0:
             fontorange = ' fontorange' # style css additionnel
         else:

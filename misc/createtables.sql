@@ -344,6 +344,15 @@ CREATE TABLE notes_formsemestre_uecoef (
 ) WITH OIDS;
 
 
+-- Formules utilisateurs pour calcul moyenne UE
+CREATE TABLE notes_formsemestre_ue_computation_expr (
+	notes_formsemestre_ue_computation_expr_id text default notes_newid('UEXPR') PRIMARY KEY,
+	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+	ue_id  text REFERENCES notes_ue(ue_id),
+	computation_expr text, -- formule de calcul moyenne
+	UNIQUE(formsemestre_id, ue_id)
+) WITH OIDS;
+
 -- Menu custom associe au semestre
 CREATE TABLE notes_formsemestre_custommenu (
 	custommenu_id text default notes_newid('CMENU') PRIMARY KEY,

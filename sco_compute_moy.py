@@ -34,6 +34,7 @@ import traceback
 from types import FloatType, IntType, LongType
 
 from sco_utils import *
+from notesdb import *
 import ZAbsences
 from notes_log import log, sendAlarm
 import sco_groups
@@ -148,6 +149,85 @@ def moduleimpl_has_expression(context, mod):
         return False
     return True
 
+def formsemestre_expressions_use_abscounts(context, formsemestre_id):
+    """True si les notes de ce semestre dépendnent des compteurs d'absences.
+    Cela n'est normalement pas le cas, sauf si des formules utilisateur utilisent ces compteurs.
+    """
+    # check presence of 'nbabs' in expressions
+    ab = 'nbabs' # chaine recherchée
+    cnx = context.GetDBConnexion()
+    # 1- moyennes d'UE:
+    elist = formsemestre_ue_computation_expr_list(cnx, {'formsemestre_id':formsemestre_id})
+    for e in elist:
+        expr = e['computation_expr'].strip()
+        if expr and expr[0] != '#' and ab in expr:
+            return True
+    # 2- moyennes de modules
+    for mod in self.do_moduleimpl_list( args={ 'formsemestre_id':formsemestre_id } ):
+        if moduleimpl_has_expression(context, mod) and ab in mod['computation_expr']:
+            return True
+    return False
+
+_formsemestre_ue_computation_exprEditor = EditableTable(
+        'notes_formsemestre_ue_computation_expr',
+        'notes_formsemestre_ue_computation_expr_id',
+        ('notes_formsemestre_ue_computation_expr_id', 'formsemestre_id', 'ue_id', 'computation_expr'),
+        )
+formsemestre_ue_computation_expr_create=_formsemestre_ue_computation_exprEditor.create
+formsemestre_ue_computation_expr_delete=_formsemestre_ue_computation_exprEditor.delete
+formsemestre_ue_computation_expr_list=_formsemestre_ue_computation_exprEditor.list
+formsemestre_ue_computation_expr_edit=_formsemestre_ue_computation_exprEditor.edit
+
+
+def get_ue_expression(formsemestre_id, ue_id, cnx):
+    """Returns UE expression (formula), or None if no expression has been defined
+    """
+    el = formsemestre_ue_computation_expr_list(cnx, {'formsemestre_id':formsemestre_id, 'ue_id':ue_id})
+    if not el:
+        return None
+    else:
+        expr = el[0]['computation_expr'].strip()
+        if expr and expr[0] != '#':
+            return expr
+        else:
+            return None
+
+def compute_user_formula(context, formsemestre_id, etudid, 
+                         moy, moy_valid, notes, coefs, coefs_mask, 
+                         formula,
+                         diag_info={} # infos supplementaires a placer ds messages d'erreur
+                         ):
+    """Calcul moyenne a partir des notes et coefs, en utilisant la formule utilisatuer (une chaine).
+    Retourne moy, et en cas d'erreur met à jour diag_info (msg)
+    """
+    AbsSemEtud = ZAbsences.getAbsSemEtud(context, formsemestre_id, etudid)
+    nbabs = AbsSemEtud.CountAbs()
+    nbabs_just = AbsSemEtud.CountAbsJust()
+    variables = {
+            'cmask' : NoteVector(v=coefs_mask),
+            'notes' : NoteVector(v=notes), 
+            'coefs' : NoteVector(v=coefs),
+            'moy'   : moy,
+            'moy_valid' : moy_valid, # True si moyenne numerique
+            'nbabs' : float(nbabs),
+            'nbabs_just' : float(nbabs_just),
+            'nbabs_nojust' : float(nbabs - nbabs_just)
+            }
+    try:
+        user_moy = eval_user_expression(context, formula, variables)                    
+        if user_moy > 20 or user_moy < 0:
+            raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
+    except:
+        log('invalid expression !')
+        tb = traceback.format_exc()
+        log('Exception during evaluation:\n%s\n' % tb)
+        diag_info.update({ 'msg' : tb.splitlines()[-1] })
+        user_moy = 'ERR'
+
+    # log('formula=%s\nvariables=%s\nmoy=%s\nuser_moy=%s' % (formula, variables, moy, user_moy))
+    
+    return user_moy
+
 def do_moduleimpl_moyennes(context, mod):
     """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
     au moduleimpl mod, la liste des evaluations "valides" (toutes notes entrées
@@ -191,7 +271,7 @@ def do_moduleimpl_moyennes(context, mod):
                     if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
     
     # 
-    expr_diag = '' # message d'erreur formule
+    diag_info = {} # message d'erreur formule
     R = {}
     for etudid in insmod_set: # inscrits au semestre et au module
         sum_notes = 0.
@@ -245,32 +325,15 @@ def do_moduleimpl_moyennes(context, mod):
                     coefs.append(0.)
                     coefs_mask.append(0)
             if nb_notes > 0:
-                AbsSemEtud = ZAbsences.getAbsSemEtud(context, mod['formsemestre_id'], etudid)
-                nbabs = AbsSemEtud.CountAbs()
-                nbabs_just = AbsSemEtud.CountAbsJust()
-                variables = {
-                        'cmask' : NoteVector(v=coefs_mask),
-                        'notes' : NoteVector(v=notes), 
-                        'coefs' : NoteVector(v=coefs),
-                        'moy'   : R[etudid],
-                        'moy_valid' : moy_valid, # True si moyenne numerique
-                        'nbabs' : float(nbabs),
-                        'nbabs_just' : float(nbabs_just),
-                        'nbabs_nojust' : float(nbabs - nbabs_just)
-                        }
-                try:
-                    user_moy = eval_user_expression(context, mod['computation_expr'], variables)                    
-                    if user_moy > 20 or user_moy < 0:
-                        raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
-                except:
-                    log('invalid expression !')
-                    tb = traceback.format_exc()
-                    log('Exception during evaluation:\n%s\n' % tb)
-                    expr_diag = { 'moduleimpl_id' : moduleimpl_id, 'msg' : tb.splitlines()[-1] }
-                    user_moy = 'ERR'
+                user_moy = compute_user_formula(context, mod['formsemestre_id'], etudid, 
+                                                R[etudid], moy_valid,
+                                                notes, coefs, coefs_mask, mod['computation_expr'],
+                                                diag_info=diag_info)
+                if diag_info:
+                    diag_info['moduleimpl_id'] = moduleimpl_id
                 R[etudid] = user_moy
     
-    return R, valid_evals, attente, expr_diag
+    return R, valid_evals, attente, diag_info
 
 
 def do_formsemestre_moyennes(context, formsemestre_id):

@@ -158,7 +158,7 @@ class NotesTable:
         self._etud_moy_ues = {} # { etudid : { ue_id : {'moy', 'sum_coefs', ... } }
 
         for etudid in self.get_etudids():
-            etud_moy_gen = self.comp_etud_moy_gen(etudid)
+            etud_moy_gen = self.comp_etud_moy_gen(etudid, cnx)
             ue_status = etud_moy_gen['moy_ues']
             self._etud_moy_ues[etudid] = ue_status
             
@@ -424,7 +424,7 @@ class NotesTable:
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        
         return self._modmoys[moduleimpl_id].get(etudid, 'NI')
     
-    def comp_etud_moy_ue(self, etudid, ue_id=None):
+    def comp_etud_moy_ue(self, etudid, ue_id=None, cnx=None):
         """Calcule moyenne gen. pour un etudiant dans une UE 
         Ne prend en compte que les evaluations où toutes les notes sont entrées
         Return a dict(moy, nb_notes, nb_missing, sum_coefs)
@@ -439,7 +439,11 @@ class NotesTable:
         
         notes_bonus_gen = [] # liste des notes de sport et culture
         coefs_bonus_gen = []
-        
+
+        notes = []
+        coefs = []
+        coefs_mask = [] # 0/1, 0 si coef a ete annulé
+
         for modimpl in modimpls:
             mod_ue_id = modimpl['ue']['ue_id']
             # module ne faisant pas partie d'une UE capitalisee
@@ -447,12 +451,18 @@ class NotesTable:
             # si 'NI' probablement etudiant non inscrit a ce module
             coef = modimpl['module']['coefficient']
             if modimpl['ue']['type'] == UE_STANDARD:
+                notes.append(val)
                 try:
                     sum_notes += val * coef
                     sum_coefs += coef
                     nb_notes = nb_notes + 1
+                    coefs.append(coef)
+                    coefs_mask.append(1)
                 except:
                     nb_missing = nb_missing + 1
+                    coefs.append(0)
+                    coefs_mask.append(0)
+            
             elif modimpl['ue']['type'] == UE_SPORT:
                 # la note du module de sport agit directement sur la moyenne gen.
                 try:
@@ -466,13 +476,27 @@ class NotesTable:
         # Calcul moyenne:
         if sum_coefs > 0:
             moy = sum_notes / sum_coefs
+            moy_valid = True
         else:
             moy = 'NA'
-        
-        return dict(moy=moy, nb_notes=nb_notes, nb_missing=nb_missing, sum_coefs=sum_coefs,
-                    notes_bonus_gen=notes_bonus_gen, coefs_bonus_gen=coefs_bonus_gen)
+            moy_valid = False
 
-    def comp_etud_moy_gen(self, etudid):
+        # (experimental) recalcule la moyenne en utilisant une formule utilisateur
+        expr_diag = {}
+        formula = sco_compute_moy.get_ue_expression(self.formsemestre_id, ue_id, cnx)
+        if formula:            
+            moy = sco_compute_moy.compute_user_formula(
+                self.context, self.formsemestre_id, etudid, 
+                moy, moy_valid,
+                notes, coefs, coefs_mask, formula,
+                diag_info=expr_diag)
+            if expr_diag:
+                expr_diag['ue_id'] = ue_id
+        return dict(moy=moy, nb_notes=nb_notes, nb_missing=nb_missing, sum_coefs=sum_coefs,
+                    notes_bonus_gen=notes_bonus_gen, coefs_bonus_gen=coefs_bonus_gen,
+                    expr_diag=expr_diag)
+
+    def comp_etud_moy_gen(self, etudid, cnx):
         """Calcule moyenne gen. pour un etudiant
         Return a dict:
          moy  : moyenne générale
@@ -500,7 +524,7 @@ class NotesTable:
         for ue in self.get_ues():
             ue_id = ue['ue_id']
             # - Dans tous les cas, on calcule la moyenne d'UE courante:
-            mu = self.comp_etud_moy_ue(etudid, ue_id=ue['ue_id'])
+            mu = self.comp_etud_moy_ue(etudid, ue_id=ue['ue_id'], cnx=cnx)
             moy_ues[ue['ue_id']] = mu
             
             # - Faut-il prendre une UE capitalisée ?
@@ -515,6 +539,7 @@ class NotesTable:
                     mu['was_capitalized'] = True
                     event_date = event_date or ue_cap['event_date']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
+                        # meilleure UE capitalisée
                         event_date = ue_cap['event_date']
                         max_moy_ue = moy_ue_cap
                         mu['is_capitalized'] = True
@@ -539,7 +564,6 @@ class NotesTable:
                 except: # pas de note dans cette UE
                     pass
             else:
-                mu = self.comp_etud_moy_ue(etudid, ue_id=ue['ue_id'])
                 if mu['coefs_bonus_gen']:
                     notes_bonus_gen.extend(mu['notes_bonus_gen'])
                     coefs_bonus_gen.extend(mu['coefs_bonus_gen'])

@@ -292,6 +292,17 @@ for dept in get_depts():
     # rename old preference "send_mail_absence_to_chef"
     cursor.execute("update sco_prefs set name = 'abs_notify_chief' where name = 'send_mail_absence_to_chef'")
     
+    check_table( cnx, 'notes_formsemestre_ue_computation_expr', [ """
+     CREATE TABLE notes_formsemestre_ue_computation_expr (
+	notes_formsemestre_ue_computation_expr_id text default notes_newid('UEXPR') PRIMARY KEY,
+	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
+	ue_id  text REFERENCES notes_ue(ue_id),
+	computation_expr text, -- formule de calcul moyenne
+	UNIQUE(formsemestre_id, ue_id)
+       ) WITH OIDS;
+     """] )
+    
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()

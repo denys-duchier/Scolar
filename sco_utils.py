@@ -398,7 +398,7 @@ def icontag(name, file_format='png', **attrs):
     """tag HTML pour un icone.
     (dans les versions anterieures on utilisait Zope)
     Les icones sont des fichiers PNG dans .../static/icons
-    Si la taille (width et height) n'ets pas spécifiée, lit l'image 
+    Si la taille (width et height) n'est pas spécifiée, lit l'image 
     pour la mesurer (et cache le résultat).
     """
     if ('width' not in attrs) or ('height' not in attrs):

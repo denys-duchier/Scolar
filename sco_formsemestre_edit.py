@@ -80,6 +80,16 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
 
+def can_edit_sem(context, REQUEST, formsemestre_id, sem=None):
+    """Return sem if user can edit it, False otherwise
+    """
+    sem = sem or context.get_formsemestre(formsemestre_id)
+    authuser = REQUEST.AUTHENTICATED_USER
+    if not authuser.has_permission(ScoImplement,context):
+        if not sem['resp_can_edit'] or str(authuser) != sem['responsable_id']:
+            return False
+    return sem
+
 def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
     # Fonction accessible à tous, controle acces à la main:
@@ -619,6 +629,13 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
             if not prefs.is_global(pname):
                 pvalue = prefs[pname]
                 prefs.base_prefs.set(formsemestre_id, pname, pvalue)
+
+    # 5- Copy formules utilisateur
+    objs = sco_compute_moy.formsemestre_ue_computation_expr_list(cnx, args={'formsemestre_id':orig_formsemestre_id})
+    for obj in objs:
+        args = obj.copy()
+        args['formsemestre_id'] = formsemestre_id
+        c = sco_compute_moy.formsemestre_ue_computation_expr_create(cnx, args)
     
     return formsemestre_id
 
@@ -781,6 +798,9 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Suppression des item du menu custom
     req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des formules
+    req = "DELETE FROM notes_formsemestre_ue_computation_expr WHERE formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Suppression des preferences
     req = "DELETE FROM sco_prefs WHERE formsemestre_id=%(formsemestre_id)s"

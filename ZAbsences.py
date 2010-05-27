@@ -57,6 +57,7 @@ import scolars
 import sco_groups
 import sco_excel
 import sco_abs_notification, sco_abs_views
+import sco_compute_moy
 import string, re
 import time, calendar 
 from mx.DateTime import DateTime as mxDateTime
@@ -1748,9 +1749,17 @@ def invalidateAbsEtudDate(context, etudid, date):
     etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
     sems = [ sem for sem in etud['sems'] if sem['date_debut_iso'] <= date and sem['date_fin_iso'] >= date ]
     
-    # Invalide les PDF et les abscences
+    # Invalide les PDF et les abscences:
     for sem in sems:
-        context.Notes._inval_cache(pdfonly=True, formsemestre_id=sem['formsemestre_id'])
+        # Inval cache bulletin et/ou note_table
+        if sco_compute_moy.formsemestre_expressions_use_abscounts(context, sem['formsemestre_id']):
+            pdfonly = False # seules certaines formules utilisent les absences
+        else:
+            pdfonly = True # efface toujours le PDF car il affiche en général les absences
+        
+        context.Notes._inval_cache(pdfonly=pdfonly, formsemestre_id=sem['formsemestre_id'])
+        
+        # Inval cache compteurs absences:
         AbsSemEtuds = getAbsSemEtuds(context, sem['formsemestre_id'])
         if etudid in AbsSemEtuds:
             AbsSemEtuds[etudid].invalidate()

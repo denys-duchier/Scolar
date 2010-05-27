@@ -1200,6 +1200,23 @@ class ZNotes(ObjectManager,
                                      )
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
 
+    _expr_help = """<p class="help">Expérimental: formule de calcul de la moyenne %(target)s</p>
+        <p class="help">Dans la formule, les variables suivantes sont définies:</p>
+        <ul class="help">
+        <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
+        <li><tt>moy_valid</tt> vrai si la moyenne est valide (numérique)</li>
+        <li><tt>notes</tt> vecteur des notes (/20) aux évaluations</li>
+        <li><tt>coefs</tt> vecteur des coefficients des évaluations, les coefs des %(objs)s sans notes (ATT, EXC) étant mis à zéro</li>
+        <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
+        <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
+        </ul>
+        <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des %(objs)s%(ordre)s.</p>
+        <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum, ifelse</tt></p>
+        <p class="help">La notation <tt>V( 1, 2, 3 )</tt> représente un vecteur <tt>(1,2,3)</tt></p>
+        <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
+        en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
+    """
+
     security.declareProtected(ScoView, 'edit_moduleimpl_expr')
     def edit_moduleimpl_expr(self, REQUEST, moduleimpl_id):
         """Edition formule calcul moyenne module
@@ -1208,27 +1225,12 @@ class ZNotes(ObjectManager,
         M, sem = self.can_change_ens(REQUEST, moduleimpl_id)
         H = [ 
             self.html_sem_header(
-                    REQUEST, 
-                    'Modification règle de calcul du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
-                    % (moduleimpl_id, M['module']['titre']), 
-                    sem
-                    ),
-            """<p class="help">Expérimental: formule de calcul de la moyenne du module</p>
-        <p class="help">Dans la formule, les variables suivantes sont définies:</p>
-        <ul class="help">
-        <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
-        <li><tt>moy_valid</tt> vrai si la moyenne est valide (numérique)</li>
-        <li><tt>notes</tt> vecteur des notes (/20) aux évaluations</li>
-        <li><tt>coefs</tt> vecteur des coefficients des évaluations, les coefs des évaluations sans notes (ATT, EXC) étant mis à zéro</li>
-        <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
-        <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
-        </ul>
-        <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des évaluations (le premier élément est la plus ancienne évaluation).</p>
-        <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum, ifelse</tt></p>
-        <p class="help">La notation <tt>V( 1, 2, 3 )</tt> représente un vecteur <tt>(1,2,3)</tt></p>
-        <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
-        en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
-        """
+                REQUEST, 
+                'Modification règle de calcul du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+                % (moduleimpl_id, M['module']['titre']), 
+                sem
+                ),
+            self._expr_help % {'target':'du module', 'objs' : 'évaluations', 'ordre' : ' (le premier élément est la plus ancienne évaluation)'}
             ]
         initvalues = M
         form = [
@@ -1249,8 +1251,57 @@ class ZNotes(ObjectManager,
             self.do_moduleimpl_edit( { 'moduleimpl_id' : moduleimpl_id,
                                        'computation_expr' : tf[2]['computation_expr'] },
                                      formsemestre_id=sem['formsemestre_id'])
+            self._inval_cache(formsemestre_id=sem['formsemestre_id']) #> modif regle calcul
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
 
+
+    security.declareProtected(ScoView, 'edit_ue_expr')
+    def edit_ue_expr(self, REQUEST, formsemestre_id, ue_id):
+        """Edition formule calcul moyenne UE"""
+        # Check access
+        sem = sco_formsemestre_edit.can_edit_sem(self, REQUEST, formsemestre_id)
+        if not sem:
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+        cnx = self.GetDBConnexion()
+        # 
+        ue = self.do_ue_list( {'ue_id' : ue_id})[0]
+        H = [ 
+            self.html_sem_header(
+                REQUEST, 
+                "Modification règle de calcul de l'UE %s (%s)" % (ue['acronyme'], ue['titre']), 
+                sem
+                ),
+            self._expr_help % {'target':"de l'UE", 'objs' : 'modules', 'ordre' : ''}
+            ]
+        el = sco_compute_moy.formsemestre_ue_computation_expr_list(cnx, {'formsemestre_id':formsemestre_id, 'ue_id':ue_id})
+        if el:
+            initvalues = el[0]
+        else:
+            initvalues = {}
+        form = [
+            ('ue_id', { 'input_type' : 'hidden' }),
+            ('formsemestre_id', { 'input_type' : 'hidden' }),
+            ('computation_expr', { 'title' : 'Formule de calcul',
+                                   'input_type' : 'textarea', 'rows' : 4, 'cols' : 60,
+                                   'explanation' : 'formule de calcul (expérimental)' }),
+            ]
+        tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
+                                submitlabel = 'Modifier formule de calcul',
+                                cancelbutton = 'Annuler',
+                                initvalues=initvalues)
+        if tf[0] == 0:
+            return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
+        elif tf[0] == -1:
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id)
+        else:
+            if el:
+                el[0]['computation_expr'] = tf[2]['computation_expr']
+                sco_compute_moy.formsemestre_ue_computation_expr_edit(cnx, el[0])
+            else:
+                sco_compute_moy.formsemestre_ue_computation_expr_create(cnx, tf[2])
+            
+            self._inval_cache(formsemestre_id=formsemestre_id) #> modif regle calcul
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id+'&head_message=règle%20de%20calcul%20modifiée')
 
     security.declareProtected(ScoView, 'formsemestre_enseignants_list')
     def formsemestre_enseignants_list(self, REQUEST, formsemestre_id, format='html'):

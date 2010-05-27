@@ -347,6 +347,13 @@ td.fichetitre2 .formula {
    padding-bottom: 3px;
    margin-right: 1em;
 }
+
+span.formula {
+  font-size: 80%;
+  font-family: Courier, monospace;
+  font-weight: normal;
+}
+
 td.fichetitre2 .fl {
    font-weight: normal;
 }
