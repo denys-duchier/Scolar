@@ -123,7 +123,7 @@ formula_builtins = {
     'reduce' : reduce,
     'round' : round,
     'sum' : sum,
-    'if'  : ternary_op,
+    'ifelse'  : ternary_op,
     'geomean' : geometrical_mean
 }
 

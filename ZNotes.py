@@ -1224,7 +1224,7 @@ class ZNotes(ObjectManager,
         <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
         </ul>
         <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des évaluations (le premier élément est la plus ancienne évaluation).</p>
-        <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum</tt></p>
+        <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum, ifelse</tt></p>
         <p class="help">La notation <tt>V( 1, 2, 3 )</tt> représente un vecteur <tt>(1,2,3)</tt></p>
         <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
         en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
