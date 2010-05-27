@@ -1216,9 +1216,12 @@ class ZNotes(ObjectManager,
             """<p class="help">Expérimental: formule de calcul de la moyenne du module</p>
         <p class="help">Dans la formule, les variables suivantes sont définies:</p>
         <ul class="help">
-        <li><tt>notes</tt> vecteur des notes (/20) aux évaluations
+        <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
+        <li><tt>moy_valid</tt> vrai si la moyenne est valide (numérique)</li>
+        <li><tt>notes</tt> vecteur des notes (/20) aux évaluations</li>
         <li><tt>coefs</tt> vecteur des coefficients des évaluations, les coefs des évaluations sans notes (ATT, EXC) étant mis à zéro</li>
-        <li><tt>coefs_mask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
+        <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
+        <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
         </ul>
         <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des évaluations (le premier élément est la plus ancienne évaluation).</p>
         <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum</tt></p>

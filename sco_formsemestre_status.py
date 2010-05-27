@@ -475,8 +475,17 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
     H = [ context.sco_header(REQUEST, page_title='Semestre %s' % sem['titreannee'] ),
           '<div class="formsemestre_status">',
           formsemestre_status_head(context, formsemestre_id=formsemestre_id, page_title='Tableau de bord'),
-          """<p><b style="font-size: 130%">Tableau de bord: </b><span class="help">cliquez sur un module pour saisir des notes</span>
-</p>
+          """<p><b style="font-size: 130%">Tableau de bord: </b><span class="help">cliquez sur un module pour saisir des notes</span></p>""" ]
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+    if nt.expr_diagnostics:
+        # erreurs dans des formules utilisateur de calcul
+        H.append('<div class="ue_warning">Erreur dans des formules utilisateurs:<ul>')
+        for diag in nt.expr_diagnostics:
+            mod = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : diag['moduleimpl_id'] } )[0]
+            H.append('<li>module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a>: %s</li>' 
+                     % (diag['moduleimpl_id'], mod['module']['abbrev'] or mod['module']['code'] or '?', diag['msg']))
+        H.append('</ul></div>')
+    H.append("""
 <p>
 <table class="formsemestre_status">
 <tr>
@@ -485,7 +494,7 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
 <th class="formsemestre_status">Inscrits</th>
 <th class="resp">Responsable</th>
 <th class="evals">Evaluations</th></tr>"""
-          ]
+          )
     for M in Mlist:
         Mod = M['module']
         ModDescr = 'Module ' + M['module']['titre'] + ', coef. ' + str(M['module']['coefficient'])

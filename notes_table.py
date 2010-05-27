@@ -123,8 +123,8 @@ class NotesTable:
 
         self.bonus = DictDefault(defaultvalue=0)
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
-        self._modmoys, self._modimpls, valid_evals, mods_att =\
-                       sco_compute_moy.do_formsemestre_moyennes(context, formsemestre_id)
+        self._modmoys, self._modimpls, valid_evals, mods_att, self.expr_diagnostics =\
+            sco_compute_moy.do_formsemestre_moyennes(context, formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
         self._valid_evals = {} # { evaluation_id : eval }
         for e in valid_evals:
@@ -425,11 +425,12 @@ class NotesTable:
         return self._modmoys[moduleimpl_id].get(etudid, 'NI')
     
     def comp_etud_moy_ue(self, etudid, ue_id=None):
-        """Calcule moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
+        """Calcule moyenne gen. pour un etudiant dans une UE 
         Ne prend en compte que les evaluations où toutes les notes sont entrées
         Return a dict(moy, nb_notes, nb_missing, sum_coefs)
         Si pas de notes, moy == 'NA' et sum_coefs==0                
         """
+        assert ue_id
         modimpls = self.get_modimpls(ue_id)
         nb_notes = 0    # dans cette UE
         sum_notes = 0.

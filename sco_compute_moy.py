@@ -130,20 +130,13 @@ formula_builtins = {
 # v = NoteVector(1,2)
 # eval("max(4,5)", {'__builtins__': formula_builtins, {'x' : 1, 'v' : NoteVector(1,2) }, {})
 
-def eval_user_expression(context, expression, notes, coefs, cmask, AbsEtudSem ):
-    nbabs = AbsEtudSem.CountAbs()
-    nbabs_just = AbsEtudSem.CountAbsJust()
-    envir = { '__builtins__': formula_builtins,
-              'cmask' : NoteVector(v=cmask),
-              'notes' : NoteVector(v=notes), 
-              'coefs' : NoteVector(v=coefs),
-              'nbabs' : float(nbabs),
-              'nbabs_just' : float(nbabs_just),
-              'nbabs_nojust' : float(nbabs - nbabs_just)
-              }
-    # log('Evaluating %s with %s' % (expression, envir))
+def eval_user_expression(context, expression, variables):
+    """Evalue l'expression (formule utilisateur) avec les variables (dict) données.
+    """
+    variables['__builtins__'] = formula_builtins
+    # log('Evaluating %s with %s' % (expression, variables))
     # may raise exception if user expression is invalid
-    return eval( expression, envir, {} ) # this should be safe
+    return eval( expression, variables, {} ) # this should be safe
 
 def moduleimpl_has_expression(context, mod):
     "True if we should use a user-defined expression"
@@ -198,6 +191,7 @@ def do_moduleimpl_moyennes(context, mod):
                     if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
     
     # 
+    expr_diag = '' # message d'erreur formule
     R = {}
     for etudid in insmod_set: # inscrits au semestre et au module
         sum_notes = 0.
@@ -218,10 +212,14 @@ def do_moduleimpl_moyennes(context, mod):
         if nb_missing == 0 and sum_coefs > 0:
             if sum_coefs > 0:
                 R[etudid] = sum_notes / sum_coefs
+                moy_valid = True
             else:
                 R[etudid] = 'na'
+                moy_valid = False
         else:
             R[etudid] = 'NA%d' % nb_missing
+            moy_valid = False
+        
         if user_expr:
             # (experimental) recalcule la moyenne en utilisant la formule utilisateur
             notes = []
@@ -248,19 +246,31 @@ def do_moduleimpl_moyennes(context, mod):
                     coefs_mask.append(0)
             if nb_notes > 0:
                 AbsSemEtud = ZAbsences.getAbsSemEtud(context, mod['formsemestre_id'], etudid)
+                nbabs = AbsSemEtud.CountAbs()
+                nbabs_just = AbsSemEtud.CountAbsJust()
+                variables = {
+                        'cmask' : NoteVector(v=coefs_mask),
+                        'notes' : NoteVector(v=notes), 
+                        'coefs' : NoteVector(v=coefs),
+                        'moy'   : R[etudid],
+                        'moy_valid' : moy_valid, # True si moyenne numerique
+                        'nbabs' : float(nbabs),
+                        'nbabs_just' : float(nbabs_just),
+                        'nbabs_nojust' : float(nbabs - nbabs_just)
+                        }
                 try:
-                    #log('notes=%s' % notes)
-                    #log('coefs=%s' % coefs)
-                    user_moy = eval_user_expression(context, mod['computation_expr'], notes, coefs, coefs_mask, AbsSemEtud )
+                    user_moy = eval_user_expression(context, mod['computation_expr'], variables)                    
                     if user_moy > 20 or user_moy < 0:
                         raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
                 except:
                     log('invalid expression !')
-                    log('Exception during evaluation:\n%s\n' % traceback.format_exc())
+                    tb = traceback.format_exc()
+                    log('Exception during evaluation:\n%s\n' % tb)
+                    expr_diag = { 'moduleimpl_id' : moduleimpl_id, 'msg' : tb.splitlines()[-1] }
                     user_moy = 'ERR'
                 R[etudid] = user_moy
     
-    return R, valid_evals, attente
+    return R, valid_evals, attente, expr_diag
 
 
 def do_formsemestre_moyennes(context, formsemestre_id):
@@ -277,12 +287,15 @@ def do_formsemestre_moyennes(context, formsemestre_id):
     D = {}
     valid_evals = []
     mods_att = []
+    expr_diags = []
     for mod in mods:
         assert not D.has_key(mod['moduleimpl_id'])
-        D[mod['moduleimpl_id']], valid_evals_mod, attente =\
+        D[mod['moduleimpl_id']], valid_evals_mod, attente, expr_diag =\
             do_moduleimpl_moyennes(context, mod)
         valid_evals += valid_evals_mod
         if attente:
             mods_att.append(mod)
+        if expr_diag:
+            expr_diags.append(expr_diag)
     #
-    return D, mods, valid_evals, mods_att
+    return D, mods, valid_evals, mods_att, expr_diags
