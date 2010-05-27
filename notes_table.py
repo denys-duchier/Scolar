@@ -492,6 +492,8 @@ class NotesTable:
                 diag_info=expr_diag)
             if expr_diag:
                 expr_diag['ue_id'] = ue_id
+                self.expr_diagnostics.append(expr_diag)
+        
         return dict(moy=moy, nb_notes=nb_notes, nb_missing=nb_missing, sum_coefs=sum_coefs,
                     notes_bonus_gen=notes_bonus_gen, coefs_bonus_gen=coefs_bonus_gen,
                     expr_diag=expr_diag)

@@ -485,10 +485,18 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
     if nt.expr_diagnostics:
         # erreurs dans des formules utilisateur de calcul
         H.append('<div class="ue_warning">Erreur dans des formules utilisateurs:<ul>')
+        last_id, last_msg = None, None
         for diag in nt.expr_diagnostics:
-            mod = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : diag['moduleimpl_id'] } )[0]
-            H.append('<li>module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a>: %s</li>' 
-                     % (diag['moduleimpl_id'], mod['module']['abbrev'] or mod['module']['code'] or '?', diag['msg']))
+            if 'moduleimpl_id' in diag:
+                mod = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : diag['moduleimpl_id'] } )[0]
+                H.append('<li>module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a>: %s</li>' 
+                         % (diag['moduleimpl_id'], mod['module']['abbrev'] or mod['module']['code'] or '?', diag['msg']))
+            else:
+                if diag['ue_id'] != last_id or diag['msg'] != last_msg:
+                    ue = context.do_ue_list( {'ue_id' : diag['ue_id']})[0]
+                    H.append('<li>UE "%s": %s</li>' % (ue['acronyme'] or ue['titre'] or '?', diag['msg']))
+                    last_id, last_msg = diag['ue_id'], diag['msg']
+                    
         H.append('</ul></div>')
     H.append("""
 <p>
