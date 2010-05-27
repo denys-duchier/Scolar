@@ -1018,6 +1018,11 @@ td.bull_coef_eval, td.bull_nom_eval {
    font-style: italic; 
    color: rgb(60,60,80);
 }
+tr.notes_bulletin_row_eval td.note {
+   font-style: italic; 
+   color: rgb(40,40,40);
+   font-size: 90%;
+}
 
 span.bul_minmax {
    font-weight: normal;

@@ -321,7 +321,7 @@ def make_formsemestre_bulletinetud_html(
                 rang_minmax = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
             else:
                 rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            H.append('<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+            H.append('<td>%s</td><td>%s</td><td>%s</td><td class="note">%s</td><td>%s</td></tr>'
                      % (mod['code_html'], mod['name_html'], 
                         rang_minmax, 
                         mod['mod_moy_txt'], mod['mod_coef_txt']))
@@ -330,7 +330,7 @@ def make_formsemestre_bulletinetud_html(
                 for e in mod['evaluations']:
                     if e['visibulletin'] == '1' or version == 'long':
                         H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
-                        H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td>%s</td><td class="bull_coef_eval">%s</td></tr>'
+                        H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td class="note">%s</td><td class="bull_coef_eval">%s</td></tr>'
                                  % ('','', e['name_html'], e['note_txt'], e['coef_txt']))
     
     H.append('</table>')
