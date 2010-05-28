@@ -7,6 +7,14 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Avril - Juin 2010</h4>
+<ul>
+<li>Formules utilisateur pour le calcul des moyennes d'UE</li>
+<li>Nouveau système de notification des absences par mail</li>
+<li>Affichage optionnel des valeurs mini et maxi des moyennes sur les bulletins</li>
+<li>Nouveau code de décision jury semestre: "RAT" : en attente de rattrapage</li>
+</ul>
+
 <h4>Janvier 2010</h4>
 <ul>
 <li>Suivez l'actualité du développement sur Twitter: <a href="https://twitter.com/ScoDoc">@ScoDoc</a></li>
