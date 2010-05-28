@@ -915,8 +915,12 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
     dept = unescape_html(context.get_preference('DeptName',formsemestre_id))
     copy_addr = context.get_preference('email_copy_bulletins',formsemestre_id)            
     intro_mail = context.get_preference('bul_intro_mail', formsemestre_id)
-    hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
-
+    
+    if intro_mail:
+        hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
+    else:
+        hea = ''
+    
     msg = MIMEMultipart()
     subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
     recipients = [ etud['email'] ] 
