@@ -163,7 +163,7 @@ def formsemestre_expressions_use_abscounts(context, formsemestre_id):
         if expr and expr[0] != '#' and ab in expr:
             return True
     # 2- moyennes de modules
-    for mod in context.do_moduleimpl_list( args={ 'formsemestre_id':formsemestre_id } ):
+    for mod in context.Notes.do_moduleimpl_list( args={ 'formsemestre_id':formsemestre_id } ):
         if moduleimpl_has_expression(context, mod) and ab in mod['computation_expr']:
             return True
     return False
