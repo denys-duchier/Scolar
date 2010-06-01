@@ -641,6 +641,14 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
+      ( 'bul_show_ue_cap_details', 
+      { 'initvalue' : 0,
+        'title' : 'Afficher détail des notes des UE capitalisées sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
     ( 'bul_show_temporary', 
       { 'initvalue' : 1,
         'title' : 'Bannière "provisoire" si pas de décision de jury',

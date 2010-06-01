@@ -100,18 +100,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             context, etudid, formsemestre_id)
         autorisations[etudid] = ', '.join([ 'S%s' % x['semestre_id'] for x in aut_list ])
         # parcours:
-        sems = Se.get_semestres()
-        p = []
-        for s in sems:
-            if s['ins']['etat'] == 'D':
-                dem = ' (dem.)'
-            else:
-                dem = ''
-            if s['semestre_id'] >= 0:
-                p.append( 'S%d%s' % (s['semestre_id'],dem) )
-            else:
-                p.append( 'A%d%s' % (s['semestre_id'],dem) )
-        parcours[etudid] = ', '.join(p)
+        parcours[etudid] = Se.get_parcours_descr() 
         # groupe principal (td)
         groupestd[etudid] = ''
         for s in etud['sems']:

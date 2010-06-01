@@ -1007,6 +1007,11 @@ tr.bul_row_ue_cur {
    color: rgb(50,50,50);
 }
 
+tr.bul_row_ue_cap {
+   background-color: rgb(160,160,200);
+   color: rgb(50,50,50);
+}
+
 tr.notes_bulletin_row_mod {
   border-top: 1px solid rgb(160,160,160);
 }

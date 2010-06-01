@@ -147,6 +147,8 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['autorisations'] = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             znotes, etudid, formsemestre_id)
         d['autorisations_descr'] = descr_autorisations(znotes, d['autorisations'])
+        d['parcours'] = Se.get_parcours_descr()
+        
         # Observations sur les compensations:
         obs = ''
         compensators = sco_parcours_dut.scolar_formsemestre_validation_list(
@@ -212,21 +214,23 @@ def pvjury_table(znotes, dpv):
     else:
         id_cur = ''
     titles = {'etudid' : 'etudid', 'nomprenom' : 'Nom',
+              'parcours' : 'Parcours',
               'decision' : 'Décision' + id_cur,
               'ue_cap' : 'UE' + id_cur + ' capitalisées',
               'devenir' : 'Devenir', 'observations' : 'Observations'
               }
-    columns_ids = ['nomprenom', 'decision', 'ue_cap', 'devenir', 'observations']
+    columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap', 'devenir', 'observations']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         titles['prev_decision'] = 'Décision S%s' % id_prev
-        columns_ids[1:1] = ['prev_decision']
+        columns_ids[2:2] = ['prev_decision']
     lines = []
     for e in dpv['decisions']:
         l = { 'etudid' : e['identite']['etudid'],
               'nomprenom' : znotes.nomprenom(e['identite']),
               '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (znotes.ScoURL(),e['identite']['etudid']),
               '_nomprenom_td_attrs' : 'id="%s" class="etudinfo"' % e['identite']['etudid'],
+              'parcours' : e['parcours'],
               'decision' : descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
               'ue_cap' : e['decisions_ue_descr'],
               'devenir' : e['autorisations_descr'],

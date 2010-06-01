@@ -545,6 +545,7 @@ class NotesTable:
                         event_date = ue_cap['event_date']
                         max_moy_ue = moy_ue_cap
                         mu['is_capitalized'] = True
+                        capitalized_ue_id = ue_cap['ue_id']
                         formsemestre_id = ue_cap['formsemestre_id']
                         coef_ue = self.ue_coefs[ue_id]
                         
@@ -555,6 +556,7 @@ class NotesTable:
             mu['coef_ue'] = coef_ue # coef reel ou coef de l'ue si capitalisee
             if mu['is_capitalized']:
                 mu['formsemestre_id'] = formsemestre_id
+                mu['capitalized_ue_id'] = capitalized_ue_id
             if mu['was_capitalized']:
                 mu['event_date'] = event_date
             
@@ -751,58 +753,7 @@ class NotesTable:
             else:
                 # utilisation du coef manuel
                 self.ue_coefs[ue_id] = coefs[0]['coefficient']
-                
-    def xxx_comp_etud_ues_status(self, etudid): # XXX obsolete XXXXXXXXXXX
-        """Calcule des moyennes d'UE "capitalisees".
-        Prend en compte dans chaque UE la moyenne la plus favorable.
-        Returns:
-        { ue_id : {
-             'moy_ue' : , 'coef_ue' : , # avec capitalisation eventuelle
-             'cur_moy_ue' : , 'cur_coef_ue' # dans ce sem., sans capitalisation
-             'is_capitalized' : True|False,
-             'formsemestre_id' : (si capitalisee),
-             'event_date' : (si capitalisee)
-             }
-        }
-        """
-        d = {}
-        for ue in self.get_ues():
-            ue_id=ue['ue_id']
-            moy_ue = self._etud_moy_ues[etudid][ue_id]
-            cur_moy_ue  = moy_ue['moy']
-            cur_coef_ue = moy_ue['sum_coefs']
-            is_capitalized = False # l'UE prise en compte est une UE capitalisée
-            was_capitalized = False # il y a precedemment une UE capitalisée 
-            #                    (pas forcément prise en compte si les notes courantes sont meilleures)
-            formsemestre_id = None
-            event_date = None
-            # compare aux UE capitalisées
-            max_moy_ue = cur_moy_ue
-            coef_ue = cur_coef_ue
-            for ue_cap in self.ue_capitalisees[etudid]:
-                if ue_cap['ue_code'] == ue['ue_code']:
-                    moy_ue_cap = ue_cap['moy_ue']
-                    was_capitalized = True
-                    event_date = ue_cap['event_date']
-                    if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
-                        max_moy_ue = moy_ue_cap
-                        is_capitalized = True
-                        formsemestre_id = ue_cap['formsemestre_id']
-                        coef_ue = self.ue_coefs[ue_id]
-            d[ue_id] = {
-                'moy_ue' : max_moy_ue,
-                'coef_ue' : coef_ue, # coef reel ou coef de l'ue si capitalisee
-                'cur_moy_ue' : cur_moy_ue,
-                'cur_coef_ue' : cur_coef_ue,
-                'is_capitalized' : is_capitalized,
-                'was_capitalized' : was_capitalized }
-            if is_capitalized or was_capitalized:
-                d[ue_id]['event_date'] = event_date
-            if is_capitalized:
-                d[ue_id]['formsemestre_id'] = formsemestre_id
-        
-        return d
-
+    
     def get_etud_ue_status(self, etudid, ue_id):
         "Etat de cette UE (note, coef, capitalisation, ...)"
         return self._etud_moy_ues[etudid][ue_id]

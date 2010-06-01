@@ -229,6 +229,21 @@ class SituationEtudParcours:
         """Liste des semestres dans lesquels a été inscrit
         l'étudiant (quelle que soit la formation), le plus ancien en tête"""
         return self.sems
+
+    def get_parcours_descr(self):
+        """Description brève du parcours: "S1, S2, ..."
+        """
+        p = []
+        for s in self.sems:
+            if s['ins']['etat'] == 'D':
+                dem = ' (dem.)'
+            else:
+                dem = ''
+            if s['semestre_id'] >= 0:
+                p.append( 'S%d%s' % (s['semestre_id'],dem) )
+            else:
+                p.append( 'A%d%s' % (s['semestre_id'],dem) )
+        return ', '.join(p)
     
     def _comp_barres(self):
         "calcule barres_ue_ok et barre_moy_ok:  barre moy. gen. et barres UE"

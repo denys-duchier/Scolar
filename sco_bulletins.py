@@ -154,8 +154,6 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['moy_gen_bargraph_html'] = '&nbsp;' + htmlutils.horizontal_bargraph(moy_gen*5, nt.moy_moy*5)
     else:
         I['moy_gen_bargraph_html'] = ''
-        
-    bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     
     if nt.get_moduleimpls_attente() or context.get_preference('bul_show_rangs', formsemestre_id) == 0:
         # n'affiche pas le rang sur le bulletin s'il y a des
@@ -200,65 +198,81 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             else:
                 u['ue_descr_txt'] = u['ue_descr_html'] = ''
 
-        mods = []
-        u['modules'] = mods
-        if (not ue_status['is_capitalized']) or ue_status['cur_moy_ue'] != 'NA':
-            # detail des modules
-            ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue['ue_id'] ]
-            for modimpl in ue_modimpls:
-                mod = modimpl.copy()
-                mod_moy = nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)  # peut etre 'NI'
-                mod['mod_moy_txt'] = fmt_note(mod_moy)
-                mod['mod_coef_txt']= fmt_coef(modimpl['module']['coefficient'])
-                if mod['mod_moy_txt'] != 'NI': # ne montre pas les modules 'non inscrit'
-                    mods.append(mod)
-                    mod['stats'] = nt.get_mod_stats(modimpl['moduleimpl_id'])
-                    mod['mod_descr_txt'] = 'Module %s, coef. %s (%s)' % (
-                        modimpl['module']['titre'],
-                        fmt_coef(modimpl['module']['coefficient']),
-                        context.Users.user_info(modimpl['responsable_id'],REQUEST)['nomcomplet'])
-                    link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (
-                        modimpl['moduleimpl_id'], mod['mod_descr_txt'])
-                    if context.get_preference('bul_show_codemodules', formsemestre_id):
-                        mod['code'] = modimpl['module']['code']
-                        mod['code_html'] = link_mod + mod['code'] + '</a>'
-                    else:
-                        mod['code'] = mod['code_html'] = ''
-                    mod['name'] = modimpl['module']['abbrev'] or modimpl['module']['titre'] or ''
-                    mod['name_html'] = link_mod + mod['name'] + '</a>'
-                    if bul_show_mod_rangs and mod['mod_moy_txt'] != '-':
-                        rg = nt.mod_rangs[modimpl['moduleimpl_id']]
-                        mod['mod_rang'] = rg[0][etudid]
-                        mod['mod_eff']   = rg[1] # effectif dans ce module
-                        mod['mod_rang_txt'] = '%s/%s' % (mod['mod_rang'], mod['mod_eff'])                    
-                    else:
-                        mod['mod_rang_txt'] = ''
-                    mod_descr = 'Module %s, coef. %s (%s)' % (
-                        modimpl['module']['titre'],
-                        fmt_coef(modimpl['module']['coefficient']),
-                        context.Users.user_info(modimpl['responsable_id'],REQUEST)['nomcomplet'])
-                    link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (modimpl['moduleimpl_id'], mod_descr)
-                    if context.get_preference('bul_show_codemodules', formsemestre_id):
-                        mod['code_txt'] = modimpl['module']['code']
-                        mod['code_html'] = link_mod + mod['code_txt'] + '</a>'
-                    else:
-                        mod['code_txt'] = ''
-                        mod['code_html'] = ''
-                    # Evaluations: notes de chaque eval
-                    evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
-                    mod['evaluations'] = []
-                    for e in evals:
-                        e = e.copy()
-                        mod['evaluations'].append(e)
-                        if e['visibulletin'] == '1' or version == 'long':
-                            e['name'] = e['description'] or 'le %s' % e['jour']
-                        e['name_html'] = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1">%s</a>' % (e['evaluation_id'], e['name'])
-                        val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
-                        e['note_txt'] = fmt_note(val, note_max=e['note_max'])
-                        e['coef_txt'] = fmt_coef(e['coefficient'])                
+        u['modules'] = [] # modules de l'UE (dans le semestre courant)
+        u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
+        if ue_status['is_capitalized'] and context.get_preference('bul_show_ue_cap_details', formsemestre_id):
+            log('cap details   %s' % ue_status['moy_ue'])
+            if ue_status['moy_ue'] != 'NA':
+                # detail des modules de l'UE capitalisee
+                nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
+                
+                _ue_mod_bulletin(context, u['modules_capitalized'], etudid, formsemestre_id, ue_status['capitalized_ue_id'], nt_cap.get_modimpls(), nt_cap, version)
         
+        if ue_status['cur_moy_ue'] != 'NA':
+            # detail des modules courants
+            _ue_mod_bulletin(context, u['modules'], etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
     #
     return I
+
+def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt, version):
+    """Infos sur les modules (et évaluations) dans une UE
+    (ajoute les informations aux modimpls)
+    """
+    bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
+    
+    ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue_id ]
+    for modimpl in ue_modimpls:
+        mod = modimpl.copy()
+        mod_moy = nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)  # peut etre 'NI'
+        mod['mod_moy_txt'] = fmt_note(mod_moy)
+        mod['mod_coef_txt']= fmt_coef(modimpl['module']['coefficient'])
+        if mod['mod_moy_txt'] != 'NI': # ne montre pas les modules 'non inscrit'
+            mods.append(mod)
+            mod['stats'] = nt.get_mod_stats(modimpl['moduleimpl_id'])
+            mod['mod_descr_txt'] = 'Module %s, coef. %s (%s)' % (
+                modimpl['module']['titre'],
+                fmt_coef(modimpl['module']['coefficient']),
+                context.Users.user_info(modimpl['responsable_id'])['nomcomplet'])
+            link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (
+                modimpl['moduleimpl_id'], mod['mod_descr_txt'])
+            if context.get_preference('bul_show_codemodules', formsemestre_id):
+                mod['code'] = modimpl['module']['code']
+                mod['code_html'] = link_mod + mod['code'] + '</a>'
+            else:
+                mod['code'] = mod['code_html'] = ''
+            mod['name'] = modimpl['module']['abbrev'] or modimpl['module']['titre'] or ''
+            mod['name_html'] = link_mod + mod['name'] + '</a>'
+            if bul_show_mod_rangs and mod['mod_moy_txt'] != '-':
+                rg = nt.mod_rangs[modimpl['moduleimpl_id']]
+                mod['mod_rang'] = rg[0][etudid]
+                mod['mod_eff']   = rg[1] # effectif dans ce module
+                mod['mod_rang_txt'] = '%s/%s' % (mod['mod_rang'], mod['mod_eff'])                    
+            else:
+                mod['mod_rang_txt'] = ''
+            mod_descr = 'Module %s, coef. %s (%s)' % (
+                modimpl['module']['titre'],
+                fmt_coef(modimpl['module']['coefficient']),
+                context.Users.user_info(modimpl['responsable_id'])['nomcomplet'])
+            link_mod = '<a class="bull_link" href="moduleimpl_status?moduleimpl_id=%s" title="%s">' % (modimpl['moduleimpl_id'], mod_descr)
+            if context.get_preference('bul_show_codemodules', formsemestre_id):
+                mod['code_txt'] = modimpl['module']['code']
+                mod['code_html'] = link_mod + mod['code_txt'] + '</a>'
+            else:
+                mod['code_txt'] = ''
+                mod['code_html'] = ''
+            # Evaluations: notes de chaque eval
+            evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
+            mod['evaluations'] = []
+            for e in evals:
+                e = e.copy()
+                mod['evaluations'].append(e)
+                if e['visibulletin'] == '1' or version == 'long':
+                    e['name'] = e['description'] or 'le %s' % e['jour']
+                e['name_html'] = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1">%s</a>' % (e['evaluation_id'], e['name'])
+                val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
+                e['note_txt'] = fmt_note(val, note_max=e['note_max'])
+                e['coef_txt'] = fmt_coef(e['coefficient'])                
+
 
 def make_formsemestre_bulletinetud_html(
     context, formsemestre_id, etudid, I,
@@ -291,29 +305,9 @@ def make_formsemestre_bulletinetud_html(
               % (I['moy_gen'], I['etud_etat_html'], minmax, bargraph) )
     H.append( '<td class="note_bold">%s</td>' % I['rang_txt'] )
     H.append( '<td class="note_bold">Note/20</td><td class="note_bold">Coef</td></tr>' )
-    
-    # Contenu table: UE apres UE
-    for ue in I['ues']:
-        ue_descr = ue['ue_descr_html']
-        coef_ue  = ue['coef_ue_txt']
-        rowstyle = ''
-        if ue['ue_status']['is_capitalized']:
-            H.append('<tr class="notes_bulletin_row_ue">')
-            H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
-                     %  (ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
-            coef_ue  = ''
-            ue_descr = '(en cours, non prise en compte)'
-            rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
 
-        H.append('<tr class="notes_bulletin_row_ue">' )
-        if context.get_preference('bul_show_minmax', formsemestre_id):
-            moy_txt = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
-        else:
-            moy_txt = ue['cur_moy_ue_txt']
-
-        H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                 % (ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
-        for mod in ue['modules']:
+    def list_modules(ue_modules, rowstyle):
+        for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
             H.append('<tr class="notes_bulletin_row_mod%s">' % rowstyle)
@@ -332,6 +326,33 @@ def make_formsemestre_bulletinetud_html(
                         H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
                         H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td class="note">%s</td><td class="bull_coef_eval">%s</td></tr>'
                                  % ('','', e['name_html'], e['note_txt'], e['coef_txt']))
+    
+    # Contenu table: UE apres UE
+    for ue in I['ues']:
+        ue_descr = ue['ue_descr_html']
+        coef_ue  = ue['coef_ue_txt']
+        rowstyle = ''
+        if ue['ue_status']['is_capitalized']:
+            H.append('<tr class="notes_bulletin_row_ue">')
+            H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
+                     %  (ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+            list_modules(ue['modules_capitalized'], ' bul_row_ue_cap')
+                         
+            coef_ue  = ''
+            ue_descr = '(en cours, non prise en compte)'
+            rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
+
+        H.append('<tr class="notes_bulletin_row_ue">' )
+        if context.get_preference('bul_show_minmax', formsemestre_id):
+            moy_txt = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
+        else:
+            moy_txt = ue['cur_moy_ue_txt']
+
+        H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+                 % (ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
+        
+        list_modules(ue['modules'], rowstyle)
+
     
     H.append('</table>')
     # --- Absences
@@ -378,18 +399,32 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
     sem = context.get_formsemestre(formsemestre_id)
     
     LINEWIDTH = 0.5
-    
-    PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                 ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
-                 ]
-    def ueline(i): # met la ligne i du tableau pdf en style 'UE'
-        PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
-        PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
-                         Color(170/255.,187/255.,204/255.) ))
-    def modline(i): # met la ligne i du tableau pdf en style 'Module'
-        PdfStyle.append(('LINEABOVE', (0,i), (-1,i),
-                         1, Color(170/255.,170/255.,170/255.)))
 
+    class TableStyle:
+        def __init__(self):
+            self.PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                              ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
+                            ]
+            self.tabline = 0
+        def newline(self, ue_type=None):
+            self.tabline += 1
+            if ue_type == 'cur': # UE courante non prise en compte (car capitalisee)
+                self.PdfStyle.append(('BACKGROUND', (0,self.tabline), (-1,self.tabline),
+                                  Color(210/255.,210/255.,210/255.) ))
+            
+        def ueline(self): # met la ligne courante du tableau pdf en style 'UE'
+            self.newline()
+            i = self.tabline
+            self.PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
+            self.PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
+                                  Color(170/255.,187/255.,204/255.) ))
+        def modline(self, ue_type=None): # met la ligne courante du tableau pdf en style 'Module'
+            self.newline(ue_type=ue_type)
+            i = self.tabline
+            self.PdfStyle.append(('LINEABOVE', (0,i), (-1,i),
+                             1, Color(170/255.,170/255.,170/255.)))            
+    
+    S = TableStyle()
     P = [] # elems pour gen. pdf
 
     if context.get_preference('bul_show_minmax', formsemestre_id):
@@ -402,29 +437,11 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
               'Note/20', 
               'Coef'))
 
-    tabline = 0 # line index in table
-    for ue in I['ues']:
-        ue_descr = ue['ue_descr_txt']
-        coef_ue  = ue['coef_ue_txt']
-        if ue['ue_status']['is_capitalized']:
-            P.append((ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
-            coef_ue = ''
-            ue_descr = '(en cours, non prise en compte)'
-            tabline += 1
-            ueline(tabline)
-        if context.get_preference('bul_show_minmax', formsemestre_id):
-            moy_txt = '%s <font size="8">[%s, %s]</font>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
-        else:
-            moy_txt = ue['cur_moy_ue_txt']
-        P.append((ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
-        tabline += 1
-        ueline(tabline)
-        
-        for mod in ue['modules']:
+    def list_modules(ue_modules, ue_type=None):
+        for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
-            tabline += 1
-            modline(tabline)
+            S.modline(ue_type=ue_type)
             if context.get_preference('bul_show_minmax_mod', formsemestre_id):
                 rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
             else:
@@ -434,8 +451,29 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
                 # --- notes de chaque eval:
                 for e in mod['evaluations']:
                     if e['visibulletin'] == '1' or version == 'long':
-                        tabline += 1
+                        S.newline(ue_type=ue_type)
                         P.append(('','', e['name'], e['note_txt'], e['coef_txt']))
+    
+    for ue in I['ues']:
+        ue_descr = ue['ue_descr_txt']
+        coef_ue  = ue['coef_ue_txt']
+        ue_type = None
+        if ue['ue_status']['is_capitalized']:
+            P.append((ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+            coef_ue = ''
+            ue_descr = '(en cours, non prise en compte)'
+            S.ueline()
+            list_modules(ue['modules_capitalized'])
+            ue_type = 'cur'
+        
+        if context.get_preference('bul_show_minmax', formsemestre_id):
+            moy_txt = '%s <font size="8">[%s, %s]</font>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
+        else:
+            moy_txt = ue['cur_moy_ue_txt']
+        P.append((ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
+        S.ueline()
+        list_modules(ue['modules'], ue_type=ue_type)
+    
     #
     etud = I['etud']
     if context.get_preference('bul_show_abs', formsemestre_id):
@@ -453,7 +491,7 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
     try:
         PDFLOCK.acquire()
         pdfbul, diag = pdfbulletins.pdfbulletin_etud(
-            etud, sem, P, PdfStyle,
+            etud, sem, P, S.PdfStyle,
             I['infos_jury'], stand_alone=stand_alone, filigranne=I['filigranne'],
             server_name=I['server_name'], 
             context=context )
