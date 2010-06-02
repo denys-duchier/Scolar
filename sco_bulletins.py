@@ -200,7 +200,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
 
         u['modules'] = [] # modules de l'UE (dans le semestre courant)
         u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
-        if ue_status['is_capitalized'] and context.get_preference('bul_show_ue_cap_details', formsemestre_id):
+        if ue_status['is_capitalized']:
             log('cap details   %s' % ue_status['moy_ue'])
             if ue_status['moy_ue'] != 'NA':
                 # detail des modules de l'UE capitalisee
@@ -291,6 +291,10 @@ def make_formsemestre_bulletinetud_html(
     else:
         bgcolor = 'background-color: rgb(255,255,240)'
     authuser = REQUEST.AUTHENTICATED_USER
+
+    linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>'
+    minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
+    pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
     
     H = [ '<table class="notes_bulletin" style="background-color: %s;">' % bgcolor  ]
     
@@ -332,11 +336,18 @@ def make_formsemestre_bulletinetud_html(
         ue_descr = ue['ue_descr_html']
         coef_ue  = ue['coef_ue_txt']
         rowstyle = ''
+        plusminus = minuslink # 
         if ue['ue_status']['is_capitalized']:
-            H.append('<tr class="notes_bulletin_row_ue">')
-            H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
-                     %  (ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
-            list_modules(ue['modules_capitalized'], ' bul_row_ue_cap')
+            if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
+                plusminus = minuslink
+                hide = ''
+            else:
+                plusminus = pluslink
+                hide = 'sco_hide'
+            H.append('<tr class="notes_bulletin_row_ue">' )
+            H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
+                     %  (plusminus, ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+            list_modules(ue['modules_capitalized'], ' bul_row_ue_cap %s' % hide)
                          
             coef_ue  = ''
             ue_descr = '(en cours, non prise en compte)'
@@ -348,8 +359,8 @@ def make_formsemestre_bulletinetud_html(
         else:
             moy_txt = ue['cur_moy_ue_txt']
 
-        H.append('<td class="note_bold">%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
-                 % (ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
+        H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+                 % (minuslink, ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
         
         list_modules(ue['modules'], rowstyle)
 
@@ -463,7 +474,8 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
             coef_ue = ''
             ue_descr = '(en cours, non prise en compte)'
             S.ueline()
-            list_modules(ue['modules_capitalized'])
+            if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
+                list_modules(ue['modules_capitalized'])
             ue_type = 'cur'
         
         if context.get_preference('bul_show_minmax', formsemestre_id):
@@ -986,7 +998,8 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                            formsemestre_id=None, format=None, version=None, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
     uid = str(authuser)
-    H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST),
+    H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST,
+                             javascripts=['jQuery/jquery.js', 'js/bulletin.js']),
           """<table class="bull_head"><tr><td>
           <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>
           """ % etud,

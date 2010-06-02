@@ -33,6 +33,7 @@ from notes_log import log
 from sco_utils import *
 import sco_news
 import sco_groups
+import ZAbsences
 
 # --------------------------------------------------------------------
 #
@@ -214,8 +215,8 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
 
 def do_evaluation_list_in_sem(context, formsemestre_id):
     """Liste des evaluations pour un semestre (dans tous les modules de ce semestre).
-    Donne pour chaque eval son état:
-    (evaluation_id,nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif)
+    Donne pour chaque eval son état (voir do_evaluation_etat)
+    { evaluation_id,nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif ... }
     """
     req = "select evaluation_id from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
     cnx = context.GetDBConnexion()
@@ -228,6 +229,14 @@ def do_evaluation_list_in_sem(context, formsemestre_id):
     for evaluation_id in evaluation_ids:
         R.append( do_evaluation_etat(context, evaluation_id) )
     return R 
+
+def formsemestre_evaluations_list(context, formsemestre_id):
+    """Liste des evals pour ce semestre"""
+    req = "select E.* from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
+    cnx = context.GetDBConnexion()
+    cursor = cnx.cursor()    
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    return cursor.dictfetchall()
 
 def _eval_etat(evals):
     """evals: list of mappings (etats)
@@ -283,3 +292,61 @@ def do_evaluation_etat_in_mod(context, moduleimpl_id, REQUEST=None):
     etat['attente'] = moduleimpl_id in [
         m['moduleimpl_id'] for m in nt.get_moduleimpls_attente() ] #> liste moduleimpl en attente
     return etat
+
+
+
+def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
+    """Page avec calendrier de toutes les evaluations de ce semestre"""
+    sem = context.get_formsemestre(formsemestre_id)
+    evals = formsemestre_evaluations_list(context, formsemestre_id)
+    nb_evals = len(evals)
+
+    color_incomplete = '#FF6060'
+    color_complete   = '#A0FFA0'
+    color_futur      = '#70E0FF'
+    
+    today = time.strftime('%Y-%m-%d')
+    
+    year = int(sem['annee_debut'])
+    if sem['mois_debut_ord'] < 8:
+        year -= 1 # calendrier septembre a septembre
+    events = {} # (day, halfday) : event
+    for e in evals:
+        etat = do_evaluation_etat(context, e['evaluation_id'])
+        day = e['jour'].strftime('%Y-%m-%d')
+        mod = context.do_moduleimpl_withmodule_list({'moduleimpl_id':e['moduleimpl_id']})[0]
+        txt = mod['module']['code'] or mod['module']['abbrev'] or 'eval'
+        description = '%s, de %s à %s' % (mod['module']['titre'],  e['heure_debut'],  e['heure_fin'])
+        if etat['evalcomplete']:
+            color = color_complete
+        else:
+            color = color_incomplete
+        if day > today:
+            color = color_futur
+        href = 'moduleimpl_status?moduleimpl_id=%s' % e['moduleimpl_id']
+        if e['heure_debut'].hour < 12:
+            halfday = True
+        else:
+            halfday = False
+        if not (day,halfday) in events:
+            events[(day,halfday)] = [day, txt, color, href, halfday, description, mod]
+        else:
+            e = events[(day,halfday)]
+            if e[-1]['moduleimpl_id'] != mod['moduleimpl_id']:
+                # plusieurs evals de modules differents a la meme date
+                e[1] += ', ' + txt
+                e[5] += ', ' + description
+                if not etat['evalcomplete']:
+                    e[2] = color_incomplete
+            
+    CalHTML = ZAbsences.YearTable(context.Absences, year, events=events.values(), halfday=True )
+
+    H = [ context.html_sem_header(REQUEST, 'Evaluations du semestre', sem, cssstyles=['calabs.css']),
+          '<div class="cal_evaluations">',
+          CalHTML,
+          '</div>',
+          '<p>soit %s évaluations planifiées.</p>' % nb_evals,
+          context.sco_footer(REQUEST) ]
+    return '\n'.join(H)
+
+    

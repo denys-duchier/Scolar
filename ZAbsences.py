@@ -1535,7 +1535,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
-                weekclass = 'wk' + str(monday).replace('/','_')
+                weekclass = '' # 'wk' + str(monday).replace('/','_')
                 attrs = trattributes
             color = None
             legend = ''
@@ -1560,7 +1560,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
             #
             cc = []
             if color != None:
-                cc.append( '<td bgcolor="%s">' % color )
+                cc.append( '<td bgcolor="%s" class="calcell">' % color )
             else:
                 cc.append( '<td>' )
             if href:
@@ -1597,7 +1597,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
-                weekclass = 'wk' + str(monday).replace('/','_')
+                weekclass = '' # 'wk' + str(monday).replace('/','_')
                 attrs = trattributes
             if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
                 weeknum += " currentweek"
@@ -1628,17 +1628,19 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                         if ev[3]:
                             href = ev[3]
                         if len(ev) > 5 and ev[5]:
-                            descr = ev[5]
+                            descr = ev[5]                                                    
                 #
                 if color != None:
-                    cc.append( '<td bgcolor="%s">'
+                    cc.append( '<td bgcolor="%s" class="calcell">'
                                % (color))
                 else:
-                    cc.append( '<td>'  )
+                    cc.append( '<td class="calcell">'  )
                 if href:
-                    cc.append( '<a href="%s">' % href )
-                elif descr:
-                    cc.append( '<a title="%s">' % descr )
+                    href='href="%s"' % href
+                if descr:
+                    descr = 'title="%s"' % descr
+                if href or descr:
+                    cc.append( '<a %s %s>' % (href, descr) )                    
                 if legend or d == 1:
                     n = 3-len(legend) # pad to 3 cars
                     if n > 0:

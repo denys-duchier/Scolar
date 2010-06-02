@@ -1418,6 +1418,8 @@ td.rcp_nonass {
 .recap_hide_details tr.rcp_l2 { display: none; } 
 table.recap_hide_details td.ue_acro span { display: none; }
 
+.sco_hide { display: none; }
+
 table.recap_hide_details tr.sem_courant,  table.recap_hide_details tr.sem_precedent { 
     display: table-row; 
 }
@@ -1644,4 +1646,13 @@ table.list_users td.date_modif_passwd {
 div.form_rename_partition {
   margin-top: 2em;
   margin-bottom: 2em;
+}
+
+
+div.cal_evaluations table.monthcalendar td.calcell {
+  padding-left: 0.6em;
+}
+
+div.cal_evaluations table.monthcalendar td a {
+  color: rgb(128,0,0);
 }

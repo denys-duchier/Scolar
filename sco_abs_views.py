@@ -403,7 +403,7 @@ def formChoixSemestreGroupe(context, all=False):
 
 
 def CalAbs(context, REQUEST=None): # etud implied
-    """Calendrier des absences d'un etudiant
+    """Calendrier des absences d un etudiant
     """ 
     # crude portage from 1999 DTML
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
