@@ -1538,7 +1538,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
-                weekclass = '' # 'wk' + str(monday).replace('/','_')
+                weekclass = 'wk' + str(monday).replace('/','_')
                 attrs = trattributes
             color = None
             legend = ''
@@ -1604,7 +1604,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 attrs = ''
             else:
                 bgcolor = WEEKDAYCOLOR
-                weekclass = '' # 'wk' + str(monday).replace('/','_')
+                weekclass = 'wk' + str(monday).replace('/','_')
                 attrs = trattributes
             if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
                 weeknum += " currentweek"
