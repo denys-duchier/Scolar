@@ -363,9 +363,10 @@ def do_moduleimpl_incription_options(
     # inscriptions
     for moduleimpl_id in a_inscrire:
         # verifie que ce module existe bien
-        mod = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
-        if len(mod) != 1:
+        mods = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
+        if len(mods) != 1:
             raise ScoValueError('inscription: invalid moduleimpl_id: %s' % moduleimpl_id)
+        mod = mods[0]
         context.do_moduleimpl_inscription_create(
             {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid }, 
             REQUEST=REQUEST, formsemestre_id=mod['formsemestre_id'])
