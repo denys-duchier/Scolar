@@ -316,7 +316,15 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
         day = e['jour'].strftime('%Y-%m-%d')
         mod = context.do_moduleimpl_withmodule_list({'moduleimpl_id':e['moduleimpl_id']})[0]
         txt = mod['module']['code'] or mod['module']['abbrev'] or 'eval'
-        description = '%s, de %s à %s' % (mod['module']['titre'],  e['heure_debut'],  e['heure_fin'])
+        if e['heure_debut']:
+            debut = e['heure_debut'].strftime('%Hh%M')
+        else:
+            debut = '?'
+        if e['heure_fin']:
+            fin = e['heure_fin'].strftime('%Hh%M')
+        else:
+            fin = '?'
+        description = '%s, de %s à %s' % (mod['module']['titre'],  debut,  fin)
         if etat['evalcomplete']:
             color = color_complete
         else:
@@ -324,28 +332,33 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
         if day > today:
             color = color_futur
         href = 'moduleimpl_status?moduleimpl_id=%s' % e['moduleimpl_id']
-        if e['heure_debut'].hour < 12:
-            halfday = True
+        #if e['heure_debut'].hour < 12:
+        #    halfday = True
+        #else:
+        #    halfday = False
+        if not day in events:
+            #events[(day,halfday)] = [day, txt, color, href, halfday, description, mod]
+            events[day] = [day, txt, color, href, description, mod]
         else:
-            halfday = False
-        if not (day,halfday) in events:
-            events[(day,halfday)] = [day, txt, color, href, halfday, description, mod]
-        else:
-            e = events[(day,halfday)]
+            e = events[day]
             if e[-1]['moduleimpl_id'] != mod['moduleimpl_id']:
                 # plusieurs evals de modules differents a la meme date
                 e[1] += ', ' + txt
-                e[5] += ', ' + description
+                e[4] += ', ' + description
                 if not etat['evalcomplete']:
                     e[2] = color_incomplete
             
-    CalHTML = ZAbsences.YearTable(context.Absences, year, events=events.values(), halfday=True )
+    CalHTML = ZAbsences.YearTable(context.Absences, year, events=events.values(), halfday=False, pad_width=None )
 
     H = [ context.html_sem_header(REQUEST, 'Evaluations du semestre', sem, cssstyles=['calabs.css']),
           '<div class="cal_evaluations">',
           CalHTML,
           '</div>',
-          '<p>soit %s évaluations planifiées.</p>' % nb_evals,
+          '<p>soit %s évaluations planifiées;' % nb_evals,
+          """<ul><li>en <span style="background-color: %s">rouge</span> les évaluations passées auxquelles il manque des notes</li>
+          <li>en <span style="background-color: %s">vert</span> les évaluations déjà notées</li>
+          <li>en <span style="background-color: %s">bleu</span> les évaluations futures</li></ul></p>"""
+          % (color_incomplete, color_complete, color_futur),
           context.sco_footer(REQUEST) ]
     return '\n'.join(H)
 

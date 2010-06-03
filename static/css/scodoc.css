@@ -1649,9 +1649,19 @@ div.form_rename_partition {
 }
 
 
+td.calday {
+  text-align: right;
+  vertical-align: top;
+}
+
+div.cal_evaluations table.monthcalendar td.calcol {
+}
+
 div.cal_evaluations table.monthcalendar td.calcell {
   padding-left: 0.6em;
+  width: 6em;
 }
+
 
 div.cal_evaluations table.monthcalendar td a {
   color: rgb(128,0,0);

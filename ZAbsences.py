@@ -198,7 +198,9 @@ class ddmmyyyy:
 
 
 def YearTable(context, year, events=[],
-              firstmonth=9, lastmonth=6, halfday=0, dayattributes='' ):
+              firstmonth=9, lastmonth=6, halfday=0, dayattributes='',
+              pad_width=8
+              ):
     """Generate a calendar table
     events = list of tuples (date, text, color, href [,halfday])
              where date is a string in ISO format (yyyy-mm-dd)
@@ -212,7 +214,7 @@ def YearTable(context, year, events=[],
     while 1:
         T.append( '<td valign="top">' )
         T.append( MonthTableHead( month ) )
-        T.append( MonthTableBody( month, year, events, halfday, dayattributes, context.is_work_saturday() ) )
+        T.append( MonthTableBody( month, year, events, halfday, dayattributes, context.is_work_saturday(), pad_width=pad_width ) )
         T.append( MonthTableTail() )
         T.append( '</td>' )
         if month == lastmonth:
@@ -1501,13 +1503,14 @@ WEEKENDCOLOR = GREEN3
 def MonthTableHead( month ):
     color = WHITE
     return """<table class="monthcalendar" border="0" cellpadding="0" cellspacing="0" frame="box">
-     <tr bgcolor="%s"><td colspan="2" align="center">%s</td></tr>\n""" % (
+     <tr bgcolor="%s"><td class="calcol" colspan="2" align="center">%s</td></tr>\n""" % (
 	 color,MONTHNAMES_ABREV[month-1])
 
 def MonthTableTail():
     return '</table>\n'
 
-def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_saturday=False ):
+def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_saturday=False,
+                    pad_width=8):
     #log('XXX events=%s' % events)
     firstday, nbdays = calendar.monthrange(year,month)
     localtime = time.localtime()
@@ -1562,16 +1565,20 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
             if color != None:
                 cc.append( '<td bgcolor="%s" class="calcell">' % color )
             else:
-                cc.append( '<td>' )
+                cc.append( '<td class="calcell">' )
+            
             if href:
-                cc.append( '<a href="%s">' % href )
-            elif descr:
-                cc.append( '<a title="%s">' % descr )
+                href='href="%s"' % href
+            if descr:
+                descr = 'title="%s"' % descr
+            if href or descr:
+                    cc.append( '<a %s %s>' % (href, descr) )                    
             
             if legend or d == 1:
-                n = 8-len(legend) # pad to 8 cars
-                if n > 0:
-                    legend = '&nbsp;'*(n/2) + legend + '&nbsp;'*((n+1)/2)
+                if pad_width != None:
+                    n = pad_width-len(legend) # pad to 8 cars
+                    if n > 0:
+                        legend = '&nbsp;'*(n/2) + legend + '&nbsp;'*((n+1)/2)
             else:
                 legend = '&nbsp;' # empty cell
             cc.append(legend)
@@ -1583,7 +1590,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
                 monday = monday.next(7)
             if weeknum == current_weeknum and current_year == year and weekclass != 'wkend':
                 weekclass += " currentweek"
-            T.append( '<tr bgcolor="%s" class="%s" %s><td align="right">%d%s</td>%s</tr>'
+            T.append( '<tr bgcolor="%s" class="%s" %s><td class="calday">%d%s</td>%s</tr>'
                       % (bgcolor, weekclass, attrs, d, day, cell) )
     else:
         # Calendar with 2 cells / day
@@ -1604,7 +1611,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
 
             if day == 'D':
                 monday = monday.next(7)
-            T.append( '<tr bgcolor="%s" class="wk%s" %s><td align="right">%d%s</td>' % (bgcolor, weekclass, attrs, d, day) )
+            T.append( '<tr bgcolor="%s" class="wk%s" %s><td class="calday">%d%s</td>' % (bgcolor, weekclass, attrs, d, day) )
             cc = []
             for morning in (1,0):
                 color = None
