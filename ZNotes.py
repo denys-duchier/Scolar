@@ -1208,8 +1208,8 @@ class ZNotes(ObjectManager,
         <ul class="help">
         <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
         <li><tt>moy_valid</tt> vrai si la moyenne est valide (numérique)</li>
-        <li><tt>notes</tt> vecteur des notes (/20) aux %(objs)</li>
-        <li><tt>coefs</tt> vecteur des coefficients des %(objs), les coefs des %(objs)s sans notes (ATT, EXC) étant mis à zéro</li>
+        <li><tt>notes</tt> vecteur des notes (/20) aux %(objs)s</li>
+        <li><tt>coefs</tt> vecteur des coefficients des %(objs)s, les coefs des %(objs)s sans notes (ATT, EXC) étant mis à zéro</li>
         <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
         <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
         </ul>
