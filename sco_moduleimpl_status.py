@@ -39,6 +39,7 @@ import htmlutils
 import sco_excel
 from gen_tables import GenTable
 from htmlutils import histogram_notes
+import sco_formsemestre_status
 from sco_formsemestre_status import makeMenu
 import sco_compute_moy
 
@@ -164,6 +165,10 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         H.append('</td></tr>')
     H.append('</table>')
     #
+    if has_expression:
+        nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
+        if nt.expr_diagnostics:
+            H.append( sco_formsemestre_status.html_expr_diagnostic(context, nt.expr_diagnostics) )
     #
     H.append("""<p><form name="f"><span style="font-size:120%%; font-weight: bold;">%d évaluations :</span>
 <span style="padding-left: 30px;">

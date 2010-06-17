@@ -429,6 +429,25 @@ def formsemestre_lists(context, formsemestre_id, REQUEST=None):
     return '\n'.join(H)
 
 
+def html_expr_diagnostic(context, diagnostics):
+    """Affiche messages d'erreur des formules utilisateurs"""
+    H = []
+    H.append('<div class="ue_warning">Erreur dans des formules utilisateurs:<ul>')
+    last_id, last_msg = None, None
+    for diag in diagnostics:
+        if 'moduleimpl_id' in diag:
+            mod = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : diag['moduleimpl_id'] } )[0]
+            H.append('<li>module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a>: %s</li>' 
+                     % (diag['moduleimpl_id'], mod['module']['abbrev'] or mod['module']['code'] or '?', diag['msg']))
+        else:
+            if diag['ue_id'] != last_id or diag['msg'] != last_msg:
+                ue = context.do_ue_list( {'ue_id' : diag['ue_id']})[0]
+                H.append('<li>UE "%s": %s</li>' % (ue['acronyme'] or ue['titre'] or '?', diag['msg']))
+                last_id, last_msg = diag['ue_id'], diag['msg']
+
+    H.append('</ul></div>')
+    return ''.join(H)
+
 def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_title=None):
     """En-tête HTML des pages "semestre"
     """
@@ -486,21 +505,7 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
           """<p><b style="font-size: 130%">Tableau de bord: </b><span class="help">cliquez sur un module pour saisir des notes</span></p>""" ]
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
     if nt.expr_diagnostics:
-        # erreurs dans des formules utilisateur de calcul
-        H.append('<div class="ue_warning">Erreur dans des formules utilisateurs:<ul>')
-        last_id, last_msg = None, None
-        for diag in nt.expr_diagnostics:
-            if 'moduleimpl_id' in diag:
-                mod = context.do_moduleimpl_withmodule_list( args={ 'moduleimpl_id' : diag['moduleimpl_id'] } )[0]
-                H.append('<li>module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a>: %s</li>' 
-                         % (diag['moduleimpl_id'], mod['module']['abbrev'] or mod['module']['code'] or '?', diag['msg']))
-            else:
-                if diag['ue_id'] != last_id or diag['msg'] != last_msg:
-                    ue = context.do_ue_list( {'ue_id' : diag['ue_id']})[0]
-                    H.append('<li>UE "%s": %s</li>' % (ue['acronyme'] or ue['titre'] or '?', diag['msg']))
-                    last_id, last_msg = diag['ue_id'], diag['msg']
-                    
-        H.append('</ul></div>')
+        H.append(html_expr_diagnostic(context, nt.expr_diagnostics))
     H.append("""
 <p>
 <table class="formsemestre_status">
