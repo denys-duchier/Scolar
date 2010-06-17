@@ -242,7 +242,7 @@ class SituationEtudParcours:
             if s['semestre_id'] >= 0:
                 p.append( 'S%d%s' % (s['semestre_id'],dem) )
             else:
-                p.append( 'A%d%s' % (s['semestre_id'],dem) )
+                p.append( 'A%d%s' % (-s['semestre_id'],dem) )
         return ', '.join(p)
     
     def _comp_barres(self):
