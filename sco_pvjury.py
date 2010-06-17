@@ -130,11 +130,11 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     sem = znotes.get_formsemestre(formsemestre_id)
     max_date = '0000-01-01'
     has_prev = False # vrai si au moins un etudiant a un code prev    
-    # construit un Se pour savoir si le semestre est terminal:
-    etud = znotes.getEtudInfo(etudid=etudids[0], filled=True)[0]
-    Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id) 
+    
     L = []
     for etudid in etudids:
+        etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
+        Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
         d = {}
         d['identite'] = nt.identdict[etudid]
         d['etat'] = nt.get_etud_etat(etudid) # I|D  (inscription ou démission)
@@ -183,7 +183,6 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
             if not info:
                 continue # should not occur
             etud = info[0]
-            Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
             if Se.prev and Se.prev_decision:
                 d['prev_decision_sem'] = Se.prev_decision
                 d['prev_code'] = Se.prev_decision['code']

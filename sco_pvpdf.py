@@ -389,7 +389,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     if showTitle:
         objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
     if dateJury:
-         objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
+        objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
 
     objects += makeParas('<para>' 
                          + context.get_preference('PV_INTRO', formsemestre_id)
@@ -419,9 +419,9 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     titles = [ '<para><b>%s</b></para>' % x for x in titles ]
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line[1:] ] for line in ([titles] + lines) ]
     if dpv['has_prev']:
-        widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None)
+        widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None, None)
     else:
-        widths = (6*cm, 2.8*cm, None, None, None)
+        widths = (6*cm, 2.8*cm, None, None, None, None)
     objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
 
     # Signature du directeur
