@@ -40,7 +40,7 @@ from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
 import sco_parcours_dut 
 from sco_formsemestre_edit import formsemestre_uecoef_list
 import sco_compute_moy
-
+from sco_formulas import NoteVector
 
 def comp_ranks(T):
     """Calcul rangs à partir d'une liste ordonnée de tuples [ (valeur, ..., etudid) ] 
@@ -440,9 +440,9 @@ class NotesTable:
         notes_bonus_gen = [] # liste des notes de sport et culture
         coefs_bonus_gen = []
 
-        notes = []
-        coefs = []
-        coefs_mask = [] # 0/1, 0 si coef a ete annulé
+        notes = NoteVector()
+        coefs = NoteVector()
+        coefs_mask = NoteVector() # 0/1, 0 si coef a ete annulé
 
         for modimpl in modimpls:
             mod_ue_id = modimpl['ue']['ue_id']
@@ -451,7 +451,7 @@ class NotesTable:
             # si 'NI' probablement etudiant non inscrit a ce module
             coef = modimpl['module']['coefficient']
             if modimpl['ue']['type'] == UE_STANDARD:
-                notes.append(val)
+                notes.append(val, name=modimpl['module']['code'])
                 try:
                     sum_notes += val * coef
                     sum_coefs += coef

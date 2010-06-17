@@ -29,9 +29,7 @@
 """
 
 from sets import Set
-import operator
 import traceback
-from types import FloatType, IntType, LongType
 
 from sco_utils import *
 from notesdb import *
@@ -40,104 +38,7 @@ from notes_log import log, sendAlarm
 import sco_groups
 import sco_evaluations
 
-class NoteVector:
-    """Vecteur de notes (ou coefficients) utilisé pour les formules définies par l'utilisateur.
-    """
-    def __init__(self, *args, **kwargs):
-        if args:
-            self.v = map( float, args ) # cast to list of float
-        elif 'v' in kwargs:
-            self.v = kwargs['v']
-    
-    def __len__(self):
-        return len(self.v)
-    
-    def __getitem__(self,i):
-        return self.v[i]
-    
-    def __repr__(self):
-        return "NVector(%s)" % str(self.v)
-        
-    def __add__(self, x):
-        return binary_op(self.v, x, operator.add)
-    __radd__ = __add__        
-    def __sub__(self, x):
-        return binary_op(self.v, x, operator.sub)
-    def __rsub__(self, x):
-        return binary_op(x, self.v, operator.sub)
-    def __mul__(self, x):
-        return binary_op(self.v, x, operator.mul)
-    __rmul__ = __mul__
-    def __div__(self, x):
-        return binary_op(self.v, x, operator.div)
-    def __rdiv__(self, x):
-        return binary_op(x, self.v, operator.div)
-
-def isScalar(x):
-    return isinstance(x, FloatType) or isinstance(x, IntType) or isinstance(x, LongType)
-
-def binary_op(x, y, op):
-    if isScalar(x):
-        if isScalar(y):
-            x, y = [x], [y]
-        else:
-            x = [x]*len(y)
-    if isScalar(y):
-        y = [y]*len(x)
-    
-    if len(x) != len(y):
-        raise ValueError("vectors sizes don't match")
-    
-    return NoteVector(v=[ op(a,b) for (a,b) in zip(x,y) ])
-
-def dot(u,v):
-    """Dot product between 2 lists or vectors"""
-    return sum([ x*y for (x,y) in zip(u,v) ])
-
-def ternary_op(cond, a, b):    
-    if cond:
-        return a
-    else:
-        return b
-
-def geometrical_mean(v, w=None):
-    """Geometrical mean of v, with optional weights w"""
-    if w is None:
-        return pow(reduce(operator.mul, v), 1./len(v))
-    else:
-        if len(w) != len(v):
-            raise ValueError("vectors sizes don't match")
-        vw = [ pow(x,y) for (x,y) in zip(v,w) ]
-        return pow(reduce(operator.mul, vw), 1./sum(w))
-
-# Les builtins autorisées dans les formules utilisateur:
-formula_builtins = {
-    'V' : NoteVector,
-    'dot' : dot, 
-    'max' : max,
-    'min' : min,
-    'abs' : abs,
-    'cmp' : cmp,
-    'len' : len,
-    'map' : map,
-    'pow' : pow,
-    'reduce' : reduce,
-    'round' : round,
-    'sum' : sum,
-    'ifelse'  : ternary_op,
-    'geomean' : geometrical_mean
-}
-
-# v = NoteVector(1,2)
-# eval("max(4,5)", {'__builtins__': formula_builtins, {'x' : 1, 'v' : NoteVector(1,2) }, {})
-
-def eval_user_expression(context, expression, variables):
-    """Evalue l'expression (formule utilisateur) avec les variables (dict) données.
-    """
-    variables['__builtins__'] = formula_builtins
-    # log('Evaluating %s with %s' % (expression, variables))
-    # may raise exception if user expression is invalid
-    return eval( expression, variables, {} ) # this should be safe
+from sco_formulas import *
 
 def moduleimpl_has_expression(context, mod):
     "True if we should use a user-defined expression"
@@ -172,6 +73,7 @@ _formsemestre_ue_computation_exprEditor = EditableTable(
         'notes_formsemestre_ue_computation_expr',
         'notes_formsemestre_ue_computation_expr_id',
         ('notes_formsemestre_ue_computation_expr_id', 'formsemestre_id', 'ue_id', 'computation_expr'),
+        html_quote = False # does nt automatically quote
         )
 formsemestre_ue_computation_expr_create=_formsemestre_ue_computation_exprEditor.create
 formsemestre_ue_computation_expr_delete=_formsemestre_ue_computation_exprEditor.delete
@@ -179,7 +81,7 @@ formsemestre_ue_computation_expr_list=_formsemestre_ue_computation_exprEditor.li
 formsemestre_ue_computation_expr_edit=_formsemestre_ue_computation_exprEditor.edit
 
 
-def get_ue_expression(formsemestre_id, ue_id, cnx):
+def get_ue_expression(formsemestre_id, ue_id, cnx, html_quote=False):
     """Returns UE expression (formula), or None if no expression has been defined
     """
     el = formsemestre_ue_computation_expr_list(cnx, {'formsemestre_id':formsemestre_id, 'ue_id':ue_id})
@@ -188,6 +90,8 @@ def get_ue_expression(formsemestre_id, ue_id, cnx):
     else:
         expr = el[0]['computation_expr'].strip()
         if expr and expr[0] != '#':
+            if html_quote:
+                expr = quote_html(expr)
             return expr
         else:
             return None
@@ -197,28 +101,38 @@ def compute_user_formula(context, formsemestre_id, etudid,
                          formula,
                          diag_info={} # infos supplementaires a placer ds messages d'erreur
                          ):
-    """Calcul moyenne a partir des notes et coefs, en utilisant la formule utilisatuer (une chaine).
+    """Calcul moyenne a partir des notes et coefs, en utilisant la formule utilisateur (une chaine).
     Retourne moy, et en cas d'erreur met à jour diag_info (msg)
     """
     AbsSemEtud = ZAbsences.getAbsSemEtud(context, formsemestre_id, etudid)
     nbabs = AbsSemEtud.CountAbs()
     nbabs_just = AbsSemEtud.CountAbsJust()
-    variables = {
-            'cmask' : NoteVector(v=coefs_mask),
-            'notes' : NoteVector(v=notes), 
-            'coefs' : NoteVector(v=coefs),
-            'moy'   : moy,
-            'moy_valid' : moy_valid, # True si moyenne numerique
-            'nbabs' : float(nbabs),
-            'nbabs_just' : float(nbabs_just),
-            'nbabs_nojust' : float(nbabs - nbabs_just)
-            }
     try:
-        user_moy = eval_user_expression(context, formula, variables)                    
-        if user_moy > 20 or user_moy < 0:
-            raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
+        moy_val = float(moy)
     except:
-        log('invalid expression !')
+        moy_val = 0. # 0. when no valid value
+    variables = {
+        'cmask' : coefs_mask, # NoteVector(v=coefs_mask),
+        'notes' : notes, #NoteVector(v=notes), 
+        'coefs' : coefs, #NoteVector(v=coefs),
+        'moy'   : moy,
+        'moy_valid' : moy_valid, # deprecated, use moy_is_valid
+        'moy_is_valid' : moy_valid, # True si moyenne numerique
+        'moy_val' : moy_val,
+        'nb_abs' : float(nbabs),
+        'nb_abs_just' : float(nbabs_just),
+        'nb_abs_nojust' : float(nbabs - nbabs_just)
+        }
+    try:
+        log('expression : %s\nvariables=%s\n' % (formula, variables)) # XXX debug
+        user_moy = eval_user_expression(context, formula, variables)
+        log('user_moy=%s' % user_moy)
+        if user_moy != 'NA0' and user_moy != 'NA':
+            user_moy = float(user_moy)
+            if (user_moy > 20) or (user_moy < 0):
+                raise ScoException("valeur moyenne %s hors limite pour %s" % (user_moy, etudid))
+    except:
+        log('invalid expression : %s\nvariables=%s\n' % (formula, variables))
         tb = traceback.format_exc()
         log('Exception during evaluation:\n%s\n' % tb)
         diag_info.update({ 'msg' : tb.splitlines()[-1] })

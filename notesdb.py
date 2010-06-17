@@ -8,12 +8,14 @@ from sco_exceptions import *
 from types import *
 from cgi import escape
 
+quote_html = escape
+
 def quote_dict( d ):
     "html quote all values in dict"
     for k in d.keys():
         v = d[k]
         if type(v) == StringType:
-            d[k] = escape(v)
+            d[k] = quote_html(v)
 
 def unquote(s):
     "inverse of quote"

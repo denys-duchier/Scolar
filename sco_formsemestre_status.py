@@ -525,8 +525,8 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
 <span class="status_ue_title">%(titre)s</span>
 </td><td>""" % M['ue'] )
             
-            expr = sco_compute_moy.get_ue_expression(formsemestre_id, M['ue']['ue_id'], cnx)
-            
+            expr = sco_compute_moy.get_ue_expression(formsemestre_id, M['ue']['ue_id'], cnx, html_quote=True)
+
             if can_edit:
                 H.append(' <a href="edit_ue_expr?formsemestre_id=%s&ue_id=%s">' % (formsemestre_id, M['ue']['ue_id']))
             H.append(icontag('formula', title="Mode calcul moyenne d'UE", style="vertical-align:middle"))

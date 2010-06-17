@@ -1207,15 +1207,16 @@ class ZNotes(ObjectManager,
         <p class="help">Dans la formule, les variables suivantes sont définies:</p>
         <ul class="help">
         <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
-        <li><tt>moy_valid</tt> vrai si la moyenne est valide (numérique)</li>
+        <li><tt>moy_is_valid</tt> vrai si la moyenne est valide (numérique)</li>
+        <li><tt>moy_val</tt> la valeur de la moyenne (nombre, valant 0 si invalide)</li>
         <li><tt>notes</tt> vecteur des notes (/20) aux %(objs)s</li>
         <li><tt>coefs</tt> vecteur des coefficients des %(objs)s, les coefs des %(objs)s sans notes (ATT, EXC) étant mis à zéro</li>
         <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
-        <li>Nombre d'absences: <tt>nbabs</tt>, <tt>nbabs_just</tt>, <tt>nbabs_nojust</tt> (en demi-journées)</li>
+        <li>Nombre d'absences: <tt>nb_abs</tt>, <tt>nb_abs_just</tt>, <tt>nb_abs_nojust</tt> (en demi-journées)</li>
         </ul>
         <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des %(objs)s%(ordre)s.</p>
         <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum, ifelse</tt></p>
-        <p class="help">La notation <tt>V( 1, 2, 3 )</tt> représente un vecteur <tt>(1,2,3)</tt></p>
+        <p class="help">La notation <tt>V(1,2,3)</tt> représente un vecteur <tt>(1,2,3)</tt></p>
         <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
         en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
     """
