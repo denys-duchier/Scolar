@@ -1772,7 +1772,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoEnsView, 'evaluation_delete')
     def evaluation_delete(self, REQUEST, evaluation_id):
         """Form delete evaluation"""
-        E = self.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
+        El = self.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )
+        if not El:
+            raise ValueError('Evalution inexistante ! (%s)' % evaluation_id )
+        E = El[0]
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
         tit = "Suppression de l'évaluation %(description)s (%(jour)s)" % E
