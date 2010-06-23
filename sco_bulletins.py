@@ -158,7 +158,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if nt.get_moduleimpls_attente() or context.get_preference('bul_show_rangs', formsemestre_id) == 0:
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
-        rang = ''
+        rang = '(attente)'
         rang_gr = {}
         ninscrits_gr = {}
     else:
@@ -193,7 +193,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
         else:
             if context.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
-                u['ue_descr_txt'] = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
+                if nt.get_moduleimpls_attente():
+                     u['ue_descr_txt'] = '(attente)/%s' % (nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
+                else:
+                    u['ue_descr_txt'] = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
                 u['ue_descr_html'] = u['ue_descr_txt']
             else:
                 u['ue_descr_txt'] = u['ue_descr_html'] = ''
@@ -244,7 +247,10 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
             mod['name_html'] = link_mod + mod['name'] + '</a>'
             if bul_show_mod_rangs and mod['mod_moy_txt'] != '-':
                 rg = nt.mod_rangs[modimpl['moduleimpl_id']]
-                mod['mod_rang'] = rg[0][etudid]
+                if nt.get_moduleimpls_attente():
+                    mod['mod_rang'] = '(attente)'
+                else:
+                    mod['mod_rang'] = rg[0][etudid]
                 mod['mod_eff']   = rg[1] # effectif dans ce module
                 mod['mod_rang_txt'] = '%s/%s' % (mod['mod_rang'], mod['mod_eff'])                    
             else:
