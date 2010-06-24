@@ -68,12 +68,20 @@ function ts_resortTable(lnk,clid) {
     
     // Work out a type for the column
     if (table.rows.length <= 1) return;
+    var colClasses = table.rows[0].cells[column].classList;
+    var isNumeric = false;
+    for (i=0;i<colClasses.length;i++) {
+	if (colClasses[i] == 'sortnumeric')  { 
+	    isNumeric = true;
+	    break;
+	}
+    }
     var itm = ts_getInnerText(table.rows[1].cells[column]);
     sortfn = ts_sort_caseinsensitive;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^[£$]/)) sortfn = ts_sort_currency;
-    if (itm.match(/^[\d\.]+$/)) sortfn = ts_sort_numeric;
+    if (itm.match(/^[\d\.]+$/) || isNumeric) sortfn = ts_sort_numeric;
     SORT_COLUMN_INDEX = column;
     var firstRow = new Array();
     var newRows = new Array();
