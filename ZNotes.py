@@ -1259,7 +1259,60 @@ class ZNotes(ObjectManager,
                                      formsemestre_id=sem['formsemestre_id'])
             self._inval_cache(formsemestre_id=sem['formsemestre_id']) #> modif regle calcul
             return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
+    
+    
+    security.declareProtected(ScoView, 'view_module_abs')
+    def view_module_abs(self, REQUEST, moduleimpl_id, format='html'):
+        """Visulalisation des absences a un module
+        """
+        M = self.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
+        sem = self.get_formsemestre(M['formsemestre_id'])
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
+        list_insc = self.do_moduleimpl_listeetuds(moduleimpl_id)
+        
+        T = []
+        for etudid in list_insc:
+            nb_abs = self.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=moduleimpl_id)
+            if nb_abs:
+                nb_abs_just = self.Absences.CountAbsJust(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=moduleimpl_id)
+                etud = self.getEtudInfo(etudid=etudid, filled=True)[0]
+                # nomprenom = etud['nomprenom'] # .capitalize() + ' ' + etud['nom']
+                T.append({
+                    'nomprenom' : etud['nomprenom'],
+                    'just' : nb_abs_just,
+                    'nojust' : nb_abs-nb_abs_just,
+                    'total' : nb_abs,
+                    '_nomprenom_target' : 'ficheEtud?etudid=%s' % etudid
+                    })
+        
+        H = [ 
+            self.html_sem_header(
+                REQUEST, 
+                'Absences du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+                % (moduleimpl_id, M['module']['titre']), 
+                sem
+                ),
+            ]
+        if not T:
+            return '\n'.join(H) + '<p>Aucune absence signalée</p>' + self.sco_footer(REQUEST)
+        
+        tab = GenTable( titles={ 'nomprenom' : 'Nom',
+                                 'just' : 'Just.',
+                                 'nojust' : 'Non Just.',
+                                 'total' : 'Total' },
+                        columns_ids=('nomprenom', 'just', 'nojust', 'total'),
+                        rows = T,
+                        html_class='gt_table table_leftalign',
+                        base_url = '%s?moduleimpl_id=%s' % (REQUEST.URL0, moduleimpl_id),
+                        filename='absmodule_'+make_filename(M['module']['titre']),
+                        caption='Absences dans le module %s' % M['module']['titre'],
+                        preferences=self.get_preferences())
 
+        if format != 'html':
+            return tab.make_page(self, format=format, REQUEST=REQUEST)
+        
+        return '\n'.join(H) + tab.html() + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoView, 'edit_ue_expr')
     def edit_ue_expr(self, REQUEST, formsemestre_id, ue_id):

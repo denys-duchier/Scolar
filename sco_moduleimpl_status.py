@@ -163,6 +163,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         if context.can_change_ens(REQUEST, moduleimpl_id, raise_exc=False):
             H.append(' (<a class="stdlink" href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)' % moduleimpl_id)
         H.append('</td></tr>')
+    H.append('<tr><td colspan="2"><a class="stdlink" href="view_module_abs?moduleimpl_id=%s">Absences</a>' % moduleimpl_id)
     H.append('</table>')
     #
     if has_expression:
