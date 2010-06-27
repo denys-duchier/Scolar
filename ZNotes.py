@@ -992,6 +992,8 @@ class ZNotes(ObjectManager,
         cursor.execute( req, { 'moduleimpl_id' : oid } )
         # --- suppression des enseignants
         cursor.execute( "DELETE FROM notes_modules_enseignants WHERE moduleimpl_id=%(moduleimpl_id)s", { 'moduleimpl_id' : oid } )
+        # --- suppression des references dans les absences
+        cursor.execute( "UPDATE absences SET moduleimpl_id=NULL WHERE moduleimpl_id=%(moduleimpl_id)s", { 'moduleimpl_id' : oid } )
         # --- destruction du moduleimpl
         self._moduleimplEditor.delete(cnx, oid)
         self._inval_cache(formsemestre_id=formsemestre_id) #> moduleimpl_delete

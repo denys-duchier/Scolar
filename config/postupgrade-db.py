@@ -303,6 +303,10 @@ for dept in get_depts():
      """] )
     
 
+    # add moduleimpl_id to absences:
+    check_field(cnx, 'absences', 'moduleimpl_id',
+                ['alter table absences add column moduleimpl_id text'])
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()

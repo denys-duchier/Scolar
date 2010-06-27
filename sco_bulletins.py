@@ -222,13 +222,23 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
     (ajoute les informations aux modimpls)
     """
     bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
+    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
+    if bul_show_abs_modules:
+        sem = context.Notes.get_formsemestre(formsemestre_id)
+        debut_sem = DateDMYtoISO(sem['date_debut'])
+        fin_sem = DateDMYtoISO(sem['date_fin'])
     
     ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue_id ]
     for modimpl in ue_modimpls:
         mod = modimpl.copy()
         mod_moy = nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)  # peut etre 'NI'
+        if bul_show_abs_modules:
+            mod_abs = [context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=modimpl['moduleimpl_id']), context.Absences.CountAbsJust(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=modimpl['moduleimpl_id'])]
+            mod['mod_abs_txt'] = fmt_abs(mod_abs)
+        
         mod['mod_moy_txt'] = fmt_note(mod_moy)
         mod['mod_coef_txt']= fmt_coef(modimpl['module']['coefficient'])
+        
         if mod['mod_moy_txt'] != 'NI': # ne montre pas les modules 'non inscrit'
             mods.append(mod)
             mod['stats'] = nt.get_mod_stats(modimpl['moduleimpl_id'])
@@ -291,6 +301,8 @@ def make_formsemestre_bulletinetud_html(
         raise ValueError('invalid version code !')
     format = 'html'
     
+    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
+    
     sem = context.get_formsemestre(formsemestre_id)
     if sem['bul_bgcolor']:
         bgcolor = sem['bul_bgcolor']
@@ -314,8 +326,10 @@ def make_formsemestre_bulletinetud_html(
     H.append( '<tr><td class="note_bold">Moyenne</td><td class="note_bold cell_graph">%s%s%s%s</td>'
               % (I['moy_gen'], I['etud_etat_html'], minmax, bargraph) )
     H.append( '<td class="note_bold">%s</td>' % I['rang_txt'] )
-    H.append( '<td class="note_bold">Note/20</td><td class="note_bold">Coef</td></tr>' )
-
+    H.append( '<td class="note_bold">Note/20</td><td class="note_bold">Coef</td>')
+    if bul_show_abs_modules:
+        H.append( '<td class="note_bold">Abs (J. / N.J.)</td>' )
+    H.append('</tr>')
     def list_modules(ue_modules, rowstyle):
         for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
@@ -325,10 +339,14 @@ def make_formsemestre_bulletinetud_html(
                 rang_minmax = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
             else:
                 rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            H.append('<td>%s</td><td>%s</td><td>%s</td><td class="note">%s</td><td>%s</td></tr>'
+            H.append('<td>%s</td><td>%s</td><td>%s</td><td class="note">%s</td><td>%s</td>'
                      % (mod['code_html'], mod['name_html'], 
                         rang_minmax, 
-                        mod['mod_moy_txt'], mod['mod_coef_txt']))
+                        mod['mod_moy_txt'], mod['mod_coef_txt'] ))
+            if bul_show_abs_modules:
+                H.append('<td>%s</td>' % mod['mod_abs_txt'])
+            H.append('</tr>')
+            
             if version != 'short':
                 # --- notes de chaque eval:
                 for e in mod['evaluations']:
@@ -351,8 +369,11 @@ def make_formsemestre_bulletinetud_html(
                 plusminus = pluslink
                 hide = 'sco_hide'
             H.append('<tr class="notes_bulletin_row_ue">' )
-            H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' 
+            H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>' 
                      %  (plusminus, ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+            if bul_show_abs_modules:
+                H.append('<td></td>')
+            H.append('</tr>')
             list_modules(ue['modules_capitalized'], ' bul_row_ue_cap %s' % hide)
                          
             coef_ue  = ''
@@ -365,9 +386,11 @@ def make_formsemestre_bulletinetud_html(
         else:
             moy_txt = ue['cur_moy_ue_txt']
 
-        H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td></tr>'
+        H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>'
                  % (minuslink, ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
-        
+        if bul_show_abs_modules:
+            H.append('<td></td>')
+        H.append('</tr>')
         list_modules(ue['modules'], rowstyle)
 
     
@@ -414,6 +437,8 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
     Rewritten, mai 2010.
     """    
     sem = context.get_formsemestre(formsemestre_id)
+
+    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
     
     LINEWIDTH = 0.5
 
@@ -448,12 +473,15 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
         minmax = ' <font size="8">[%s, %s]</font>' % (I['moy_min'], I['moy_max'])
     else:
         minmax = ''
-    
-    P.append(('Moyenne', '%s%s%s' % (I['moy_gen'], I['etud_etat_html'], minmax),
-              I['rang_txt'], 
-              'Note/20', 
-              'Coef'))
 
+    t = ['Moyenne', '%s%s%s' % (I['moy_gen'], I['etud_etat_html'], minmax),
+         I['rang_txt'], 
+         'Note/20', 
+         'Coef']
+    if bul_show_abs_modules:
+        t.append( 'Abs (J. / N.J.)')
+    P.append(t)
+    
     def list_modules(ue_modules, ue_type=None):
         for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
@@ -463,20 +491,29 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
                 rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
             else:
                 rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            P.append((mod['code'], mod['name'], rang_minmax, mod['mod_moy_txt'], mod['mod_coef_txt']))
+            t = [mod['code'], mod['name'], rang_minmax, mod['mod_moy_txt'], mod['mod_coef_txt']]
+            if bul_show_abs_modules:
+                t.append(mod['mod_abs_txt'])
+            P.append(t)
             if version != 'short':
                 # --- notes de chaque eval:
                 for e in mod['evaluations']:
                     if e['visibulletin'] == '1' or version == 'long':
                         S.newline(ue_type=ue_type)
-                        P.append(('','', e['name'], e['note_txt'], e['coef_txt']))
+                        t = ['','', e['name'], e['note_txt'], e['coef_txt']]
+                        if bul_show_abs_modules:
+                            t.append('')
+                        P.append(t)
     
     for ue in I['ues']:
         ue_descr = ue['ue_descr_txt']
         coef_ue  = ue['coef_ue_txt']
         ue_type = None
         if ue['ue_status']['is_capitalized']:
-            P.append((ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+            t = [ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue]
+            if bul_show_abs_modules:
+                t.append('')
+            P.append(t)
             coef_ue = ''
             ue_descr = '(en cours, non prise en compte)'
             S.ueline()
@@ -488,7 +525,10 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
             moy_txt = '%s <font size="8">[%s, %s]</font>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
         else:
             moy_txt = ue['cur_moy_ue_txt']
-        P.append((ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
+        t = [ue['acronyme'], moy_txt, ue_descr, '', coef_ue]
+        if bul_show_abs_modules:
+            t.append('')
+        P.append(t)
         S.ueline()
         list_modules(ue['modules'], ue_type=ue_type)
     
@@ -552,6 +592,7 @@ def make_xml_formsemestre_bulletinetud(
         docdate = ''
     else:
         docdate = datetime.datetime.now().isoformat()
+    
     doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
                       date=docdate,
                       publie=published,

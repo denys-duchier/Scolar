@@ -105,7 +105,8 @@ CREATE TABLE absences (
     estjust boolean, -- vrai si justifie
     matin boolean, -- vrai si concerne le matin, faux si apres midi
     description text,  -- "raison" de l'absence
-    entry_date timestamp with time zone DEFAULT now()
+    entry_date timestamp with time zone DEFAULT now(),
+    moduleimpl_id text -- moduleimpid concerne (optionnel)
 ) WITH OIDS;
 
 CREATE TABLE absences_notifications (    

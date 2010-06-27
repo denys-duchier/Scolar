@@ -311,7 +311,7 @@ class ZAbsences(ObjectManager,
     #
     # --------------------------------------------------------------------
 
-    def _AddAbsence(self, etudid, jour, matin, estjust, REQUEST, description=None):
+    def _AddAbsence(self, etudid, jour, matin, estjust, REQUEST, description=None, moduleimpl_id=None):
         "Ajoute une absence dans la bd"
         # unpublished
         if self._isFarFutur(jour):
@@ -320,9 +320,9 @@ class ZAbsences(ObjectManager,
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin,description) values (%(etudid)s, %(jour)s, TRUE, %(estjust)s, %(matin)s, %(description)s )', vars())
+        cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin,description, moduleimpl_id) values (%(etudid)s, %(jour)s, TRUE, %(estjust)s, %(matin)s, %(description)s, %(moduleimpl_id)s )', vars())
         logdb(REQUEST, cnx, 'AddAbsence', etudid=etudid,
-              msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s'%vars())
+              msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s,moduleimpl_id=%(moduleimpl_id)s'%vars())
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
         sco_abs_notification.abs_notify(self, etudid, jour)
@@ -417,20 +417,24 @@ class ZAbsences(ObjectManager,
         cnx.commit()
 
     security.declareProtected(ScoView, 'CountAbs')
-    def CountAbs(self, etudid, debut, fin, matin=None):
+    def CountAbs(self, etudid, debut, fin, matin=None, moduleimpl_id=None):
         "CountAbs"
         if matin != None:
             matin = _toboolean(matin)
             ismatin = ' AND A.MATIN = %(matin)s '
         else:
             ismatin = ''
+        if moduleimpl_id:
+            modul = ' AND A.MODULEIMPL_ID = %(moduleimpl_id)s '
+        else:
+            modul = ''
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT COUNT(*) AS NbAbs FROM (
     SELECT DISTINCT A.JOUR, A.MATIN
     FROM ABSENCES A
     WHERE A.ETUDID = %(etudid)s
-      AND A.ESTABS""" + ismatin + """
+      AND A.ESTABS""" + ismatin + modul + """
       AND A.JOUR BETWEEN %(debut)s AND %(fin)s
           ) AS tmp
           """, vars())
@@ -438,12 +442,16 @@ class ZAbsences(ObjectManager,
         return res
 
     security.declareProtected(ScoView, 'CountAbsJust')
-    def CountAbsJust(self, etudid, debut, fin, matin=None):
+    def CountAbsJust(self, etudid, debut, fin, matin=None, moduleimpl_id=None):
         if matin != None:
             matin = _toboolean(matin)
             ismatin = ' AND A.MATIN = %(matin)s '
         else:
             ismatin = ''
+        if moduleimpl_id:
+            modul = ' AND A.MODULEIMPL_ID = %(moduleimpl_id)s '
+        else:
+            modul = ''
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT COUNT(*) AS NbAbsJust FROM (
@@ -453,7 +461,7 @@ class ZAbsences(ObjectManager,
       AND A.ETUDID = B.ETUDID 
       AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN
       AND A.JOUR BETWEEN %(debut)s AND %(fin)s
-      AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)""" + ismatin + """
+      AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)""" + ismatin + modul + """
 ) AS tmp
         """, vars() )
         res = cursor.fetchone()[0]

@@ -585,6 +585,14 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
+    ( 'bul_show_abs_modules', 
+      { 'initvalue' : 0,
+        'title' : 'Indiquer les absences dans chaque module',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
     ( 'bul_show_decision', 
       { 'initvalue' : 1,
         'title' : 'Faire figurer les décisions sur les bulletins',

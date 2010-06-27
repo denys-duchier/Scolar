@@ -36,7 +36,7 @@ import sco_groups
 
 import ZAbsences
 
-def doSignaleAbsence(context, datedebut, datefin, demijournee, estjust=False, description=None, REQUEST=None): # etudid implied
+def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id, demijournee, estjust=False, description=None, REQUEST=None): # etudid implied
     """Signalement d'une absence
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
@@ -47,23 +47,33 @@ def doSignaleAbsence(context, datedebut, datefin, demijournee, estjust=False, de
     nbadded = 0
     for jour in dates:
         if demijournee=='2':
-            context._AddAbsence(etudid,jour,False,estjust,REQUEST,description_abs)
-            context._AddAbsence(etudid,jour,True,estjust,REQUEST,description_abs)
+            context._AddAbsence(etudid,jour,False,estjust,REQUEST,description_abs,moduleimpl_id)
+            context._AddAbsence(etudid,jour,True,estjust,REQUEST,description_abs,moduleimpl_id)
             nbadded += 2
         else:
             matin = int(demijournee)
-            context._AddAbsence(etudid,jour,matin,estjust,REQUEST,description_abs)    
+            context._AddAbsence(etudid,jour,matin,estjust,REQUEST,description_abs,moduleimpl_id)
             nbadded += 1
     #
     if estjust:
         J = ''
     else:
         J = 'NON '
+    M = ''
+    if moduleimpl_id and moduleimpl_id != "NULL":
+        formsemestre_id = etud['cursem']['formsemestre_id']
+        nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
+        ues = nt.get_ues(etudid=etudid)
+        for ue in ues:
+            modimpls = nt.get_modimpls(ue_id=ue['ue_id'])
+            for modimpl in modimpls:
+                if modimpl['moduleimpl_id'] == moduleimpl_id:
+                    M = 'dans le module %s' % modimpl['module']['code']
     H = [ context.sco_header(REQUEST,page_title="Signalement d'une absence pour %(nomprenom)s" % etud ),
           """<h2>Signalement d'absences</h2>""" ]
     if dates:
-        H.append("""<p>Ajout de %d absences <b>%sjustifiées</b> du %s au %s</p>"""
-                 % (nbadded, J, datedebut, datefin ) )
+        H.append("""<p>Ajout de %d absences <b>%sjustifiées</b> du %s au %s %s</p>"""
+                 % (nbadded, J, datedebut, datefin, M ) )
     else:
         H.append("""<p class="warning">Aucune date ouvrable entre le %s et le %s !</p>"""
                  % (datedebut, datefin) )
@@ -82,6 +92,14 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
     # brute-force portage from very old dtml code ...
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     etudid = etud['etudid']
+    formsemestre_id = etud['cursem']['formsemestre_id']
+    nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
+    ues = nt.get_ues(etudid=etudid)
+    menu_module = ""
+    for ue in ues:
+        modimpls = nt.get_modimpls(ue_id=ue['ue_id'])
+        for modimpl in modimpls:
+            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code']}
 
     H = [ context.sco_header(REQUEST,page_title="Signalement d'une absence pour %(nomprenom)s" % etud, init_jquery_ui=True ),
           """<table><tr><td>
@@ -104,6 +122,13 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
 </table>
 <br/>
 
+<p>
+<select name="moduleimpl_id">
+<option value="NULL" selected>(Module)</option>
+%(menu_module)s
+</select>
+</p>
+
 <input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
 &nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
 &nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
@@ -121,7 +146,7 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 
 </form> 
-          """ % etud,
+          """ % {'etudid': etud['etudid'], 'menu_module': menu_module},
           context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)

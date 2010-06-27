@@ -95,6 +95,10 @@ def fmt_coef(val):
         return '%g' % val # unusually small value
     return '%g' % round(val,2)
 
+def fmt_abs(val):
+    """ Conversion absences en chaine. val est une list [nb_abs_total, nb_abs_justifiees
+    """
+    return "%s / %s" % (val[1], val[0] - val[1])
 
 # ----- Global lock for critical sections (except notes_tables caches)
 GSL = thread.allocate_lock() # Global ScoDoc Lock
