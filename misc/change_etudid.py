@@ -15,16 +15,19 @@ etudiant le code d'un autre étudiant (son doublon).
 Ne traite que les inscriptions, les notes, absences, annotations, mais
 évidemment pas les tables uniques (identité, adresse, admission).
 
+Attention: script a lancer en tant que "www-data"
+
 Emmanuel Viennet, 2007
 """
 
 import pdb,os,sys,psycopg
 
 
-DBCNXSTRING = 'host=localhost user=XXX dbname=XXX password=XXX'
+DBCNXSTRING = 'dbname=SCOXXX' 
 
-OLD_ETUDID = 'EID1512'
-NEW_ETUDID = '10500686'
+# exemple:
+OLD_ETUDID = 'EID1512' # etudid qui est en double (que l'on supprime)
+NEW_ETUDID = '10500686' # etudid destination (celui d'origine)
 
 cnx = psycopg.connect( DBCNXSTRING )
 
@@ -32,7 +35,9 @@ cursor = cnx.cursor()
 req = "update %s set etudid=%%(new_etudid)s where etudid=%%(old_etudid)s"
 args = { 'old_etudid' : OLD_ETUDID, 'new_etudid' : NEW_ETUDID }
 
-tables = ( 'absences',
+tables = ( 'absences', 
+           'absences_notifications',
+           'billet_absence',
            'scolog',
            'etud_annotations',
            'entreprise_contact',
