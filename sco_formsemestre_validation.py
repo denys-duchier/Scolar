@@ -91,9 +91,9 @@ def formsemestre_validation_etud_form(
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
-        H.append('<h2 class="formsemestre">%s: validation du semestre</h2>' % (etud['nomprenom']))
+        H.append('<h2 class="formsemestre">%s: validation du semestre</h2>Parcours: %s' % (etud['nomprenom'], Se.get_parcours_descr()))
     else:
-        H.append('<h2 class="formsemestre">Parcours de %s</h2>' % (etud['nomprenom']) )
+        H.append('<h2 class="formsemestre">Parcours de %s</h2>%s' % (etud['nomprenom'], Se.get_parcours_descr()) )
     
     H.append('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
              % (context.ScoURL(), etudid,    
@@ -184,7 +184,7 @@ def formsemestre_validation_etud_form(
     if Se.barres_ue_ok:
         H.append('les UEs sont au dessus des barres')
     else:
-        H.append('<b>%d UE sous la barre</b> (%g/20)' % (Se.nb_ues_under, NOTES_BARRE_UE))
+        H.append('<b>%d UE sous la barre</b> (%g/20)' % (Se.nb_ues_under, NOTES_BARRE_UE_TH))
     if (not Se.barre_moy_ok) and Se.can_compensate_with_prev:
         H.append(', et ce semestre peut se <b>compenser</b> avec le précédent')
     H.append('.</p>')
