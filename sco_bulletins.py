@@ -205,7 +205,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
         if ue_status['is_capitalized']:
             log('cap details   %s' % ue_status['moy_ue'])
-            if ue_status['moy_ue'] != 'NA':
+            if ue_status['moy_ue'] != 'NA' and ue_status['formsemestre_id']:
                 # detail des modules de l'UE capitalisee
                 nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
                 

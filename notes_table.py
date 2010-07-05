@@ -96,6 +96,7 @@ class NotesTable:
         log('NotesTable( formsemestre_id=%s )' % formsemestre_id)
         #open('/tmp/cache.log','a').write('NotesTables(%s)\n' % formsemestre_id) # XXX DEBUG        
         if not formsemestre_id:
+            logCallStack()
             raise ScoValueError('invalid formsemestre_id (%s)' % formsemestre_id)
         self.context = context
         self.formsemestre_id = formsemestre_id
@@ -606,7 +607,7 @@ class NotesTable:
         """
         return self.moy_gen[etudid]
 
-    def etud_count_ues_under_threshold(self, etudid, threshold=NOTES_BARRE_UE):
+    def etud_count_ues_under_threshold(self, etudid):
         """Nombre d'UE < barre
         Prend en compte les éventuelles UE capitalisées.
         (les UE sans notes ne sont pas comptées comme sous la barre)
@@ -618,11 +619,11 @@ class NotesTable:
                 n += 1
         return n
 
-    def etud_has_all_ue_over_threshold(self, etudid, threshold=NOTES_BARRE_UE):
+    def etud_has_all_ue_over_threshold(self, etudid):
         """True si moyenne d'UE toutes > à 8 (sauf celles sans notes)
         Prend en compte les éventuelles UE capitalisées.
         """
-        return self.etud_count_ues_under_threshold(etudid, threshold=threshold) == 0
+        return self.etud_count_ues_under_threshold(etudid) == 0
         
     def get_table_moyennes_triees(self):
         return self.T
