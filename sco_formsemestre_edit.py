@@ -34,6 +34,7 @@ import sco_groups
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee, scolars, sco_parcours_dut
+import sco_compute_moy
 
 def _default_sem_title(F):
     """Default title for a semestre in formation F"""
