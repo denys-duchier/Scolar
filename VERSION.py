@@ -7,6 +7,11 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Août 2010</h4>
+<ul>
+<li>Définitions de parcours (DUT, LP, ...) avec prise en compte des spécificités (par ex., certaines barres d'UE différentes en LP)</li>
+</ul>
+
 <h4>Avril - Juin 2010</h4>
 <ul>
 <li>Formules utilisateur pour le calcul des moyennes d'UE</li>
