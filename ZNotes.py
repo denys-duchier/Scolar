@@ -1292,8 +1292,9 @@ class ZNotes(ObjectManager,
             self.html_sem_header(
                 REQUEST, 
                 'Absences du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
-                % (moduleimpl_id, M['module']['titre']), 
-                sem
+                % (moduleimpl_id, M['module']['titre']),
+                page_title = 'Absences du module %s' % (M['module']['titre']),
+                sem=sem
                 ),
             ]
         if not T:
