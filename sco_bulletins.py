@@ -896,8 +896,10 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         infos['decisions_ue'] = pv['decisions_ue_descr']
         infos['descr_decisions_ue'] = ' UE acquises: ' + pv['decisions_ue_descr']
         dec += infos['descr_decisions_ue']
-    
-    infos['situation'] += ' ' + dec
+
+    infos['situation'] += ' ' + dec + '.'
+    if pv['autorisations_descr']:
+        infos['situation'] += " Autorisé à s'inscrire en %s." % pv['autorisations_descr']
     
     return infos, dpv
 
