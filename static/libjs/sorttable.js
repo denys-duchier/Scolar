@@ -55,6 +55,26 @@ function ts_getInnerText(el) {
 	return str;
 }
 
+// Check ifan element contains a css class
+// Uses classList  Introduced in Gecko 1.9.2 (FF 3.6) or regexp
+var containsClass = function (elm, className) {
+    if (document.documentElement.classList) {
+        containsClass = function (elm, className) {
+            return elm.classList.contains(className);
+        }
+    } else {
+        containsClass = function (elm, className) {
+            if (!elm || !elm.className) {
+                return false;
+            }
+            var re = new RegExp('(^|\\s)' + className + '(\\s|$)');
+            return elm.className.match(re);
+        }
+    }
+    return containsClass(elm, className);
+}
+
+
 function ts_resortTable(lnk,clid) {
     // get the span
     var span;
@@ -68,14 +88,12 @@ function ts_resortTable(lnk,clid) {
     
     // Work out a type for the column
     if (table.rows.length <= 1) return;
-    var colClasses = table.rows[0].cells[column].classList;
-    var isNumeric = false;
-    for (i=0;i<colClasses.length;i++) {
-	if (colClasses[i] == 'sortnumeric')  { 
-	    isNumeric = true;
-	    break;
-	}
+    
+    isNumeric = false;
+    if (containsClass(table.rows[0].cells[column], 'sortnumeric'))  {
+	isNumeric = true;
     }
+
     var itm = ts_getInnerText(table.rows[1].cells[column]);
     sortfn = ts_sort_caseinsensitive;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = ts_sort_date;
