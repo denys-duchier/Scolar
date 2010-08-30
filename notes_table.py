@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import sco_groups
 from notes_log import log, logCallStack
 from sco_utils import *
 from notesdb import *
+import sco_codes_parcours
 from sco_parcours_dut import formsemestre_get_etud_capitalisation
 from sco_parcours_dut import list_formsemestre_utilisateurs_uecap
 import sco_parcours_dut 
@@ -134,14 +135,21 @@ class NotesTable:
         for modimpl in self._modimpls:
             mod = context.do_module_list(args={'module_id' : modimpl['module_id']} )[0]
             modimpl['module'] = mod # add module dict to moduleimpl
-            ue = context.do_ue_list(args={'ue_id' : mod['ue_id']})[0]
+            if not mod['ue_id'] in uedict:
+                ue = context.do_ue_list(args={'ue_id' : mod['ue_id']})[0]
+                uedict[ue['ue_id']] = ue
+            else:
+                ue = uedict[mod['ue_id']]
             modimpl['ue'] = ue # add ue dict to moduleimpl            
-            uedict[ue['ue_id']] = ue
+            
             mat = context.do_matiere_list(args={'matiere_id': mod['matiere_id']})[0]
             modimpl['mat'] = mat # add matiere dict to moduleimpl 
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
 
+        self.formation = context.do_formation_list( args={ 'formation_id' : self.sem['formation_id'] } )[0]
+        self.parcours = sco_codes_parcours.get_parcours_from_code(self.formation['type_parcours'])
+        
         # Decisions jury et UE capitalisées
         self.comp_decisions_jury()
         self.comp_ue_capitalisees()
@@ -451,7 +459,7 @@ class NotesTable:
             val = self._modmoys[modimpl['moduleimpl_id']].get(etudid, 'NI')
             # si 'NI' probablement etudiant non inscrit a ce module
             coef = modimpl['module']['coefficient']
-            if modimpl['ue']['type'] == UE_STANDARD:
+            if modimpl['ue']['type'] != UE_SPORT:
                 notes.append(val, name=modimpl['module']['code'])
                 try:
                     sum_notes += val * coef
@@ -464,7 +472,7 @@ class NotesTable:
                     coefs.append(0)
                     coefs_mask.append(0)
             
-            elif modimpl['ue']['type'] == UE_SPORT:
+            else: # UE_SPORT:
                 # la note du module de sport agit directement sur la moyenne gen.
                 try:
                     notes_bonus_gen.append(float(val))
@@ -472,8 +480,7 @@ class NotesTable:
                 except:
                     # log('comp_etud_moy_ue: exception: val=%s coef=%s' % (val,coef))
                     pass
-            else:
-                raise ScoValueError("type d'UE inconnu (%s)"%modimpl['ue']['type'])
+
         # Calcul moyenne:
         if sum_coefs > 0:
             moy = sum_notes / sum_coefs
@@ -615,7 +622,7 @@ class NotesTable:
         n = 0
         for ue in self._ues:
             ue_status = self.get_etud_ue_status(etudid, ue['ue_id'])
-            if ue_status['coef_ue'] > 0 and type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] < NOTES_BARRE_UE:
+            if ue_status['coef_ue'] > 0 and type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] < self.parcours.get_barre_ue(ue['type']):
                 n += 1
         return n
 
@@ -706,7 +713,7 @@ class NotesTable:
 
     # Capitalisation des UEs
     def comp_ue_capitalisees(self):
-        """Cherche pour chaque etudiants ses UE capitalisées dans ce semestre.
+        """Cherche pour chaque etudiant ses UE capitalisées dans ce semestre.
         Calcule l'attribut:
         ue_capitalisees = { etudid :
                              [{ 'moy_ue':, 'event_date' : ,'formsemestre_id' : }, ...] }
@@ -723,7 +730,7 @@ class NotesTable:
                     nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] ) #> UE capitalisees par un etud
                     moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
                     ue_cap['moy_ue'] = moy_ue_cap
-                    if type(moy_ue_cap) == FloatType and moy_ue_cap >= NOTES_BARRE_VALID_UE:
+                    if type(moy_ue_cap) == FloatType and moy_ue_cap >= self.parcours.NOTES_BARRE_VALID_UE:
                         if not cnx:
                             cnx = self.context.GetDBConnexion()
                         sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt_cap, ue_cap['formsemestre_id'], etudid,  ue_cap['ue_id'], ue_cap['code'])

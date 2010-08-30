@@ -32,34 +32,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
-
-def formation_create(context, REQUEST=None):
-    """Creation d'une formation
-    """
-    H = [ context.sco_header(REQUEST, page_title="Création d'une formation"),
-          """<h2>Création d'une formation</h2>
-
-<p class="help">Une "formation" décrit une filière, comme un DUT ou un Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place séparément.
-</p>
-
-<p>Le <tt>titre</tt> est le nom complet, parfois adapté pour mieux distinguer les modalités ou versions de programme pédagogique. Le <tt>titre_officiel</tt> est le nom complet du diplôme, qui apparaitra sur certains PV de jury de délivrance du diplôme.
-</p>
-"""]
-    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
-        ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)', 'allow_null' : False }),
-        ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications)', 'allow_null' : False }),
-        ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
-        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE). Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
-        ),
-                           cancelbutton = 'Annuler',
-                           submitlabel = 'Créer cette formation')
-    if tf[0] == 0:
-        return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
-    elif tf[0] == -1:
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
-    else:
-        formation_id = context.do_formation_create( tf[2], REQUEST )
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+import sco_codes_parcours
 
 def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST=None):
     """Delete a formation
@@ -97,41 +70,75 @@ def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST
     return '\n'.join(H)
 
 
-
-def formation_edit(context, formation_id=None, REQUEST=None):
-    """Edit a formation
+def formation_create(context, REQUEST=None):
+    """Creation d'une formation
     """
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
-    if not F:
-        raise ScoValueError('formation inexistante !')
-    F = F[0]
-    H = [ context.sco_header(REQUEST, page_title="Modification d'une formation"),
-          """<h2>Modification de la formation %(acronyme)s</h2>""" % F ]
+    return formation_edit(context, create=True, REQUEST=REQUEST) 
+
+def formation_edit(context, formation_id=None, create=False, REQUEST=None):
+    """Edit or create a formation
+    """
+    if create:
+        H = [ context.sco_header(REQUEST, page_title="Création d'une formation"),
+          """<h2>Création d'une formation</h2>
+
+<p class="help">Une "formation" décrit une filière, comme un DUT ou une Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place séparément.
+</p>
+
+<p>Le <tt>titre</tt> est le nom complet, parfois adapté pour mieux distinguer les modalités ou versions de programme pédagogique. Le <tt>titre_officiel</tt> est le nom complet du diplôme, qui apparaitra sur certains PV de jury de délivrance du diplôme.
+</p>
+"""]
+        submitlabel = 'Créer cette formation'
+        initvalues = {}
+    else:
+        # edit an existing formation
+        F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+        if not F:
+            raise ScoValueError('formation inexistante !')
+        initvalues = F[0]
+        submitlabel = 'Modifier les valeurs'
+        H = [ context.sco_header(REQUEST, page_title="Modification d'une formation"),
+              """<h2>Modification de la formation %(acronyme)s</h2>""" % initvalues ]
+    
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('formation_id', { 'default' : formation_id, 'input_type' : 'hidden' }),
         ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)',  'allow_null' : False }),
         ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications',  'allow_null' : False }),
         ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
+        ('type_parcours', { 'input_type' : 'menu',
+                            'title' : 'Type de parcours',
+                            'type' : 'int',
+                            'allowed_values' : sco_codes_parcours.FORMATION_PARCOURS_TYPES,
+                            'labels' : sco_codes_parcours.FORMATION_PARCOURS_DESCRS,
+                            'explanation' : "détermine notamment le nombre de semestres et les règles de validation d'UE et de semestres (barres)",
+                            }),
         ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
         ),
-                           initvalues = F,
-                           submitlabel = 'Modifier les valeurs')
+                           initvalues = initvalues,
+                           submitlabel = submitlabel)
     if tf[0] == 0:
         return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
     else:
         # check unicity : constraint UNIQUE(acronyme,titre,version)
+        if create:
+            version = 1
+        else:
+            version = initvalues['version']
         args = { 'acronyme' : tf[2]['acronyme'],
                  'titre' :  tf[2]['titre'],
-                 'version' : F['version'] }
+                 'version' : version }
         quote_dict(args)
         others = context.do_formation_list( args = args )
         if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
             return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe déjà une formation avec même titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
         #
-        do_formation_edit(context, tf[2])
-        return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+        if create:
+            formation_id = context.do_formation_create(tf[2], REQUEST)
+        else:
+            do_formation_edit(context, tf[2])
+        return REQUEST.RESPONSE.redirect( 'ue_list?formation_id=%s' % formation_id )
 
 def do_formation_edit(context, args):
     "edit a formation"

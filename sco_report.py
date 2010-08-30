@@ -321,7 +321,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         inset = Set([ i['etudid'] for i in ins ] )
         s['members'] = orig_set.intersection(inset)
         nb_dipl = 0 # combien de diplomes dans ce semestre ?
-        if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:
+        if s['semestre_id'] == nt.parcours.NB_SEM:
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem
             for etudid in s['members']:
                 dec = nt.get_etud_decision_sem(etudid)
@@ -664,7 +664,7 @@ def _codeparcoursetud(context, etud):
                 dec = nt.get_etud_decision_sem(etud['etudid'])
                 if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
                     p.append(':R')
-                if dec and s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and code_semestre_validant(dec['code']):
+                if dec and s['semestre_id'] == nt.parcours.NB_SEM and code_semestre_validant(dec['code']):
                     p.append(':A')
         i -= 1
     return ''.join(p)
@@ -749,7 +749,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem, get_etud_etat
             dec = nt.get_etud_decision_sem(etudid)
             if next:
-                if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM and dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
+                if s['semestre_id'] == nt.parcours.NB_SEM and dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
                     # cas particulier du diplome puis poursuite etude
                     edges[('_dipl_'+s['formsemestre_id'], next['formsemestre_id'])].add(etudid)
                 else:
@@ -772,7 +772,7 @@ def graph_parcours(context, formsemestre_id, format='svg'):
                 nar_nodes[s['formsemestre_id']] = nid
                 edges[(s['formsemestre_id'], nid)].add(etudid)
             # si "terminal", ajoute noeud pour diplomes
-            if s['semestre_id'] == sco_codes_parcours.DUT_NB_SEM:                
+            if s['semestre_id'] == nt.parcours.NB_SEM:                
                 if dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
                     nid = '_dipl_'+s['formsemestre_id']
                     edges[(s['formsemestre_id'], nid)].add(etudid)

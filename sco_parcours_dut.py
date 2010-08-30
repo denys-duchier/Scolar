@@ -75,16 +75,15 @@ class SituationEtudParcours:
         self.formsemestre_id = formsemestre_id
         self.sem= znotes.do_formsemestre_list(
             args={ 'formsemestre_id' : formsemestre_id } )[0]
-        self.formation = znotes.do_formation_list(args={ 'formation_id' : self.sem['formation_id'] })[0]
-        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_etud_decision_sem, etud_count_ues_under_threshold, get_etud_moy_gen, get_ues, get_etud_ue_status, etud_has_all_ue_over_threshold
         
+        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_etud_decision_sem, etud_count_ues_under_threshold, get_etud_moy_gen, get_ues, get_etud_ue_status, etud_has_all_ue_over_threshold
+        self.formation = self.nt.formation
+        self.parcours = self.nt.parcours
         # Ce semestre est-il le dernier de la formation ? (e.g. semestre 4 du DUT)
         # pour le DUT, le dernier est toujours S4.
-        # Si on voulait gérer d'autres formations, il faudrait un flag sur les formsemestre
-        # indiquant s'ils sont "terminal" ou non. XXX TODO
-        # Ici: terminal si semestre 4 ou bien semestre_id==-1
+        # Ici: terminal si semestre == NB_SEM ou bien semestre_id==-1
         #        (licences et autres formations en 1 seule session))
-        self.semestre_non_terminal = (self.sem['semestre_id'] != DUT_NB_SEM) # True | False
+        self.semestre_non_terminal = (self.sem['semestre_id'] != self.parcours.NB_SEM) # True | False
         if self.sem['semestre_id'] == NO_SEMESTRE_ID:
             self.semestre_non_terminal = False
         # Liste des semestres du parcours de cet étudiant:
@@ -185,7 +184,7 @@ class SituationEtudParcours:
             decision = self.nt.get_etud_decision_sem(self.etudid)
             return decision and code_semestre_validant(decision['code'])
         else:
-            to_validate = Set(range(1,DUT_NB_SEM+1)) # ensemble des indices à valider
+            to_validate = Set(range(1, self.parcours.NB_SEM + 1)) # ensemble des indices à valider
             if exclude_current:
                 to_validate.remove(self.sem['semestre_id'])
             for sem in self.get_semestres():
@@ -324,19 +323,19 @@ class SituationEtudParcours:
         # clip [1--4]
         r=[]
         for idx in ids:
-            if idx > 0 and idx <= DUT_NB_SEM:
+            if idx > 0 and idx <= self.parcours.NB_SEM:
                 r.append(idx)
         return r
 
     def _get_next_semestre_id(self):
         """Indice du semestre suivant non validé.
-        S'il n'y en a pas, ramène DUT_NB_SEM+1
+        S'il n'y en a pas, ramène NB_SEM+1
         """
         s = self.sem['semestre_id']
-        if s >= DUT_NB_SEM:
-            return DUT_NB_SEM+1
+        if s >= self.parcours.NB_SEM:
+            return self.parcours.NB_SEM + 1
         validated = True
-        while validated and (s < DUT_NB_SEM):
+        while validated and (s < self.parcours.NB_SEM):
             s = s + 1
             # semestre s validé ?
             validated = False
@@ -567,7 +566,6 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
     car ils ne dépendent que de la note d'UE et de la validation ou non du semestre.
     Les UE des semestres NON ASSIDUS ne sont jamais validées (code AJ).
     """
-    from notes_table import NOTES_BARRE_VALID_UE
     valid_semestre = CODES_SEM_VALIDES.get(code_etat_sem, False)
     cnx = znotes.GetDBConnexion()
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_ues, get_etud_ue_status
@@ -578,7 +576,7 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
             code_ue = AJ
         else:
             # log('%s: %s: ue_status=%s' % (formsemestre_id,ue_id,ue_status))
-            if type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+            if type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                 code_ue = ADM
             elif valid_semestre:
                 code_ue = CMP

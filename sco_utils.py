@@ -56,19 +56,22 @@ NOTES_SUPPRESS=-1001.   # note a supprimer
 NOTES_ATTENTE=-1002.    # note "en attente" (se calcule comme une note neutralisee)
 
 NOTES_BARRE_GEN_TH = 10. # barre sur moyenne générale
-NOTES_BARRE_UE_TH = 8.      # barre sur UE 
-NOTES_BARRE_VALID_UE_TH=10. # seuil pour valider UE
+#NOTES_BARRE_UE_TH = 8.      # barre sur UE 
+#NOTES_BARRE_VALID_UE_TH=10. # seuil pour valider UE
 
 NOTES_TOLERANCE = 0.00499999999999 # si note >= (BARRE-TOLERANCE), considere ok
                                    # (permet d'eviter d'afficher 10.00 sous barre alors que la moyenne vaut 9.999)
 NOTES_BARRE_GEN = NOTES_BARRE_GEN_TH-NOTES_TOLERANCE # barre sur moyenne generale
-NOTES_BARRE_UE = NOTES_BARRE_UE_TH-NOTES_TOLERANCE   # barre sur UE
-NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH-NOTES_TOLERANCE # seuil pour valider UE
+#NOTES_BARRE_UE = NOTES_BARRE_UE_TH-NOTES_TOLERANCE   # barre sur UE
+#NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH-NOTES_TOLERANCE # seuil pour valider UE
 
 UE_STANDARD = 0
 UE_SPORT = 1
+UE_STAGE_LP = 2 # ue "projet tuteuré et stage" dans les Lic. Pro.
+UE_TYPE_NAME = { UE_STANDARD : 'Standard', 
+                 UE_SPORT : 'Sport/Culture (points bonus)', 
+                 UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)" }
 
-UE_TYPE_NAME = { UE_STANDARD : 'standard', UE_SPORT : 'sport' }
 
 def fmt_note(val, note_max=None, keep_numeric=False):
     """conversion note en str pour affichage dans tables HTML ou PDF.
@@ -103,6 +106,7 @@ def fmt_abs(val):
     """ Conversion absences en chaine. val est une list [nb_abs_total, nb_abs_justifiees
     """
     return "%s / %s" % (val[1], val[0] - val[1])
+
 
 # ----- Global lock for critical sections (except notes_tables caches)
 GSL = thread.allocate_lock() # Global ScoDoc Lock

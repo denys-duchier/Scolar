@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2010 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ def formsemestre_validation_etud_form(
     if Se.barres_ue_ok:
         H.append('les UEs sont au dessus des barres')
     else:
-        H.append('<b>%d UE sous la barre</b> (%g/20)' % (Se.nb_ues_under, NOTES_BARRE_UE_TH))
+        H.append('<b>%d UE sous la barre</b>' % (Se.nb_ues_under))
     if (not Se.barre_moy_ok) and Se.can_compensate_with_prev:
         H.append(', et ce semestre peut se <b>compenser</b> avec le précédent')
     H.append('.</p>')
@@ -695,14 +695,14 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
             ue_status = nt.get_etud_ue_status(etudid, ue_id)
             moy_ue = ue_status['moy_ue']
             if valid_semestre:
-                if type(moy_ue) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+                if type(moy_ue) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                     code_ue = ADM
                 else:
                     code_ue = CMP
             else:
                 if not decision_sem['assidu']:
                     code_ue = AJ
-                elif type(moy_ue) == FloatType and ue_status['moy_ue'] >= NOTES_BARRE_VALID_UE:
+                elif type(moy_ue) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                     code_ue = ADM
                 else:
                     code_ue = AJ

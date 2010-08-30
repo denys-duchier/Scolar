@@ -194,16 +194,15 @@ def make_formsemestre_recapcomplet(
     
     cod2mod ={} # code : moduleimpl
     for ue in ues:
-        if ue['type'] == UE_STANDARD:            
+        if ue['type'] != UE_SPORT:
             h.append( ue['acronyme'] )
-        elif ue['type'] == UE_SPORT:
+        else: # UE_SPORT:
             # n'affiche pas la moyenne d'UE dans ce cas
             # mais laisse col. vide si modules affichés (pour séparer les UE)
             if not hidemodules:
                 h.append('')
             pass
-        else:
-            raise ScoValueError('type UE invalide !')
+        
         if not hidemodules:
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
@@ -268,9 +267,9 @@ def make_formsemestre_recapcomplet(
         i = 0
         for ue in ues:
             i += 1
-            if ue['type'] == UE_STANDARD:
+            if ue['type'] !=UE_SPORT:
                 l.append( fmtnum(t[i]) ) # moyenne etud dans ue
-            elif ue['type'] == UE_SPORT:
+            else: # UE_SPORT:
                 # n'affiche pas la moyenne d'UE dans ce cas
                 if not hidemodules:
                     l.append('')
@@ -300,9 +299,9 @@ def make_formsemestre_recapcomplet(
             for partition in partitions:
                 l += [ '' ] # rangs dans les groupes
         for ue in ues:
-            if ue['type'] == UE_STANDARD:
+            if ue['type'] != UE_SPORT:
                 l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
-            elif ue['type'] == UE_SPORT:
+            else: # UE_SPORT:
                 # n'affiche pas la moyenne d'UE dans ce cas
                 if not hidemodules:
                     l.append('') 
@@ -410,15 +409,19 @@ def make_formsemestre_recapcomplet(
             except:
                 pass
             cells += '<td class="%s">%s</td>' % (cssclass,nsn[3])
+            ue_number = 0
             for i in range(4,len(nsn)):
                 if i in ue_index:
                     cssclass = 'recap_col_ue'
                     # grise si moy UE < barre
+                    ue = ues[ue_number]
+                    ue_number += 1
+                    
                     if ir < nblines - 2:
                         try:                            
-                            if float(nsn[i]) < NOTES_BARRE_UE:
+                            if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']): # NOTES_BARRE_UE
                                 cssclass = 'recap_col_ue_inf'
-                            elif float(nsn[i]) >= NOTES_BARRE_VALID_UE:
+                            elif float(nsn[i]) >= nt.parcours.NOTES_BARRE_VALID_UE:
                                 cssclass = 'recap_col_ue_val'
                         except:
                             pass

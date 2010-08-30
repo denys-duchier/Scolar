@@ -257,6 +257,7 @@ CREATE TABLE notes_formations (
 	titre_officiel text NOT NULL, -- "DUT Gestion des Entreprises et Admininistration"
 	version integer default 1, -- version de la formation
 	formation_code text default notes_newid_fcod('FCOD') NOT NULL,
+	type_parcours  int DEFAULT 0, -- 0 DUT, 100 Lic Pro
 	UNIQUE(acronyme,titre,version)
 ) WITH OIDS;
 
@@ -266,7 +267,7 @@ CREATE TABLE notes_ue (
 	acronyme text NOT NULL,
 	numero int, -- ordre de presentation
 	titre text,
-	type  int DEFAULT 0, -- 0 normal, 1 "sport"
+	type  int DEFAULT 0, -- 0 normal, 1 "sport", 2 "projet et stage (LP)"
 	ue_code text default notes_newid_fcod('UCOD') NOT NULL
 ) WITH OIDS;
 

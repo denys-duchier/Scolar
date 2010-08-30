@@ -34,6 +34,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_groups
 import sco_formsemestre_validation
+import sco_codes_parcours
 
 def ue_create(context, formation_id=None, REQUEST=None):
     """Creation d'une UE
@@ -70,6 +71,11 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
 
 <p class="help">Note: L'UE n'a pas de coefficient associé. Seuls les <em>modules</em> ont des coefficients.
 </p>""" ]
+
+    ue_types = UE_TYPE_NAME.keys()
+    ue_types.sort()
+    ue_types_names = [ UE_TYPE_NAME[k] for k in ue_types ]
+    ue_types = [ str(x) for x in ue_types ]
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
          ('ue_id', { 'input_type' : 'hidden' }),
@@ -81,8 +87,8 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
                          'type' : 'int' }),
          ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
                     'input_type' : 'menu',
-                    'allowed_values': ('0','1'),
-                    'labels' : ('Normal', 'Sport&Culture (règle de calcul IUT)')}),
+                    'allowed_values': ue_types,
+                    'labels' : ue_types_names }),
          ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
          ),
                             initvalues = initvalues,
@@ -153,16 +159,30 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 </p>
 <ul class="help">
 <li>soit créer une nouvelle version de cette formation pour pouvoir l'éditer librement (vous pouvez passer par la fonction "Associer à une nouvelle version du programme" (menu "Semestre") si vous avez un semestre en cours);</li>
-<li>soit déverrouiler le ou les semestres qui s'y réfèrent (attention, en principe ces semestres sont archivés 
+<li>soit déverrouiller le ou les semestres qui s'y réfèrent (attention, en principe ces semestres sont archivés 
     et ne devraient pas être modifiés).</li>
 </ul>""" % len(locked))
     if msg:
         H.append('<p class="msg">' + msg + '</p>' )
 
+    # Description de la formation
+    H.append('<div class="formation_descr">')
+    H.append('<div class="fd_d"><span class="fd_t">Titre:</span><span class="fd_v">%(titre)s</span></div>' % F )
+    H.append('<div class="fd_d"><span class="fd_t">Titre officiel:</span><span class="fd_v">%(titre_officiel)s</span></div>' % F )
+    H.append('<div class="fd_d"><span class="fd_t">Acronyme:</span><span class="fd_v">%(acronyme)s</span></div>' % F )
+    H.append('<div class="fd_d"><span class="fd_t">Code:</span><span class="fd_v">%(formation_code)s</span></div>' % F )
+    H.append('<div class="fd_d"><span class="fd_t">Version:</span><span class="fd_v">%(version)s</span></div>' % F )
+    H.append('<div class="fd_d"><span class="fd_t">Type parcours:</span><span class="fd_v">%s</span></div>' % sco_codes_parcours.get_parcours_from_code(F['type_parcours']).__doc__ )
+    H.append('<div><a href="formation_edit?formation_id=%(formation_id)s" class="stdlink">modifier ces informations</a></div>' % F )
+    H.append('</div>')
+    # Description des UE/matières/modules
+    H.append('<div class="ue_list_tit">Programme pédagogique:</div>')
     H.append('<ul class="notes_ue_list">')
     ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
     for UE in ue_list:
-        H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s (code %(ue_code)s)' % UE)
+        H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s)</span>' % UE)
+        if UE['type'] != UE_STANDARD:
+            H.append('<span class="ue_type">%s</span>' % UE_TYPE_NAME[UE['type']])
         ue_editable = editable and not context.ue_is_locked(UE['ue_id'])
         if ue_editable:
             H.append('<a class="stdlink" href="ue_edit?ue_id=%(ue_id)s">modifier</a>' % UE)

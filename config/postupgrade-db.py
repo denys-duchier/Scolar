@@ -307,6 +307,12 @@ for dept in get_depts():
     check_field(cnx, 'absences', 'moduleimpl_id',
                 ['alter table absences add column moduleimpl_id text'])
 
+    # add type_parcours
+    check_field(cnx, 'notes_formations', 'type_parcours',
+                ['alter table notes_formations add column type_parcours int DEFAULT 0',
+                 'update notes_formations set type_parcours=0 where type_parcours is NULL'
+                 ])
+    
     # Add here actions to performs after upgrades:
 
     cnx.commit()

@@ -64,7 +64,7 @@ def do_formsemestre_inscription_with_modules(
     modimpls = context.do_moduleimpl_withmodule_list(
         {'formsemestre_id':formsemestre_id} )
     for mod in modimpls:
-        if mod['ue']['type'] == UE_STANDARD:
+        if mod['ue']['type'] != UE_SPORT:
             context.do_moduleimpl_inscription_create(
                 {'moduleimpl_id' : mod['moduleimpl_id'],
                  'etudid' : etudid},  REQUEST=REQUEST, formsemestre_id=formsemestre_id)
@@ -373,9 +373,10 @@ def do_moduleimpl_incription_options(
     # desinscriptions
     for moduleimpl_id in a_desinscrire:
         # verifie que ce module existe bien
-        mod = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
-        if len(mod) != 1:
+        mods = context.do_moduleimpl_list({'moduleimpl_id':moduleimpl_id})
+        if len(mods) != 1:
             raise ScoValueError('desinscription: invalid moduleimpl_id: %s' % moduleimpl_id)
+        mod = mods[0]
         inscr = context.do_moduleimpl_inscription_list( args=
             {'moduleimpl_id':moduleimpl_id, 'etudid' : etudid })
         if not inscr:

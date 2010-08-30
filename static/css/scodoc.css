@@ -824,10 +824,39 @@ li.notes_formation_list {
 }
 
 /* Presentation formation (ue_list) */
+div.formation_descr {
+  background-color: rgb(250,250,240);
+  padding-left: 0.7em;
+  margin-right: 1em;
+}
+div.formation_descr span.fd_t {
+  font-weight: bold;
+  margin-right: 1em;
+}
+
+div.ue_list_tit {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
 ul.notes_ue_list {
   background-color: rgb(240,240,240);
   font-weight: bold;
+  margin-top: 4px;
+  margin-right: 1em;
+}
 
+span.ue_code {
+  font-family: Courier, monospace;
+  font-weight: normal;
+  color: black;
+  font-size: 80%;
+}
+
+span.ue_type {
+  color: green;
+  margin-left: 1.5em;
+  margin-right: 1.5em;
 }
 
 ul.notes_matiere_list {

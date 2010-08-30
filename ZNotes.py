@@ -310,7 +310,7 @@ class ZNotes(ObjectManager,
         if editable:
             H.append("""<p><a class="stdlink" href="formation_create">Créer une formation</a></p>
  	 <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>
-         <p class="help">blah blah</p>
+         <p class="help">Une "formation" définie un programme pédagogique structuré en UE, matières et modules. Chaque semestre (session) fait référence à une formation. La modification d'une formation affecte tous les semestres qui s'y réfèrent.</p>
             """)
 
         H.append(self.sco_footer(REQUEST))
@@ -326,7 +326,7 @@ class ZNotes(ObjectManager,
     _formationEditor = EditableTable(
         'notes_formations',
         'formation_id',
-        ('formation_id', 'acronyme','titre', 'titre_officiel', 'version', 'formation_code'),
+        ('formation_id', 'acronyme','titre', 'titre_officiel', 'version', 'formation_code', 'type_parcours'),
         sortkey='acronyme'
         )
 
@@ -374,6 +374,8 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formation_list')
     def do_formation_list(self, **kw ):
         "list formations"
+        #log('do_formation_list kw=%s' % kw)
+        #logCallStack()
         cnx = self.GetDBConnexion()        
         return self._formationEditor.list( cnx, **kw )    
 
