@@ -297,7 +297,9 @@ def do_evaluation_formnotes(context, REQUEST ):
     if REQUEST.form.has_key('changed'): # reset
         del REQUEST.form['changed']
     tf =  TF( REQUEST.URL0, REQUEST.form, descr, initvalues=initvalues,
-              cancelbutton='Annuler', submitlabel='Vérifier ces notes' )
+              cancelbutton='Annuler', submitlabel='Vérifier ces notes',
+              top_buttons = True
+              )
     junk = tf.getform()  # check and init
     if tf.canceled():
         return REQUEST.RESPONSE.redirect( '%s/Notes/notes_eval_selectetuds?evaluation_id=%s'
@@ -382,7 +384,7 @@ def do_evaluation_formnotes(context, REQUEST ):
             """ % (description,nbchanged,nbsuppress,msg,existing_msg,E['moduleimpl_id'],evaluation_id)
         else:
             if oknow:
-                tf.submitlabel = 'Entrer ces notes'
+                tf.submitlabel = 'Enregistrer ces notes'
             else:        
                 tf.submitlabel = 'Vérifier ces notes'
             return head + '\n'.join(H) + tf.getform()
