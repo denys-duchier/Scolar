@@ -61,7 +61,8 @@ def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id, demijournee, es
         J = 'NON '
     M = ''
     if moduleimpl_id and moduleimpl_id != "NULL":
-        formsemestre_id = etud['cursem']['formsemestre_id']
+        mod = context.Notes.do_moduleimpl_list(args={ 'moduleimpl_id':moduleimpl_id } )[0]
+        formsemestre_id = mod['formsemestre_id']        
         nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
         ues = nt.get_ues(etudid=etudid)
         for ue in ues:
@@ -92,14 +93,19 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
     # brute-force portage from very old dtml code ...
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     etudid = etud['etudid']
-    formsemestre_id = etud['cursem']['formsemestre_id']
-    nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
-    ues = nt.get_ues(etudid=etudid)
-    menu_module = ""
-    for ue in ues:
-        modimpls = nt.get_modimpls(ue_id=ue['ue_id'])
-        for modimpl in modimpls:
-            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code']}
+    if not etud['cursem']:
+        menu_module = ''
+    else:
+        formsemestre_id = etud['cursem']['formsemestre_id']
+        nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
+        ues = nt.get_ues(etudid=etudid)
+        menu_module = """<p><select name="moduleimpl_id">
+        <option value="NULL" selected>(Module)</option>"""
+        for ue in ues:
+            modimpls = nt.get_modimpls(ue_id=ue['ue_id'])
+            for modimpl in modimpls:
+                menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code']}
+        menu_module += """</select></p>"""
 
     H = [ context.sco_header(REQUEST,page_title="Signalement d'une absence pour %(nomprenom)s" % etud, init_jquery_ui=True ),
           """<table><tr><td>
@@ -122,12 +128,7 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
 </table>
 <br/>
 
-<p>
-<select name="moduleimpl_id">
-<option value="NULL" selected>(Module)</option>
 %(menu_module)s
-</select>
-</p>
 
 <input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
 &nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
