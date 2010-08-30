@@ -616,7 +616,7 @@ class ZAbsences(ObjectManager,
         return A
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
-    def doSignaleAbsenceGrHebdo(self, abslist=[],
+    def doSignaleAbsenceGrHebdo(self, moduleimpl_id=None, abslist=[],
                                 datedebut=None, datefin=None, etudids=[],
                                 destination=None, REQUEST=None):
         """Enregistre absences hebdo. Efface les anciennes absences et
@@ -629,23 +629,15 @@ class ZAbsences(ObjectManager,
             etudids = etudids.split(',')
         else:
             etudids = []
-        H = [ self.sco_header(REQUEST,page_title='Absences') ]
-        footer = self.sco_footer(REQUEST)
-        if not etudids:
-            return '\n'.join(H) + '<h3>Rien à ajouter !</h3>' + footer
         
         # 1- Efface les absences
         for etudid in etudids:
             self._AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, REQUEST) 
         
         # 2- Ajoute les absences        
-        self._add_abslist(abslist, REQUEST)
+        self._add_abslist(abslist, REQUEST, moduleimpl_id)
 
-        H.append('<h3>Absences ajoutées</h3>')
-        if not destination:
-            destination = REQUEST.URL1
-        H.append('<p><a class="stdlink" href="%s">continuer</a></p>'%destination)
-        return '\n'.join(H) + footer
+        return "Absences ajoutées"
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrSemestre')
     def doSignaleAbsenceGrSemestre(self, moduleimpl_id=None, abslist=[],
@@ -774,6 +766,7 @@ class ZAbsences(ObjectManager,
         "Saisie hebdomadaire des absences"
         group = sco_groups.get_group(self, group_id)
         formsemestre_id = group['formsemestre_id']
+        nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         # calcule dates jours de cette semaine
         datessem = [ DateDMYtoISO(datelundi) ]
@@ -788,7 +781,8 @@ class ZAbsences(ObjectManager,
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
                               init_jquery_ui=True,
                               javascripts=['libjs/qtip/jquery.qtip.js',
-                                           'js/etud_info.js'
+                                           'js/etud_info.js',
+                                           'js/abs_ajax.js'
                                            ],
                               no_side_bar=1, REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
@@ -803,7 +797,33 @@ class ZAbsences(ObjectManager,
         #
         etuds = self.getEtudInfoGroupe(group_id)
 
-        H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination, ajaxified=False) # A MODIFIER !
+        modimpls_list = []
+        # Initialize with first student
+        ues = nt.get_ues(etudid=etuds[0]['etudid'])
+        for ue in ues:
+            modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
+
+        # Add modules other students are subscribed to
+        for etud in etuds[1:]:
+            modimpls_etud = []
+            ues = nt.get_ues(etudid=etud['etudid'])
+            for ue in ues:
+                modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
+            modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
+
+        menu_module = ''
+        for modimpl in modimpls_list:
+            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
+
+        H.append("""<p>Module concerné par ces absences (optionnel): 
+<select name="moduleimpl_id">
+<option value="NULL" selected>non spécifié</option>
+%(menu_module)s
+</select>
+</p>""" % {'menu_module': menu_module})
+
+
+        H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination)
 
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
@@ -890,7 +910,7 @@ class ZAbsences(ObjectManager,
 
         menu_module = ''
         for modimpl in modimpls_list:
-            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code']}
+            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
 
         H.append("""<p>
 Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
@@ -903,7 +923,7 @@ Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
     
-    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination='', dayname='', ajaxified=True):
+    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination='', dayname=''):
         H = [ """
         <script type="text/javascript">
         function colorize(obj) {
@@ -988,9 +1008,8 @@ Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
         H.append('<input type="hidden" name="destination" value="%s"/>'
                  % destination )
         #
-        if ajaxified:
-            # version pour formulaire avec AJAX (Yann LB)
-            H.append("""
+        # version pour formulaire avec AJAX (Yann LB)
+        H.append("""
             <p><input type="button" value="Retour" onClick="window.location='%s'"/>
             </p>
             </form>
@@ -1001,20 +1020,6 @@ Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
             par ailleurs).
             </p><p class="help">Si vous "décochez" une case,  l'absence correspondante sera supprimée.
             Attention, les modifications sont automatiquement entregistrées au fur et à mesure.
-            </p>
-        """ % destination)
-        else:
-            # version "traditionnelle" à supprimer prochainement !
-            H.append("""
-            <p><input type="submit" value="OK, enregistrer ces absences"/>
-            <input type="button" value="Annuler"  onClick="window.location='%s'"/>
-            </p>
-            </form>
-             </td></tr></table>
-            <p class="help">Les cases cochées correspondent à des absences.
-            Les absences saisies ne sont pas justifiées (sauf si un justificatif a été entré
-            par ailleurs).
-            </p><p class="help">Si vous "décochez" une case,  l'absence correspondante sera supprimée.
             </p>
         """ % destination)
         return H
