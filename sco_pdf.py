@@ -84,6 +84,9 @@ def _splitPara(txt):
             raise ValueError('unbalanced para tags')
         L.append( txt[b:e+l] )
         start = e        
+    # fix para: must be followed by a newline (? Reportlab bug turnaround ?)
+    L = [ re.sub( '<para(.*?)>([^\n\r])', '<para\\1>\n\\2',  p ) for p in L ]
+    
     return L
 
 def makeParas(txt, style, suppress_empty=False):

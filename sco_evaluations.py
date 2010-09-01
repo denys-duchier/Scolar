@@ -70,9 +70,15 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
     if not the_evals:
         raise ValueError("evaluation inexistante !")
 
+    NotesDB = context._notes_getall(evaluation_id) # { etudid : value }
+    notes = [ x['value'] for x in NotesDB.values() ]
+    if notes:
+        raise ScoValueError("Impossible de supprimer cette évaluation: il reste des notes")
+
     moduleimpl_id = the_evals[0]['moduleimpl_id']
     context._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)
     cnx = context.GetDBConnexion()
+
     context._evaluationEditor.delete(cnx, evaluation_id)
     # inval cache pour ce semestre
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id':moduleimpl_id } )[0]
