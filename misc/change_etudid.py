@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: iso8859-15 -*-
 """Change un etudid
 
 Suite a de fausses manips, il arrive que l'on est des "doublons":
@@ -15,7 +15,8 @@ etudiant le code d'un autre étudiant (son doublon).
 Ne traite que les inscriptions, les notes, absences, annotations, mais
 évidemment pas les tables uniques (identité, adresse, admission).
 
-Attention: script a lancer en tant que "www-data"
+Attention: script a lancer en tant que "www-data", avec ScoDoc arrete
+et postgresql lance
 
 Emmanuel Viennet, 2007
 """

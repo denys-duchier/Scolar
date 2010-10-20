@@ -574,7 +574,8 @@ def make_xml_formsemestre_bulletinetud(
     force_publishing=False,
     xml_nodate=False,
     REQUEST=None,
-    xml_with_decisions=False # inlue les decisions même si non publiées
+    xml_with_decisions=False, # inlue les decisions même si non publiées
+    version='long'
     ):
     "bulletin au format XML"
     log('xml_bulletin( formsemestre_id=%s, etudid=%s )' % (formsemestre_id, etudid))
@@ -703,17 +704,19 @@ def make_xml_formsemestre_bulletinetud(
                 doc._pop()
             # --- notes de chaque eval:
             evals = nt.get_evals_in_mod(modimpl['moduleimpl_id'])
-            for e in evals:
-                doc._push()
-                doc.evaluation(jour=DateDMYtoISO(e['jour'], null_is_empty=True),
+            if version != 'short':
+                for e in evals:
+                    if e['visibulletin'] == '1' or version == 'long':
+                        doc._push()
+                        doc.evaluation(jour=DateDMYtoISO(e['jour'], null_is_empty=True),
                                heure_debut=TimetoISO8601(e['heure_debut'], null_is_empty=True),
                                heure_fin=TimetoISO8601(e['heure_fin'], null_is_empty=True),
                                coefficient=e['coefficient'],
                                description=quote_xml_attr(e['description']))
-                val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
-                val = fmt_note(val, note_max=e['note_max'] )
-                doc.note( value=val )
-                doc._pop()
+                        val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
+                        val = fmt_note(val, note_max=e['note_max'] )
+                        doc.note( value=val )
+                        doc._pop()
             doc._pop()
         doc._pop()
         # UE capitalisee (listee seulement si meilleure que l'UE courante)
@@ -964,7 +967,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     if format == 'xml':
         bul = repr(make_xml_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
-            xml_with_decisions=xml_with_decisions))
+            xml_with_decisions=xml_with_decisions, version=version))
         return bul, I['filigranne']
     
     elif format == 'html':            
