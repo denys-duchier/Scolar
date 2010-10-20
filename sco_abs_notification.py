@@ -108,6 +108,10 @@ def abs_notify_get_destinations(context, sem, prefs, etudid, date, nbabs, nbabsj
             destinations.append(prefs['email_chefdpt'])
         if prefs['abs_notify_email']:
             destinations.append(prefs['abs_notify_email'])
+        if prefs['abs_notify_etud']:
+            etud = context.getEtudInfo(etudid=etudid, filled=1)[0]
+            if etud['email']:
+                destinations.append(etud['email'])        
     
     # Notification (à chaque fois) des resp. de modules ayant des évaluations
     # à cette date

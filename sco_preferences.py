@@ -256,6 +256,14 @@ PREFS = (
         'category' : 'abs',
         }
       ),
+    ( 'abs_notify_etud', 
+      { 'initvalue' : 0,
+        'title' : 'Notifier les absences aux étudiants concernés',
+        'explanation' : "Envoyer un mail à l'étudiant s'il a \"beaucoup\" d'absences",
+        'input_type' : 'boolcheckbox',
+        'category' : 'abs',
+        }
+      ),
     ( 'abs_notify_email',
       { 'initvalue' : '',
         'title' : "Notifier à:",
