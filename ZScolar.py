@@ -1261,6 +1261,16 @@ class ZScolar(ObjectManager,
         log('XMLgetEtudInfos (%gs)' % (time.time()-t0))
         return repr(doc)
 
+    def isPrimoEtud(self, etud, sem):
+        """Determine si un (filled) etud a ete inscrit avant ce semestre.
+        Regarde la liste des semestres dans lesquels l'étudiant est inscrit
+        """
+        now = sem['dateord']
+        for s in etud['sems']: # le + recent d'abord
+            if s['dateord'] < now:
+                return False
+        return True
+    
     # -------------------------- FICHE ETUDIANT --------------------------
     security.declareProtected(ScoView, 'ficheEtud')
     ficheEtud = sco_page_etud.ficheEtud

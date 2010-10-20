@@ -255,7 +255,8 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 # --------------------------------------------------------------------------
 def table_suivi_cohorte(context, formsemestre_id, percent=False,
                         bac='', # selection sur type de bac
-                        bacspecialite='', sexe=''
+                        bacspecialite='', sexe='',
+                        only_primo=False
                         ):
     """
     Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
@@ -280,10 +281,6 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem
     etudids = nt.get_etudids()
 
-    # Elimine les etudiants non primo-entrants dans sem
-    # (ie ayant une inscription antérieure dans un semestre)
-    # if XXXXXXXXXX
-
     logt('A: orig etuds set')
     S = { formsemestre_id : sem  } # ensemble de formsemestre_id
     orig_set = Set() # ensemble d'etudid du semestre d'origine
@@ -296,7 +293,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         # sélection sur bac:
         if ((not bac or (bac == etud['bac']))
             and (not bacspecialite or (bacspecialite == bacspe))
-            and (not sexe or (sexe == etud['sexe'])) ):
+            and (not sexe or (sexe == etud['sexe']))
+            and (not only_primo or context.isPrimoEtud(etud,sem))):
             orig_set.add(etudid)
             # semestres suivants:
             for s in etud['sems']:
@@ -499,6 +497,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
 
 def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=1,
                                bac='', bacspecialite='', sexe='',
+                               only_primo=False,
                                REQUEST=None):
     """Affiche suivi cohortes par numero de semestre
     """
@@ -506,7 +505,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     sem = context.get_formsemestre(formsemestre_id)
     tab, expl, bacs, bacspecialites, sexes = table_suivi_cohorte(
         context, formsemestre_id, percent=percent,
-        bac=bac, bacspecialite=bacspecialite, sexe=sexe)
+        bac=bac, bacspecialite=bacspecialite, sexe=sexe, only_primo=only_primo)
     tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
@@ -528,7 +527,8 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         pplink = '<p><a href="%s&percent=1">Afficher les résultats en pourcentages</a></p>' % burl
     help = pplink + """    
     <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>
-<p class="help">Les menus permettent de n'étudier que certaines catégories d'étudiants (titulaires d'un type de bac, garçons ou filles).</p>"""
+<p class="help">Les menus permettent de n'étudier que certaines catégories d'étudiants (titulaires d'un type de bac, garçons ou filles). La case "restreindre aux primo-entrants" permet de ne considérer que les étudiants qui n'ont jamais été inscrits dans ScoDoc avant le semestre considéré.</p>
+    """
 
     # form choix bac et/ou bacspecialite
     if bac:
@@ -570,9 +570,14 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
             selected = ''
         F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
     F.append('</select>')
+    if only_primo:
+        checked='checked=1'
+    else:
+        checked=''
+    F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="percent" value="%s"/>' % percent)
-    F.append('</p>')
+    F.append('</p></form>')
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
           """<h2 class="formsemestre">Suivi cohorte: devenir des étudiants de ce semestre</h2>""",
