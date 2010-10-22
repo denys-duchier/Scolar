@@ -71,7 +71,7 @@ YYYYMMDD=`date +%Y%m%d`
 TOEMAIL=$DEST_ADDRESS
 FREMAIL="scodoc-diagnostic@none.org";
 SUBJECT="ScoDoc diagnostic - $YYYYMMDD";
-MSGBODY="ScoDoc diagonistic sent by diagnostic.sh";
+MSGBODY="ScoDoc diagnostic sent by diagnostic.sh";
 ATTACHMENT="$TMP.tgz"
 MIMETYPE="application/gnutar" #if not sure, use http://www.webmaster-toolkit.com/mime-types.shtml
 

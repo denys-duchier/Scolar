@@ -84,6 +84,10 @@ def defMenuStats(context,formsemestre_id):
         { 'title' : 'Codes des parcours',
           'url' : 'formsemestre_suivi_parcours?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
+          },
+        { 'title' : 'Table "poursuite" (experimental)',
+          'url' : 'formsemestre_poursuite_report?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
           }
         ]
 
