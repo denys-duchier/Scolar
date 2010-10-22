@@ -796,33 +796,32 @@ class ZAbsences(ObjectManager,
               """ % (gr_tit, sem['titre_num'], datelundi, REQUEST.URL0) ]
         #
         etuds = self.getEtudInfoGroupe(group_id)
-
-        modimpls_list = []
-        # Initialize with first student
-        ues = nt.get_ues(etudid=etuds[0]['etudid'])
-        for ue in ues:
-            modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
-
-        # Add modules other students are subscribed to
-        for etud in etuds[1:]:
-            modimpls_etud = []
-            ues = nt.get_ues(etudid=etud['etudid'])
+        if etuds:            
+            modimpls_list = []
+            # Initialize with first student
+            ues = nt.get_ues(etudid=etuds[0]['etudid'])
             for ue in ues:
-                modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
-            modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
+                modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
 
-        menu_module = ''
-        for modimpl in modimpls_list:
-            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
+            # Add modules other students are subscribed to
+            for etud in etuds[1:]:
+                modimpls_etud = []
+                ues = nt.get_ues(etudid=etud['etudid'])
+                for ue in ues:
+                    modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
+                modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
 
-        H.append("""<p>Module concerné par ces absences (optionnel): 
-<select name="moduleimpl_id">
-<option value="NULL" selected>non spécifié</option>
-%(menu_module)s
-</select>
-</p>""" % {'menu_module': menu_module})
+            menu_module = ''
+            for modimpl in modimpls_list:
+                menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
 
-
+            H.append("""<p>Module concerné par ces absences (optionnel): 
+    <select name="moduleimpl_id">
+    <option value="NULL" selected>non spécifié</option>
+    %(menu_module)s
+    </select>
+    </p>""" % {'menu_module': menu_module})
+        
         H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination)
 
         H.append(self.sco_footer(REQUEST))
@@ -893,30 +892,30 @@ class ZAbsences(ObjectManager,
                      datedebut, datefin, formsemestre_id, group_id, destination, nwl, msg) ]
         #
         etuds = self.getEtudInfoGroupe(group_id)
-
-        modimpls_list = []
-        # Initialize with first student
-        ues = nt.get_ues(etudid=etuds[0]['etudid'])
-        for ue in ues:
-            modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
-
-        # Add modules other students are subscribed to
-        for etud in etuds[1:]:
-            modimpls_etud = []
-            ues = nt.get_ues(etudid=etud['etudid'])
+        if etuds:
+            modimpls_list = []
+            # Initialize with first student
+            ues = nt.get_ues(etudid=etuds[0]['etudid'])
             for ue in ues:
-                modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
-            modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
+                modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
 
-        menu_module = ''
-        for modimpl in modimpls_list:
-            menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
+            # Add modules other students are subscribed to
+            for etud in etuds[1:]:
+                modimpls_etud = []
+                ues = nt.get_ues(etudid=etud['etudid'])
+                for ue in ues:
+                    modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
+                modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
 
-        H.append("""<p>
-Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
-<option value="NULL" selected>non spécifié</option>
-%(menu_module)s
-</select>
+            menu_module = ''
+            for modimpl in modimpls_list:
+                menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
+
+            H.append("""<p>
+    Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
+    <option value="NULL" selected>non spécifié</option>
+    %(menu_module)s
+    </select>
 </p>""" % {'menu_module': menu_module})
 
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname)
@@ -960,7 +959,9 @@ Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
         H.append('<th>AM</th><th>PM</th>' * len(colnames) )
         H.append('</tr>')
         #
-        i=1
+        if not etuds:
+            H.append('<tr><td><span class="redboldtext">Aucun étudiant inscrit !</span></td></tr>')
+        i=1        
         for etud in etuds:
             i += 1
             etudid = etud['etudid']
