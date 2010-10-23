@@ -95,6 +95,9 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
     infos = []
     ids = []
     for etud in etuds:
+        etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+        etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+        etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
         info = etud_get_poursuite_info(context, sem, etud)
         ids =  _flatten_info(info)
         infos.append(info)
@@ -108,7 +111,9 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
                     rows=infos,
                     # lines_titles=lines_titles,
                     # html_col_width='4em',
-                    html_sortable=True, 
+                    html_sortable=True,
+                    html_class='gt_table table_leftalign table_listegroupe',
+                    pdf_link=False, # pas d'export pdf
                     preferences=context.get_preferences(formsemestre_id) )
     tab.filename = make_filename('poursuite ' + sem['titreannee'])
     
@@ -119,5 +124,9 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
     return tab.make_page(
         context, 
         title =  """<h2 class="formsemestre">Poursuite d'études</h2>""",
+        javascripts=['jQuery/jquery.js', 
+                     'libjs/qtip/jquery.qtip.js',
+                     'js/etud_info.js'
+                     ],
         format=format, REQUEST=REQUEST, with_html_headers=True)
 

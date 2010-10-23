@@ -373,6 +373,7 @@ class GenTable:
     
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
+                  javascripts=[],
                   with_html_headers=True, publish=True ):
         """
         Build page at given format
@@ -386,7 +387,7 @@ class GenTable:
         if format == 'html':
             H = []
             if with_html_headers:                
-                H.append(self.html_header or context.sco_header(REQUEST, page_title=page_title))
+                H.append(self.html_header or context.sco_header(REQUEST, page_title=page_title, javascripts=javascripts))
             if html_title:
                 H.append(html_title)
             H.append(self.html())
