@@ -88,7 +88,7 @@ from notes_table import *
 import VERSION
 
 #
-# Cache global: chaque instance, repérée par son URL, a un cache
+# Cache global: chaque instance, repérée par sa connexion db, a un cache
 # qui est recréé à la demande
 #
 CACHE_formsemestre_inscription = {}

@@ -905,8 +905,8 @@ class CacheNotesTable:
             self._call_listeners(formsemestre_id)
 
 #
-# Cache global: chaque instance, repérée par son URL, a un cache
+# Cache global: chaque instance, repérée par sa connexion a la DB, a un cache
 # qui est recréé à la demande (voir ZNotes._getNotesCache() )
 #
-NOTES_CACHE_INST = {} # { URL : CacheNotesTable instance }
+NOTES_CACHE_INST = {} # { db_cnx_string : CacheNotesTable instance }
 

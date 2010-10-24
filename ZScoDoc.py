@@ -108,7 +108,7 @@ class ZScoDoc(ObjectManager,
         self.manage_addProperty('admin_password_initialized', '0', 'string')
 
     security.declareProtected(ScoView, 'ScoDocURL')
-    def ScoDocURL(self):
+    def ScoDocURL(self): # XXX unused
         "base URL for this instance (top level for ScoDoc site)"
         return self.absolute_url()
 
