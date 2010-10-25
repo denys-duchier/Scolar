@@ -777,7 +777,8 @@ class ZNotes(ObjectManager,
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
-         'etape_apo', 'modalite', 'resp_can_edit', 'resp_can_change_ens'
+         'etape_apo', 'etape_apo2',
+         'modalite', 'resp_can_edit', 'resp_can_change_ens'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,

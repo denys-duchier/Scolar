@@ -331,6 +331,7 @@ CREATE TABLE notes_formsemestre (
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
 	etape_apo text, -- code etape Apogée
+	etape_apo2 text,-- code etape Apogée secondaire (si deux etapes pour meme semestre)
 	modalite text,   -- FI, FC, APP, ''
 	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
 	resp_can_change_ens integer default 1 -- autorise resp. a modifier slt les enseignants

@@ -597,7 +597,8 @@ def make_xml_formsemestre_bulletinetud(
     doc.bulletinetud( etudid=etudid, formsemestre_id=formsemestre_id,
                       date=docdate,
                       publie=published,
-                      etape_apo=sem['etape_apo'] or '')
+                      etape_apo=sem['etape_apo'] or '',
+                      etape_apo2=sem['etape_apo2'] or '')
 
     # Infos sur l'etudiant
     etudinfo = context.getEtudInfo(etudid=etudid,filled=1)[0]

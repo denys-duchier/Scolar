@@ -78,10 +78,13 @@ def formsemestre_synchro_etuds(
     """
     log('formsemestre_synchro_etuds: formsemestre_id=%s' % formsemestre_id)
     sem = context.get_formsemestre(formsemestre_id)
+    sem['etape_apo_str'] = sem['etape_apo'] or '-'
+    if sem['etape_apo2']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
     # -- check lock
     if sem['etat'] != '1':
         raise ScoValueError('opération impossible: semestre verrouille')
-    if not sem['etape_apo']:
+    if not sem['etape_apo'] and not sem['etape_apo2']:
         raise ScoValueError("""opération impossible: ce semestre n'a pas de code étape
         (voir "<a href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier ce semestre</a>")
         """ % sem )
@@ -219,12 +222,14 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
     else:
         sel = 'selected'
     options.append('<option value="" %s>toutes</option>' % sel)
-    
+    sem['etape_apo_str'] = sem['etape_apo'] or '-'
+    if sem['etape_apo2']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
     H = [
         """<h2 class="formsemestre">Synchronisation des étudiants du semestre avec Apogée</h2>""",
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
         % (len(etuds_by_cat['etuds_ok']['etuds'])+len(etuds_by_cat['etuds_nonapogee']['etuds'])+len(etuds_by_cat['inscrits_without_key']['etuds'])),
-        """<p>Code étape Apogée: %(etape_apo)s</p>
+        """<p>Code étape Apogée: %(etape_apo_str)s</p>
         <form method="post">
         """ % sem,
         """
@@ -270,6 +275,13 @@ def list_synch(context, sem, anneeapogee=None):
     etudsapo = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo'], anneeapogee=anneeapogee)
     etudsapo_set = Set( [ x[EKEY_APO] for x in etudsapo ] )
     etudsapo_ident = dict( [ (x[EKEY_APO], x) for x in etudsapo ] )
+    if sem['etape_apo2']:
+        etudsapo2 = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo2'], anneeapogee=anneeapogee)
+        etudsapo2_set = Set( [ x[EKEY_APO] for x in etudsapo2 ] )
+        etudsapo_set = etudsapo_set.union(etudsapo2_set)
+        for e in etudsapo2:
+            if e[EKEY_APO] not in etudsapo_ident:
+                etudsapo_ident[e[EKEY_APO]] = e
     # categories:
     etuds_ok = etudsapo_set.intersection(inscrits_set)
     etuds_aposco, a_importer, key2etudid = list_all(context, etudsapo_set)
@@ -335,7 +347,7 @@ def list_synch(context, sem, anneeapogee=None):
         { 'etuds' : set_to_sorted_list(etuds_nonapogee, is_inscrit=True),
           'infos' : { 'id' : 'etuds_nonapogee',
                       'title' : 'Etudiants ScoDoc inconnus dans cette étape Apogée',
-                      'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, ont un code NIP, mais ne sont pas inscrits dans cette étape Apogée. Soit ils sont en retard pour leur inscription, soit il s'agit d'une erreur: vérifiez avec le service Scolarité de votre établissement. Autre possibilité: votre code étape semestre (%s) est incorrect ou vous n'avez pas choisi la bonne année d'inscription.""" % sem['etape_apo'],
+                      'help' : """Ces étudiants sont inscrits dans ce semestre ScoDoc, ont un code NIP, mais ne sont pas inscrits dans cette étape Apogée. Soit ils sont en retard pour leur inscription, soit il s'agit d'une erreur: vérifiez avec le service Scolarité de votre établissement. Autre possibilité: votre code étape semestre (%s) est incorrect ou vous n'avez pas choisi la bonne année d'inscription.""" % sem['etape_apo_str'],
                       'comment' : ' à vérifier avec la Scolarité',
                       'title_target' : '',
                       'with_checkbox' : True,
@@ -379,7 +391,7 @@ def formsemestre_synchro_etuds_help(context, sem):
     <p>Cette page permet d'importer dans le semestre destination
     <a class="stdlink"
     href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>
-    les étudiants inscrits dans l'étape Apogée correspondante (<b><tt>%(etape_apo)s</tt></b>) 
+    les étudiants inscrits dans l'étape Apogée correspondante (<b><tt>%(etape_apo_str)s</tt></b>) 
     </p>
     <p>Au départ, tous les étudiants d'Apogée sont sélectionnés; vous pouvez 
     en déselectionner certains. Tous les étudiants cochés seront inscrits au semestre ScoDoc, 

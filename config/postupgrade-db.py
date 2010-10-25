@@ -313,6 +313,10 @@ for dept in get_depts():
                  'update notes_formations set type_parcours=0 where type_parcours is NULL'
                  ])
     
+    # add etape_apo2
+    check_field(cnx, 'notes_formsemestre', 'etape_apo2',
+                ['alter table notes_formsemestre add column etape_apo2 text'])
+    
     # Add here actions to performs after upgrades:
 
     cnx.commit()
