@@ -492,6 +492,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             cursor.execute('delete from scolar_events where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from adresse where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from admissions where etudid=%(etudid)s', { 'etudid':etudid })
+            cursor.execute('delete from group_membership where etudid=%(etudid)s', { 'etudid':etudid })
             cursor.execute('delete from identite where etudid=%(etudid)s', { 'etudid':etudid })
         cnx.commit()
         log('do_import_etuds_from_portal: re-raising exception')
