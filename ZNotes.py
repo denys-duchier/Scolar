@@ -491,7 +491,7 @@ class ZNotes(ObjectManager,
         validations = sco_parcours_dut.scolar_formsemestre_validation_list ( cnx, args={'ue_id' : ue_id} )
         if validations and not delete_validations and not force:
             return self.confirmDialog(
-                '<p>%d étudiants ont validé l\'UE %s (%s)</p><p>Si vous supprimer cette UE, ces validations vont être supprimées !</p>' % (len(validations), ue['acronyme'], ue['titre']),
+                '<p>%d étudiants ont validé l\'UE %s (%s)</p><p>Si vous supprimez cette UE, ces validations vont être supprimées !</p>' % (len(validations), ue['acronyme'], ue['titre']),
                 dest_url="", REQUEST=REQUEST,
                 target_variable='delete_validations',
                 cancel_url="ue_list?formation_id=%s"%ue['formation_id'],

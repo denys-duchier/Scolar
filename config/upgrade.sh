@@ -65,6 +65,7 @@ chmod -R g+w "${SCODOC_DIR}"/static/photos
 
 # check and install simplejson
 ./install_simplejson.sh
+export PYTHON_EGG_CACHE=/tmp/.egg_cache
 
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
