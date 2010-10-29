@@ -28,14 +28,43 @@
 """Import / Export de formations
 """
 
-# XML generation package (apt-get install jaxml)
-import jaxml
+from sco_utils import *
 import xml.dom.minidom
 
-from sco_utils import *
 from notesdb import quote_dict
 from notes_log import log
 
+def formation_export(context, formation_id, export_ids=False, format=None, REQUEST=None):
+    """Get a formation, with UE, matieres, modules
+    in desired format
+    """
+    F = context.formation_list(args={ 'formation_id' : formation_id})[0]
+    ues = context.do_ue_list({ 'formation_id' : formation_id })
+    F['ue'] = ues
+    for ue in ues:
+        ue_id = ue['ue_id']
+        if not export_ids:
+            del ue['ue_id']
+            del ue['formation_id']
+        mats = context.do_matiere_list({ 'ue_id' : ue_id })
+        ue['matiere'] = mats
+        for mat in mats:
+            matiere_id = mat['matiere_id']
+            if not export_ids:
+                del mat['matiere_id']
+                del mat['ue_id']
+            mods = context.do_module_list({ 'matiere_id' : matiere_id })
+            mat['module'] = mods
+            for mod in mods:
+                if not export_ids:
+                    del mod['ue_id']
+                    del mod['matiere_id']
+                    del mod['module_id']
+                    del mod['formation_id']
+                if mod['ects'] is None:
+                    del mod['ects']
+        
+    return sendResult(REQUEST, F, name='formation', format=format)
 
 def formation_export_xml( context, formation_id, export_ids=False ):
     """XML representation of a formation
@@ -43,7 +72,7 @@ def formation_export_xml( context, formation_id, export_ids=False ):
     """
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
 
-    F = context.do_formation_list(args={ 'formation_id' : formation_id})[0]
+    F = context.formation_list(args={ 'formation_id' : formation_id})[0]
     # del F['formation_id'] laisse l'id de formation
     F = dict_quote_xml_attr(F, fromhtml=True)
     doc.formation( **F )
@@ -113,7 +142,7 @@ def XMLToDicts(element, encoding):
 
 def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     """Create a formation from XML representation
-    (format dumped by formation_export_xml())
+    (format dumped by formation_export( format='xml' ))
     """
     log('formation_import_xml: doc=%s' % doc )
     try:

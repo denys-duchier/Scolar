@@ -147,7 +147,7 @@ class NotesTable:
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
 
-        self.formation = context.do_formation_list( args={ 'formation_id' : self.sem['formation_id'] } )[0]
+        self.formation = context.formation_list( args={ 'formation_id' : self.sem['formation_id'] } )[0]
         self.parcours = sco_codes_parcours.get_parcours_from_code(self.formation['type_parcours'])
         
         # Decisions jury et UE capitalisées

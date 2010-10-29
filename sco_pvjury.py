@@ -200,7 +200,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'formsemestre' : sem, 
              'has_prev' : has_prev,
              'semestre_non_terminal' : Se.semestre_non_terminal,
-             'formation' : znotes.do_formation_list(args={'formation_id':sem['formation_id']})[0],
+             'formation' : znotes.formation_list(args={'formation_id':sem['formation_id']})[0],
              'decisions' : L }
 
 

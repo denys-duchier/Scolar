@@ -28,9 +28,6 @@
 """Interface Zope <-> Notes
 """
 
-# XML generation package (apt-get install jaxml)
-import jaxml
-
 from sets import Set
 
 # Zope stuff
@@ -294,7 +291,7 @@ class ZNotes(ObjectManager,
               """<h2>Programmes des formations</h2>
               <ul class="notes_formation_list">""" ]
 
-        for F in self.do_formation_list():
+        for F in self.formation_list():
             H.append('<li class="notes_formation_list">')
             H.append('<a class="stdlink" href="formation_delete?formation_id=%s">%s</a>' % (F['formation_id'], suppricon))
             if editable:
@@ -339,7 +336,7 @@ class ZNotes(ObjectManager,
         a = args.copy()
         if a.has_key('formation_id'):
             del a['formation_id']
-        F = self.do_formation_list(args=a)
+        F = self.formation_list(args=a)
         if len(F) > 0:
             raise ScoValueError("Formation non unique (%s) !" % str(a))
         # Si pas de formation_code, l'enleve (default SQL)
@@ -357,7 +354,7 @@ class ZNotes(ObjectManager,
         """delete a formation (and all its UE, matieres, modules)
         XXX delete all ues, will break if there are validations ! USE WITH CARE !
         """
-        F = self.do_formation_list(args={'formation_id':oid})[0]
+        F = self.formation_list(args={'formation_id':oid})[0]
         if self.formation_has_locked_sems(oid):
             raise ScoLockedFormError()
         cnx = self.GetDBConnexion()
@@ -372,14 +369,28 @@ class ZNotes(ObjectManager,
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=oid,
                      text='Suppression de la formation %(acronyme)s' % F )
 
-    security.declareProtected(ScoView, 'do_formation_list')
-    def do_formation_list(self, **kw ):
-        "list formations"
-        #log('do_formation_list kw=%s' % kw)
+    security.declareProtected(ScoView, 'formation_list')
+    def formation_list(self, format=None, REQUEST=None, formation_id=None, args={} ):
+        """List formation(s) with given id, or matching args
+        (when args is given, formation_id is ignored).
+        """
         #logCallStack()
+        if not args:
+            if formation_id is None:
+                args = {}
+            else:
+                args = { 'formation_id' : formation_id }
         cnx = self.GetDBConnexion()        
-        return self._formationEditor.list( cnx, **kw )    
+        r = self._formationEditor.list( cnx, args=args )
+        #log('%d formations found' % len(r))
+        return sendResult(REQUEST, r, name='formation', format=format)
 
+    security.declareProtected(ScoView, 'formation_export')
+    def formation_export(self, formation_id, export_ids=False, format=None, REQUEST=None):
+        "Export de la formation au format indiqué (xml ou json)"
+        return sco_formations.formation_export(self, formation_id, export_ids=export_ids,
+                                               format=format, REQUEST=REQUEST)
+    
     security.declareProtected(ScoView, 'formation_export_xml')
     def formation_export_xml(self, formation_id, REQUEST):
         "export XML de la formation"
@@ -423,11 +434,11 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoChangeFormation, 'formation_create_new_version')
     def formation_create_new_version(self,formation_id,redirect=True,REQUEST=None):
         "duplicate formation, with new version number"
-        xml = sco_formations.formation_export_xml(self, formation_id, export_ids=True)
+        xml = sco_formations.formation_export(self, formation_id, export_ids=True, format='xml')
         new_id, modules_old2new, ues_old2new = sco_formations.formation_import_xml(self,REQUEST, xml)
         # news
         cnx = self.GetDBConnexion()
-        F = self.do_formation_list(args={ 'formation_id' :new_id})[0]
+        F = self.formation_list(args={ 'formation_id' :new_id})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=new_id,
                      text='Nouvelle version de la formation %(acronyme)s'%F)
         if redirect:
@@ -459,7 +470,7 @@ class ZNotes(ObjectManager,
         r = self._ueEditor.create(cnx, args)
         
         # news
-        F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
@@ -501,7 +512,7 @@ class ZNotes(ObjectManager,
         self._ueEditor.delete(cnx, ue_id)
         self._inval_cache() #> UE delete + supr. validations associées etudiants (cas compliqué, mais rarement utilisé: acceptable de tout invalider ?)
         # news
-        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         #
@@ -537,7 +548,7 @@ class ZNotes(ObjectManager,
         r = self._matiereEditor.create(cnx, args)
         
         # news
-        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
@@ -563,7 +574,7 @@ class ZNotes(ObjectManager,
         self._matiereEditor.delete(cnx, oid)
         
         # news
-        F = self.do_formation_list(args={ 'formation_id' :ue['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
 
@@ -622,7 +633,7 @@ class ZNotes(ObjectManager,
         r = self._moduleEditor.create(cnx, args)
         
         # news
-        F = self.do_formation_list(args={ 'formation_id' :args['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :args['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
@@ -649,7 +660,7 @@ class ZNotes(ObjectManager,
         self._moduleEditor.delete(cnx, oid)
         
         # news
-        F = self.do_formation_list(args={ 'formation_id' :mod['formation_id']})[0]
+        F = self.formation_list(args={ 'formation_id' :mod['formation_id']})[0]
         sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=mod['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
 
@@ -2599,7 +2610,7 @@ class ZNotes(ObjectManager,
     def check_form_integrity(self, formation_id, fix=False, REQUEST=None):
         "debug"
         log("check_form_integrity: formation_id=%s  fix=%s" % (formation_id, fix))
-        F = self.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+        F = self.formation_list( args={ 'formation_id' : formation_id } )[0]
         ues = self.do_ue_list( args={ 'formation_id' : formation_id } )
         bad = []
         for ue in ues:
@@ -2660,7 +2671,7 @@ class ZNotes(ObjectManager,
     def check_integrity_all(self, REQUEST=None):
         "debug: verifie tous les semestres et tt les formations"
         # formations
-        for F in self.do_formation_list():
+        for F in self.formation_list():
             self.check_form_integrity(F['formation_id'], REQUEST=REQUEST)
         # semestres
         for sem in self.do_formsemestre_list():

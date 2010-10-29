@@ -103,7 +103,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     formsemestre_id = M['formsemestre_id']
     Mod = context.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
     sem = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )[0]
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     ModEvals = context.do_evaluation_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     #

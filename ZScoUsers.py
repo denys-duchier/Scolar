@@ -32,8 +32,6 @@ import time
 import md5, base64
 from sets import Set
 
-import jaxml
-
 from OFS.SimpleItem import Item # Basic zope object
 from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
                                 # 'manage_propertiesForm' method

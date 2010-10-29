@@ -60,7 +60,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     # portage from dtml
     authuser = REQUEST.AUTHENTICATED_USER
     sem = context.get_formsemestre(formsemestre_id)
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem,
                                   init_jquery_ui=True,
                                   javascripts=['libjs/AutoSuggest.js'],
@@ -114,7 +114,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     allowed_user_names = login2display.values() + ['']
     #
     formation_id = REQUEST.form['formation_id']
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    F = context.formation_list( args={ 'formation_id' : formation_id } )
     if not F:
         raise ScoValueError('Formation inexistante !')
     F = F[0]
@@ -710,7 +710,7 @@ def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     """Delete a formsemestre (affiche avertissements)"""
     sem = context.get_formsemestre(formsemestre_id)
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem),
           """<div class="ue_warning"><span>Attention !</span>
 <p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
@@ -750,7 +750,7 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
 def formsemestre_delete2(context, formsemestre_id, dialog_confirmed=False, REQUEST=None):
     """Delete a formsemestre (confirmation)"""
     sem = context.get_formsemestre(formsemestre_id)
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem) ]
     # Confirmation dialog
     if not dialog_confirmed:
@@ -909,7 +909,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
     if not ok:
         return err
     sem = context.get_formsemestre(formsemestre_id)
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     
     footer = context.sco_footer(REQUEST)
     help = """<p class="help">

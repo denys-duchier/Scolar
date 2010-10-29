@@ -132,7 +132,7 @@ def module_edit(context, module_id=None, REQUEST=None):
     if not Mod:
         raise ScoValueError('invalid module !')
     Mod = Mod[0]
-    Fo = context.do_formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
+    Fo = context.formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
     M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
     Mnames = [ '%s / %s' % (x['acronyme'], x['titre']) for x in M ]
     Mids = [ '%s!%s' % (x['ue_id'], x['matiere_id']) for x in M ]
@@ -186,7 +186,7 @@ def module_list(context, formation_id, REQUEST=None):
     """
     if not formation_id:
         raise ScoValueError('invalid formation !')
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    F = context.formation_list( args={ 'formation_id' : formation_id } )[0]
     H = [ context.sco_header(REQUEST, page_title="Liste des modules de %(titre)s" % F),
           """<h2>Listes des modules dans la formation %(titre)s (%(acronyme)s)</h2>""" % F,
           '<ul class="notes_module_list">' ]

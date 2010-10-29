@@ -177,7 +177,7 @@ def list_source_sems(context, sem, delai=None):
         if s['semestre_id'] == sco_codes_parcours.NO_SEMESTRE_ID:
             continue
         #
-        F = context.do_formation_list(args={ 'formation_id' :s['formation_id']})[0]
+        F = context.formation_list(args={ 'formation_id' :s['formation_id']})[0]
         parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
         if not parcours.ALLOW_SEM_SKIP:
             if s['semestre_id'] < (sem['semestre_id']-1):

@@ -58,7 +58,7 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         title = "Creation d'une UE"
         initvalues = {}
         submitlabel = 'Créer cette UE'
-    Fo = context.do_formation_list( args={ 'formation_id' : formation_id } )[0]
+    Fo = context.formation_list( args={ 'formation_id' : formation_id } )[0]
     H = [ context.sco_header(REQUEST, page_title=title,
                              javascripts=[ 'jQuery/jquery.js', 
                                            'js/edit_ue.js' ]
@@ -128,7 +128,7 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     """
     authuser = REQUEST.AUTHENTICATED_USER
 
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    F = context.formation_list( args={ 'formation_id' : formation_id } )
     if not F:
         raise ScoValueError("invalid formation_id")
     F = F[0]
@@ -252,7 +252,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 <li><a class="stdlink" href="formation_create_new_version?formation_id=%(formation_id)s">Créer une nouvelle version (non verrouillée)</a></li>
 """ % F)
     H.append("""
-<li><a class="stdlink" href="formation_export_xml?formation_id=%(formation_id)s">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
+<li><a class="stdlink" href="formation_export?formation_id=%(formation_id)s&format=xml">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
 <li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
 </ul>
 </p>""" % F )
@@ -310,7 +310,7 @@ def ue_sharing_code(context, ue_code=None, ue_id=None, hide_ue_id=None):
         H.append('<span class="ue_share">UE avec le code %s:</span>' % ue_code)
     H.append('<ul>')
     for ue in ue_list:
-        F = context.do_formation_list( args={ 'formation_id' : ue['formation_id'] } )[0]
+        F = context.formation_list( args={ 'formation_id' : ue['formation_id'] } )[0]
         H.append( '<li>%s (%s) dans <a class="stdlink" href="ue_list?formation_id=%s">%s (%s)</a>, version %s</li>'
                   % (ue['acronyme'], ue['titre'], F['formation_id'], F['acronyme'], F['titre'], F['version']))
     H.append('</ul>')

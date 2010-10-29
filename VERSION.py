@@ -1,11 +1,19 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-SCOVERSION = "6.2"
+SCOVERSION = "6.3"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+
+<h4>Octobre 2010</h4>
+<ul>
+<li>Nouvelle API JSON</li>
+<li>Possibilité d'associer 2 étapes Apogée au même semestre</li>
+<li>Table "poursuite études"</li>
+<li>Possibilité d'envoyer un mail auto aux étudiants absentéistes<li>
+</ul>
 
 <h4>Août 2010</h4>
 <ul>

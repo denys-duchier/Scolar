@@ -753,7 +753,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
     """
     etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
     sem = context.get_formsemestre(formsemestre_id)
-    Fo = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    Fo = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     
     H = [ context.sco_header(REQUEST, page_title="Validation UE",
                              init_jquery_ui=True,

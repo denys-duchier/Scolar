@@ -32,6 +32,7 @@ from VERSION import SCOVERSION
 import VERSION
 import pdb
 import os, sys, copy, re
+from types import StringType, IntType, FloatType, UnicodeType, ListType, TupleType
 import operator
 import thread
 import urllib, time, datetime, cgi
@@ -41,6 +42,7 @@ from PIL import Image as PILImage
 
 # XML generation package (apt-get install jaxml)
 import jaxml
+import simplejson as json
 from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
 from sco_permissions import *
@@ -147,7 +149,7 @@ if CONFIG.CUSTOM_HTML_FOOTER_CNX:
 else:
     CUSTOM_HTML_FOOTER_CNX = ''
 
-SCO_ENCODING = 'iso-8859-1' # used by Excel I/O
+SCO_ENCODING = 'iso-8859-1' # used by Excel, XML, PDF, ...
 # Attention: encodage lié au codage Zope et aussi à celui de postgresql
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 
@@ -177,7 +179,7 @@ CSV_MIMETYPE = 'text/comma-separated-values'
 XLS_MIMETYPE = 'application/vnd.ms-excel'
 PDF_MIMETYPE = 'application/pdf'
 XML_MIMETYPE = 'text/xml'
-
+JSON_MIMETYPE= 'application/json'
 
 ICON_PDF = '<img src="icons/pdficon16x20_img" border="0" title="Version PDF"/>'
 ICON_XLS = '<img src="icons/xlsicon_img" border="0" title="Version tableur"/>'
@@ -257,6 +259,28 @@ def dict_quote_xml_attr( d, fromhtml=False ):
         # passe d'une chaine non quotée a du XML
         return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
 
+def simple_dictlist2xml(dictlist, doc=None, tagname=None):
+    """Represent a dict as XML data.
+    All keys with string or numeric values are attributes (numbers converted to strings).
+    All list values converted to list of childs (recursively).
+    *** all other values are ignored ! ***
+    """
+    if not tagname:
+        raise ValueError('invalid empty tagname !')
+    if not doc:
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+    scalar_types = [StringType, UnicodeType, IntType, FloatType]
+    for d in dictlist:
+        doc._push()
+        d_scalar = dict( [ (k, quote_xml_attr(v)) for (k,v) in d.items() if type(v) in scalar_types ] )
+        getattr(doc, tagname)(**d_scalar)
+        d_list = dict( [ (k,v) for (k,v) in d.items() if type(v) == ListType ] )
+        if d_list:
+            for (k,v) in d_list.items():
+                simple_dictlist2xml(v, doc=doc, tagname=k)
+        doc._pop()
+    return repr(doc)
+        
 def strnone(s):
     "convert s to string, '' if s is false"
     if s:
@@ -296,9 +320,34 @@ def sendCSVFile(REQUEST,data,filename):
 
 def sendPDFFile(REQUEST, data, filename):
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
-    REQUEST.RESPONSE.setHeader('Content-type', PDF_MIMETYPE)
-    REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
+    if REQUEST:
+        REQUEST.RESPONSE.setHeader('Content-type', PDF_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
     return data
+
+def sendJSON(REQUEST, data):
+    js = json.dumps(data, encoding=SCO_ENCODING)
+    if REQUEST:
+        REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
+    return js
+
+def sendXML(REQUEST, data, tagname=None):
+    if type(data) != ListType:
+        data = [ data ] # always list-of-dicts
+    xml = simple_dictlist2xml(data, tagname=tagname)
+    if REQUEST:
+        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+    return xml
+
+def sendResult(REQUEST, data, name=None, format=None):
+    if format is None:
+        return data
+    elif format == 'xml': # name is outer tagname        
+        return sendXML(REQUEST, data, tagname=name)
+    elif format == 'json':
+        return sendJSON(REQUEST, data)
+    else:
+        raise ValueError('invalid format: %s' % format)    
 
 # Get SVN version
 def get_svn_version(path):

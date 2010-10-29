@@ -102,7 +102,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
     else:
         change_lock_msg = 'Déverrouiller'
 
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
 
     menuSemestre = [
         { 'title' : 'Tableau de bord',
@@ -372,7 +372,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
     Liste des modules et de leurs coefficients
     """
     sem = context.get_formsemestre(formsemestre_id)
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     
@@ -461,7 +461,7 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
     if not semlist:
         raise ScoValueError( 'Semestre inexistant (il a peut être été supprimé ?)' )
     sem = semlist[0]
-    F = context.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
 
     page_title = page_title or 'Modules de '
     

@@ -95,9 +95,6 @@ try:
 except:
     import ZPsycopgDA.DA as ZopeDA # interp.py
 
-# XML generation package (apt-get install jaxml)
-import jaxml
-
 # ---------------
 
 class ZScolar(ObjectManager,

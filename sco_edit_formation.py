@@ -37,7 +37,7 @@ import sco_codes_parcours
 def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST=None):
     """Delete a formation
     """
-    F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+    F = context.formation_list( args={ 'formation_id' : formation_id } )
     if not F:
         raise ScoValueError("formation inexistante !")
     F = F[0]
@@ -92,7 +92,7 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
         initvalues = {}
     else:
         # edit an existing formation
-        F = context.do_formation_list( args={ 'formation_id' : formation_id } )
+        F = context.formation_list( args={ 'formation_id' : formation_id } )
         if not F:
             raise ScoValueError('formation inexistante !')
         initvalues = F[0]
@@ -130,7 +130,7 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
                  'titre' :  tf[2]['titre'],
                  'version' : version }
         quote_dict(args)
-        others = context.do_formation_list( args = args )
+        others = context.formation_list( args = args )
         if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
             return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe déjà une formation avec même titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
         #

@@ -213,7 +213,7 @@ class SituationEtudParcours:
             if nb_ue > nb_max_ue:
                 nb_max_ue = nb_ue
             # add formation_code to each sem:
-            sem['formation_code'] = self.znotes.do_formation_list(
+            sem['formation_code'] = self.znotes.formation_list(
                 args={ 'formation_id' : sem['formation_id'] })[0]['formation_code']
             # si sem peut servir à compenser le semestre courant, positionne
             #  can_compensate
@@ -635,7 +635,7 @@ def formsemestre_get_autorisation_inscription(znotes, etudid, origin_formsemestr
     """
     cnx = znotes.GetDBConnexion()
     #sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
-    #F = self.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    #F = self.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     return scolar_autorisation_inscription_list(
         cnx,
         {'origin_formsemestre_id' : origin_formsemestre_id, 'etudid' : etudid } )
@@ -685,7 +685,7 @@ def list_formsemestre_utilisateurs_uecap( znotes, formsemestre_id ):
     semestre): meme code formation, meme semestre_id, date posterieure"""
     cnx = znotes.GetDBConnexion()
     sem = znotes.do_formsemestre_list({'formsemestre_id' : formsemestre_id})[0]
-    F = znotes.do_formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = znotes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     cursor = cnx.cursor()
     cursor.execute("""select sem.formsemestre_id
     from notes_formsemestre sem, notes_formations F

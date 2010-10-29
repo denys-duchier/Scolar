@@ -110,7 +110,7 @@ def matiere_edit(context, matiere_id=None, REQUEST=None):
     if not F:
         raise ScoValueError('UE inexistante !')
     U = U[0]
-    Fo= context.do_formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
+    Fo= context.formation_list( args={ 'formation_id' : U['formation_id'] } )[0]
 
     ues = context.do_ue_list( args={ 'formation_id' : U['formation_id'] } )
     ue_names = [ '%(acronyme)s (%(titre)s)' % u for u in ues ]
