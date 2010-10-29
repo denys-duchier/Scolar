@@ -319,6 +319,8 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
     events = {} # (day, halfday) : event
     for e in evals:
         etat = do_evaluation_etat(context, e['evaluation_id'])
+        if not e['jour']:
+            continue
         day = e['jour'].strftime('%Y-%m-%d')
         mod = context.do_moduleimpl_withmodule_list({'moduleimpl_id':e['moduleimpl_id']})[0]
         txt = mod['module']['code'] or mod['module']['abbrev'] or 'eval'
