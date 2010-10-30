@@ -64,57 +64,7 @@ def formation_export(context, formation_id, export_ids=False, format=None, REQUE
                 if mod['ects'] is None:
                     del mod['ects']
         
-    return sendResult(REQUEST, F, name='formation', format=format)
-
-def formation_export_xml( context, formation_id, export_ids=False ):
-    """XML representation of a formation
-    context is the ZNotes instance
-    """
-    doc = jaxml.XML_document( encoding=SCO_ENCODING )
-
-    F = context.formation_list(args={ 'formation_id' : formation_id})[0]
-    # del F['formation_id'] laisse l'id de formation
-    F = dict_quote_xml_attr(F, fromhtml=True)
-    doc.formation( **F )
-    doc._push()
-
-    ues = context.do_ue_list({ 'formation_id' : formation_id })
-    for ue in ues:
-        doc._push()
-        ue_id = ue['ue_id']
-        if not export_ids:
-            del ue['ue_id']
-            del ue['formation_id']
-        ue = dict_quote_xml_attr(ue, fromhtml=True)
-        doc.ue( **ue )
-        mats = context.do_matiere_list({ 'ue_id' : ue_id })
-        for mat in mats:
-            doc._push()
-            matiere_id = mat['matiere_id']
-            if not export_ids:
-                del mat['matiere_id']
-                del mat['ue_id']
-            mat = dict_quote_xml_attr(mat, fromhtml=True)
-            doc.matiere( **mat )
-            mods = context.do_module_list({ 'matiere_id' : matiere_id })
-            for mod in mods:
-                if not export_ids:
-                    del mod['ue_id']
-                    del mod['matiere_id']
-                    del mod['module_id']
-                    del mod['formation_id']
-                if mod['ects'] is None:
-                    del mod['ects']
-                doc._push()
-                mod = dict_quote_xml_attr(mod, fromhtml=True)
-                doc.module( **mod )
-                doc._pop()
-            doc._pop()
-        doc._pop()
-
-    doc._pop()
-    return repr(doc)
-
+    return sendResult(REQUEST, F, name='formation', format=format, force_outer_xml_tag=False)
 
 ELEMENT_NODE = 1
 TEXT_NODE = 3
@@ -148,17 +98,21 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     try:
         dom = xml.dom.minidom.parseString(doc)
     except:
+        log('formation_import_xml: invalid XML data')
         raise ScoValueError('Fichier XML invalide')
     
     f = dom.getElementsByTagName('formation')[0] # or dom.documentElement
     D = XMLToDicts(f,encoding)
     assert D[0] == 'formation'
     F = D[1]
-    F_quoted = F.copy()
-    quote_dict(F_quoted)
+    # F_quoted = F.copy()
+    log('F=%s' % F )
+    F_quoted = dict_quote_xml_attr(F)
+    log('F_quoted=%s' % F_quoted )
     # find new version number
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
+    log('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s' % F_quoted)
     cursor.execute('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s', F_quoted)
     res = cursor.fetchall()
     try:
@@ -167,6 +121,8 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
         version = 1
     F['version'] = version
     # create formation
+    #F_unquoted = F.copy()
+    #unescape_html_dict(F_unquoted)
     formation_id = context.do_formation_create(F, REQUEST)
     log('formation %s created' % formation_id)
     ues_old2new = {} # xml ue_id : new ue_id

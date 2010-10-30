@@ -21,6 +21,7 @@ def unquote(s):
     "inverse of quote"
     # pas d'inverse de cgi.escape
     # ne traite que &
+    # XX voir aussi sco_utils.unescape_html
     return s.replace('&amp;', '&')
 
 DB = psycopg

@@ -338,6 +338,8 @@ class ZNotes(ObjectManager,
             del a['formation_id']
         F = self.formation_list(args=a)
         if len(F) > 0:
+            log('do_formation_create: error: %d formations matching args=%s'
+                % (len(F), a))
             raise ScoValueError("Formation non unique (%s) !" % str(a))
         # Si pas de formation_code, l'enleve (default SQL)
         if args.has_key('formation_code') and not args['formation_code']:
@@ -391,12 +393,6 @@ class ZNotes(ObjectManager,
         return sco_formations.formation_export(self, formation_id, export_ids=export_ids,
                                                format=format, REQUEST=REQUEST)
     
-    security.declareProtected(ScoView, 'formation_export_xml')
-    def formation_export_xml(self, formation_id, REQUEST):
-        "export XML de la formation"
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)        
-        return sco_formations.formation_export_xml(self, formation_id)
-
     security.declareProtected(ScoChangeFormation, 'formation_import_xml')
     def formation_import_xml(self, file, REQUEST):
         "import d'une formation en XML"
@@ -831,7 +827,8 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'do_formsemestre_list')
     def do_formsemestre_list(self, *a, **kw ):
         "list formsemestres"
-        #log('do_formsemestre_list: a=%s kw=%s' % (str(a),str(kw)))
+        # XPUB should not be published !
+        # log('do_formsemestre_list: a=%s kw=%s' % (str(a),str(kw)))
         cnx = self.GetDBConnexion()
         #log( 'x %s' % str(self._formsemestreEditor.list(cnx)))
         try:
@@ -887,9 +884,29 @@ class ZNotes(ObjectManager,
 
         return sems
 
+    def formsemestre_list(self, format=None, REQUEST=None,
+                          formsemestre_id=None,
+                          formation_id=None,                          
+                          etape_apo=None,
+                          etape_apo2=None
+                          ):
+        """List formsemestres in given format.
+        kw can specify some conditions: examples:
+           formsemestre_list( format='json', formation_id='F777', REQUEST=REQUEST)
+        """
+        # XAPI: new json api
+        args = {}
+        L = locals()
+        for argname in ('formsemestre_id', 'formation_id', 'etape_apo', 'etape_apo2'):
+            if L[argname] is not None:
+                args[argname] = L[argname]
+        sems = self.do_formsemestre_list(args=args)
+        return sendResult(REQUEST, sems, name='formsemestre', format=format)
+    
     security.declareProtected(ScoView, 'get_formsemestre')
     def get_formsemestre(self, formsemestre_id):
         "list ONE formsemestre"
+        # XPUB should not be published !
         try:
             return self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
         except:

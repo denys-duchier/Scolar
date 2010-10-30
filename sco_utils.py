@@ -245,13 +245,32 @@ def unescape_html(s):
     s = s.replace('&gt;','>')
     return s
 
+# test if obj is iterable (but not a string)
+isiterable = lambda obj: getattr(obj, '__iter__', False)
 
+def unescape_html_dict(d):
+    """un-escape all dict values, recursively"""
+    try:        
+        indices = d.keys()
+    except:
+        indices = range(len(d))
+    for k in indices:
+        v = d[k]
+        if type(v) == StringType:
+            d[k] = unescape_html(v)
+        elif isiterable(v):
+            unescape_html_dict(v)
+    
 def quote_xml_attr( data ):
     """Escape &, <, >, quotes and double quotes"""
     return xml.sax.saxutils.escape( str(data),
                                     { "'" : '&apos;', '"' : '&quot;' } )
 
 def dict_quote_xml_attr( d, fromhtml=False ):
+    """Quote XML entities in dict values.
+    Non recursive (but probbaly should be...).
+    Returns a new dict.
+    """
     if fromhtml:
         # passe d'un code HTML a un code XML
         return dict( [ (k,quote_xml_attr(unescape_html(v))) for (k,v) in d.items() ] )
@@ -259,11 +278,12 @@ def dict_quote_xml_attr( d, fromhtml=False ):
         # passe d'une chaine non quotée a du XML
         return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
 
-def simple_dictlist2xml(dictlist, doc=None, tagname=None):
+def simple_dictlist2xml(dictlist, doc=None, tagname=None, quote=False):
     """Represent a dict as XML data.
     All keys with string or numeric values are attributes (numbers converted to strings).
     All list values converted to list of childs (recursively).
     *** all other values are ignored ! ***
+    Values (xml entities) are not quoted, except if requested by quote argument.
     """
     if not tagname:
         raise ValueError('invalid empty tagname !')
@@ -272,14 +292,17 @@ def simple_dictlist2xml(dictlist, doc=None, tagname=None):
     scalar_types = [StringType, UnicodeType, IntType, FloatType]
     for d in dictlist:
         doc._push()
-        d_scalar = dict( [ (k, quote_xml_attr(v)) for (k,v) in d.items() if type(v) in scalar_types ] )
+        if quote:
+            d_scalar = dict( [ (k, quote_xml_attr(v)) for (k,v) in d.items() if type(v) in scalar_types ] )
+        else:
+            d_scalar = dict( [ (k, v) for (k,v) in d.items() if type(v) in scalar_types ] )
         getattr(doc, tagname)(**d_scalar)
         d_list = dict( [ (k,v) for (k,v) in d.items() if type(v) == ListType ] )
         if d_list:
             for (k,v) in d_list.items():
-                simple_dictlist2xml(v, doc=doc, tagname=k)
+                simple_dictlist2xml(v, doc=doc, tagname=k, quote=quote)
         doc._pop()
-    return repr(doc)
+    return doc
         
 def strnone(s):
     "convert s to string, '' if s is false"
@@ -331,19 +354,28 @@ def sendJSON(REQUEST, data):
         REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
     return js
 
-def sendXML(REQUEST, data, tagname=None):
+def sendXML(REQUEST, data, tagname=None, force_outer_xml_tag=True):
     if type(data) != ListType:
         data = [ data ] # always list-of-dicts
-    xml = simple_dictlist2xml(data, tagname=tagname)
+    if force_outer_xml_tag:
+        root_tagname = tagname + '_list'
+        doc = jaxml.XML_document( encoding=SCO_ENCODING )
+        getattr(doc, root_tagname)()
+        doc._push()
+    else:
+        doc = None
+    doc = simple_dictlist2xml(data, doc=doc, tagname=tagname)
+    if force_outer_xml_tag:
+        doc._pop()
     if REQUEST:
         REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
-    return xml
+    return repr(doc)
 
-def sendResult(REQUEST, data, name=None, format=None):
+def sendResult(REQUEST, data, name=None, format=None, force_outer_xml_tag=True):
     if format is None:
         return data
     elif format == 'xml': # name is outer tagname        
-        return sendXML(REQUEST, data, tagname=name)
+        return sendXML(REQUEST, data, tagname=name, force_outer_xml_tag=force_outer_xml_tag)
     elif format == 'json':
         return sendJSON(REQUEST, data)
     else:
