@@ -569,8 +569,8 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
             etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
             H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a>' % etud )
             if linkabs:
-                H.append('<a class="stdlink" href="Absences/doSignaleAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s">signaler cette absence</a>'
-                         % (etud['etudid'],urllib.quote(E['jour']), urllib.quote(E['jour']), demijournee) )
+                H.append('<a class="stdlink" href="Absences/doSignaleAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s&moduleimpl_id=%s">signaler cette absence</a>'
+                         % (etud['etudid'],urllib.quote(E['jour']), urllib.quote(E['jour']), demijournee, E['moduleimpl_id']) )
             H.append('</li>')
         H.append('</ul>')
 
