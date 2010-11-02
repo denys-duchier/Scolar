@@ -349,7 +349,7 @@ def sendPDFFile(REQUEST, data, filename):
     return data
 
 def sendJSON(REQUEST, data):
-    js = json.dumps(data, encoding=SCO_ENCODING)
+    js = json.dumps(data, encoding=SCO_ENCODING, indent=1)
     if REQUEST:
         REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
     return js

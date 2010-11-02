@@ -772,9 +772,9 @@ class ZScolar(ObjectManager,
                         group['label'] = 'liste'
                     H.append('<tr class="listegroupelink">')                
                     H.append("""<td>
-                        <a href="%(url)s/listegroupe?group_id=%(group_id)s">%(label)s</a>
+                        <a href="%(url)s/group_list?group_id=%(group_id)s">%(label)s</a>
                         </td><td>
-                        (<a href="%(url)s/listegroupe?&group_id=%(group_id)s&format=xls">format tableur</a>)
+                        (<a href="%(url)s/group_list?&group_id=%(group_id)s&format=xls">format tableur</a>)
                         <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
                         </td>""" % group )
                     H.append('<td>(%d étudiants)</td>' % n_members )
@@ -795,8 +795,8 @@ class ZScolar(ObjectManager,
         H.append('</div>')        
         return '\n'.join(H)
 
-    security.declareProtected(ScoView, 'listegroupe')
-    def listegroupe(self, group_id, REQUEST=None,
+    security.declareProtected(ScoView, 'group_list')
+    def group_list(self, group_id, REQUEST=None,
                     with_codes=0,
                     all_groups=0,
                     etat=None,
@@ -865,6 +865,8 @@ class ZScolar(ObjectManager,
                         pdf_link=False, # pas d'export pdf
                         html_sortable=True,
                         html_class='gt_table table_leftalign table_listegroupe',
+                        xml_outer_tag='group_list',
+                        xml_row_tag='etud',
                         preferences=self.get_preferences(formsemestre_id) )
         #
         if format == 'html':
@@ -900,7 +902,7 @@ class ZScolar(ObjectManager,
             
             return '\n'.join(H)+self.sco_footer(REQUEST)
         
-        elif format=='pdf':
+        elif format=='pdf' or format=='xml' or format=='json':
             return tab.make_page(self, format=format, REQUEST=REQUEST)
         
         elif format == 'xls':
@@ -1205,58 +1207,55 @@ class ZScolar(ObjectManager,
                 etud['telephonemobilestr'] = '<b>Mobile:</b> ' + format_telephone(etud['telephonemobile'])
             else:
                 etud['telephonemobilestr'] = ''
-
-    security.declareProtected(ScoView, 'XMLgetEtudInfos')
-    def XMLgetEtudInfos(self, etudid=None, REQUEST=None):
+    
+    security.declareProtected(ScoView, 'etud_info')
+    def etud_info(self, etudid=None, format='xml', REQUEST=None):
         "Donne les informations sur un etudiant"
         t0 = time.time()
         args = make_etud_args(etudid=etudid,REQUEST=REQUEST)
-        doc = jaxml.XML_document( encoding=SCO_ENCODING )
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
         cnx = self.GetDBConnexion()
         etuds = scolars.etudident_list(cnx, args)
         if not etuds:
-            # etudiant non trouvé: message d'erreur en XML
-            doc.etudiant( etudid=etudid, nom='?', prenom='?', sexe='?',
-                          email='?', error='code inconnu')
-            return repr(doc)
-        
+            # etudiant non trouvé: message d'erreur
+            d = {
+                'etudid' : etudid,
+                'nom' : '?', 'prenom' : '?', 'sexe' : '?', 'email' : '?',
+                'error' : 'code etudiant inconnu' }
+            return sendResult(REQUEST, d, name='etudiant', format=format, force_outer_xml_tag=False)
+        d = {}
         etud = etuds[0]
         self.fillEtudsInfo([etud])
-
-        doc.etudiant( etudid=etudid, code_nip=etud['code_nip'], code_ine=etud['code_ine'],
-                      nom=quote_xml_attr(etud['nom']),
-                      prenom=quote_xml_attr(etud['prenom']),
-                      sexe=quote_xml_attr(etud['sexe']),
-                      nomprenom=quote_xml_attr(etud['nomprenom']),
-                      email=quote_xml_attr(etud['email']),
-                      photo_url=quote_xml_attr(sco_photos.etud_photo_url(self, etud)))
-        doc._push()
+        for a in ('etudid', 'code_nip', 'code_ine', 'nom', 'prenom', 'sexe',
+                  'nomprenom', 'email'):
+            d[a] = quote_xml_attr(etud[a])
+        d['photo_url'] = quote_xml_attr(sco_photos.etud_photo_url(self, etud))
+        
         sem = etud['cursem']
         if sem:
             sco_groups.etud_add_group_infos(self, etud, sem)
-            doc._push()
-            doc.insemestre( current='1',
-                            formsemestre_id=sem['formsemestre_id'],
-                            date_debut=DateDMYtoISO(sem['date_debut']),
-                            date_fin=DateDMYtoISO(sem['date_fin']),
-                            etat=quote_xml_attr(sem['ins']['etat']),
-                            groupes=quote_xml_attr(etud['groupes']) # slt pour semestre courant
-                            )
-            doc._pop()
+            d['insemestre'] = [{ 'current' : '1',
+                                'formsemestre_id' : sem['formsemestre_id'],
+                                'date_debut' : DateDMYtoISO(sem['date_debut']),
+                                'date_fin' : DateDMYtoISO(sem['date_fin']),
+                                'etat' : quote_xml_attr(sem['ins']['etat']),
+                                'groupes' : quote_xml_attr(etud['groupes']) # slt pour semestre courant
+                                }]
+        else:
+            d['insemestre'] = []
         for sem in etud['sems']:
             if sem != etud['cursem']:
-                doc._push()
-                doc.insemestre( 
-                    formsemestre_id=sem['formsemestre_id'],
-                    date_debut=DateDMYtoISO(sem['date_debut']),
-                    date_fin=DateDMYtoISO(sem['date_fin']),
-                    etat=quote_xml_attr(sem['ins']['etat'])
-                    )
-                doc._pop()
-        doc._pop()
-        log('XMLgetEtudInfos (%gs)' % (time.time()-t0))
-        return repr(doc)
+                d['insemestre'].append({
+                    'formsemestre_id' : sem['formsemestre_id'],
+                     'date_debut' : DateDMYtoISO(sem['date_debut']),
+                    'date_fin' : DateDMYtoISO(sem['date_fin']),
+                    'etat' : quote_xml_attr(sem['ins']['etat']),
+                    })
+        
+        log('etud_info (%gs)' % (time.time()-t0))
+        return sendResult(REQUEST, d, name='etudiant', format=format, force_outer_xml_tag=False)
+
+    security.declareProtected(ScoView, 'XMLgetEtudInfos')
+    XMLgetEtudInfos = etud_info # old name, deprecated
 
     def isPrimoEtud(self, etud, sem):
         """Determine si un (filled) etud a ete inscrit avant ce semestre.
@@ -1497,6 +1496,9 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoView, 'XMLgetGroupsInPartition')
     XMLgetGroupsInPartition = sco_groups.XMLgetGroupsInPartition
+
+    security.declareProtected(ScoView, 'formsemestre_partition_list')
+    formsemestre_partition_list = sco_groups.formsemestre_partition_list
 
     security.declareProtected(ScoView, 'setGroups')
     setGroups = sco_groups.setGroups

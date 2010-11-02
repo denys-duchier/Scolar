@@ -1,12 +1,32 @@
 
+---- Nouvelle API (XML / JSON), Oct 2010
+
+. formation_list( formation_id=None) # default: toutes les formations
+
+. formation_export(formation_id, export_ids=False)
+
+. formsemestre_list(formsesmestre_id, formation_id, etape_apo, etape_apo2)
+
+. formsemestre_partition_list(formsemestre_id)
+   Liste groupes et partitions definies dans ce semestre.
+
+. group_list(group_id, with_codes=False, all_groups=False, etat=None)
+   (was listegroupe)
+  Liste des étudiants d'un groupe.
+
+. etud_info(etudid)
+   Infos sur un étudiant (was XMLgetEtudInfos)
+
+
+
+
 ---- Fonctions (web) exportant de l'XML:
 rssnews
-listegroupe?format=xml&formsemestre_id=X&groupetd=X
 XMLgetEtudInfos?etudid=X
-XMLgetGroupesTD?formsemestre_id=X&groupType=X
+XMLgetGroupsInPartition?partition_id=X
 
 Notes/
-formation_export_xml?formation_id=X
+formation_export_xml?formation_id=X  (deprecated, use formation_export)
 formsemestre_recapcomplet?format=xml&formsemestre_id=X
 formsemestre_bulletinetud?format=xml&formsemestre_id=X&etudid=X&version=X
 

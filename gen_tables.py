@@ -83,6 +83,10 @@ class GenTable:
                  pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
                  pdf_col_widths=None,
+
+                 xml_outer_tag='table',
+                 xml_row_tag='row',
+                 
                  preferences=DEFAULT_TABLE_PREFERENCES
                  ):
         self.rows = rows # [ { col_id : value } ]
@@ -119,6 +123,9 @@ class GenTable:
         self.pdf_table_style = pdf_table_style
         self.pdf_col_widths = pdf_col_widths
         self.pdf_title = pdf_title
+        # XML parameters
+        self.xml_outer_tag=xml_outer_tag
+        self.xml_row_tag=xml_row_tag
         #
         self.preferences = preferences
     def get_nb_cols(self):
@@ -352,24 +359,43 @@ class GenTable:
         <column_id value=""/>
         </row>
         </table>
+        The tag names <table> and <row> can be changed using
+        xml_outer_tag and xml_row_tag
         """
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
-        doc.table( id=self.table_id, origin=self.origin or '', caption=self.caption or '')
+        getattr(doc, self.xml_outer_tag)( id=self.table_id, origin=self.origin or '', caption=self.caption or '')
         doc._push()
         for row in self.rows:
             doc._push()
             row_title = row.get('row_title','')
             if row_title:
-                doc.row( title=row_title )
+                getattr(doc, self.xml_row_tag)( title=row_title )
             else:
-                doc.row()
+                getattr(doc, self.xml_row_tag)()
             for cid in self.columns_ids:
                 doc._push()
-                getattr(doc, cid)(value=str(row.get(cid,'')))
+                v = row.get(cid,'')
+                if v is None:
+                    v = ''                    
+                getattr(doc, cid)(value=str(v))
                 doc._pop()
             doc._pop()
         doc._pop()
         return repr(doc)
+
+    def json(self):
+        """JSON representation of the table.
+        """
+        d = []
+        for row in self.rows:
+            r = {}
+            for cid in self.columns_ids:
+                v = row.get(cid,None)
+                if v != None:
+                    v = str(v)
+                r[cid] = v
+            d.append(r)
+        return json.dumps(d, encoding=SCO_ENCODING)
     
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
@@ -412,5 +438,10 @@ class GenTable:
             if REQUEST and publish:
                 REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
             return xml
+        elif format == 'json':
+            js = self.json()
+            if REQUEST and publish:
+                REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
+            return js
         else:
             raise ValueError('_make_page: invalid format')

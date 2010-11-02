@@ -915,7 +915,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'XMLgetFormsemestres')
     def XMLgetFormsemestres(self, etape_apo=None, formsemestre_id=None, REQUEST=None):
-        "List all formsemestres matching etape, XML format"
+        """List all formsemestres matching etape, XML format
+        DEPRECATED: use formsemestre_list()
+        """
         args = {}
         if etape_apo:
             args['etape_apo'] = etape_apo

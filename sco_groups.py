@@ -161,7 +161,7 @@ def get_group_members(context, group_id, etat=None):
     return r
 
 def get_group_infos(context, group_id, etat=None): # was _getlisteetud
-    """legacy code: used by  listegroupe and trombino
+    """legacy code: used by group_list and trombino
     """
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
@@ -262,8 +262,21 @@ def get_etud_groups_in_partition(context, partition_id):
         R[i['etudid']] = i
     return R
 
+def formsemestre_partition_list(context, formsemestre_id, format='xml', REQUEST=None):
+    """Get partitions and groups in this semestre
+    Supported formats: xml, json
+    """
+    partitions = get_partitions_list(context, formsemestre_id, with_default=True)
+    # Ajoute les groupes
+    for p in partitions:
+        p['group'] = get_partition_groups(context, p)
+    return sendResult(REQUEST, partitions, name='partition', format=format)
+
+
 def XMLgetGroupsInPartition(context, partition_id, REQUEST=None): # was XMLgetGroupesTD
-    """Liste des étudiants dans chaque groupe de cette partition.
+    """
+    Deprecated: use group_list
+    Liste des étudiants dans chaque groupe de cette partition.
     <group partition_id="" partition_name="" group_id="" group_name="">
     <etud etuid="" sexe="" nom="" prenom="" origin=""/>
     </groupe>

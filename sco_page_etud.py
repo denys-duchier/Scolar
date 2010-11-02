@@ -151,7 +151,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
                 gr_name = group['group_name']
             else:
                 gr_name = 'tous'
-            grlink = '<a class="discretelink" href="listegroupe?group_id=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
+            grlink = '<a class="discretelink" href="group_list?group_id=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
         # infos ajoutées au semestre dans le parcours (groupe, menu)
         menu =  _menuScolarite(context, authuser, sem, etudid)
         if menu:
