@@ -928,7 +928,9 @@ def listgroups(context, group_ids):
     for group_id in group_ids:
         cursor.execute( "SELECT gd.*, p.* FROM group_descr gd, partition p WHERE p.partition_id = gd.partition_id AND gd.group_id = %(group_id)s",
                         { 'group_id' : group_id } )
-        groups.append(cursor.dictfetchall()[0])
+        r = cursor.dictfetchall()
+        if r:
+            groups.append(r[0])
     return _sortgroups(groups)
 
 def _sortgroups(groups):
