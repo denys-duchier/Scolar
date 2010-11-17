@@ -237,6 +237,8 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
             mod['mod_abs_txt'] = fmt_abs(mod_abs)
         
         mod['mod_moy_txt'] = fmt_note(mod_moy)
+        if mod['mod_moy_txt'][:2] == 'NA':
+            mod['mod_moy_txt'] = '-'
         mod['mod_coef_txt']= fmt_coef(modimpl['module']['coefficient'])
         
         if mod['mod_moy_txt'] != 'NI': # ne montre pas les modules 'non inscrit'
@@ -286,8 +288,14 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
                     e['name'] = e['description'] or 'le %s' % e['jour']
                 e['name_html'] = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1">%s</a>' % (e['evaluation_id'], e['name'])
                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
-                e['note_txt'] = fmt_note(val, note_max=e['note_max'])
-                e['coef_txt'] = fmt_coef(e['coefficient'])                
+                if val == 'NP':
+                    e['note_txt'] = 'nd'
+                    e['note_html'] = '<span class="note_nd">nd</span>'
+                    e['coef_txt'] = ''
+                else:
+                    e['note_txt'] = fmt_note(val, note_max=e['note_max'])
+                    e['note_html'] = e['note_txt']
+                    e['coef_txt'] = fmt_coef(e['coefficient'])                
 
 
 def make_formsemestre_bulletinetud_html(
@@ -353,7 +361,7 @@ def make_formsemestre_bulletinetud_html(
                     if e['visibulletin'] == '1' or version == 'long':
                         H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
                         H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td class="note">%s</td><td class="bull_coef_eval">%s</td></tr>'
-                                 % ('','', e['name_html'], e['note_txt'], e['coef_txt']))
+                                 % ('','', e['name_html'], e['note_html'], e['coef_txt']))
     
     # Contenu table: UE apres UE
     for ue in I['ues']:

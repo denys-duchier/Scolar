@@ -184,7 +184,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
         complete = False
     else:
         complete = True            
-    if TotalNbMissing > 0 and TotalNbMissing == TotalNbAtt:
+    if TotalNbMissing > 0 and (TotalNbMissing == TotalNbAtt or E['publish_incomplete'] != '0'):
         evalattente = True
     else:
         evalattente = False

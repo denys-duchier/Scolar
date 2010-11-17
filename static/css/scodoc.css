@@ -754,6 +754,15 @@ th.moduleimpl_evaluations {
   color: red;
 }
 
+th.moduleimpl_evaluations a, th.moduleimpl_evaluations a:visited {
+  font-weight: normal;
+  color: red;
+  text-decoration: none;
+}
+th.moduleimpl_evaluations a:hover {
+   text-decoration: underline;
+}
+
 tr.moduleimpl_evaluation_row {
 }
 
@@ -1056,6 +1065,11 @@ tr.notes_bulletin_row_eval td.note {
    font-style: italic; 
    color: rgb(40,40,40);
    font-size: 90%;
+}
+
+tr.notes_bulletin_row_eval td.note .note_nd {
+   font-weight: bold; 
+   color: red;
 }
 
 span.bul_minmax {

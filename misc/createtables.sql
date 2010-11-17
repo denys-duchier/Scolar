@@ -433,7 +433,8 @@ CREATE TABLE notes_evaluation (
 	description text,
 	note_max real,
 	coefficient real,
-        visibulletin integer default 1
+        visibulletin integer default 1,
+	publish_incomplete integer default 0 -- prise en compte meme si incomplete
 	--	numero_expr integer; idée abandonnée
 ) WITH OIDS;
 

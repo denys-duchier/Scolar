@@ -215,8 +215,24 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
              H.append("""<span class="evalindex" title="Indice dans les vecteurs (formules)">%02d</span>""" % eval_index)
         eval_index -= 1
         H.append("""</td></tr>""")
-        H.append("""<tr class="mievr"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne</th></tr>""")
-
+        H.append("""<tr class="mievr"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne """)
+        
+        if  etat['evalcomplete']:
+             etat_txt = """(prise en compte)"""
+             etat_descr = "notes utilisées dans les moyennes"
+        elif eval['publish_incomplete'] != '0':
+            etat_txt = """(prise en compte <b>immédiate</b>)"""
+            etat_descr = "il manque des notes, mais la prise en compte immédiate a été demandée"
+        elif etat['nb_notes'] != 0:
+            etat_txt = '(<b>non</b> prise en compte)'
+            etat_descr = "il manque des notes"
+        else:
+            etat_txt = ''
+        if caneditevals and etat_txt:
+            etat_txt = '<a href="evaluation_edit?evaluation_id=%s" title="%s">%s</a>' % (eval['evaluation_id'], etat_descr, etat_txt )
+        H.append(etat_txt)
+        H.append("""</th></tr>""")
+        
         H.append("""<tr class="mievr"><td class="mievr">""")
         if caneditevals:
             H.append("""<a class="smallbutton" href="evaluation_edit?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('edit_img', alt='modifier', title='Modifier informations')))

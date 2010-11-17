@@ -316,7 +316,13 @@ for dept in get_depts():
     # add etape_apo2
     check_field(cnx, 'notes_formsemestre', 'etape_apo2',
                 ['alter table notes_formsemestre add column etape_apo2 text'])
-    
+
+    # add publish_incomplete
+    check_field(cnx, 'notes_evaluation', 'publish_incomplete',
+                ['alter table notes_evaluation add column  publish_incomplete int DEFAULT 0',
+                 'update notes_evaluation set publish_incomplete=0 where publish_incomplete is NULL'
+                 ])
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()

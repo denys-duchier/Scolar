@@ -178,7 +178,7 @@ def do_moduleimpl_moyennes(context, mod):
         e['nb_att'] = len( [ x for x in notes if x == NOTES_ATTENTE ] )
         e['notes'] = NotesDB
         e['etat'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
-        if e['nb_att']:
+        if e['etat']['evalattente']:
             attente = True
     # filtre les evals valides (toutes les notes entrées)        
     valid_evals = [ e for e in evals
