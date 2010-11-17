@@ -29,7 +29,7 @@
 """
 
 def horizontal_bargraph( value, mark ):
-    """html drawing an horinzontal bar and a mark
+    """html drawing an horizontal bar and a mark
     used to vizualize the relative level of a student
     """
     tmpl = """

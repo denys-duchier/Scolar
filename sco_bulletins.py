@@ -150,7 +150,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['moy_min'] = fmt_note(nt.moy_min)
     I['moy_max'] = fmt_note(nt.moy_max)
     I['moy_moy'] = fmt_note(nt.moy_moy) # moyenne des moyennes generales
-    if type(moy_gen) != StringType and nt.moy_moy != StringType:
+    if type(moy_gen) != StringType and type(nt.moy_moy) != StringType:
         I['moy_gen_bargraph_html'] = '&nbsp;' + htmlutils.horizontal_bargraph(moy_gen*5, nt.moy_moy*5)
     else:
         I['moy_gen_bargraph_html'] = ''
