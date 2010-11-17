@@ -7,6 +7,11 @@ SCONAME = "ScoDoc"
 
 SCONEWS = """
 
+<h4>Novembre 2010</h4>
+<ul>
+<li>Possibilité d'indiquer des évaluations avec publication immédiate des notes (même si incomplètes)</li>
+</ul>
+
 <h4>Octobre 2010</h4>
 <ul>
 <li>Nouvelle API JSON</li>

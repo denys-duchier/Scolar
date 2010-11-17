@@ -124,9 +124,9 @@ def compute_user_formula(context, formsemestre_id, etudid,
         'nb_abs_nojust' : float(nbabs - nbabs_just)
         }
     try:
-        log('expression : %s\nvariables=%s\n' % (formula, variables)) # XXX debug
+        #log('expression : %s\nvariables=%s\n' % (formula, variables)) # XXX debug
         user_moy = eval_user_expression(context, formula, variables)
-        log('user_moy=%s' % user_moy)
+        #log('user_moy=%s' % user_moy)
         if user_moy != 'NA0' and user_moy != 'NA':
             user_moy = float(user_moy)
             if (user_moy > 20) or (user_moy < 0):
@@ -200,8 +200,8 @@ def do_moduleimpl_moyennes(context, mod):
                     sum_notes += (note * 20. / e['note_max']) * e['coefficient']
                     sum_coefs += e['coefficient']
             else:
-                # il manque une note !
-                if e['coefficient'] > 0:
+                # il manque une note ! (si publish_incomplete, cela peut arriver, on ignore)
+                if e['coefficient'] > 0 and e['publish_incomplete'] == '0':
                     nb_missing += 1
         if nb_missing == 0 and sum_coefs > 0:
             if sum_coefs > 0:
