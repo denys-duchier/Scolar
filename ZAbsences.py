@@ -1233,7 +1233,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                     nbabsjustam=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=1)
                     nbabsjustpm=self.CountAbsJust(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=0)
                     H.append("""<tr bgcolor="#FFFFFF"><td>
-                     <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s</font></a></td><td align="center">""" % etud )
+                     <a href="CalAbs?etudid=%(etudid)s"><font color="#A00000">%(nomprenom)s</font></a></td><td align="center">"""
+                     % etud ) # """
                     if nbabsam != 0:
                         if nbabsjustam:
                             H.append("Just.")
@@ -1422,6 +1423,26 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         else:
             return REQUEST.RESPONSE.redirect( 'ProcessBilletAbsenceForm?billet_id=' + tf[2]['billet_id'] )
 
+    security.declareProtected(ScoAbsChange, 'deleteBilletAbsence')
+    def deleteBilletAbsence(self, billet_id, REQUEST=None, dialog_confirmed=False):
+        """Supprime un billet.
+        """
+        cnx = self.GetDBConnexion()
+        billets = billet_absence_list(cnx,  {'billet_id': billet_id} )
+        if not billets:
+            return REQUEST.RESPONSE.redirect( 'listeBillets?head_message=Billet%%20%s%%20inexistant !' % billet_id)
+        if not dialog_confirmed:
+            tab = self._tableBillets(billets)
+            return self.confirmDialog(
+                """<h2>Supprimer ce billet ?</h2>""" + tab.html(),
+                dest_url="", REQUEST=REQUEST,
+                cancel_url="listeBillets",
+                parameters={'billet_id':billet_id})
+        
+        billet_absence_delete(cnx, billet_id )
+        
+        return REQUEST.RESPONSE.redirect( 'listeBillets?head_message=Billet%20supprimé' )
+
     def _ProcessBilletAbsence(self, billet, estjust, description, REQUEST):
         """Traite un billet: ajoute absence(s) et éventuellement justificatifs,
         et change l'état du billet à 1.
@@ -1488,8 +1509,10 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             H.append(tab.html())
             if billet['justified'] == 1:
                 H.append("""<p>L'étudiant pense pouvoir justifier cette absence.<br/><em>Vérifiez le justificatif avant d'enregistrer.</em></p>""")
-            F = '<p><a class="stdlink" href="listeBillets">Liste de tous les billets en attente</a></p>' + self.sco_footer(REQUEST)
-            return '\n'.join(H) + '<br/>' +  tf[1] + F
+            F = """<p><a class="stdlink" href="deleteBilletAbsence?billet_id=%s">Supprimer ce billet</a> (utiliser en cas d'erreur, par ex. billet en double)</p>""" % billet_id
+            F += '<p><a class="stdlink" href="listeBillets">Liste de tous les billets en attente</a></p>' 
+
+            return '\n'.join(H) + '<br/>' +  tf[1] + F + self.sco_footer(REQUEST)
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         else:
