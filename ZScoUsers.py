@@ -151,14 +151,15 @@ class ZScoUsers(ObjectManager,
     # --------------------------------------------------------------------
     # used to view content of the object
     security.declareProtected(ScoUsersView, 'index_html')
-    def index_html(self, REQUEST, all=0, format='html'):
+    def index_html(self, REQUEST, all=0, with_olds=0, format='html'):
         "gestion utilisateurs..."
         all = int(all)
+        with_olds = int(with_olds)
         # Controle d'acces
         authuser = REQUEST.AUTHENTICATED_USER
         user_name = str(authuser)
         #log('user: %s roles: %s'%(user_name,authuser.getRolesInContext(self)))
-        user = self._user_list( args={'user_name':user_name} )        
+        user = self._user_list( args={'user_name':user_name} )
         if not user:
             zope_roles = authuser.getRolesInContext(self)
             if ('Manager' in zope_roles) or ('manage' in zope_roles):
@@ -178,9 +179,16 @@ class ZScoUsers(ObjectManager,
             checked = 'checked'
         else:
             checked = ''
-        H.append("""<p><form name="f" action="%s"><input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Montrer tous les départements</input></form></p>""" % (REQUEST.URL0,checked))
+        if with_olds:
+            olds_checked = 'checked'
+        else:
+            olds_checked = ''
+        H.append("""<p><form name="f" action="%s">
+        <input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Tous les départements</input>
+        <input type="checkbox" name="with_olds" value="1" onchange="document.f.submit();" %s>Avec anciens utilisateurs</input>
+        </form></p>""" % (REQUEST.URL0,checked, olds_checked))
 
-        L = self.list_users( dept, all=all, format=format,
+        L = self.list_users( dept, all=all, with_olds=with_olds, format=format,
                              REQUEST=REQUEST, with_links=authuser.has_permission(ScoUsersAdmin,self) )
         if format != 'html':
             return L
@@ -193,22 +201,46 @@ class ZScoUsers(ObjectManager,
         'sco_users',
         'user_id',
         ('user_id', 'user_name','passwd','roles',
-         'date_modif_passwd','nom','prenom', 'email', 'dept', 'passwd_temp'),
+         'date_modif_passwd','nom','prenom', 'email', 'dept', 
+         'passwd_temp', 'status'),
         output_formators = { 'date_modif_passwd' : DateISOtoDMY },
-        sortkey = 'nom'
+        input_formators = { 'date_modif_passwd' : DateDMYtoISO },
+        sortkey = 'nom',
+        filter_nulls=False
         )
 
     def _user_list(self, **kw):
         # list info sur utilisateur(s)
         cnx = self.GetUsersDBConnexion()        
-        return self._userEditor.list( cnx, **kw )
+        users = self._userEditor.list( cnx, **kw )
+        for u in users:
+            if u['status'] == 'old':
+                u['status_txt'] = '(ancien)'
+            else:
+                u['status_txt'] = ''
+        return users
 
-    def _user_edit(self, *args, **kw ):
+    def _user_edit(self, user_name, vals):
         # edit user
         cnx = self.GetUsersDBConnexion()
-        self._userEditor.edit( cnx, *args, **kw )
+        vals['user_name'] = user_name
+        self._userEditor.edit( cnx, vals)
         self.get_userlist_cache().inval_cache() #>
-
+        self.acl_users.cache_removeUser(user_name) # exUserFolder's caches
+        self.acl_users.xcache_removeUser(user_name)
+        # Ensure that if status is "old", login is disabled
+        # note that operation is reversible without having to re-enter a password
+        # We change the roles (to avoid dealing with passwd hash, controled by exUserFolder)
+        u = self._user_list( args={'user_name':user_name} )[0]
+        if u['status'] == 'old' and u['roles'] and u['roles'][0] != '-':
+            roles = [ '-' + r for r in u['roles'].split(',') ]
+            self.acl_users.manage_editUser( user_name, {'roles' : roles} )
+            self.get_userlist_cache().inval_cache()
+        elif not u['status'] and u['roles'] and u['roles'][0] == '-':
+            roles = [ r[1:] for r in u['roles'].split(',') if (r and r[0] == '-')]
+            self.acl_users.manage_editUser( user_name, {'roles' : roles} )
+            self.get_userlist_cache().inval_cache()
+        
     def _user_delete(self, user_name):
         # delete user
         cnx = self.GetUsersDBConnexion()
@@ -223,7 +255,7 @@ class ZScoUsers(ObjectManager,
         L = self._userEditor.list( cnx, {} )
         for l in L:
             roles.update( [x.strip() for x in l['roles'].split(',')] )            
-        return roles
+        return [ r for r in roles if r and r[0] != '-' ]
 
     security.declareProtected(ScoUsersAdmin, 'user_info')
     def user_info(self, user_name=None, user=None, REQUEST=None):        
@@ -415,8 +447,11 @@ class ZScoUsers(ObjectManager,
             raise AccessDenied("Vous n'avez pas la permission de voir cette page")
         H = [self.sco_header(REQUEST, page_title='Utilisateur %s'%user_name)]
         F = self.sco_footer(REQUEST)
-        H.append('<h2>Utilisateur: %s</h2>' % user_name )
+        H.append('<h2>Utilisateur: %s' % user_name )
         info = self._user_list( args= { 'user_name' : user_name })
+        if info:
+            H.append('%(status_txt)s' % info[0])
+        H.append('</h2>')
         if not info:
             H.append("<p>L' utilisateur '%s' n'est pas défini dans ce module.</p>" % user_name )
             if authuser.has_permission(ScoEditAllNotes,self):
@@ -517,6 +552,8 @@ class ZScoUsers(ObjectManager,
              initvalues = self._user_list( args={'user_name': user_name})[0]
              initvalues['roles'] = initvalues['roles'].split(',')
              orig_roles = Set(initvalues['roles'])
+             if initvalues['status'] == 'old':
+                 editable_roles = Set() # can't change roles of a disabled user
          # add existing user roles
          displayed_roles = list(editable_roles.union(orig_roles))
          displayed_roles.sort()
@@ -533,6 +570,10 @@ class ZScoUsers(ObjectManager,
                        'size' : 20, 'allow_null' : False }),
              ('prenom', { 'title' : 'Prénom',
                        'size' : 20, 'allow_null' : False }),
+             ('status', { 'title' : 'Statut',
+                          'input_type' : 'radio',
+                          'labels' : ('actif', 'ancien'),
+                          'allowed_values' : ('', 'old') })
              ]
          if not edit:
              descr += [
@@ -652,7 +693,7 @@ class ZScoUsers(ObjectManager,
                  log('sco_users: editing %s by %s' % (user_name, auth_name))
                  #log('sco_users: previous_values=%s' % initvalues)                 
                  #log('sco_users: new_values=%s' % vals)
-                 self._user_edit(vals)
+                 self._user_edit(user_name, vals)
                  return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
              else: # creation utilisateur
                  vals['roles'] = ','.join(vals['roles'])
@@ -698,7 +739,8 @@ class ZScoUsers(ObjectManager,
         if len(res) > minmatch:
             return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s (pseudo=%s)' % (x['prenom'], x['nom'], x['user_name']) for x in res ])
         # Roles ?
-        if not roles:
+        if not roles and (edit and users[0]['status'] != 'old'):
+            # nb: si utilisateur desactibe (old), pas de role attribué
             return False, "aucun rôle sélectionné, êtes vous sûr ?"
         # ok
         return True, ''
@@ -802,18 +844,22 @@ class ZScoUsers(ObjectManager,
         self._user_delete(user_name)
         REQUEST.RESPONSE.redirect( REQUEST.URL1 )
         
-    def list_users(self, dept, all=False,
+    def list_users(self, dept, 
+                   all=False, # tous les departements
+                   with_olds=False, # inclue les anciens utilisateurs (status "old")
                    format='html', with_links=True, 
                    REQUEST=None):
         "List users"
         authuser = REQUEST.AUTHENTICATED_USER
         if dept and not all:                        
-            r = self.get_userlist(dept=dept)
-            comm = '(dept. %s)' % dept
+            r = self.get_userlist(dept=dept, with_olds=with_olds)
+            comm = 'dept. %s' % dept
         else:
-            r = self.get_userlist()
-            comm = '(tous)'
-
+            r = self.get_userlist(with_olds=with_olds)
+            comm = 'tous'
+        if with_olds:
+            comm += ', avec anciens'
+        comm = '('+comm+')'
         # -- Add some information and links:
         for u in r:
             # Can current user modify this user ?
@@ -841,9 +887,9 @@ class ZScoUsers(ObjectManager,
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
             rows = r,
-            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd', 'passwd_temp'),
+            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
             titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
-                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.' },
+                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.', 'status_txt' : 'Etat' },
             caption = title, page_title = 'title',
             html_title = """<h2>%d utilisateurs %s</h2>
             <p class="help">Cliquer sur un nom pour changer son mot de passe</p>""" % (len(r), comm),
@@ -867,24 +913,33 @@ class ZScoUsers(ObjectManager,
             return CACHE_userlist[url]
 
     security.declareProtected(ScoView, 'get_userlist')
-    def get_userlist(self, dept=None):
+    def get_userlist(self, dept=None, with_olds=False):
         """Returns list of users.
         If dept, select users from this dept,
         else return all users.
         """
-        cache = self.get_userlist_cache()
-        r = cache.get(dept)
+        # on ne cache que la liste sans les "olds"
+        if with_olds:
+            r = None
+        else:
+            cache = self.get_userlist_cache()
+            r = cache.get(dept)
+        
         if r != None:
             return r
         else:
+            args = {}
+            if not with_olds:
+                args['status'] = None
             if dept != None:
-                r = self._user_list( args={ 'dept' : dept } )
-            else:
-                r = self._user_list() # all users
-            l = []
-            for user in r:
-                l.append(self.user_info(user=user))
-            cache.set(dept, l)
+                args['dept'] = dept
+            
+            r = self._user_list(args=args)
+
+            l = [ self.user_info(user=user) for user in r ]
+            
+            if not with_olds:
+                cache.set(dept, l)
             return l
 
     security.declareProtected(ScoView, 'get_userlist_xml')

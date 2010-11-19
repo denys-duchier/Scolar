@@ -582,7 +582,7 @@ def make_xml_formsemestre_bulletinetud(
     force_publishing=False,
     xml_nodate=False,
     REQUEST=None,
-    xml_with_decisions=False, # inlue les decisions même si non publiées
+    xml_with_decisions=False, # inclue les decisions même si non publiées
     version='long'
     ):
     "bulletin au format XML"

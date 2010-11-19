@@ -19,6 +19,7 @@ CREATE TABLE sco_users (
 	prenom text,
         email text,
 	dept text, -- departement d'appartenance
-	passwd_temp int default 0 -- 0 ok, 1 mot de passe temporaire
+	passwd_temp int default 0, -- 0 ok, 1 mot de passe temporaire
+	status text default '', -- NULL actif, 'old' ancien (pas de login possible)
 ) with oids;
 

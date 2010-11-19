@@ -336,6 +336,8 @@ cursor = cnx.cursor()
 check_field(cnx, 'sco_users', 'passwd_temp',
             ['alter table sco_users add column passwd_temp int default 0',
              'update sco_users set passwd_temp=0' ])
+check_field(cnx, 'sco_users', 'status',
+            ["alter table sco_users add column status text default ''"])
 cnx.commit()
 cnx.close()
 

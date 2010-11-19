@@ -94,10 +94,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         tables[i] = '%s T%d' % (tables[i], i)
     tables = ', '.join(tables)
     # condition (apres "where")
-    if vals or aux_tables:
-        cond = ' where '
-    else:
-        cond = ''
+    cond = ''
     i=1
     cl=[]
     for (aux_tab, aux_id) in aux_tables:
@@ -114,12 +111,17 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         if aux_tables: # paren
             cond +=  ' AND ( '
         cond += operator.join( ['T0.%s%s%%(%s)s' %(x,test,x) for x in vals.keys() if vals[x] != None ])
-        cnuls = ' and '.join( ['%s is NULL' % x for x in vals.keys() if vals[x] is None ])
+        cnuls = ' and '.join( ['T0.%s is NULL' % x for x in vals.keys() if vals[x] is None ])
         if cnuls:
-            cond = cond + ' and ' + cnuls
+            if cond:
+                cond = cond + ' and ' + cnuls
+            else:
+                cond = cnuls
         # close paren
         if aux_tables:
             cond += ') '
+    if cond:
+        cond = ' where ' + cond
     #
     req = 'select ' +distinct+ ', '.join(what) + ' from '+tables+cond+orderby
     #open('/tmp/select.log','a').write( req % vals + '\n' )
@@ -282,7 +284,6 @@ class EditableTable:
         for title in vals.keys():
             if self.input_formators.has_key(title):
                 vals[title] = self.input_formators[title](vals[title])
-        
         DBUpdateArgs( cnx, self.table_name, vals,
                       where="%s=%%(%s)s" % (self.id_name,self.id_name),
                       commit=True )
