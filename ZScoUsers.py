@@ -202,9 +202,9 @@ class ZScoUsers(ObjectManager,
         'user_id',
         ('user_id', 'user_name','passwd','roles',
          'date_modif_passwd','nom','prenom', 'email', 'dept', 
-         'passwd_temp', 'status'),
-        output_formators = { 'date_modif_passwd' : DateISOtoDMY },
-        input_formators = { 'date_modif_passwd' : DateDMYtoISO },
+         'passwd_temp', 'status', 'date_expiration'),
+        output_formators = { 'date_modif_passwd' : DateISOtoDMY, 'date_expiration' : DateISOtoDMY },
+        input_formators = { 'date_modif_passwd' : DateDMYtoISO, 'date_expiration' : DateDMYtoISO },
         sortkey = 'nom',
         filter_nulls=False
         )
@@ -279,7 +279,9 @@ class ZScoUsers(ObjectManager,
                      'nomcomplet': user_name,
                      'nomplogin' : user_name,
                      'nomnoacc'  : suppress_accents(user_name),
-                     'passwd_temp' : 0
+                     'passwd_temp' : 0,
+                     'status' : '',
+                     'date_expiration' : None
                      }
         else:
             info = infos[0]
@@ -468,7 +470,8 @@ class ZScoUsers(ObjectManager,
             <b>Mail :</b> %(email)s<br/>
             <b>Roles :</b> %(roles)s<br/>
             <b>Dept :</b> %(dept)s<br/>
-            <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s
+            <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s<br/>
+            <b>Date d'expiration:</b> %(date_expiration)s
             <p><ul>
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoUsersAdmin,self):
@@ -521,7 +524,7 @@ class ZScoUsers(ObjectManager,
              auth_dept = ''
          #
          edit = int(edit)
-         H = [self.sco_header(REQUEST)]
+         H = [self.sco_header(REQUEST, init_jquery_ui=True, bodyOnLoad="init_tf_form('')")]
          F = self.sco_footer(REQUEST)             
          if edit:
              if not user_name:
@@ -616,6 +619,10 @@ class ZScoUsers(ObjectManager,
                                 'title' : 'L\'utilisateur  sera crée dans le département %s' % auth_dept}))
          
          descr += [
+             ('date_expiration', { 'title' : "Date d'expiration",  # j/m/a
+                         'input_type' : 'date',
+                         'explanation' : 'j/m/a, laisser vide si pas de limite',
+                         'size' : 9, 'allow_null' : True }),
              ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox', 'vertical' : True,
                         'allowed_values' : displayed_roles, 
                         'disabled_items' : disabled_roles,
@@ -883,13 +890,19 @@ class ZScoUsers(ObjectManager,
             # Convert dates to ISO if XML output
             if format=='xml' and u['date_modif_passwd'] != 'NA':
                 u['date_modif_passwd'] = DateDMYtoISO(u['date_modif_passwd']) or ''
+
+            # Convert date_expiration to ISO to ease sorting
+            if u['date_expiration']:
+                u['date_expiration'] = DateDMYtoISO(u['date_expiration'])
         
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
             rows = r,
-            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
+            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_expiration', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
             titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
-                    'dept' : 'Dept.', 'roles' : 'Rôles', 'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.', 'status_txt' : 'Etat' },
+                      'dept' : 'Dept.', 'roles' : 'Rôles',
+                      'date_expiration' : 'Expiration',
+                      'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.', 'status_txt' : 'Etat' },
             caption = title, page_title = 'title',
             html_title = """<h2>%d utilisateurs %s</h2>
             <p class="help">Cliquer sur un nom pour changer son mot de passe</p>""" % (len(r), comm),
