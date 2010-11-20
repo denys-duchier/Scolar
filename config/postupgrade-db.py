@@ -337,7 +337,11 @@ check_field(cnx, 'sco_users', 'passwd_temp',
             ['alter table sco_users add column passwd_temp int default 0',
              'update sco_users set passwd_temp=0' ])
 check_field(cnx, 'sco_users', 'status',
-            ["alter table sco_users add column status text default ''"])
+            ["alter table sco_users add column status text default NULL"])
+check_field(cnx, 'sco_users', 'date_expiration',
+            ["alter table sco_users add column date_expiration date",
+             "update sco_users set status=NULL where status=''" # fix a bug in previous update...
+             ])
 cnx.commit()
 cnx.close()
 
