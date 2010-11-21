@@ -568,10 +568,23 @@ class ZAbsences(ObjectManager,
             a['matin'] = False
         cursor.execute("""select * from absences where etudid=%(etudid)s and jour=%(jour)s and matin=%(matin)s order by entry_date desc""", a)
         A = cursor.dictfetchall()
+        desc = None
+        module = None
         for a in A:
             if a['description']:
-                return a['description']
-        return None
+                desc = a['description']
+            if a['moduleimpl_id'] and a['moduleimpl_id'] != 'NULL':
+                # Trouver le nom du module
+                Mlist = self.Notes.do_moduleimpl_withmodule_list(args={'moduleimpl_id': a['moduleimpl_id']})
+                if Mlist:
+                    M = Mlist[0]
+                    module = '(module : %s)' % M['module']['code']
+
+        if desc and module:
+            return '%s %s' % (desc, module)
+        if module:
+            return module
+        return desc
 
     security.declareProtected(ScoView, 'ListeAbsJour')
     def ListeAbsJour(self, date, am=True, pm=True):
