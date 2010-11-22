@@ -203,7 +203,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
 
         { 'title' : 'Exporter table des étudiants',
-          'url' : 'listegroupe?format=allxls&group_id='+ sco_groups.get_default_group(context, formsemestre_id),
+          'url' : 'group_list?format=allxls&group_id='+ sco_groups.get_default_group(context, formsemestre_id),
           },
         { 'title' : 'Vérifier inscriptions multiples',
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
