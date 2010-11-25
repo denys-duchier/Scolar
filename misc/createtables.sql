@@ -334,7 +334,8 @@ CREATE TABLE notes_formsemestre (
 	etape_apo2 text,-- code etape Apogée secondaire (si deux etapes pour meme semestre)
 	modalite text,   -- FI, FC, APP, ''
 	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
-	resp_can_change_ens integer default 1 -- autorise resp. a modifier slt les enseignants
+	resp_can_change_ens integer default 1, -- autorise resp. a modifier slt les enseignants
+	ens_can_edit_eval int default 0 -- autorise les ens a creer des evals
 ) WITH OIDS;
 
 -- Coef des UE capitalisees arrivant dans ce semestre:

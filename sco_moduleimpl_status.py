@@ -107,7 +107,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     ModEvals = context.do_evaluation_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     #
-    caneditevals=context.can_edit_notes(authuser,moduleimpl_id,allow_ens=False)
+    caneditevals=context.can_edit_notes(authuser,moduleimpl_id,allow_ens=sem['ens_can_edit_eval'])
     caneditnotes=context.can_edit_notes(authuser,moduleimpl_id)
     arrow_up, arrow_down, arrow_none = sco_groups.getArrowIconsTags(context, REQUEST)
     #

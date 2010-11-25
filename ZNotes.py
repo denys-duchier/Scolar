@@ -785,7 +785,8 @@ class ZNotes(ObjectManager,
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
          'etape_apo', 'etape_apo2',
-         'modalite', 'resp_can_edit', 'resp_can_change_ens'
+         'modalite', 'resp_can_edit', 'resp_can_change_ens',
+         'ens_can_edit_eval'
          ),
         sortkey = 'date_debut',
         output_formators = { 'date_debut' : DateISOtoDMY,
@@ -1815,6 +1816,10 @@ class ZNotes(ObjectManager,
         sem = self.get_formsemestre(M['formsemestre_id'])
         
         if (not authuser.has_permission(ScoEditAllEvals,self)) and uid != M['responsable_id'] and uid != sem['responsable_id']:
+            if sem['ens_can_edit_eval']:
+                for ens in M['ens']:
+                    if ens['ens_id'] == uid:
+                        return # ok
             raise AccessDenied('Modification évaluation impossible pour %s'%(uid,))
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')

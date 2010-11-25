@@ -323,6 +323,11 @@ for dept in get_depts():
                  'update notes_evaluation set publish_incomplete=0 where publish_incomplete is NULL'
                  ])
 
+    # add ens_can_create_eval to notes_formsemestre:
+    check_field(cnx, 'notes_formsemestre', 'ens_can_edit_eval',
+                ['alter table notes_formsemestre add column ens_can_edit_eval int default 0',
+                 'update notes_formsemestre set ens_can_edit_eval=0'])
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()

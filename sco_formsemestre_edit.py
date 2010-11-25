@@ -277,6 +277,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     'input_type' : 'boolcheckbox',
                     'title' : '',
                     'explanation' : 'Autoriser le directeur des études à modifier les enseignants' }),
+        ('ens_can_edit_eval',  { 
+                'input_type' : 'boolcheckbox',
+                'title' : '',
+                'explanation' : 'Autoriser tous les enseignants associés à un module à y créer des évaluations' }),
 
         ('bul_bgcolor', { 'size' : 8,
                           'title' : 'Couleur fond des bulletins',
