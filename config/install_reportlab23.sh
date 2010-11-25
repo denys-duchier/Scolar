@@ -7,7 +7,7 @@
 # Internet access (web) is required.
 
 PYTHON=python2.4
-REPORTLAB_SRC_URL=http://www.reportlab.com/ftp/ReportLab_2_3.tar.gz
+REPORTLAB_SRC_URL=http://www.reportlab.com/ftp/reportlab-2.3.tar.gz
 
 REPORTLAB_VERSION=$($PYTHON -c "import reportlab; print reportlab.Version")
 if [ $REPORTLAB_VERSION == "2.1" ]
