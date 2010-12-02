@@ -568,12 +568,12 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
         return """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html><head>
 <title>ScoDoc: accueil</title>
-<META http-equiv="Content-Type" content="text/html; charset="%s">
+<META http-equiv="Content-Type" content="text/html; charset=%s">
 <META http-equiv="Content-Style-Type" content="text/css">
 <META name="LANG" content="fr">
 <META name="DESCRIPTION" content="ScoDoc: gestion scolarite">
 
-<link HREF="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css">
+<link HREF="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css"/>
 
 </head><body>%s""" % (SCO_ENCODING, CUSTOM_HTML_HEADER_CNX)
 
