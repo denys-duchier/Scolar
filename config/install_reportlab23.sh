@@ -7,10 +7,11 @@
 # Internet access (web) is required.
 
 PYTHON=python2.4
-REPORTLAB_SRC_URL=http://www.reportlab.com/ftp/reportlab-2.3.tar.gz
+REPORTLAB_ARCHIVE=reportlab-2.3.tar.gz # subject to change in the future
+REPORTLAB_SRC_URL="http://www.reportlab.com/ftp/$REPORTLAB_ARCHIVE"
 
 REPORTLAB_VERSION=$($PYTHON -c "import reportlab; print reportlab.Version")
-if [ $REPORTLAB_VERSION == "2.1" ]
+if [ -z "${REPORTLAB_VERSION}" -o "${REPORTLAB_VERSION}" == "2.1" ]
 then
  echo "Trying to install reportlab version 2.3"
  apt-get -y install wget
@@ -22,7 +23,7 @@ then
    echo "from url" $REPORTLAB_SRC_URL
    exit 1
  fi
- tar xfz ReportLab_2_3.tar.gz
+ tar xfz "$REPORTLAB_ARCHIVE"
  apt-get -y install gcc python2.4-dev
  apt-get -y remove python-reportlab
  cd ReportLab_2_3
