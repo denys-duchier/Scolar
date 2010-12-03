@@ -177,7 +177,6 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['ues'] = []
     for ue in ues:
         u = ue.copy()
-        I['ues'].append(u)
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
         u['ue_status'] = ue_status # { 'moy_ue', 'coef_ue', ...}
         if ue['type'] != UE_SPORT:
@@ -209,17 +208,22 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
                 # detail des modules de l'UE capitalisee
                 nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
                 
-                _ue_mod_bulletin(context, u['modules_capitalized'], etudid, formsemestre_id, ue_status['capitalized_ue_id'], nt_cap.get_modimpls(), nt_cap, version)
-        
+                u['modules_capitalized'] = _ue_mod_bulletin(context, etudid, formsemestre_id, ue_status['capitalized_ue_id'], nt_cap.get_modimpls(), nt_cap, version)
+
+        modules = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
         if ue_status['cur_moy_ue'] != 'NA':
             # detail des modules courants
-            _ue_mod_bulletin(context, u['modules'], etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
+            u['modules'] = modules
+        
+        if ue_status['is_capitalized'] or modules:
+            I['ues'].append(u) # ne montre pas les UE si non inscrit
     #
     return I
 
-def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt, version):
+def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, version):
     """Infos sur les modules (et évaluations) dans une UE
     (ajoute les informations aux modimpls)
+    Result: liste de modules, de l'UE avec les infos dans chacun (seulement ceux où l'étudiant est inscrit).
     """
     bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
@@ -229,6 +233,7 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
         fin_sem = DateDMYtoISO(sem['date_fin'])
     
     ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue_id ]
+    mods = [] # result
     for modimpl in ue_modimpls:
         mod = modimpl.copy()
         mod_moy = nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)  # peut etre 'NI'
@@ -296,7 +301,7 @@ def _ue_mod_bulletin(context, mods, etudid, formsemestre_id, ue_id, modimpls, nt
                     e['note_txt'] = fmt_note(val, note_max=e['note_max'])
                     e['note_html'] = e['note_txt']
                     e['coef_txt'] = fmt_coef(e['coefficient'])                
-
+    return mods
 
 def make_formsemestre_bulletinetud_html(
     context, formsemestre_id, etudid, I,
