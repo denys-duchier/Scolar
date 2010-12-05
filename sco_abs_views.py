@@ -36,7 +36,7 @@ import sco_groups
 
 import ZAbsences
 
-def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id, demijournee, estjust=False, description=None, REQUEST=None): # etudid implied
+def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id=None, demijournee=2, estjust=False, description=None, REQUEST=None): # etudid implied
     """Signalement d'une absence
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]

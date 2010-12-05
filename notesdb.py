@@ -15,7 +15,7 @@ def quote_dict( d ):
     for k in d.keys():
         v = d[k]
         if type(v) == StringType:
-            d[k] = quote_html(v)
+            d[k] = quote_html(v, quote=True)
 
 def unquote(s):
     "inverse of quote"

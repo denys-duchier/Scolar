@@ -105,9 +105,9 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     D = XMLToDicts(f,encoding)
     assert D[0] == 'formation'
     F = D[1]
-    # F_quoted = F.copy()
+    F_quoted = F.copy()
     log('F=%s' % F )
-    F_quoted = dict_quote_xml_attr(F)
+    quote_dict(F_quoted)
     log('F_quoted=%s' % F_quoted )
     # find new version number
     cnx = context.GetDBConnexion()
