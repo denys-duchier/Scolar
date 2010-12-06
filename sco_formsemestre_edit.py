@@ -814,6 +814,9 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     # --- Suppression des autorisations
     req = "DELETE FROM scolar_autorisation_inscription WHERE origin_formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
+    # --- Suppression des coefs d'UE capitalisées
+    req = "DELETE FROM notes_formsemestre_uecoef WHERE formsemestre_id=%(formsemestre_id)s"
+    cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Suppression des item du menu custom
     req = "DELETE FROM notes_formsemestre_custommenu WHERE formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
