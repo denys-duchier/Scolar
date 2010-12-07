@@ -218,6 +218,7 @@ class ZScoUsers(ObjectManager,
                 u['status_txt'] = '(ancien)'
             else:
                 u['status_txt'] = ''
+        
         return users
 
     def _user_edit(self, user_name, vals):
@@ -893,15 +894,17 @@ class ZScoUsers(ObjectManager,
 
             # Convert date_expiration to ISO to ease sorting
             if u['date_expiration']:
-                u['date_expiration'] = DateDMYtoISO(u['date_expiration'])
+                u['date_expiration_iso'] = DateDMYtoISO(u['date_expiration'])
+            else:
+                u['date_expiration_iso'] = ''
         
         title = 'Utilisateurs définis dans ScoDoc'
         tab = GenTable(
             rows = r,
-            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_expiration', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
+            columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_expiration_iso', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
             titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
                       'dept' : 'Dept.', 'roles' : 'Rôles',
-                      'date_expiration' : 'Expiration',
+                      'date_expiration_iso' : 'Expiration',
                       'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.', 'status_txt' : 'Etat' },
             caption = title, page_title = 'title',
             html_title = """<h2>%d utilisateurs %s</h2>
