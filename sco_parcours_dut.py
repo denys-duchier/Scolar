@@ -583,12 +583,13 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
             else:
                 code_ue = AJ
         # log('code_ue=%s' % code_ue)
-        do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
+        if etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id):
+            do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
+        
         if REQUEST:
             logdb(REQUEST, cnx, method='validate_ue', etudid=etudid,
                   msg='ue_id=%s code=%s'%(ue_id, code_ue))
 
-            
 def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None, semestre_id=None):
     "Ajoute ou change validation UE"
     args = { 'formsemestre_id' : formsemestre_id, 
@@ -619,6 +620,20 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
     except:
         cnx.rollback()
         raise
+
+def etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id):
+    """Vrai si l'étudiant est inscrit a au moins un module de cette UE dans ce semestre"""
+    cursor = cnx.cursor()
+    cursor.execute("""select mi.* from notes_moduleimpl mi, notes_modules mo, notes_ue ue, notes_moduleimpl_inscription i
+    where i.etudid = %(etudid)s and i.moduleimpl_id=mi.moduleimpl_id
+    and mi.formsemestre_id = %(formsemestre_id)s
+    and mi.module_id = mo.module_id
+    and mo.ue_id = %(ue_id)s
+    """, { 'etudid' : etudid,
+           'formsemestre_id' : formsemestre_id,
+           'ue_id' : ue_id } )
+    
+    return len(cursor.fetchall())
 
 _scolar_autorisation_inscription_editor = EditableTable(
     'scolar_autorisation_inscription',
