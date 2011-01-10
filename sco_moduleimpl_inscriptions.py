@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2008 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
