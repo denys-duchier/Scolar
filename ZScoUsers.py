@@ -477,7 +477,7 @@ class ZScoUsers(ObjectManager,
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoUsersAdmin,self):
                 H.append("""
-             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier cet utilisateur</a></li>
+             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier/déactiver ce compte</a></li>
              <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(à n'utiliser qu'en cas d'erreur !)</em></li>
              """ % info[0])
                 
@@ -841,7 +841,7 @@ class ZScoUsers(ObjectManager,
         if not dialog_confirmed:
             return self.confirmDialog(
                 """<h2>Confirmer la suppression de l\'utilisateur %s ?</h2>
-                <p>En général, il est déconseillé de supprimer un utilisateur, son
+                <p class="warning">En général, il est déconseillé de supprimer un utilisateur, son
                 identité étant référencé dans les modules de formation. N'utilisez
                 cette fonction qu'en cas d'erreur (création de doublons, etc).
                 </p>
