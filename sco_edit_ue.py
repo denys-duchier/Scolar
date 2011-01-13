@@ -76,23 +76,30 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
     ue_types.sort()
     ue_types_names = [ UE_TYPE_NAME[k] for k in ue_types ]
     ue_types = [ str(x) for x in ue_types ]
-    
-    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
-         ('ue_id', { 'input_type' : 'hidden' }),
-         ('create', { 'input_type' : 'hidden', 'default' : create }),
-         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id }),
-         ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
-         ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
-         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
-                         'type' : 'int' }),
-         ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
-                    'input_type' : 'menu',
-                    'allowed_values': ue_types,
-                    'labels' : ue_types_names }),
-         ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
-         ),
-                            initvalues = initvalues,
-                            submitlabel = submitlabel )
+
+    fw = [
+        ('ue_id', { 'input_type' : 'hidden' }),
+        ('create', { 'input_type' : 'hidden', 'default' : create }),
+        ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id }),
+        ('titre'    , { 'size' : 30, 'explanation' : 'nom de l\'UE' }),
+        ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
+        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
+                        'type' : 'int' }),
+        ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
+                   'input_type' : 'menu',
+                   'allowed_values': ue_types,
+                   'labels' : ue_types_names }),
+        ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
+    ]
+    if create:
+        fw.append(  ('create_matiere',
+                     { 'input_type' : 'boolcheckbox',
+                       'default' : False,
+                       'title' : 'Créer matière identique',                              
+                       'explanation' : 'créer immédiatement une matière dans cette UE (utile si on n\'utilise pas de matières)'}) )
+    tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, fw,
+                           initvalues = initvalues,
+                           submitlabel = submitlabel )
     if tf[0] == 0:
         X = """<div id="ue_list_code"></div>
         """
@@ -102,6 +109,8 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
             if not tf[2]['ue_code']:
                 del tf[2]['ue_code']
             ue_id = context.do_ue_create(tf[2],REQUEST)
+            if tf[2]['create_matiere']:
+                matiere_id = context.do_matiere_create( { 'ue_id' : ue_id, 'titre' : tf[2]['titre'], 'numero' : 1 }, REQUEST )
         else:
             ue_id = do_ue_edit(context, tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + formation_id )
