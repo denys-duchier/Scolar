@@ -554,7 +554,26 @@ class ZAbsences(ObjectManager,
         for a in A:
             a['description'] = self._GetAbsDescription(a, cursor=cursor)
         return A
-
+    
+    security.declareProtected(ScoView, 'ListeAbsJust')
+    def ListeJustifsNoAbs(self, etudid, datedebut):
+        "Liste des justificatifs (sans absence relevée) à partir d'une date"
+        cnx = self.GetDBConnexion()
+        cursor = cnx.cursor()
+        cursor.execute("""SELECT DISTINCT ETUDID, JOUR, MATIN FROM ABSENCES A
+ WHERE A.ETUDID = %(etudid)s
+ AND A.JOUR >= %(datedebut)s
+ AND A.ESTJUST
+ EXCEPT SELECT ETUDID, JOUR, MATIN FROM ABSENCES B 
+ WHERE B.estabs
+ AND B.ETUDID = %(etudid)s
+        """, vars() )
+        A = cursor.dictfetchall()
+        for a in A:
+            a['description'] = self._GetAbsDescription(a, cursor=cursor)
+            log(a)
+        return A
+    
     def _GetAbsDescription(self, a, cursor=None):
         "Description associee a l'absence"
         if not cursor:
