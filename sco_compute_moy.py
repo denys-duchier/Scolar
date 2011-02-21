@@ -161,6 +161,7 @@ def do_moduleimpl_moyennes(context, mod):
                        context.do_formsemestre_inscription_listinscrits(mod['formsemestre_id'])])
     insmod_set = inssem_set.intersection(etudids) # inscrits au semestre et au module
     evals = context.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
+    evals.reverse() # la plus ancienne en tête
     user_expr = moduleimpl_has_expression(context, mod)
     attente = False
     # recupere les notes de toutes les evaluations
