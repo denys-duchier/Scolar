@@ -191,6 +191,27 @@ class ParcoursLegacy(TypeParcours):
 
 register_parcours(ParcoursLegacy())
 
+# # En cours d'implémentation:
+# class ParcoursLicenceLMD(TypeParcours):
+#     """Licence standard en 6 semestres dans le LMD"""
+#     TYPE_PARCOURS = 401
+#     NAME = "Licence LMD"
+#     NB_SEM = 6
+#     COMPENSATION_UE = True
+
+# register_parcours(ParcoursLicenceLMD())
+
+# class ParcoursMasterLMD(TypeParcours):
+#     """Master standard en 4 semestres dans le LMD"""
+#     TYPE_PARCOURS = 402
+#     NAME = "Master LMD"
+#     NB_SEM = 4
+#     COMPENSATION_UE = True
+
+# register_parcours(ParcoursMasterLMD())
+
+
+
 # Ajouter ici vos parcours, le TYPE_PARCOURS devant être unique au monde
 # (avisez sur la liste de diffusion)
 

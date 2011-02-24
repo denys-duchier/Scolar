@@ -468,7 +468,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             else:
                 code = ''
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
-            moy_ue = ue_status['moy_ue']
+            moy_ue = ue_status['moy']
             if code == 'ADM':
                 class_ue = 'ue_adm'
             elif code == 'CMP':
@@ -693,9 +693,9 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
             if existing_code == None:
                 continue # pas encore de decision UE
             ue_status = nt.get_etud_ue_status(etudid, ue_id)
-            moy_ue = ue_status['moy_ue']
+            moy_ue = ue_status['moy']
             if valid_semestre:
-                if type(moy_ue) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
+                if type(moy_ue) == FloatType and ue_status['moy'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                     code_ue = ADM
                 else:
                     code_ue = CMP

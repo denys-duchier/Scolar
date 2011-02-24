@@ -178,12 +178,12 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     for ue in ues:
         u = ue.copy()
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
-        u['ue_status'] = ue_status # { 'moy_ue', 'coef_ue', ...}
+        u['ue_status'] = ue_status # { 'moy', 'coef_ue', ...}
         if ue['type'] != UE_SPORT:
             u['cur_moy_ue_txt'] = fmt_note(ue_status['cur_moy_ue'])
         else:
             u['cur_moy_ue_txt'] = '(note spéciale, bonus de %s points)' % nt.bonus[etudid]
-        u['moy_ue_txt']  = fmt_note(ue_status['moy_ue'])
+        u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
         
         if ue_status['is_capitalized']:
@@ -203,8 +203,8 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         u['modules'] = [] # modules de l'UE (dans le semestre courant)
         u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
         if ue_status['is_capitalized']:
-            log('cap details   %s' % ue_status['moy_ue'])
-            if ue_status['moy_ue'] != 'NA' and ue_status['formsemestre_id']:
+            log('cap details   %s' % ue_status['moy'])
+            if ue_status['moy'] != 'NA' and ue_status['formsemestre_id']:
                 # detail des modules de l'UE capitalisee
                 nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
                 
@@ -741,7 +741,7 @@ def make_xml_formsemestre_bulletinetud(
                                 acronyme=quote_xml_attr(ue['acronyme']),
                                 titre=quote_xml_attr(ue['titre']) )
             doc._push()
-            doc.note( value=fmt_note(ue_status['moy_ue']) )
+            doc.note( value=fmt_note(ue_status['moy']) )
             doc._pop()
             doc._push()
             doc.coefficient_ue( value=fmt_note(ue_status['coef_ue']) )

@@ -26,8 +26,9 @@
 ##############################################################################
 
 from operator import mul
+import pprint
 
-def bonus_iutv(notes_sport, coefs):
+def bonus_iutv(notes_sport, coefs, infos=None):
     """Calcul bonus modules optionels (sport, culture), règle IUT Villetaneuse
 
     Les étudiants de l'IUT peuvent suivre des enseignements optionnels
@@ -42,7 +43,7 @@ def bonus_iutv(notes_sport, coefs):
     bonus = sum( [ (x - 10) / 20. for x in notes_sport if x > 10 ])
     return bonus
 
-def bonus_colmar(notes_sport, coefs):
+def bonus_colmar(notes_sport, coefs, infos=None):
     """Calcul bonus modules optionels (sport, culture), règle IUT Colmar.
 
     Les étudiants de l'IUT peuvent suivre des enseignements optionnels
@@ -59,7 +60,7 @@ def bonus_colmar(notes_sport, coefs):
     bonus = points / 20. # 5%
     return bonus
 
-def bonus_iutva(notes_sport, coefs):
+def bonus_iutva(notes_sport, coefs, infos=None):
     """Calcul bonus modules optionels (sport, culture), règle IUT Ville d'Avray
 
     Les étudiants de l'IUT peuvent suivre des enseignements optionnels
@@ -79,3 +80,31 @@ def bonus_iutva(notes_sport, coefs):
     if note_sport >= 10.0:
         return 0.1
     return 0
+
+def bonus_iut1grenoble_v0(notes_sport, coefs, infos=None):
+    """Calcul bonus sport IUT Grenoble sr moyenne générale
+
+    La note de sport de nos étudiants va de 0 à 5 points. 
+    Chaque point correspond à un % qui augmente la moyenne de chaque UE et la moyenne générale.
+    Par exemple : note de sport 2/5 : chaque UE sera augmentée de 2%, ainsi que la moyenne générale.
+
+    Calcul ici du bonus sur moyenne générale et moyennes d'UE non capitalisées.
+    """
+    #open('/tmp/log','a').write( '\n---------------\n' + pprint.pformat(infos) + '\n' )
+    # les coefs sont ignorés
+    # notes de 0 à 5
+    points = sum( [ x for x in notes_sport ])
+    factor = (points/4.)/100.
+    bonus = infos['moy'] * factor
+    # Modifie les moyennes de toutes les UE:
+    for ue_id in infos['moy_ues']:
+        ue_status = infos['moy_ues'][ue_id]
+        if ue_status['sum_coefs'] > 0:
+            # modifie moyenne UE ds semestre courant
+            ue_status['cur_moy_ue'] = ue_status['cur_moy_ue'] * (1. + factor)
+            if not ue_status['is_capitalized']:
+                # si non capitalisee, modifie moyenne prise en compte
+                ue_status['moy'] = ue_status['cur_moy_ue']
+    
+        #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
+    return bonus

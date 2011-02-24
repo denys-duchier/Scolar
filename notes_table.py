@@ -29,6 +29,7 @@
 """
 from types import StringType
 import pdb
+import inspect
 
 import scolars
 import sco_groups
@@ -42,6 +43,10 @@ import sco_parcours_dut
 from sco_formsemestre_edit import formsemestre_uecoef_list
 import sco_compute_moy
 from sco_formulas import NoteVector
+
+# Support for old user-written "bonus" functions with 2 args:
+BONUS_TWO_ARGS = len(inspect.getargspec(CONFIG.compute_bonus)[0]) == 2 
+
 
 def comp_ranks(T):
     """Calcul rangs à partir d'une liste ordonnée de tuples [ (valeur, ..., etudid) ] 
@@ -178,7 +183,7 @@ class NotesTable:
             
             moy_ues = []
             for ue in self._ues:
-                moy_ue = ue_status[ue['ue_id']]['moy_ue']
+                moy_ue = ue_status[ue['ue_id']]['moy']
                 moy_ues.append(fmt_note(moy_ue))
                 self.moy_ue[ue['ue_id']][etudid] = moy_ue
             
@@ -523,6 +528,7 @@ class NotesTable:
 
         Prend toujours en compte les UE capitalisées.
         """
+        log('comp_etud_moy_gen(etudid=%s)' % etudid)
         moy_ues = {}
         notes_bonus_gen = [] # liste des notes de sport et culture (s'appliquant à la MG)
         coefs_bonus_gen = []
@@ -545,7 +551,7 @@ class NotesTable:
             event_date = None
             for ue_cap in self.ue_capitalisees[etudid]:
                 if ue_cap['ue_code'] == ue['ue_code']:
-                    moy_ue_cap = ue_cap['moy_ue']
+                    moy_ue_cap = ue_cap['moy']
                     mu['was_capitalized'] = True
                     event_date = event_date or ue_cap['event_date']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
@@ -560,7 +566,7 @@ class NotesTable:
             mu['cur_moy_ue'] = mu['moy'] # la moyenne dans le sem. courant
             mu['cur_coef_ue']= mu['sum_coefs']
             mu['moy'] = max_moy_ue   # la moyenne d'UE a prendre en compte
-            mu['moy_ue'] = mu['moy'] # (idem, for backward compatibility [needs refactoring]) 
+            
             mu['coef_ue'] = coef_ue # coef reel ou coef de l'ue si capitalisee
             if mu['is_capitalized']:
                 mu['formsemestre_id'] = formsemestre_id
@@ -586,12 +592,14 @@ class NotesTable:
                     nb_notes = nb_notes + 1
                 except TypeError:
                     nb_missing = nb_missing + 1
-        
+        # Le resultat:
+        infos = dict( nb_notes=nb_notes, nb_missing=nb_missing, 
+                      sum_coefs=sum_coefs, moy_ues=moy_ues )
         # ---- Calcul moyenne (avec bonus sport&culture)
         if sum_coefs <= 0:
-            moy = 'NA'
+            infos['moy'] = 'NA'
         else:
-            moy = sum_notes / sum_coefs
+            infos['moy'] = sum_notes / sum_coefs
             if notes_bonus_gen:
                 # regle de calcul maison (configurable, voir bonus_sport.py)
                 if sum(coefs_bonus_gen) <= 0 and len(coefs_bonus_gen) != 1:
@@ -601,12 +609,17 @@ class NotesTable:
                 else:
                     if len(coefs_bonus_gen) == 1:
                         coefs_bonus_gen = [1.0] # irrelevant, may be zero
-                    bonus = CONFIG.compute_bonus(notes_bonus_gen, coefs_bonus_gen)
+                    
+                    if BONUS_TWO_ARGS:
+                        # backward compat: compute_bonus took only 2 args
+                        bonus = CONFIG.compute_bonus(notes_bonus_gen, coefs_bonus_gen)
+                    else:
+                        bonus = CONFIG.compute_bonus(notes_bonus_gen, coefs_bonus_gen, infos=infos)
                 self.bonus[etudid] = bonus
-                moy += bonus
+                infos['moy'] += bonus
+                infos['moy'] = min(infos['moy'], 20.) # clip bogus bonus
 
-        return dict( moy=moy, nb_notes=nb_notes, nb_missing=nb_missing, sum_coefs=sum_coefs, moy_ues=moy_ues )
-
+        return infos
     
     def get_etud_moy_gen(self, etudid):
         """Moyenne generale de cet etudiant dans ce semestre.
@@ -622,7 +635,7 @@ class NotesTable:
         n = 0
         for ue in self._ues:
             ue_status = self.get_etud_ue_status(etudid, ue['ue_id'])
-            if ue_status['coef_ue'] > 0 and type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] < self.parcours.get_barre_ue(ue['type']):
+            if ue_status['coef_ue'] > 0 and type(ue_status['moy']) == FloatType and ue_status['moy'] < self.parcours.get_barre_ue(ue['type']):
                 n += 1
         return n
 
@@ -716,7 +729,7 @@ class NotesTable:
         """Cherche pour chaque etudiant ses UE capitalisées dans ce semestre.
         Calcule l'attribut:
         ue_capitalisees = { etudid :
-                             [{ 'moy_ue':, 'event_date' : ,'formsemestre_id' : }, ...] }
+                             [{ 'moy':, 'event_date' : ,'formsemestre_id' : }, ...] }
         """
         self.ue_capitalisees = DictDefault(defaultvalue=[])
         cnx = None
@@ -728,7 +741,7 @@ class NotesTable:
                 if ue_cap['moy_ue'] is None:
                     log('comp_ue_capitalisees: recomputing UE moy (etudid=%s, ue_id=%s formsemestre_id=%s)' % (etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
                     nt_cap = self.context._getNotesCache().get_NotesTable(self.context, ue_cap['formsemestre_id'] ) #> UE capitalisees par un etud
-                    moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy_ue']
+                    moy_ue_cap = nt_cap.get_etud_ue_status(etudid, ue_cap['ue_id'])['moy']
                     ue_cap['moy_ue'] = moy_ue_cap
                     if type(moy_ue_cap) == FloatType and moy_ue_cap >= self.parcours.NOTES_BARRE_VALID_UE:
                         if not cnx:
@@ -736,6 +749,7 @@ class NotesTable:
                         sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt_cap, ue_cap['formsemestre_id'], etudid,  ue_cap['ue_id'], ue_cap['code'])
                     else:
                         log('*** valid inconsistency: moy_ue_cap=%s (etudid=%s, ue_id=%s formsemestre_id=%s)' % (moy_ue_cap, etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
+                ue_cap['moy'] = ue_cap['moy_ue'] # backward compat (needs refactoring)
                 self.ue_capitalisees[etudid].append(ue_cap)
     
     def comp_ue_coefs(self, cnx):

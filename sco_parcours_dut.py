@@ -576,7 +576,7 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
             code_ue = AJ
         else:
             # log('%s: %s: ue_status=%s' % (formsemestre_id,ue_id,ue_status))
-            if type(ue_status['moy_ue']) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
+            if type(ue_status['moy']) == FloatType and ue_status['moy'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                 code_ue = ADM
             elif valid_semestre:
                 code_ue = CMP
@@ -613,7 +613,7 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
         if code == 'ADM':
             if moy_ue is None:
                 # stocke la moyenne d'UE capitalisée:
-                moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy_ue']            
+                moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy']
             args['moy_ue'] = moy_ue
         log('formsemestre_validate_ue: %s' % args)
         scolar_formsemestre_validation_create(cnx, args)
