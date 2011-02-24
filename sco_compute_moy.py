@@ -124,6 +124,7 @@ def compute_user_formula(context, formsemestre_id, etudid,
         'nb_abs_nojust' : float(nbabs - nbabs_just)
         }
     try:
+        formula = formula.replace('\n', '').replace('\r', '')
         #log('expression : %s\nvariables=%s\n' % (formula, variables)) # XXX debug
         user_moy = eval_user_expression(context, formula, variables)
         #log('user_moy=%s' % user_moy)
@@ -240,9 +241,10 @@ def do_moduleimpl_moyennes(context, mod):
                     coefs.append(0.)
                     coefs_mask.append(0)
             if nb_notes > 0:
+                formula = unescape_html(mod['computation_expr'])
                 user_moy = compute_user_formula(context, mod['formsemestre_id'], etudid, 
                                                 R[etudid], moy_valid,
-                                                notes, coefs, coefs_mask, mod['computation_expr'],
+                                                notes, coefs, coefs_mask, formula,
                                                 diag_info=diag_info)
                 if diag_info:
                     diag_info['moduleimpl_id'] = moduleimpl_id
