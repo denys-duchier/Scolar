@@ -72,7 +72,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             ntp = context._getNotesCache().get_NotesTable(context, Se.prev['formsemestre_id']) #> get_ues, get_etud_ue_status, get_etud_moy_gen, get_etud_decision_sem
             for ue in ntp.get_ues(filter_sport=True):
                 ue_status = ntp.get_etud_ue_status(etudid, ue['ue_id'])
-                prev_moy_ue[ue['acronyme']][etudid] = ue_status['moy_ue']
+                prev_moy_ue[ue['acronyme']][etudid] = ue_status['moy']
             prev_moy[etudid] = ntp.get_etud_moy_gen(etudid)
             prev_decision = ntp.get_etud_decision_sem(etudid)
             if prev_decision:
@@ -82,7 +82,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         moy[etudid] = nt.get_etud_moy_gen(etudid)
         for ue in nt.get_ues(filter_sport=True):
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
-            moy_ue[ue['acronyme']][etudid] = ue_status['moy_ue']
+            moy_ue[ue['acronyme']][etudid] = ue_status['moy']
         
         if Se.prev:
             try:
