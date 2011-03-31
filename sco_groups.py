@@ -157,7 +157,9 @@ def get_group_members(context, group_id, etat=None):
     r = SimpleDictFetch(context, req, { 'group_id' : group_id, 'etat' : etat} )
 
     r.sort(key=operator.itemgetter('nom'))
-    
+    if CONFIG.ALLOW_NULL_PRENOM:
+        for x in r:
+            x['prenom'] = x['prenom'] or ''
     return r
 
 def get_group_infos(context, group_id, etat=None): # was _getlisteetud

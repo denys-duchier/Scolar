@@ -1805,7 +1805,7 @@ function tweakmenu( gname ) {
             ('adm_id', { 'input_type' : 'hidden' }),
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
-            ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':False }),
+            ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':CONFIG.ALLOW_NULL_PRENOM }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
                             'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
             ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date', 'explanation' : 'j/m/a' }),

@@ -106,6 +106,7 @@ class EntreprisesEditor(EditableTable):
         titles, res = [ x[0] for x in cursor.description ], cursor.fetchall()
         R = []
         for r in res:
+            r['prenom'] = r['prenom'] or ''
             d = {}
             for i in range(len(titles)):
                 v = r[i]
@@ -422,7 +423,7 @@ class ZEntreprises(ObjectManager,
         elif len(r) > 1:
             e = [ '<ul class="entreprise_etud_list">' ]
             for x in r:
-                e.append( '<li>%s %s (code %s)</li>' % (x[1].upper(),x[2],x[0].strip()) )
+                e.append( '<li>%s %s (code %s)</li>' % (x[1].upper(),x[2] or '',x[0].strip()) )
             e.append('</ul>')
             return 0, 'Les étudiants suivants correspondent: préciser le nom complet ou le code\n' + '\n'.join(e) 
         else: # une seule reponse !

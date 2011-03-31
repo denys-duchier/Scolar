@@ -107,3 +107,7 @@ CONFIG.CUSTOM_HTML_FOOTER_CNX = CONFIG.CUSTOM_HTML_FOOTER
 # (chemin relatif au repertoire d'install des sources)
 CONFIG.ETABL_FILENAME = 'config/etablissements.csv'
 
+
+# ----------------------------------------------------
+CONFIG.ALLOW_NULL_PRENOM = False # True for UCAC (étudiants camerounais sans prénoms)
+

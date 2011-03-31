@@ -62,7 +62,8 @@ def force_uppercase(s):
 def format_prenom(s):
     "formatte prenom etudiant pour affichage"
     locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
-    
+    if not s:
+        return ''
     frags = s.split()
     r = []
     for frag in frags:
@@ -181,15 +182,17 @@ def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     Returns:
     True | False, NbHomonyms
     """
-    if not nom or not prenom:
+    if not nom or (not prenom and not CONFIG.ALLOW_NULL_PRENOM):
         return False, 0
+    if prenom:
+        prenom = prenom.lower().strip()
     # any non empty string is ok, we could add some checks...
     # Now count homonyms:
     cursor = cnx.cursor()
     req = 'select etudid from identite where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s'
     if etudid:
         req += '  and etudid <> %(etudid)s'
-    cursor.execute(req, { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip(), 'etudid' : etudid } )
+    cursor.execute(req, { 'nom' : nom.lower().strip(), 'prenom' : prenom, 'etudid' : etudid } )
     res = cursor.dictfetchall()
     return True, len(res)
 
@@ -238,10 +241,10 @@ def identite_edit(cnx, args, context=None, REQUEST=None):
             notify_to = context.get_preference('notify_etud_changes_to')
         except:
             pass
+    
     if notify_to:
         # etat AVANT edition pour envoyer diffs
-        before = identite_list(cnx, {'etudid':args['etudid']})[0]
-
+        before = identite_list(cnx, {'etudid':args['etudid']})[0]    
     _identiteEditor.edit(cnx, args)
 
     # Notification du changement par e-mail:
@@ -259,7 +262,7 @@ def identite_create( cnx, args, context=None, REQUEST=None ):
     "check unique etudid, then create"
     _check_duplicate_code(cnx, args, 'code_nip', context, REQUEST)
     _check_duplicate_code(cnx, args, 'code_ine', context, REQUEST)
-
+    
     if args.has_key('etudid'):
         etudid = args['etudid']
         r = identite_list(cnx, {'etudid' : etudid})
