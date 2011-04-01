@@ -125,7 +125,7 @@ class TypeParcours:
     BARRE_UE_DEFAULT = 8.
     BARRE_UE = {}
     NOTES_BARRE_VALID_UE_TH = 10. # seuil pour valider UE
-    NOTES_BARRE_VALID_UE = 10. - NOTES_TOLERANCE   # barre sur UE
+    NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
@@ -190,6 +190,39 @@ class ParcoursLegacy(TypeParcours):
     COMPENSATION_UE = None # backward compat: defini dans formsemestre
 
 register_parcours(ParcoursLegacy())
+
+class ParcoursUCAC(TypeParcours):
+    """Règles de validation UCAC"""
+    COMPENSATION_UE = False
+    BARRE_MOY = 12.
+    NOTES_BARRE_VALID_UE_TH = 12. # seuil pour valider UE
+    NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
+    BARRE_UE_DEFAULT = NOTES_BARRE_VALID_UE_TH # il faut valider tt les UE pour valider l'année
+    
+class ParcoursLicenceUCAC3(ParcoursUCAC):
+    """Licence UCAC en 3 sessions d'un an"""
+    TYPE_PARCOURS = 501
+    NAME = "Licence UCAC en 3 sessions d'un an"
+    NB_SEM = 3
+
+register_parcours(ParcoursLicenceUCAC3())
+
+class ParcoursMasterUCAC2(ParcoursUCAC):
+    """Master UCAC en 2 sessions d'un an"""
+    TYPE_PARCOURS = 502
+    NAME = "Master UCAC en 2 sessions d'un an"
+    NB_SEM = 2
+
+register_parcours(ParcoursMasterUCAC2())
+
+class ParcoursMonoUCAC(ParcoursUCAC):
+    """Formation UCAC en 1 session de durée variable"""
+    TYPE_PARCOURS = 503
+    NAME = "Formation UCAC en 1 session de durée variable"
+    NB_SEM = 1
+
+register_parcours(ParcoursMonoUCAC())
+
 
 # # En cours d'implémentation:
 # class ParcoursLicenceLMD(TypeParcours):

@@ -70,9 +70,15 @@ NOTES_BARRE_GEN = NOTES_BARRE_GEN_TH-NOTES_TOLERANCE # barre sur moyenne general
 UE_STANDARD = 0
 UE_SPORT = 1
 UE_STAGE_LP = 2 # ue "projet tuteuré et stage" dans les Lic. Pro.
+#UE_FONDAMENTALE = 3 # ue dite "fondamentale" dans certains parcours (eg UCAC)
+#UE_OPTIONNELLE  = 4 # ue dite "optionnelle" dans certains parcours (eg UCAC)
+
 UE_TYPE_NAME = { UE_STANDARD : 'Standard', 
                  UE_SPORT : 'Sport/Culture (points bonus)', 
-                 UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)" }
+                 UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)",
+#                 UE_FONDAMENTALE : '"Fondamentale" (eg UCAC)',
+#                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
+                 }
 
 
 def fmt_note(val, note_max=None, keep_numeric=False):
