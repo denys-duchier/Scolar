@@ -115,8 +115,9 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                         'decision' : {'code':, 'code_prev': },
                         'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
-                        'autorisations' : [ { 'semestre_id' : { ... } }
-                        'prev_code' : code (calculé slt si with_prev)
+                        'autorisations' : [ { 'semestre_id' : { ... } },
+                        'prev_code' : code (calculé slt si with_prev),
+                        'mention' : mention (en fct moy gen)
                     ]
                   }
     }    
@@ -140,10 +141,14 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['etat'] = nt.get_etud_etat(etudid) # I|D  (inscription ou démission)
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
+        if d['decision_sem']:
+            d['mention'] = get_mention(nt.get_etud_moy_gen(etudid))
+        else:
+            d['mention'] = ''
         # Versions "en français":
         d['decisions_ue_descr'] = descr_decisions_ues(znotes, d['decisions_ue'], d['decision_sem'])
         d['decision_sem_descr'] = descr_decision_sem(znotes, d['etat'], d['decision_sem'])
-
+        
         d['autorisations'] = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             znotes, etudid, formsemestre_id)
         d['autorisations_descr'] = descr_autorisations(znotes, d['autorisations'])

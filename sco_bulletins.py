@@ -116,7 +116,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         format='html',
         show_date_inscr=context.get_preference('bul_show_date_inscr', formsemestre_id),
         show_decisions=context.get_preference('bul_show_decision', formsemestre_id),
-        show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id))
+        show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id),
+        show_mention=context.get_preference('bul_show_mention', formsemestre_id))    
+    
     if dpv:
         I['decision_sem'] = dpv['decisions'][0]['decision_sem']
     else:
@@ -149,6 +151,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['moy_gen'] = fmt_note(moy_gen)
     I['moy_min'] = fmt_note(nt.moy_min)
     I['moy_max'] = fmt_note(nt.moy_max)
+    if dpv and dpv['decisions'][0]['decision_sem']:
+        I['mention'] = get_mention(moy_gen)
+    else:
+        I['mention'] = ''
     I['moy_moy'] = fmt_note(nt.moy_moy) # moyenne des moyennes generales
     if type(moy_gen) != StringType and type(nt.moy_moy) != StringType:
         I['moy_gen_bargraph_html'] = '&nbsp;' + htmlutils.horizontal_bargraph(moy_gen*5, nt.moy_moy*5)
@@ -553,11 +559,12 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
     stand_alone = (format != 'pdfpart')
 
     I['infos_jury'].update( {
-            'appreciations' :  I['appreciations_txt'],
-            'situation_jury' : I['infos_jury']['situation'],
-            'demission' : I['demission'],
-            'filigranne' : I['filigranne'],            
-            } )
+        'appreciations' :  I['appreciations_txt'],
+        'situation_jury' : I['infos_jury']['situation'],
+        'demission' : I['demission'],
+        'filigranne' : I['filigranne'],
+        'mention' : I['mention']
+        } )
     diag = ''
     try:
         PDFLOCK.acquire()
@@ -834,7 +841,8 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
                                    format='html', # currently unused
                                    show_decisions=True,
                                    show_uevalid=True,
-                                   show_date_inscr=True
+                                   show_date_inscr=True,
+                                   show_mention=False
                                   ):
     """Dict décrivant la situation de l'étudiant dans ce semestre.
     Si format == 'html', peut inclure du balisage html (actuellement inutilisé)
@@ -850,6 +858,7 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     descr_decision_jury : "Décision jury: Validé" (une phrase)
     decisions_ue        : noms (acronymes) des UE validées, séparées par des virgules.
     descr_decisions_ue  : ' UE acquises: UE1, UE2', ou vide si pas de dec. ou si pas show_uevalid
+    descr_mention : 'Mention Bien', ou vide si pas de mention ou si pas show_mention
     """
     cnx = context.GetDBConnexion()
     infos = DictDefault(defaultvalue='')
@@ -914,6 +923,10 @@ def _etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         infos['descr_decisions_ue'] = ' UE acquises: ' + pv['decisions_ue_descr']
         dec += infos['descr_decisions_ue']
 
+    infos['mention'] = pv['mention']
+    if pv['mention'] and show_mention:
+        dec += '. Mention ' + pv['mention']        
+    
     infos['situation'] += ' ' + dec + '.'
     if pv['autorisations_descr']:
         infos['situation'] += " Autorisé à s'inscrire en %s." % pv['autorisations_descr']

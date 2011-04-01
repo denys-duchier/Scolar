@@ -33,7 +33,7 @@ import VERSION
 import pdb
 import os, sys, copy, re
 from types import StringType, IntType, FloatType, UnicodeType, ListType, TupleType
-import operator
+import operator, bisect
 import thread
 import urllib, time, datetime, cgi
 from sets import Set
@@ -80,6 +80,10 @@ UE_TYPE_NAME = { UE_STANDARD : 'Standard',
 #                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
                  }
 
+# borne supérieure de chaque mention
+NOTES_MENTIONS_TH = (NOTES_TOLERANCE, 7., 10., 12., 14., 16., 18., 20.+NOTES_TOLERANCE)
+NOTES_MENTIONS_LABS=('Nul', 'Faible', 'Insuffisant', 'Passable', 'Assez bien', 'Bien', 'Très bien', 'Excellent')
+
 
 def fmt_note(val, note_max=None, keep_numeric=False):
     """conversion note en str pour affichage dans tables HTML ou PDF.
@@ -115,6 +119,14 @@ def fmt_abs(val):
     """
     return "%s / %s" % (val[1], val[0] - val[1])
 
+
+def get_mention(moy):
+    """Texte "mention" en fonction de la moyenne générale"""
+    try:
+        moy = float(moy)
+    except:
+        return ''
+    return NOTES_MENTIONS_LABS[bisect.bisect_right(NOTES_MENTIONS_TH, moy)]
 
 # ----- Global lock for critical sections (except notes_tables caches)
 GSL = thread.allocate_lock() # Global ScoDoc Lock

@@ -680,8 +680,16 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'category' : 'bul',
         'labels' : ['non', 'oui']
         }
+       ),
+     ( 'bul_show_mention', 
+      { 'initvalue' : 0,
+        'title' : 'Faire figurer les mentions sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
       ),
-    ( 'bul_show_date_inscr', 
+     ( 'bul_show_date_inscr', 
       { 'initvalue' : 1,
         'title' : 'Faire figurer la date d\'inscription sur les bulletins',
         'input_type' : 'boolcheckbox',
