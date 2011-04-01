@@ -683,7 +683,7 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
        ),
      ( 'bul_show_mention', 
       { 'initvalue' : 0,
-        'title' : 'Faire figurer les mentions sur les bulletins',
+        'title' : 'Faire figurer les mentions sur les bulletins et les PV',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']

@@ -209,7 +209,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'decisions' : L }
 
 
-def pvjury_table(znotes, dpv):
+def pvjury_table(context, dpv):
     """idem mais rend list de dicts
     """
     sem = dpv['formsemestre']
@@ -220,27 +220,33 @@ def pvjury_table(znotes, dpv):
     titles = {'etudid' : 'etudid', 'nomprenom' : 'Nom',
               'parcours' : 'Parcours',
               'decision' : 'Décision' + id_cur,
+              'mention' : 'Mention',
               'ue_cap' : 'UE' + id_cur + ' capitalisées',
               'devenir' : 'Devenir', 'observations' : 'Observations'
               }
     columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap', 'devenir', 'observations']
+    if context.get_preference('bul_show_mention', sem['formsemestre_id']):
+        columns_ids[3:3] = ['mention']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
         titles['prev_decision'] = 'Décision S%s' % id_prev
         columns_ids[2:2] = ['prev_decision']
+    
     lines = []
     for e in dpv['decisions']:
         l = { 'etudid' : e['identite']['etudid'],
-              'nomprenom' : znotes.nomprenom(e['identite']),
-              '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (znotes.ScoURL(),e['identite']['etudid']),
+              'nomprenom' : context.nomprenom(e['identite']),
+              '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (context.ScoURL(),e['identite']['etudid']),
               '_nomprenom_td_attrs' : 'id="%s" class="etudinfo"' % e['identite']['etudid'],
               'parcours' : e['parcours'],
-              'decision' : descr_decision_sem_abbrev(znotes, e['etat'], e['decision_sem']),
+              'decision' : descr_decision_sem_abbrev(context, e['etat'], e['decision_sem']),
               'ue_cap' : e['decisions_ue_descr'],
               'devenir' : e['autorisations_descr'],
-              'observations' : unquote(e['observation']) }        
+              'observations' : unquote(e['observation']),
+              'mention' : e['mention']
+              }
         if dpv['has_prev']:
-            l['prev_decision'] = descr_decision_sem_abbrev(znotes, None, e['prev_decision_sem'])
+            l['prev_decision'] = descr_decision_sem_abbrev(context, None, e['prev_decision_sem'])
         lines.append(l)
     return lines, titles, columns_ids
 

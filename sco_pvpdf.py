@@ -422,6 +422,8 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
         widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None, None)
     else:
         widths = (6*cm, 2.8*cm, None, None, None, None)
+    if context.get_preference('bul_show_mention', formsemestre_id):
+        widths += (None,)
     objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
 
     # Signature du directeur
