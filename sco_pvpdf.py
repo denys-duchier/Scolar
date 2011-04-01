@@ -278,6 +278,8 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
         params['decision_ue_txt'] = """<b>Unités d'Enseignement %(decision_orig)s capitalisées : </b>%(decisions_ue_descr)s</b>""" % params
     else:
         params['decision_ue_txt'] = ''
+    # Mention
+    params['mention'] = decision['mention']
     # Informations sur compensations
     if decision['observation']:
         params['observation_txt'] = """<b>Observation :</b> %(observation)s.""" % decision
