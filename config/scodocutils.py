@@ -34,7 +34,7 @@ def get_users_cnx_str():
     return sco_utils.SCO_DEFAULT_SQL_USERS_CNX
 
 def get_depts():
-    "list of defined depts"    
+    "list of defined depts"
     files=glob.glob(SCODOC_DIR+'/config/depts/*.cfg')
     return [ os.path.splitext(os.path.split(f)[1])[0] for f in files ]
 

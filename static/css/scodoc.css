@@ -770,7 +770,18 @@ td.moduleimpl_evaluation_row {
 }
 
 tr.mievr {
-   background-color:#eee;
+   background-color:#eeeeee;
+}
+
+tr.mievr_rattr {
+   background-color:#dddddd;
+}
+span.mievr_rattr {
+    font-weight: bold;
+    color: blue;
+    margin-left: 2em;
+    border: 1px solid red;
+    padding: 1px 3px 1px 3px;
 }
 
 tr.mievr td.mievr_tit { 

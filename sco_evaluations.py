@@ -180,7 +180,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
 
     gr_incomplets = [ x for x in GrNbMissing.keys() ]
     gr_incomplets.sort()
-    if TotalNbMissing > 0:
+    if TotalNbMissing > 0 and E['evaluation_type'] != EVALUATION_RATTRAPAGE:
         complete = False
     else:
         complete = True            

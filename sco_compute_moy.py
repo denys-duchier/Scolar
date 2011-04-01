@@ -51,7 +51,7 @@ def moduleimpl_has_expression(context, mod):
     return True
 
 def formsemestre_expressions_use_abscounts(context, formsemestre_id):
-    """True si les notes de ce semestre dépendnent des compteurs d'absences.
+    """True si les notes de ce semestre dépendent des compteurs d'absences.
     Cela n'est normalement pas le cas, sauf si des formules utilisateur utilisent ces compteurs.
     """
     # check presence of 'nbabs' in expressions
@@ -155,6 +155,7 @@ def do_moduleimpl_moyennes(context, mod):
     Ne prend en compte que les evaluations où toutes les notes sont entrées.
     Le résultat est une note sur 20.
     """
+    diag_info = {} # message d'erreur formule
     moduleimpl_id = mod['moduleimpl_id']
     etudids = context.do_moduleimpl_listeetuds(moduleimpl_id) # tous, y compris demissions
     # Inscrits au semestre (pour traiter les demissions):
@@ -166,6 +167,7 @@ def do_moduleimpl_moyennes(context, mod):
     user_expr = moduleimpl_has_expression(context, mod)
     attente = False
     # recupere les notes de toutes les evaluations
+    eval_rattr = None
     for e in evals:
         e['nb_inscrits'] = len(
             sco_groups.do_evaluation_listeetuds_groups(context, e['evaluation_id'],
@@ -182,12 +184,19 @@ def do_moduleimpl_moyennes(context, mod):
         e['etat'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
         if e['etat']['evalattente']:
             attente = True
+        if e['evaluation_type'] == EVALUATION_RATTRAPAGE:
+            if eval_rattr:
+                # !!! plusieurs rattrapages !
+                diag_info.update({ 'msg' : 'plusieurs évaluations de rattrapage !',
+                                   'moduleimpl_id' : moduleimpl_id })
+            eval_rattr = e
+    
     # filtre les evals valides (toutes les notes entrées)        
     valid_evals = [ e for e in evals
-                    if (e['etat']['evalcomplete'] or e['etat']['evalattente']) ]
+                    if ((e['etat']['evalcomplete'] or e['etat']['evalattente'])
+                        and e['evaluation_type'] == 0) ]
     
     # 
-    diag_info = {} # message d'erreur formule
     R = {}
     for etudid in insmod_set: # inscrits au semestre et au module
         sum_notes = 0.
@@ -249,6 +258,15 @@ def do_moduleimpl_moyennes(context, mod):
                 if diag_info:
                     diag_info['moduleimpl_id'] = moduleimpl_id
                 R[etudid] = user_moy
+        # Note de rattrapage ?
+        if eval_rattr:
+            if eval_rattr['notes'].has_key(etudid):
+                note = eval_rattr['notes'][etudid]['value']
+                if note != None and note != NOTES_NEUTRALISE and note != NOTES_ATTENTE:
+                    if type(R[etudid]) != FloatType:
+                        R[etudid] = note
+                    elif note > R[etudid]:
+                        R[etudid] = note
     
     return R, valid_evals, attente, diag_info
 

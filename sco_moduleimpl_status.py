@@ -200,22 +200,26 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     eval_index = len(ModEvals) - 1
     for eval in ModEvals:
         etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)
-
+        if eval['evaluation_type'] == EVALUATION_RATTRAPAGE:
+            tr_class = 'mievr_rattr'
+        else:
+            tr_class = 'mievr'
         H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
-        H.append("""<tr class="mievr"><td class="mievr_tit" colspan="8">""")
+        H.append("""<tr class="mievr"><td class="mievr_tit" colspan="8">""" )
         if eval['jour']:
             H.append("""Le %(jour)s%(descrheure)s""" % eval )
         else:
             H.append("""<a href="evaluation_edit?evaluation_id=%(evaluation_id)s" class="mievr_evalnodate">Evaluation sans date</a>""" % eval )
         H.append('&nbsp;&nbsp;&nbsp; <em>%(description)s</em>' % eval)
-        
+        if eval['evaluation_type'] == EVALUATION_RATTRAPAGE:
+            H.append("""<span class="mievr_rattr">rattrapage</span>""")
         if etat['last_modif']:
             H.append("""<span class="mievr_lastmodif">(dernière modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y à %Hh%M') )
         if has_expression:
              H.append("""<span class="evalindex" title="Indice dans les vecteurs (formules)">%02d</span>""" % eval_index)
         eval_index -= 1
         H.append("""</td></tr>""")
-        H.append("""<tr class="mievr"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne """)
+        H.append("""<tr class="%s"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne """ % tr_class)
         
         if  etat['evalcomplete']:
              etat_txt = """(prise en compte)"""
@@ -233,7 +237,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         H.append(etat_txt)
         H.append("""</th></tr>""")
         
-        H.append("""<tr class="mievr"><td class="mievr">""")
+        H.append("""<tr class="%s"><td class="mievr">""" % tr_class)
         if caneditevals:
             H.append("""<a class="smallbutton" href="evaluation_edit?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('edit_img', alt='modifier', title='Modifier informations')))
         if caneditnotes:
@@ -276,13 +280,13 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         H.append("""</td></tr>""")
         #
         if etat['nb_notes'] == 0:
-            H.append("""<tr class="mievr"><td colspan="8">&nbsp;""")
+            H.append("""<tr class="%s"><td colspan="8">&nbsp;""" % tr_class)
             # XXX
             H.append("""</td></tr>""")
         else: # il y a deja des notes saisies
             gr_moyennes = etat['gr_moyennes']
             for gr_moyenne in gr_moyennes:
-                H.append("""<tr class="mievr">""")
+                H.append("""<tr class="%s">""" % tr_class)
                 H.append("""<td colspan="2">&nbsp;</td>""")                
                 if gr_moyenne['group_name'] is None:
                     name = 'Tous' # tous

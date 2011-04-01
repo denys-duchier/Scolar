@@ -84,6 +84,8 @@ UE_TYPE_NAME = { UE_STANDARD : 'Standard',
 NOTES_MENTIONS_TH = (NOTES_TOLERANCE, 7., 10., 12., 14., 16., 18., 20.+NOTES_TOLERANCE)
 NOTES_MENTIONS_LABS=('Nul', 'Faible', 'Insuffisant', 'Passable', 'Assez bien', 'Bien', 'Très bien', 'Excellent')
 
+EVALUATION_NORMALE = 0
+EVALUATION_RATTRAPAGE = 1
 
 def fmt_note(val, note_max=None, keep_numeric=False):
     """conversion note en str pour affichage dans tables HTML ou PDF.

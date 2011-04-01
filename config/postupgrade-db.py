@@ -328,6 +328,12 @@ for dept in get_depts():
                 ['alter table notes_formsemestre add column ens_can_edit_eval int default 0',
                  'update notes_formsemestre set ens_can_edit_eval=0'])
 
+    # add evaluation_type
+    check_field(cnx, 'notes_evaluation', 'evaluation_type',
+                ['alter table notes_evaluation add column evaluation_type int DEFAULT 0',
+                 'update notes_evaluation set evaluation_type=0 where evaluation_type is NULL'
+                 ])
+
     # Add here actions to performs after upgrades:
 
     cnx.commit()
