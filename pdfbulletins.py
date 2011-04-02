@@ -46,38 +46,6 @@ import traceback, re
 from notes_log import log
 import sco_groups
 
-def make_context_dict(context, sem, etud):
-    """Construit dictionnaire avec valeurs pour substitution des textes
-    (preferences bul_pdf_*)
-    """
-    C = sem.copy()
-    C['responsable'] = context.Users.user_info(user_name=sem['responsable_id'])['prenomnom']
-    annee_debut = sem['date_debut'].split('/')[2]
-    annee_fin = sem['date_fin'].split('/')[2]
-    if annee_debut != annee_fin:
-        annee = '%s - %s' % (annee_debut, annee_fin)
-    else:
-        annee = annee_debut
-    C['anneesem'] = annee
-    C.update(etud)
-    # copie preferences
-    for name in sco_preferences.PREFS_NAMES:
-        C[name] = context.get_preference(name, sem['formsemestre_id'])
-
-    # ajoute groupes et group_0, group_1, ...
-    sco_groups.etud_add_group_infos(context, etud, sem)
-    C['groupes'] = etud['groupes']
-    n = 0
-    for partition_id in etud['partitions']:
-        C['group_%d' % n] = etud['partitions'][partition_id]['group_name']
-        n += 1
-
-    # ajoute date
-    t = time.localtime()
-    C['date_dmy'] = time.strftime("%d/%m/%Y",t)
-    C['date_iso'] = time.strftime("%Y-%m-%d",t)
-    
-    return C
 
 def process_field(context, field, cdict, style, suppress_empty_pars=False):
     """Process a field given in preferences, returns list of Platypus objects
@@ -131,7 +99,7 @@ def essaipdf(REQUEST): # XXX essais...
     return sendPDFFile(REQUEST, data, filename)
 
 
-def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
+def pdfbulletin_etud(I, sem, P, TableStyle,
                      stand_alone=True,
                      filigranne=None,
                      server_name=None,
@@ -144,6 +112,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     dans un autre document.
     """
     formsemestre_id = sem['formsemestre_id']
+    infos = I # XXXXXXX ['infos_jury']
+    etud = I['etud']
     #log('pdfbulletin_etud: P=' + str(P))
     #log('pdfbulletin_etud: style=' + str(TableStyle))
     objects = []
@@ -180,10 +150,8 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     FieldStyle.fontSize= context.get_preference('SCOLAR_FONT_SIZE', formsemestre_id)
     FieldStyle.firstLineIndent = 0
 
-    infos.update( make_context_dict(context, sem, etud) )
     infos['situation_inscr'] = infos['situation'] # inscription actuelle de l'étudiant
-    infos['situation'] = infos['situation_jury'] # backward compatibility
-
+    
     # --- Build doc using ReportLab's platypus
     # Title
     objects += process_field(context, context.get_preference('bul_pdf_title', formsemestre_id), 
@@ -197,26 +165,30 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     objects.append( Table( Pt,
                            colWidths = colWidths,
                            style=TableStyle ) )
-    
-    if etud.has_key('nbabs'):
-        nbabs = etud['nbabs']
-        nbabsjust = etud['nbabsjust']
+
+    # ----- ABSENCES
+    if context.get_preference('bul_show_abs', formsemestre_id):
+        nbabs = I['nbabs']
+        nbabsjust = I['nbabsjust']
         objects.append( Spacer(1, 2*mm) )
         if nbabs:
             objects.append( Paragraph(
-                    SU("%d absences (1/2 journées), dont %d justifiées." % (etud['nbabs'], etud['nbabsjust'])), CellStyle ) )
+                    SU("%d absences (1/2 journées), dont %d justifiées." % (I['nbabs'], I['nbabsjust'])), CellStyle ) )
         else:
             objects.append( Paragraph(SU("Pas d'absences signalées."), CellStyle) )
-    #
+    
+    # ----- APPRECIATIONS
     if infos.get('appreciations', False):
         objects.append( Spacer(1, 3*mm) )
         objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(infos['appreciations'])),
                                   CellStyle) )
     
+    # ----- DECISION JURY
     if context.get_preference('bul_show_decision', formsemestre_id):
         objects += process_field(context, context.get_preference('bul_pdf_caption', formsemestre_id), 
                                  infos, FieldStyle)
-    
+
+    # ----- SIGNATURES GAUCHE ET DROITE
     show_left = context.get_preference('bul_show_sig_left', formsemestre_id)
     show_right = context.get_preference('bul_show_sig_right', formsemestre_id)
     if show_left or show_right:
@@ -236,6 +208,7 @@ def pdfbulletin_etud(etud, sem, P, TableStyle, infos,
     
     # reduit sur une page
     objects = [KeepInFrame(0,0,objects,mode='shrink')]    
+    
     #
     if not stand_alone:
         objects.append( PageBreak() ) # insert page break at end
@@ -286,24 +259,3 @@ def pdfassemblebulletins( formsemestre_id,
     data = report.getvalue()
     return data
 
-# -------------- Trombinoscope (essai)
-# def pdftrombino( sem, etudfotos, server_name='', context=None ):
-#     """generate PDF trombinoscope
-#     etudfotos = [ (etud, foto), ... ]
-#     """
-#     objects = []
-#     objects.append( Image("/tmp/viennet.jpg") )
-#     # generation du document PDF
-#     report = cStringIO.StringIO() # in-memory document, no disk file
-#     document = BaseDocTemplate(report)
-#     document.addPageTemplates(
-#     ScolarsPageTemplate(document,
-#                         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-#                         title='Bulletin %s de %s' % (sem['titremois'],etud['nomprenom']),
-#                         subject='Bulletin de note',
-#                         server_name=server_name,
-#                         preferences=context.get_preferences(formsemestre_id)))
-    
-#     document.build(objects)
-#     data = report.getvalue()
-#     return data

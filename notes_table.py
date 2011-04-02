@@ -528,7 +528,7 @@ class NotesTable:
 
         Prend toujours en compte les UE capitalisées.
         """
-        log('comp_etud_moy_gen(etudid=%s)' % etudid)
+        # log('comp_etud_moy_gen(etudid=%s)' % etudid)
         moy_ues = {}
         notes_bonus_gen = [] # liste des notes de sport et culture (s'appliquant à la MG)
         coefs_bonus_gen = []

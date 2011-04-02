@@ -33,16 +33,20 @@ from email.MIMEBase import MIMEBase
 from email.Header import Header
 from email import Encoders
 
-from notes_table import *
 import htmlutils, time
+from reportlab.lib.colors import Color
+import pprint
+
+from notes_table import *
 import pdfbulletins
 import sco_pvjury
 from sco_pdf import PDFLOCK
 import sco_formsemestre_status
 import sco_photos
 from ZAbsences import getAbsSemEtud
+import sco_preferences
 
-from reportlab.lib.colors import Color
+
 
 def make_formsemestre_bulletinetud_pdf(context, formsemestre_id, etudid, I,
                                        version='long', # short, long, selectedevals
@@ -71,6 +75,38 @@ def make_formsemestre_bulletinetud_pdf(context, formsemestre_id, etudid, I,
     
     return pdf_data, filename
 
+def _make_context_dict(context, sem, etud):
+    """Construit dictionnaire avec valeurs pour substitution des textes
+    (preferences bul_pdf_*)
+    """
+    C = sem.copy()
+    C['responsable'] = context.Users.user_info(user_name=sem['responsable_id'])['prenomnom']
+    annee_debut = sem['date_debut'].split('/')[2]
+    annee_fin = sem['date_fin'].split('/')[2]
+    if annee_debut != annee_fin:
+        annee = '%s - %s' % (annee_debut, annee_fin)
+    else:
+        annee = annee_debut
+    C['anneesem'] = annee
+    C.update(etud)
+    # copie preferences
+    for name in sco_preferences.PREFS_NAMES:
+        C[name] = context.get_preference(name, sem['formsemestre_id'])
+
+    # ajoute groupes et group_0, group_1, ...
+    sco_groups.etud_add_group_infos(context, etud, sem)
+    C['groupes'] = etud['groupes']
+    n = 0
+    for partition_id in etud['partitions']:
+        C['group_%d' % n] = etud['partitions'][partition_id]['group_name']
+        n += 1
+
+    # ajoute date courante
+    t = time.localtime()
+    C['date_dmy'] = time.strftime("%d/%m/%Y",t)
+    C['date_iso'] = time.strftime("%Y-%m-%d",t)
+    
+    return C
 
 def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='long', REQUEST=None):
     """Collecte informations pour bulletin de notes
@@ -103,13 +139,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         pid=partition['partition_id']
         partitions_etud_groups[pid] = sco_groups.get_etud_groups_in_partition(context, pid)
     # --- Absences
-    if context.get_preference('bul_show_abs', formsemestre_id):
-        AbsSemEtud = getAbsSemEtud(context, formsemestre_id, etudid)
-        I['nbabs'] =  AbsSemEtud.CountAbs()
-        I['nbabsjust'] = AbsSemEtud.CountAbsJust()
-    else:
-        I['nbabs'] = ''
-        I['nbabsjust'] = ''
+    AbsSemEtud = getAbsSemEtud(context, formsemestre_id, etudid)
+    I['nbabs'] =  AbsSemEtud.CountAbs()
+    I['nbabsjust'] = AbsSemEtud.CountAbsJust()
+    
     # --- Decision Jury
     infos, dpv = _etud_descr_situation_semestre(
         context, etudid, formsemestre_id,
@@ -123,7 +156,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['decision_sem'] = dpv['decisions'][0]['decision_sem']
     else:
         I['decision_sem'] = ''
-    I['infos_jury'] = infos
+    I.update(infos)
 
     I['etud_etat_html'] = nt.get_etud_etat_html(etudid)
     I['etud_etat'] = nt.get_etud_etat(etudid)
@@ -223,6 +256,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         
         if ue_status['is_capitalized'] or modules:
             I['ues'].append(u) # ne montre pas les UE si non inscrit
+    #
+    sem = context.get_formsemestre(formsemestre_id)
+    I.update( _make_context_dict(context, sem, I['etud']) )
     #
     return I
 
@@ -422,8 +458,8 @@ def make_formsemestre_bulletinetud_html(
     </a></p>
         """ % I )
     # --- Decision Jury
-    if I['infos_jury']['situation']:
-        H.append( """<p class="bull_situation">%(situation)s</p>""" % I['infos_jury'] )
+    if I['situation']:
+        H.append( """<p class="bull_situation">%(situation)s</p>""" % I )
     # --- Appreciations
     # le dir. des etud peut ajouter des appreciations,
     # mais aussi le chef (perm. ScoEtudInscrit)
@@ -552,25 +588,24 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
         list_modules(ue['modules'], ue_type=ue_type)
     
     #
-    etud = I['etud']
-    if context.get_preference('bul_show_abs', formsemestre_id):
-        etud['nbabs'] = I['nbabs']
-        etud['nbabsjust'] = I['nbabsjust']
     stand_alone = (format != 'pdfpart')
-
-    I['infos_jury'].update( {
-        'appreciations' :  I['appreciations_txt'],
-        'situation_jury' : I['infos_jury']['situation'],
-        'demission' : I['demission'],
-        'filigranne' : I['filigranne'],
-        'mention' : I['mention']
-        } )
+    
+    I['appreciations'] = I['appreciations_txt'] # for backward compat in templates
     diag = ''
+
+    # log('I = ' + pprint.pformat(I, indent=2) )
+    # log('nbabs=%s' % I['nbabs'])
+    # log('etud='  + pprint.pformat(etud, indent=2) )
+    # XXX debug
+    #log('I keys=%s' % I.keys() )
+    #log('infos_jury keys=%s' % I['infos_jury'].keys())
+    #log('inter=%s' % ( set(I.keys()).intersection(set(I['infos_jury'].keys()))))
+    #
     try:
         PDFLOCK.acquire()
         pdfbul, diag = pdfbulletins.pdfbulletin_etud(
-            etud, sem, P, S.PdfStyle,
-            I['infos_jury'], stand_alone=stand_alone, filigranne=I['filigranne'],
+            I, sem, P, S.PdfStyle,
+            stand_alone=stand_alone, filigranne=I['filigranne'],
             server_name=I['server_name'], 
             context=context )
     finally:
@@ -580,7 +615,7 @@ def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid,
         raise NoteProcessError(diag)
     
     dt = time.strftime( '%Y-%m-%d' )
-    filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, etud['nom'])
+    filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, I['etud']['nom'])
     filename = unescape_html(filename).replace(' ','_').replace('&','')
     return pdfbul, filename
 
