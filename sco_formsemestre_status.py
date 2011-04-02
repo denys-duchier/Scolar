@@ -41,6 +41,7 @@ import sco_groups
 import sco_evaluations
 import sco_formsemestre_edit
 import sco_compute_moy
+import sco_codes_parcours
 
 def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
@@ -335,8 +336,10 @@ def formsemestre_page_title(context, REQUEST):
         sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (sem['notes'], sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
     else:
         sem['locklink'] = ''
+    F = notes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     if sem['semestre_id'] != -1:
-        sem['num_sem'] = ', semestre %s' % sem['semestre_id']
+        sem['num_sem'] = ', %s %s' % (parcours.SESSION_NAME, sem['semestre_id'])
     else:
         sem['num_sem'] = '' # formation sans semestres
     if sem['modalite']:
@@ -373,6 +376,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
     """
     sem = context.get_formsemestre(formsemestre_id)
     F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     
@@ -404,7 +408,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
     
-    title = 'Semestre %s' % (sem['titremois'])
+    title = '%s %s' % (parcours.SESSION_NAME.capitalize(), sem['titremois'])
     
     return GenTable(
         columns_ids=columns_ids, rows=R, titles=titles,
@@ -459,9 +463,10 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
     """
     semlist = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )
     if not semlist:
-        raise ScoValueError( 'Semestre inexistant (il a peut être été supprimé ?)' )
+        raise ScoValueError( 'Session inexistante (elle a peut être été supprimée ?)' )
     sem = semlist[0]
     F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
 
     page_title = page_title or 'Modules de '
     
@@ -470,7 +475,7 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
           <tr><td class="fichetitre2">Formation: </td><td>
          <a href="Notes/ue_list?formation_id=%(formation_id)s" class="discretelink" title="Formation %(acronyme)s, v%(version)s">%(titre)s</a>""" % F ]
     if sem['semestre_id'] >= 0:
-        H.append(", semestre %(semestre_id)s" % sem )
+        H.append(", %s %s" % (parcours.SESSION_NAME, sem['semestre_id']) )
     if sem['modalite']:
         H.append('&nbsp;en %(modalite)s' % sem )
     if sem['etape_apo'] or sem['etape_apo2']:

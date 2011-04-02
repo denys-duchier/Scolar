@@ -842,10 +842,12 @@ class ZNotes(ObjectManager,
         #log( 'sems=%s' % str(sems) )
         # ajoute titre + annee et dateord (pour tris)
         for sem in sems:
+            F = self.formation_list(args={ 'formation_id' :sem['formation_id']})[0]
+            parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
             # Ajoute nom avec numero semestre:
             sem['titre_num'] = sem['titre']
             if sem['semestre_id'] != -1:
-                sem['titre_num'] += ', semestre %s' % sem['semestre_id']
+                sem['titre_num'] += ', %s %s' % (parcours.SESSION_NAME, sem['semestre_id'])
 
             sem['dateord'] = DateDMYtoISO(sem['date_debut'])
             sem['date_debut_iso'] = DateDMYtoISO(sem['date_debut'])

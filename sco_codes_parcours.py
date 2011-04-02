@@ -127,6 +127,7 @@ class TypeParcours:
     NOTES_BARRE_VALID_UE_TH = 10. # seuil pour valider UE
     NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
+    SESSION_NAME = 'semestre'
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
     def get_barre_ue(self, ue_type, tolerance=True):
@@ -193,6 +194,7 @@ register_parcours(ParcoursLegacy())
 
 class ParcoursUCAC(TypeParcours):
     """Règles de validation UCAC"""
+    SESSION_NAME = "année"
     COMPENSATION_UE = False
     BARRE_MOY = 12.
     NOTES_BARRE_VALID_UE_TH = 12. # seuil pour valider UE

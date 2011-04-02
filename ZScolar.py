@@ -618,13 +618,13 @@ class ZScolar(ObjectManager,
         
         # liste des fomsemestres "courants"
         if cursems:
-            H.append('<h2 class="listesems">Semestres en cours</h2>')
+            H.append('<h2 class="listesems">Sessions en cours</h2>')
             H.append(self._sem_table(cursems))
         
         else:
             # aucun semestre courant: affiche aide
-            H.append("""<h2 class="listesems">Aucun semestre courant !</h2>
-            <p>Pour ajouter un semestre, aller dans <a href="Notes">Programmes</a>,
+            H.append("""<h2 class="listesems">Aucune session en cours !</h2>
+            <p>Pour ajouter une session, aller dans <a href="Notes">Programmes</a>,
             choisissez une formation, puis suivez le lien "<em>UE, modules, semestres</em>".
             </p><p>
             Là, en bas de page, suivez le lien
@@ -633,12 +633,12 @@ class ZScolar(ObjectManager,
         
         if othersems and showlocked:
             H.append("""<hr/>
-            <h2>Semestres terminés (non modifiables)</h2>
+            <h2>Sessions terminées (non modifiables)</h2>
             """)            
             H.append(self._sem_table(othersems))
             H.append('</table>')
         if not showlocked:
-            H.append('<hr/><p><a href="%s?showlocked=1">Montrer les semestres verrouillés</a></p>' % REQUEST.URL0)
+            H.append('<hr/><p><a href="%s?showlocked=1">Montrer les sessions verrouillées</a></p>' % REQUEST.URL0)
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit,self):

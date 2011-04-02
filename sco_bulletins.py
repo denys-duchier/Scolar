@@ -705,11 +705,17 @@ def make_xml_formsemestre_bulletinetud(
                 continue
             mod = modimpl['module']
             doc._push()
+            if mod['ects'] is None:
+                ects = ''
+            else:
+                ects = str(mod['ects'])
             doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
                         coefficient=mod['coefficient'],
                         numero=mod['numero'],
                         titre=quote_xml_attr(mod['titre']),
-                        abbrev=quote_xml_attr(mod['abbrev']) )
+                        abbrev=quote_xml_attr(mod['abbrev']),
+                        ects=ects
+                        )
             doc._push()
             modstat = nt.get_mod_stats(modimpl['moduleimpl_id'])
             doc.note( value=mod_moy, 
