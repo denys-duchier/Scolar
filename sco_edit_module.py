@@ -31,6 +31,7 @@
 from notesdb import *
 from sco_utils import *
 from notes_log import log
+import sco_codes_parcours
 from TrivialFormulator import TrivialFormulator, TF
 
 _MODULE_HELP = """<p class="help">
@@ -57,6 +58,9 @@ def module_create(context, matiere_id=None, REQUEST=None):
         raise ScoValueError('invalid matiere !')
     M = context.do_matiere_list( args={'matiere_id' : matiere_id} )[0]
     UE = context.do_ue_list( args={'ue_id' : M['ue_id']} )[0]
+    Fo = context.formation_list( args={ 'formation_id' : UE['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
+    semestres_indices = range(1, parcours.NB_SEM+1)
     H = [ context.sco_header(REQUEST, page_title="Création d'un module"),
           """<h2>Création d'un module dans la matière %(titre)s""" % M,
           """ (UE %(acronyme)s)</h2>""" % UE,
@@ -84,9 +88,10 @@ def module_create(context, matiere_id=None, REQUEST=None):
         ('ue_id', { 'default' : M['ue_id'], 'input_type' : 'hidden' }),
         ('matiere_id', { 'default' : M['matiere_id'], 'input_type' : 'hidden' }),
         
-        ('semestre_id', { 'input_type' : 'menu', 'title' : 'Semestre', 
-                          'explanation' : 'semestre de début du module dans la formation standard',
-                          'labels' : ('1','2','3','4'), 'allowed_values' : ('1','2','3','4') }),
+        ('semestre_id', { 'input_type' : 'menu',  'type' : 'int',
+                          'title' : parcours.SESSION_NAME.capitalize(), 
+                          'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
+                          'labels' : [ str(x) for x in semestres_indices ], 'allowed_values' : semestres_indices }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
                         'type' : 'int', 'default': default_num }),
         ),
@@ -133,10 +138,14 @@ def module_edit(context, module_id=None, REQUEST=None):
         raise ScoValueError('invalid module !')
     Mod = Mod[0]
     Fo = context.formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
     M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
     Mnames = [ '%s / %s' % (x['acronyme'], x['titre']) for x in M ]
     Mids = [ '%s!%s' % (x['ue_id'], x['matiere_id']) for x in M ]
     Mod['ue_matiere_id'] = '%s!%s' % (Mod['ue_id'], Mod['matiere_id'])
+
+    semestres_indices = range(1, parcours.NB_SEM+1)
+    
     dest_url = REQUEST.URL1 + '/ue_list?formation_id=' + Mod['formation_id']
 
     H = [ context.sco_header(REQUEST, page_title="Modification du module %(titre)s" % Mod),
@@ -162,9 +171,10 @@ def module_edit(context, module_id=None, REQUEST=None):
                             'explanation' : 'un module appartient à une seule matière.',
                             'labels' : Mnames, 'allowed_values' : Mids }),
 
-        ('semestre_id', { 'input_type' : 'menu', 'title' : 'Semestre', 'type' : 'int',
-                          'explanation' : 'semestre de début du module dans la formation standard',
-                          'labels' : ('1','2','3','4'), 'allowed_values' : (1,2,3,4) }),
+        ('semestre_id', { 'input_type' : 'menu', 'type' : 'int',
+                          'title' : parcours.SESSION_NAME.capitalize(), 
+                          'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
+                          'labels' : [ str(x) for x in semestres_indices ] , 'allowed_values' : semestres_indices}),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
                         'type' : 'int' }),        
         ),

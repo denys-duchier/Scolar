@@ -141,6 +141,7 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     if not F:
         raise ScoValueError("invalid formation_id")
     F = F[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     locked = context.formation_has_locked_sems(formation_id)
 
     perm_change = authuser.has_permission(ScoChangeFormation,context)
@@ -225,14 +226,14 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                     H.append(delete_disabled_icon)
                 mod_editable = editable and not context.module_is_locked(Mod['module_id'])
                 if mod_editable:
-                    H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d semestres" href="module_edit?module_id=%(module_id)s">' % Mod)                    
+                    H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d sessions" href="module_edit?module_id=%(module_id)s">' % Mod)                    
                 H.append('%(code)s %(titre)s' % Mod )
                 if mod_editable:
                     H.append('</a>')
                 heurescoef = '%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s' % Mod
                 if Mod['ects'] is not None:
                     heurescoef += ', %g ECTS' % Mod['ects']
-                H.append(' (semestre %(semestre_id)s)' % Mod + ' (%s)' % heurescoef )
+                H.append(' (%s %s)' % (parcours.SESSION_NAME, Mod['semestre_id']) + ' (%s)' % heurescoef )
                 H.append('</li>')
             if not Modlist:
                 H.append('<li>Aucun module dans cette matière !')
