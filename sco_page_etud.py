@@ -38,7 +38,7 @@ import sco_photos
 import sco_groups
 from scolars import format_telephone, format_pays, make_etud_args
 from sco_formsemestre_status import makeMenu
-from sco_bulletins import _etud_descr_situation_semestre
+from sco_bulletins import etud_descr_situation_semestre
 import sco_parcours_dut
 from sco_formsemestre_validation import formsemestre_recap_parcours_table
 
@@ -143,7 +143,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     sem_info={}
     for sem in info['sems']: 
         if sem['ins']['etat'] == 'D':
-            descr, junk = _etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
+            descr, junk = etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
             grlink = '<span class="fontred">%s</span>' % descr['situation']
         else:       
             group = sco_groups.get_etud_main_group(context, etudid, sem)

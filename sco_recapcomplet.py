@@ -33,6 +33,7 @@ import sco_bulletins, sco_excel
 import sco_groups
 import sco_evaluations
 import sco_formsemestre_status
+import sco_bulletins_xml
 
 def formsemestre_recapcomplet(context, formsemestre_id=None, 
                               modejury=False, # affiche lien saisie decision jury
@@ -519,7 +520,7 @@ def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_wit
     for t in T:
         etudid = t[-1]
         doc._push()
-        sco_bulletins.make_xml_formsemestre_bulletinetud(
+        sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
             context, formsemestre_id, etudid,
             doc=doc, force_publishing=True,
             xml_nodate=xml_nodate, xml_with_decisions=xml_with_decisions )
