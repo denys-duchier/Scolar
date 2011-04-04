@@ -702,7 +702,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
             else:
                 if not decision_sem['assidu']:
                     code_ue = AJ
-                elif type(moy_ue) == FloatType and ue_status['moy_ue'] >= nt.parcours.NOTES_BARRE_VALID_UE:
+                elif type(moy_ue) == FloatType and ue_status['moy'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                     code_ue = ADM
                 else:
                     code_ue = AJ
