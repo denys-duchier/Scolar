@@ -58,7 +58,10 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         title = "Creation d'une UE"
         initvalues = {}
         submitlabel = 'Créer cette UE'
-    Fo = context.formation_list( args={ 'formation_id' : formation_id } )[0]
+    Fol = context.formation_list( args={ 'formation_id' : formation_id } )
+    if not Fol:
+        raise ScoValueError("Formation %s inexistante ! (si vous avez suivi un lien valide, merci de signaler le problème)" % formation_id)
+    Fo = Fol[0]
     H = [ context.sco_header(REQUEST, page_title=title,
                              javascripts=[ 'jQuery/jquery.js', 
                                            'js/edit_ue.js' ]
