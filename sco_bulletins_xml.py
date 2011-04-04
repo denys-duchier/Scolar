@@ -30,7 +30,7 @@
 
 from notes_table import *
 import sco_photos
-from ZAbsences import getAbsSemEtud
+import ZAbsences
 import sco_bulletins
 
 # -------- Bulletin en XML
@@ -217,7 +217,7 @@ def make_xml_formsemestre_bulletinetud(
     if  context.get_preference('bul_show_abs', formsemestre_id):
         debut_sem = DateDMYtoISO(sem['date_debut'])
         fin_sem = DateDMYtoISO(sem['date_fin'])
-        AbsEtudSem = getAbsSemEtud(context, formsemestre_id, etudid)
+        AbsEtudSem = ZAbsences.getAbsSemEtud(context, formsemestre_id, etudid)
         nbabs = AbsEtudSem.CountAbs()
         nbabsjust = AbsEtudSem.CountAbsJust()
         doc._push()

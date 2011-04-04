@@ -71,7 +71,7 @@ import sco_moduleimpl_status
 import sco_moduleimpl_inscriptions
 import sco_evaluations
 import sco_groups
-import sco_bulletins, sco_recapcomplet
+import sco_bulletins, sco_bulletins_pdf, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_report
 import sco_poursuite_dut
@@ -79,7 +79,6 @@ import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
 import sco_archives
-import pdfbulletins
 from sco_pdf import PDFLOCK
 from notes_table import *
 import VERSION
@@ -2294,7 +2293,7 @@ class ZNotes(ObjectManager,
             server_name = ''
         try:
             PDFLOCK.acquire()
-            pdfdoc = pdfbulletins.pdfassemblebulletins(
+            pdfdoc = sco_bulletins_pdf.pdfassemblebulletins(
                 formsemestre_id,
                 fragments, sem, infos, bookmarks,
                 filigranne=filigrannes,

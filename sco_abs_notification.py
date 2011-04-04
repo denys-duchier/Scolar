@@ -41,7 +41,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from scolog import logdb
-import pdfbulletins
+import sco_bulletins
 
 def abs_notify(context, etudid, date):
     """Check if notifications are requested and send them
@@ -179,7 +179,7 @@ def abs_notification_message(context, sem, prefs, etudid, nbabs, nbabsjust):
     etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
 
     # Variables accessibles dans les balises du template: %(nom_variable)s :
-    values = pdfbulletins.make_context_dict(context, sem, etud)
+    values = sco_bulletins.make_context_dict(context, sem, etud)
     
     values['nbabs'] = nbabs
     values['nbabsjust'] = nbabsjust

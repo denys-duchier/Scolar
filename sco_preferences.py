@@ -31,6 +31,7 @@
 from sco_utils import *
 from notesdb import *
 from TrivialFormulator import TrivialFormulator, TF
+import sco_bulletins_pdf
 
 """Global/Semestre Preferences for ScoDoc (version dec 2008)
 
@@ -583,6 +584,15 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'size' : 70, 
         'title' : 'Titre des bulletins', 
         'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département',
+        'category' : 'bul' }
+      ),
+    ( 'bul_pdf_class_name',
+      { 'initvalue' : sco_bulletins_pdf.pdf_bulletin_default_class_name(),
+        'input_type' : 'menu',
+        'labels' : sco_bulletins_pdf.pdf_bulletin_class_descriptions(),
+        'allowed_values' : sco_bulletins_pdf.pdf_bulletin_class_names(),
+        'title' : 'Type de bulletin PDF', 
+        'explanation' : 'format de présentation des bulletins de note papier (pdf)',
         'category' : 'bul' }
       ),
     ( 'bul_show_abs', # ex "gestion_absence"

@@ -42,40 +42,15 @@ import sco_pvjury
 from sco_pdf import PDFLOCK
 import sco_formsemestre_status
 import sco_photos
-from ZAbsences import getAbsSemEtud
+import ZAbsences
 import sco_preferences
-import pdfbulletins
+import sco_bulletins_pdf
 import sco_bulletins_xml
 
 
-def make_formsemestre_bulletinetud_pdf(context, formsemestre_id, etudid, I,
-                                       version='long', # short, long, selectedevals
-                                       format = 'pdf', # pdf or pdfpart
-                                       REQUEST=None):
-    """Bulletin en PDF
 
-    Appelle une fonction générant le PDF à partir des informations "bulletin",
-    selon les préférences du semestre.
 
-    """
-    if not version in ('short','long','selectedevals'):
-        raise ValueError('invalid version code !')
-
-    bul_pdf_style = 'classic' # à remplacer par preference
-
-    pdf_generators = {
-        'classic' : make_formsemestre_bulletinetud_pdf_classic,
-        }
-    
-    func = pdf_generators.get(bul_pdf_style, None)
-    if func:
-        pdf_data, filename = func(context, formsemestre_id, etudid, I, version=version, format=format, REQUEST=REQUEST)
-    else:
-        raise ValueError('invalid PDF style for bulletins (%s)' % bul_pdf_style)
-    
-    return pdf_data, filename
-
-def _make_context_dict(context, sem, etud):
+def make_context_dict(context, sem, etud):
     """Construit dictionnaire avec valeurs pour substitution des textes
     (preferences bul_pdf_*)
     """
@@ -113,11 +88,13 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     Retourne un dictionnaire.
     Le contenu du dictionnaire dépend des options (rangs, ...) 
     et de la version choisie (short, long, selectedevals).
+
+    Cette fonction est utilisée pour les bulletins HTML et PDF, mais pas ceux en XML.
     """
     if not version in ('short','long','selectedevals'):
         raise ValueError('invalid version code !')
     
-    I = { 'etudid' : etudid }
+    I = { 'etudid' : etudid, 'formsemestre_id' : formsemestre_id }
     if REQUEST:
         I['server_name'] = REQUEST.BASE0
     else:
@@ -139,7 +116,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         pid=partition['partition_id']
         partitions_etud_groups[pid] = sco_groups.get_etud_groups_in_partition(context, pid)
     # --- Absences
-    AbsSemEtud = getAbsSemEtud(context, formsemestre_id, etudid)
+    AbsSemEtud = ZAbsences.getAbsSemEtud(context, formsemestre_id, etudid)
     I['nbabs'] =  AbsSemEtud.CountAbs()
     I['nbabsjust'] = AbsSemEtud.CountAbsJust()
     
@@ -173,8 +150,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     apprecs = scolars.appreciations_list(
         cnx,
         args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
-    I['appreciations'] = apprecs 
+    I['appreciations_list'] = apprecs 
     I['appreciations_txt'] = [ x['date'] + ': ' + x['comment'] for x in apprecs ]
+    I['appreciations'] = I['appreciations_txt'] # deprecated / keep it for backward compat in templates
 
     # --- Notes
     ues = nt.get_ues()
@@ -258,7 +236,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             I['ues'].append(u) # ne montre pas les UE si non inscrit
     #
     sem = context.get_formsemestre(formsemestre_id)
-    I.update( _make_context_dict(context, sem, I['etud']) )
+    I.update( make_context_dict(context, sem, I['etud']) )
     #
     return I
 
@@ -466,9 +444,9 @@ def make_formsemestre_bulletinetud_html(
     can_edit_app = ((str(authuser) == sem['responsable_id'])
                     or (authuser.has_permission(ScoEtudInscrit,context)))
     H.append('<div class="bull_appreciations">')
-    if I['appreciations']:
+    if I['appreciations_list']:
         H.append('<p><b>Appréciations</b></p>')
-    for app in I['appreciations']:
+    for app in I['appreciations_list']:
         if can_edit_app:
             mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
         else:
@@ -481,145 +459,6 @@ def make_formsemestre_bulletinetud_html(
 
     # ---------------
     return '\n'.join(H)
-
-
-def make_formsemestre_bulletinetud_pdf_classic(context, formsemestre_id, etudid, I,
-                                               version='long', # short, long, selectedevals
-                                               format = 'pdf', # pdf or pdfpart
-                                               REQUEST=None):
-    """Bulletin en PDF
-    Format "classique ScoDoc".
-    Rewritten, mai 2010.
-    """    
-    sem = context.get_formsemestre(formsemestre_id)
-
-    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
-    
-    LINEWIDTH = 0.5
-
-    class TableStyle:
-        def __init__(self):
-            self.PdfStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                              ('LINEBELOW', (0,0), (-1,0), LINEWIDTH, Color(0,0,0)),
-                            ]
-            self.tabline = 0
-        def newline(self, ue_type=None):
-            self.tabline += 1
-            if ue_type == 'cur': # UE courante non prise en compte (car capitalisee)
-                self.PdfStyle.append(('BACKGROUND', (0,self.tabline), (-1,self.tabline),
-                                  Color(210/255.,210/255.,210/255.) ))
-            
-        def ueline(self): # met la ligne courante du tableau pdf en style 'UE'
-            self.newline()
-            i = self.tabline
-            self.PdfStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
-            self.PdfStyle.append(('BACKGROUND', (0,i), (-1,i),
-                                  Color(170/255.,187/255.,204/255.) ))
-        def modline(self, ue_type=None): # met la ligne courante du tableau pdf en style 'Module'
-            self.newline(ue_type=ue_type)
-            i = self.tabline
-            self.PdfStyle.append(('LINEABOVE', (0,i), (-1,i),
-                             1, Color(170/255.,170/255.,170/255.)))            
-    
-    S = TableStyle()
-    P = [] # elems pour gen. pdf
-
-    if context.get_preference('bul_show_minmax', formsemestre_id):
-        minmax = ' <font size="8">[%s, %s]</font>' % (I['moy_min'], I['moy_max'])
-    else:
-        minmax = ''
-
-    t = ['Moyenne', '%s%s%s' % (I['moy_gen'], I['etud_etat_html'], minmax),
-         I['rang_txt'], 
-         'Note/20', 
-         'Coef']
-    if bul_show_abs_modules:
-        t.append( 'Abs (J. / N.J.)')
-    P.append(t)
-    
-    def list_modules(ue_modules, ue_type=None):
-        for mod in ue_modules:
-            if mod['mod_moy_txt'] == 'NI':
-                continue # saute les modules où on n'est pas inscrit
-            S.modline(ue_type=ue_type)
-            if context.get_preference('bul_show_minmax_mod', formsemestre_id):
-                rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
-            else:
-                rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            t = [mod['code'], mod['name'], rang_minmax, mod['mod_moy_txt'], mod['mod_coef_txt']]
-            if bul_show_abs_modules:
-                t.append(mod['mod_abs_txt'])
-            P.append(t)
-            if version != 'short':
-                # --- notes de chaque eval:
-                for e in mod['evaluations']:
-                    if e['visibulletin'] == '1' or version == 'long':
-                        S.newline(ue_type=ue_type)
-                        t = ['','', e['name'], e['note_txt'], e['coef_txt']]
-                        if bul_show_abs_modules:
-                            t.append('')
-                        P.append(t)
-    
-    for ue in I['ues']:
-        ue_descr = ue['ue_descr_txt']
-        coef_ue  = ue['coef_ue_txt']
-        ue_type = None
-        if ue['ue_status']['is_capitalized']:
-            t = [ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue]
-            if bul_show_abs_modules:
-                t.append('')
-            P.append(t)
-            coef_ue = ''
-            ue_descr = '(en cours, non prise en compte)'
-            S.ueline()
-            if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
-                list_modules(ue['modules_capitalized'])
-            ue_type = 'cur'
-        
-        if context.get_preference('bul_show_minmax', formsemestre_id):
-            moy_txt = '%s <font size="8">[%s, %s]</font>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
-        else:
-            moy_txt = ue['cur_moy_ue_txt']
-        t = [ue['acronyme'], moy_txt, ue_descr, '', coef_ue]
-        if bul_show_abs_modules:
-            t.append('')
-        P.append(t)
-        S.ueline()
-        list_modules(ue['modules'], ue_type=ue_type)
-    
-    #
-    stand_alone = (format != 'pdfpart')
-    
-    I['appreciations'] = I['appreciations_txt'] # for backward compat in templates
-    diag = ''
-
-    # log('I = ' + pprint.pformat(I, indent=2) )
-    # log('nbabs=%s' % I['nbabs'])
-    # log('etud='  + pprint.pformat(etud, indent=2) )
-    # XXX debug
-    #log('I keys=%s' % I.keys() )
-    #log('infos_jury keys=%s' % I['infos_jury'].keys())
-    #log('inter=%s' % ( set(I.keys()).intersection(set(I['infos_jury'].keys()))))
-    #
-    try:
-        PDFLOCK.acquire()
-        pdfbul, diag = pdfbulletins.pdfbulletin_etud(
-            I, sem, P, S.PdfStyle,
-            stand_alone=stand_alone, filigranne=I['filigranne'],
-            server_name=I['server_name'], 
-            context=context )
-    finally:
-        PDFLOCK.release()
-    if diag:
-        log('pdf_error: %s' % diag )
-        raise NoteProcessError(diag)
-    
-    dt = time.strftime( '%Y-%m-%d' )
-    filename = 'bul-%s-%s-%s.pdf' % (sem['titre_num'], dt, I['etud']['nom'])
-    filename = unescape_html(filename).replace(' ','_').replace('&','')
-    return pdfbul, filename
-
-
 
 def get_etud_rangs_groups(context, etudid, formsemestre_id, 
                            partitions, partitions_etud_groups, 
@@ -811,9 +650,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
         return htm, I['filigranne']
     
     elif format == 'pdf' or format == 'pdfpart':
-        bul, filename = make_formsemestre_bulletinetud_pdf(
-            context, formsemestre_id, etudid, I, version=version, format=format,
-            REQUEST=REQUEST)
+        bul, filename = sco_bulletins_pdf.make_formsemestre_bulletinetud_pdf(context, I, version=version, format=format, REQUEST=REQUEST)
         if format == 'pdf':
             return sendPDFFile(REQUEST, bul, filename), I['filigranne'] # unused ret. value
         else:
@@ -827,8 +664,8 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
             htm = make_formsemestre_bulletinetud_html(
                 context, formsemestre_id, etudid, I, version=version, REQUEST=REQUEST)
         
-        pdfdata, filename = make_formsemestre_bulletinetud_pdf(
-            context, formsemestre_id, etudid, I, version=version, format='pdf', REQUEST=REQUEST)
+        pdfdata, filename = sco_bulletins_pdf.make_formsemestre_bulletinetud_pdf(
+            context, I, version=version, format='pdf', REQUEST=REQUEST)
 
         if not etud['email']:
             return ('<div class="boldredmsg">%s n\'a pas d\'adresse e-mail !</div>'

@@ -34,7 +34,7 @@ import sco_codes_parcours
 from sco_utils import *
 from sco_pdf import PDFLOCK
 import sco_preferences
-import pdfbulletins
+import sco_bulletins_pdf
 
 LOGO_FOOTER_ASPECT = CONFIG.LOGO_FOOTER_ASPECT # XXX A AUTOMATISER
 LOGO_FOOTER_HEIGHT = CONFIG.LOGO_FOOTER_HEIGHT * mm
@@ -301,7 +301,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
         params['diplome_txt'] = ''
     
     # Corps de la lettre:
-    objects += pdfbulletins.process_field(context, context.get_preference('PV_LETTER_TEMPLATE', sem['formsemestre_id']), params, style, suppress_empty_pars=True)
+    objects += sco_bulletins_pdf.process_field(context, context.get_preference('PV_LETTER_TEMPLATE', sem['formsemestre_id']), params, style, suppress_empty_pars=True)
     
     # Signature:
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par

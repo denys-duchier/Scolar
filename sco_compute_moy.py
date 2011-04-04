@@ -33,12 +33,11 @@ import traceback
 
 from sco_utils import *
 from notesdb import *
-import ZAbsences
 from notes_log import log, sendAlarm
 import sco_groups
 import sco_evaluations
-
 from sco_formulas import *
+import ZAbsences
 
 def moduleimpl_has_expression(context, mod):
     "True if we should use a user-defined expression"
