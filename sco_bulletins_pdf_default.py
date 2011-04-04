@@ -85,7 +85,8 @@ class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
         # ----- APPRECIATIONS
         if self.infos.get('appreciations_list', False):
             objects.append( Spacer(1, 3*mm) )
-            objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_list'])), self.CellStyle) )
+            log('appreciation list=%s' % self.infos['appreciations_list'] )
+            objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
         
         # ----- DECISION JURY
         if self.preferences['bul_show_decision']:
