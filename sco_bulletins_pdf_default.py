@@ -85,7 +85,6 @@ class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
         # ----- APPRECIATIONS
         if self.infos.get('appreciations_list', False):
             objects.append( Spacer(1, 3*mm) )
-            log('appreciation list=%s' % self.infos['appreciations_list'] )
             objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
         
         # ----- DECISION JURY
@@ -160,7 +159,10 @@ class BulTableStyle:
 
 def bulletin_pdf_table_classic(context, I, version='long'):
     """Génère la tabe centrale du bulletin de notes
-    Renvoie un objet PLATYPUS (instance de Table)
+    Renvoie un triplet:
+    - table (liste de listes de chaines de caracteres)
+    - style (commandes table Platypus)
+    - largeurs de colonnes
     """    
     S = BulTableStyle()
     P = [] # elems pour gen. pdf

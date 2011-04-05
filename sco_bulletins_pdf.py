@@ -200,7 +200,7 @@ class PDFBulletinGenerator:
             document = BaseDocTemplate(report)
             document.addPageTemplates(
                 ScolarsPageTemplate(document,
-                                    author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+                                    author='%s %s (E. Viennet) [%s]' % (SCONAME, SCOVERSION, self.description),
                                     title='Bulletin %s de %s' % (sem['titremois'], self.infos['etud']['nomprenom']),
                                     subject='Bulletin de note',
                                     margins = self.margins,
@@ -272,3 +272,4 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
 # Classes de bulletins:
 import sco_bulletins_pdf_default
 # ... ajouter ici vos modules ...
+
