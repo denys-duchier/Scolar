@@ -111,16 +111,16 @@ class ddmmyyyy:
 	# accept years YYYY or YY, uses 1970 as pivot
 	if self.year < 1970:
 	    if self.year > 100:
-		raise ValueError, 'invalid year'
+		raise ScoValueError('Année invalide: %s' % self.year)
 	    if self.year < 70:
 		self.year = self.year + 2000
 	    else:
 		self.year = self.year + 1900
 	if self.month < 1 or self.month > 12:
-	    raise ValueError, 'invalid month (%s)' % self.month
+	    raise ScoValueError('Mois invalide: %s' % self.month)
 	
 	if self.day < 1 or self.day > MonthNbDays(self.month,self.year):
-	    raise ValueError, 'invalid day (%s)' % self.day
+	    raise ScoValueError('Jour invalide: %s' % self.day)
         
         # weekday in 0-6, where 0 is monday
 	self.weekday = calendar.weekday(self.year,self.month,self.day)

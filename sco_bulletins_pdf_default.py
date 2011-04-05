@@ -46,6 +46,7 @@ import traceback, re
 from notes_log import log
 import sco_bulletins_pdf
 
+# Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
 class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
     description = 'bulletins standards de ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
 
