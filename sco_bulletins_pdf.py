@@ -51,7 +51,7 @@ Chaque semestre peut si nécessaire utiliser un type de bulletin différent.
 
 """
 import htmlutils, time
-import pprint
+import pprint, traceback
 from odict import odict
 
 from notes_table import *
