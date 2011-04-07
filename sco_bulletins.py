@@ -85,7 +85,7 @@ def make_context_dict(context, sem, etud):
 
 def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='long', REQUEST=None):
     """Collecte informations pour bulletin de notes
-    Retourne un dictionnaire.
+    Retourne un dictionnaire (avec valeur par défaut chaine vide).
     Le contenu du dictionnaire dépend des options (rangs, ...) 
     et de la version choisie (short, long, selectedevals).
 
@@ -94,7 +94,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if not version in ('short','long','selectedevals'):
         raise ValueError('invalid version code !')
     
-    I = { 'etudid' : etudid, 'formsemestre_id' : formsemestre_id }
+    I = DictDefault(defaultvalue='')
+    I['etudid'] = etudid
+    I['formsemestre_id'] = formsemestre_id
     if REQUEST:
         I['server_name'] = REQUEST.BASE0
     else:

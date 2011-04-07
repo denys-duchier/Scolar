@@ -98,7 +98,7 @@ def make_formsemestre_bulletinetud_pdf(context, infos,
     
     try:
         PDFLOCK.acquire()
-        pdf_generator = gen_class(context, infos, version=version)
+        pdf_generator = gen_class(context, infos, version=version, filigranne=infos['filigranne'])
         pdf_data = pdf_generator.generate( stand_alone=(format != 'pdfpart'))
     finally:
         PDFLOCK.release()
@@ -120,7 +120,7 @@ class PDFBulletinGenerator:
 
     def __init__(self, context, infos, version='long', filigranne=None, server_name=None):
         self.context = context
-        self.infos = infos
+        self.infos = infos        
         self.version = version
         self.filigranne = filigranne
         self.server_name = server_name
@@ -272,4 +272,5 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
 # Classes de bulletins:
 import sco_bulletins_pdf_default
 # ... ajouter ici vos modules ...
+import sco_bulletins_pdf_ucac # essai
 
