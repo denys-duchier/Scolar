@@ -219,7 +219,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     info['adm_data'] = adm_tmpl % info
     #
     if info['liste_annotations']:
-        info['tit_anno'] = '<div class="fichetitre">Annotations</div'
+        info['tit_anno'] = '<div class="fichetitre">Annotations</div>'
     else:
         info['tit_anno'] = ''
     # Inscriptions
