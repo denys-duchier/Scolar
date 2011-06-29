@@ -50,6 +50,7 @@ REDOSEM   = 'REDOSEM'    # redouble semestre (va en Sn)
 RA_OR_NEXT= 'RA_OR_NEXT' # redouble annee ou passe en Sn+1
 RA_OR_RS  = 'RA_OR_RS'   # redouble annee ou semestre
 RS_OR_NEXT= 'RS_OR_NEXT' # redouble semestre ou passe en Sn+1
+NEXT_OR_NEXT2='NEXT_OR_NEXT2' # passe en suivant (Sn+1) ou sur-suivant (Sn+2)
 NEXT='NEXT'
 REO='REO'
 BUG='BUG'
@@ -68,13 +69,18 @@ CODES_EXPL = {
     RAT : "En attente d'un rattrapage",
     }
 
-CODES_SEM_VALIDES = { 'ADM' : True, 'ADC' : True, 'ADJ' : True } # semestre validé
+CODES_SEM_VALIDES = { ADM : True, ADC : True, ADJ : True } # semestre validé
+CODES_SEM_ATTENTES = { ATT : True, ATB : True, ATJ : True } # semestre en attente
 
 CODES_SEM_REO = { 'NAR':1 } # reorientation
 
 def code_semestre_validant(code):
     "Vrai si ce CODE entraine la validation du semestre"
     return CODES_SEM_VALIDES.get(code, False)
+
+def code_semestre_attente(code):
+    "Vrai si ce CODE est un code d'attente (semestre validable plus tard par jury ou compensation)"
+    return CODES_SEM_ATTENTES.get(code, False)
 
 DEVENIR_EXPL = {
     NEXT      : 'Passage au semestre suivant',
@@ -83,6 +89,7 @@ DEVENIR_EXPL = {
     RA_OR_NEXT: 'Passage, ou redoublement année',
     RA_OR_RS  : 'Redoublement année, ou redoublement semestre', # slt si sems decales
     RS_OR_NEXT: 'Passage, ou redoublement semestre',
+    NEXT_OR_NEXT2 : "Passage en semestre suivant ou à celui d'après",
     REO       : 'Réorientation'
 }
 
@@ -91,6 +98,9 @@ DEVENIRS_STD = { NEXT:1, REDOANNEE:1, RA_OR_NEXT:1, REO:1 }
 
 # Devenirs autorises dans les cursus en un seul semestre, semestre_id==-1 (licences ?)
 DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
+
+# Devenirs en n+2 (sautant un semestre)
+DEVENIRS_NEXT2 = { NEXT_OR_NEXT2: 1 }
 
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres
 

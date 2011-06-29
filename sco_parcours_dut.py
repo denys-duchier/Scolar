@@ -47,7 +47,7 @@ class DecisionSem:
                  explication='', # aide pour le jury
                  formsemestre_id_utilise_pour_compenser=None, # None si code != ADC
                  devenir=None, # code devenir
-                 assiduite=1,
+                 assiduite=True,
                  rule_id=None # id regle correspondante
                  ):
         self.code_etat = code_etat
@@ -99,7 +99,7 @@ class SituationEtudParcours:
             self.can_compensate_with_prev = False
     
     def get_possible_choices(self, assiduite=True):
-        """Donne la liste des décisions possibles en jury
+        """Donne la liste des décisions possibles en jury (hors décisions manuelles)
         (liste d'instances de DecisionSem)
         assiduite = True si pas de probleme d'assiduité
         """
@@ -144,11 +144,12 @@ class SituationEtudParcours:
             return ''
         s = self.sem['semestre_id'] # numero semestre courant
         if s < 0: # formation sans semestres (eg licence)
-            next = 1
+            next_s = 1
         else:
-            next = self._get_next_semestre_id()
+            next_s = self._get_next_semestre_id()
+        #log('s=%s  next=%s' % (s, next_s))
         if self.semestre_non_terminal and not self.all_other_validated(): 
-            passage = 'Passe en S%s' % next
+            passage = 'Passe en S%s' % next_s
         else:
             passage = 'Formation terminée'
         if devenir == NEXT:
@@ -159,12 +160,14 @@ class SituationEtudParcours:
             return 'Redouble année (recommence S%s)' % (s - 1)
         elif devenir == REDOSEM:
             return 'Redouble semestre (recommence en S%s)' % (s)
-        elif devenir == 'RA_OR_NEXT':
+        elif devenir == RA_OR_NEXT:
             return passage + ', ou redouble année (en S%s)' % (s-1)
-        elif devenir == 'RA_OR_RS':
+        elif devenir == RA_OR_RS:
             return 'Redouble semestre S%s, ou redouble année (en S%s)' % (s, s-1)
-        elif devenir == 'RS_OR_NEXT':
+        elif devenir == RS_OR_NEXT:
             return passage + ', ou semestre S%s' % (s)
+        elif devenir == NEXT_OR_NEXT2:
+            return passage + ', ou en semestre S%s' % (s+2) # coherent avec  get_next_semestre_ids
         else:
             log('explique_devenir: code devenir inconnu: %s' % devenir)
             return 'Code devenir inconnu !'
@@ -187,15 +190,41 @@ class SituationEtudParcours:
             to_validate = Set(range(1, self.parcours.NB_SEM + 1)) # ensemble des indices à valider
             if exclude_current:
                 to_validate.remove(self.sem['semestre_id'])
+            return self._sem_list_validated(to_validate)            
+
+    def can_jump_to_next2(self):
+        """True si l'étudiant peut passer directement en Sn+2 (eg de S2 en S4).
+        Il faut donc que tous les semestres 1...n-1 soient validés et que n+1 soit en attente.
+        (et que le sem courant n soit validé, ce qui n'est pas testé ici)
+        """
+        n = self.sem['semestre_id']
+        if self.sem['gestion_semestrielle'] != '1':
+            return False # pas de semestre décalés
+        if n == NO_SEMESTRE_ID or n > self.parcours.NB_SEM-2:
+            return False # n+2 en dehors du parcours
+        if self._sem_list_validated( Set(range(1,n)) ):
+            # antérieurs validé, teste suivant
+            n1 = n + 1
             for sem in self.get_semestres():
-                if sem['formation_code'] == self.formation['formation_code']:
+                if sem['semestre_id'] == n1 and sem['formation_code'] == self.formation['formation_code']:
                     nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id']) #> get_etud_decision_sem
                     decision = nt.get_etud_decision_sem(self.etudid)
-                    if decision and code_semestre_validant(decision['code']):
-                        # validé
-                        to_validate.discard(sem['semestre_id'])
+                    if decision and (code_semestre_validant(decision['code']) or code_semestre_attente(decision['code']) ):
+                        return True
+        return False
 
-            return not to_validate
+    def _sem_list_validated(self, sem_idx_set):
+        """True si les semestres dont les indices sont donnés en argument (modifié)
+        sont validés. En sortie, sem_idx_set contient ceux qui n'ont pas été validés."""
+        for sem in self.get_semestres():
+            if sem['formation_code'] == self.formation['formation_code']:
+                nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id']) #> get_etud_decision_sem
+                decision = nt.get_etud_decision_sem(self.etudid)
+                if decision and code_semestre_validant(decision['code']):
+                    # validé
+                    sem_idx_set.discard(sem['semestre_id'])
+        
+        return not sem_idx_set
 
     def _comp_semestres(self):
         # etud['sems'] est trie par date decroissante (voir fillEtudsInfo)
@@ -304,7 +333,10 @@ class SituationEtudParcours:
         return self.prev['formsemestre_id']
     
     def get_next_semestre_ids(self, devenir):
-        "Liste des numeros de semestres autorises avec ce devenir"
+        """Liste des numeros de semestres autorises avec ce devenir
+        Ne vérifie pas que le devenir est possible (doit être fait avant),
+        juste que le rang du semestre est dans le parcours [1..NB_SEM]
+        """
         s = self.sem['semestre_id']
         if devenir == NEXT:
             ids = [self._get_next_semestre_id()]
@@ -318,9 +350,12 @@ class SituationEtudParcours:
             ids = [s-1, s]
         elif devenir == RS_OR_NEXT:
             ids = [s, self._get_next_semestre_id()]
+        elif devenir == NEXT_OR_NEXT2:
+            
+            ids = [self._get_next_semestre_id(), s+2] # cohérent avec explique_devenir()
         else:
             ids = [] # reoriente ou autre: pas de next !
-        # clip [1--4]
+        # clip [1..NB_SEM]
         r=[]
         for idx in ids:
             if idx > 0 and idx <= self.parcours.NB_SEM:

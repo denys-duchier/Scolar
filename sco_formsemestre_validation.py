@@ -561,11 +561,14 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
     if Se.sem['semestre_id'] == -1:
         allowed_codes = sco_codes_parcours.DEVENIRS_MONO
     else:
-        allowed_codes = sco_codes_parcours.DEVENIRS_STD
-
+        allowed_codes = set(sco_codes_parcours.DEVENIRS_STD)
+        # n'autorise les codes NEXT2 que si semestres décalés et s'il ne manque qu'un semestre avant le n+2
+        if Se.can_jump_to_next2():
+            allowed_codes = allowed_codes.union(sco_codes_parcours.DEVENIRS_NEXT2)
+    
     H.append('<tr><td>Devenir: </td><td><select name="devenir"><option value="" selected>Choisir...</option>')
     for cod in codes:
-        if Se.sem['gestion_semestrielle'] == '1' or allowed_codes.has_key(cod):
+        if  cod in allowed_codes: # or Se.sem['gestion_semestrielle'] == '1'
             H.append('<option value="%s">%s</option>' % (cod, Se.explique_devenir(cod)))
     H.append('</select></td></tr>')
 
