@@ -628,7 +628,7 @@ def partition_delete(context, partition_id, REQUEST=None, force=False, redirect=
     
     if not dialog_confirmed:
         if groups:
-            grnames = '(' + ', '.join( [ g['group_name'] for g in groups ] ) + ')'
+            grnames = '(' + ', '.join( [ g['group_name'] or '' for g in groups ] ) + ')'
         else:
             grnames = ''
         return context.confirmDialog(
