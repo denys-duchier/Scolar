@@ -53,7 +53,7 @@ def formsemestre_validation_etud_form(
     sortcol=None,
     readonly=True,
     REQUEST=None):
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_table_moyennes_triees, get_etud_decision_sem 
+    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_table_moyennes_triees, get_etud_decision_sem
     T = nt.get_table_moyennes_triees()
     if not etudid and not etud_index:
         raise ValueError('formsemestre_validation_etud_form: missing argument etudid')
@@ -89,6 +89,18 @@ def formsemestre_validation_etud_form(
                              javascripts=['jQuery/jquery.js', 'js/recap_parcours.js']
                              ) ]
 
+    Footer = ['<p>']
+    # Navigation suivant/precedent
+    if etud_index_prev != None:
+        etud_p = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
+        Footer.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud_p['nomprenom']) )
+    if etud_index_next != None:
+        etud_n = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
+        Footer.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud_n['nomprenom']) )
+    Footer.append('</p>')
+    Footer.append(context.sco_footer(REQUEST))
+
+
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
         H.append('<h2 class="formsemestre">%s: validation du semestre</h2>Parcours: %s' % (etud['nomprenom'], Se.get_parcours_descr()))
@@ -109,18 +121,16 @@ def formsemestre_validation_etud_form(
             if sortcol:
                 desturl += '&sortcol=' + sortcol # pour refaire tri sorttable du tableau de notes
             desturl += '#etudid%s' % etudid # va a la bonne ligne
-        H.append('<ul><li><a href="%s">Continuer</a></li>' % desturl)
-        if etud_index_prev != None:
-            etud = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
-            H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant précédent (%s)</a></li>""" % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
-        if etud_index_next != None:
-            etud = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
-            H.append("""<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Traiter l'étudiant suivant (%s)</a></li>""" % (formsemestre_id,etud_index_next, etud['nomprenom']) )
-        H.append('</ul>')
-        H.append(context.sco_footer(REQUEST))
-        return '\n'.join(H)
+        H.append('<ul><li><a href="%s">Continuer</a></li></ul>' % desturl)
+        
+        return '\n'.join(H+Footer)
 
     decision_jury = Se.nt.get_etud_decision_sem(etudid)
+
+    # Bloque si note en attente
+    if nt.etud_has_notes_attente(etudid):
+        H.append(tf_error_message("""Impossible de statuer sur cet étudiant: il a des notes en attente dans des évaluations de ce semestre (voir <a href="formsemestre_status?formsemestre_id=%s">tableau de bord</a>)""" % formsemestre_id))
+        return '\n'.join(H+Footer)
     
     # Infos si pas de semestre précédent
     if not Se.prev:
@@ -220,18 +230,8 @@ def formsemestre_validation_etud_form(
         H.append('avec semestres décalés</p>' )
     else:
         H.append('sans semestres décalés</p>' )
-
-    # navigation suivant/precedent
-    H.append('<p>')
-    if etud_index_prev != None:
-        etud = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
-        H.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud['nomprenom']) )
-    if etud_index_next != None:
-        etud = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
-        H.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud['nomprenom']) )
-    H.append('</p>')
-    H.append(context.sco_footer(REQUEST))
-    return ''.join(H)
+    
+    return ''.join(H+Footer)
 
 def formsemestre_validation_etud(
     context, # ZNotes instance
@@ -593,6 +593,7 @@ def  formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     <li>le semestre précédent, s'il y en a un, doit avoir été validé;</li>
     <li>les décisions du semestre précédent ne seront pas modifiées;</li>
     <li>l'assiduité n'est <b>pas</b> prise en compte;</li>
+    <li>les étudiants avec des notes en attente sont ignorés.</li>
     </ul>
     <p>Il est donc vivement conseillé de relire soigneusement les décisions à l'issue
     de cette procédure !</p>
@@ -621,7 +622,7 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
         
         # Conditions pour validation automatique:
         if ins['etat'] == 'I' and ( ((not Se.prev) or (Se.prev_decision and Se.prev_decision['code'] in ('ADM','ADC','ADJ')))
-             and Se.barre_moy_ok and Se.barres_ue_ok ):
+             and Se.barre_moy_ok and Se.barres_ue_ok and not nt.etud_has_notes_attente(etudid)):
             # check: s'il existe une decision ou autorisation et quelle sont differentes,
             # warning (et ne fait rien)
             decision_sem = nt.get_etud_decision_sem(etudid)

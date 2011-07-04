@@ -32,6 +32,7 @@ from VERSION import SCOVERSION
 import VERSION
 import pdb
 import os, sys, copy, re
+import pprint
 from types import StringType, IntType, FloatType, UnicodeType, ListType, TupleType
 import operator, bisect
 import thread
