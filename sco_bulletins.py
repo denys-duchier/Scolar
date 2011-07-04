@@ -136,7 +136,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     else:
         I['decision_sem'] = ''
     I.update(infos)
-
+    
     I['etud_etat_html'] = nt.get_etud_etat_html(etudid)
     I['etud_etat'] = nt.get_etud_etat(etudid)
     I['filigranne'] = ''    
@@ -238,9 +238,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             I['ues'].append(u) # ne montre pas les UE si non inscrit
     #
     sem = context.get_formsemestre(formsemestre_id)
-    I.update( make_context_dict(context, sem, I['etud']) )
+    C = make_context_dict(context, sem, I['etud'])
+    C.update(I)
     #
-    return I
+    return C
 
 def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, version):
     """Infos sur les modules (et évaluations) dans une UE
