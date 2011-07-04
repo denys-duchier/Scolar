@@ -40,7 +40,7 @@ import sco_bulletins_pdf
 import sco_bulletins_pdf_default
 
 class PDFBulletinGeneratorUCAC(sco_bulletins_pdf_default.PDFBulletinGeneratorDefault):
-    description = 'bulletins style "UCAC" (beta)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'style UCAC (beta)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
     
     def gen_table(self):
         """Génère la tabe centrale du bulletin de notes

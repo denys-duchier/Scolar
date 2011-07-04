@@ -76,6 +76,15 @@ def pdf_bulletin_default_class_name():
 def pdf_bulletin_get_class(class_name):
     return BULLETIN_PDF_CLASSES[class_name]
 
+def pdf_bulletin_get_class_name_displayed(context, formsemestre_id):
+    """Le nom du générateur utilisé, en clair"""
+    bul_pdf_class_name =  context.get_preference('bul_pdf_class_name', formsemestre_id)
+    try:
+        gen_class = pdf_bulletin_get_class(bul_pdf_class_name)
+        return gen_class.description
+    except:
+        return "invalide ! (voir paramètres)"
+
 def make_formsemestre_bulletinetud_pdf(context, infos,
                                        version='long', # short, long, selectedevals
                                        format = 'pdf', # pdf or pdfpart

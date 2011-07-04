@@ -48,7 +48,7 @@ import sco_bulletins_pdf
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
 class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
-    description = 'bulletins standards de ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'standard ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
 
     def gen_part_title(self):
         """Génère la partie "titre" du bulletin de notes.
