@@ -791,7 +791,9 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     
     H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
     H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul) )
-    H.append("""</div></td></tr></table>""")
+    H.append("""</div></td>""")
+    H.append('<td> <a href="%s">%s</a></td>'%(url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s'% (formsemestre_id,etudid,version),ICON_PDF))
+    H.append("""</tr></table>""")
     #
     H.append("""</form></span></td><td class="bull_photo">
     <a href="%s/ficheEtud?etudid=%s">%s</a>

@@ -273,5 +273,5 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
 import sco_bulletins_pdf_default
 
 # ... ajouter ici vos modules ...
-# import sco_bulletins_pdf_ucac # essai XXXXXXXX
+import sco_bulletins_pdf_ucac # format expérimental UCAC Cameroun
 

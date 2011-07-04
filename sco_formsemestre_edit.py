@@ -706,7 +706,7 @@ def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None
     for e in validations:
         if e['ue_id']:
             e['ue_id'] = ues_old2new[e['ue_id']]
-        log('e=%s' % e )
+        #log('e=%s' % e )
         sco_parcours_dut.scolar_formsemestre_validation_edit(cnx, e)
     # transaction done.
 
