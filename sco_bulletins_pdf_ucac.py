@@ -210,7 +210,7 @@ def bulletin_pdf_table_ucac(context, I, version=None):
     S.newline()
 
     # Ligne décision jury (toujours présente, ignore le paramètre)
-    P.append( bold_paras(['Décision', '', '', '', I['decision_jury'] or '', '', '']) )
+    P.append( bold_paras(['Décision', '', '', '', I.get('decision_jury', '') or '', '', '']) )
     S.pdfTableStyle.append(('SPAN', (0,S.tabline), (3,S.tabline)))
     S.pdfTableStyle.append(('SPAN', (4,S.tabline), (6,S.tabline)))
     S.pdfTableStyle.append(('BACKGROUND', (0,S.tabline), (-1,S.tabline),S.TITLEBGCOLOR ))
