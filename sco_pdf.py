@@ -110,6 +110,10 @@ def makeParas(txt, style, suppress_empty=False):
         log('Invalid pdf para format: %s' % txt)
         return [ Paragraph( SU('<font color="red"><i>Erreur: format invalide</i></font>'), style ) ]
 
+def bold_paras(L):
+    """met chaque chaine de L entre <b>"""
+    return [ '<b>' + x or '' + '</b>' for x in L ]
+
 class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""
     def __init__(self, document, pagesbookmarks={},

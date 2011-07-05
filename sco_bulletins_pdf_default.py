@@ -129,8 +129,7 @@ class BulTableStyle:
     UEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE
     MODSEPCOLOR=Color(170/255.,170/255.,170/255.) # lignes séparant les modules
     def __init__(self):
-        self.pdfTableStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                               ('LINEBELOW', (0,0), (-1,0), self.LINEWIDTH, self.LINECOLOR),
+        self.pdfTableStyle = [ ('LINEBELOW', (0,0), (-1,0), self.LINEWIDTH, self.LINECOLOR),
                                ]
         self.tabline = 0
 
@@ -150,7 +149,6 @@ class BulTableStyle:
     def ueline(self): # met la ligne courante du tableau pdf en style 'UE'
         self.newline()
         i = self.tabline
-        self.pdfTableStyle.append(('FONTNAME', (0,i), (-1,i), 'Helvetica-Bold'))
         self.pdfTableStyle.append(('BACKGROUND', (0,i), (-1,i),self.UEBGCOLOR ))
     
     def modline(self, ue_type=None): # met la ligne courante du tableau pdf en style 'Module'
@@ -182,7 +180,7 @@ def bulletin_pdf_table_classic(context, I, version='long'):
          'Coef']
     if bul_show_abs_modules:
         t.append( 'Abs (J. / N.J.)')
-    P.append(t)
+    P.append(bold_paras(t))
 
     def list_modules(ue_modules, ue_type=None):
         "ajoute les lignes decrivant les modules d'une UE, avec eventuellement les évaluations de chacun"
@@ -216,7 +214,7 @@ def bulletin_pdf_table_classic(context, I, version='long'):
             t = [ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue]
             if bul_show_abs_modules:
                 t.append('')
-            P.append(t)
+            P.append(bold_paras(t))
             coef_ue = ''
             ue_descr = '(en cours, non prise en compte)'
             S.ueline()
@@ -231,7 +229,7 @@ def bulletin_pdf_table_classic(context, I, version='long'):
         t = [ue['acronyme'], moy_txt, ue_descr, '', coef_ue]
         if bul_show_abs_modules:
             t.append('')
-        P.append(t)
+        P.append(bold_paras(t))
         S.ueline()
         list_modules(ue['modules'], ue_type=ue_type)
 

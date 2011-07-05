@@ -61,13 +61,13 @@ class BulTableStyleUCAC:
     TITLEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE
     
     def __init__(self):
-        self.pdfTableStyle = [ ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        self.pdfTableStyle = [ #('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
                                ('VALIGN',  (0,0), (-1,-1), 'MIDDLE'),
                                ('ALIGN',  (0,0), (-1,-1), 'CENTER'),
                                ('INNERGRID', (0,0), (-1,-1), self.LINEWIDTH, self.LINECOLOR), # grille interne
                                ('BOX', (0,0), (-1,-1), self.LINEWIDTH, self.LINECOLOR), # bordure extérieure
                                ('BACKGROUND', (0,0), (-1,0),self.TITLEBGCOLOR ), # couleur fond ligne titre
-                               ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), # titres en gras
+                               #('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), # titres en gras
                                ]
         self.tabline = 0
 
@@ -119,7 +119,7 @@ def bulletin_pdf_table_ucac(context, I, version=None):
     sum_coef_ues = 0. # somme des coefs des UE
     sum_pt_sem = 0. # somme des "points validés" (coef x moyenne UE)
     
-    t = [ "Code UE", "Unités d'enseignement", "Modules", "Notes /20", "Moyenne UE/20", "Coef.", "Total"]
+    t = bold_paras([ "Code UE", "Unités d'enseignement", "Modules", "Notes /20", "Moyenne UE/20", "Coef.", "Total"])
     if bul_show_abs_modules:
         t.append( 'Abs (J. / N.J.)')
     P.append(t)
@@ -205,12 +205,26 @@ def bulletin_pdf_table_ucac(context, I, version=None):
         if len(ue['modules']) > 1: # liste les autres modules
             list_modules(ue['modules'][1:], ue_type=ue_type)
     
-    # Colonne "Total"
-    P.append( ['Total', '', '', '', I['moy_gen'], fmt_note(sum_coef_ues), fmt_note(sum_pt_sem)] )
+    # Ligne "Total"
+    P.append( bold_paras(['<b>Total</b>', '', '', '', I['moy_gen'], fmt_note(sum_coef_ues), fmt_note(sum_pt_sem)]) )
     S.pdfTableStyle.append(('SPAN', (0,S.tabline), (3,S.tabline)))
-    S.pdfTableStyle.append(('FONTNAME', (0,S.tabline), (-1,S.tabline), 'Helvetica-Bold'))
+    S.pdfTableStyle.append(('BACKGROUND', (0,S.tabline), (-1,S.tabline),S.TITLEBGCOLOR ))
+    S.newline()
+
+    # Ligne décision jury (toujours présente, ignore le paramètre)
+    P.append( bold_paras(['Décision', '', '', '', I['decision_jury'] or '', '', '']) )
+    S.pdfTableStyle.append(('SPAN', (0,S.tabline), (3,S.tabline)))
+    S.pdfTableStyle.append(('SPAN', (4,S.tabline), (6,S.tabline)))
+    S.pdfTableStyle.append(('BACKGROUND', (0,S.tabline), (-1,S.tabline),S.TITLEBGCOLOR ))
     S.newline()
     
+    # Ligne "Mention" (figure toujours: le paramètre 'bul_show_mention' est ignoré)
+    P.append( bold_paras(['Mention', '', '', '', I['mention'] or '', '', '']) )
+    S.pdfTableStyle.append(('SPAN', (0,S.tabline), (3,S.tabline)))
+    S.pdfTableStyle.append(('SPAN', (4,S.tabline), (6,S.tabline)))
+    S.pdfTableStyle.append(('BACKGROUND', (0,S.tabline), (-1,S.tabline),S.TITLEBGCOLOR ))
+    S.newline()
+
     # Largeur colonnes:
     colWidths = [20*mm, 40*mm, 42*mm, 22*mm, 22*mm, 22*mm, 22*mm ]
     #    if len(P[0]) > 5:
