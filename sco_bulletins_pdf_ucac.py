@@ -46,6 +46,7 @@ class PDFBulletinGeneratorUCAC(sco_bulletins_pdf_default.PDFBulletinGeneratorDef
         """Génère la tabe centrale du bulletin de notes
         Renvoie une liste d'objets PLATYPUS (eg instance de Table).
         """
+        #log('infos=\n%s' % pprint.pformat(self.infos))
         P, pdfTableStyle, colWidths = bulletin_pdf_table_ucac(self.context, self.infos, version=self.version)
         return [ self.buildTableObject(P, pdfTableStyle, colWidths) ]
     
@@ -114,6 +115,10 @@ def bulletin_pdf_table_ucac(context, I, version=None):
     else:
         minmax = ''
 
+    # Quantités spécifiques à l'UCAC, calculées ici au vol:
+    sum_coef_ues = 0. # somme des coefs des UE
+    sum_pt_sem = 0. # somme des "points validés" (coef x moyenne UE)
+    
     t = [ "Code UE", "Unités d'enseignement", "Modules", "Notes /20", "Moyenne UE/20", "Coef.", "Total"]
     if bul_show_abs_modules:
         t.append( 'Abs (J. / N.J.)')
@@ -147,11 +152,13 @@ def bulletin_pdf_table_ucac(context, I, version=None):
         #log("ue['ue_status']['cur_moy_ue'] = %s" % ue['ue_status']['cur_moy_ue'] )
         #log("ue['ue_status']['coef_ue'] = %s" % ue['ue_status']['coef_ue'] )
         try:
-            total_pt_ue = fmt_note(ue['ue_status']['cur_moy_ue'] * ue['ue_status']['coef_ue'])
+            total_pt_ue_v = ue['ue_status']['cur_moy_ue'] * ue['ue_status']['coef_ue']
+            total_pt_ue = fmt_note(total_pt_ue_v)
             # log('total_pt_ue = %s' % total_pt_ue)
         except:
             #log("ue['ue_status']['cur_moy_ue'] = %s" % ue['ue_status']['cur_moy_ue'] )
             #log("ue['ue_status']['coef_ue'] = %s" % ue['ue_status']['coef_ue'] )
+            total_pt_ue_v = 0
             total_pt_ue = ''
         
         t = [ ue['acronyme'], '%s (%s)' % (ue['titre'], ue_descr or ''),
@@ -163,6 +170,7 @@ def bulletin_pdf_table_ucac(context, I, version=None):
         if bul_show_abs_modules:
             t.append('')
         P.append(t)
+        return total_pt_ue_v
     
     for ue in I['ues']:
         #log('** ue %s' % ue['titre'])
@@ -172,7 +180,8 @@ def bulletin_pdf_table_ucac(context, I, version=None):
         # --- UE capitalisée:
         if ue['ue_status']['is_capitalized']:            
             P.append(t)
-            list_ue( ue, ue_descr )
+            pt = list_ue( ue, ue_descr )
+            sum_pt_sem += pt
             coef_ue = ''
             ue_descr = '(en cours, non prise en compte)'
             if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
@@ -187,12 +196,21 @@ def bulletin_pdf_table_ucac(context, I, version=None):
         else:
             moy_txt = ue['cur_moy_ue_txt']
         # --- UE ordinaire
-        list_ue( ue, ue_descr )
+        pt = list_ue( ue, ue_descr )
+        if not ue['ue_status']['is_capitalized']:
+            sum_pt_sem += pt
+            sum_coef_ues += ue['ue_status']['coef_ue']
         S.ueline(nb_modules=len(ue['modules']))
         #log('ueline(%s)' % len(ue['modules']))
         if len(ue['modules']) > 1: # liste les autres modules
             list_modules(ue['modules'][1:], ue_type=ue_type)
-
+    
+    # Colonne "Total"
+    P.append( ['Total', '', '', '', I['moy_gen'], fmt_note(sum_coef_ues), fmt_note(sum_pt_sem)] )
+    S.pdfTableStyle.append(('SPAN', (0,S.tabline), (3,S.tabline)))
+    S.pdfTableStyle.append(('FONTNAME', (0,S.tabline), (-1,S.tabline), 'Helvetica-Bold'))
+    S.newline()
+    
     # Largeur colonnes:
     colWidths = [20*mm, 40*mm, 42*mm, 22*mm, 22*mm, 22*mm, 22*mm ]
     #    if len(P[0]) > 5:
