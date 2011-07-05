@@ -61,13 +61,11 @@ class BulTableStyleUCAC:
     TITLEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE
     
     def __init__(self):
-        self.pdfTableStyle = [ #('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-                               ('VALIGN',  (0,0), (-1,-1), 'MIDDLE'),
+        self.pdfTableStyle = [ ('VALIGN',  (0,0), (-1,-1), 'MIDDLE'),
                                ('ALIGN',  (0,0), (-1,-1), 'CENTER'),
                                ('INNERGRID', (0,0), (-1,-1), self.LINEWIDTH, self.LINECOLOR), # grille interne
                                ('BOX', (0,0), (-1,-1), self.LINEWIDTH, self.LINECOLOR), # bordure extérieure
                                ('BACKGROUND', (0,0), (-1,0),self.TITLEBGCOLOR ), # couleur fond ligne titre
-                               #('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'), # titres en gras
                                ]
         self.tabline = 0
 
