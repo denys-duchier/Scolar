@@ -567,10 +567,15 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         infos['descr_decision_jury'] = 'Décision jury: ' + pv['decision_sem_descr'] + '. ' 
         dec = infos['descr_decision_jury']
     
+    
     if pv['decisions_ue_descr'] and show_uevalid:
         infos['decisions_ue'] = pv['decisions_ue_descr']
         infos['descr_decisions_ue'] = ' UE acquises: ' + pv['decisions_ue_descr']
         dec += infos['descr_decisions_ue']
+    else:
+        # infos['decisions_ue'] = None
+        infos['descr_decisions_ue'] = ''
+        
 
     infos['mention'] = pv['mention']
     if pv['mention'] and show_mention:
