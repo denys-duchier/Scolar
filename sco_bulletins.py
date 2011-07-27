@@ -187,9 +187,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['rang'] = rang
     I['nbetuds'] = len(nt.rangs)
     if context.get_preference('bul_show_rangs', formsemestre_id):
-        I['rang_txt'] = 'Rang %s / %d' % (rang, I['nbetuds']-nt.nb_demissions)
+        I['rang_nt'] =  '%s / %d' % (rang, I['nbetuds']-nt.nb_demissions)
+        I['rang_txt'] = 'Rang ' + I['rang_nt']
     else:
-        I['rang_txt'] = ''
+        I['rang_nt'], I['rang_txt'] = '', ''
     I['note_max'] = 20. # notes toujours sur 20
     I['bonus_sport_culture'] = nt.bonus[etudid]
     # Liste les UE / modules /evals

@@ -62,6 +62,7 @@ from sco_pdf import PDFLOCK
 
 BULLETIN_PDF_CLASSES = odict() # liste des types des classes de générateurs de bulletins PDF
 def register_pdf_bulletin_class( klass ):
+    log("registering bulletin class '%s'" % klass.__name__)
     BULLETIN_PDF_CLASSES[klass.__name__] = klass
 
 def pdf_bulletin_class_descriptions():
@@ -175,6 +176,19 @@ class PDFBulletinGenerator:
             return []
         return Table( Pt, colWidths=colWidths, style=pdfTableStyle )
 
+    def buildTableFromDicts(self, keys, P_dict, pdfTableStyle, colWidths_dict):
+        P = []
+        for p in P_dict:
+            t = []
+            for k in keys:
+                t.append(p.get(k, ''))
+            P.append(t)
+        colWidths = []
+        for k in keys:
+            colWidths.append(colWidths_dict[k])
+        
+        return self.buildTableObject(P, pdfTableStyle, colWidths)
+
     def get_filename(self):
         """Build a filename to be proposed to the web client"""
         sem = self.context.get_formsemestre(self.infos['formsemestre_id'])    
@@ -280,6 +294,7 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False):
 
 # Classes de bulletins:
 import sco_bulletins_pdf_default
+import sco_bulletins_pdf_default_2011
 
 # ... ajouter ici vos modules ...
 import sco_bulletins_pdf_ucac # format expérimental UCAC Cameroun

@@ -1104,7 +1104,7 @@ function set_global_pref(el, pref_name) {
         form.append( ('create_local', { 'input_type' : 'hidden' } ) )
         form.append( ('destination', { 'input_type' : 'hidden' } ) )
         form.append( ('formsemestre_id', {'input_type' : 'hidden' }) )
-        log('REQUEST form=%s'%REQUEST.form)
+        #log('REQUEST form=%s'%REQUEST.form)
         tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, form, 
                                initvalues = self,
                                cssclass="sco_pref",
@@ -1114,7 +1114,7 @@ function set_global_pref(el, pref_name) {
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=Annulé' ) # cancel
         else:
-            log('tf[2]=%s' % tf[2])
+            #log('tf[2]=%s' % tf[2])
             # Supprime pref locale du semestre (retour à la valeur globale)
             if tf[2]['suppress']:
                 self.base_prefs.delete(self.formsemestre_id, tf[2]['suppress'])

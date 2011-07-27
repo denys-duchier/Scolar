@@ -51,80 +51,20 @@ import sco_preferences
 import traceback, re
 from notes_log import log
 import sco_bulletins_pdf
+import sco_bulletins_pdf_default
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
-class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
-    description = 'standard ScoDoc (version 2011, beta)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
-
-    def gen_part_title(self):
-        """Génère la partie "titre" du bulletin de notes.
-        Renvoie une liste d'objets platypus
-        """
-        objects = sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_title'], self.infos, self.FieldStyle)
-        objects.append(Spacer(1, 5*mm)) # impose un espace vertical entre le titre et la table qui suit
-        return objects
-    
+class PDFBulletinGeneratorDefault2011(sco_bulletins_pdf_default.PDFBulletinGeneratorDefault):
+    description = 'standard ScoDoc (version 2011, beta)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc  
     def gen_table(self):
-        """Génère la tabe centrale du bulletin de notes
+        """Génère la table centrale du bulletin de notes
         Renvoie une liste d'objets PLATYPUS (eg instance de Table).
         """
-        P, pdfTableStyle, colWidths = bulletin_pdf_table_classic(self.context, self.infos, version=self.version)
-        return [ self.buildTableObject(P, pdfTableStyle, colWidths) ]
+        colkeys, P, pdfTableStyle, colWidths = bulletin_pdf_table_classic_2011(self.context, self.infos, version=self.version)
+        return [ self.buildTableFromDicts( colkeys, P, pdfTableStyle, colWidths) ]
     
-    def gen_part_below(self):
-        """Génère les informations placées sous la table de notes
-        (absences, appréciations, décisions de jury...)
-        Renvoie une liste d'objets platypus
-        """
-        objects = []
-        
-        # ----- ABSENCES
-        if self.preferences['bul_show_abs']:
-            nbabs = self.infos['nbabs']
-            nbabsjust = self.infos['nbabsjust']
-            objects.append( Spacer(1, 2*mm) )
-            if nbabs:
-                objects.append( Paragraph(
-                    SU("%d absences (1/2 journées), dont %d justifiées." % (nbabs, nbabsjust)), self.CellStyle ) )
-            else:
-                objects.append( Paragraph(SU("Pas d'absences signalées."), self.CellStyle) )
-        
-        # ----- APPRECIATIONS
-        if self.infos.get('appreciations_list', False):
-            objects.append( Spacer(1, 3*mm) )
-            objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
-        
-        # ----- DECISION JURY
-        if self.preferences['bul_show_decision']:
-            objects += sco_bulletins_pdf.process_field(
-                self.context, self.preferences['bul_pdf_caption'], self.infos, self.FieldStyle)
 
-        return objects
-        
-    def gen_signatures(self):
-        """Génère les signatures placées en bas du bulletin
-        Renvoie une liste d'objets platypus
-        """
-        show_left = self.preferences['bul_show_sig_left']
-        show_right = self.preferences['bul_show_sig_right']
-        if show_left or show_right:
-            if show_left:
-                L = [[sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_sig_left'], self.infos, self.FieldStyle)]]
-            else:
-                L = [['']]
-            if show_right:
-                L[0].append(sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_sig_right'], self.infos, self.FieldStyle))
-            else:
-                L[0].append('')
-            t = Table(L)
-            t._argW[0] = 10*cm # fixe largeur colonne gauche
-            
-            return [ Spacer(1, 1.5*cm), # espace vertical avant signatures
-                     t ]
-        else:
-            return []
-
-sco_bulletins_pdf.register_pdf_bulletin_class(PDFBulletinGeneratorDefault)
+sco_bulletins_pdf.register_pdf_bulletin_class(PDFBulletinGeneratorDefault2011)
 
 
 class BulTableStyle:
@@ -132,13 +72,12 @@ class BulTableStyle:
     """
     LINEWIDTH = 0.5
     LINECOLOR = Color(0,0,0)
-    UEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE
+    UEBGCOLOR = Color(150/255.,200/255.,180/255.) # couleur fond lignes titres UE
     MODSEPCOLOR=Color(170/255.,170/255.,170/255.) # lignes séparant les modules
     def __init__(self):
-        self.pdfTableStyle = [ ('LINEBELOW', (0,0), (-1,0), self.LINEWIDTH, self.LINECOLOR),
-                               ]
         self.tabline = 0
-
+        self.pdfTableStyle = []
+    
     def get_style(self):
         "get resulting style (a list of platypus table commands)"
         # ajoute cadre extérieur bleu:
@@ -147,119 +86,159 @@ class BulTableStyle:
         return self.pdfTableStyle
     
     def newline(self, ue_type=None):
-        self.tabline += 1
         if ue_type == 'cur': # UE courante non prise en compte (car capitalisee)
             self.pdfTableStyle.append(('BACKGROUND', (0,self.tabline), (-1,self.tabline),
                                        Color(210/255.,210/255.,210/255.) ))
-
+        self.tabline += 1
+    
     def ueline(self): # met la ligne courante du tableau pdf en style 'UE'
-        self.newline()
         i = self.tabline
         self.pdfTableStyle.append(('BACKGROUND', (0,i), (-1,i),self.UEBGCOLOR ))
+        self.pdfTableStyle.append(('LINEABOVE', (0,i), (-1,i), 1, Color(0.,0.,0.)))
+        self.newline()
     
     def modline(self, ue_type=None): # met la ligne courante du tableau pdf en style 'Module'
-        self.newline(ue_type=ue_type)
         i = self.tabline
         self.pdfTableStyle.append(('LINEABOVE', (0,i), (-1,i), 1, self.MODSEPCOLOR))
+        self.pdfTableStyle.append(('SPAN', (0,i), (1,i)))
+        self.newline(ue_type=ue_type)
 
-def bulletin_pdf_table_classic(context, I, version='long'):
-    """Génère la tabe centrale du bulletin de notes
+    def evalline(self, ue_type=None): # ligne decrivant evaluation
+        self.newline(ue_type=ue_type)
+    
+    def sessionline(self):
+        self.newline()
+        i = self.tabline
+        self.pdfTableStyle.append(('LINEABOVE', (0,i), (-1,i), 1, Color(0.,0.,0.)))
+
+def bulletin_pdf_table_classic_2011(context, I, version='long'):
+    """Génère la table centrale du bulletin de notes
     Renvoie un triplet:
     - table (liste de listes de chaines de caracteres)
     - style (commandes table Platypus)
     - largeurs de colonnes
-    """    
+    """
     S = BulTableStyle()
-    P = [] # elems pour gen. pdf
+    P = [] # elems pour gen. pdf (liste de dicts)
     formsemestre_id = I['formsemestre_id']
     sem = context.get_formsemestre(formsemestre_id)
-    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)    
+    prefs = context.get_preferences(formsemestre_id)
 
-    if context.get_preference('bul_show_minmax', formsemestre_id) or context.get_preference('bul_show_minmax_mod', formsemestre_id):
-        minmax = ' <font size="8">[%s, %s]</font>' % (I['moy_min'], I['moy_max'])
-        col_minmax = 3
-    else:
-        minmax = ''
-        col_minmax = -1 # pas de colonnes min/max
-
-    t = ['Moyenne',
-         '%s%s' % (I['moy_gen'], I['etud_etat_html']),
-         I['rang_txt'], 
-         'Note/20', 
-         'Coef']
-    if col_minmax > 0:
-        t[col_minmax:col_minmax] = ['Promotion', '']
-        S.pdfTableStyle.append(('SPAN', (col_minmax,S.tabline), (col_minmax+1,S.tabline)))
+    # Colonnes à afficher:
+    with_col_abs = prefs['bul_show_abs_modules']
+    with_col_minmax = prefs['bul_show_minmax'] or prefs['bul_show_minmax_mod']
+    with_col_rang = prefs['bul_show_rangs']
     
-    if bul_show_abs_modules:
-        t.append( 'Abs (J. / N.J.)')
+    colkeys = ['titre', 'module' ] # noms des colonnes à afficher
+    if with_col_rang:
+        colkeys += ['rang']
+    if with_col_minmax:
+        colkeys += ['min', 'max']
+    colkeys += ['note', 'coef']
+    if with_col_abs:
+        colkeys += ['abs']
+    colidx = {}  # { nom_colonne : indice à partir de 0 } (pour styles platypus)
+    i = 0
+    for k in colkeys:
+        colidx[k] = i
+        i += 1
+
+    colWidths = { 'titre' : None, 'module' : None, # 6*cm,
+                  'min' : 1.5*cm, 'max' : 1.5*cm, 'rang' : 2.2*cm,
+                  'note' : 2*cm,
+                  'coef' : 1.5*cm, 'abs' : 1.5*cm }
+    
+    # 1er ligne titres
+    t = { 'min': 'Promotion', 'max' : '', 'rang' : 'Rang',
+          'note' : 'Note/20', 'coef' : 'Coef.',
+          'abs' : 'Abs.' }
     P.append(bold_paras(t))
-    
-    if col_minmax > 0:
-        # ajoute ligne de "sous-titre"
-        t = [''] * len(t) # ligne vide identique
-        t[col_minmax:col_minmax] = ['mini', 'maxi']
+    if with_col_minmax:
+        S.pdfTableStyle.append(('SPAN', (colidx['min'],S.tabline), (colidx['min']+1,S.tabline)))
+    S.newline()
+    # 2eme ligne titres si nécessaire
+    if  with_col_minmax or with_col_abs:
+        t = { 'min': 'mini', 'max' : 'maxi', 'abs' : '(J. / N.J.)' }
         P.append(bold_paras(t))
         S.newline()
-    
-    def list_modules(ue_modules, ue_type=None):
-        "ajoute les lignes decrivant les modules d'une UE, avec eventuellement les évaluations de chacun"
-        for mod in ue_modules:
-            if mod['mod_moy_txt'] == 'NI':
-                continue # saute les modules où on n'est pas inscrit
-            S.modline(ue_type=ue_type)
-            if context.get_preference('bul_show_minmax_mod', formsemestre_id):
-                rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
-            else:
-                rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            t = [mod['code'], mod['name'], rang_minmax, mod['mod_moy_txt'], mod['mod_coef_txt']]
-            if context.get_preference('bul_show_minmax_mod', formsemestre_id):
-                xxx
-            if bul_show_abs_modules:
-                t.append(mod['mod_abs_txt'])
-            P.append(t)
-            if version != 'short':
-                # --- notes de chaque eval:
-                for e in mod['evaluations']:
-                    if e['visibulletin'] == '1' or version == 'long':
-                        S.newline(ue_type=ue_type)
-                        t = ['','', e['name'], e['note_txt'], e['coef_txt']]
-                        if bul_show_abs_modules:
-                            t.append('')
-                        P.append(t)
-       
+    S.pdfTableStyle.append(('LINEABOVE', (0,S.tabline), (-1,S.tabline), S.LINEWIDTH, S.LINECOLOR))
+
+    # Moyenne générale
+    nbabs = I['nbabs']
+    nbabsjust = I['nbabsjust']
+    t = { 'titre' : 'Moyenne générale:',
+          'rang' : I['rang_nt'],
+          'note' : I['moy_gen'],
+          'abs' : '%s / %s' % (nbabs, nbabsjust) }
+    S.pdfTableStyle.append(('SPAN', (colidx['titre'],S.tabline), (colidx['module'],S.tabline)))
+    P.append(bold_paras(t))
+    S.sessionline()
+
+    # Chaque UE
     for ue in I['ues']:
+        ue_type = None 
+        coef_ue  = ue['coef_ue_txt']        
         ue_descr = ue['ue_descr_txt']
-        coef_ue  = ue['coef_ue_txt']
-        ue_type = None
         if ue['ue_status']['is_capitalized']:
-            t = [ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue]
-            if bul_show_abs_modules:
-                t.append('')
+            t = { 'titre' : ue['acronyme'],
+                  'module' : ue_descr,
+                  'note' : ue['moy_ue_txt'],
+                  'coef' : coef_ue,
+                  }
             P.append(bold_paras(t))
-            coef_ue = ''
-            ue_descr = '(en cours, non prise en compte)'
             S.ueline()
-            if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
-                list_modules(ue['modules_capitalized'])
+            if prefs['bul_show_ue_cap_details']:
+                _list_modules(ue['modules_capitalized'], ue_type=ue_type, version=version, S=S, P=P, context=context, prefs=prefs)
+            ue_descr = '(en cours, non prise en compte)'
             ue_type = 'cur'
         
-        if context.get_preference('bul_show_minmax', formsemestre_id):
-            moy_txt = '%s <font size="8">[%s, %s]</font>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
-        else:
-            moy_txt = ue['cur_moy_ue_txt']
-        t = [ue['acronyme'], moy_txt, ue_descr, '', coef_ue]
-        if bul_show_abs_modules:
-            t.append('')
+        t = { 'titre' : ue['acronyme'],
+              'module' : ue_descr,
+              'note' : ue['cur_moy_ue_txt'],
+              'coef' : coef_ue }
+        if prefs['bul_show_minmax']:
+            t['min'] = fmt_note(ue['min'])
+            t['max'] = fmt_note(ue['max'])
         P.append(bold_paras(t))
         S.ueline()
-        list_modules(ue['modules'], ue_type=ue_type)
+        _list_modules(ue['modules'], ue_type=ue_type, version=version, S=S, P=P, context=context, prefs=prefs)
+    
+    #
+    return colkeys, P, S.get_style(), colWidths
 
-    # Largeur colonnes:
-    colWidths = [None, 5*cm, 6*cm, 2*cm, 1.2*cm]
-    if len(P[0]) > 5:
-        colWidths.append( 1.5*cm ) # absences/modules
+
+def _list_modules(ue_modules, ue_type=None, version='', S=None, P=None, context=None, prefs=None):
+    """Liste dans la table les descriptions des modules et, si version != short, des évaluations.
+    """
+    for mod in ue_modules:
+        if mod['mod_moy_txt'] == 'NI':
+            continue # saute les modules où on n'est pas inscrit
+        t = { 'titre' : mod['code'] + ' ' + mod['name'],
+              'rang' : mod['mod_rang_txt'], # vide si pas option rang
+              'note' : mod['mod_moy_txt'],
+              'coef' : mod['mod_coef_txt'],
+              'abs' : mod.get('mod_abs_txt', ''), # absent si pas option show abs module
+              }
+        if prefs['bul_show_minmax_mod']:
+            t['min'] = fmt_note(mod['stats']['min'])
+            t['max'] = fmt_note(mod['stats']['max'])
         
-    return P, S.get_style(), colWidths
+        P.append(t)
+        S.modline(ue_type=ue_type)
+        if version != 'short':
+            # --- notes de chaque eval:
+            nbeval = 0
+            for e in mod['evaluations']:
+                if e['visibulletin'] == '1' or version == 'long':
+                    t = { 'module' : '<bullet indent="2.5mm">&bull;</bullet>' + e['name'],
+                          'note' : '<i>'+e['note_txt']+'</i>',
+                          'coef' : '<i>'+e['coef_txt']+'</i>' }
+                    P.append(t)
+                    S.evalline(ue_type=ue_type)
+                    nbeval += 1
+            if nbeval:
+                S.pdfTableStyle.append(('BOX', (1,S.tabline-nbeval),
+                                        (-1, S.tabline-1), 0.2, Color(0.75,0.75,0.75)))
+
 
 
