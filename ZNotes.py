@@ -2331,7 +2331,7 @@ class ZNotes(ObjectManager,
             sco_bulletins.do_formsemestre_bulletinetud(
                 self, formsemestre_id, etudid,
                 version=version, 
-                format = 'mailpdf', nohtml=True, REQUEST=REQUEST )
+                format = 'pdfmail', nohtml=True, REQUEST=REQUEST )
         #
         return self.sco_header(REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(etudids),formsemestre_id) + self.sco_footer(REQUEST)
 

@@ -25,7 +25,19 @@
 #
 ##############################################################################
 
-"""Generation de tables aux formats XHTML, PDF et Excel
+"""Géneration de tables aux formats XHTML, PDF, Excel, XML et JSON.
+
+Les données sont fournies comme une liste de dictionnaires, chaque élément de
+cette liste décrivant une ligne du tableau.
+
+Chaque colonne est identifiée par une clé du dictionnaire.
+
+Voir exemple en fin de ce fichier.
+
+Les clés commençant par '_' sont réservées. Certaines altèrent le traitement, notamment
+pour spécifier les styles de mise en forme.
+Par exemple, la clé '_css_row_class' spécifie le style CSS de la ligne.
+
 """
 
 import random
@@ -36,6 +48,15 @@ import jaxml
 import sco_excel
 from sco_pdf import *
 
+def mark_paras(L, tags):
+    """Put each (string) element of L between  <b>
+    """
+    for tag in tags:
+        b = '<' + tag + '>'
+        c = '</' + tag.split()[0] + '>'
+        L = [ b + x or '' + c for x in L ]
+    return L
+
 class DEFAULT_TABLE_PREFERENCES:
     values = {
         'SCOLAR_FONT' : 'Helvetica', # used for PDF, overriden by preferences argument
@@ -43,7 +64,7 @@ class DEFAULT_TABLE_PREFERENCES:
         'SCOLAR_FONT_SIZE_FOOT' : 6
         }
     def __getitem__(self,k):
-        return self.value[k]
+        return self.values[k]
 
 class GenTable:
     """Simple 2D tables with export to HTML, PDF, Excel.
@@ -59,8 +80,6 @@ class GenTable:
                  caption=None,
                  page_title='', # titre fenetre html
 
-                 generate_cells=True, # generate cells even if not in rows XXX to fix: only in HTML
-
                  pdf_link=True,
                  xls_link=True,
                  xml_link=False,
@@ -70,6 +89,7 @@ class GenTable:
                  html_sortable=False,
                  html_highlight_n=2, # une ligne sur 2 de classe "gt_hl"
                  html_col_width=None, # force largeur colonne
+                 html_generate_cells=True, # generate empty <td> cells even if not in rows (useless?)
                  html_title = '', # avant le tableau en html
                  html_caption=None, # override caption if specified
                  html_header=None,
@@ -87,7 +107,7 @@ class GenTable:
                  xml_outer_tag='table',
                  xml_row_tag='row',
                  
-                 preferences=DEFAULT_TABLE_PREFERENCES
+                 preferences=None
                  ):
         self.rows = rows # [ { col_id : value } ]
         self.columns_ids = columns_ids # ordered list of col_id
@@ -100,7 +120,6 @@ class GenTable:
         self.caption = caption
         self.html_header=html_header
         self.page_title = page_title
-        self.generate_cells = generate_cells
         self.pdf_link=pdf_link
         self.xls_link=xls_link
         self.xml_link=xml_link
@@ -109,6 +128,7 @@ class GenTable:
             self.table_id = 'gt_' + str(random.randint(0, 1000000))
         else:
             self.table_id = table_id
+        self.html_generate_cells = html_generate_cells
         self.html_title = html_title
         self.html_caption = html_caption
         self.html_next_section = html_next_section
@@ -127,14 +147,23 @@ class GenTable:
         self.xml_outer_tag=xml_outer_tag
         self.xml_row_tag=xml_row_tag
         #
-        self.preferences = preferences
+        if preferences:
+            self.preferences = preferences
+        else:
+            self.preferences = DEFAULT_TABLE_PREFERENCES()
     def get_nb_cols(self):
         return len(self.columns_ids)
 
-    def get_data_list(self, with_titles=False, with_lines_titles=True, with_bottom_titles=True):
+    def get_data_list(self,
+                      with_titles=False, with_lines_titles=True, with_bottom_titles=True,
+                      omit_hidden_lines=False,
+                      pdf_mode=False, # apply special pdf reportlab processing
+                      pdf_style_list = [] # modified: list of platypus table style commands
+                      ):
         "table data as a list of lists (rows)"
         T = []
-        line_num = 0
+        line_num = 0  # line number in input data
+        out_line_num = 0 # line number in output list
         if with_titles and self.titles:
             l = []
             if with_lines_titles:
@@ -152,7 +181,30 @@ class GenTable:
                     l = [ row['row_title'] ]
                 elif self.lines_titles:
                     l = [ self.lines_titles[line_num] ]
-            T.append( l + [ row.get(cid,'') for cid in self.columns_ids ])
+            if not (omit_hidden_lines and row.get('_hidden',False)):
+                colspan_count = 0
+                col_num = len(l)
+                for cid in self.columns_ids:
+                    colspan_count -= 1
+                    #if colspan_count > 0:
+                    #    continue # skip cells after a span
+                    content = row.get(cid,'') or '' # nota: None converted to ''
+                    colspan = row.get('_%s_colspan'%cid, 0)
+                    if colspan > 1:
+                        pdf_style_list.append(('SPAN', (col_num,out_line_num), (col_num+colspan-1,out_line_num)))
+                        colspan_count = colspan
+                    l.append(content)
+                    col_num += 1
+                if pdf_mode:
+                    mk = row.get('_pdf_row_markup', []) # a list of tags
+                    if mk:
+                        l = mark_paras(l, mk)                        
+                T.append(l)
+                #
+                for cmd in row.get('_pdf_style', []): # relocate line numbers
+                    pdf_style_list.append( (cmd[0], (cmd[1][0], cmd[1][1]+out_line_num), (cmd[2][0], cmd[2][1]+out_line_num)) + cmd[3:] ) 
+                
+                out_line_num += 1
 
         if with_bottom_titles and self.bottom_titles:
             line_num += 1
@@ -175,14 +227,20 @@ class GenTable:
             l = []
         return l + [ self.titles.get(cid,'') for cid in self.columns_ids ]
 
-    def gen(format='html', columns_ids=None):
-        "Build representation of the table in the specified format."
+    def gen(self, format='html', columns_ids=None):
+        """Build representation of the table in the specified format.
+        See make_page() for more sophisticated output.
+        """
         if format == 'html':
             return self.html()
         elif format == 'xls':
             return self.excel()
         elif format == 'pdf':
             return self.pdf()
+        elif format == 'xml':
+            return self.xml()
+        elif format == 'json':
+            return self.json()
         raise ValueError('GenTable: invalid format: %s' % format)
 
     def html(self):
@@ -226,7 +284,7 @@ class GenTable:
                     cls = ' class="%s"' % cla
                 else:
                     cls = ''
-            H.append('<tr%s>' % cls)
+            H.append('<tr%s %s>' % (cls, row.get('_tr_attrs', '')))
             if self.lines_titles: # deprecated: prefer 'row_title'
                 H.append('<th class="gt_linetit">%s</th>' % self.lines_titles[line_num])
             if row:
@@ -238,10 +296,14 @@ class GenTable:
                         content = '<a class="discretelink" href="" title="%s">%s</a>' % (help, content)
                     H.append('<th class="gt_linetit">' + content + '</th>')
                 r = []
+                colspan_count = 0
                 for cid in self.columns_ids:
-                    if not cid in row and not self.generate_cells:
+                    if not cid in row and not self.html_generate_cells:
                         continue # skip cell
-                    content = row.get(cid,'')
+                    colspan_count -= 1
+                    if colspan_count > 0:
+                        continue # skip cells after a span
+                    content = row.get( '_' + cid + '_html', row.get(cid,'') )
                     if content is None:
                         content = ''
                     else:
@@ -257,8 +319,15 @@ class GenTable:
                         c = ' class="%s"' % cid
                     else:
                         c = ''
-                    r.append( '<td%s %s%s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''), c, content))
-                H.append(''.join(r))
+                    colspan = row.get('_%s_colspan'%cid, 0)
+                    if colspan > 1:
+                        colspan_txt=' colspan="%d" ' % colspan
+                        colspan_count = colspan
+                    else:
+                        colspan_txt=''
+                    r.append( '<td%s %s%s%s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''), c, colspan_txt, content))
+                
+                H.append(''.join(r) + '</tr>')
             elif not self.lines_titles:
                 H.append('<tr></tr>') # empty row
             
@@ -316,7 +385,9 @@ class GenTable:
         return r
     
     def _pdf(self):
-        "PDF representation: returns a ReportLab's platypus Table instance"
+        """PDF representation: returns a list of ReportLab's platypus objects
+        (notably a Table instance)
+        """
         if not self.pdf_table_style:
             LINEWIDTH = 0.5
             self.pdf_table_style= [ ('FONTNAME', (0,0), (-1,0), self.preferences['SCOLAR_FONT']),
@@ -336,9 +407,20 @@ class GenTable:
         LINEWIDTH = 0.5
         #
         titles = [ '<para><b>%s</b></para>' % x for x in self.get_titles_list() ]
+        pdf_style_list = []
         Pt = [ [Paragraph(SU(str(x)),CellStyle) for x in line ]
-               for line in (self.get_data_list(with_titles=True))]
-        T = Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=self.pdf_table_style )
+               for line in (self.get_data_list(pdf_mode=True, pdf_style_list=pdf_style_list,
+                                               with_titles=True, omit_hidden_lines=True))]
+        pdf_style_list += self.pdf_table_style
+        #log('len(Pt)=%s' % len(Pt))
+        #log( 'line lens=%s' % [ len(x) for x in Pt ] )
+        #log( 'style=\n%s' % pdf_style_list)
+        col_min = min( [ x[1][0] for x in pdf_style_list] )
+        col_max = max( [ x[2][0] for x in pdf_style_list] )
+        lin_min = min( [ x[1][1] for x in pdf_style_list] )
+        lin_max = max( [ x[2][1] for x in pdf_style_list] )
+        #log('col_min=%s col_max=%s lin_min=%s lin_max=%s' % (col_min, col_max, lin_min, lin_max))
+        T = Table( Pt, repeatRows=1, colWidths = self.pdf_col_widths, style=pdf_style_list)
 
         objects = []
         StyleSheet = styles.getSampleStyleSheet()
@@ -445,3 +527,17 @@ class GenTable:
             return js
         else:
             raise ValueError('_make_page: invalid format')
+
+
+
+# ----- Exemple d'utilisation minimal.
+if __name__ == '__main__':
+    T = GenTable( rows = [ { 'nom' : 'Toto', 'age' : 26 }, { 'nom' : 'Titi', 'age' : 21 } ],
+                  columns_ids = ('nom', 'age') )
+    print '--- HTML:'
+    print T.gen(format='html')
+    print '\n--- XML:'
+    print T.gen(format='xml')
+    print '\n--- JSON:'
+    print T.gen(format='json')
+                  

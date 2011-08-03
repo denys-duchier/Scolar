@@ -1,8 +1,62 @@
 
   NOTES EN VRAC : voir plutôt le Trac !!!
 
-* Bulletins:
+CHANGES svn1046
+ - bulletins PDF defaut 2011: ameliorations cosmetiques.
+ - #99 classements par groupes sur bulletins PDF.
 
+
+*** Nouvelle archi bulletins PDF+HTML
+
+ page html = titre, table, dessous
+ page pdf = idem + signatures
+class generateur
+ .gen_part_title() # partie haute du bulletin (pdf seulement, liste de platypus)
+ .gen_table()      # table des notes: methodes .pdf() et .html()
+ .gen_part_below() # infos sous la table: liste de platypus ou (liste de) chaine html           
+ .gen_signatures() # signatures (pdf seulement, liste de platypus)
+
+ Nouveau:
+class BulletinGenerator:
+ description
+ supported_formats = [ 'pdf', 'html' ]
+ .bul_title_pdf()
+ .bul_table(format)
+ .bul_part_below(format)
+ .bul_signatures_pdf()
+ 
+ .__init__ et .generate(format) methodes appelees par le client (sco_bulletin)
+
+preference: 'bul_pdf_class_name' obsolete (inutilisée)
+            'bul_class_name' nom de la classe generateur
+
+modules:
+ sco_bulletins
+  .formsemestre_bulletinetud_dict
+  .formsemestre_bulletinetud : page HTML bulletin
+  .do_formsemestre_bulletinetud: Génère le bulletin au format demandé.
+  .mail_bulletin
+  + ancien code de generation HTML à deplacer dans sco_bulletin_legacy
+
+ sco_bulletins_generator
+   super classe pour les generateurs de bulletins
+  Y ajouter le choix du générateur, et l'import des modules generateurs 
+  .make_formsemestre_bulletinetud  
+
+ sco_bulletins_standard
+   classe generateur pour bulletins par defaut (version juillet 2011)
+
+ sco_bulletins_pdf
+   déplacer le code super classe generateur dans sco_bulletin_generator
+   manipulations specifiques aux bulletins pdf:
+    .pdfassemblebulletins
+    .process_field (gestion des préférences)
+
+ sco_bulletins_pdf_ucac  => modifier en sco_bulletins_ucac
+ sco_bulletins_xml : inchangé
+
+ sco_bulletin_pdf_default => sco_bulletin_legacy
+   code anciens bulletins PDF
 
 
 

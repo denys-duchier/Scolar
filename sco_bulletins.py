@@ -26,6 +26,7 @@
 ##############################################################################
 
 """Génération des bulletins de notes
+
 """
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -39,15 +40,12 @@ import pprint
 
 from notes_table import *
 import sco_pvjury
-from sco_pdf import PDFLOCK
 import sco_formsemestre_status
 import sco_photos
 import ZAbsences
 import sco_preferences
-import sco_bulletins_pdf
+import sco_bulletins_generator
 import sco_bulletins_xml
-
-
 
 
 def make_context_dict(context, sem, etud):
@@ -202,7 +200,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         if ue['type'] != UE_SPORT:
             u['cur_moy_ue_txt'] = fmt_note(ue_status['cur_moy_ue'])
         else:
-            u['cur_moy_ue_txt'] = '(note spéciale, bonus de %s points)' % nt.bonus[etudid]
+            u['cur_moy_ue_txt'] = 'bonus de %s points' % nt.bonus[etudid]
         u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
         
@@ -223,7 +221,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         u['modules'] = [] # modules de l'UE (dans le semestre courant)
         u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
         if ue_status['is_capitalized']:
-            log('cap details   %s' % ue_status['moy'])
+            # log('cap details   %s' % ue_status['moy'])
             if ue_status['moy'] != 'NA' and ue_status['formsemestre_id']:
                 # detail des modules de l'UE capitalisee
                 nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
@@ -264,6 +262,8 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
         if bul_show_abs_modules:
             mod_abs = [context.Absences.CountAbs(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=modimpl['moduleimpl_id']), context.Absences.CountAbsJust(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=modimpl['moduleimpl_id'])]
             mod['mod_abs_txt'] = fmt_abs(mod_abs)
+        else:
+            mod['mod_abs_txt'] = ''
         
         mod['mod_moy_txt'] = fmt_note(mod_moy)
         if mod['mod_moy_txt'][:2] == 'NA':
@@ -315,7 +315,8 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                 mod['evaluations'].append(e)
                 if e['visibulletin'] == '1' or version == 'long':
                     e['name'] = e['description'] or 'le %s' % e['jour']
-                e['name_html'] = '<a class="bull_link" href="evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1">%s</a>' % (e['evaluation_id'], e['name'])
+                e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1' % e['evaluation_id']
+                e['name_html'] = '<a class="bull_link" href="%s">%s</a>' % (e['target_html'], e['name'])
                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                 if val == 'NP':
                     e['note_txt'] = 'nd'
@@ -327,142 +328,6 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                     e['coef_txt'] = fmt_coef(e['coefficient'])                
     return mods
 
-def make_formsemestre_bulletinetud_html(
-    context, formsemestre_id, etudid, I,
-    version='long', # short, long, selectedevals
-    REQUEST=None):
-    """Bulletin en HTML
-    Nouvelle version, mai 2010
-    """
-    if not version in ('short','long','selectedevals'):
-        raise ValueError('invalid version code !')
-    format = 'html'
-    
-    bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
-    
-    sem = context.get_formsemestre(formsemestre_id)
-    if sem['bul_bgcolor']:
-        bgcolor = sem['bul_bgcolor']
-    else:
-        bgcolor = 'background-color: rgb(255,255,240)'
-    authuser = REQUEST.AUTHENTICATED_USER
-
-    linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>'
-    minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
-    pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
-    
-    H = [ '<table class="notes_bulletin" style="background-color: %s;">' % bgcolor  ]
-    
-    if context.get_preference('bul_show_minmax', formsemestre_id):
-        minmax = '<span class="bul_minmax" title="[min, max] promo">[%s, %s]</span>' % (I['moy_min'], I['moy_max'])
-        bargraph = ''
-    else:
-        minmax = ''
-        bargraph = I['moy_gen_bargraph_html']
-    # 1ere ligne: titres
-    H.append( '<tr><td class="note_bold">Moyenne</td><td class="note_bold cell_graph">%s%s%s%s</td>'
-              % (I['moy_gen'], I['etud_etat_html'], minmax, bargraph) )
-    H.append( '<td class="note_bold">%s</td>' % I['rang_txt'] )
-    H.append( '<td class="note_bold">Note/20</td><td class="note_bold">Coef</td>')
-    if bul_show_abs_modules:
-        H.append( '<td class="note_bold">Abs (J. / N.J.)</td>' )
-    H.append('</tr>')
-    def list_modules(ue_modules, rowstyle):
-        for mod in ue_modules:
-            if mod['mod_moy_txt'] == 'NI':
-                continue # saute les modules où on n'est pas inscrit
-            H.append('<tr class="notes_bulletin_row_mod%s">' % rowstyle)
-            if context.get_preference('bul_show_minmax_mod', formsemestre_id):
-                rang_minmax = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
-            else:
-                rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
-            H.append('<td>%s</td><td>%s</td><td>%s</td><td class="note">%s</td><td>%s</td>'
-                     % (mod['code_html'], mod['name_html'], 
-                        rang_minmax, 
-                        mod['mod_moy_txt'], mod['mod_coef_txt'] ))
-            if bul_show_abs_modules:
-                H.append('<td>%s</td>' % mod['mod_abs_txt'])
-            H.append('</tr>')
-            
-            if version != 'short':
-                # --- notes de chaque eval:
-                for e in mod['evaluations']:
-                    if e['visibulletin'] == '1' or version == 'long':
-                        H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
-                        H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td class="note">%s</td><td class="bull_coef_eval">%s</td></tr>'
-                                 % ('','', e['name_html'], e['note_html'], e['coef_txt']))
-    
-    # Contenu table: UE apres UE
-    for ue in I['ues']:
-        ue_descr = ue['ue_descr_html']
-        coef_ue  = ue['coef_ue_txt']
-        rowstyle = ''
-        plusminus = minuslink # 
-        if ue['ue_status']['is_capitalized']:
-            if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
-                plusminus = minuslink
-                hide = ''
-            else:
-                plusminus = pluslink
-                hide = 'sco_hide'
-            H.append('<tr class="notes_bulletin_row_ue">' )
-            H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>' 
-                     %  (plusminus, ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
-            if bul_show_abs_modules:
-                H.append('<td></td>')
-            H.append('</tr>')
-            list_modules(ue['modules_capitalized'], ' bul_row_ue_cap %s' % hide)
-                         
-            coef_ue  = ''
-            ue_descr = '(en cours, non prise en compte)'
-            rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
-
-        H.append('<tr class="notes_bulletin_row_ue">' )
-        if context.get_preference('bul_show_minmax', formsemestre_id):
-            moy_txt = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
-        else:
-            moy_txt = ue['cur_moy_ue_txt']
-
-        H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>'
-                 % (minuslink, ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
-        if bul_show_abs_modules:
-            H.append('<td></td>')
-        H.append('</tr>')
-        list_modules(ue['modules'], rowstyle)
-
-    
-    H.append('</table>')
-    # --- Absences
-    H.append("""<p>
-    <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
-    <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
-    (pendant ce semestre).
-    </a></p>
-        """ % I )
-    # --- Decision Jury
-    if I['situation']:
-        H.append( """<p class="bull_situation">%(situation)s</p>""" % I )
-    # --- Appreciations
-    # le dir. des etud peut ajouter des appreciations,
-    # mais aussi le chef (perm. ScoEtudInscrit)
-    can_edit_app = ((str(authuser) == sem['responsable_id'])
-                    or (authuser.has_permission(ScoEtudInscrit,context)))
-    H.append('<div class="bull_appreciations">')
-    if I['appreciations_list']:
-        H.append('<p><b>Appréciations</b></p>')
-    for app in I['appreciations_list']:
-        if can_edit_app:
-            mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
-        else:
-            mlink = ''
-        H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
-                     % (app['date'], app['comment'], mlink ) )
-    if can_edit_app:
-        H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%s&formsemestre_id=%s">Ajouter une appréciation</a></p>' % (etudid, formsemestre_id))
-    H.append('</div>')
-
-    # ---------------
-    return '\n'.join(H)
 
 def get_etud_rangs_groups(context, etudid, formsemestre_id, 
                            partitions, partitions_etud_groups, 
@@ -605,7 +470,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
     sem = context.get_formsemestre(formsemestre_id)
 
     R = []
-    if format == 'html' or format == 'mailpdf':
+    if format == 'html' or format == 'pdfmail':
         R.append( _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                                    formsemestre_id, format, version, REQUEST) )
     
@@ -614,7 +479,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
                                            xml_with_decisions=xml_with_decisions,
                                            REQUEST=REQUEST)[0])
     
-    if format == 'html' or format == 'mailpdf':
+    if format == 'html' or format == 'pdfmail':
         R.append("""<p>Situation actuelle: """)
         if etud['inscription_formsemestre_id']:
             R.append("""<a href="formsemestre_status?formsemestre_id=%s">"""
@@ -640,7 +505,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  ):
     """Génère le bulletin au format demandé.
     Retourne: (bul, filigranne)
-    où bul est au format demandé (html, pdf, xml)
+    où bul est au format demandé (html, pdf, pdfmail, pdfpart, xml)
     et filigranne est un message à placer en "filigranne" (eg "Provisoire").
     """
     I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)
@@ -653,27 +518,26 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
         return bul, I['filigranne']
     
     elif format == 'html':            
-        htm = make_formsemestre_bulletinetud_html(
-            context, formsemestre_id, etudid, I,
-            version=version, REQUEST=REQUEST)
+        htm, junk = sco_bulletins_generator.make_formsemestre_bulletinetud(
+            context, I, version=version, format='html', REQUEST=REQUEST)
         return htm, I['filigranne']
     
     elif format == 'pdf' or format == 'pdfpart':
-        bul, filename = sco_bulletins_pdf.make_formsemestre_bulletinetud_pdf(context, I, version=version, format=format, REQUEST=REQUEST)
+        bul, filename = sco_bulletins_generator.make_formsemestre_bulletinetud(context, I, version=version, format='pdf', REQUEST=REQUEST)
         if format == 'pdf':
             return sendPDFFile(REQUEST, bul, filename), I['filigranne'] # unused ret. value
         else:
             return bul, I['filigranne']
     
-    elif format == 'mailpdf':
-        # format mailpdf: envoie le pdf par mail a l'etud, et affiche le html
+    elif format == 'pdfmail':
+        # format pdfmail: envoie le pdf par mail a l'etud, et affiche le html
         if nohtml:
             htm = '' # speed up if html version not needed
         else:
-            htm = make_formsemestre_bulletinetud_html(
-                context, formsemestre_id, etudid, I, version=version, REQUEST=REQUEST)
+            htm, junk = sco_bulletins_generator.make_formsemestre_bulletinetud(
+                context, I, version=version, format='html', REQUEST=REQUEST)
         
-        pdfdata, filename = sco_bulletins_pdf.make_formsemestre_bulletinetud_pdf(
+        pdfdata, filename = sco_bulletins_generator.make_formsemestre_bulletinetud(
             context, I, version=version, format='pdf', REQUEST=REQUEST)
 
         if not etud['email']:
@@ -766,11 +630,11 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           'url' : 'formsemestre_edit_options?formsemestre_id=%s&target_url=%s' % (formsemestre_id, qurl),
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           },
-        { 'title' : 'Version papier (pdf, format "%s")' % sco_bulletins_pdf.pdf_bulletin_get_class_name_displayed(context, formsemestre_id),
+        { 'title' : 'Version papier (pdf, format "%s")' % sco_bulletins_generator.bulletin_get_class_name_displayed(context, formsemestre_id),
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s' % (formsemestre_id,etudid,version),
           },
         { 'title' : "Envoi par mail à l'étudiant",
-          'url' : url + '?formsemestre_id=%s&etudid=%s&format=mailpdf&version=%s' % (formsemestre_id,etudid,version),
+          'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdfmail&version=%s' % (formsemestre_id,etudid,version),
           'enabled' : etud['email'] # possible slt si on a un mail...
           },
         { 'title' : 'Version XML',

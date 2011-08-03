@@ -110,20 +110,23 @@ def makeParas(txt, style, suppress_empty=False):
         log('Invalid pdf para format: %s' % txt)
         return [ Paragraph( SU('<font color="red"><i>Erreur: format invalide</i></font>'), style ) ]
 
-def bold_paras(L, tag='b'):
+def bold_paras(L, tag='b', close=None):
     """Put each (string) element of L between  <b>
-    L is a dict or sequence sequence
+    L is a dict or sequence. (if dict, elements with key begining by _ are unaffected)
     """
     b = '<' + tag + '>'
-    e = '</' + tag + '>'
+    if not close:
+        close = '</' + tag + '>'
     if hasattr(L,'keys'):
         # L is a dict
         for k in L:
-            L[k] = b + L[k] or '' + e
+            x = L[k]
+            if k[0] != '_':
+                L[k] = b + L[k] or '' + close
         return L
     else:
         # L is a sequence
-        return [ b + x or '' + e for x in L ]
+        return [ b + x or '' + close for x in L ]
 
 class ScolarsPageTemplate(PageTemplate) :
     """Our own page template."""

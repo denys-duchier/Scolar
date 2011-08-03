@@ -81,6 +81,13 @@ UE_TYPE_NAME = { UE_STANDARD : 'Standard',
 #                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
                  }
 
+# Couleurs RGB (dans [0.,1.]) des UE pour les bulletins:
+UE_DEFAULT_COLOR = (150/255.,200/255.,180/255.)
+UE_COLORS = { UE_STANDARD : UE_DEFAULT_COLOR, 
+              UE_SPORT : (0.40, 0.90, 0.50),
+              UE_STAGE_LP : (0.80, 0.90, 0.90)
+              }
+
 # borne supérieure de chaque mention
 NOTES_MENTIONS_TH = (NOTES_TOLERANCE, 7., 10., 12., 14., 16., 18., 20.+NOTES_TOLERANCE)
 NOTES_MENTIONS_LABS=('Nul', 'Faible', 'Insuffisant', 'Passable', 'Assez bien', 'Bien', 'Très bien', 'Excellent')
@@ -136,9 +143,10 @@ GSL = thread.allocate_lock() # Global ScoDoc Lock
 
 # ----- Lecture du fichier de configuration
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]
-
+if SCO_SRCDIR:
+    SCO_SRCDIR += '/'
 try:
-    _config_filename = SCO_SRCDIR + '/config/scodoc_config.py'
+    _config_filename = SCO_SRCDIR + 'config/scodoc_config.py'
     _config_text = open(_config_filename).read()
 except:
     sys.stderr.write('sco_utils: cannot open configuration file %s' %  _config_filename )

@@ -25,49 +25,170 @@
 #
 ##############################################################################
 
-"""Generation bulletins de notes en PDF (avec reportlab)
+"""Generation bulletins de notes dans l'ancien format de ScoDoc (avant juillet 2011).
 
-Les templates utilisent les XML markup tags de ReportLab
- (voir ReportLab user guide, page 70 et suivantes), dans lesquels les balises
-de la forme %(XXX)s sont remplacées par la valeur de XXX, pour XXX dans:
+ Code partiellement redondant, copié de l'ancien système de gestion des bulletins.
 
-- preferences du semestre (ou globales) (voir sco_preferences.py)
-- champs de formsemestre: titre, date_debut, date_fin, responsable, anneesem
-- champs de l'etudiant s(etud, décoré par getEtudInfo)
-- demission ("DEMISSION" ou vide)
-- situation ("Inscrit le XXX")
+ Voir sco_bulletins_standard pour une version plus récente.
 
-Balises img: actuellement interdites.
-
+ CE FORMAT N'EVOLUERA PLUS ET EST CONSIDERE COMME OBSOLETE.
+ 
 """
 from sco_pdf import *
 import sco_preferences
 import traceback, re
 from notes_log import log
+import sco_bulletins_generator
 import sco_bulletins_pdf
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
-class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
-    description = 'standard ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
-
-    def gen_part_title(self):
+class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
+    description = 'Ancien format ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    supported_formats = [ 'html', 'pdf' ]
+        
+    def bul_title_pdf(self):
         """Génère la partie "titre" du bulletin de notes.
         Renvoie une liste d'objets platypus
         """
         objects = sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_title'], self.infos, self.FieldStyle)
         objects.append(Spacer(1, 5*mm)) # impose un espace vertical entre le titre et la table qui suit
         return objects
-    
-    def gen_table(self):
-        """Génère la tabe centrale du bulletin de notes
+
+    def bul_table(self, format='html'):
+        """Table bulletin"""
+        if format == 'pdf':
+            return self.bul_table_pdf()
+        elif format == 'html':
+            return self.bul_table_html()
+        else:
+            raise ValueError('invalid bulletin format (%s)' % format)
+        
+    def bul_table_pdf(self):
+        """Génère la table centrale du bulletin de notes
         Renvoie une liste d'objets PLATYPUS (eg instance de Table).
         """
-        P, pdfTableStyle, colWidths = bulletin_pdf_table_classic(self.context, self.infos, version=self.version)
+        P, pdfTableStyle, colWidths = _bulletin_pdf_table_legacy(self.context, self.infos, version=self.version)
         return [ self.buildTableObject(P, pdfTableStyle, colWidths) ]
+
+    def bul_table_html(self):
+        """Génère la table centrale du bulletin de notes: chaine HTML
+        """
+        format = 'html'
+        I = self.infos
+        authuser = self.authuser
+        formsemestre_id = self.infos['formsemestre_id']
+        context = self.context
+        
+        bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
+
+        sem = context.get_formsemestre(formsemestre_id)
+        if sem['bul_bgcolor']:
+            bgcolor = sem['bul_bgcolor']
+        else:
+            bgcolor = 'background-color: rgb(255,255,240)'
+        
+        linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>'
+        minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
+        pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
+
+        H = [ '<table class="notes_bulletin" style="background-color: %s;">' % bgcolor  ]
+
+        if context.get_preference('bul_show_minmax', formsemestre_id):
+            minmax = '<span class="bul_minmax" title="[min, max] promo">[%s, %s]</span>' % (I['moy_min'], I['moy_max'])
+            bargraph = ''
+        else:
+            minmax = ''
+            bargraph = I['moy_gen_bargraph_html']
+        # 1ere ligne: titres
+        H.append( '<tr><td class="note_bold">Moyenne</td><td class="note_bold cell_graph">%s%s%s%s</td>'
+                  % (I['moy_gen'], I['etud_etat_html'], minmax, bargraph) )
+        H.append( '<td class="note_bold">%s</td>' % I['rang_txt'] )
+        H.append( '<td class="note_bold">Note/20</td><td class="note_bold">Coef</td>')
+        if bul_show_abs_modules:
+            H.append( '<td class="note_bold">Abs (J. / N.J.)</td>' )
+        H.append('</tr>')
+        def list_modules(ue_modules, rowstyle):
+            for mod in ue_modules:
+                if mod['mod_moy_txt'] == 'NI':
+                    continue # saute les modules où on n'est pas inscrit
+                H.append('<tr class="notes_bulletin_row_mod%s">' % rowstyle)
+                if context.get_preference('bul_show_minmax_mod', formsemestre_id):
+                    rang_minmax = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
+                else:
+                    rang_minmax = mod['mod_rang_txt'] # vide si pas option rang
+                H.append('<td>%s</td><td>%s</td><td>%s</td><td class="note">%s</td><td>%s</td>'
+                         % (mod['code_html'], mod['name_html'], 
+                            rang_minmax, 
+                            mod['mod_moy_txt'], mod['mod_coef_txt'] ))
+                if bul_show_abs_modules:
+                    H.append('<td>%s</td>' % mod['mod_abs_txt'])
+                H.append('</tr>')
+
+                if self.version != 'short':
+                    # --- notes de chaque eval:
+                    for e in mod['evaluations']:
+                        if e['visibulletin'] == '1' or self.version == 'long':
+                            H.append('<tr class="notes_bulletin_row_eval%s">' % rowstyle)
+                            H.append('<td>%s</td><td>%s</td><td class="bull_nom_eval">%s</td><td class="note">%s</td><td class="bull_coef_eval">%s</td></tr>'
+                                     % ('','', e['name_html'], e['note_html'], e['coef_txt']))
+
+        # Contenu table: UE apres UE
+        for ue in I['ues']:
+            ue_descr = ue['ue_descr_html']
+            coef_ue  = ue['coef_ue_txt']
+            rowstyle = ''
+            plusminus = minuslink # 
+            if ue['ue_status']['is_capitalized']:
+                if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
+                    plusminus = minuslink
+                    hide = ''
+                else:
+                    plusminus = pluslink
+                    hide = 'sco_hide'
+                H.append('<tr class="notes_bulletin_row_ue">' )
+                H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>' 
+                         %  (plusminus, ue['acronyme'], ue['moy_ue_txt'], ue_descr, '', coef_ue))
+                if bul_show_abs_modules:
+                    H.append('<td></td>')
+                H.append('</tr>')
+                list_modules(ue['modules_capitalized'], ' bul_row_ue_cap %s' % hide)
+
+                coef_ue  = ''
+                ue_descr = '(en cours, non prise en compte)'
+                rowstyle = ' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
+
+            H.append('<tr class="notes_bulletin_row_ue">' )
+            if context.get_preference('bul_show_minmax', formsemestre_id):
+                moy_txt = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (ue['cur_moy_ue_txt'], ue['min'], ue['max'])
+            else:
+                moy_txt = ue['cur_moy_ue_txt']
+
+            H.append('<td class="note_bold">%s%s</td><td class="note_bold">%s</td><td>%s</td><td>%s</td><td>%s</td>'
+                     % (minuslink, ue['acronyme'], moy_txt, ue_descr, '', coef_ue))
+            if bul_show_abs_modules:
+                H.append('<td></td>')
+            H.append('</tr>')
+            list_modules(ue['modules'], rowstyle)
+
+
+        H.append('</table>')
+
+        # ---------------
+        return '\n'.join(H)
     
-    def gen_part_below(self):
+    def bul_part_below(self, format='html'):
         """Génère les informations placées sous la table de notes
         (absences, appréciations, décisions de jury...)
+        """
+        if format == 'pdf':
+            return self.bul_part_below_pdf()
+        elif format == 'html':
+            return self.bul_part_below_html()
+        else:
+            raise ValueError('invalid bulletin format (%s)' % format)
+        
+    def bul_part_below_pdf(self):
+        """
         Renvoie une liste d'objets platypus
         """
         objects = []
@@ -94,8 +215,46 @@ class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
                 self.context, self.preferences['bul_pdf_caption'], self.infos, self.FieldStyle)
 
         return objects
-        
-    def gen_signatures(self):
+
+    def bul_part_below_html(self):
+        """
+        Renvoie chaine HTML
+        """
+        I = self.infos
+        authuser = self.authuser
+        H = []
+        # --- Absences
+        H.append("""<p>
+        <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
+        <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
+        (pendant ce semestre).
+        </a></p>
+            """ % I )
+        # --- Decision Jury
+        if I['situation']:
+            H.append( """<p class="bull_situation">%(situation)s</p>""" % I )
+        # --- Appreciations
+        # le dir. des etud peut ajouter des appreciations,
+        # mais aussi le chef (perm. ScoEtudInscrit)
+        can_edit_app = ((str(authuser) == self.infos['responsable_id'])
+                        or (authuser.has_permission(ScoEtudInscrit,self.context)))
+        H.append('<div class="bull_appreciations">')
+        if I['appreciations_list']:
+            H.append('<p><b>Appréciations</b></p>')
+        for app in I['appreciations_list']:
+            if can_edit_app:
+                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
+            else:
+                mlink = ''
+            H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
+                         % (app['date'], app['comment'], mlink ) )
+        if can_edit_app:
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
+        H.append('</div>')
+        # ---------------
+        return '\n'.join(H)
+
+    def bul_signatures_pdf(self):
         """Génère les signatures placées en bas du bulletin
         Renvoie une liste d'objets platypus
         """
@@ -118,7 +277,7 @@ class PDFBulletinGeneratorDefault(sco_bulletins_pdf.PDFBulletinGenerator):
         else:
             return []
 
-sco_bulletins_pdf.register_pdf_bulletin_class(PDFBulletinGeneratorDefault)
+sco_bulletins_generator.register_bulletin_class(BulletinGeneratorLegacy)
 
 
 class BulTableStyle:
@@ -156,8 +315,8 @@ class BulTableStyle:
         i = self.tabline
         self.pdfTableStyle.append(('LINEABOVE', (0,i), (-1,i), 1, self.MODSEPCOLOR))
 
-def bulletin_pdf_table_classic(context, I, version='long'):
-    """Génère la tabe centrale du bulletin de notes
+def _bulletin_pdf_table_legacy(context, I, version='long'):
+    """Génère la table centrale du bulletin de notes
     Renvoie un triplet:
     - table (liste de listes de chaines de caracteres)
     - style (commandes table Platypus)

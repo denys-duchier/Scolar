@@ -1040,32 +1040,71 @@ table.notes_recapcomplet a:hover {
 /* bulletin */
 table.notes_bulletin {
    border-collapse: collapse;
-   border: 2px solid blue;
+   border: 2px solid rgb(100,100,240);
    width: 100%;
-   margin-right: 2em;
+   margin-right: 100px;
+   background-color: rgb(240,250,255);
+   font-family : arial, verdana, sans-serif ;
+   font-size: 13px;
+}
 
+tr.notes_bulletin_row_gen {
+   border-top: 1px solid black;
+   font-weight: bold;
 }
 
 tr.notes_bulletin_row_ue {
-   background-color: rgb(170,187,204);
+   /* background-color: rgb(170,187,204); voir sco_utils.UE_COLORS */
+   font-weight: bold;
    border-top: 1px solid black;
 }
 
 tr.bul_row_ue_cur {
-   background-color: rgb(160,160,160);
+   background-color: rgb(180,180,180);
    color: rgb(50,50,50);
 }
 
 tr.bul_row_ue_cap {
-   background-color: rgb(160,160,200);
+   background-color: rgb(150,170,200);
    color: rgb(50,50,50);
 }
 
 tr.notes_bulletin_row_mod {
-  border-top: 1px solid rgb(160,160,160);
+  border-top: 1px solid rgb(140,140,140);
 }
 
-td.note_bold {
+tr.notes_bulletin_row_mod td.titre {
+  padding-left: 1em;
+}
+
+tr.notes_bulletin_row_eval {
+  font-style: italic; 
+  color: rgb(60,60,80);
+}
+tr.b_eval_first td {
+  border-top: 1px dashed rgb(170,170,170);
+}
+tr.b_eval_first td.titre {
+  border-top: 0px;
+}
+tr.notes_bulletin_row_eval td.module {
+  padding-left: 5px;
+  border-left: 1px dashed rgb(170,170,170);
+}
+
+table.notes_bulletin td.note {
+  padding-left: 1em;
+}
+table.notes_bulletin td.min, table.notes_bulletin td.max {
+  font-size: 80%;  
+}
+
+table.notes_bulletin tr.notes_bulletin_row_ue_cur td.note, table.notes_bulletin tr.notes_bulletin_row_ue_cur td.min, table.notes_bulletin tr.notes_bulletin_row_ue_cur td.max {
+  color: rgb(80,80,80);
+  font-style: italic; 
+}
+
+.note_bold {
    font-weight: bold; 
 }
 td.bull_coef_eval, td.bull_nom_eval {
@@ -1082,6 +1121,20 @@ tr.notes_bulletin_row_eval td.note .note_nd {
    font-weight: bold; 
    color: red;
 }
+
+/* --- Bulletins UCAC */
+tr.bul_ucac_row_tit, tr.bul_ucac_row_ue, tr.bul_ucac_row_total, tr.bul_ucac_row_decision, tr.bul_ucac_row_mention {
+   font-weight: bold;
+   border: 1px solid black;
+}
+tr.bul_ucac_row_tit {
+   background-color: rgb(170,187,204);
+}
+tr.bul_ucac_row_total, tr.bul_ucac_row_decision, tr.bul_ucac_row_mention {
+   background-color: rgb(220,220,220);
+}
+
+/* ---- /ucac */
 
 span.bul_minmax {
    font-weight: normal;

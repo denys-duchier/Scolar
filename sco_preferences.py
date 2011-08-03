@@ -31,7 +31,7 @@
 from sco_utils import *
 from notesdb import *
 from TrivialFormulator import TrivialFormulator, TF
-import sco_bulletins_pdf
+import sco_bulletins_generator
 
 """Global/Semestre Preferences for ScoDoc (version dec 2008)
 
@@ -586,18 +586,18 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département',
         'category' : 'bul' }
       ),
-    ( 'bul_pdf_class_name',
-      { 'initvalue' : sco_bulletins_pdf.pdf_bulletin_default_class_name(),
+    ( 'bul_class_name',
+      { 'initvalue' : sco_bulletins_generator.bulletin_default_class_name(),
         'input_type' : 'menu',
-        'labels' : sco_bulletins_pdf.pdf_bulletin_class_descriptions(),
-        'allowed_values' : sco_bulletins_pdf.pdf_bulletin_class_names(),
-        'title' : 'Type de bulletin PDF', 
-        'explanation' : 'format de présentation des bulletins de note papier (pdf)',
+        'labels' : sco_bulletins_generator.bulletin_class_descriptions(),
+        'allowed_values' : sco_bulletins_generator.bulletin_class_names(),
+        'title' : 'Format des bulletins', 
+        'explanation' : 'format de présentation des bulletins de note (web et pdf)',
         'category' : 'bul' }
       ),
     ( 'bul_show_abs', # ex "gestion_absence"
       { 'initvalue' : 1,
-        'title' : 'Indiquer les absences sur les bulletins',
+        'title' : 'Indiquer les absences sous les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
