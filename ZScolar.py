@@ -1523,7 +1523,10 @@ function tweakmenu( gname ) {
     
     security.declareProtected(ScoView, 'partition_delete')
     partition_delete = sco_groups.partition_delete
-
+    
+    security.declareProtected(ScoView, 'partition_set_bul_show_rank')
+    partition_set_bul_show_rank = sco_groups.partition_set_bul_show_rank
+    
     security.declareProtected(ScoView, 'partition_move')
     partition_move = sco_groups.partition_move
 

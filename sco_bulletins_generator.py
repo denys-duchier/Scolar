@@ -207,7 +207,8 @@ class BulletinGenerator:
 # ---------------------------------------------------------------------------
 def make_formsemestre_bulletinetud(context, infos,
                                    version='long', # short, long, selectedevals
-                                   format = 'pdf', # html, pdf or pdfpart
+                                   format = 'pdf', # html, pdf
+                                   stand_alone=True,
                                    REQUEST=None):
     """Bulletin de notes
 
@@ -243,7 +244,7 @@ def make_formsemestre_bulletinetud(context, infos,
                                   filigranne=infos['filigranne'],
                                   server_name=REQUEST.BASE0)
         
-        data = bul_generator.generate( format=format, stand_alone=(format != 'pdfpart'))
+        data = bul_generator.generate( format=format, stand_alone=stand_alone )
     finally:
         PDFLOCK.release()
     
@@ -262,7 +263,9 @@ def make_formsemestre_bulletinetud(context, infos,
 # Classes de bulletins:
 import sco_bulletins_standard
 import sco_bulletins_legacy
+# import sco_bulletins_example # format exemple (à désactiver en production)
 
 # ... ajouter ici vos modules ...
 import sco_bulletins_ucac # format expérimental UCAC Cameroun
+
 

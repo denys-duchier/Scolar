@@ -145,7 +145,7 @@ for dept in get_depts():
        partition_id text default notes_newid2('P') PRIMARY KEY,
        formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
        partition_name text, -- "TD", "TP", ...
-       compute_ranks integer default 0, -- calcul rang etudiants dans les groupes
+       compute_ranks integer default 1, -- calcul rang etudiants dans les groupes
        numero SERIAL, -- ordre de presentation
        UNIQUE(formsemestre_id,partition_name)
 ) WITH OIDS;
@@ -333,9 +333,14 @@ for dept in get_depts():
                 ['alter table notes_evaluation add column evaluation_type int DEFAULT 0',
                  'update notes_evaluation set evaluation_type=0 where evaluation_type is NULL'
                  ])
-
+    
+    # add partition rank on bulletins
+    check_field(cnx, 'partition', 'bul_show_rank',
+                ['alter table partition add column bul_show_rank int DEFAULT 0',
+                 'update partition set bul_show_rank=0 where bul_show_rank is NULL'])
+    
     # Add here actions to performs after upgrades:
-
+    
     cnx.commit()
     cnx.close()
 

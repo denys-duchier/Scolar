@@ -53,6 +53,7 @@ import traceback, re
 from notes_log import log
 import sco_bulletins_generator
 import sco_bulletins_pdf
+import sco_groups
 import gen_tables
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
@@ -247,8 +248,6 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
               '_pdf_row_markup' : ['b'],
               '_pdf_style' : [],
               }
-        if with_col_minmax:
-            t['_pdf_style'].append(('SPAN', (colidx['min'],0), (colidx['min']+1,0)))
         P.append(t)
         # 2eme ligne titres si nécessaire
         if  with_col_minmax or with_col_abs:
@@ -257,7 +256,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             P.append(t)
         P[-1]['_pdf_style'].append(('LINEBELOW', (0,0), (-1,0), self.PDF_LINEWIDTH, self.PDF_LINECOLOR))
 
-        # Moyenne générale
+        # Moyenne générale:
         nbabs = I['nbabs']
         nbabsjust = I['nbabsjust']
         t = { 'titre' : 'Moyenne générale:',
@@ -267,14 +266,24 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
               'max' : I['moy_max'],
               'abs' : '%s / %s' % (nbabs, nbabsjust),
               '_css_row_class' : 'notes_bulletin_row_gen',
+              '_titre_colspan' : 2,
               '_pdf_row_markup' : ['font size="12"', 'b'], # bold, size 12
-              '_pdf_style' : [ ('SPAN', (colidx['titre'],0), (colidx['module'],0)),
-                               ('LINEABOVE', (0,1), (-1,1), 1, self.PDF_LINECOLOR)
-                                ]
+              '_pdf_style' : [ ('LINEABOVE', (0,1), (-1,1), 1, self.PDF_LINECOLOR) ]
               }
         P.append(t)
-
-        # Chaque UE
+        
+        # Rangs dans les partitions:
+        partitions, partitions_etud_groups = sco_groups.get_formsemestre_groups(context, formsemestre_id)
+        for partition in partitions:
+            if partition['bul_show_rank']:
+                partition_id = partition['partition_id']            
+                P.append({
+                    'titre' : 'Rang dans %s %s:  %s / %s inscrits' % (partition['partition_name'], I['gr_name'][partition_id], I['rang_gr'][partition_id], I['ninscrits_gr'][partition_id]),
+                    '_titre_colspan' : 3,
+                    '_css_row_class' : 'notes_bulletin_row_rang',
+                    })
+        
+        # Chaque UE:
         for ue in I['ues']:
             ue_type = None 
             coef_ue  = ue['coef_ue_txt']        

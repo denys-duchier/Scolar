@@ -1,11 +1,6 @@
 
   NOTES EN VRAC : voir plutôt le Trac !!!
 
-CHANGES svn1046
- - bulletins PDF defaut 2011: ameliorations cosmetiques.
- - #99 classements par groupes sur bulletins PDF.
-
-
 *** Nouvelle archi bulletins PDF+HTML
 
  page html = titre, table, dessous

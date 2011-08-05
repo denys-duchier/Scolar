@@ -407,6 +407,7 @@ CREATE TABLE partition(
        partition_name text, -- "TD", "TP", ... (NULL for 'all')
        compute_ranks integer default 1, -- calcul rang etudiants dans les groupes (currently unused)
        numero SERIAL, -- ordre de presentation
+       bul_show_rank integer default 0,
        UNIQUE(formsemestre_id,partition_name)
 ) WITH OIDS;
 

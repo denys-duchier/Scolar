@@ -1,0 +1,401 @@
+== Générer des bulletins en Python ==
+
+Il est possible de coder de nouveaux styles de bulletins de notes (web et/ou PDF), pour répondre précisément aux besoins de votre établissement.
+
+Ce n'est pas très difficile, mais il faudra coder en langage Python avec pour le PDF la bibliothèque Report``Lab (qui est bien documentée, voir [[http://www.reportlab.com/software/opensource/rl-toolkit/guide/]]).
+
+Sco``Doc demande la création d'un bulletin pour un étudiant donné dans semestre donné (`formsemestre_id`).
+Le bulletin doit être rendu sous forme d'une liste d'objets PLATYPUS (voir le chapitre 5 du "User Guide" de Report``Lab cité plus haut).
+
+/!\ Attention (août 2011): l'API vient de changer et n'est pas encore documentée. Les informations ci-dessous ne s'appliquent plus à partir de la version svn 1046).
+
+=== Organisation ===
+A minima, il vous faut créer un module python (fichier .py) qui se définira une classe chargée de générer vos bulletins.
+
+Ce fichier doit être placé dans le répertoire `/opt/scodoc/instance/Products/ScoDoc`
+
+Voici un module minimal commenté (le fichier `sco_bulletins_example.py` est fournit avec Sco``Doc):
+{{{
+#!python
+# -*- mode: python -*-
+# -*- coding: iso8859-15 -*-
+
+"""Génération d'un bulletin de note style "Exemple"
+(commentaire libre ici)
+"""
+
+# Quelques modules ScoDoc utiles:
+from sco_pdf import *
+import sco_preferences
+from notes_log import log
+import sco_bulletins_generator
+import sco_bulletins_standard
+
+class BulletinGeneratorExample(sco_bulletins_standard.BulletinGeneratorStandard):
+    """Un exemple simple de bulletin de notes en version PDF seulement.
+    Part du bulletin standard et redéfini la partie centrale.
+    """
+    description = 'exemple (ne pas utiliser)' # la description doit être courte: elle apparait dans le menu de paramètrage
+    supported_formats = [ 'pdf' ] # indique que ce générateur ne peut produire que du PDF (la version web sera donc celle standard de ScoDoc)
+
+    # En général, on veut définir un format de table spécial, sans changer le reste (titre, pied de page).
+    # Si on veut changer le reste, surcharger les méthodes:
+    #  .bul_title_pdf(self)  : partie haute du bulletin
+    #  .bul_part_below(self, format='') : infos sous la table
+    #  .bul_signatures_pdf(self) : signatures
+
+    def bul_table(self, format=''):
+        """Défini la partie centrale de notre bulletin PDF.
+        Doit renvoyer une liste d'objets PLATYPUS
+        """
+        assert format == 'pdf' # garde fou
+        return [
+            Paragraph( SU("L'étudiant %(nomprenom)s a une moyenne générale de %(moy_gen)s" % self.infos),
+                       self.CellStyle # un style pdf standard
+                       )
+            ]
+
+# Déclarer votre classe à ScoDoc:
+sco_bulletins_generator.register_bulletin_class(BulletinGeneratorExample)
+}}}
+
+Si l'on voulait générer aussi du HTML (pour la version web), il suffirait de le déclarer dans la liste `supported_formats` et que la méthode `bul_table()` renvoie une chaîne HTML si le paramètre format vaut `'html'`.
+
+
+Pour modifier l'en-tête du bulletin PDF (partie au dessus de la table), il faut surcharger la méthode `bul_title_pdf` qui elle aussi renvoie une liste d'objets PLATYPUS:
+{{{
+#!python
+    def bul_title_pdf(self):
+        ...
+}}}
+
+De même, les informations placées sous la table principale sont renvoyées par la méthode `gen_part_below`:
+{{{
+#!python
+    def gen_part_below(self, format=''):
+    	"""Génère les informations placées sous la table de notes
+        (absences, appréciations, décisions de jury...)
+        Renvoie:
+        - en HTML: une chaine
+        - en PDF: une liste d'objets platypus
+	"""
+        ...
+}}}
+
+et les signatures (seulement sur le PDF) par `bul_signatures_pdf`. Toutes ces méthodes renvoient des listes d'objets PLATYPUS quelconques.
+
+Vous pouvez partir d'un format de bulletin existant et proche de ce que voulez obtenir et définir une sous-classe modifiant (surchargeant) seulement les méthodes qui génèrent les éléments que vous voulez modifier.
+
+/!\ Attention: ne pas modifier après coup le nom des classes de générateurs (ici `BulletinGeneratorExample`), car il va être stocké en base de données par Sco``Doc.
+
+=== Accès aux informations ===
+La plupart des informations nécessaires sont accessibles via des attributs de votre instance de générateur que Sco``Doc aura positionné avant d'appeler vos méthodes. Notamment:
+ * `self.infos`: un (grand) dictionnaire python avec la plupart des informations préparée pour le bulletin à générer (voir plus loin);
+ * `self.version`: indique la version de bulletin demandée par l'utilisateur ("long" ou "short", vous pouvez en faire ce que bon vous semble);
+ * `self.context`: contexte Sco``Doc, permettant l'accès à l'API complète.
+
+=== Le dictionnaire d'informations ===
+
+L'attribut `infos` est un dictionnaire qui contient de très nombreuses informations. il doit être utilisé en '''lecture seule''' (il est possible que des informations soient partagées entre threads différents, aussi les modifier peut avoir des effets indésirables). .
+
+==== Paramètres (préférences) ====
+
+Tous les paramètres du semestre sont accessibles via leur nom. Voir la liste sur la page https://www-rt.iutv.univ-paris13.fr/ScoDoc/NomsPreferences.
+
+Exemple: `infos['SCOLAR_FONT_SIZE']` est un entier, `infos['UnivName']` est le nom de l'université.
+
+==== Informations sur le semestre ====
+
+
+
+Un semestre est représenté par un dictionnaire avec les attributs
+suivants:
+|| Type || Nom || Description || Exemple de valeur ||
+|| int ||semestre_id|| Indice dans le parcours ||  1 ||
+|| string ||titre|| ||  'DUT GEII' ||
+|| string ||titre_num|| ||  'DUT GEII, semestre 1' ||
+|| string ||titreannee|| ||  'DUT GEII, semestre 1 FI  2011' ||
+|| string ||titremois|| ||  'DUT GEII, semestre 1 FI  (Mars 2011 - Jul 2011)' ||
+|| string ||annee_debut|| ||  '2011' ||
+|| string ||annee_fin|| ||  '2011' ||
+|| ||anneescolaire|| ||  '2010 - 2011' ||
+|| string ||date_debut|| ||  '09/03/2011' ||
+|| ||date_debut_iso|| ||  '2011-03-09' ||
+|| ||date_fin|| ||  '31/07/2011' ||
+|| ||date_fin_iso|| ||  '2011-07-31' ||
+|| ||dateord|| ||  '2011-03-09' ||
+|| ||mois_debut|| ||  'Mars 2011' ||
+|| int ||mois_debut_ord|| ||  3 ||
+|| ||mois_fin|| ||  'Jul  2011' ||
+|| int ||mois_fin_ord|| ||  7 ||
+|| string ||modalite|| ||  'FI' ||
+|| string ||etape_apo|| Code étapge Apogée ||  'V1TR2' ||
+|| string ||etape_apo2|| Code étape Apogée (si 2 codes) ||  '' ||
+|| string ||etat|| verrouillé ('0') ou non ('1') ||  '1' ||
+|| ||formation_id|| id interne de la formation ||  'FORM14570' ||
+|| ||formsemestre_id|| id interne du semestre ||  'SEM15176' ||
+|| string ||gestion_compensation|| ||  '0' ||
+|| string ||gestion_semestrielle|| ||  '0' ||
+|| string ||responsable_id|| ||  'viennet' ||
+|| int (0|1) ||ens_can_edit_eval|| ||  0 ||
+|| int (0|1)||resp_can_change_ens|| ||  0 ||
+|| int (0|1) ||resp_can_edit|| ||  0 ||
+|| string  ||bul_bgcolor|| ||  '' ||
+|| string ||bul_hide_xml|| ||  '0' ||
+
+
+Pour le semestre à traiter, ces attributs sont directement dans `infos`.
+
+On trouve aussi dans `infos['etud']` tous les semestres par lesquels
+est passé l'étudiant.
+
+==== Informations sur l'étudiant ====
+
+===== Identité =====
+|| Type || Nom || Description || Exemple de valeur ||
+|| string * || etudid || id Sco``Doc de l'étudiant || 'EID15219' || 
+|| string || code_ine || ||  '' ||
+|| string || code_nip || || '' ||
+|| string || codepostaldomicile || || '75018' ||
+|| || date_naissance || || '' ||
+|| || annee_naissance || || '1947' ||
+|| || domicile || || '' ||
+|| || email || || '' ||
+|| || lieu_naissance || || '' ||
+|| || nationalite || || '' ||
+|| || ne || "e" si étudante, vide sinon || '' ||
+|| || nom || || 'FOURIER' ||
+|| || prenom || || 'JOSEPH' ||
+|| || sexe || || 'M.' ||
+|| || nomprenom || || 'M. Joseph Fourier' ||
+|| || paysdomicile || || '' ||
+|| || telephone || || '' ||
+|| || telephonemobile || || '' ||
+|| || telephonemobilestr || || '' ||
+|| || telephonestr || || '' ||
+|| || typeadresse || || 'domicile' ||
+|| || villedomicile || || '' ||
+|| || villelycee || || ||
+
+===== Admission =====
+Informations importées dans Sco``Doc lors de la création de l'étudiant
+(import des données d'admission): établissement d'origine, notes de
+lycée, ...
+
+|| Type || Nom || Description || Exemple de valeur ||
+|| || bac || Série de bac || 'S' ||
+|| || specialite || Spécialité de bac || 'SVT' ||
+|| || math || note math antérieure (en terminale ou au bac ou ...) || '' ||
+|| || physique || note physique antérieure || '' ||
+|| || francais || note francais (au bac en général) || '' ||
+|| || anglais || note anglais antérieure || '' ||
+|| || annee_bac || année d'obtention du bac || '2010' ||
+|| || nomlycee || || '' ||
+|| || codelycee || || '' ||
+|| || codepostallycee || || '' ||
+|| || qualite || note de qualité du dossier attribuée par le jury d'admission || '' ||
+|| || rang || rang de cet établissement dans les voeux du candidat (si applicable) || '' ||
+|| || rap || || "Pas d'informations sur les conditions d'admission." ||
+|| || rapporteur || pseudo du collègue chargé de l'examen de ce dossier || '' ||
+|| || score || Score calculé pour ce dossier à l'admission || '' ||
+|| || commentaire || Commentaire du jury d'admission|| '' ||
+|| || decision || Décision du jury d'admission || 'ADMIS' ||
+|| || description || Comment l'étudiant a été inscrit || '(creation individuelle)' ||
+
+===== Inscription =====
+
+|| Type || Nom || Description || Exemple de valeur ||
+|| int || annee || || 2011 ||
+|| string || etatincursem || état (I=inscrit, D=démissionnaire) || 'I' ||
+|| string || inscription || || 'DUT GEII, semestre 1 FI  (Mars 2011 - Jul  2011)' ||
+|| string || situation || || 'inscrit en DUT GEII, semestre 1 FI  (Mars 2011 - Jul  2011) le 11/09/2011' ||
+|| string || statut || ? || '' ||
+|| || descr_inscription || || 'Inscrit le 27/06/2011.' ||
+
+En outre, les attributs sems, cursem et ins apportent des informations
+sur les semestres auxquels l'étudiant est ou a été inscrit.
+
+`etud['sems']`est une liste de dictionnaire représentants les
+semestres auxquels est ou a été inscrit l'étudiant.
+
+==== Résultats (notes) de l'étudiant dans le semestre ====
+
+Quelques infos sur les résultats. Le détail des notes est dans la
+liste `infos['ues']` est ses sous-listes imbriquées (modles, evaluation).
+
+|| Type || Nom || Description || Exemple de valeur ||
+|| string || moy_gen || moyenne générale de l'étudiant dans le semestre || '12.00' ||
+|| string || bonus_sport_culture || bonus appliqué || 0 ||
+|| string || moy_max || moyenne max promo || '12.00' ||
+|| string || moy_min || moyenne min promo || '10.00' ||
+|| string || moy_moy || moyenne des moyennes promo || '11.00' ||
+|| int || nb_inscrits || taille promo || 2 ||
+|| int || nbabs || nombre de 1/2 journées d'absences || 0L ||
+|| int || nbabsjust || idem, justifiées || 0L ||
+|| string || rang || classement  || '(attente)' ||
+|| string || rang_txt || classement (avec titre) || 'Rang (attente) / 2' ||
+|| list || ues || résultats dans les UE, voir ci-dessous || [ liste de dict ] ||
+
+Chaque élément de la liste `ues` représente les résultats de
+l'étudiant dans une UE.
+|| Type || Nom || Description || Exemple de valeur ||
+|| string || acronyme || || 'UE 1' ||
+|| string || coef_ue_txt || Coefficient (chaîne) || '2' ||
+|| string|| cur_moy_ue_txt || Moyenne prise en compte pour cette UE || '12.00' ||
+|| float || max || moyenne max promo || 12.0 ||
+|| float || min || moyenne min promo || 10.0 ||
+|| list || modules || détails notes dans les modules de l'UE || [ liste de dict] ||
+|| list || modules_capitalized || || [] ||
+|| float || moy || || 11.0 ||
+|| string || moy_ue_txt || moyenne étudiant dans UE || '12.00' ||
+|| int || nb_moy || || 2 ||
+|| int || numero || rang tri UE || 1 ||
+|| string || titre || || 'Formation Générale' ||
+|| int || type || code type UE || 0 ||
+|| string || ue_code || code dans programme formation || 'UCOD5' ||
+|| string || ue_descr_html || rang ou autre info à afficher || '(attente)/2' ||
+|| string || ue_descr_txt || rang ou autre info à afficher || '(attente)/2' ||
+|| string || ue_id || id interne Sco``Doc || 'UE14572' ||
+|| dict || ue_status || statut de l'UE (voir ci-dessous)|| { dict } ||
+
+'''Statut d'une UE (champ `ue_status`):'''
+|| Type || Nom || Description || Exemple de valeur ||
+|| float || coef_ue || || 2.0 ||
+|| || coefs_bonus_gen || || [] ||
+|| || cur_coef_ue || || 2.0 ||
+|| || cur_moy_ue || || 12.0 ||
+|| string || expr_diag || infos erreur calcul fiormule utilisateur || {} ||
+|| bool || is_capitalized || est-elle capitalisée? || False ||
+|| || moy || || 12.0 ||
+|| || nb_missing || || 1 ||
+|| || nb_notes || || 1 ||
+|| || notes_bonus_gen || || [] ||
+|| || sum_coefs || || 2.0 ||
+|| || was_capitalized || || False ||
+
+
+'''Résultats dans un module:'''
+|| Type || Nom || Description || Exemple de valeur ||
+|| || code || || '' ||
+|| || code_html || || '' ||
+|| || code_txt || || '' ||
+|| || computation_expr || || '' ||
+|| || ens || || [] ||
+|| || evaluations || || [] ||
+|| || formsemestre_id || || 'SEM15176' ||
+|| || mat || || {'titre': 'Mathématiques' } ||
+|| || mod_coef_txt || || '2' ||
+|| || mod_descr_txt || || "Module Fondamentaux d'algèbre et de trigonométrie, coef. 2 (Béatrice DUPONT)" ||
+|| || mod_eff || || 2 ||
+|| || mod_moy_txt || || '12.00' ||
+|| || mod_rang || || '(attente)' ||
+|| || mod_rang_txt || || '(attente)/2' ||
+|| || module || || {voir plus loin} ||
+|| || module_id || || 'MOD14576' ||
+|| || moduleimpl_id || || 'MIP15178' ||
+|| || name || || 'Algèbre' ||
+|| || responsable_id || id du responsable || 'dupont' ||
+
+Le module (tel que décrit dans le programme de la formation) est représenté par:
+|| Type || Nom || Description || Exemple de valeur ||
+|| string || titre || || "Fondamentaux d'algèbre et de trigonométrie" ||
+|| string || abbrev || || 'Algèbre' ||
+|| string || code || || 'M1' ||
+|| float || coefficient || || 2.0 ||
+|| || ects || || None ||
+|| || formation_id || || 'FORM14570' ||
+|| || heures_cours || || 0.0 ||
+|| || heures_td || || 30.0 ||
+|| || heures_tp || || 0.0 ||
+|| || matiere_id || || 'MAT14574' ||
+|| || module_id || || 'MOD14576' ||
+|| || numero || || 10 ||
+|| || semestre_id || || 1 ||
+|| || ue_id || || 'UE14572' ||
+
+
+
+'''Résultat dans une évaluation:'''
+|| Type || Nom || Description || Exemple de valeur ||
+|| || coef_txt || || '1' ||
+|| || coefficient || || 1.0 ||
+|| || descrheure || || ' ? 08h00' ||
+|| || description || || '' ||
+|| || duree || || '2h' ||
+|| || etat || || { voir plus loin } ||
+|| || evaluation_id || || 'EVAL15226' ||
+|| || evaluation_type || || 0 ||
+|| || heure_debut || || '08h00' ||
+|| || heure_fin || || '08h00' ||
+|| || jour || || '01/07/2011' ||
+|| || moduleimpl_id || || 'MIP15178' ||
+|| || name || || 'le 01/07/2011' ||
+|| || nb_abs || || 0 ||
+|| || nb_att || || 0 ||
+|| || nb_inscrits || || 2 ||
+|| || nb_neutre || || 0 ||
+|| || nb_notes || || 2 ||
+|| || note_html || || '12.00' ||
+|| || note_max || || 20.0 ||
+|| || note_txt || || '12.00' ||
+|| || notes || || { voir plus loin } ||
+|| || publish_incomplete || || '0' ||
+|| || visibulletin || || '1' ||
+
+'''Etat d'une évaluation:'''
+
+Le champ `etat` d'une évaluation ets un dict donnant des informations sur  les résultats de la promo (et des groupes) dans cette évaluation:
+|| Type || Nom || Description || Exemple de valeur ||
+|| bool  || evalattente || || False ||
+|| bool || evalcomplete || || True ||
+|| || evaluation_id || id interne || 'EVAL15226' ||
+|| list || gr_incomplets || || [] ||
+|| list || gr_moyennes || || [] ||
+|| list || groups || liste des groupes || {} ||
+|| datetime || last_modif || || <mx.DateTime.DateTime object> ||
+|| string || median || note médianne promo || '11.00' ||
+|| string || moy || note moyenne promo || '11.00' ||
+|| || nb_abs || nb étudiants absents || 0 ||
+|| || nb_att || nb notes en attente || 0 ||
+|| || nb_inscrits || nb inscrits à ce module || 2 ||
+|| || nb_neutre || nb notes neutralisées || 0 ||
+|| || nb_notes || nb notes saisies || 2 ||
+
+
+`gr_moyennes` est un dict:
+|| Type || Nom || Description || Exemple de valeur ||
+|| || gr_median || || '11.00' ||
+|| || gr_moy || || '11.00' ||
+|| || gr_nb_att || || 0 ||
+|| || gr_nb_notes || || 2 ||
+|| || group_id || || 'G24919' ||
+|| || group_name || || None ||
+
+'''Notes dans une évaluation:'''
+
+Le champ `notes` dans une évaluation est un dictionnaire dont les clés sont les `etudids`, et les valeurs des dictionnaires donnant les informations sur la note de l'étudiant dans cette évaluation:
+|| Type || Nom || Description || Exemple de valeur ||
+|| string || comment || commentaire saisie note || '' ||
+|| datetime || date || date de saisie || <mx.DateTime.DateTime object> ||
+|| string || etudid || || 'EID15214' ||
+|| string || evaluation_id || || 'EVAL15226' ||
+|| string || uid || utilisateur ayant saisi la note || 'admin' ||
+|| float || value || valeur de la note (sur 20) || 10.0 ||
+
+
+==== Décisions de jury et autres informations ====
+|| Type || Nom || Description || Exemple de valeur ||
+|| || decision_sem || || None ou dict ||
+|| string || decision_jury || décision du jury en clair (présent seulement si décision saisie) || 'Validé' ||
+|| list || appreciations || || [] ||
+|| list || appreciations_list || || [] ||
+|| list || appreciations_txt || || [] ||
+|| string || mention || texte de la mention calculée || 'Très bien' ||
+|| || filigranne || texte en surimpression || 'Provisoire' ||
+
+
+=== Note: la fonction log ===
+Pour la mise au point, il peut être utile de recourir à la bonne vieille fonction log, qui envoie du texte dans le fichier de log courant, normalement `/opt/scodoc/instance/log/notes.log`. La date et le saut de ligne final sont automatiquement ajoutés.
+{{{
+log("toto")
+}}}

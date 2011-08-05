@@ -25,13 +25,14 @@
 #
 ##############################################################################
 
-"""Generation bulletins de notes en PDF (avec reportlab)
+"""Generation bulletins de notes 
 
 Format table "UCAC"
+On redéfini la table centrale du bulletin de note et hérite de tout le reste du bulletin standard.
 
-(ceci est un essai)
-
+E. Viennet, juillet 2011
 """
+
 from sco_pdf import *
 import sco_preferences
 import traceback

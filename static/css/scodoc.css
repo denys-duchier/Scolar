@@ -834,6 +834,25 @@ span.evalindex {
  padding-left: 4em;
 }
 
+/* Formulaire edition des partitions */
+form#editpart table {
+   border: 1px solid gray;
+   border-collapse: collapse;
+}
+form#editpart tr.eptit th {
+   font-size: 110%;
+   border-bottom: 1px solid gray;
+}
+form#editpart td {
+   border-bottom: 1px dashed gray;
+}
+form#editpart table td {
+   padding-left: 1em;
+}
+form#editpart table td.epnav {
+   padding-left: 0;
+}
+
 /* Liste des formations */
 ul.notes_formation_list { 
   list-style-type: none;
@@ -1050,6 +1069,9 @@ table.notes_bulletin {
 
 tr.notes_bulletin_row_gen {
    border-top: 1px solid black;
+   font-weight: bold;
+}
+tr.notes_bulletin_row_rang {
    font-weight: bold;
 }
 

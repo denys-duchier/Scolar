@@ -69,7 +69,7 @@ def checkGroupName(groupName): # XXX unused: now allow any string as a  gropu or
 partitionEditor = EditableTable(
     'partition',
     'partition_id',
-    ('partition_id', 'formsemestre_id', 'partition_name', 'compute_ranks', 'numero'))
+    ('partition_id', 'formsemestre_id', 'partition_name', 'compute_ranks', 'numero', 'bul_show_rank'))
 
 groupEditor = EditableTable(
     'group_descr',
@@ -564,8 +564,11 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     canedit = context.Notes.can_change_groups(REQUEST, formsemestre_id)
     partitions = get_partitions_list(context, formsemestre_id)
     arrow_up, arrow_down, arrow_none = getArrowIconsTags(context, REQUEST)
+    suppricon= context.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer')
     #
-    H = [ context.sco_header(REQUEST, page_title="Partitions..."),
+    H = [ context.sco_header(REQUEST, page_title="Partitions...",
+                             init_jquery_ui=True,
+                             javascripts=[ 'js/editPartitionForm.js']),
           """<script type="text/javascript">
           function checkname() {
  var val = document.editpart.partition_name.value.replace(/^\s+/, "").replace(/\s+$/, "");
@@ -579,15 +582,16 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
           """,
           """<h2>Partitions du semestre</h2>
           <form name="editpart" id="editpart" method="POST" action="partition_create">
-          <table><tr><th></th><th></th><th>Nom</th><th>Groupes</th><th></th><th></th><th></th></tr>
+          <div id="epmsg"></div>
+          <table><tr class="eptit"><th></th><th></th><th></th><th>Partition</th><th>Groupes</th><th></th><th></th><th></th></tr>
     """ ]
     i = 0
     for p in partitions:
         if p['partition_name'] is not None:
-            H.append('<tr><td>')
+            H.append('<tr><td class="epnav"><a class="stdlink" href="partition_delete?partition_id=%s">%s</a>&nbsp;</td><td class="epnav">' % (p['partition_id'], suppricon))
             if i != 0:
                 H.append('<a href="partition_move?partition_id=%s&after=0">%s</a>' % (p['partition_id'], arrow_up))
-            H.append('</td><td>')
+            H.append('</td><td class="epnav">')
             if i < len(partitions) - 2:
                 H.append('<a href="partition_move?partition_id=%s&after=1">%s</a>' % (p['partition_id'], arrow_down))
             i += 1
@@ -595,12 +599,16 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
             pname = p['partition_name'] or ''
             H.append('<td>%s</td>' % pname)
             H.append('<td>')
-            for group in get_partition_groups(context, p):
-                n = len(get_group_members(context, group['group_id']))
-                H.append( '%s (%d)' % (group['group_name'], n))
+            lg = [ '%s (%d)' % (group['group_name'],
+                                len(get_group_members(context, group['group_id'])))
+                   for group in get_partition_groups(context, p) ]
+            H.append( ', '.join(lg) )
             H.append('</td><td><a class="stdlink" href="affectGroups?partition_id=%s">répartir</a></td>' % p['partition_id'] )     
             H.append('<td><a class="stdlink" href="partition_rename?partition_id=%s">renommer</a></td>' % p['partition_id'] )
-            H.append('<td><a class="stdlink" href="partition_delete?partition_id=%s">supprimer</a></td>' % p['partition_id'] )
+            # classement:
+            H.append('<td><input type="checkbox" class="rkbox" id="%s" name="%s" value="%s" onchange="update_rk(this);"/>afficher rang sur bulletins</td>' % (p['partition_id'],p['partition_id'],p['bul_show_rank']))
+            
+            #
             H.append('</tr>')
     H.append('</table>')
     H.append('<div class="form_rename_partition">')
@@ -611,6 +619,24 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     H.append('</div></form>')
     H.append("""<p class="help">Les partitions sont des découpages de l'ensemble des étudiants. Par exemple, les "groupes de TD" sont une partition. On peut créer autant de partitions que nécessaire. Dans chaque partition, un nombre de groupes quelconque peuvent être créés (suivre le lien "répartir").</p>""")
     return '\n'.join(H) + context.sco_footer(REQUEST)
+
+def partition_set_bul_show_rank(context, partition_id, bul_show_rank, REQUEST=None):
+    """Set bul_show_rank"""
+    partition = get_partition(context, partition_id)
+    formsemestre_id = partition['formsemestre_id']
+    if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+    
+    log('partition_set_bul_show_rank(%s)' % bul_show_rank)
+    bul_show_rank = int(bul_show_rank)
+    
+    cnx = context.GetDBConnexion()    
+    partition['bul_show_rank'] = bul_show_rank
+    partitionEditor.edit(cnx, partition)
+    # invalid bulletin cache
+    context.Notes._inval_cache(pdfonly=True, formsemestre_id=partition['formsemestre_id'])
+    return 'ok'
+
 
 def partition_delete(context, partition_id, REQUEST=None, force=False, redirect=1, dialog_confirmed=False):
     """Suppress a partition (and all groups within).

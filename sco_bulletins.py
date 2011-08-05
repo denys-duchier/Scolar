@@ -99,7 +99,8 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['server_name'] = REQUEST.BASE0
     else:
         I['server_name'] = ''
-    
+
+    prefs = context.get_preferences(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> toutes notes
     
     # Infos sur l'etudiant
@@ -124,10 +125,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     infos, dpv = etud_descr_situation_semestre(
         context, etudid, formsemestre_id,
         format='html',
-        show_date_inscr=context.get_preference('bul_show_date_inscr', formsemestre_id),
-        show_decisions=context.get_preference('bul_show_decision', formsemestre_id),
-        show_uevalid=context.get_preference('bul_show_uevalid', formsemestre_id),
-        show_mention=context.get_preference('bul_show_mention', formsemestre_id))    
+        show_date_inscr=prefs['bul_show_date_inscr'],
+        show_decisions=prefs['bul_show_decision'],
+        show_uevalid=prefs['bul_show_uevalid'],
+        show_mention=prefs['bul_show_mention'])    
     
     if dpv:
         I['decision_sem'] = dpv['decisions'][0]['decision_sem']
@@ -142,7 +143,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if I['etud_etat'] == 'D':
         I['demission'] = '(Démission)'
         I['filigranne'] = 'Démission'
-    elif context.get_preference('bul_show_temporary', formsemestre_id) and not I['decision_sem']:
+    elif prefs['bul_show_temporary'] and not I['decision_sem']:
         I['filigranne'] = 'Provisoire'
     
     # --- Appreciations
@@ -172,19 +173,25 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     else:
         I['moy_gen_bargraph_html'] = ''
     
-    if nt.get_moduleimpls_attente() or context.get_preference('bul_show_rangs', formsemestre_id) == 0:
+    if prefs['bul_show_rangs']:
+        rang = str(nt.get_etud_rang(etudid))
+    else:        
+        rang = ''
+        
+    rang_gr, ninscrits_gr, gr_name = get_etud_rangs_groups(
+        context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
+    
+    if nt.get_moduleimpls_attente():
         # n'affiche pas le rang sur le bulletin s'il y a des
         # notes en attente dans ce semestre
         rang = '(attente)'
-        rang_gr = {}
-        ninscrits_gr = {}
-    else:
-        rang = str(nt.get_etud_rang(etudid))
-        rang_gr, ninscrits_gr, gr_name = get_etud_rangs_groups(
-            context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
+        rang_gr = DictDefault(defaultvalue='(attente)')
     I['rang'] = rang
+    I['rang_gr'] = rang_gr
+    I['gr_name'] = gr_name
+    I['ninscrits_gr'] = ninscrits_gr
     I['nbetuds'] = len(nt.rangs)
-    if context.get_preference('bul_show_rangs', formsemestre_id):
+    if prefs['bul_show_rangs']:
         I['rang_nt'] =  '%s / %d' % (rang, I['nbetuds']-nt.nb_demissions)
         I['rang_txt'] = 'Rang ' + I['rang_nt']
     else:
@@ -209,7 +216,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             u['ue_descr_txt'] =  'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date'])
             u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
         else:
-            if context.get_preference('bul_show_ue_rangs', formsemestre_id) and ue['type'] != UE_SPORT:
+            if prefs['bul_show_ue_rangs'] and ue['type'] != UE_SPORT:
                 if nt.get_moduleimpls_attente():
                      u['ue_descr_txt'] = '(attente)/%s' % (nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
                 else:
@@ -523,7 +530,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
         return htm, I['filigranne']
     
     elif format == 'pdf' or format == 'pdfpart':
-        bul, filename = sco_bulletins_generator.make_formsemestre_bulletinetud(context, I, version=version, format='pdf', REQUEST=REQUEST)
+        bul, filename = sco_bulletins_generator.make_formsemestre_bulletinetud(context, I, version=version, format='pdf', stand_alone=(format != 'pdfpart'), REQUEST=REQUEST)
         if format == 'pdf':
             return sendPDFFile(REQUEST, bul, filename), I['filigranne'] # unused ret. value
         else:
