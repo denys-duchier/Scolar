@@ -200,6 +200,8 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['bonus_sport_culture'] = nt.bonus[etudid]
     # Liste les UE / modules /evals
     I['ues'] = []
+    I['matieres_modules'] = {}
+    I['matieres_modules_capitalized'] = {}
     for ue in ues:
         u = ue.copy()
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
@@ -211,37 +213,40 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
         
+        modules, ue_attente = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
+        if ue_status['cur_moy_ue'] != 'NA':            
+            u['modules'] = modules # detail des modules de l'UE (dans le semestre courant)
+        else:
+            u['modules'] = [] # pas de moyenne => pas de modules
+
+        u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
         if ue_status['is_capitalized']:
             sem_origin = context.get_formsemestre(ue_status['formsemestre_id'])
             u['ue_descr_txt'] =  'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date'])
             u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
-        else:
-            if prefs['bul_show_ue_rangs'] and ue['type'] != UE_SPORT:
-                if nt.get_moduleimpls_attente():
-                     u['ue_descr_txt'] = '(attente)/%s' % (nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
-                else:
-                    u['ue_descr_txt'] = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
-                u['ue_descr_html'] = u['ue_descr_txt']
-            else:
-                u['ue_descr_txt'] = u['ue_descr_html'] = ''
-
-        u['modules'] = [] # modules de l'UE (dans le semestre courant)
-        u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
-        if ue_status['is_capitalized']:
             # log('cap details   %s' % ue_status['moy'])
             if ue_status['moy'] != 'NA' and ue_status['formsemestre_id']:
                 # detail des modules de l'UE capitalisee
                 nt_cap = context._getNotesCache().get_NotesTable(context, ue_status['formsemestre_id']) #> toutes notes
                 
-                u['modules_capitalized'] = _ue_mod_bulletin(context, etudid, formsemestre_id, ue_status['capitalized_ue_id'], nt_cap.get_modimpls(), nt_cap, version)
-
-        modules = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
-        if ue_status['cur_moy_ue'] != 'NA':
-            # detail des modules courants
-            u['modules'] = modules
+                u['modules_capitalized'], junk = _ue_mod_bulletin(context, etudid, formsemestre_id, ue_status['capitalized_ue_id'], nt_cap.get_modimpls(), nt_cap, version)
+                I['matieres_modules_capitalized'].update(_sort_mod_by_matiere(u['modules_capitalized'], nt_cap, etudid))
+        else:
+            if prefs['bul_show_ue_rangs'] and ue['type'] != UE_SPORT:
+                if ue_attente: # nt.get_moduleimpls_attente():
+                     u['ue_descr_txt'] = '(attente)/%s' % (nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
+                else:
+                    u['ue_descr_txt'] = '%s/%s' % (nt.ue_rangs[ue['ue_id']][0][etudid], nt.ue_rangs[ue['ue_id']][1]-nt.nb_demissions)
+                u['ue_descr_html'] = u['ue_descr_txt']
+            else:
+                u['ue_descr_txt'] = u['ue_descr_html'] = ''        
         
         if ue_status['is_capitalized'] or modules:
             I['ues'].append(u) # ne montre pas les UE si non inscrit
+
+        # Accès par matieres
+        I['matieres_modules'].update(_sort_mod_by_matiere(modules, nt, etudid))
+
     #
     sem = context.get_formsemestre(formsemestre_id)
     C = make_context_dict(context, sem, I['etud'])
@@ -249,10 +254,24 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     #
     return C
 
+def _sort_mod_by_matiere(modlist, nt, etudid):
+    matmod = {} # { matiere_id : [] }
+    for mod in modlist: 
+        matiere_id = mod['module']['matiere_id']
+        if matiere_id not in matmod:
+            moy = nt.get_etud_mat_moy(matiere_id, etudid)
+            matmod[matiere_id] = {
+                'titre' : mod['mat']['titre'],
+                'modules' : mod,
+                'moy' : moy,
+                'moy_txt' : fmt_note(moy)
+                } 
+    return matmod
+
 def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, version):
     """Infos sur les modules (et évaluations) dans une UE
     (ajoute les informations aux modimpls)
-    Result: liste de modules, de l'UE avec les infos dans chacun (seulement ceux où l'étudiant est inscrit).
+    Result: liste de modules de l'UE avec les infos dans chacun (seulement ceux où l'étudiant est inscrit).
     """
     bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
@@ -263,7 +282,9 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
     
     ue_modimpls = [ mod for mod in modimpls if mod['module']['ue_id'] == ue_id ]
     mods = [] # result
+    ue_attente = False # true si une eval en attente dans cette UE
     for modimpl in ue_modimpls:
+        mod_attente = False
         mod = modimpl.copy()
         mod_moy = nt.get_etud_mod_moy(modimpl['moduleimpl_id'], etudid)  # peut etre 'NI'
         if bul_show_abs_modules:
@@ -293,16 +314,7 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                 mod['code'] = mod['code_html'] = ''
             mod['name'] = modimpl['module']['abbrev'] or modimpl['module']['titre'] or ''
             mod['name_html'] = link_mod + mod['name'] + '</a>'
-            if bul_show_mod_rangs and mod['mod_moy_txt'] != '-':
-                rg = nt.mod_rangs[modimpl['moduleimpl_id']]
-                if nt.get_moduleimpls_attente():
-                    mod['mod_rang'] = '(attente)'
-                else:
-                    mod['mod_rang'] = rg[0][etudid]
-                mod['mod_eff']   = rg[1] # effectif dans ce module
-                mod['mod_rang_txt'] = '%s/%s' % (mod['mod_rang'], mod['mod_eff'])                    
-            else:
-                mod['mod_rang_txt'] = ''
+            
             mod_descr = 'Module %s, coef. %s (%s)' % (
                 modimpl['module']['titre'],
                 fmt_coef(modimpl['module']['coefficient']),
@@ -332,8 +344,39 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                 else:
                     e['note_txt'] = fmt_note(val, note_max=e['note_max'])
                     e['note_html'] = e['note_txt']
-                    e['coef_txt'] = fmt_coef(e['coefficient'])                
-    return mods
+                    e['coef_txt'] = fmt_coef(e['coefficient'])
+                if e['etat']['evalattente']:
+                    mod_attente = True # une eval en attente dans ce module
+            # Evaluations incomplètes ou futures:
+            mod['evaluations_incompletes'] = []
+            if context.get_preference('bul_show_all_evals', formsemestre_id):
+                complete_eval_ids = Set( [ e['evaluation_id'] for e in evals ] )
+                all_evals = context.do_evaluation_list(args={ 'moduleimpl_id' : modimpl['moduleimpl_id'] })
+                all_evals.reverse() # plus ancienne d'abord
+                for e in all_evals:
+                    if e['evaluation_id'] not in complete_eval_ids:
+                        e = e.copy()                        
+                        mod['evaluations_incompletes'].append(e)
+                        e['name'] = (e['description'] or '') + ' (%s)' % e['jour']
+                        e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1' % e['evaluation_id']
+                        e['name_html'] = '<a class="bull_link" href="%s">%s</a>' % (e['target_html'], e['name'])
+                        e['note_txt'] = e['note_html'] = ''
+                        e['coef_txt'] = fmt_coef(e['coefficient'])
+            # Classement
+            if bul_show_mod_rangs and mod['mod_moy_txt'] != '-':
+                rg = nt.mod_rangs[modimpl['moduleimpl_id']]
+                if mod_attente: # nt.get_moduleimpls_attente():
+                    mod['mod_rang'] = '(attente)'
+                else:
+                    mod['mod_rang'] = rg[0][etudid]
+                mod['mod_eff']   = rg[1] # effectif dans ce module
+                mod['mod_rang_txt'] = '%s/%s' % (mod['mod_rang'], mod['mod_eff'])                    
+            else:
+                mod['mod_rang_txt'] = ''
+        if mod_attente:
+            ue_attente = True
+    
+    return mods, ue_attente
 
 
 def get_etud_rangs_groups(context, etudid, formsemestre_id, 

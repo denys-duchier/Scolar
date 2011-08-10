@@ -312,7 +312,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     
     diag.append('Import et inscription de %s étudiants' % len(created_etudids))
 
-    sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
+    sco_news.add(context, REQUEST, typ=NEWS_INSCR,
                  text='Inscription de %d étudiants' # peuvent avoir ete inscrits a des semestres differents
                  % len(created_etudids))
     

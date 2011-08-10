@@ -346,7 +346,7 @@ class ZNotes(ObjectManager,
         #
         r = self._formationEditor.create(cnx, args)
         
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM,
+        sco_news.add(self, REQUEST, typ=NEWS_FORM,
                      text='Création de la formation %(titre)s (%(acronyme)s)' % args )
         return r
     
@@ -367,7 +367,7 @@ class ZNotes(ObjectManager,
         self._formationEditor.delete(cnx, oid)
         
         # news
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=oid,
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=oid,
                      text='Suppression de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'formation_list')
@@ -432,9 +432,8 @@ class ZNotes(ObjectManager,
         xml = sco_formations.formation_export(self, formation_id, export_ids=True, format='xml')
         new_id, modules_old2new, ues_old2new = sco_formations.formation_import_xml(self,REQUEST, xml)
         # news
-        cnx = self.GetDBConnexion()
         F = self.formation_list(args={ 'formation_id' :new_id})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=new_id,
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=new_id,
                      text='Nouvelle version de la formation %(acronyme)s'%F)
         if redirect:
             return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&msg=Nouvelle version !')
@@ -466,7 +465,7 @@ class ZNotes(ObjectManager,
         
         # news
         F = self.formation_list(args={ 'formation_id' :args['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=args['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
 
@@ -508,7 +507,7 @@ class ZNotes(ObjectManager,
         self._inval_cache() #> UE delete + supr. validations associées etudiants (cas compliqué, mais rarement utilisé: acceptable de tout invalider ?)
         # news
         F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         #
         if not force:
@@ -544,7 +543,7 @@ class ZNotes(ObjectManager,
         
         # news
         F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
 
@@ -570,7 +569,7 @@ class ZNotes(ObjectManager,
         
         # news
         F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=ue['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=ue['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_matiere_list')
@@ -629,7 +628,7 @@ class ZNotes(ObjectManager,
         
         # news
         F = self.formation_list(args={ 'formation_id' :args['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=args['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=args['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
         return r
 
@@ -656,7 +655,7 @@ class ZNotes(ObjectManager,
         
         # news
         F = self.formation_list(args={ 'formation_id' :mod['formation_id']})[0]
-        sco_news.add(REQUEST, cnx, typ=NEWS_FORM, object=mod['formation_id'],
+        sco_news.add(self, REQUEST, typ=NEWS_FORM, object=mod['formation_id'],
                      text='Modification de la formation %(acronyme)s' % F )
 
     security.declareProtected(ScoView, 'do_module_list')
@@ -819,7 +818,7 @@ class ZNotes(ObjectManager,
             args['titre'] = 'sans titre'
         args['formsemestre_id'] = formsemestre_id
         args['url'] = 'Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s'%args
-        sco_news.add(REQUEST, cnx, typ=NEWS_SEM,
+        sco_news.add(self, REQUEST, typ=NEWS_SEM,
                      text='Création du semestre <a href="%(url)s">%(titre)s</a>' % args,
                      url=args['url'])
         return formsemestre_id
@@ -951,7 +950,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'formsemestre_change_lock')
     formsemestre_change_lock = sco_formsemestre_edit.formsemestre_change_lock
 
-    def _check_access_diretud(self, formsemestre_id, REQUEST):
+    def _check_access_diretud(self, formsemestre_id, REQUEST, required_permission=ScoImplement):
         """Check if access granted: responsable_id or ScoImplement
         Return True|False, HTML_error_page
         """
@@ -961,7 +960,7 @@ class ZNotes(ObjectManager,
                                  REQUEST=REQUEST)
         footer = self.sco_footer(REQUEST)
         if ((sem['responsable_id'] != str(authuser))
-            and not authuser.has_permission(ScoImplement,self)):
+            and not authuser.has_permission(required_permission,self)):
             return False, '\n'.join( [
                 header,
                 '<h2>Opération non autorisée pour %s</h2>' % authuser,
@@ -1839,7 +1838,7 @@ class ZNotes(ObjectManager,
         mod = self.do_module_list( args={ 'module_id':M['module_id'] } )[0]
         mod['moduleimpl_id'] = M['moduleimpl_id']
         mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-        sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=moduleimpl_id,
+        sco_news.add(self, REQUEST, typ=NEWS_NOTE, object=moduleimpl_id,
                      text='Création d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
                      url=mod['url'])
 
@@ -1919,7 +1918,7 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'do_evaluation_list')
     def do_evaluation_list(self, args ):
-        "list evaluations"
+        "List evaluations, sorted by date, most recent first."
         cnx = self.GetDBConnexion()
         evals = self._evaluationEditor.list(cnx, args)
         # calcule duree (chaine de car.) de chaque evaluation
@@ -2318,6 +2317,10 @@ class ZNotes(ObjectManager,
         sem = self.get_formsemestre(formsemestre_id)
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id) #> get_etudids
         etudids = nt.get_etudids()
+        #
+        ok, err = context._check_access_diretud(formsemestre_id,REQUEST,required_permission=ScoEtudChangeAdr)
+        if not ok:
+            return err
         # Confirmation dialog
         if not dialog_confirmed:
             return self.confirmDialog(

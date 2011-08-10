@@ -96,6 +96,7 @@ class NotesTable:
     Attributs privés:
     - _modmoys : { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
     - _ues : liste des UE de ce semestre (hors capitalisees)
+    - _matmoys : { matiere_id : { etudid: note moyenne dans cette matiere } }
     
     """
     def __init__(self, context, formsemestre_id):
@@ -133,6 +134,7 @@ class NotesTable:
         self._modmoys, self._modimpls, valid_evals, mods_att, self.expr_diagnostics =\
             sco_compute_moy.do_formsemestre_moyennes(context, formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
+        self._matmoys = {} # moyennes par matieres
         self._valid_evals = {} # { evaluation_id : eval }
         for e in valid_evals:
             self._valid_evals[e['evaluation_id']] = e        # Liste des modules et UE
@@ -146,7 +148,7 @@ class NotesTable:
             else:
                 ue = uedict[mod['ue_id']]
             modimpl['ue'] = ue # add ue dict to moduleimpl            
-            
+            self._matmoys[mod['matiere_id']] = {}
             mat = context.do_matiere_list(args={'matiere_id': mod['matiere_id']})[0]
             modimpl['mat'] = mat # add matiere dict to moduleimpl 
             # calcul moyennes du module et stocke dans le module
@@ -335,7 +337,7 @@ class NotesTable:
         return ues
     
     def get_modimpls(self, ue_id=None):
-        "liste des modules pour une UE (ou toutes si ue_id==None)"
+        "liste des modules pour une UE (ou toutes si ue_id==None), triés par matières."
         if ue_id is None:
             r = self._modimpls
         else:
@@ -437,7 +439,16 @@ class NotesTable:
     def get_etud_mod_moy(self, moduleimpl_id, etudid):
         """moyenne d'un etudiant dans un module (ou NI si non inscrit)"""        
         return self._modmoys[moduleimpl_id].get(etudid, 'NI')
-    
+
+    def get_etud_mat_moy(self, matiere_id, etudid):
+        """moyenne d'un étudiant dans une matière (ou NA si pas de notes)"""
+        matmoy = self._matmoys.get(matiere_id, None)
+        if not matmoy:
+            return 'NM' # non inscrit
+            #log('*** oups: get_etud_mat_moy(%s, %s)' % (matiere_id, etudid))
+            #raise ValueError('matiere invalide !') # should not occur
+        return matmoy.get(etudid, 'NA')
+        
     def comp_etud_moy_ue(self, etudid, ue_id=None, cnx=None):
         """Calcule moyenne gen. pour un etudiant dans une UE 
         Ne prend en compte que les evaluations où toutes les notes sont entrées
@@ -458,6 +469,9 @@ class NotesTable:
         coefs = NoteVector()
         coefs_mask = NoteVector() # 0/1, 0 si coef a ete annulé
 
+        matiere_id_last = None
+        matiere_sum_notes = matiere_sum_coefs = 0.
+
         for modimpl in modimpls:
             mod_ue_id = modimpl['ue']['ue_id']
             # module ne faisant pas partie d'une UE capitalisee
@@ -471,7 +485,14 @@ class NotesTable:
                     sum_coefs += coef
                     nb_notes = nb_notes + 1
                     coefs.append(coef)
-                    coefs_mask.append(1)
+                    coefs_mask.append(1)                    
+                    matiere_id = modimpl['module']['matiere_id']
+                    if matiere_id_last and matiere_id != matiere_id_last and matiere_sum_coefs:
+                        self._matmoys[matiere_id_last][etudid] = matiere_sum_notes / matiere_sum_coefs
+                        matiere_sum_notes = matiere_sum_coefs = 0.
+                    matiere_sum_notes += val * coef
+                    matiere_sum_coefs += coef
+                    matiere_id_last = matiere_id                    
                 except:
                     nb_missing = nb_missing + 1
                     coefs.append(0)
@@ -485,7 +506,9 @@ class NotesTable:
                 except:
                     # log('comp_etud_moy_ue: exception: val=%s coef=%s' % (val,coef))
                     pass
-
+        
+        if matiere_id_last and matiere_sum_coefs:
+            self._matmoys[matiere_id_last][etudid] = matiere_sum_notes / matiere_sum_coefs
         # Calcul moyenne:
         if sum_coefs > 0:
             moy = sum_notes / sum_coefs

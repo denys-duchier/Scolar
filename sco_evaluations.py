@@ -87,7 +87,7 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
     mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
     mod['moduleimpl_id'] = M['moduleimpl_id']
     mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-    sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_NOTE, object=moduleimpl_id,
+    sco_news.add(context, REQUEST, typ=sco_news.NEWS_NOTE, object=moduleimpl_id,
                  text='Suppression d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url=mod['url'])
 

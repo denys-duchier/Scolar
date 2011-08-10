@@ -1091,11 +1091,16 @@ tr.bul_row_ue_cap {
    color: rgb(50,50,50);
 }
 
+tr.notes_bulletin_row_mat {
+  border-top: 2px solid rgb(140,140,140);
+  color: blue;
+}
+
 tr.notes_bulletin_row_mod {
   border-top: 1px solid rgb(140,140,140);
 }
 
-tr.notes_bulletin_row_mod td.titre {
+tr.notes_bulletin_row_mod td.titre, tr.notes_bulletin_row_mat td.titre {
   padding-left: 1em;
 }
 
@@ -1103,6 +1108,10 @@ tr.notes_bulletin_row_eval {
   font-style: italic; 
   color: rgb(60,60,80);
 }
+tr.notes_bulletin_row_eval_incomplete .discretelink {
+  color: rgb(200,0,0);
+}
+
 tr.b_eval_first td {
   border-top: 1px dashed rgb(170,170,170);
 }

@@ -167,7 +167,8 @@ Archive = Archiver()
 
 def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='', 
                             dateJury='', signature=None, # pour lettres indiv
-                            dateCommission=None, numeroArrete=None, showTitle=False
+                            dateCommission=None, numeroArrete=None, showTitle=False,
+                            bulVersion='long'
                             ):
     """Make and store new archive for this formsemestre.
     Store:
@@ -205,7 +206,7 @@ def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='',
         Archive.store(archive_id, 'Decisions_Jury.xls', data)
     # Classeur bulletins (PDF)
     data, filename = context._get_formsemestre_bulletins_pdf(formsemestre_id, REQUEST, 
-                                                             version='long' ) # pourrait etre param
+                                                             version=bulVersion )
     if data:
         Archive.store(archive_id, 'Bulletins.pdf', data )
     # Lettres individuelles (PDF):
@@ -246,6 +247,12 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
     descr += sco_pvjury.descrform_pvjury(sem)
     descr += [
         ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature pour les lettres individuelles'}),
+        ('bulVersion', {'input_type' : 'menu',
+                        'title' : 'Version des bulletins archivés',
+                        'labels' : ['Version courte', 'Version intermédiaire', 'Version complète'],
+                        'allowed_values' : ['short', 'selectedevals', 'long'],
+                        'default' : 'long',
+                     }), 
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             cancelbutton = 'Annuler', method='POST',
@@ -262,7 +269,8 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
         do_formsemestre_archive(context, REQUEST, formsemestre_id, description=tf[2]['description'],
                                 dateJury=tf[2]['dateJury'], dateCommission=tf[2]['dateCommission'],
                                 signature=signature, 
-                                numeroArrete=tf[2]['numeroArrete'], showTitle=tf[2]['showTitle'])
+                                numeroArrete=tf[2]['numeroArrete'], showTitle=tf[2]['showTitle'],
+                                bulVersion=tf[2]['bulVersion'])
         msg = 'Nouvelle%20archive%20créée'
     
     # submitted or cancelled:

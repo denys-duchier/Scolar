@@ -1,6 +1,10 @@
 
   NOTES EN VRAC : voir plutôt le Trac !!!
 
+Suivi des requêtes utilisateurs:
+ table sql: id, ip, authuser, request
+
+
 *** Nouvelle archi bulletins PDF+HTML
 
  page html = titre, table, dessous

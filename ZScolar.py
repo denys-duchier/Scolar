@@ -1911,7 +1911,7 @@ function tweakmenu( gname ) {
                 etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
                 self.fillEtudsInfo([etud])
                 etud['url']='ficheEtud?etudid=%(etudid)s' % etud
-                sco_news.add(REQUEST, cnx, typ=NEWS_INSCR, # pas d'object pour ne montrer qu'un etudiant
+                sco_news.add(self, REQUEST, typ=NEWS_INSCR, # pas d'object pour ne montrer qu'un etudiant
                              text='Nouvel étudiant <a href="%(url)s">%(nomprenom)s</a>' % etud,
                              url=etud['url'])  
             else:
@@ -2078,6 +2078,8 @@ function tweakmenu( gname ) {
             sem = self.Notes.get_formsemestre(formsemestre_id)
         else:
             sem = None
+        if sem and sem['etat'] != '1':
+            ScoValueError('Modification impossible: semestre verrouille')
         H = [self.sco_header(REQUEST, page_title='Import etudiants'),
              """<h2 class="formsemestre">Téléchargement d\'une nouvelle liste d\'etudiants</h2>
              <div style="color: red">

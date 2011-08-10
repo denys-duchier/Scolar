@@ -223,7 +223,7 @@ def _makeTimeDict():
              'minute' : time.strftime('%M' )
              }
 
-def pdf_basic_page( objects, title='', preferences=None ):
+def pdf_basic_page( objects, title='', preferences=None ): # used by gen_table.make_page()
     """Simple convenience fonction: build a page from a list of platypus objects,
     adding a title if specified.
     """

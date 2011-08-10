@@ -157,6 +157,7 @@ def do_evaluation_formnotes(context, REQUEST ):
     except:        
         raise ScoValueError("Formulaire incomplet ! Vous avez sans doute attendu trop longtemps, veuillez vous reconnecter. Si le problème persiste, contacter l'administrateur. Merci.")
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
+    jour_iso = DateDMYtoISO(E['jour'])
     # Check access
     # (admin, respformation, and responsable_id)
     if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
@@ -264,7 +265,18 @@ def do_evaluation_formnotes(context, REQUEST ):
                                           NotesDB[etudid]['uid'], comment )
         else:
             explanation = ''
-            val = ''            
+            val = ''
+        # Information sur absence (ne tient pas compte de la demi-journée)
+        nbabs = context.Absences.CountAbs(etudid, jour_iso, jour_iso)
+        nbabsjust = context.Absences.CountAbsJust(etudid, jour_iso, jour_iso)
+        absinfo = ''
+        if nbabs:
+            if nbabsjust:
+                absinfo = 'absent justifié ce jour !  '
+            else:
+                absinfo = 'absent ce jour !  '
+        explanation = absinfo + explanation
+        #
         el.append( (nom, label, etudid, val, explanation, ident, inscr) )
     el.sort() # sort by name
     for (nom, label,etudid, val, explanation, ident, inscr) in el:
@@ -350,7 +362,7 @@ def do_evaluation_formnotes(context, REQUEST ):
             if nbchanged > 0 or nbsuppress > 0:
                 Mod['moduleimpl_id'] = M['moduleimpl_id']
                 Mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s" % Mod
-                sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+                sco_news.add(context, REQUEST, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                              text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % Mod,
                              url=Mod['url'])
             # affiche etat evaluation
@@ -525,7 +537,7 @@ def do_evaluation_upload_xls(context, REQUEST):
             mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
             mod['moduleimpl_id'] = M['moduleimpl_id']
             mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-            sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+            sco_news.add(context, REQUEST, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                          text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                          url = mod['url'])
 
@@ -594,7 +606,7 @@ def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialo
     mod = context.do_module_list( args={ 'module_id':M['module_id'] } )[0]
     mod['moduleimpl_id'] = M['moduleimpl_id']
     mod['url']="Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-    sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+    sco_news.add(context, REQUEST, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                  text='Initialisation notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url = mod['url'])
     return context.sco_header(REQUEST)\
@@ -644,7 +656,7 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
     mod['moduleimpl_id'] = M['moduleimpl_id']
     cnx = context.GetDBConnexion()
     mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
-    sco_news.add(REQUEST, cnx, typ=NEWS_NOTE, object=M['moduleimpl_id'],
+    sco_news.add(context, REQUEST, typ=NEWS_NOTE, object=M['moduleimpl_id'],
                  text='Suppression des notes d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url= mod['url'])
 

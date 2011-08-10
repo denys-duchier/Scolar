@@ -314,7 +314,9 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                       }
                 P.append(t)
                 # Notes de l'UE capitalisée obtenues antérieurement:            
-                self._list_modules(ue['modules_capitalized'], ue_type=ue_type, P=P, prefs=prefs,
+                self._list_modules(ue['modules_capitalized'],
+                                   matieres_modules=self.infos['matieres_modules_capitalized'],
+                                   ue_type=ue_type, P=P, prefs=prefs,
                                    rowstyle=' bul_row_ue_cap %s' % cssstyle, hidden=hidden
                                    )
                 ue_type = 'cur'
@@ -347,9 +349,10 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                 t['_pdf_style'].append(('SPAN', (colidx['module'],0), (-1,0)))
                 t['_module_colspan'] = 3
             P.append(t)
-            self._list_modules(ue['modules'], ue_type=ue_type, P=P, prefs=prefs, rowstyle=rowstyle)
+            self._list_modules(ue['modules'], matieres_modules=self.infos['matieres_modules'],
+                               ue_type=ue_type, P=P, prefs=prefs, rowstyle=rowstyle)
 
-        # Global pdf style comands:
+        # Global pdf style commands:
         pdf_style = [
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
             ('BOX', (0,0), (-1,-1), 0.4, blue), # ajoute cadre extérieur bleu:
@@ -358,7 +361,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         return colkeys, P, pdf_style, colWidths
     
     
-    def _list_modules(self, ue_modules, ue_type=None, P=None, prefs=None,
+    def _list_modules(self, ue_modules, matieres_modules={}, ue_type=None, P=None, prefs=None,
                       rowstyle='', hidden=False):
         """Liste dans la table les descriptions des modules et, si version != short, des évaluations.
         """
@@ -373,9 +376,25 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         if ue_type == 'cur':  # UE courante non prise en compte (car capitalisee)
             pdf_style.append(('BACKGROUND', (0,0), (-1,0), self.PDF_UE_CUR_BG))
 
+        last_matiere_id = None
         for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
                 continue # saute les modules où on n'est pas inscrit
+            # Matière:
+            matiere_id = mod['module']['matiere_id']
+            if prefs['bul_show_matieres'] and matiere_id != last_matiere_id:
+                mat = matieres_modules[matiere_id]
+                P.append( {
+                    'titre' : mat['titre'],
+                    #'_titre_help' : matiere_id,
+                    '_titre_colspan' : 2,
+                    'note' : mat['moy_txt'],
+                    '_css_row_class' : 'notes_bulletin_row_mat%s' % rowstyle,
+                    '_pdf_style' : pdf_style_bg + [('LINEABOVE', (0,0), (-1,0), 2, self.PDF_MODSEPCOLOR)],
+                    '_pdf_row_markup' : ['font color="darkblue"']
+                    } )
+            last_matiere_id = matiere_id
+            #
             t = { 'titre' : mod['code_txt'] + ' ' + mod['name'],
                   '_titre_colspan' : 2,
                   'rang' : mod['mod_rang_txt'], # vide si pas option rang
@@ -396,27 +415,43 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
 
             if self.version != 'short':           
                 # --- notes de chaque eval:
-                nbeval = 0
-                for e in mod['evaluations']:
-                    if e['visibulletin'] == '1' or self.version == 'long':
-                        if nbeval == 0:
-                            eval_style = ' b_eval_first'
-                        else:
-                            eval_style = ''
-                        t = { 'module' : '<bullet indent="2mm">&bull;</bullet>&nbsp;' + e['name'],
-                              'note' : '<i>'+e['note_txt']+'</i>',
-                              'coef' : '<i>'+e['coef_txt']+'</i>',
-                              '_hidden' : hidden,
-                              '_module_target' : e['target_html'],
-                              # '_module_help' : ,
-                              '_css_row_class' : 'notes_bulletin_row_eval' + eval_style + rowstyle,
-                              '_pdf_style' : pdf_style_bg[:] }
-                        P.append(t)
-                        nbeval += 1
+                nbeval = self._list_evals( mod['evaluations'], P, rowstyle, pdf_style_bg, hidden)
+                # evals futures ou incomplètes:
+                nbeval += self._list_evals( mod['evaluations_incompletes'], P, rowstyle, pdf_style_bg, hidden, incomplete=True)
+                
                 if nbeval: # boite autour des evaluations (en pdf)
                     P[-1]['_pdf_style'].append(('BOX', (1,1-nbeval), (-1, 0), 0.2, self.PDF_LIGHT_GRAY))
-
-
+    
+    def _list_evals(self, evals, P, rowstyle='', pdf_style_bg=[], hidden=False, incomplete=False):
+        if incomplete: # style special pour evaluations incompletes:
+            rowstyle += ' notes_bulletin_row_eval_incomplete'
+            pdf_row_markup = ['font color="red"']
+        else:
+            pdf_row_markup = []
+        # --- notes de chaque eval:
+        nbeval = 0
+        for e in evals:
+            if e['visibulletin'] == '1' or self.version == 'long':
+                if nbeval == 0:
+                    eval_style = ' b_eval_first'
+                else:
+                    eval_style = ''
+                t = { 'module' : '<bullet indent="2mm">&bull;</bullet>&nbsp;' + e['name'],
+                      'coef' : '<i>'+e['coef_txt']+'</i>',
+                      '_hidden' : hidden,
+                      '_module_target' : e['target_html'],
+                      # '_module_help' : ,
+                      '_css_row_class' : 'notes_bulletin_row_eval' + eval_style + rowstyle,
+                      '_pdf_style' : pdf_style_bg[:],
+                      '_pdf_row_markup' : pdf_row_markup
+                      }
+                if e['note_txt']:
+                    t['note'] = '<i>'+e['note_txt']+'</i>'
+                else:
+                    t['_module_colspan'] = 2
+                P.append(t)
+                nbeval += 1
+        return nbeval
 
 sco_bulletins_generator.register_bulletin_class(BulletinGeneratorStandard)
 

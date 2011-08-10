@@ -135,6 +135,7 @@ CREATE TABLE billet_absence (
 ) WITH OIDS;
 
 
+-- --- Log des actions (journal modif etudiants)
 CREATE TABLE scolog (
     date timestamp without time zone DEFAULT now(),
     authenticated_user text,

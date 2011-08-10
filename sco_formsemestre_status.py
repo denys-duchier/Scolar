@@ -246,6 +246,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail',
           'url' : 'formsemestre_bulletins_mailetuds_choice?formsemestre_id='+ formsemestre_id,
+          'enabled' : (authuser.has_permission(ScoEtudChangeAdr, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))),
           },
         { 'title' : 'Calendrier des évaluations',
           'url' : 'formsemestre_evaluations_cal?formsemestre_id='+ formsemestre_id,

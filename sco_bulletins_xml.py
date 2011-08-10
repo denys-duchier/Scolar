@@ -193,6 +193,21 @@ def make_xml_formsemestre_bulletinetud(
                         val = fmt_note(val, note_max=e['note_max'] )
                         doc.note( value=val )
                         doc._pop()
+                # Evaluations incomplètes ou futures:
+                complete_eval_ids = Set( [ e['evaluation_id'] for e in evals ] )
+                if context.get_preference('bul_show_all_evals', formsemestre_id):
+                    all_evals = context.do_evaluation_list(args={ 'moduleimpl_id' : modimpl['moduleimpl_id'] })
+                    all_evals.reverse() # plus ancienne d'abord
+                    for e in all_evals:
+                        if e['evaluation_id'] not in complete_eval_ids:
+                            doc._push()
+                            doc.evaluation(jour=DateDMYtoISO(e['jour'], null_is_empty=True),
+                                           heure_debut=TimetoISO8601(e['heure_debut'], null_is_empty=True),
+                                           heure_fin=TimetoISO8601(e['heure_fin'], null_is_empty=True),
+                                           coefficient=e['coefficient'],
+                                           description=quote_xml_attr(e['description']),
+                                           incomplete='1')
+                            doc._pop()
             doc._pop()
         doc._pop()
         # UE capitalisee (listee seulement si meilleure que l'UE courante)

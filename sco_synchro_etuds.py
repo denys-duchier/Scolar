@@ -499,7 +499,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
         context._inval_cache() #> import: modif identite, adresses, inscriptions
         raise
 
-    sco_news.add(REQUEST, cnx, typ=NEWS_INSCR,
+    sco_news.add(context, REQUEST, typ=NEWS_INSCR,
                  text='Import Apogée de %d étudiants' % len(created_etudids) )
     
 def do_import_etud_admission(context, cnx, etudid, etud, import_naissance=False, import_identite=False):

@@ -16,7 +16,7 @@ ScoImplement    = "Sco Implement Formation"
 
 ScoAbsChange    = "Sco Change Absences"
 ScoAbsAddBillet = "Sco Add Abs Billet" # ajouter un billet d'absence via AddBilletAbsence
-ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo
+ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo ou pour envoyer bulletins par mail
 ScoEtudChangeGroups = "Sco Change Etud Groups"
 ScoEtudInscrit  = "Sco Inscrire Etud" # aussi pour demissions, diplomes
 ScoEtudAddAnnotations = "Sco Etud Add Annotations"

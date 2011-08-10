@@ -838,7 +838,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     
     # news
     import sco_news
-    sco_news.add(REQUEST, cnx, typ=sco_news.NEWS_SEM, object=formsemestre_id,
+    sco_news.add(context, REQUEST, typ=sco_news.NEWS_SEM, object=formsemestre_id,
                  text='Suppression du semestre %(titre)s' % sem )
 
 

@@ -83,7 +83,7 @@ sinon, elle ne concerne que le semestre indiqué.
          . si le type est spécfié (float ou int)
          . les boolcheckbox qui sont des entiers 0 ou 1
   - avoir un mapping (read only) de toutes les valeurs:
-      sem_preferences(context,formsemestre_id)
+      context.get_preferences(context,formsemestre_id)
   - editer les preferences globales:
       sco_preferences.get_base_preferences(self).edit(REQUEST=REQUEST)
   - editer les preferences d'un semestre:
@@ -200,6 +200,15 @@ PREFS = (
         'explanation' : 'lien "Intranet" en haut à gauche',
         'category' : 'general',
         'only_global' : True
+        }
+      ),
+    ('emails_notifications',
+    { 'initvalue' : '',
+       'title' : 'e-mails à qui notifier les opérations',
+        'size' : 70,
+        'explanation' : 'adresses séparées par des virgules; notifie les opérations (saisies de notes, etc). (vous pouvez préférer utiliser le flux rss)',
+        'category' : 'general',
+        'only_global' : False # peut être spécifique à un semestre
         }
       ),
     ( 'email_chefdpt',
@@ -622,6 +631,23 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
     ( 'bul_show_codemodules', 
       { 'initvalue' : 0,
         'title' : 'Afficher codes des modules sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
+    ( 'bul_show_matieres', 
+      { 'initvalue' : 0,
+        'title' : 'Afficher les matières sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
+    ( 'bul_show_all_evals', 
+      { 'initvalue' : 0,
+        'title' : 'Afficher toutes les évaluations sur les bulletins',
+        'explanation' : 'y compris incomplètes ou futures',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']

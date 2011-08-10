@@ -35,8 +35,12 @@ from sco_utils import SCO_ENCODING
 
 import PyRSS2Gen
 from cStringIO import StringIO
-import datetime
+import datetime, re
 from stripogram import html2text, html2safehtml
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEText import MIMEText
+from email.Header import Header
+from email import Encoders
 
 _scolar_news_editor = EditableTable(
     'scolar_news',
@@ -48,17 +52,27 @@ _scolar_news_editor = EditableTable(
     html_quote=False # no user supplied data, needed to store html links
 )
 
-NEWS_INSCR = 'INSCR'
-NEWS_NOTE = 'NOTES'
-NEWS_FORM = 'FORM'
-NEWS_SEM  =  'SEM'
-NEWS_MISC = 'MISC'
-NEWS_TYPES = (NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC)
+NEWS_INSCR = 'INSCR' # inscription d'étudiants (object=None)
+NEWS_NOTE = 'NOTES'  # saisie note (object=moduleimpl_id)
+NEWS_FORM = 'FORM'   # modification formation (object=formation_id)
+NEWS_SEM  =  'SEM'   # creation semestre (object=None)
+NEWS_MISC = 'MISC'   # unused
+NEWS_MAP = {
+    NEWS_INSCR : "inscription d'étudiants",
+    NEWS_NOTE : "saisie note",
+    NEWS_FORM : "modification formation",
+    NEWS_SEM :  "création semestre",
+    NEWS_MISC : "opération", # unused
+    }
+NEWS_TYPES = NEWS_MAP.keys()
 
 scolar_news_create = _scolar_news_editor.create
 scolar_news_list   = _scolar_news_editor.list
 
-def add(REQUEST, cnx, typ, object=None, text='', url=None ):
+def add(context, REQUEST, typ, object=None, text='', url=None ):
+    """Ajoute une nouvelle
+    """
+    cnx = context.GetDBConnexion()
     args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
              'type' : typ,
              'object' : object,
@@ -66,6 +80,7 @@ def add(REQUEST, cnx, typ, object=None, text='', url=None ):
              'url' : url
              }
     log('news: %s' % args)
+    _send_news_by_mail(context, args)
     return scolar_news_create(cnx,args,has_uniq_values=False)
 
 def resultset(cursor):
@@ -112,21 +127,30 @@ def scolar_news_summary(context, n=5):
         mois = scolars.abbrvmonthsnames[int(m)-1]
         n['formatted_date'] = '%s %s %s' % (j,mois,n['hm'])
         # indication semestre si ajout notes:
-        if n['type'] == NEWS_NOTE:
-            moduleimpl_id = n['object']
-            mods = context.Notes.do_moduleimpl_list({'moduleimpl_id' : moduleimpl_id})
-            if not mods:
-                continue # module does not exists anymore
-            mod = mods[0]
-            sem = context.Notes.get_formsemestre(mod['formsemestre_id'])
-            if sem['semestre_id'] > 0:
-                descr_sem = 'S%d' % sem['semestre_id']
-            else:
-                descr_sem = ''
-            if sem['modalite']:
-                descr_sem += ' ' + sem['modalite']
-            n['text'] += ' (<a href="Notes/formsemestre_status?formsemestre_id=%s">%s</a>)' % (mod['formsemestre_id'], descr_sem)
+        infos = _get_formsemestre_infos_from_news(context, n)
+        if infos:                        
+            n['text'] += ' (<a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(descr_sem)s</a>)' % infos
     return news
+
+def _get_formsemestre_infos_from_news(context, n):
+    if n['type'] != NEWS_NOTE:
+        return {}
+    moduleimpl_id = n['object']
+    mods = context.Notes.do_moduleimpl_list({'moduleimpl_id' : moduleimpl_id})
+    if not mods:
+        return {} # module does not exists anymore
+    mod = mods[0]
+    sem = context.Notes.get_formsemestre(mod['formsemestre_id'])
+    if sem['semestre_id'] > 0:
+        descr_sem = 'S%d' % sem['semestre_id']
+    else:
+        descr_sem = ''
+    if sem['modalite']:
+        descr_sem += ' ' + sem['modalite']
+    return { 'formsemestre_id' : mod['formsemestre_id'],
+             'sem' : sem,
+             'descr_sem' : descr_sem,
+             }
 
 def scolar_news_summary_html(context, n=5, rssicon=None):
     """News summary, formated in HTML"""
@@ -177,6 +201,46 @@ def scolar_news_summary_rss(context, title, sco_url, n=5):
     data = f.read()
     f.close()
     return data
+
+def _send_news_by_mail(context, n):
+    """Notify by email
+    """    
+    infos = _get_formsemestre_infos_from_news(context, n)
+    formsemestre_id = infos.get('formsemestre_id',None)
+    prefs = context.get_preferences(formsemestre_id=formsemestre_id)
+    destinations = prefs['emails_notifications'] or ''
+    destinations = [ x.strip() for x in destinations.split(',') ]
+    destinations = [ x for x in destinations if x ]
+    if not destinations:
+        return
+    #
+    txt = n['text']
+    if infos:
+        txt += '\n\nSemestre <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(descr_sem)s</a>)' % infos
+        
+    txt = '\n' + txt + """\n
+--- Ceci est un message de notification automatique issu de ScoDoc
+--- vous recevez ce message car votre adresse est indiquée dans les paramètres de ScoDoc.
+"""
     
-                      
-            
+    # Transforme les URL en URL absolue
+    base = context.ScoURL()
+    txt = re.sub( 'href=.*?"', 'href="'+base, txt )
+
+    # Transforme les liens HTML en texte brut: '<a href="url">texte</a>' devient 'texte: url'
+    # (si on veut des messages non html)
+    txt = re.sub( r'<a.*?href\s*=\s*"(.*?)".*?>(.*?)</a>', r'\2: \1', txt)
+    
+    msg = MIMEMultipart()
+    msg['Subject'] = Header( '[ScoDoc] ' + NEWS_MAP.get(n['type'],'?'),  SCO_ENCODING )
+    msg['From'] = prefs['email_from_addr']
+    txt = MIMEText( txt, 'plain', SCO_ENCODING )
+    msg.attach(txt)
+    
+    for email_addr in destinations:
+        if email_addr:
+            del msg['To']
+            msg['To'] = email_addr
+            #log('xxx mail: %s' % msg)
+            context.sendEmail(msg)
+    

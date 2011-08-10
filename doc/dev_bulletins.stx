@@ -20,7 +20,8 @@ Voici un module minimal commenté (le fichier `sco_bulletins_example.py` est fou
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-"""Génération d'un bulletin de note style "Exemple"
+"""sco_bulletins_example.py
+Génération d'un bulletin de note style "Exemple"
 (commentaire libre ici)
 """
 
@@ -264,7 +265,7 @@ l'étudiant dans une UE.
 || || coefs_bonus_gen || || [] ||
 || || cur_coef_ue || || 2.0 ||
 || || cur_moy_ue || || 12.0 ||
-|| string || expr_diag || infos erreur calcul fiormule utilisateur || {} ||
+|| string || expr_diag || infos erreur calcul formule utilisateur || {} ||
 || bool || is_capitalized || est-elle capitalisée? || False ||
 || || moy || || 12.0 ||
 || || nb_missing || || 1 ||
