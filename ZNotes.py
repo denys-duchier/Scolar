@@ -902,6 +902,7 @@ class ZNotes(ObjectManager,
             if L[argname] is not None:
                 args[argname] = L[argname]
         sems = self.do_formsemestre_list(args=args)
+        # log('formsemestre_list: format="%s", %s semestres found' % (format,len(sems)))
         return sendResult(REQUEST, sems, name='formsemestre', format=format)
     
     security.declareProtected(ScoView, 'get_formsemestre')
