@@ -303,7 +303,7 @@ class GenTable:
                     colspan_count -= 1
                     if colspan_count > 0:
                         continue # skip cells after a span
-                    content = row.get( '_' + cid + '_html', row.get(cid,'') )
+                    content = row.get( '_' + str(cid) + '_html', row.get(cid,'') )
                     if content is None:
                         content = ''
                     else:
