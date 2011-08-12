@@ -186,7 +186,9 @@ def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
         return False, 0
     if prenom:
         prenom = prenom.lower().strip()
-    # any non empty string is ok, we could add some checks...
+    # Don't allow some special cars (eg used in sql regexps)
+    if FORBIDDEN_CHARS_EXP.search(nom) or FORBIDDEN_CHARS_EXP.search(prenom):
+        return False, 0
     # Now count homonyms:
     cursor = cnx.cursor()
     req = 'select etudid from identite where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s'

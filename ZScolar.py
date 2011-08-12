@@ -1886,8 +1886,7 @@ function tweakmenu( gname ) {
             ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=tf[2]['nom'], prenom=tf[2]['prenom'], etudid=etudid)
             if not ok:                    
                 return '\n'.join(H) + tf_error_message('Nom ou prénom invalide') + tf[1] + '<p>' + A + F
-            log('NbHomonyms=%s' % NbHomonyms)
-            log("tf[2]['dont_check_homonyms']='%s'"%tf[2]['dont_check_homonyms'])
+            #log('NbHomonyms=%s' % NbHomonyms)
             if not tf[2]['dont_check_homonyms'] and NbHomonyms > 0:
                 return '\n'.join(H) + tf_error_message("""Attention: il y a déjà un étudiant portant des noms et prénoms proches. Vous pouvez forcer la présence d'un homonyme en cochant "autoriser les homonymes" en bas du formulaire.""") + tf[1] + '<p>' + A + F
             

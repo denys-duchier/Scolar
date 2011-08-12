@@ -1,3 +1,4 @@
+# -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
 """Suppression des accents d'une chaine
@@ -54,6 +55,7 @@ def _fill_reptable():
         (u"z",  [0x017A,0x017C,0x017E]),
         (u"2",  [0x00B2]), # deux exposant
         (u" ",  [0x00A0]), # &nbsp
+        (u"",  [0xB0]), # degre
         ]
     global _reptable
     for repchar,codes in _corresp :
