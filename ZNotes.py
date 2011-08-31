@@ -2319,7 +2319,7 @@ class ZNotes(ObjectManager,
         nt = self._getNotesCache().get_NotesTable(self, formsemestre_id) #> get_etudids
         etudids = nt.get_etudids()
         #
-        ok, err = context._check_access_diretud(formsemestre_id,REQUEST,required_permission=ScoEtudChangeAdr)
+        ok, err = self._check_access_diretud(formsemestre_id,REQUEST,required_permission=ScoEtudChangeAdr)
         if not ok:
             return err
         # Confirmation dialog
