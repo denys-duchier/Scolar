@@ -1,0 +1,22 @@
+You can visit ##link_to_my_homepage## if you want.
+
+<br />
+<font color="##font_color##">This document shows how well work the
+variables substitution method (the _template() method).
+</font>
+
+<br />
+If you look at the source of this document, you will see that
+the 'some_text' variable wasn't replaced ##some_text## with anything but instead,
+put in a comment. That's because the calling program didn't pass this
+variable to the _template() method.
+
+<br />
+Just below a variable is incuded in a comment but when it is replaced it will be put out
+of the comment, just like in the Whiz package from Neale Pickett at the LANL:
+
+<!-- ##another_variable## -->
+
+<br />
+Bye.
+<br />

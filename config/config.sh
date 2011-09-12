@@ -19,6 +19,9 @@ debian_version=${debian_version// /}
 if [ ${debian_version:0:1} = "5" ] 
 then
    PSQL=/usr/lib/postgresql/8.3/bin/psql
+elif [ ${debian_version:0:1} = "6" ] 
+then
+   PSQL=/usr/lib/postgresql/8.4/bin/psql
 else
    PSQL=/usr/lib/postgresql/8.1/bin/psql
 fi

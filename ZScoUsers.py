@@ -61,11 +61,11 @@ import scolars
 import sco_cache
 
 # ----------------- password checking
-import crack
+import cracklib
 def pwdFascistCheck( cleartxt ):
     "returns None if OK"
     try:
-        x = crack.FascistCheck( cleartxt )
+        x = cracklib.FascistCheck( cleartxt )
         return None
     except ValueError, m:
         return m

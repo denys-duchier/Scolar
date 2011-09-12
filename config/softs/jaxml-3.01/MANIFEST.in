@@ -1,0 +1,2 @@
+include COPYING NEWS AUTHORS CREDITS MANIFEST.in
+recursive-include test *.py *.htt

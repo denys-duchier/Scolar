@@ -2,10 +2,20 @@
 #
 # zope		This shell script takes care of starting and stopping
 #		zope under apache (proxy)
-#               Emmanuel Viennet @ LIPN, June 2002
+#               Emmanuel Viennet @ LIPN, June 2002, Sept 2011 (LSB-compliance for Debian 6)
 #
 # chkconfig: - 90 10
 # description: zope is a web server
+
+
+### BEGIN INIT INFO
+# Provides: ScoDoc
+# Required-Start: $local_fs $remote_fs $network $syslog
+# Required-Stop: $local_fs $remote_fs $network $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start/stop ScoDoc server
+### END INIT INFO
 
 # Source function library.
 #. /etc/init.d/functions

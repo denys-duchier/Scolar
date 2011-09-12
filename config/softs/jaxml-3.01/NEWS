@@ -1,0 +1,136 @@
+# jaxml (c) 2000-2001 Jerome Alet & Free Software Foundation
+#
+# $Id: NEWS,v 1.31 2003/06/26 06:59:31 jerome Exp $
+#
+
+jaxml NEWS:
+===========
+
+        3.01:   - Small fix.
+        
+        3.00:   - Full support for XML namespaces added (see end of test program)
+                - Named indentation levels, for easier use.
+                
+        2.24:   - Copyright strings changed.
+
+        2.23:   - a typo caused a bug when _do_nothign() was called
+                  in CGI scripts
+
+        2.22:   - nothing is output when there's no content to output.
+
+        2.21:   - the _updatemapping() method now returns the new mapping's
+                  content.
+                - a minor bug which prevented headers
+                  to be kept correct when adding or multiplying documents
+                  was corrected.
+                - the copy module is not needed anymore.
+
+        2.20:   - basic arithmetic operations can now be made on XML_document
+                  instances, these constructs are now accepted:
+
+                                firstdoc + seconddoc
+                                seconddoc + firstdoc
+
+                        Where firstdoc is an instance of XML_document
+                        or one of its subclasses, and seconddoc is
+                        either an instance of XML_document or one of
+                        its subclasses or a string of text.
+
+                        Nota Bene: This will not exactly concatenate the
+                        two documents, instead the second one will be inserted
+                        as plain text at the current position in the new one.
+                        This may cause the indentation of the resulting document
+                        looks bad.
+
+                                yourdoc * intvalue
+                                intvalue * yourdoc
+
+                        Will repeat your document just like the * operator
+                        works with strings of text.
+
+                        Nota Bene: Since a multiplication is a big addition, same
+                        remark as above.
+
+                - an infinite loop problem occured when doing a dir(yourdoc),
+                  it is now corrected, but as a consequences every method
+                  name beginning with "__" can't be used as a tag name.
+                  This shouldn't cause any problem, because tag names
+                  beginning with "__" are probably a very bad idea, if allowed
+                  at all.
+                - an _updatemapping method was added to allow you to initialise
+                  or update the internal mapping used for the new templating
+                  facility.
+
+        2.10:   - Docstrings added to the _TAGGED_document.Tag class.
+                - The __repr__ method is now defined once for all.
+                - You can now use yourdoc["something"] = "anotherthing"
+                  to do powerful templating. See the test/test.py program
+                  for details, but beware: documents are not real mappings.
+                - Truth value can now be tested: returns false for empty
+                  documents.
+
+   2.00beta1:   - Now fully integrates the jahtml module's
+                  functionnalities, providing access to
+                  an HTML_document class and a CGI_document
+                  class. WARNING: the API for what was in jahtml has
+                  changed, you MUST modify your programs before removing
+                  the old jahtml module.
+                - The jahtml module is now considered as being obsolete.
+                - includes templating facilities for the XML_document class
+                  as well as for the HTML_document and CGI_document classes
+
+        1.29:   - Rollback on certain "speed optimisations"
+                - Needs cStringIO again.
+
+        1.28:   - Numerous speed optimisations
+                - Doesn't need the cStringIO module anymore
+
+        1.27:   - Speed optimisation
+
+        1.26:   - The notation for naming spaces was introduced:
+
+                        doc.space.tag(...)
+
+                will produce:
+
+                        <space:tag>
+                          ...
+                        </space:tag>
+
+        1.25:   - A new useful notation was introduced, you can now
+                  do something like:
+
+        doc.onetag("...", attr="yes").othertag().adnauseam("easy tag nesting")
+
+        1.24:   - Tags that enclose nothing are now handled correctly,
+                  see test/test.py for examples.
+                - Calls to yourtag("Some text", dummy="DUMMY") will
+                  now produce:
+
+                        <yourtag dummy="DUMMY">Some text</yourtag>
+
+                  instead of :
+
+                        <yourtag dummy="DUMMY">
+                          Some text
+                        </yourtag>
+
+                - Some changes to the test program to reflect the
+                  new behaviour.
+
+        1.23:   - Now the license is set in setup.py
+                - Now the _output() method accepts None
+                  as the file argument
+                - Minor changes to the documentation
+
+        1.22:   - small problem in the documentation
+
+        1.21:   - small bug correction with empty text
+
+        1.2 :   - Large scale speed optimisations. The test
+                  program launched 5000 times is now 2.5 times
+                  faster than the 1.1
+                  See the file CREDITS for details
+
+        1.1 :   - Now uses distutils as the installation method.
+                - Documentation fixes, thanks to Kragen Sitaker.
