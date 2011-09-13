@@ -86,7 +86,7 @@ apt-get -y install graphviz
 # apt-get -y install python2.4 python-jaxml python-psycopg python-pyrss2gen python-imaging python-reportlab python-crack python-pyparsing
 
 SOFTS="$SCODOC_DIR/config/softs"
-apt-get install -y build-essential g++
+apt-get install -y build-essential g++ libpq-dev
 
 echo Installing Python2.4
 cd /tmp
@@ -107,7 +107,7 @@ echo Installing psycopg
 cd /tmp
  tar xfz "$SOFTS/psycopg-1.1.21.tar.gz"
  cd psycopg-1.1.21
-   ./configure --with-python-version=2.4 --with-python=/usr/local/bin/python2.4 --with-postgres-includes=/usr/include/postgresql  --with-mxdatetime-includes=/usr/local/lib/python2.4/site-packages/mx/DateTime/mxDateTime
+   ./configure --with-python-version=2.4 --with-python=$PYTHON --with-postgres-includes=/usr/include/postgresql  --with-mxdatetime-includes=/usr/local/lib/python2.4/site-packages/mx/DateTime/mxDateTime
    make install
 cd "$SOFTS"
 
@@ -129,6 +129,8 @@ apt-get -y install libcrack2-dev libcrack2 cracklib-runtime
 echo Installing pyparsing
 (cd /tmp; tar xfz "$SOFTS/pyparsing-1.5.6.tgz"; cd pyparsing-1.5.6;  $PYTHON setup.py install)
 
+cd "$SOFTS"/..
+./install_simplejson.sh
 
 # ------------
 SVNVERSION=$(cd ..; svnversion)
@@ -158,7 +160,7 @@ echo -n "Voulez vous configurer la messagerie (tres recommande) ? (y/n) [y] "
 read ans
 if [ "$(norm_ans "$ans")" != 'N' ]
 then
-    apt-get install postfix
+    apt-get -y install postfix
 fi
 
 # ------------ CONFIG FIREWALL

@@ -4,7 +4,10 @@
 # and Python2.4 does not include json module in std libs
 # -> we must install an old simplejson 2.1 ourself (from python egg)
 
-if [ -e /usr/lib/python2.4/site-packages/simplejson-2.1.0-py2.4-linux-i686.egg ]
+PYTHON=python2.4
+
+$PYTHON -c "import simplejson" &> /dev/null
+if [ $? -eq 0 ] 
 then
   echo "simplejson is installed"
   exit 0
@@ -15,8 +18,8 @@ SRCFILE=/opt/scodoc/instance/Products/ScoDoc/config/softs/simplejson-2.1.0.tar.g
 cd /tmp
 tar xfz $SRCFILE
 cd simplejson-2.1.0
-python2.4 setup.py install
-# nb: needs gcc, already installed by install_reportlab23.sh
+$PYTHON setup.py install
+# nb: needs gcc, already installed by install_reportlab23.sh (or install script on Debian 6)
 
 # Configure Zope tmp egg directory
 ZC=/opt/scodoc/instance/bin/zopectl
