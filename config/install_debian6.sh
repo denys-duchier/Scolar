@@ -99,7 +99,8 @@ PYTHON=/usr/local/bin/python2.4
 
 # Python packages used by Zope and ScoDoc:
 echo Installing jaxml
-(cd softs/jaxml-3.01; $PYTHON setup.py install)
+(cd $SOFTS/jaxml-3.01; $PYTHON setup.py install)
+
 echo Installing mx-base
 (cd /tmp; tar xfz "$SOFTS/egenix-mx-base-3.2.1.tar.gz"; cd egenix-mx-base-3.2.1; $PYTHON setup.py install)
 
@@ -115,6 +116,7 @@ echo Installing PyRSS2Gen
 (cd /tmp; tar xfz "$SOFTS/PyRSS2Gen-1.0.0.tar.gz"; cd PyRSS2Gen-1.0.0; $PYTHON setup.py install)
 
 echo Installing PIL
+apt-get install -y libjpeg62-dev zlib1g-dev libfreetype6-dev liblcms1-dev
 (cd /tmp; tar xfz "$SOFTS/Imaging-1.1.7.tar.gz"; cd Imaging-1.1.7; $PYTHON setup.py install)
 
 echo Installing Reportlab
