@@ -210,9 +210,9 @@ then
     echo "Il est possible d'utiliser des certificats cryptographiques"
     echo "auto-signes, qui ne seront pas reconnus comme de confiance"
     echo "par les navigateurs, mais offrent une certaine securite."
-    echo -n 'Voulez vous generer des certificats ssl auto-signes ? (y/n) [n] '
+    echo -n 'Voulez vous generer des certificats ssl auto-signes ? (y/n) [y] '
     read ans
-    if [ "$(norm_ans "$ans")" = 'Y' ]
+    if [ "$(norm_ans "$ans")" != 'N' ]
     then
         # attention: utilise dans scodoc-site-ssl.orig
 	ssl_dir=/etc/apache2/scodoc-ssl 
