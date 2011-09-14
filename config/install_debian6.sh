@@ -140,7 +140,9 @@ SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/ver
 echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
 
 # python-pydot is currently bugged in Debian 5: install our 0.9.10
-# TODO: test and install pydot 1.0.3
+# Le probleme: pydot v > 1 a change l'API : resultat de get_node est une liste. Resolu par sco_utils.pydot_get_node
+# pydot 1.0.25 bug avec python 2.4 (get_node_list() renvoie toujours [])
+#       1.0.3 idem (voir misc/testpydot.py)
 echo '\nInstallation de pydot\n'
 (cd /tmp; tar xfz $SCODOC_DIR/config/softs/pydot-0.9.10.tar.gz)
 (cd /tmp/pydot-0.9.10;  /usr/bin/python2.4 setup.py install)

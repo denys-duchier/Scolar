@@ -478,6 +478,22 @@ try:
 except:
     WITH_PYDOT = False
 
+if WITH_PYDOT:
+    # check API (incompatible change after pydot version 0.9.10: scodoc install may use old or new version)
+    junk_graph = pydot.Dot('junk')
+    junk_graph.add_node(pydot.Node('a'))
+    n = junk_graph.get_node('a')
+    if type(n) == type([]):
+        def pydot_get_node(g, name):
+            r = g.get_node(name)
+            if not r:
+                return r
+            else:
+                return r[0]
+    else:
+        def pydot_get_node(g, name):
+            return g.get_node(name)
+
 
 from sgmllib import SGMLParser
 

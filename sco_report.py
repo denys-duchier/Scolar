@@ -794,7 +794,11 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         g.set_bgcolor('#fffff0') # ou 'transparent'
     # titres des semestres:
     for s in sems.values():
-        n = g.get_node(s['formsemestre_id'])
+        n = pydot_get_node(g, s['formsemestre_id'])
+        log("s['formsemestre_id'] = %s" % s['formsemestre_id'])
+        log('n=%s' % n)
+        log('get=%s' % g.get_node(s['formsemestre_id']))
+        log('nodes names = %s' % [ x.get_name() for x in g.get_node_list() ])
         if s['modalite'] and s['modalite'] != 'FI':
             modalite = ' ' + s['modalite']
         else:
@@ -811,24 +815,24 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         n.set_shape('box')
         n.set_URL('formsemestre_status?formsemestre_id=' + s['formsemestre_id'])
     # semestre de depart en vert
-    n = g.get_node(formsemestre_id)
+    n = pydot_get_node(g, formsemestre_id)
     n.set_color('green')
     # demissions en rouge, octagonal
     for nid in dem_nodes.values():
-        n = g.get_node(nid)
+        n = pydot_get_node(g, nid)
         n.set_color('red')
         n.set_shape('octagon')
         n.set('label', 'Dem.')
         
     # NAR en rouge, Mcircle
     for nid in nar_nodes.values():
-        n = g.get_node(nid)
+        n = pydot_get_node(g, nid)
         n.set_color('red')
         n.set_shape('Mcircle')
         n.set('label', 'NAR')
     # diplomes:
     for nid in diploma_nodes:
-        n = g.get_node(nid)
+        n = pydot_get_node(g, nid)
         n.set_color('red')
         n.set_shape('ellipse')
         n.set('label', 'Diplome') # bug si accent (pas compris pourquoi)
