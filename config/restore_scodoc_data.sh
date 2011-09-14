@@ -46,10 +46,11 @@ SRC=$1
 if [ ${SRC##*.} = 'tgz' ]
 then
   echo "Opening tgz archive..."
-  tmp=$(mktemp)
-  cd $tmp
+  tmp=$(mktemp -d)
+  chmod a+rx "$tmp"
+  cd "$tmp"
   tar xfz "$SRC" 
-  SRC="$tmp/*"
+  SRC=$(ls -1d "$tmp"/*)
 fi
 
 echo "Source is $SRC"
@@ -57,17 +58,14 @@ echo "Stopping ScoDoc..."
 /etc/init.d/scodoc stop
 
 # Erase all postgres databases and load data
-export PG_DUMPFILE="$SRC/scodoc.dump.txt"
-su postgres<<EOF
- for f in $(psql -l --no-align --field-separator . | grep SCO | cut -f 1 -d.); do
-  echo dropping $f
-  dropdb $f
- done
- echo "Restoring postgres data..."
- psql -f "$PG_DUMPFILE" postgres
-EOF
+chmod a+rx "$SRC"
+chmod a+r "$SRC"/scodoc.dump.txt
+PG_DUMPFILE="$SRC/scodoc.dump.txt"
+
+su -c "$SCODOC_DIR/config/psql_restore_databases.sh $PG_DUMPFILE" postgres
 
 # 
+echo Copying data files...
 rm -rf "$SCODOC_DIR/config/depts" 
 cp -rp "$SRC/depts" "$SCODOC_DIR/config/depts"
 
@@ -85,4 +83,8 @@ cp -p "$SRC/scodoc_config.py" "$SCODOC_DIR/config/"
 
 rm -rf "$INSTANCE_DIR/log"
 cp -rp "$SRC/log" "$INSTANCE_DIR/"
+
+#
+echo
+echo "Ok. Run \"/etc/init.d/scodoc start\" to start ScoDoc."
 
