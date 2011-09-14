@@ -424,6 +424,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
                              with_codes=False, # indique codes etuds
                              server_name=None ):
     "generation feuille appel"
+    UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING 
     formsemestre_id = sem['formsemestre_id']
     SheetName = 'Liste ' + groupname
     wb = Workbook()
