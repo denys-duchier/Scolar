@@ -313,6 +313,16 @@ def simple_dictlist2xml(dictlist, doc=None, tagname=None, quote=False):
     All list values converted to list of childs (recursively).
     *** all other values are ignored ! ***
     Values (xml entities) are not quoted, except if requested by quote argument.
+
+    Exemple:
+     simple_dictlist2xml([ { 'id' : 1, 'ues' : [{'note':10},{}] } ], tagname='infos')
+
+    <?xml version="1.0" encoding="iso-8859-1"?>
+    <infos id="1">
+      <ues note="10" />
+      <ues />
+    </infos>
+    
     """
     if not tagname:
         raise ValueError('invalid empty tagname !')
