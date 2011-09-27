@@ -407,9 +407,11 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
                         c = ''
                 if etud['etudid']:
                     elink = """<a class="discretelink %s" href="ficheEtud?etudid=%s">%s</a>""" % (
-                        c, etud['etudid'], context.nomprenom(etud) )
+                        c, etud['etudid'], context.nomprenom(etud))
                 else:
                     elink = context.nomprenom(etud)
+                if not etud.get('paiementinscription', True):
+                    elink = '<span class="paspaye">' + elink + ' (non paiement)</span>'
                 H.append("""<div class="pas_etud%s">""" % c )
                 if with_checkbox:
                     H.append("""<input type="checkbox" name="%s:list" value="%s" %s>"""
@@ -428,7 +430,15 @@ def etuds_select_box_xls(context, src_cat):
     etuds = src_cat['etuds']
     columns_ids = [ 'etudid', 'sexe', 'nom', 'prenom' ]
     titles = {}
-    map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )    
+    map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
+    # Ajoute colonne paiement inscription
+    columns_ids.append('paiementinscription_str')
+    titles['paiementinscription_str'] = 'paiement inscription'
+    for e in etuds:
+        if not e.get('paiementinscription', True):
+            e['paiementinscription_str'] = 'NON'
+        else:
+            e['paiementinscription_str'] = '-'
     tab = GenTable( titles=titles, columns_ids=columns_ids, rows=etuds,
                     caption='%(title)s. %(help)s' % src_cat['infos'],
                     preferences=context.get_preferences()

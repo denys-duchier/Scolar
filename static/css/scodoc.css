@@ -1629,21 +1629,26 @@ tr.sfv_pbass {
 
 div.pas_sembox {
   margin-top: 10px;
-  border: 2px solid yellow;
+  border: 2px solid #a0522d;
   padding: 5px;
   margin-right: 10px;
+  font-family: arial,verdana,sans-serif;
 }
 
 div.pas_empty_sems {
 }
 
 .inscrit {
-  font-weight: bold;
+/*  font-weight: bold; */
 }
 
 .inscrailleurs {
   font-weight: bold;
   color: red !important;
+}
+
+span.paspaye, span.paspaye a {
+  color:  #9400d3 !important;
 }
 
 .pas_sembox_title a {
@@ -1656,6 +1661,8 @@ div.pas_empty_sems {
   font-weight: normal;
   font-size: 100%;
   color: blue;
+  border-bottom: 1px solid  rgb(50%,50%,50%);
+  margin-bottom: 8px;
 }
 
 .pas_recap {  

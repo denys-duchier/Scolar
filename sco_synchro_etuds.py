@@ -287,6 +287,9 @@ def list_synch(context, sem, anneeapogee=None):
     etuds_aposco, a_importer, key2etudid = list_all(context, etudsapo_set)
     etuds_noninscrits = etuds_aposco - inscrits_set
     etuds_nonapogee = inscrits_set - etudsapo_set
+    # Etudiants ayant payé (avec balise <paiementinscription> true)
+    # note: si le portail ne renseigne pas cette balise, suppose que paiement ok
+    etuds_payes = Set( [  x[EKEY_APO] for x in etudsapo if x.get('paiementinscription', 'true').lower() == 'true' ] )
     #
     cnx = context.GetDBConnexion()
     # Tri listes
@@ -296,14 +299,17 @@ def list_synch(context, sem, anneeapogee=None):
                 etudid = key2etudid[key]
                 etud = scolars.identite_list(cnx, {'etudid' : etudid})[0]
                 etud['inscrit'] = is_inscrit # checkbox state
-                return etud
             else:
                 # etudiant Apogee
                 etud = etudsapo_ident[key]
                 etud['etudid'] = ''
                 etud['sexe'] = etud.get('sexe', '')
                 etud['inscrit'] = is_inscrit # checkbox state
-                return etud
+            if key in etuds_payes:
+                etud['paiementinscription'] = True
+            else:
+                etud['paiementinscription'] = False
+            return etud
         
         etuds = [ key2etud(x, etud_apo) for x in etudset ]
         etuds.sort( lambda x,y: cmp(x['nom'], y['nom']) )
