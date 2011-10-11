@@ -29,6 +29,7 @@
 """
 
 import urllib, urllib2, xml, xml.dom.minidom
+import socket
 
 from notes_log import log
 from sco_utils import *
@@ -100,11 +101,15 @@ def query_apogee_portal(context, **args):
 
 def query_portal(req):
     log('query_portal: %s' % req )
-    try:
+    # band aid for Python 2.4: must use GLOBAL socket timeout
+    orig_timeout = socket.getdefaulttimeout()
+    try:        
+        socket.setdefaulttimeout(3) #  seconds / request
         f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
     except:
         log("query_apogee_portal: can't connect to Apogee portal")
         return ''
+    socket.setdefaulttimeout(orig_timeout)
     return f.read()
 
 def xml_to_list_of_dicts(doc, req=None):
