@@ -1242,8 +1242,13 @@ class ZScolar(ObjectManager,
         d = {}
         etud = etuds[0]
         self.fillEtudsInfo([etud])
+        
         for a in ('etudid', 'code_nip', 'code_ine', 'nom', 'prenom', 'sexe',
-                  'nomprenom', 'email'):
+                  'nomprenom', 'email',
+                  'domicile', 'codepostaldomicile', 'villedomicile', 'paysdomicile', 'telephone', 'telephonemobile', 'fax',
+                  'bac', 'specialite', 'annee_bac',
+                  'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
+                  ):
             d[a] = quote_xml_attr(etud[a])
         d['photo_url'] = quote_xml_attr(sco_photos.etud_photo_url(self, etud))
         
