@@ -580,7 +580,8 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
         return """<p class="footer">
-Probl&egrave;mes et suggestions: <a href="mailto:emmanuel.viennet@univ-paris13.fr">emmanuel.viennet@univ-paris13.fr</a>
+Problème de connexion (identifiant, mot de passe): <em>contacter votre responsable ou chef de département</em>.<br/>
+Probl&egrave;mes et suggestions sur le logiciel: <a href="mailto:emmanuel.viennet@univ-paris13.fr">emmanuel.viennet@univ-paris13.fr</a>
 ou <a href="mailto:%s">%s</a>
 </p>
 </body></html>""" % (SCO_USERS_LIST, SCO_USERS_LIST)
