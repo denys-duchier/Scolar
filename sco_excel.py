@@ -422,6 +422,7 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
 def Excel_feuille_listeappel(context, sem, groupname, lines,
                              partitions=[], # partitions a montrer (colonnes)
                              with_codes=False, # indique codes etuds
+                             with_paiement=False, # indique si etudiant a paye inscription
                              server_name=None ):
     "generation feuille appel"
     UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING 
@@ -480,6 +481,16 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
     borders.left = 1
     style2t3.borders = borders
 
+    style2t3bold = XFStyle()
+    borders = Borders()
+    borders.top = 1
+    borders.bottom = 1
+    borders.left = 1
+    style2t3bold.borders = borders
+    fontb =  Font()
+    fontb.bold = True
+    style2t3bold.font = fontb
+
     style3 = XFStyle()
     font3 = Font()
     font3.name = 'Arial'
@@ -527,7 +538,17 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        ws0.write(li, 1, t['nom'] + ' ' + t['prenom'].lower().capitalize(), style2t3) 
+        nomprenom = t['nom'] + ' ' + t['prenom'].lower().capitalize()
+        style_nom = style2t3
+        if with_paiement:
+            paie = t.get('paiementinscription', None)
+            if paie is None:
+                nomprenom += ' (inscription ?)'
+                style_nom = style2t3bold
+            elif not paie:
+                nomprenom += ' (non paiement)'
+                style_nom = style2t3bold
+        ws0.write(li, 1, nomprenom, style_nom) 
         co = 2
         for partition in partitions:
             if partition['partition_name']:

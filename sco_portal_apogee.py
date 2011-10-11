@@ -86,14 +86,15 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
         etuds = [ e for e in etuds if check_inscription(e) ]
     return etuds
 
-def query_apogee_portal(context, nom, prenom):
+def query_apogee_portal(context, **args):
     """Recupere les infos sur les etudiants nommés
+    args: non, prenom, code_nip
     (nom et prenom matchent des parties de noms)
     """
     portal_url = get_portal_url(context)
     if not portal_url:
         return []
-    req = portal_url + 'getEtud.php?' + urllib.urlencode((('nom', nom), ('prenom', prenom)))
+    req = portal_url + 'getEtud.php?' + urllib.urlencode(args.items())
     doc = query_portal(req)
     return xml_to_list_of_dicts(doc, req=req)
 
@@ -156,13 +157,13 @@ def get_infos_apogee_allaccents(context, nom, prenom):
         prenom_utf8 = prenom
     
     # avec accents
-    infos = query_apogee_portal(context, nom, prenom)
+    infos = query_apogee_portal(context, nom=nom, prenom=prenom)
     # sans accents
     if nom != nom_noaccents or prenom != prenom_noaccents:
-        infos += query_apogee_portal(context, nom_noaccents,prenom_noaccents)
+        infos += query_apogee_portal(context, nom=nom_noaccents, prenom=prenom_noaccents)
     # avec accents en UTF-8
     if nom_utf8 != nom_noaccents or prenom_utf8 != prenom_noaccents:
-        infos += query_apogee_portal(context, nom_utf8,prenom_utf8)
+        infos += query_apogee_portal(context, nom=nom_utf8, prenom=prenom_utf8)
     return infos
 
 
@@ -283,3 +284,28 @@ def get_etapes_apogee_dept(context):
     
     etapes.sort() # tri sur le code etape
     return etapes
+
+def check_paiement_etuds(context, etuds):
+    """Interroge le portail pour vérifier l'état de "paiement"
+    et renseigne l'attribut booleen 'paiementinscription' dans chaque etud.
+    Seuls les etudiants avec code NIP sont renseignés.
+    En sortie, 'paiementinscription' vaut True, False ou None
+    """
+    # interrogation séquentielle longue...
+    for etud in etuds:
+        if not etud.has_key('code_nip'):
+            etud['paiementinscription'] = None
+            etud['paiementinscription_str'] = '(pas de code)'
+        else:
+            infos = get_etud_apogee(context, etud['code_nip'])
+            if infos and infos.has_key('paiementinscription'):
+                etud['paiementinscription'] = (infos['paiementinscription'].lower() == 'true')
+                if etud['paiementinscription']:
+                    etud['paiementinscription_str'] = 'ok'
+                else:
+                    etud['paiementinscription_str'] = 'Non'
+            else:
+                etud['paiementinscription'] = None
+                etud['paiementinscription_str'] = '?'
+
+    

@@ -256,6 +256,8 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
     return H
 
 def list_synch(context, sem, anneeapogee=None):
+    """
+    """
     inscrits = sco_inscr_passage.list_inscrits(context, sem['formsemestre_id'], with_dems=True)
     # Tous les ensembles d'etudiants sont ici des ensembles de codes NIP (voir EKEY_SCO)
     # (sauf inscrits_without_key)
