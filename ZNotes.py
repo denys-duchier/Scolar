@@ -782,7 +782,7 @@ class ZNotes(ObjectManager,
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
-         'etape_apo', 'etape_apo2',
+         'etape_apo', 'etape_apo2', 'etape_apo3',
          'modalite', 'resp_can_edit', 'resp_can_change_ens',
          'ens_can_edit_eval'
          ),
@@ -889,7 +889,8 @@ class ZNotes(ObjectManager,
                           formsemestre_id=None,
                           formation_id=None,                          
                           etape_apo=None,
-                          etape_apo2=None
+                          etape_apo2=None,
+                          etape_apo3=None
                           ):
         """List formsemestres in given format.
         kw can specify some conditions: examples:
@@ -898,7 +899,7 @@ class ZNotes(ObjectManager,
         # XAPI: new json api
         args = {}
         L = locals()
-        for argname in ('formsemestre_id', 'formation_id', 'etape_apo', 'etape_apo2'):
+        for argname in ('formsemestre_id', 'formation_id', 'etape_apo', 'etape_apo2', 'etape_apo3'):
             if L[argname] is not None:
                 args[argname] = L[argname]
         sems = self.do_formsemestre_list(args=args)

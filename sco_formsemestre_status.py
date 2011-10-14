@@ -347,10 +347,12 @@ def formsemestre_page_title(context, REQUEST):
         sem['modalitestr'] = ' en %s' % sem['modalite']
     else:
         sem['modalitestr'] = ''
-    if sem['etape_apo'] or sem['etape_apo2']:
+    if sem['etape_apo'] or sem['etape_apo2'] or sem['etape_apo3']:
         sem['etape_apo_str'] = 'Code étape Apogée: %s' % (sem['etape_apo'] or '-')
         if sem['etape_apo2']:
             sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
+        if sem['etape_apo3']:
+            sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo3']
     else:
         sem['etape_apo_str'] = 'Pas de code étape'
     inscrits = notes.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
@@ -479,10 +481,12 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
         H.append(", %s %s" % (parcours.SESSION_NAME, sem['semestre_id']) )
     if sem['modalite']:
         H.append('&nbsp;en %(modalite)s' % sem )
-    if sem['etape_apo'] or sem['etape_apo2']:
+    if sem['etape_apo'] or sem['etape_apo2'] or sem['etape_apo3']:
         et = sem['etape_apo'] or '-'
         if sem['etape_apo2']:
             et += ' (+%s)' % sem['etape_apo2']
+        if sem['etape_apo3']:
+            et += ' (+%s)' % sem['etape_apo3']
         H.append('&nbsp;&nbsp;&nbsp;(étape <b><tt>%s</tt></b>)' % et )
     H.append('</td></tr>')
     

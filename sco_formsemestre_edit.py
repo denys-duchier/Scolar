@@ -235,6 +235,14 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
             'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
             'explanation' : '(si deux étape pour ce même semestre)'
             }))
+        modform.append(
+        ('etape_apo3', {
+            'input_type' : 'menu',
+            'title' : 'Etape Apogée (3)',
+            'allowed_values' : [''] + [ e[0] for e in etapes ],
+            'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
+            'explanation' : '(si trois étape pour ce même semestre!)'
+            }))
     else:
         # fallback: code etape libre
         modform.append(
@@ -246,6 +254,11 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ('etape_apo2', { 'size' : 12,
                         'title' : 'Code étape Apogée (2)',
                         'explanation' : '(si deux étape pour ce même semestre)' })
+        )
+        modform.append(
+        ('etape_apo3', { 'size' : 12,
+                        'title' : 'Code étape Apogée (3)',
+                        'explanation' : '(si trois étape pour ce même semestre!)' })
         )
     if edit:
         formtit = """

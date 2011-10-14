@@ -39,7 +39,6 @@ import sco_news, sco_excel
 import sco_formsemestre_inscriptions
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
-from sets import Set
 import time
 
 # Clés utilisées pour la synchro
@@ -81,10 +80,12 @@ def formsemestre_synchro_etuds(
     sem['etape_apo_str'] = sem['etape_apo'] or '-'
     if sem['etape_apo2']:
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
+    if sem['etape_apo3']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo3']
     # -- check lock
     if sem['etat'] != '1':
         raise ScoValueError('opération impossible: semestre verrouille')
-    if not sem['etape_apo'] and not sem['etape_apo2']:
+    if not sem['etape_apo'] and not sem['etape_apo2'] and not sem['etape_apo3']:
         raise ScoValueError("""opération impossible: ce semestre n'a pas de code étape
         (voir "<a href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier ce semestre</a>")
         """ % sem )
@@ -114,14 +115,14 @@ def formsemestre_synchro_etuds(
     if not submitted:
         H += build_page(context, sem, etuds_by_cat, anneeapogee, base_url=base_url)
     else:
-        etuds_set = Set(etuds)
+        etuds_set = set(etuds)
         a_importer = a_importer.intersection(etuds_set)
         a_desinscrire = inscrits_set - etuds_set
-        log('inscrits_without_key_all=%s'%Set(inscrits_without_key_all))
+        log('inscrits_without_key_all=%s'%set(inscrits_without_key_all))
         log('inscrits_without_key=%s'%inscrits_without_key)
-        a_desinscrire_without_key =  Set(inscrits_without_key_all) - Set(inscrits_without_key)
+        a_desinscrire_without_key =  set(inscrits_without_key_all) - set(inscrits_without_key)
         log('a_desinscrire_without_key=%s'%a_desinscrire_without_key)
-        inscrits_ailleurs = Set(sco_inscr_passage.list_inscrits_date(context, sem))
+        inscrits_ailleurs = set(sco_inscr_passage.list_inscrits_date(context, sem))
         a_inscrire = a_inscrire.intersection(etuds_set)
         
         if not dialog_confirmed:
@@ -225,6 +226,8 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
     sem['etape_apo_str'] = sem['etape_apo'] or '-'
     if sem['etape_apo2']:
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
+    if sem['etape_apo3']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo3']
     H = [
         """<h2 class="formsemestre">Synchronisation des étudiants du semestre avec Apogée</h2>""",
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
@@ -261,7 +264,7 @@ def list_synch(context, sem, anneeapogee=None):
     inscrits = sco_inscr_passage.list_inscrits(context, sem['formsemestre_id'], with_dems=True)
     # Tous les ensembles d'etudiants sont ici des ensembles de codes NIP (voir EKEY_SCO)
     # (sauf inscrits_without_key)
-    inscrits_set = Set()
+    inscrits_set = set()
     inscrits_without_key = {} # etudid : etud sans code NIP
     for e in inscrits.values():
         if not e[EKEY_SCO]:
@@ -269,21 +272,22 @@ def list_synch(context, sem, anneeapogee=None):
             e['inscrit'] = True # checkbox state 
         else:
             inscrits_set.add(e[EKEY_SCO])
-#     allinscrits_set = Set() # tous les inscrits scodoc avec code_nip, y compris les demissionnaires
+#     allinscrits_set = set() # tous les inscrits scodoc avec code_nip, y compris les demissionnaires
 #     for e in inscrits.values():
 #         if e[EKEY_SCO]:
 #             allinscrits_set.add(e[EKEY_SCO])
+
+    etapes = set((sem['etape_apo'], sem['etape_apo2'], sem['etape_apo3']))
+    etudsapo_set = set()
+    etudsapo_ident = {}
+    for etape in etapes:
+        if etape:
+            etudsapo = sco_portal_apogee.get_inscrits_etape(context, etape, anneeapogee=anneeapogee)
+            etudsapo_set = etudsapo_set.union(set( [ x[EKEY_APO] for x in etudsapo ] ))
+            for e in etudsapo:
+                if e[EKEY_APO] not in etudsapo_ident:
+                    etudsapo_ident[e[EKEY_APO]] = e
     
-    etudsapo = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo'], anneeapogee=anneeapogee)
-    etudsapo_set = Set( [ x[EKEY_APO] for x in etudsapo ] )
-    etudsapo_ident = dict( [ (x[EKEY_APO], x) for x in etudsapo ] )
-    if sem['etape_apo2']:
-        etudsapo2 = sco_portal_apogee.get_inscrits_etape(context, sem['etape_apo2'], anneeapogee=anneeapogee)
-        etudsapo2_set = Set( [ x[EKEY_APO] for x in etudsapo2 ] )
-        etudsapo_set = etudsapo_set.union(etudsapo2_set)
-        for e in etudsapo2:
-            if e[EKEY_APO] not in etudsapo_ident:
-                etudsapo_ident[e[EKEY_APO]] = e
     # categories:
     etuds_ok = etudsapo_set.intersection(inscrits_set)
     etuds_aposco, a_importer, key2etudid = list_all(context, etudsapo_set)
@@ -291,7 +295,7 @@ def list_synch(context, sem, anneeapogee=None):
     etuds_nonapogee = inscrits_set - etudsapo_set
     # Etudiants ayant payé (avec balise <paiementinscription> true)
     # note: si le portail ne renseigne pas cette balise, suppose que paiement ok
-    etuds_payes = Set( [  x[EKEY_APO] for x in etudsapo if x.get('paiementinscription', 'true').lower() == 'true' ] )
+    etuds_payes = set( [  x[EKEY_APO] for x in etudsapo if x.get('paiementinscription', 'true').lower() == 'true' ] )
     #
     cnx = context.GetDBConnexion()
     # Tri listes
@@ -386,7 +390,7 @@ def list_all(context, etudsapo_set):
     cursor = cnx.cursor()
     cursor.execute( 'select ' + EKEY_SCO + ', etudid from identite' )
     key2etudid = dict( [ (x[0], x[1]) for x in cursor.fetchall() ] )
-    all_set = Set(key2etudid.keys())
+    all_set = set(key2etudid.keys())
     
     # ne retient que ceux dans Apo
     etuds_aposco = etudsapo_set.intersection(all_set) # a la fois dans Apogee et dans ScoDoc
