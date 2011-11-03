@@ -64,6 +64,10 @@ def do_abs_notify(context, sem, etudid, date, nbabs, nbabsjust):
     """Given new counts of absences, check if notifications are requested and send them.
     """
     # prefs fallback to global pref if sem is None:
+    if sem:
+        formsemestre_id = sem['formsemestre_id']
+    else:
+        formsemestre_id = None
     prefs = context.get_preferences(formsemestre_id=sem['formsemestre_id']) 
     
     destinations = abs_notify_get_destinations(context, sem, prefs, etudid, date, nbabs, nbabsjust)
@@ -76,9 +80,9 @@ def do_abs_notify(context, sem, etudid, date, nbabs, nbabsjust):
         if (nbdays_since_last_notif is None) or (nbdays_since_last_notif >= abs_notify_max_freq):
             destinations_filtered.append(email_addr)
     if destinations_filtered:
-        abs_notify_send(context, destinations_filtered, etudid, msg, nbabs, nbabsjust)
+        abs_notify_send(context, destinations_filtered, etudid, msg, nbabs, nbabsjust, formsemestre_id)
 
-def abs_notify_send(context, destinations, etudid, msg, nbabs, nbabsjust):
+def abs_notify_send(context, destinations, etudid, msg, nbabs, nbabsjust, formsemestre_id):
     """Actually send the notification by email, and register it in database"""
     cnx = context.GetDBConnexion()
     log('abs_notify: sending notification to %s' % destinations)
@@ -87,7 +91,7 @@ def abs_notify_send(context, destinations, etudid, msg, nbabs, nbabsjust):
         del msg['To']
         msg['To'] = email
         context.sendEmail(msg)
-        SimpleQuery(context, """insert into absences_notifications (etudid, email, nbabs, nbabsjust) values (%(etudid)s, %(email)s, %(nbabs)s, %(nbabsjust)s)""", vars(), cursor=cursor)
+        SimpleQuery(context, """insert into absences_notifications (etudid, email, nbabs, nbabsjust, formsemestre_id) values (%(etudid)s, %(email)s, %(nbabs)s, %(nbabsjust)s, %(formsemestre_id)s)""", vars(), cursor=cursor)
     
     logdb(cnx=cnx, method='abs_notify', etudid=etudid, msg='sent to %s (nbabs=%d)' % (destinations, nbabs))
 
@@ -135,7 +139,7 @@ def abs_notify_is_above_threshold(context, etudid, nbabs, nbabsjust, formsemestr
     """
     abs_notify_abs_threshold = context.get_preference('abs_notify_abs_threshold', formsemestre_id)
     abs_notify_abs_increment = context.get_preference('abs_notify_abs_increment', formsemestre_id)
-    nbabs_last_notified = etud_nbabs_last_notified(context, etudid)
+    nbabs_last_notified = etud_nbabs_last_notified(context, etudid, formsemestre_id)
     
     if nbabs_last_notified == 0:
         if nbabs > abs_notify_abs_threshold:
@@ -148,11 +152,12 @@ def abs_notify_is_above_threshold(context, etudid, nbabs, nbabsjust, formsemestr
     return False
 
 
-def etud_nbabs_last_notified(context, etudid):
-    """nbabs lors de la dernière notification envoyée pour cet étudiant"""
+def etud_nbabs_last_notified(context, etudid, formsemestre_id=None):
+    """nbabs lors de la dernière notification envoyée pour cet étudiant dans ce semestre
+    ou sans semestre (ce dernier cas est nécessaire pour la transition au nouveau code)"""
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
-    cursor.execute("""select * from absences_notifications where etudid = %(etudid)s order by notification_date desc""",
+    cursor.execute("""select * from absences_notifications where etudid = %(etudid)s and (formsemestre_id = %(formsemestre_id)s or formsemestre_id is NULL) order by notification_date desc""",
                    vars() )
     res = cursor.dictfetchone()
     if res:

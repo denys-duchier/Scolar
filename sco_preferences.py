@@ -286,7 +286,7 @@ PREFS = (
     ('abs_notify_max_freq',
      { 'initvalue' : 7,
        'title' : 'Fréquence maximale de notification',
-       'explanation' : 'en jours, envois de mail (pour chaque étudiant/destinataire)',
+       'explanation' : 'en jours (pas plus de X envois de mail pour chaque étudiant/destinataire)',
        'size' : 4,
        'type' : 'int',
        'convert_numbers' : True,

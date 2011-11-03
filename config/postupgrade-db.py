@@ -341,7 +341,10 @@ for dept in get_depts():
     check_field(cnx, 'partition', 'bul_show_rank',
                 ['alter table partition add column bul_show_rank int DEFAULT 0',
                  'update partition set bul_show_rank=0 where bul_show_rank is NULL'])
-    
+    # add formsemestre to abs notifications
+    check_field(cnx, 'absences_notifications', 'formsemestre_id',
+                ['alter table absences_notifications add column formsemestre_id text DEFAULT NULL',
+                 ])
     # Add here actions to performs after upgrades:
     
     cnx.commit()

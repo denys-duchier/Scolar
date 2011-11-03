@@ -114,7 +114,8 @@ CREATE TABLE absences_notifications (
     notification_date timestamp with time zone DEFAULT now(),
     email text NOT NULL,
     nbabs integer,
-    nbabsjust integer    
+    nbabsjust integer,
+    formsemestre_id text -- semestre concerne par cette notification    
 ) WITH OIDS;
 
 CREATE SEQUENCE notes_idgen_billets;
