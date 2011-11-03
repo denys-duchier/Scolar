@@ -420,12 +420,11 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
                    ('VALIGN', (0,0), (-1,-1), 'TOP') ]
     titles = [ '<para><b>%s</b></para>' % x for x in titles ]
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line[1:] ] for line in ([titles] + lines) ]
+    widths = [6*cm, 2.8*cm, 2.8*cm, None, None, None, None]
     if dpv['has_prev']:
-        widths = (6*cm, 2.8*cm, 2.8*cm, None, None, None, None)
-    else:
-        widths = (6*cm, 2.8*cm, None, None, None, None)
+        widths[2:2] = 2.8*cm
     if context.get_preference('bul_show_mention', formsemestre_id):
-        widths += (None,)
+        widths += [None]
     objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
 
     # Signature du directeur

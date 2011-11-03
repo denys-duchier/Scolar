@@ -131,11 +131,13 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     sem = znotes.get_formsemestre(formsemestre_id)
     max_date = '0000-01-01'
     has_prev = False # vrai si au moins un etudiant a un code prev    
-    
+    semestre_non_terminal = False # True si au moins un etudiant a un devenir
+
     L = []
     for etudid in etudids:
         etud = znotes.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(znotes, etud, formsemestre_id)
+        semestre_non_terminal = semestre_non_terminal or Se.semestre_non_terminal
         d = {}
         d['identite'] = nt.identdict[etudid]
         d['etat'] = nt.get_etud_etat(etudid) # I|D  (inscription ou démission)
@@ -201,10 +203,11 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
             d['Se'] = Se
         
         L.append(d)
+    
     return { 'date' : DateISOtoDMY(max_date),
              'formsemestre' : sem, 
              'has_prev' : has_prev,
-             'semestre_non_terminal' : Se.semestre_non_terminal,
+             'semestre_non_terminal' : semestre_non_terminal,
              'formation' : znotes.formation_list(args={'formation_id':sem['formation_id']})[0],
              'decisions' : L }
 
@@ -224,7 +227,11 @@ def pvjury_table(context, dpv):
               'ue_cap' : 'UE' + id_cur + ' capitalisées',
               'devenir' : 'Devenir', 'observations' : 'Observations'
               }
-    columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap', 'devenir', 'observations']
+    columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap']
+    if dpv['semestre_non_terminal']:
+        columns_ids.append('devenir')
+    columns_ids.append('observations')
+    
     if context.get_preference('bul_show_mention', sem['formsemestre_id']):
         columns_ids[3:3] = ['mention']
     if dpv['has_prev']:
