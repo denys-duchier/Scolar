@@ -899,6 +899,17 @@ subversion: %(svn_version)s
         d = datetime.timedelta(minutes=10)
         return (datetime.datetime.utcnow() + d).strftime("%a, %d %b %Y %H:%M:%S GMT")
 
+    security.declareProtected('View', 'get_etud_dept')
+    def get_etud_dept(self, REQUEST=None):
+        """Returns the dept id (eg "GEII") of an etud (identified by etudid, INE or NIP in REQUEST).
+        Warning: This function is inefficient and its result should be cached.
+        """
+        depts = self.list_depts()
+        for dept in depts:
+            etud = dept.Scolarite.getEtudInfo(REQUEST=REQUEST)
+            if etud:
+                return dept.id
+        return '' # not found
 
 def manage_addZScoDoc(self, id= 'ScoDoc',
                       title='Site ScoDoc',
