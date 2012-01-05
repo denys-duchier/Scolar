@@ -800,7 +800,16 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
 def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     """Dialogue saisie notes: choix methode et groupes
     """
-    H = [ context.sco_header(REQUEST, page_title='Saisie des notes')]
+    evals = context.do_evaluation_list( {'evaluation_id' : evaluation_id})
+    if not evals:
+        raise ScoValueError('invalid evaluation_id')
+    theeval = evals[0]
+
+    if theeval['description']:
+        page_title = 'Saisie "%s"' % theeval['description']
+    else:
+        page_title = 'Saisie des notes'
+    H = [ context.sco_header(REQUEST, page_title=page_title) ]
     
     formid = 'notesfile'
     if not REQUEST.form.get('%s-submitted'%formid,False):
@@ -809,7 +818,6 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
         if r:
             H.append(r)            
 
-    theeval = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     H.append('''<div class="saisienote_etape2">
     <span class="titredivsaisienote">Etape 2 : chargement d'un fichier de notes</span>''' #'
              )

@@ -2051,15 +2051,17 @@ class ZNotes(ObjectManager,
         les bulletins en version "longue" (la note est donc visible par les étudiants sur le portail).
         </p>
         """
-        H = ['<h3>%svaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>%s</h3>'
-             % (action, moduleimpl_id, Mod['code'], Mod['titre'], link) ]
-        if readonly:
+        mod_descr = '<a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>%s' % (moduleimpl_id, Mod['code'], Mod['titre'], link)
+        if not readonly:
+            H = ['<h3>%svaluation en %s</h3>' % (action, mod_descr) ]
+        else:
             E = initvalues
+            H = [ '<h3>Evaluation "%s"</h3><p><b>Module : %s</b></p>' % (E['description'], mod_descr) ]
             # version affichage seule (générée ici pour etre plus jolie que le Formulator)
             jour = E['jour']
             if not jour:
-                jour = '???'
-            H.append( '<p>Evaluation réalisée le <b>%s</b> de %s à %s '
+                jour = '<em>pas de date</em>'
+            H.append( '<p>Réalisée le <b>%s</b> de %s à %s '
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
                 group_id = sco_groups.get_default_group(self, formsemestre_id)
