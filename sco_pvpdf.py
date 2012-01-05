@@ -422,7 +422,7 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     Pt = [ [Paragraph(SU(x),CellStyle) for x in line[1:] ] for line in ([titles] + lines) ]
     widths = [6*cm, 2.8*cm, 2.8*cm, None, None, None, None]
     if dpv['has_prev']:
-        widths[2:2] = 2.8*cm
+        widths[2:2] = [2.8*cm]
     if context.get_preference('bul_show_mention', formsemestre_id):
         widths += [None]
     objects.append( Table( Pt, repeatRows=1, colWidths = widths, style=TableStyle ) )
