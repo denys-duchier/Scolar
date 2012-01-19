@@ -55,8 +55,8 @@ def sendExcelFile(REQUEST,data,filename):
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)
     """
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
-    REQUEST.RESPONSE.setHeader('Content-type', XLS_MIMETYPE)
-    REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
+    REQUEST.RESPONSE.setHeader('content-type', XLS_MIMETYPE)
+    REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
     return data
 
 ##  (stolen from xlrd)

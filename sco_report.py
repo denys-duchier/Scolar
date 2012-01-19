@@ -891,8 +891,8 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
         # 
         doc = graph_parcours(context, formsemestre_id, format='png')
         filename = make_filename('flux ' + sem['titreannee'])
-        REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
-        REQUEST.RESPONSE.setHeader('Content-type', 'image/png' )
+        REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
+        REQUEST.RESPONSE.setHeader('content-type', 'image/png' )
         return doc
     elif format == 'html':
         url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format="%sem)
@@ -917,7 +917,7 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST
               </p>""",
               context.sco_footer(REQUEST)
               ]
-        REQUEST.RESPONSE.setHeader('Content-type', 'application/xhtml+xml' )
+        REQUEST.RESPONSE.setHeader('content-type', 'application/xhtml+xml' )
         return '\n'.join(H)
     else:
         raise ValueError('invalid format: %s' % format)

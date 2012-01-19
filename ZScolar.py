@@ -398,7 +398,7 @@ class ZScolar(ObjectManager,
         if format == 'html':
             raise ScoValueError(msg)
         elif format == 'xml':
-            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
             doc.error( msg=msg )
             return repr(doc)
@@ -700,7 +700,7 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'index_html')
     def rssnews(self,REQUEST=None):
         "rss feed"
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
         return sco_news.scolar_news_summary_rss(self, 
                                                 'Nouvelles de ' + self.get_preference('DeptName'),
                                                  self.ScoURL() )

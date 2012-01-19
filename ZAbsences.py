@@ -1328,7 +1328,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         if xml_reply:
             # Renvoie le nouveau billet en XML
             if REQUEST:
-                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+                REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
             
             billets = billet_absence_list(cnx,  {'billet_id': billet_id } )
             tab = self._tableBillets(billets, etud=etud)
@@ -1579,7 +1579,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         
         Abs = self._ListeAbsDate(etud['etudid'], beg_date, end_date)
         
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.absences( etudid=etud['etudid'], beg_date=beg_date, end_date=end_date )
         doc._push()

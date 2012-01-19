@@ -927,7 +927,7 @@ class ZNotes(ObjectManager,
         if formsemestre_id:
             args['formsemestre_id'] = formsemestre_id
         if REQUEST:
-            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.formsemestrelist()
         for sem in self.do_formsemestre_list( args=args ):

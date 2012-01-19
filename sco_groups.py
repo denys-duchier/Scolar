@@ -291,7 +291,7 @@ def XMLgetGroupsInPartition(context, partition_id, REQUEST=None): # was XMLgetGr
     nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id) #> inscrdict
     etuds_set = set(nt.inscrdict)
     # XML response:
-    REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+    REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
     doc = jaxml.XML_document( encoding=SCO_ENCODING )
     doc._text( '<ajax-response><response type="object" id="MyUpdater">' )
     doc._push()
@@ -468,7 +468,7 @@ def setGroups(context, partition_id,
         for etudid in fs[1:-1]:
             change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST=REQUEST)
     
-    REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+    REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
     return 'Groupes enregistrés'
 
 

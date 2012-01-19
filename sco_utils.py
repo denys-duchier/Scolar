@@ -373,8 +373,8 @@ def sendCSVFile(REQUEST,data,filename):
     (on ne doit rien avoir émis avant, car ici sont générés les entetes)
     """
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
-    REQUEST.RESPONSE.setHeader('Content-type', CSV_MIMETYPE)
-    REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
+    REQUEST.RESPONSE.setHeader('content-type', CSV_MIMETYPE)
+    REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
     return data
 #    head = """Content-type: %s; name="%s"
 #Content-disposition: filename="%s"
@@ -386,14 +386,14 @@ def sendCSVFile(REQUEST,data,filename):
 def sendPDFFile(REQUEST, data, filename):
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     if REQUEST:
-        REQUEST.RESPONSE.setHeader('Content-type', PDF_MIMETYPE)
-        REQUEST.RESPONSE.setHeader('Content-Disposition', 'attachment; filename=%s' % filename)
+        REQUEST.RESPONSE.setHeader('content-type', PDF_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
     return data
 
 def sendJSON(REQUEST, data):
     js = json.dumps(data, encoding=SCO_ENCODING, indent=1)
     if REQUEST:
-        REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', JSON_MIMETYPE)
     return js
 
 def sendXML(REQUEST, data, tagname=None, force_outer_xml_tag=True):
@@ -410,7 +410,7 @@ def sendXML(REQUEST, data, tagname=None, force_outer_xml_tag=True):
     if force_outer_xml_tag:
         doc._pop()
     if REQUEST:
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
     return repr(doc)
 
 def sendResult(REQUEST, data, name=None, format=None, force_outer_xml_tag=True):

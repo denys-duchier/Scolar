@@ -315,7 +315,7 @@ def formsemestre_get_archived_file(context, REQUEST, formsemestre_id, archive_na
     if ext == '.html' or ext == '.htm':
         return data
     elif ext == '.xml':
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
         return data
     elif ext == '.xls':
         return sco_excel.sendExcelFile(REQUEST,data,filename)

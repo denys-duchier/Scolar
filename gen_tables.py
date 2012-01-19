@@ -518,12 +518,12 @@ class GenTable:
         elif format == 'xml':
             xml = self.xml()
             if REQUEST and publish:
-                REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+                REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
             return xml
         elif format == 'json':
             js = self.json()
             if REQUEST and publish:
-                REQUEST.RESPONSE.setHeader('Content-type', JSON_MIMETYPE)
+                REQUEST.RESPONSE.setHeader('content-type', JSON_MIMETYPE)
             return js
         else:
             raise ValueError('_make_page: invalid format')

@@ -970,7 +970,7 @@ class ZScoUsers(ObjectManager,
         
         userlist = [ user for user in userlist if user['nomnoacc'].startswith(start) ]
         if REQUEST:
-            REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+            REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
         doc.results()
         for user in userlist[:limit]:

@@ -49,7 +49,7 @@ def make_xml_formsemestre_bulletinetud(
     "bulletin au format XML"
     log('xml_bulletin( formsemestre_id=%s, etudid=%s )' % (formsemestre_id, etudid))
     if REQUEST:
-        REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
     if not doc:            
         doc = jaxml.XML_document( encoding=SCO_ENCODING )
     

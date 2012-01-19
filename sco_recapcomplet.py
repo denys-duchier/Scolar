@@ -88,7 +88,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append(""" >cacher les modules</input>""")
 
     if tabformat == 'xml':
-        REQUEST.RESPONSE.setHeader('Content-type', 'text/xml')
+        REQUEST.RESPONSE.setHeader('content-type', 'text/xml')
     
     H.append( do_formsemestre_recapcomplet(
             context, REQUEST, 
@@ -496,7 +496,7 @@ def make_formsemestre_recapcomplet(
 
 def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_with_decisions=False):
     "XML export: liste tous les bulletins XML"
-    # REQUEST.RESPONSE.setHeader('Content-type', XML_MIMETYPE)
+    # REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
 
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_table_moyennes_triees   
     T = nt.get_table_moyennes_triees()

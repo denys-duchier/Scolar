@@ -158,10 +158,10 @@ def _trombino_zip(context, T, REQUEST ):
     size = data.tell()
     log('trombino_zip: %d bytes'%size)
     content_type = 'application/zip'
-    REQUEST.RESPONSE.setHeader('Content-Disposition',
-                               'attachement;filename="trombi.zip"'  )
-    REQUEST.RESPONSE.setHeader('Content-Type', content_type)
-    REQUEST.RESPONSE.setHeader('Content-Length', size)
+    REQUEST.RESPONSE.setHeader('content-disposition',
+                               'attachement; filename="trombi.zip"'  )
+    REQUEST.RESPONSE.setHeader('content-type', content_type)
+    REQUEST.RESPONSE.setHeader('content-length', size)
     return data.getvalue()
 
 
