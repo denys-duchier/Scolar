@@ -44,7 +44,7 @@ LOGO_HEADER_ASPECT = CONFIG.LOGO_HEADER_ASPECT # XXX logo IUTV (A AUTOMATISER)
 LOGO_HEADER_HEIGHT = CONFIG.LOGO_HEADER_HEIGHT * mm
 LOGO_HEADER_WIDTH  = LOGO_HEADER_HEIGHT*CONFIG.LOGO_HEADER_ASPECT
 
-def pageFooter(canvas, doc, logo, preferences):
+def pageFooter(canvas, doc, logo, preferences, with_page_numbers=True):
     "Add footer on page"
     width = doc.pagesize[0] # - doc.pageTemplate.left_p - doc.pageTemplate.right_p
     foot = Frame( 0.1*mm, 0.2*cm,
@@ -72,19 +72,27 @@ def pageFooter(canvas, doc, logo, preferences):
     tabstyle = TableStyle( [ ('LEFTPADDING', (0,0), (-1,-1), 0 ),
                              ('RIGHTPADDING',(0,0), (-1,-1), 0 ),
                              ('ALIGN', (0,0), (-1, -1), 'RIGHT'),
-                             #('INNERGRID', (0,0), (-1,-1), 0.25, black),
-                             ('LINEABOVE', (0,0), (-1,0), 0.5, black),
+                             #('INNERGRID', (0,0), (-1,-1), 0.25, black),#debug
+                             #('LINEABOVE', (0,0), (-1,0), 0.5, black),
                              ('VALIGN', (1,0), (1,0), 'MIDDLE' ),
                              ('RIGHTPADDING',(-1,0), (-1,0), 1*cm ),
                              ])
-    tab = Table( [ (p, logo, np) ], style=tabstyle, colWidths=(None,LOGO_FOOTER_WIDTH+2*mm, 2*cm) )             
+    elems = [p, logo]
+    colWidths = [None,LOGO_FOOTER_WIDTH+2*mm]
+    if with_page_numbers:
+        elems.append(np)
+        colWidths.append(2*cm)
+    else:
+        elems.append('')
+        colWidths.append(8*mm) # force marge droite
+    tab = Table( [ elems ], style=tabstyle, colWidths=colWidths )             
     canvas.saveState() # is it necessary ?
     foot.addFromList( [tab], canvas )
     canvas.restoreState()
 
 def pageHeader(canvas, doc, logo, preferences):
     height = doc.pagesize[1]
-    head = Frame( -22*mm, height - 13*mm - LOGO_FOOTER_HEIGHT,
+    head = Frame( -22*mm, height - 13*mm - LOGO_HEADER_HEIGHT,
                   10*cm, LOGO_HEADER_HEIGHT + 2*mm,
                   leftPadding=0, rightPadding=0,
                   topPadding=0, bottomPadding=0,                  
@@ -100,7 +108,9 @@ class CourrierIndividuelTemplate(PageTemplate) :
                  author=None, title=None, subject=None,
                  margins = (0,0,0,0), # additional margins in mm (left,top,right, bottom)
                  image_dir = '',
-                 preferences=None # dictionnary with preferences, required
+                 preferences=None,  # dictionnary with preferences, required
+                 force_header=False,
+                 force_footer=False # always add a footer (whatever the preferences, use for PV)
                  ):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
@@ -109,6 +119,9 @@ class CourrierIndividuelTemplate(PageTemplate) :
         self.pdfmeta_subject = subject
         self.image_dir = image_dir 
         self.preferences = preferences
+        self.force_header = force_header
+        self.force_footer = force_footer
+        self.with_page_numbers = False
         # Our doc is made of a single frame
         left, top, right, bottom = margins # marge additionnelle en mm
         # marges du Frame principal
@@ -116,7 +129,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
         self.left_p = 2.5*cm
         self.right_p = 2.5*cm
         self.top_p = 0*cm
-        log("margins=%s" % str(margins))
+        #log("margins=%s" % str(margins))
         content = Frame(
             self.left_p + left*mm,
             self.bot_p + bottom*mm,
@@ -124,8 +137,9 @@ class CourrierIndividuelTemplate(PageTemplate) :
             document.pagesize[1] - self.top_p-self.bot_p - top*mm-bottom*mm)
         
         PageTemplate.__init__(self, "PVJuryTemplate", [content])
-
-        self.logo_footer = None
+        
+        self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
+        self.logo_header = Image( image_dir + '/logo_header.jpg', height=LOGO_HEADER_HEIGHT, width=LOGO_HEADER_WIDTH )
         
     def beforeDrawPage(self, canvas, doc) :
         """Draws a logo and an contribution message on each page."""        
@@ -142,28 +156,28 @@ class CourrierIndividuelTemplate(PageTemplate) :
             txt = SU(bm)
             canvas.bookmarkPage(key)
             canvas.addOutlineEntry(txt,bm)
+        if self.force_footer or self.preferences['PV_LETTER_WITH_HEADER']:
+            # --- Add header
+            pageHeader(canvas, doc, self.logo_header, self.preferences )
+        if self.force_footer or self.preferences['PV_LETTER_WITH_FOOTER']:
+            # --- Add footer
+            pageFooter(canvas, doc, self.logo_footer, self.preferences, with_page_numbers=self.with_page_numbers )
 
 
 class PVTemplate(CourrierIndividuelTemplate):
+    """Template pour les pages des PV de jury
+    """
     def __init__(self, document, 
                  author=None, title=None, subject=None,
                  margins = (0,23,0,5), # additional margins in mm (left,top,right, bottom)
                  image_dir = '',
                  preferences=None # dictionnary with preferences, required
-                 ):
-        
+                 ):        
         CourrierIndividuelTemplate.__init__(self, document, author=author, title=title, subject=subject,
                                             margins=margins, image_dir=image_dir, 
-                                            preferences=preferences)
-        self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
-        self.logo_header = Image( image_dir + '/logo_header.jpg', height=LOGO_HEADER_HEIGHT, width=LOGO_HEADER_WIDTH )
-
-    def beforeDrawPage(self, canvas, doc) :
-        CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
-        # --- Add footer
-        pageFooter(canvas, doc, self.logo_footer, self.preferences )
-        # --- Add header
-        pageHeader(canvas, doc, self.logo_header, self.preferences )
+                                            preferences=preferences,
+                                            force_header=True, force_footer=True)
+        self.with_page_numbers = True
 
 def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='', signature=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
@@ -179,6 +193,7 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     context.fillEtudsInfo(etuds)
     #
     sem = context.get_formsemestre(formsemestre_id)
+    prefs = context.get_preferences(formsemestre_id)
     params = {
         'date_jury' : dateJury,
         'titre_formation' : dpv['formation']['titre_officiel'],
@@ -202,10 +217,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
             objects.append( PageBreak() )
             i += 1
     # Paramètres de mise en page
-    margins = (context.get_preference('left_margin', formsemestre_id),
-               context.get_preference('top_margin', formsemestre_id),
-               context.get_preference('right_margin', formsemestre_id),
-               context.get_preference('bottom_margin', formsemestre_id))  
+    margins = (prefs['left_margin'],prefs['top_margin'],prefs['right_margin'],prefs['bottom_margin'])
+    
     # ----- Build PDF
     report = cStringIO.StringIO() # in-memory document, no disk file
     document = BaseDocTemplate(report)
@@ -216,7 +229,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
         subject='Décision jury',
         margins=margins,
         pagesbookmarks=bookmarks,
-        image_dir = context.file_path + '/logos/' ))
+        image_dir=context.file_path + '/logos/',
+        preferences=prefs))
     
     document.build(objects)
     data = report.getvalue()
@@ -389,9 +403,9 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     """ % (t, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
 
     if showTitle:
-        objects += makeParas("""<para><b>Semestre: %s</b></para>"""%sem['titre'], style)
+        objects += makeParas("""<para align="center"><b>Semestre: %s</b></para>"""%sem['titre'], style)
     if dateJury:
-        objects += makeParas("""<para>Jury tenu le %s</para>""" % dateJury, style) 
+        objects += makeParas("""<para align="center">Jury tenu le %s</para>""" % dateJury, style) 
 
     objects += makeParas('<para>' 
                          + context.get_preference('PV_INTRO', formsemestre_id)

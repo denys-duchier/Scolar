@@ -42,7 +42,7 @@ CONFIG.LOGO_FOOTER_ASPECT = 326/96. # W/H    XXX provisoire: utilisera PIL pour 
 CONFIG.LOGO_FOOTER_HEIGHT = 10 # taille dans le document en millimetres
 
 CONFIG.LOGO_HEADER_ASPECT = 549 / 346. # XXX logo IUTV
-CONFIG.LOGO_HEADER_HEIGHT = 18 # taille verticale dans le document en millimetres
+CONFIG.LOGO_HEADER_HEIGHT = 28 # taille verticale dans le document en millimetres
 
 # Pied de page PDF : un format Python, %(xxx)s est remplacé par la variable xxx.
 # Les variables définies sont:

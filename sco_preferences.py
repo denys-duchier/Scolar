@@ -562,6 +562,22 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
        'category' : 'pvpdf'
        },
      ),
+     ('PV_LETTER_WITH_HEADER',
+     { 'initvalue' : 1,
+     'title' : 'Imprimer le logo en tête des lettres individuelles de décision',
+     'input_type' : 'boolcheckbox',
+     'labels' : ['non', 'oui'],
+     'category' : 'pvpdf'
+     }
+    ),  
+    ('PV_LETTER_WITH_FOOTER',
+    { 'initvalue' : 1,
+      'title' : 'Imprimer le pied de page sur les lettres individuelles de décision',
+      'input_type' : 'boolcheckbox',
+      'labels' : ['non', 'oui'],
+      'category' : 'pvpdf'
+      }
+    ),  
     ('pv_htab1',
      { 'initvalue' : '8cm',
        'title' : 'marge colonne droite lettre',
