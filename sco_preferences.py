@@ -563,7 +563,7 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
        },
      ),
      ('PV_LETTER_WITH_HEADER',
-     { 'initvalue' : 1,
+     { 'initvalue' : 0,
      'title' : 'Imprimer le logo en tête des lettres individuelles de décision',
      'input_type' : 'boolcheckbox',
      'labels' : ['non', 'oui'],
@@ -571,7 +571,7 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
      }
     ),  
     ('PV_LETTER_WITH_FOOTER',
-    { 'initvalue' : 1,
+    { 'initvalue' : 0,
       'title' : 'Imprimer le pied de page sur les lettres individuelles de décision',
       'input_type' : 'boolcheckbox',
       'labels' : ['non', 'oui'],
