@@ -91,6 +91,8 @@ def pageFooter(canvas, doc, logo, preferences, with_page_numbers=True):
     canvas.restoreState()
 
 def pageHeader(canvas, doc, logo, preferences):
+    if int(doc.page) > 1:
+        return
     height = doc.pagesize[1]
     head = Frame( -22*mm, height - 13*mm - LOGO_HEADER_HEIGHT,
                   10*cm, LOGO_HEADER_HEIGHT + 2*mm,
