@@ -804,12 +804,12 @@ class NotesTable:
         return self._etud_moy_ues[etudid][ue_id]
 
     def etud_has_notes_attente(self, etudid):
-        """Vrai si cet etudiant a au moins une note en attnte dans ce semestre.
+        """Vrai si cet etudiant a au moins une note en attente dans ce semestre.
         (ne compte que les notes en attente dans des évaluation avec coef. non nul).
         """
         cnx = self.context.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute("select n.* from notes_notes n, notes_evaluation e, notes_moduleimpl m where n.etudid = %(etudid)s and n.value = %(code_attente)s and n.evaluation_id = e.evaluation_id and e.moduleimpl_id=m.moduleimpl_id and m.formsemestre_id=%(formsemestre_id)s and e.coefficient != 0",
+        cursor.execute("select n.* from notes_notes n, notes_evaluation e, notes_moduleimpl m, notes_moduleimpl_inscription i where n.etudid = %(etudid)s and n.value = %(code_attente)s and n.evaluation_id=e.evaluation_id and e.moduleimpl_id=m.moduleimpl_id and m.formsemestre_id=%(formsemestre_id)s and e.coefficient != 0 and m.moduleimpl_id=i.moduleimpl_id and i.etudid=%(etudid)s",
                        {'formsemestre_id' : self.formsemestre_id, 'etudid' : etudid, 'code_attente' : NOTES_ATTENTE} )
         return len(cursor.fetchall()) > 0
 
