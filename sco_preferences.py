@@ -717,12 +717,28 @@ s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
         'labels' : ['non', 'oui']
         }
       ),
+    ( 'bul_show_temporary_forced', 
+      { 'initvalue' : 0,
+        'title' : 'Bannière "provisoire" sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),      
     ( 'bul_show_temporary', 
       { 'initvalue' : 1,
         'title' : 'Bannière "provisoire" si pas de décision de jury',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
+        }
+      ),
+    ( 'bul_temporary_txt',
+      { 'initvalue' : 'Provisoire',
+        'title' : 'Texte de la bannière "provisoire',
+        'explanation' : '',
+        'size' : 40,
+        'category' : 'bul',
         }
       ),
     ( 'bul_show_uevalid', 

@@ -143,8 +143,8 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if I['etud_etat'] == 'D':
         I['demission'] = '(Démission)'
         I['filigranne'] = 'Démission'
-    elif prefs['bul_show_temporary'] and not I['decision_sem']:
-        I['filigranne'] = 'Provisoire'
+    elif (prefs['bul_show_temporary'] and not I['decision_sem']) or prefs['bul_show_temporary_forced']:
+        I['filigranne'] = prefs['bul_temporary_txt']
     
     # --- Appreciations
     cnx = context.GetDBConnexion()   
