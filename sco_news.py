@@ -225,7 +225,7 @@ def _send_news_by_mail(context, n):
     
     # Transforme les URL en URL absolue
     base = context.ScoURL()
-    txt = re.sub( 'href=.*?"', 'href="'+base, txt )
+    txt = re.sub( 'href=.*?"', 'href="'+base+'/', txt )
 
     # Transforme les liens HTML en texte brut: '<a href="url">texte</a>' devient 'texte: url'
     # (si on veut des messages non html)
