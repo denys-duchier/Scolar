@@ -185,7 +185,6 @@ def list_source_sems(context, sem, delai=None):
         othersems.append(s)
     return othersems
 
-
 def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
                                submitted=False, dialog_confirmed=False,
                                REQUEST=None):
@@ -222,6 +221,11 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     candidats_non_inscrits = candidats_set - inscrits_set
     inscrits_ailleurs = Set(list_inscrits_date(context, sem))
 
+    def set_to_sorted_etud_list(etudset):
+        etuds = [ candidats[etudid] for etudid in etudset ]
+        etuds.sort( lambda x,y: cmp(x['nom'], y['nom']) )
+        return etuds
+
     if submitted:
         a_inscrire = etuds_set.intersection(candidats_set) - inscrits_set
         a_desinscrire = inscrits_set - etuds_set
@@ -239,14 +243,14 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
             # Confirmation
             if a_inscrire:
                 H.append('<h3>Etudiants à inscrire</h3><ol>')
-                for etudid in a_inscrire:
-                    H.append('<li>%s</li>' % context.nomprenom(candidats[etudid]))
+                for etud in set_to_sorted_etud_list(a_inscrire):
+                    H.append('<li>%s</li>' % context.nomprenom(etud))
                 H.append('</ol>')
             a_inscrire_en_double = inscrits_ailleurs.intersection(a_inscrire)
             if a_inscrire_en_double:
                 H.append('<h3>dont étudiants déjà inscrits:</h3><ul>')
-                for etudid in a_inscrire_en_double:
-                    H.append('<li class="inscrailleurs">%s</li>' % context.nomprenom(candidats[etudid]))
+                for etud in set_to_sorted_etud_list(a_inscrire_en_double):
+                    H.append('<li class="inscrailleurs">%s</li>' % context.nomprenom(etud))
                 H.append('</ul>')
             if a_desinscrire:
                 H.append('<h3>Etudiants à désinscrire</h3><ol>')
