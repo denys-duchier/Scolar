@@ -884,7 +884,14 @@ Année scolaire: %(anneescolaire)s
         'size' : 32
         }
       ),
-    
+    ( 'bul_mail_allowed_for_all', 
+      { 'initvalue' : 1,
+        'title' : 'Autoriser tous les utilisateurs à expédier des bulletins par mail',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul_mail',
+        'labels' : ['non', 'oui']
+        }
+      ),
     # bul_margins
     ( 'left_margin', 
       { 'initvalue' : 0, 

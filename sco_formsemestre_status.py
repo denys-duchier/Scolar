@@ -42,6 +42,7 @@ import sco_evaluations
 import sco_formsemestre_edit
 import sco_compute_moy
 import sco_codes_parcours
+import sco_bulletins
 
 def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
     """HTML snippet to render a simple drop down menu.
@@ -246,7 +247,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail',
           'url' : 'formsemestre_bulletins_mailetuds_choice?formsemestre_id='+ formsemestre_id,
-          'enabled' : (authuser.has_permission(ScoEtudChangeAdr, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER))),
+          'enabled' : sco_bulletins.can_send_bulletin_by_mail(context, formsemestre_id, REQUEST)
           },
         { 'title' : 'Calendrier des évaluations',
           'url' : 'formsemestre_evaluations_cal?formsemestre_id='+ formsemestre_id,

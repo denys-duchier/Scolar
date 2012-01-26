@@ -544,7 +544,14 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
 
     return ''.join(R)
 
-
+def can_send_bulletin_by_mail(context, formsemestre_id, REQUEST):
+    """True if current user is allowed to send a bulletin by mail
+    """
+    authuser = REQUEST.AUTHENTICATED_USER
+    sem = context.get_formsemestre(formsemestre_id)
+    return (context.get_preference('bul_mail_allowed_for_all', formsemestre_id)
+            or authuser.has_permission(ScoImplement, context)
+            or sem['responsable_id'] == str(authuser))
 
 def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  version='long', # short, long, selectedevals
@@ -581,6 +588,10 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     
     elif format == 'pdfmail':
         # format pdfmail: envoie le pdf par mail a l'etud, et affiche le html
+        # check permission
+        if not can_send_bulletin_by_mail(context, formsemestre_id, REQUEST):
+            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        
         if nohtml:
             htm = '' # speed up if html version not needed
         else:
@@ -685,7 +696,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           },
         { 'title' : "Envoi par mail à l'étudiant",
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdfmail&version=%s' % (formsemestre_id,etudid,version),
-          'enabled' : etud['email'] # possible slt si on a un mail...
+          'enabled' : etud['email'] and can_send_bulletin_by_mail(context, formsemestre_id, REQUEST) # possible slt si on a un mail...
           },
         { 'title' : 'Version XML',
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=xml&version=%s' % (formsemestre_id,etudid,version),
