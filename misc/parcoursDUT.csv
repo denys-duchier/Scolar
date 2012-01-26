@@ -52,8 +52,8 @@
 # Nouvelles regles avec plusieurs devenirs en semestres decales:												
 550	ATT,ATB	*	no	*	no	*	AJ			RA_OR_RS		Deux semestres ratés, choix de recommencer le premier ou le second
 560	ATT,ATB	*	ok	no	no	*	AJ			RA_OR_RS		Deux semestres ratés, choix de recommencer le premier ou le second
-570	ADM,ADJ,ADC	*	no	ok	no	*	ATT			RS_OR_NEXT		Semestre raté, choix de redoubler le semestre ou de continuer pour éventuellement compenser.
-580	ADM,ADJ,ADC	*	*	no	no	*	ATB			RS_OR_NEXT		Semestre raté, choix de redoubler ou de s'en remettre au jury du semestre suivant.
+570	None,ADM,ADJ,ADC	*	no	ok	no	*	ATT			RS_OR_NEXT		Semestre raté, choix de redoubler le semestre ou de continuer pour éventuellement compenser.
+580	None,ADM,ADJ,ADC	*	*	no	no	*	ATB			RS_OR_NEXT		Semestre raté, choix de redoubler ou de s'en remettre au jury du semestre suivant.
 												
 # Exclusion (art. 22): si precedent non valide et pas les barres dans le courant, on peut ne pas autoriser a redoubler:												
 # (le cas ATB est couvert plus haut)												

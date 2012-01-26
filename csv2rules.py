@@ -30,6 +30,7 @@
 en "regles" python.
 
 CSV: iso8859-15/Euro, tab, no text delimiter
+(le faire avec OpenOffice ou NeoOffice...)
 
 """
 import sys, pdb
