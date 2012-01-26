@@ -198,7 +198,7 @@ class ddmmyyyy:
 
 
 def YearTable(context, year, events=[],
-              firstmonth=9, lastmonth=6, halfday=0, dayattributes='',
+              firstmonth=9, lastmonth=7, halfday=0, dayattributes='',
               pad_width=8
               ):
     """Generate a calendar table
