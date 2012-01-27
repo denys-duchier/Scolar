@@ -304,10 +304,23 @@ def ue_sharing_code(context, ue_code=None, ue_id=None, hide_ue_id=None):
     """
     if ue_id:
         ue = context.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-        ue_code = ue['ue_code']
-
-    ue_list = context.do_ue_list( args={ 'ue_code' : ue_code } )
-    
+        if not ue_code:
+            ue_code = ue['ue_code']
+        F = context.formation_list( args={ 'formation_id' : ue['formation_id'] } )[0]
+        formation_code = F['formation_code']
+        
+    ue_list_all = context.do_ue_list( args={ 'ue_code' : ue_code } )
+    if ue_id:
+        # retire les UE d'autres formations:
+        log('checking ucode %s formation %s' % (ue_code, formation_code)) 
+        ue_list = []
+        for ue in ue_list_all:
+            F = context.formation_list( args={ 'formation_id' : ue['formation_id'] } )[0]
+            if formation_code == F['formation_code']:
+                ue_list.append(ue)
+    else:
+        ue_list = ue_list_all
+        
     if hide_ue_id: # enlève l'ue de depart
         ue_list = [ ue for ue in ue_list if ue['ue_id'] != hide_ue_id ]
     
