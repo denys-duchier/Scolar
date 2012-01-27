@@ -90,8 +90,8 @@ def pageFooter(canvas, doc, logo, preferences, with_page_numbers=True):
     foot.addFromList( [tab], canvas )
     canvas.restoreState()
 
-def pageHeader(canvas, doc, logo, preferences):
-    if int(doc.page) > 1:
+def pageHeader(canvas, doc, logo, preferences, only_on_first_page=False):
+    if only_on_first_page and int(doc.page) > 1:
         return
     height = doc.pagesize[1]
     head = Frame( -22*mm, height - 13*mm - LOGO_HEADER_HEIGHT,
@@ -124,6 +124,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
         self.force_header = force_header
         self.force_footer = force_footer
         self.with_page_numbers = False
+        self.header_only_on_first_page = False
         # Our doc is made of a single frame
         left, top, right, bottom = margins # marge additionnelle en mm
         # marges du Frame principal
@@ -160,7 +161,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
             canvas.addOutlineEntry(txt,bm)
         if self.force_footer or self.preferences['PV_LETTER_WITH_HEADER']:
             # --- Add header
-            pageHeader(canvas, doc, self.logo_header, self.preferences )
+            pageHeader(canvas, doc, self.logo_header, self.preferences, self.header_only_on_first_page )
         if self.force_footer or self.preferences['PV_LETTER_WITH_FOOTER']:
             # --- Add footer
             pageFooter(canvas, doc, self.logo_footer, self.preferences, with_page_numbers=self.with_page_numbers )
@@ -180,6 +181,7 @@ class PVTemplate(CourrierIndividuelTemplate):
                                             preferences=preferences,
                                             force_header=True, force_footer=True)
         self.with_page_numbers = True
+        self.header_only_on_first_page = True
 
 def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='', signature=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
