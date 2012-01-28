@@ -52,3 +52,15 @@ NB: si la version des sources a changée, lancer imperativement le script de mise
 (en tant que root):
 cd /opt/scodoc/instance/Products/ScoDoc/config
 ./upgrade.sh
+
+
+----
+Cas d'une seule base à copier: (eg un seul département, mais faire
+attention aux utilisateurs definis dans la base SCOUSERS):
+
+En tant qu'utilisateur "postgres":
+Dump: (script avec commande de creation de la base)
+pg_dump --create SCOINFO > /tmp/scoinfo.dump
+
+Restore: (si necessaire, utiliser dropdb avant)
+psql -f /tmp/scoinfo.dump postgres

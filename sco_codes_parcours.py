@@ -99,7 +99,10 @@ DEVENIRS_STD = { NEXT:1, REDOANNEE:1, RA_OR_NEXT:1, REO:1 }
 # Devenirs autorises dans les cursus en un seul semestre, semestre_id==-1 (licences ?)
 DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
 
-# Devenirs en n+2 (sautant un semestre)
+# Devenirs supplementaires (en mode manuel) pour les cursus avec semestres decales
+DEVENIRS_DEC = { REDOSEM:1, RS_OR_NEXT:1 }
+
+# Devenirs en n+2 (sautant un semestre)  (si semestres décalés et s'il ne manque qu'un semestre avant le n+2)
 DEVENIRS_NEXT2 = { NEXT_OR_NEXT2: 1 }
 
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres

@@ -562,6 +562,9 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
         allowed_codes = sco_codes_parcours.DEVENIRS_MONO
     else:
         allowed_codes = set(sco_codes_parcours.DEVENIRS_STD)
+        # semestres decales ?
+        if Se.sem['gestion_semestrielle'] == '1':
+            allowed_codes = allowed_codes.union(sco_codes_parcours.DEVENIRS_DEC)
         # n'autorise les codes NEXT2 que si semestres décalés et s'il ne manque qu'un semestre avant le n+2
         if Se.can_jump_to_next2():
             allowed_codes = allowed_codes.union(sco_codes_parcours.DEVENIRS_NEXT2)
