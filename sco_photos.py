@@ -117,7 +117,11 @@ def etud_photo_html(context, etud, title=None, REQUEST=None):
     nom = etud.get('nomprenom', etud['nom'])
     if title is None:
         title = nom
-    return '<img src="%s" alt="photo %s" title="%s" height="%s" border="0" />' % (path, nom, title, REDUCED_HEIGHT)
+    if not etud_photo_is_local(context, etud):
+        fallback ="""onerror='this.onerror = null; this.src="%s"'""" % url_from_rel_path(unknown_image_path())
+    else:
+        fallback = ''
+    return '<img src="%s" alt="photo %s" title="%s" height="%s" border="0" %s />' % (path, nom, title, REDUCED_HEIGHT, fallback)
 
 def etud_photo_orig_html(context, etud, title=None):
     """HTML img tag for the photo, in full size.

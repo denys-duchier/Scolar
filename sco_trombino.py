@@ -48,12 +48,13 @@ from reportlab.lib import colors
 
 NB_COLS = 5 # nb of columns of photo grid (should be a preference ?)
 
-def trombino(context,REQUEST, group_id,
+def trombino(context, REQUEST, group_id,
              etat=None,
              format = 'html', dialog_confirmed=False ):
     """Trombinoscope"""
+    if not etat:
+        etat = None # may be passed as ''
     members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
-    
     args='group_id=%s' % group_id
     if etat:
         args += '&etat=%s' % etat
@@ -79,6 +80,8 @@ def trombino(context,REQUEST, group_id,
         return _trombino_zip(context, members, REQUEST)
     elif format == 'pdf':
         return _trombino_pdf(context, sem, group_tit, members, REQUEST)
+    elif format == 'pdflist':
+        return _listeappel_photos_pdf(context, sem, group_tit, members, REQUEST)
     else:
         return _trombino_html_header(context, REQUEST) + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
 
@@ -90,8 +93,11 @@ def _trombino_html(context, group, members, REQUEST=None):
     "HTML snippet for trombino (with title and menu)"
     args='group_id=%(group_id)s' % group
     menuTrombi = [
-        { 'title' : 'Version PDF (imprimable)',
+        { 'title' : 'Trombinoscope en PDF',
           'url' : 'trombino?%s&format=pdf' % args,
+          },
+        { 'title' : "Liste d'appel avec photos (beta)",
+          'url' : 'trombino?%s&format=pdflist' % args,
           },
         { 'title' : 'Charger des photos...',
           'url' : 'photos_import_files_form?group_id=%(group_id)s' % group,
@@ -126,7 +132,7 @@ def _trombino_html(context, group, members, REQUEST=None):
         else: # la photo n'est pas immédiatement dispo
             foto = '<span class="unloaded_img" id="%s"><img border="0" height="90" alt="en cours" src="/ScoDoc/static/photos/loading.jpg"/></span>' % t['etudid']
         H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
-        H.append('<br/>' + t['prenom'] + '<br/>' + t['nom'] )
+        H.append('<br/>' + format_prenom(t['prenom']) + '<br/>' + format_nom(t['nom']) )
         H.append('</td>')
         i += 1
         if i % NB_COLS == 0:
@@ -200,6 +206,28 @@ def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False
     args='group_id=%s' % group_id
     return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="trombino?%s">retour au trombinoscope</a>' % args + footer
 
+def _get_etud_platypus_image(context, t, image_width=2*cm):
+    """Returns aplatypus object for the photo of student t
+    """
+    try:
+        rel_path = sco_photos.has_photo(context, t, version=sco_photos.H90)
+        if not rel_path:
+            # log('> unknown')
+            rel_path = sco_photos.unknown_image_path()
+        path = SCO_SRCDIR + '/' + rel_path
+        # log('path=%s' % path)
+        im = PILImage.open(path)
+        w0, h0 = im.size[0], im.size[1]
+        if w0 > h0:
+            W = image_width
+            H = h0 * W / w0
+        else:
+            H = image_width
+            W = w0 * H / h0
+        return reportlab.platypus.Image( path, width=W, height=H )
+    except:
+        log('*** exception while processing photo of %s (%s) (path=%s)' % (t['nom'], t['etudid'], path))
+        raise
 
 def _trombino_pdf(context, sem, ng, T, REQUEST):
     "Send photos as pdf page"
@@ -217,30 +245,13 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     currow = []
     log('_trombino_pdf %d elements' % len(T))
     for t in T:
-        rel_path = sco_photos.has_photo(context, t, version=sco_photos.H90)
-        if not rel_path:
-            # log('> unknown')
-            rel_path = sco_photos.unknown_image_path()
-        path = SCO_SRCDIR + '/' + rel_path
-        # log('path=%s' % path)
-        try:
-            im = PILImage.open(path)
-            w0, h0 = im.size[0], im.size[1]
-            if w0 > h0:
-                W = PHOTOWIDTH
-                H = h0 * W / w0
-            else:
-                H = PHOTOWIDTH
-                W = w0 * H / h0
-            elem = Table(
-                [ [ reportlab.platypus.Image( path, width=W, height=H ) ],
-                  [ Paragraph(
-                SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
-                   + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
-                colWidths=[ PHOTOWIDTH ] )
-        except:
-            log('*** exception while processing photo of %s (%s) (path=%s)' % (t['nom'], t['etudid'], path))
-            raise 
+        img = _get_etud_platypus_image(context, t, image_width=PHOTOWIDTH )
+        elem = Table(
+            [ [ img ],
+              [ Paragraph(
+                  SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
+                     + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
+            colWidths=[ PHOTOWIDTH ] )
         currow.append( elem )
         if n == (N_PER_ROW-1):
             L.append(currow)
@@ -266,6 +277,102 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     data = report.getvalue()
     
     return sendPDFFile(REQUEST, data, filename)
+
+# --------------------- Sur une idée de l'IUT d'Orléans:
+def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
+    "Doc pdf pour liste d'appel avec photos"
+    objects = []
+    StyleSheet = styles.getSampleStyleSheet()
+    report = StringIO() # in-memory document, no disk file
+    filename = ('trombino-%s.pdf' % ng ).replace(' ', '_') # XXX should sanitize this filename
+    objects.append(Paragraph(SU( sem['titreannee'] + ' ' + ng + ' (%d)'%len(T) ), StyleSheet["Heading3"]))
+    PHOTOWIDTH = 2*cm
+    COLWIDTH = 3.6*cm
+    ROWS_PER_PAGE = 26 # XXX should be in ScoDoc preferences
+    L = []
+    n = 0
+    currow = []
+    log('_listeappel_photos_pdf %d elements' % len(T))
+    n = len(T)
+    #npages = n / 2*ROWS_PER_PAGE + 1 # nb de pages papier
+    #for page in range(npages):
+    for i in range(n): # page*2*ROWS_PER_PAGE, (page+1)*2*ROWS_PER_PAGE):
+        t = T[i]
+        img = _get_etud_platypus_image(context, t, image_width=PHOTOWIDTH)
+        txt =  Paragraph(SU( format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
+                             + ' ' + format_nom(t['nom'])),
+                         StyleSheet['Normal'])
+        if currow:
+            currow += ['']
+        currow += [ img, txt, '' ]
+        if i%2:
+            L.append(currow)
+            currow = []
+    if currow:
+        currow += [' ']*3
+        L.append(currow)
+    if not L:
+        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+    else:
+        table = Table( L, colWidths=[ 2*cm, 4*cm, 27*mm, 5*mm, 2*cm, 4*cm, 27*mm ],
+                       style = TableStyle( [
+                           # ('RIGHTPADDING', (0,0), (-1,-1), -5*mm),
+                           ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                           ('GRID', (0,0), (2,-1), 0.25, colors.grey),
+                           ('GRID', (4,0), (-1,-1), 0.25, colors.grey)
+                           ] ) )
+    objects.append(table)
+    # Build document
+    document = BaseDocTemplate(report)
+    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
+    document.build(objects)
+    data = report.getvalue()
+    
+    return sendPDFFile(REQUEST, data, filename)
+
+
+    objects = []
+    StyleSheet = styles.getSampleStyleSheet()
+    report = StringIO() # in-memory document, no disk file
+    filename = ('trombino-%s.pdf' % ng ).replace(' ', '_') # XXX should sanitize this filename
+    objects.append(Paragraph(SU("Liste " + sem['titreannee'] + ' ' + ng ), StyleSheet["Heading3"]))
+    PHOTOWIDTH = 3*cm
+    COLWIDTH = 3.6*cm
+
+    L = [] # cells
+    n = 0
+    currow = []
+    for t in T:
+        n = n + 1
+        img = _get_etud_platypus_image(context, t, image_width=2*cm)
+        currow += [
+            Paragraph(
+                SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
+                   + ' ' + format_nom(t['nom'])), StyleSheet['Normal']),
+            '', # empty cell (signature ou autre info a remplir sur papier)
+            img ]
+        
+    if not L:
+        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+    else:
+        table = Table( L, colWidths=[ COLWIDTH ]*7,
+                       style = TableStyle( [
+                           ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                           ('GRID', (0,0), (2,-1), 0.25, colors.grey),
+                           ('GRID', (2,0), (-1,-1), 0.25, colors.red) # <<<
+                           ] ) )
+    objects.append(table)
+    
+    # Réduit sur une page
+    objects = [KeepInFrame(0,0,objects,mode='shrink')]  
+    
+    # --- Build document
+    document = BaseDocTemplate(report)
+    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
+    document.build(objects)
+    data = report.getvalue()
+    return sendPDFFile(REQUEST, data, filename)
+
 
 # ---------------------    Upload des photos de tout un groupe
 def photos_generate_excel_sample(context, group_id=None, REQUEST=None):

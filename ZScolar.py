@@ -2332,6 +2332,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                 """<input type ="button" value="%s"
                 onClick="document.location='%s';"/>""" % (Cancel,cancel_url))
         for param in parameters.keys():
+            if parameters[param] is None:
+                parameters[param] = ''
             H.append('<input type="hidden" name="%s" value="%s"/>'
                      % (param, parameters[param]))
         H.append('</form>')
