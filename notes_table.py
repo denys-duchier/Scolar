@@ -564,6 +564,7 @@ class NotesTable:
             ue_id = ue['ue_id']
             # - Dans tous les cas, on calcule la moyenne d'UE courante:
             mu = self.comp_etud_moy_ue(etudid, ue_id=ue['ue_id'], cnx=cnx)
+            mu['ue'] = ue # infos supplementaires pouvant servir au calcul du bonus sport
             moy_ues[ue['ue_id']] = mu
             
             # - Faut-il prendre une UE capitalisée ?
