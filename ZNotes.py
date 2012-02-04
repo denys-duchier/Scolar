@@ -88,6 +88,7 @@ import VERSION
 # qui est recréé à la demande
 #
 CACHE_formsemestre_inscription = {}
+CACHE_evaluations = {}
 
 # ---------------
 
@@ -2233,10 +2234,27 @@ class ZNotes(ObjectManager,
         "dummy method, necessary to declare permission ScoEtudSupprAnnotations"
         return True
 
+    # cache notes evaluations
+    def get_evaluations_cache(self):
+        u = self.GetDBConnexionString()
+        if CACHE_evaluations.has_key(u):
+            return CACHE_evaluations[u]
+        else:
+            log('get_evaluations_cache: new simpleCache')
+            CACHE_evaluations[u] = sco_cache.simpleCache()
+            return CACHE_evaluations[u]
+
     def _notes_getall(self, evaluation_id, table='notes_notes', filter_suppressed=True):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
         Attention: inclue aussi les notes des étudiants qui ne sont plus inscrits au module.
         """
+        #log('_notes_getall( e=%s fs=%s )' % (evaluation_id, filter_suppressed))
+        do_cache = filter_suppressed and table=='notes_notes' # pas de cache pour (rares) appels via undo_notes
+        if do_cache:
+            cache = self.get_evaluations_cache()
+            r = cache.get(evaluation_id)
+            if r != None:
+                return r
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("select * from " + table + " where evaluation_id=%(evaluation_id)s",
@@ -2250,6 +2268,8 @@ class ZNotes(ObjectManager,
         else:
             for x in res:
                 d[x['etudid']] = x
+        if do_cache:
+            cache.set(evaluation_id,d)
         return d
 
     # --- Bulletins        

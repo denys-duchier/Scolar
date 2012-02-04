@@ -55,7 +55,7 @@ class simpleCache:
 class expiringCache(simpleCache):
     """A simple cache wich cache data for a most "duration" seconds.
 
-    This is used for users (whch may be updated from external 
+    This is used for users (which may be updated from external 
     information systems)
     """
     def __init__(self, max_validity=60):

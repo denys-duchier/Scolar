@@ -806,6 +806,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
             SimpleQuery(context, "DELETE FROM notes_notes WHERE evaluation_id=%(evaluation_id)s", e)
             SimpleQuery(context, "DELETE FROM notes_notes_log WHERE evaluation_id=%(evaluation_id)s", e)
             SimpleQuery(context, "DELETE FROM notes_evaluation WHERE evaluation_id=%(evaluation_id)s", e)
+            context.get_evaluations_cache().inval_cache(key=e['evaluation_id'])
         
         context.do_moduleimpl_delete(mod['moduleimpl_id'], formsemestre_id=formsemestre_id)
     # --- Desinscription des etudiants

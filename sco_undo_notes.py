@@ -91,7 +91,8 @@ class NotesOperation(dict):
         #for note in self['notes']:
         #    # il y a-t-il une modif plus recente ?
         #    if self['current_notes_by_etud']['date'] <= self['date'] + OPERATION_DATE_TOLERANCE:
-                
+        #
+        # + invalider cache   context.get_evaluations_cache().inval_cache(key=evaluation_id)
 
 def list_operations(context, evaluation_id):
     """returns list of NotesOperation for this evaluation"""

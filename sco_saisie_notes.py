@@ -794,6 +794,7 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     if do_it:
         cnx.commit()
         context._inval_cache(formsemestre_id=M['formsemestre_id']) #> modif notes
+        context.get_evaluations_cache().inval_cache(key=evaluation_id)
     return nb_changed, nb_suppress, existing_decisions
 
 
