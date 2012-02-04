@@ -511,7 +511,6 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
     """Tableau de bord semestre HTML"""
     # porté du DTML
     cnx = context.GetDBConnexion()
-    status_head = formsemestre_status_head(context, formsemestre_id=formsemestre_id, REQUEST=REQUEST)
     sem = context.get_formsemestre(formsemestre_id)
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
     inscrits = context.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
