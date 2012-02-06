@@ -45,6 +45,7 @@ FORMAT_FILE = "misc/format_import_etudiants.txt"
 
 # Champs modifiables via "Import données admission"
 ADMISSION_MODIFIABLE_FIELDS = (
+    'code_nip', 'code_ine',
     'date_naissance', 'lieu_naissance',
     'bac', 'specialite', 'annee_bac',
     'math', 'physique', 'anglais', 'francais',
