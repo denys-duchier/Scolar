@@ -94,7 +94,7 @@ def descr_decision_sem_abbrev(znotes, etat, decision_sem):
     return decision
 
 def descr_autorisations(znotes, autorisations):
-    "résumé texturl des autorisations d'inscription (-> 'S1, S3' )"
+    "résumé textuel des autorisations d'inscription (-> 'S1, S3' )"
     alist = []
     for aut in autorisations:
         alist.append( 'S' + str(aut['semestre_id']) )
@@ -154,6 +154,8 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['autorisations'] = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             znotes, etudid, formsemestre_id)
         d['autorisations_descr'] = descr_autorisations(znotes, d['autorisations'])
+        if Se.parcours_validated():
+            d['autorisations_descr'] = 'Diplôme obtenu'
         d['parcours'] = Se.get_parcours_descr()
         
         # Observations sur les compensations:
