@@ -240,7 +240,11 @@ function newGroupId() {
 
 // Creation d'un groupe
 function createGroup() {
-  var group_name = document.formGroup.groupName.value;
+  var group_name = document.formGroup.groupName.value.trim();
+  if (!group_name) {
+    alert("Nom de groupe vide !");
+    return false;
+  }
   // check name:
   for (var group_id in groupBoxes) { 
     if (group_id != 'extend') {

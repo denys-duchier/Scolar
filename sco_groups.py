@@ -86,11 +86,10 @@ def get_group(context, group_id):
     return r[0]
 
 def group_delete(context, group, force=False):
-    """Delete a group.
-    group 'all' cannot be deleted
+    """Delete a group.    
     """
-    if not group['group_name'] and not force:
-        raise ValueError('cannot suppress this group')
+    #if not group['group_name'] and not force:
+    #    raise ValueError('cannot suppress this group')
     # remove memberships:
     SimpleQuery(context, "DELETE FROM group_membership WHERE group_id=%(group_id)s", group)
     # delete group:
@@ -759,6 +758,10 @@ def partition_set_name(context, partition_id, partition_name, REQUEST=None, redi
 
 def group_set_name(context, group_id, group_name, REQUEST=None, redirect=1):
     """Set group name"""
+    if group_name:
+        group_name = group_name.strip()
+    if not group_name:
+        raise ScoValueError("nom de groupe vide !")
     group = get_group(context, group_id)
     if group['group_name'] is None:
         raise ValueError("can't set a name to default group")
@@ -783,7 +786,9 @@ def group_rename(context, group_id, REQUEST=None):
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
                             ( ('group_id', { 'default' : group_id, 'input_type' : 'hidden' }),
                               ('group_name', { 'title' : 'Nouveau nom', 'default' : group['group_name'],
-                                               'size' : 12 })
+                                               'size' : 12,
+                                               'allow_null' : False,
+                                               })
                               ),
                             submitlabel = 'Renommer',
                             cancelbutton = 'Annuler')
