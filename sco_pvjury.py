@@ -154,8 +154,8 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['autorisations'] = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             znotes, etudid, formsemestre_id)
         d['autorisations_descr'] = descr_autorisations(znotes, d['autorisations'])
-        if Se.parcours_validated():
-            d['autorisations_descr'] = 'Diplôme obtenu'
+        
+        d['validation_parcours'] = Se.parcours_validated()
         d['parcours'] = Se.get_parcours_descr()
         
         # Observations sur les compensations:
@@ -250,10 +250,12 @@ def pvjury_table(context, dpv):
               'parcours' : e['parcours'],
               'decision' : descr_decision_sem_abbrev(context, e['etat'], e['decision_sem']),
               'ue_cap' : e['decisions_ue_descr'],
-              'devenir' : e['autorisations_descr'],
+              'devenir' :  e['autorisations_descr'],
               'observations' : unquote(e['observation']),
               'mention' : e['mention']
               }
+        if e['validation_parcours']:
+            l['devenir'] = "Diplôme obtenu"
         if dpv['has_prev']:
             l['prev_decision'] = descr_decision_sem_abbrev(context, None, e['prev_decision_sem'])
         lines.append(l)

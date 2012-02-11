@@ -498,9 +498,11 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         dec += '. Mention ' + pv['mention']        
     
     infos['situation'] += ' ' + dec + '.'
-    if pv['autorisations_descr']:
-        infos['situation'] += " Autorisé à s'inscrire en %s." % pv['autorisations_descr']
-    
+    if not pv['validation_parcours']: # parcours non terminé
+        if pv['autorisations_descr']:
+            infos['situation'] += " Autorisé à s'inscrire en %s." % pv['autorisations_descr']
+    else:
+        infos['situation'] += " Diplôme obtenu."
     return infos, dpv
 
 

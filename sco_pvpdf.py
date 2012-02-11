@@ -304,7 +304,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     else:
         params['observation_txt'] = ''
     # Autorisations de passage
-    if decision['autorisations'] and Se.semestre_non_terminal:
+    if decision['autorisations'] and not Se.parcours_validated():
         if len(decision['autorisations']) > 1:
             s = 's'
         else:
@@ -313,7 +313,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     else:
         params['autorisations_txt'] =  ''
     
-    if (not Se.semestre_non_terminal) and decision['decision_sem'] and Se.parcours_validated():
+    if decision['decision_sem'] and Se.parcours_validated():
         params['diplome_txt'] = """Vous avez donc obtenu le diplôme : <b>%(titre_formation)s</b>""" % params
     else:
         params['diplome_txt'] = ''
