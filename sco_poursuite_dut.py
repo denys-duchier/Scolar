@@ -37,7 +37,7 @@ from sco_utils import *
 from notes_log import log
 from gen_tables import GenTable
 import sco_groups
-from sco_codes_parcours import code_semestre_validant
+from sco_codes_parcours import code_semestre_validant, code_semestre_attente
 
 def etud_get_poursuite_info(context, sem, etud):
     """{ 'nom' : ..., 'semlist' : [ { 'semestre_id': , 'moy' : ... }, {}, ...] }
@@ -55,7 +55,9 @@ def etud_get_poursuite_info(context, sem, etud):
                 etudid = etud['etudid']
                 nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id'])
                 dec = nt.get_etud_decision_sem(etudid)
-                if dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
+                if (dec
+                    and (code_semestre_validant(dec['code']) or code_semestre_attente(dec['code']))
+                    and nt.get_etud_etat(etudid) == 'I'):
                     sem_descr = odict( data=(
                         ('moy', nt.get_etud_moy_gen(etudid)),
                         ('rang', nt.get_etud_rang(etudid)),
