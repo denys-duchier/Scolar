@@ -411,6 +411,8 @@ def formChoixSemestreGroupe(context, all=False):
         sems = context.Notes.do_formsemestre_list()
     else:
         sems = context.Notes.do_formsemestre_list( args={'etat':'1'} )
+    if not sems:
+        raise ScoValueError('aucun semestre !' )
     H = [ '<select  name="group_id">' ]        
     nbgroups = 0
     for sem in sems:
