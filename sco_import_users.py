@@ -190,9 +190,9 @@ votre nom en haut à gauche de la page d'accueil).
     txt += """
         
 ScoDoc est un logiciel libre développé à l'Université Paris 13 par Emmanuel Viennet.
-Pour plus d'informations sur ce logiciel, voir https://www-rt.iutv.univ-paris13.fr/ScoDoc
+Pour plus d'informations sur ce logiciel, voir %s
 
-"""
+""" % SCO_WEBSITE
     msg = MIMEMultipart()
     if reset:
         msg['Subject'] = Header( 'Mot de passe ScoDoc',  SCO_ENCODING )

@@ -471,14 +471,14 @@ h4 {
             img = '' # icons folder not yet available
         H.append("""
 <div id="scodoc_attribution">
-<p><a href="https://www-rt.iutv.univ-paris13.fr/ScoDoc/">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
+<p><a href="%s">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
 E. Viennet (Université Paris 13).</p>
 
 <p>Ce logiciel est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
 ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 </div>
-</div>""" % img )
+</div>""" % (SCO_WEBSITE,img) )
 
         H.append("""</body></html>""")
         return '\n'.join(H)

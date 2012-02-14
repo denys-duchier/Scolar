@@ -191,7 +191,8 @@ SCO_DEFAULT_SQL_PORT='5432' # warning: 5433 for postgresql-8.1 on Debian if 7.4 
 SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 
 # Valeurs utilisées pour affichage seulement, pas de requetes ni de mails envoyés:
-SCO_WEBSITE  = 'https://www-rt.iutv.univ-paris13.fr/ScoDoc'
+SCO_WEBSITE  = 'https://trac.lipn.univ-paris13.fr/projects/scodoc/wiki'
+SCO_ANNONCES_WEBSITE = 'https://www-rt.iutv.univ-paris13.fr/mailman/listinfo/scodoc-annonces'
 SCO_DEVEL_LIST = 'scodoc-devel@rt.iutv.univ-paris13.fr'
 SCO_USERS_LIST = 'notes@rt.iutv.univ-paris13.fr'
 

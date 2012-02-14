@@ -1,11 +1,31 @@
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
-SCOVERSION = "6.3"
+SCOVERSION = "6.4"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+
+<h4>Année 2012</h4>
+<ul>
+<li>Amélioration des PV de jury (logos, ...)</li>
+<li>Accélération du code de calcul des semestres</li>
+<li>Changement documentation en ligne (nouveau site web)</li>
+</ul>
+
+
+<h4>Année 2011</h4>
+<ul>
+<li>Amélioration de la présentation des bulletins de notes, et possibilité de définir de nouveaux formats</li>
+<li>Possibilité de modifier les moyennes d'UE via un "bonus" (sport/culture)</li>
+<li>Ajout parcours spécifique pour UCAC (Cameroun)</li>
+<li>Possibilité d'indiquer des mentions sur les PV</li>
+<li>Evaluations de "rattrapage"</li>
+<li>Support pour installation en Linux Debian "Squeeze"</li>
+<li>Corrections diverses</li>
+</ul>
+
 
 <h4>Novembre 2010</h4>
 <ul>

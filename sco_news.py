@@ -31,7 +31,7 @@
 from notesdb import *
 from notes_log import log
 import scolars
-from sco_utils import SCO_ENCODING
+from sco_utils import SCO_ENCODING, SCO_ANNONCES_WEBSITE
 
 import PyRSS2Gen
 from cStringIO import StringIO
@@ -170,10 +170,10 @@ def scolar_news_summary_html(context, n=5, rssicon=None):
     H.append( """<div>
     Pour être informé des évolutions de ScoDoc,
     vous pouvez vous
-    <a class="stdlink" href="https://www-rt.iutv.univ-paris13.fr/mailman/listinfo/scodoc-annonces">
+    <a class="stdlink" href="%s">
     abonner à la liste de diffusion</a>.
     </div>
-    """ )
+    """ % SCO_ANNONCES_WEBSITE)
 
     H.append('</div>')
     return '\n'.join(H)

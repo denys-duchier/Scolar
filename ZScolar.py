@@ -376,10 +376,10 @@ class ZScolar(ObjectManager,
     def about(self, REQUEST):
         "version info"
         H = [ """<h2>Système de gestion scolarité</h2>
-        <p>&copy; Emmanuel Viennet 1997-2011</p>
+        <p>&copy; Emmanuel Viennet 1997-2012</p>
         <p>Version %s (subversion %s)</p>
         """ % (SCOVERSION, get_svn_version(file_path)) ]
-        H.append('<p>Logiciel écrit en <a href="http://www.python.org">Python</a> pour la plate-forme <a href="http://www.zope.org">Zope</a>.</p><p>Utilise <a href="http://reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
+        H.append('<p>Logiciel libre écrit en <a href="http://www.python.org">Python</a>.</p><p>Utilise <a href="http://www.reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
         H.append( "<h2>Dernières évolutions</h2>" + SCONEWS )
         H.append( '<div class="about-logo">' + self.icons.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
         d = ''
