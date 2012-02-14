@@ -345,6 +345,8 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                     e['note_txt'] = fmt_note(val, note_max=e['note_max'])
                     e['note_html'] = e['note_txt']
                     e['coef_txt'] = fmt_coef(e['coefficient'])
+                if e['evaluation_type'] == EVALUATION_RATTRAPAGE:
+                    e['coef_txt'] = 'rat.'
                 if e['etat']['evalattente']:
                     mod_attente = True # une eval en attente dans ce module
             # Evaluations incomplètes ou futures:

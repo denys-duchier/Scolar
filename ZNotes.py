@@ -2050,6 +2050,10 @@ class ZNotes(ObjectManager,
         en version dite "intermédiaire" (dans cette version, on peut ne faire apparaitre que certaines
         notes, en sus des moyennes de modules. Attention, cette option n'empêche pas la publication sur
         les bulletins en version "longue" (la note est donc visible par les étudiants sur le portail).
+        </p><p class="help">
+        La modalité "rattrapage" permet de définir une évaluation dont les notes remplaceront les moyennes du modules
+        si elles sont meilleures que celles calculées. Dans ce cas, le coefficient est ignoré, et toutes les notes n'ont
+        pas besoin d'être rentrées.
         </p>
         """
         mod_descr = '<a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>%s' % (moduleimpl_id, Mod['code'], Mod['titre'], link)
