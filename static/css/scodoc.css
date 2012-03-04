@@ -312,6 +312,21 @@ div.ficheadmission {
   border-radius: 8px;
 }
 
+div.fichedebouche { 
+  background-color: rgb( 0, 100, 0 ); 
+  color: gold;
+  margin: 0.5em 0 0.5em 0;
+  padding: 0.5em;
+  -moz-border-radius: 8px;
+  -khtml-border-radius: 8px;
+  border-radius: 8px;
+}
+
+span.debouche_tit {
+  font-weight: bold;
+  padding-right: 1em;
+}
+
 div.ficheinscriptions {
    background-color: #eae3e2; /* was EADDDA */
    margin: 0.5em 0 0.5em 0;

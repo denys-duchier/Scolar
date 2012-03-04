@@ -1224,6 +1224,7 @@ class ZScolar(ObjectManager,
                 etud['telephonemobilestr'] = '<b>Mobile:</b> ' + format_telephone(etud['telephonemobile'])
             else:
                 etud['telephonemobilestr'] = ''
+            etud['debouche'] = etud['debouche'] or ''
     
     security.declareProtected(ScoView, 'etud_info')
     def etud_info(self, etudid=None, format='xml', REQUEST=None):
@@ -1888,6 +1889,10 @@ function tweakmenu( gname ) {
                  'explanation' : "ne vérifie pas les noms et prénoms proches"
                  }
                ),
+            ('debouche', {'input_type' : 'textarea', 'rows' : 4, 'cols' : 50,
+                          'title' : 'Devenir:',
+                          'explanation' : "infos sur ce qu'est devenu l'étudiant après son passage chez nous"
+                          }),
             ]
         initvalues['dont_check_homonyms'] = False
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,

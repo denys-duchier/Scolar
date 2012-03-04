@@ -104,7 +104,7 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
         ids =  _flatten_info(info)
         infos.append(info)
     #
-    column_ids = ('sexe', 'nom', 'prenom', 'annee') + tuple(ids)
+    column_ids = ('sexe', 'nom', 'prenom', 'annee') + tuple(ids) + ('debouche',)
     titles = {}
     for c in column_ids:
         titles[c] = c

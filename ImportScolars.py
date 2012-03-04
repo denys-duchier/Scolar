@@ -52,7 +52,9 @@ ADMISSION_MODIFIABLE_FIELDS = (
     'qualite', 'rapporteur', 'score', 'commentaire',
     'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
     # Adresse:
-    'email', 'domicile', 'codepostaldomicile', 'villedomicile', 'paysdomicile', 'telephone', 'telephonemobile'
+    'email', 'domicile', 'codepostaldomicile', 'villedomicile', 'paysdomicile', 'telephone', 'telephonemobile',
+    # Debouche
+    'debouche'
     )
 
 # ----

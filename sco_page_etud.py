@@ -217,6 +217,12 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     else:
         adm_tmpl = '' # pas de boite "info admission"
     info['adm_data'] = adm_tmpl % info
+    # Devenir de l'étudiant:
+    has_debouche =  info['debouche']
+    if has_debouche:
+        info['debouche_html'] = """<div class="fichedebouche"><span class="debouche_tit">Devenir:</span><span>%s</span></div>""" % info['debouche']
+    else:
+        info['debouche_html'] = '' # pas de boite "devenir"
     #
     if info['liste_annotations']:
         info['tit_anno'] = '<div class="fichetitre">Annotations</div>'
@@ -270,6 +276,8 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 %(inscriptions_mkup)s
 
 %(adm_data)s
+
+%(debouche_html)s
 
 <div class="ficheannotations">
 %(tit_anno)s

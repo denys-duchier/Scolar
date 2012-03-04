@@ -95,7 +95,8 @@ CREATE TABLE admissions (
     nomlycee text,
     villelycee text,
     codepostallycee text,
-    codelycee text
+    codelycee text,
+    debouche text -- situation APRES etre passe par chez nous (texte libre)
 ) WITH OIDS;
 
 CREATE TABLE absences (
