@@ -205,18 +205,15 @@ class GenTable:
                     pdf_style_list.append( (cmd[0], (cmd[1][0], cmd[1][1]+out_line_num), (cmd[2][0], cmd[2][1]+out_line_num)) + cmd[3:] ) 
                 
                 out_line_num += 1
-
         if with_bottom_titles and self.bottom_titles:
             line_num += 1
+            l = []
             if with_lines_titles:
                 if self.bottom_titles.has_key('row_title'):
                     l = [ self.bottom_titles['row_title'] ]
                 elif self.lines_titles:
                     l = [ self.lines_titles[line_num] ]
-            else:
-                l = []
             T.append( l + [self.bottom_titles.get(cid,'') for cid in self.columns_ids ] )
-
         return T
 
     def get_titles_list(self):

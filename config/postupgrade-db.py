@@ -345,6 +345,9 @@ for dept in get_depts():
     check_field(cnx, 'absences_notifications', 'formsemestre_id',
                 ['alter table absences_notifications add column formsemestre_id text DEFAULT NULL',
                  ])
+    # A ajouter lors d'une prochaine mise à jour:
+    # "update sco_prefs set value='noreply@univ-paris13.fr' where name='email_from_addr' and value='noreply'"
+    
     # Add here actions to performs after upgrades:
     
     cnx.commit()

@@ -858,7 +858,7 @@ Année scolaire: %(anneescolaire)s
         }
       ),
     ( 'email_from_addr',
-      { 'initvalue' : 'noreply', 
+      { 'initvalue' : 'noreply@univ-paris13.fr', 
         'title' : 'adresse mail origine',
         'size' : 40,
         'explanation' : 'adresse expéditeur pour les envois par mails (bulletins)',
