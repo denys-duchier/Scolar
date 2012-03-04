@@ -90,7 +90,11 @@ def defMenuStats(context,formsemestre_id):
         { 'title' : 'Table "poursuite" (experimental)',
           'url' : 'formsemestre_poursuite_report?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
-          }
+          },
+        { 'title' : 'Table "débouchés" (experimental)',
+          'url' : 'report_debouche_date',
+          'enabled' : True,
+          },
         ]
 
 

@@ -75,6 +75,7 @@ import sco_bulletins, sco_bulletins_pdf, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
 import sco_formations, sco_report
 import sco_poursuite_dut
+import sco_debouche
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -2648,6 +2649,9 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, "formsemestre_poursuite_report")
     formsemestre_poursuite_report = sco_poursuite_dut.formsemestre_poursuite_report
 
+    security.declareProtected(ScoView, "report_debouche_date")
+    report_debouche_date = sco_debouche.report_debouche_date
+    
     # --------------------------------------------------------------------
     # DEBUG
     security.declareProtected(ScoView,'check_sem_integrity')
