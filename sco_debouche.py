@@ -86,7 +86,7 @@ def table_debouche_etudids(context, etudids):
         etud = context.getEtudInfo(filled=1, etudid=etudid)[0]
         # retrouve le "dernier" semestre (au sens de la date de fin)
         sems = etud['sems']
-        es = [ (sems[i]['date_fin'], i) for i in range(len(sems)) ]
+        es = [ (sems[i]['date_fin_iso'], i) for i in range(len(sems)) ]
         imax = max(es)[1]
         last_sem = sems[imax]
         nt = context._getNotesCache().get_NotesTable(context, last_sem['formsemestre_id'])
