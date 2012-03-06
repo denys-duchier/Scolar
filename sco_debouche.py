@@ -42,9 +42,13 @@ def report_debouche_date(context, start_year=None, format='html', REQUEST=None):
     """
     if not start_year:
         return report_debouche_ask_date(context, REQUEST=REQUEST)
+    if format == 'xls':
+        keep_numeric = True # pas de conversion des notes en strings
+    else:
+        keep_numeric = False
     
     etudids = get_etudids_with_debouche(context, start_year)
-    tab = table_debouche_etudids(context, etudids)
+    tab = table_debouche_etudids(context, etudids, keep_numeric=keep_numeric)
 
     tab.filename = make_filename('debouche_scodoc_%s' % start_year)
     tab.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
@@ -78,7 +82,7 @@ def get_etudids_with_debouche(context, start_year):
     
     return [ x['etudid'] for x in r ]
 
-def table_debouche_etudids(context, etudids):
+def table_debouche_etudids(context, etudids, keep_numeric=True):
     """Rapport pour ces etudiants
     """
     L = []
@@ -99,15 +103,18 @@ def table_debouche_etudids(context, etudids):
             '_prenom_target' : 'ficheEtud?etudid=' + etud['etudid'],
             '_nom_td_attrs' : 'id="%s" class="etudinfo"' % (etud['etudid']),
             'debouche' : etud['debouche'],
-            'moy' : nt.get_etud_moy_gen(etudid),
+            'moy' : fmt_note(nt.get_etud_moy_gen(etudid),keep_numeric=keep_numeric),
             'rang' : nt.get_etud_rang(etudid),
             'effectif' : len(nt.T),
             'semestre_id' : last_sem['semestre_id'],
             'semestre' : last_sem['titre'],
             'date_debut': last_sem['date_debut'],
             'date_fin' : last_sem['date_fin'],
-            'periode' : '%s - %s' % (last_sem['mois_debut'], last_sem['mois_fin'])
+            'periode' : '%s - %s' % (last_sem['mois_debut'], last_sem['mois_fin']),
+            'sem_ident' : '%s %s' % (last_sem['date_debut_iso'],last_sem['titre']), # utile pour tris
             } )
+
+    L.sort(key=lambda x:x['sem_ident'])
 
     titles = {
         'sexe' : '', 'nom' : 'Nom', 'prenom' : 'Prénom',
@@ -116,8 +123,9 @@ def table_debouche_etudids(context, etudids):
         'moy' : 'Moyenne', 'rang' :'Rang', 'effectif': 'Eff.', 'debouche' : 'Débouché'
         }
     tab = GenTable(
-        columns_ids=('sexe', 'nom', 'prenom',
-                     'semestre', 'semestre_id', 'periode', 'moy', 'rang', 'effectif', 'debouche'),
+        columns_ids=('semestre', 'semestre_id', 'periode',
+                     'sexe', 'nom', 'prenom',
+                     'moy', 'rang', 'effectif', 'debouche'),
         titles=titles,
         rows=L,
         # lines_titles=lines_titles,
