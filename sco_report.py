@@ -674,38 +674,73 @@ def _codeparcoursetud(context, etud):
         i -= 1
     return ''.join(p)
 
-def table_suivi_parcours(context, formsemestre_id):
-    """Tableau recapitulant tous les parcours
-    """
+def tsp_etud_list(context, formsemestre_id, only_primo=False):
+    """Liste des etud a considerer dans table suivi parcours"""
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, 
     etudids = nt.get_etudids()
-    codes_etuds = DictDefault(defaultvalue=[])
+    etuds = []
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
-        etud['codeparcours'] = _codeparcoursetud(context, etud)
-        codes_etuds[etud['codeparcours']].append(etud)
+        if (not only_primo or context.isPrimoEtud(etud,sem)):
+            etuds.append(etud)
+    return etuds
 
+def tsp_grouped_list(context, codes_etuds):
+    """Liste pour table regroupant le nombre d'étudiants (+ bulle avec les noms) de chaque parcours
+    """
+    L = []
     parcours = codes_etuds.keys()
     parcours.sort()
-    L = []
     for p in parcours:
         nb = len(codes_etuds[p])
         l = { 'parcours' : p, 'nb' : nb }
         if nb < 10:
             l['_nb_help'] = _descr_etud_set(context,
                                             [e['etudid'] for e in codes_etuds[p]])
-        L.append(l)
-                
+        L.append(l)                
     # tri par effectifs décroissants
     L.sort( lambda x,y: cmp(y['nb'], x['nb']) )
-    tab = GenTable( columns_ids=('parcours', 'nb'), rows=L,
+    return L
+    
+def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_parcours=True):
+    """Tableau recapitulant tous les parcours
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    etuds = tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
+    codes_etuds = DictDefault(defaultvalue=[])
+    for etud in etuds:
+        etud['codeparcours'] = _codeparcoursetud(context, etud)
+        codes_etuds[etud['codeparcours']].append(etud)
+        etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+        etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+        etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
+    
+    if grouped_parcours:
+        L = tsp_grouped_list(context, codes_etuds)
+        columns_ids = ('parcours', 'nb')
+    else:
+        # Table avec le parcours de chaque étudiant:
+        L = etuds
+        columns_ids=('etudid', 'sexe', 'nom', 'prenom', 'codeparcours')    
+        
+
+    if only_primo:
+        primostr='primo-entrants du'
+    else:
+        primostr='passés dans le'
+    tab = GenTable( columns_ids=columns_ids, rows=L,
                     titles={ 'parcours' : 'Code parcours',
-                             'nb' : "Nombre d'étudiants" },
+                             'nb' : "Nombre d'étudiants",
+                             'sexe' : '', 'nom' : 'Nom', 'prenom':'Prénom',
+                             'etudid' : 'etudid',
+                             'codeparcours' : 'Code parcours',
+                             },
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-                    caption = 'Parcours suivis, étudiants passés dans le semestre ' + sem['titreannee'],
+                    caption = 'Parcours suivis, étudiants %s semestre '%primostr + sem['titreannee'],
                     page_title = 'Parcours ' + sem['titreannee'],
-                    html_title = '<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>',
+                    html_sortable=True,
+                    html_class='gt_table table_leftalign table_listegroupe',
                     html_next_section="""<table class="help">
                     <tr><td><tt>1, 2, ...</tt></td><td> numéros de semestres</td></tr>
                     <tr><td><tt>1d, 2d, ...</tt></td><td>semestres "décalés"</td></tr>
@@ -713,19 +748,49 @@ def table_suivi_parcours(context, formsemestre_id):
                     <tr><td><tt>:R</tt></td><td> étudiants réorientés</td></tr>
                     <tr><td><tt>:D</tt></td><td> étudiants démissionnaires</td></tr>
                     </table>""",
-                    bottom_titles =  { 'parcours' : 'Total', 'nb' : len(etudids) },
+                    bottom_titles =  { 'parcours' : 'Total', 
+                                       'nb' : len(etuds),
+                                       'codeparcours' : len(etuds) },
                     preferences=context.get_preferences(formsemestre_id)
                     )
     return tab
 
-def formsemestre_suivi_parcours(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
+                                only_primo=False, no_group_parcours=False,
+                                REQUEST=None):
     """Effectifs dans les differents parcours possibles.
     """
     sem = context.get_formsemestre(formsemestre_id)
-    tab = table_suivi_parcours(context, formsemestre_id)
+    tab = table_suivi_parcours(context, formsemestre_id, only_primo=only_primo, grouped_parcours=not no_group_parcours)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
-    t = tab.make_page(context, format=format, with_html_headers=True, REQUEST=REQUEST)
-    return t
+    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+
+    F = [ """<form name="f" method="get" action="%s">""" % REQUEST.URL0 ]
+    if only_primo:
+        checked='checked=1'
+    else:
+        checked=''
+    F.append('<input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+    if no_group_parcours:
+        checked='checked=1'
+    else:
+        checked=''
+    F.append('<input type="checkbox" name="no_group_parcours" onChange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
+    F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
+    F.append('<input type="hidden" name="format" value="%s"/>' % format)
+    F.append("""</form>""")
+    
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title,
+                             javascripts=['jQuery/jquery.js', 
+                                          'libjs/qtip/jquery.qtip.js',
+                                          'js/etud_info.js'
+                                          ], ),
+          """<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>""",
+          '\n'.join(F),
+          t, 
+          context.sco_footer(REQUEST)
+          ]
+    return '\n'.join(H)
 
 # -------------
 def graph_parcours(context, formsemestre_id, format='svg'):
