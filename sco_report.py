@@ -763,8 +763,13 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     sem = context.get_formsemestre(formsemestre_id)
     tab = table_suivi_parcours(context, formsemestre_id, only_primo=only_primo, grouped_parcours=not no_group_parcours)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    if only_primo:
+        tab.base_url += '&only_primo=1'
+    if no_group_parcours:
+        tab.base_url += '&no_group_parcours=1'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
-
+    if format != 'html':
+        return t
     F = [ """<form name="f" method="get" action="%s">""" % REQUEST.URL0 ]
     if only_primo:
         checked='checked=1'
