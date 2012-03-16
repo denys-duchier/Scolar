@@ -53,7 +53,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     modejury=int(modejury)
     hidemodules=int(hidemodules)
     xml_with_decisions=int(xml_with_decisions)
-    isFile = tabformat in ('csv','xls','xml')
+    isFile = tabformat in ('csv','xls','xml', 'xlsall')
     H = []
     if not isFile:
         H += [ context.sco_header(REQUEST, 
@@ -72,6 +72,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append('<select name="tabformat" onChange="document.f.submit()" class="noprint">')
         for (format, label) in (('html', 'HTML'), 
                                 ('xls', 'Fichier tableur (Excel)'),
+                                ('xlsall', 'Fichier tableur avec toutes les évals'),
                                 ('csv', 'Fichier tableur (CSV)'),
                                 ('xml', 'Fichier XML')):
             if format == tabformat:
@@ -115,7 +116,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
 
 def do_formsemestre_recapcomplet(
     context=None, REQUEST=None, formsemestre_id=None,
-    format='html', # html, xml, xls
+    format='html', # html, xml, xls, xlsall
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
     modejury=False, # saisie décisions jury
@@ -131,14 +132,14 @@ def do_formsemestre_recapcomplet(
         return data
     elif format == 'csv':
         return sendCSVFile(REQUEST, data, filename)
-    elif format == 'xls':
+    elif format[:3] == 'xls':
         return sco_excel.sendExcelFile(REQUEST, data, filename )
     else:
         raise ValueError('unknown format %s' % format)
 
 def make_formsemestre_recapcomplet(
     context=None, REQUEST=None, formsemestre_id=None,
-    format='html', # html, xml, xls
+    format='html', # html, xml, xls, xlsall
     hidemodules=False, # ne pas montrer les modules (ignoré en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
     modejury=False, # saisie décisions jury
@@ -154,7 +155,7 @@ def make_formsemestre_recapcomplet(
     if format=='xml':
         return _formsemestre_recapcomplet_xml(context, formsemestre_id,
                                               xml_nodate, xml_with_decisions=xml_with_decisions)
-    if format == 'xls':
+    if format[:3] == 'xls':
         keep_numeric = True # pas de conversion des notes en strings
     else:
         keep_numeric = False
@@ -182,18 +183,19 @@ def make_formsemestre_recapcomplet(
     F = []
     h = [ rank_label, 'Nom' ]
     # Si CSV ou XLS, indique tous les groupes
-    if format == 'xls' or format == 'csv':
+    if format[:3] == 'xls' or format == 'csv':
         for partition in partitions:
             h.append( '%s' % partition['partition_name'] )
     else:
         h.append( 'Gr' )
     h.append( 'Moy' )
     # Ajoute rangs dans groupe seulement si CSV ou XLS
-    if format == 'xls' or format == 'csv':
+    if format[:3] == 'xls' or format == 'csv':
         for partition in partitions:
             h.append( 'rang_%s' % partition['partition_name'] )
     
     cod2mod ={} # code : moduleimpl
+    mod_evals = {} # moduleimpl_id : liste de toutes les evals de ce module
     for ue in ues:
         if ue['type'] != UE_SPORT:
             h.append( ue['acronyme'] )
@@ -210,7 +212,14 @@ def make_formsemestre_recapcomplet(
                     code = modimpl['module']['code']
                     h.append( code )
                     cod2mod[code] = modimpl # pour fabriquer le lien
+                    if format == 'xlsall':
+                        evals = context.do_evaluation_list( {'moduleimpl_id' : modimpl['moduleimpl_id']})
+                        for e in evals:
+                            e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
+                        mod_evals[modimpl['moduleimpl_id']] = evals
+                        h += _list_notes_evals_titles(context, code, evals)
     F.append(h)
+    
     ue_index = [] # indices des moy UE dans l (pour appliquer style css)
     def fmtnum(val): # conversion en nombre pour cellules excel
         if keep_numeric:
@@ -247,7 +256,7 @@ def make_formsemestre_recapcomplet(
             rank = nt.get_etud_rang(etudid)
         
         l = [ rank, nt.get_nom_short(etudid) ]  # rang, nom, 
-        if format == 'xls' or format == 'csv': # tous les groupes
+        if format[:3] == 'xls' or format == 'csv': # tous les groupes
             for partition in partitions:                
                 group = partitions_etud_groups[partition['partition_id']].get(etudid, None)
                 if group:
@@ -259,7 +268,7 @@ def make_formsemestre_recapcomplet(
               
         l.append(fmtnum(fmt_note(t[0],keep_numeric=keep_numeric))) # moy_gen
         # Ajoute rangs dans groupes seulement si CSV ou XLS
-        if format == 'xls' or format == 'csv':
+        if format[:3] == 'xls' or format == 'csv':
             rang_gr, ninscrits_gr, gr_name = sco_bulletins.get_etud_rangs_groups(
                 context, etudid, formsemestre_id, partitions, partitions_etud_groups, nt)
             
@@ -280,6 +289,8 @@ def make_formsemestre_recapcomplet(
                 for modimpl in modimpls:
                     if modimpl['module']['ue_id'] == ue['ue_id']:
                         l.append( fmtnum(t[j+len(ues)+1]) ) # moyenne etud dans module
+                        if format == 'xlsall':
+                            l += _list_notes_evals(context, mod_evals[modimpl['moduleimpl_id']], etudid)
                     j += 1
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
@@ -291,17 +302,20 @@ def make_formsemestre_recapcomplet(
     
     def add_bottom_stat( key, title, corner_value='' ):
         l = [ '', title ] 
-        if format == 'xls' or format == 'csv':
+        if format[:3] == 'xls' or format == 'csv':
             l += ['']*len(partitions)
         else:
             l += ['']
         l.append(corner_value)
-        if format == 'xls' or format == 'csv':
+        if format[:3] == 'xls' or format == 'csv':
             for partition in partitions:
                 l += [ '' ] # rangs dans les groupes
         for ue in ues:
             if ue['type'] != UE_SPORT:
-                l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
+                if key == 'coef':
+                    l.append('')
+                else:
+                    l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
             else: # UE_SPORT:
                 # n'affiche pas la moyenne d'UE dans ce cas
                 if not hidemodules:
@@ -310,8 +324,16 @@ def make_formsemestre_recapcomplet(
             if not hidemodules:
                 for modimpl in modimpls:
                     if modimpl['module']['ue_id'] == ue['ue_id']:
-                        l.append(fmt_note(mods_stats[modimpl['moduleimpl_id']][key],
-                                          keep_numeric=keep_numeric)) # moyenne du module
+                        if key == 'coef':
+                            coef = modimpl['module']['coefficient']
+                            if format[:3] != 'xls':
+                                coef = str(coef)
+                            l.append(coef)
+                        else:
+                            l.append(fmt_note(mods_stats[modimpl['moduleimpl_id']][key],
+                                              keep_numeric=keep_numeric)) # moyenne du module
+                        if format == 'xlsall':
+                            l += _list_notes_evals_stats(context, mod_evals[modimpl['moduleimpl_id']], key)
         if modejury:
             l.append('') # case vide sur ligne "Moyennes"
         F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
@@ -319,6 +341,7 @@ def make_formsemestre_recapcomplet(
     add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'min', 'Min')
     add_bottom_stat( 'max', 'Max')
+    add_bottom_stat( 'coef', 'Coef')
     
     # Generation table au format demandé
     if format == 'html':
@@ -386,7 +409,7 @@ def make_formsemestre_recapcomplet(
         nblines = len(F)-1
         for l in F[1:]:
             etudid = l[-1]
-            if ir >= nblines-3:
+            if ir >= nblines-4:
                 el = l[1] # derniere ligne
                 styl = ( 'recap_row_moy', 'recap_row_min', 'recap_row_max')[ir-nblines+3]
                 cells = '<tr class="%s sortbottom">' % styl
@@ -482,10 +505,13 @@ def make_formsemestre_recapcomplet(
         date = time.strftime( '%d-%m-%Y')
         filename = 'notes_modules-%s-%s.csv' % (semname,date)
         return CSV, filename, 'csv'
-    elif format == 'xls':
+    elif format[:3] == 'xls':
         semname = sem['titre_num'].replace( ' ', '_' )
         date = time.strftime( '%d-%m-%Y')
-        filename = 'notes_modules-%s-%s.xls' % (semname,date)
+        if format == 'xls':
+            filename = 'notes_modules-%s-%s.xls' % (semname,date)
+        else:
+            filename = 'notes_modules_evals-%s-%s.xls' % (semname,date)
         xls = sco_excel.Excel_SimpleTable(
             titles= ['etudid'] + F[0],
             lines = [ [x[-1]] + x[:-1] for x in F[1:] ], # reordonne cols (etudid en 1er)
@@ -494,6 +520,47 @@ def make_formsemestre_recapcomplet(
     else:
         raise ValueError('unknown format %s' % format)
 
+def _list_notes_evals(context, evals, etudid):
+    """Liste des notes des evaluations completes de ce module"""
+    L = []
+    for e in evals:
+        if e['eval_state']['evalcomplete']:
+            NotesDB = context._notes_getall(e['evaluation_id'])
+            if NotesDB.has_key(etudid):
+                val = NotesDB[etudid]['value']
+            else:
+                val = None
+            val_fmt = fmt_note(val, keep_numeric=True)
+            L.append(val_fmt)
+    return L
+
+def _list_notes_evals_titles(context, codemodule, evals):
+    """Liste des titres des evals completes"""
+    L = []
+    for e in evals:
+        e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'], keep_numeric=True)
+        if e['eval_state']['evalcomplete']:
+            L.append(codemodule+'-'+e['jour'])
+    return L
+
+def _list_notes_evals_stats(context, evals, key):
+    """Liste des stats (moy, ou rien!) des evals completes"""
+    L = []
+    for e in evals:
+        if e['eval_state']['evalcomplete']:
+            if key == 'moy':
+                val = e['eval_state']['moy']
+                L.append( fmt_note(val, keep_numeric=True) )
+            elif key == 'max':
+                L.append( e['note_max'] )
+            elif key == 'min':
+                L.append(0.)
+            elif key == 'coef':
+                L.append( e['coefficient'] )
+            else:
+                L.append('') # on n'a pas sous la main min/max
+    return L
+    
 def _formsemestre_recapcomplet_xml(context, formsemestre_id, xml_nodate, xml_with_decisions=False):
     "XML export: liste tous les bulletins XML"
     # REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)

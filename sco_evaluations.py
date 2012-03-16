@@ -92,7 +92,8 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
                  url=mod['url'])
 
 
-def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_partition=False):
+def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_partition=False,
+                       keep_numeric=False):
     """donne infos sur l'etat du evaluation
     { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
     date_last_modif, gr_complets, gr_incomplets, evalcomplete }
@@ -111,8 +112,8 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
     if moy is None:
         median, moy = '',''
     else:
-        median = fmt_note(median) # '%.3g' % median
-        moy = fmt_note(moy) # '%.3g' % moy
+        median = fmt_note(median, keep_numeric=keep_numeric) # '%.3g' % median
+        moy = fmt_note(moy, keep_numeric=keep_numeric) # '%.3g' % moy
     # cherche date derniere modif note
     if len(NotesDB):
         t = [ x['date'] for x in NotesDB.values() ]
@@ -132,7 +133,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
             partition = sco_groups.get_default_partition(context, formsemestre_id)
         partition_id = partition['partition_id']
 
-    # Il faut considerer les inscription au semestre
+    # Il faut considerer les inscriptions au semestre
     # (pour avoir l'etat et le groupe) et aussi les inscriptions
     # au module (pour gerer les modules optionnels correctement)
     insem = context.do_formsemestre_inscription_listinscrits(formsemestre_id)
@@ -196,8 +197,8 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
         gr_moyennes.append(
             {'group_id':group_id, 
              'group_name' : groups[group_id]['group_name'],
-             'gr_moy' : fmt_note(gr_moy),
-             'gr_median':fmt_note(gr_median),
+             'gr_moy' : fmt_note(gr_moy, keep_numeric=keep_numeric),
+             'gr_median':fmt_note(gr_median, keep_numeric=keep_numeric),
              'gr_nb_notes': len(notes),
              'gr_nb_att' : len([ x for x in notes if x == NOTES_ATTENTE ])
              } )
