@@ -9,6 +9,7 @@ SCONEWS = """
 
 <h4>Année 2012</h4>
 <ul>
+<li>Table lycées d'origine avec carte google</li>
 <li>Amélioration des PV de jury (logos, ...)</li>
 <li>Accélération du code de calcul des semestres</li>
 <li>Changement documentation en ligne (nouveau site web)</li>

@@ -46,9 +46,9 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
     sem = context.get_formsemestre(formsemestre_id)
     etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)    
     etuds = [ scolars.etud_add_lycee_infos(e) for e in etuds ]
+    etuds_by_lycee = group_by_key(etuds, 'codelycee')
     # 
-    if group_lycees:
-        etuds_by_lycee = group_by_key(etuds, 'codelycee')
+    if group_lycees:        
         L = [ etuds_by_lycee[codelycee][0] for codelycee in etuds_by_lycee ]
         for l in L:
             l['nbetuds'] = len(etuds_by_lycee[l['codelycee']])
@@ -58,10 +58,7 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
         bottom_titles =  { 'nbetuds' : len(etuds),
                            'nomlycee' : '%d lycées' % len([x for x in etuds_by_lycee if etuds_by_lycee[x][0]['codelycee']]) } 
     else:
-        # tri par code postal puis nom:
         L = etuds
-        # L.sort( key=operator.itemgetter('codepostallycee', 'nom') ) argh, only python 2.5+ !!!
-        #L.sort( cmp=lambda x,y: cmp( (x['codepostallycee'],x['nom']), (y['codepostallycee'],y['nom']) ) )
         columns_ids = ('sexe', 'nom', 'prenom', 'codelycee', 'codepostallycee', 'villelycee', 'nomlycee')
         bottom_titles = None
         for etud in etuds:
@@ -91,14 +88,14 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
                    bottom_titles = bottom_titles,
                    preferences=context.get_preferences(formsemestre_id)
                    )
-    return tab
+    return tab, etuds_by_lycee
 
 def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
                               only_primo=False, no_grouping=False,
                               REQUEST=None):
     """Table des lycées d'origine"""
     sem = context.get_formsemestre(formsemestre_id)
-    tab = formsemestre_table_etuds_lycees(context, formsemestre_id, only_primo=only_primo, group_lycees=not no_grouping)
+    tab, etuds_by_lycee = formsemestre_table_etuds_lycees(context, formsemestre_id, only_primo=only_primo, group_lycees=not no_grouping)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if only_primo:
         tab.base_url += '&only_primo=1'
@@ -108,14 +105,32 @@ def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
     if format != 'html':
         return t
     F = [ sco_report.tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format) ]    
-    H = [ context.sco_header(REQUEST, page_title=tab.page_title,
-                             javascripts=['jQuery/jquery.js', 
-                                          'libjs/qtip/jquery.qtip.js',
-                                          'js/etud_info.js'
-                                          ], ),
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title, init_google_maps=True,init_jquery_ui=True,
+                             javascripts=[
+                                 'libjs/qtip/jquery.qtip.js',
+                                 'js/etud_info.js',
+                                 'js/map_lycees.js'
+                                 ], ),
           """<h2 class="formsemestre">Lycées d'origine des étudiants</h2>""",
           '\n'.join(F),
-          t, 
+          t,
+          """<div id="lyc_map_canvas"></div>          
+          """,
+          js_coords_lycees(etuds_by_lycee),
           context.sco_footer(REQUEST)
           ]
     return '\n'.join(H)
+
+def js_coords_lycees(etuds_by_lycee):
+    """Formatte liste des lycees en JSON pour Google Map"""
+    L = []
+    for codelycee in etuds_by_lycee:
+        if codelycee:
+            lyc = etuds_by_lycee[codelycee][0]
+            lyc['listeetuds'] = '<br/>%d étudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
+                [ '<a class="discretelink" href="ficheEtud?etudid=%(etudid)s" title="">%(nomprenom)s</a>' % e for e in etuds_by_lycee[codelycee] ] )
+            L.append( "{'position' : '%(positionlycee)s', 'name' : '%(nomlycee)s (%(villelycee)s) %(listeetuds)s'}" % lyc )
+    
+    return """<script type="text/javascript">
+          var lycees_coords = [%s];
+          </script>""" % ','.join(L)

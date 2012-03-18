@@ -43,6 +43,7 @@ def sco_header(context, REQUEST=None,
                bodyOnLoad='',      # JS
                init_jquery=False,  # load and init jQuery
                init_jquery_ui=False,# include all stuff for jquery-ui and initialize scripts
+               init_google_maps=False,# Google maps
                titrebandeau='',    # titre dans bandeau superieur
                head_message='',    # message action (petit cadre jaune en haut)
                user_check=True     # verifie passwords temporaires
@@ -105,7 +106,8 @@ def sco_header(context, REQUEST=None,
     if init_jquery_ui:
         # can modify loaded theme here
         H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/libjs/jquery-ui/css/custom-theme/jquery-ui-1.7.2.custom.css" />\n')
-    
+    if init_google_maps:
+        H.append('<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>')
     # Feuilles de style additionnelles:
     for cssstyle in cssstyles:
         H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/%s" />\n"""
@@ -125,7 +127,8 @@ def sco_header(context, REQUEST=None,
     if init_jquery_ui:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-1.7.2.custom.min.js"></script>')
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-i18n.js"></script>')
-    
+    if init_google_maps:
+        H.append('<script type="text/javascript" src="/ScoDoc/static/libjs/jquery.ui.map.full.min.js"></script>')
     # JS additionels
     for js in javascripts:
         H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>\n"""

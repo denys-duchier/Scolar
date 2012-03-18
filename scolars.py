@@ -509,7 +509,8 @@ def read_etablissements():
         E[l[0]] = { 'name' : l[1],
                     'address' : l[2],
                     'codepostal' : l[3],
-                    'commune' : l[4] }
+                    'commune' : l[4],
+                    'position' : l[5]+','+l[6]}
     return E
 
 ETABLISSEMENTS = None
@@ -544,6 +545,8 @@ def etud_add_lycee_infos(etud):
                 etud['nomlycee'] = il['name']
             if not etud['villelycee']:
                 etud['villelycee'] = il['commune']
+            if not etud.get('positionlycee', None):
+                etud['positionlycee'] = il['position']
     return etud
 
 """ Conversion fichier original:
