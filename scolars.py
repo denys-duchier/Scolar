@@ -533,7 +533,18 @@ def format_lycee_from_code(codelycee):
     else:
         return '%s (établissement inconnu)' % codelycee
 
-
+def etud_add_lycee_infos(etud):
+    """Si codelycee est renseigné, ajout les champs au dict"""
+    if etud['codelycee']:
+        il = get_lycee_infos(etud['codelycee'])
+        if il:
+            if not etud['codepostallycee']:
+                etud['codepostallycee'] = il['codepostal']
+            if not etud['nomlycee']:
+                etud['nomlycee'] = il['name']
+            if not etud['villelycee']:
+                etud['villelycee'] = il['commune']
+    return etud
 
 """ Conversion fichier original:
 f = open('etablissements.csv')

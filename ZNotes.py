@@ -73,7 +73,9 @@ import sco_evaluations
 import sco_groups
 import sco_bulletins, sco_bulletins_pdf, sco_recapcomplet
 import sco_liste_notes, sco_saisie_notes, sco_undo_notes
-import sco_formations, sco_report
+import sco_formations
+import sco_report
+import sco_lycee
 import sco_poursuite_dut
 import sco_debouche
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
@@ -2642,6 +2644,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, "formsemestre_suivi_parcours")
     formsemestre_suivi_parcours = sco_report.formsemestre_suivi_parcours
+
+    security.declareProtected(ScoView, "formsemestre_etuds_lycees")
+    formsemestre_etuds_lycees = sco_lycee.formsemestre_etuds_lycees
 
     security.declareProtected(ScoView, "formsemestre_graph_parcours")
     formsemestre_graph_parcours = sco_report.formsemestre_graph_parcours

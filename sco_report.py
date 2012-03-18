@@ -755,35 +755,39 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
                     )
     return tab
 
-def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
-                                only_primo=False, no_group_parcours=False,
-                                REQUEST=None):
-    """Effectifs dans les differents parcours possibles.
-    """
-    sem = context.get_formsemestre(formsemestre_id)
-    tab = table_suivi_parcours(context, formsemestre_id, only_primo=only_primo, grouped_parcours=not no_group_parcours)
-    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
-    if only_primo:
-        tab.base_url += '&only_primo=1'
-    if no_group_parcours:
-        tab.base_url += '&no_group_parcours=1'
-    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
-    if format != 'html':
-        return t
+def tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format):
     F = [ """<form name="f" method="get" action="%s">""" % REQUEST.URL0 ]
     if only_primo:
         checked='checked=1'
     else:
         checked=''
     F.append('<input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
-    if no_group_parcours:
+    if no_grouping:
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="no_group_parcours" onChange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
+    F.append('<input type="checkbox" name="no_grouping" onChange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="format" value="%s"/>' % format)
     F.append("""</form>""")
+    return '\n'.join(F)
+
+def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
+                                only_primo=False, no_grouping=False,
+                                REQUEST=None):
+    """Effectifs dans les differents parcours possibles.
+    """
+    sem = context.get_formsemestre(formsemestre_id)
+    tab = table_suivi_parcours(context, formsemestre_id, only_primo=only_primo, grouped_parcours=not no_grouping)
+    tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    if only_primo:
+        tab.base_url += '&only_primo=1'
+    if no_grouping:
+        tab.base_url += '&no_grouping=1'
+    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+    if format != 'html':
+        return t
+    F = [ tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format) ]    
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title,
                              javascripts=['jQuery/jquery.js', 

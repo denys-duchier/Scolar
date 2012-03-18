@@ -243,6 +243,12 @@ class WrapDict:
         else:
             return value
 
+def group_by_key(d, key) :
+    g = DictDefault(defaultvalue=[])
+    for e in d:
+        g[e[key]].append(e)
+    return g
+
 MODALITY_NAMES = DictDefault(
     kv_dict = { 'FI' : 'Formations Initiales',
                 'FC' : 'Formations Continues',
