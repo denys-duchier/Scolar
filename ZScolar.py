@@ -951,15 +951,7 @@ class ZScolar(ObjectManager,
             for m in members:
                 etud = self.getEtudInfo(m['etudid'], filled=True)[0]
                 m.update(etud)
-                if m['codelycee']:
-                    il = scolars.get_lycee_infos(m['codelycee'])
-                    if il:
-                        if not m['codepostallycee']:
-                            m['codepostallycee'] = il['codepostal']
-                        if not m['nomlycee']:
-                            m['nomlycee'] = il['name']
-                        if not m['villelycee']:
-                            m['villelycee'] = il['commune']
+                scolars.etud_add_lycee_infos(etud)                
             
             def dicttakestr(d, keys):
                 r = []

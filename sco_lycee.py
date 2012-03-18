@@ -121,15 +121,22 @@ def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
           ]
     return '\n'.join(H)
 
+def qjs(txt): # quote for JS
+    return txt.replace("'", r"\'").replace('"', r'\"')
+
 def js_coords_lycees(etuds_by_lycee):
     """Formatte liste des lycees en JSON pour Google Map"""
     L = []
     for codelycee in etuds_by_lycee:
         if codelycee:
-            lyc = etuds_by_lycee[codelycee][0]
-            lyc['listeetuds'] = '<br/>%d étudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
-                [ '<a class="discretelink" href="ficheEtud?etudid=%(etudid)s" title="">%(nomprenom)s</a>' % e for e in etuds_by_lycee[codelycee] ] )
-            L.append( "{'position' : '%(positionlycee)s', 'name' : '%(nomlycee)s (%(villelycee)s) %(listeetuds)s'}" % lyc )
+            lyc = etuds_by_lycee[codelycee][0]            
+            if not lyc.get('positionlycee', False):
+                continue
+            listeetuds = '<br/>%d étudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
+                [ '<a class="discretelink" href="ficheEtud?etudid=%s" title="">%s</a>' % (e['etudid'], qjs(e['nomprenom'])) for e in etuds_by_lycee[codelycee] ] )
+            pos = qjs(lyc['positionlycee'])
+            legend = '%s %s' % (qjs('%(nomlycee)s (%(villelycee)s)' % lyc), listeetuds)
+            L.append( "{'position' : '%s', 'name' : '%s'}" % (pos, legend))
     
     return """<script type="text/javascript">
           var lycees_coords = [%s];

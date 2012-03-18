@@ -546,7 +546,8 @@ def etud_add_lycee_infos(etud):
             if not etud['villelycee']:
                 etud['villelycee'] = il['commune']
             if not etud.get('positionlycee', None):
-                etud['positionlycee'] = il['position']
+                if il['position'] != '0.0,0.0':
+                    etud['positionlycee'] = il['position']
     return etud
 
 """ Conversion fichier original:
