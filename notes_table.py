@@ -618,7 +618,8 @@ class NotesTable:
                     nb_missing = nb_missing + 1
         # Le resultat:
         infos = dict( nb_notes=nb_notes, nb_missing=nb_missing, 
-                      sum_coefs=sum_coefs, moy_ues=moy_ues )
+                      sum_coefs=sum_coefs, moy_ues=moy_ues,
+                      sem = self.sem )
         # ---- Calcul moyenne (avec bonus sport&culture)
         if sum_coefs <= 0:
             infos['moy'] = 'NA'
