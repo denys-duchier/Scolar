@@ -133,10 +133,13 @@ def js_coords_lycees(etuds_by_lycee):
             if not lyc.get('positionlycee', False):
                 continue
             listeetuds = '<br/>%d étudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
-                [ '<a class="discretelink" href="ficheEtud?etudid=%s" title="">%s</a>' % (e['etudid'], qjs(e['nomprenom'])) for e in etuds_by_lycee[codelycee] ] )
+                [ '<a class="discretelink" href="ficheEtud?etudid=%s" title="">%s</a>'
+                  % (e['etudid'], qjs(e['nomprenom']))
+                  for e in etuds_by_lycee[codelycee] ] )
             pos = qjs(lyc['positionlycee'])
             legend = '%s %s' % (qjs('%(nomlycee)s (%(villelycee)s)' % lyc), listeetuds)
-            L.append( "{'position' : '%s', 'name' : '%s'}" % (pos, legend))
+            L.append( "{'position' : '%s', 'name' : '%s', 'number' : %d }"
+                      % (pos, legend, len(etuds_by_lycee[codelycee])))
     
     return """<script type="text/javascript">
           var lycees_coords = [%s];
