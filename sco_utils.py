@@ -486,7 +486,13 @@ def annee_scolaire_repr(year, month):
         return '%s - %s' % (year, year + 1)
     else:
         return '%s - %s' % (year - 1, year)
-    
+
+def annee_scolaire_debut(year, month):
+    """Annee scolaire de debut (septembre): heuristique pour l'hémisphère nord..."""
+    if int(month) < 8:
+        return int(year) - 1
+    else:
+        return int(year)
 
 # Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
 try:

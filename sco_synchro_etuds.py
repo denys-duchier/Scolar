@@ -95,8 +95,8 @@ def formsemestre_synchro_etuds(
     if anneeapogee:
         base_url += '&anneeapogee=%s' % anneeapogee
     
-    if anneeapogee == None:
-        anneeapogee = sem['annee_debut']
+    if anneeapogee == None: # année d'inscription par défaut
+        anneeapogee = str(annee_scolaire_debut(sem['annee_debut'], sem['mois_debut_ord']))
     
     if type(etuds) == type(''):
         etuds = etuds.split(',') # vient du form de confirmation

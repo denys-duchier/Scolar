@@ -867,7 +867,8 @@ class ZNotes(ObjectManager,
             sem['mois_debut_ord'] = int(mois_debut)
             sem['mois_fin_ord'] = int(mois_fin)
             
-            sem['annee'] = annee_debut # 2007 ou 2007-2008
+            sem['annee'] = annee_debut
+            # 2007 ou 2007-2008:
             sem['anneescolaire'] = annee_scolaire_repr(int(annee_debut), sem['mois_debut_ord']) 
             
             sem['titreannee'] = '%s %s  %s' % (sem['titre_num'], sem.get('modalite',''), annee_debut)
