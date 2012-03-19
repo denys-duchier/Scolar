@@ -482,17 +482,17 @@ def annee_scolaire_repr(year, month):
     """representation de l'annee scolaire : '2009 - 2010'
     à partir d'une date.
     """
-    if month > 8: # after september, 1 ?
+    if month > 7: # apres le 1er aout
         return '%s - %s' % (year, year + 1)
     else:
         return '%s - %s' % (year - 1, year)
 
 def annee_scolaire_debut(year, month):
     """Annee scolaire de debut (septembre): heuristique pour l'hémisphère nord..."""
-    if int(month) < 8:
-        return int(year) - 1
-    else:
+    if int(month) > 7:
         return int(year)
+    else:
+        return int(year) - 1
 
 # Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
 try:
