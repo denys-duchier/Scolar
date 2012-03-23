@@ -718,10 +718,10 @@ ErrorType: %(error_type)s
         QUERY_STRING = REQUEST.get('QUERY_STRING', '')
         if QUERY_STRING:
             QUERY_STRING = '?' + QUERY_STRING
-        REFERER = REQUEST.get('HTTP_REFERER', '')
+        REFERER = 'na' # REQUEST.get('HTTP_REFERER', '')
         form = REQUEST.get('form', '')
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
-        HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
+        HTTP_USER_AGENT = 'na' # REQUEST.get('HTTP_USER_AGENT', '')
         svn_version = get_svn_version(self.file_path)
 
         txt = """
