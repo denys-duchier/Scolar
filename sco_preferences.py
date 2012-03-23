@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -835,6 +835,13 @@ Année scolaire: %(anneescolaire)s
         'title' : 'Bulletins PDF: signature droite',
         'explanation' : '(balises interprétées, voir documentation)',
         'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
+        'category' : 'bul' }
+      ),
+    ( 'bul_pdf_mod_colwidth',
+      { 'initvalue' : None,
+        'title' : 'Bulletins PDF: largeur col. modules',
+        'explanation' : 'en cm (vide si auto)',
+        'type' : 'float',
         'category' : 'bul' }
       ),
     ('SCOLAR_FONT_BUL_FIELDS',

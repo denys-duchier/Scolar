@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -230,7 +230,11 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             colidx[k] = i
             i += 1
 
-        colWidths = { 'titre' : None, 'module' : None, # 6*cm,
+        if prefs['bul_pdf_mod_colwidth']:
+            bul_pdf_mod_colwidth = float(prefs['bul_pdf_mod_colwidth']) * cm
+        else:
+            bul_pdf_mod_colwidth = None
+        colWidths = { 'titre' : None, 'module' : bul_pdf_mod_colwidth,
                       'min' : 1.5*cm, 'max' : 1.5*cm, 'rang' : 2.2*cm,
                       'note' : 2*cm,
                       'coef' : 1.5*cm, 'abs' : 2.0*cm }
