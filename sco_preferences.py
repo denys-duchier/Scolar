@@ -961,8 +961,16 @@ class sco_base_preferences:
                 
                 # Convert types:
                 if p['name'] in PREFS_DICT and PREFS_DICT[p['name']].has_key('type'):
-                    func = eval(PREFS_DICT[p['name']]['type'])
-                    p['value'] = func(p['value'])
+                    typ = PREFS_DICT[p['name']]['type']
+                    if typ == 'float':
+                        # special case for float values (where NULL means 0)
+                        if p['value']:
+                            p['value'] = float(p['value'])
+                        else:
+                            p['value'] = 0.
+                    else:
+                        func = eval(typ)
+                        p['value'] = func(p['value'])
                 if p['name'] in PREFS_DICT and PREFS_DICT[p['name']].get('input_type',None) == 'boolcheckbox':
                     if p['value']:
                         p['value'] = int(p['value']) # boolcheckboxes are always 0/1
