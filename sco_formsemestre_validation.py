@@ -752,7 +752,7 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
     except:
         cnx.rollback()
         raise
-    context._inval_cache(formsemestre_id=formsemestre_id) #> suppr. decision jury XXX bug: pourrait affecter d'autres semestre cachés, s'ils utilisent UE capitalisées 
+    context._inval_cache() #> suppr. decision jury (peut affecter de plusieurs semestres utilisant UE capitalisée)
 
 def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=None):
     """Form. saisie UE validée hors ScoDoc 
