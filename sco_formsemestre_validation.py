@@ -738,6 +738,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
 def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
     """Suppression des decisions de jury pour un etudiant.
     """
+    log('formsemestre_validation_suppress_etud( %s, %s)' % (formsemestre_id, etudid))
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid }
@@ -752,7 +753,9 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
     except:
         cnx.rollback()
         raise
-    context._inval_cache() #> suppr. decision jury (peut affecter de plusieurs semestres utilisant UE capitalisée)
+    
+    sem = context.get_formsemestre(formsemestre_id)
+    _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])  #> suppr. decision jury (peut affecter de plusieurs semestres utilisant UE capitalisée)
 
 def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=None):
     """Form. saisie UE validée hors ScoDoc 
@@ -841,15 +844,19 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
 
     logdb(REQUEST, cnx, method='formsemestre_validate_previous_ue',
           etudid=etudid, msg='Validation UE %s' % ue_id)
-    # Invalide tous les semestres de cette formation où l'etudiant est inscrit...
+    _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])
+
+def _invalidate_etud_formation_caches(context, etudid, formation_id):
+    "Invalide tous les semestres de cette formation où l'etudiant est inscrit..."
     r = SimpleDictFetch(context, """SELECT sem.* 
         FROM notes_formsemestre sem, notes_formsemestre_inscription i
         WHERE sem.formation_id = %(formation_id)s
         AND i.formsemestre_id = sem.formsemestre_id 
         AND i.etudid = %(etudid)s
-        """, { 'etudid' : etudid, 'formation_id' : sem['formation_id'] } )
+        """, { 'etudid' : etudid, 'formation_id' : formation_id } )
     for fsid in [ s['formsemestre_id'] for s in r ]:
         context._inval_cache(formsemestre_id=fsid) #> modif decision UE (inval tous semestres avec cet etudiant, ok mais conservatif)
+
 
 def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
     """Ramene bout de HTML pour pouvoir supprimer une validation de cette UE
@@ -879,10 +886,15 @@ def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
 
 def etud_ue_suppress_validation(context, etudid, formsemestre_id, ue_id, REQUEST=None):
     """Suppress a validation (ue_id, etudid) and redirect to formsemestre"""
+    log('etud_ue_suppress_validation( %s, %s, %s)' % (etudid, formsemestre_id, ue_id))
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor()
     cursor.execute("DELETE FROM scolar_formsemestre_validation WHERE etudid=%(etudid)s and ue_id=%(ue_id)s", 
                    { 'etudid' : etudid, 'ue_id' : ue_id } )
+    
+    sem = context.get_formsemestre(formsemestre_id)
+    _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])
+    
     return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s" % (etudid, formsemestre_id))
 
 def check_formation_ues(context, formation_id):

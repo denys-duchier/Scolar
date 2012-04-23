@@ -1848,7 +1848,7 @@ class CAbsSemEtud:
     
     def load(self):
         "Load state from DB"
-        log('loading CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
+        #log('loading CAbsEtudSem(%s,%s)' % (self.etudid, self.formsemestre_id))
         sem = self.context.Notes.get_formsemestre(self.formsemestre_id)
         debut_sem = DateDMYtoISO(sem['date_debut'])
         fin_sem = DateDMYtoISO(sem['date_fin'])
