@@ -38,6 +38,7 @@ def bonus_iutv(notes_sport, coefs, infos=None):
     optionnelles sont cumulés et 5% de ces points cumulés s'ajoutent à
     la moyenne générale du semestre déjà obtenue par l'étudiant.
     """
+    #open('/tmp/log','a').write( pprint.pformat(infos) + '\n\n' )    
     sumc = sum(coefs) # assumes sum. coefs > 0
     note_sport = sum(map(mul, notes_sport, coefs)) / sumc # moyenne pondérée
     bonus = sum( [ (x - 10) / 20. for x in notes_sport if x > 10 ])
@@ -108,3 +109,18 @@ def bonus_iut1grenoble_v0(notes_sport, coefs, infos=None):
     
         #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
     return bonus
+
+def bonus_lille(notes_sport, coefs, infos=None):
+    """calcul bonus modules optionels (sport, culture), règle IUT Villeneuve d'Ascq
+
+    Les étudiants de l'IUT peuvent suivre des enseignements optionnels
+    de l'Université Lille 1 (sports,etc) non rattachés à une unité d'enseignement. Les points
+    au-dessus de 10 sur 20 obtenus dans chacune des matières
+    optionnelles sont cumulés et 4% (2% avant aout 2010) de ces points cumulés s'ajoutent à
+    la moyenne générale du semestre déjà obtenue par l'étudiant.
+    """
+    sumc = sum(coefs) # assumes sum. coefs > 0
+    note_sport = sum(map(mul, notes_sport, coefs)) / sumc # moyenne pondérée
+    if (infos['sem']['date_debut_iso'] > '2010-08-01'):  # changement de regle en aout 2010.
+        return sum( [ (x - 10) /25. for x in notes_sport if x > 10 ])
+    return sum( [ (x - 10) /50. for x in notes_sport if x > 10 ])
