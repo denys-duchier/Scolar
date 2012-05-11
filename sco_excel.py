@@ -210,8 +210,6 @@ def Excel_SimpleTable( titles=[], lines=[[]],
                        ):
     """Export simple type 'CSV': 1ere ligne en gras, le reste tel quel
     """
-    log( lines[2][:10] )
-    log( "c=%s (%s)" % (lines[2][6], type(lines[2][6])) )
     # XXX devrait maintenant utiliser ScoExcelSheet
     UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
     wb = Workbook()
