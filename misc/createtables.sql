@@ -384,7 +384,7 @@ CREATE TABLE notes_moduleimpl (
 CREATE TABLE notes_modules_enseignants (
 	modules_enseignants_id text default notes_newid('ENS') PRIMARY KEY,
 	moduleimpl_id text REFERENCES notes_moduleimpl(moduleimpl_id),
-	ens_id text
+	ens_id text -- est le user_name de sco_users (de la base SCOUSERS)
 ) WITH OIDS;
 
 -- Inscription a un semestre de formation
@@ -555,3 +555,6 @@ CREATE TABLE notes_appreciations (
     zope_authenticated_user text,
     zope_remote_addr text
 ) WITH OIDS;
+
+
+

@@ -124,3 +124,38 @@ def bonus_lille(notes_sport, coefs, infos=None):
     if (infos['sem']['date_debut_iso'] > '2010-08-01'):  # changement de regle en aout 2010.
         return sum( [ (x - 10) /25. for x in notes_sport if x > 10 ])
     return sum( [ (x - 10) /50. for x in notes_sport if x > 10 ])
+
+# Fonction Le Havre, par Dom. Soud.
+def bonus_iutlh(notes_sport, coefs, infos=None):
+    """Calcul bonus sport IUT du Havre sur moyenne générale et UE
+
+    La note de sport de nos étudiants va de 0 à 20 points. 
+	          m2=m1*(1+0.005*((10-N1)+(10-N2))
+   m2 : Nouvelle moyenne de l'unité d'enseignement si note de sport et/ou de langue supérieure à 10
+   m1 : moyenne de l'unité d'enseignement avant bonification
+   N1 : note de sport si supérieure à 10
+   N2 : note de seconde langue si supérieure à 10
+    Par exemple : sport 15/20 et langue 12/20 : chaque UE sera multipliée par 1+0.005*7, ainsi que la moyenne générale.
+    Calcul ici de la moyenne générale et moyennes d'UE non capitalisées.
+    """
+    #open('/tmp/log','a').write( '\n---------------\n' + pprint.pformat(infos) + '\n' )
+    # les coefs sont ignorés
+    points = sum( [ x - 10 for x in notes_sport if x > 10 ])
+    points = min( 10, points) # limite total à 10
+    factor = (1. + (0.005 * points))
+	# bonus nul puisque les moyennes sont directement modifiées par factor
+    bonus = 0
+    # Modifie la moyenne générale
+    infos['moy'] = infos['moy'] * factor
+    # Modifie les moyennes de toutes les UE:
+    for ue_id in infos['moy_ues']:
+        ue_status = infos['moy_ues'][ue_id]
+        if ue_status['sum_coefs'] > 0:
+            # modifie moyenne UE ds semestre courant
+            ue_status['cur_moy_ue'] = ue_status['cur_moy_ue'] * factor
+            if not ue_status['is_capitalized']:
+                # si non capitalisee, modifie moyenne prise en compte
+                ue_status['moy'] = ue_status['cur_moy_ue']  
+
+        #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
+    return bonus
