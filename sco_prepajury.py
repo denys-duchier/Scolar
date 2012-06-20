@@ -49,9 +49,11 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     etud_groups = sco_groups.formsemestre_get_etud_groupnames(context, formsemestre_id)
     main_partition_id = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)['partition_id']
 
-    prev_moy_ue = DictDefault(defaultvalue={}) # ue_acro : { etudid : moy ue }
+    prev_moy_ue = DictDefault(defaultvalue={}) # ue_code_s : { etudid : moy ue }
+    prev_ue_acro = {} # ue_code_s : acronyme (à afficher)
     prev_moy = {} # moyennes gen sem prec
     moy_ue = DictDefault(defaultvalue={}) # ue_acro : moyennes { etudid : moy ue }
+    ue_acro = {} #  ue_code_s : acronyme (à afficher)
     moy = {} # moyennes gen
     moy_inter = {} # moyenne gen. sur les 2 derniers semestres
     code = {} # decision existantes s'il y en a
@@ -72,17 +74,22 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             ntp = context._getNotesCache().get_NotesTable(context, Se.prev['formsemestre_id']) #> get_ues, get_etud_ue_status, get_etud_moy_gen, get_etud_decision_sem
             for ue in ntp.get_ues(filter_sport=True):
                 ue_status = ntp.get_etud_ue_status(etudid, ue['ue_id'])
-                prev_moy_ue[ue['acronyme']][etudid] = ue_status['moy']
+                ue_code_s = ue['ue_code'] + '_%s' % ntp.sem['semestre_id'] # code indentifiant l'UE
+                prev_moy_ue[ue_code_s][etudid] = ue_status['moy']
+                prev_ue_acro[ue_code_s] = (ue['numero'], ue['acronyme'])
             prev_moy[etudid] = ntp.get_etud_moy_gen(etudid)
             prev_decision = ntp.get_etud_decision_sem(etudid)
             if prev_decision:
                 prev_code[etudid] = prev_decision['code']
                 if prev_decision['compense_formsemestre_id']:
                     prev_code[etudid] += '+' # indique qu'il a servi a compenser
+        
         moy[etudid] = nt.get_etud_moy_gen(etudid)
         for ue in nt.get_ues(filter_sport=True):
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
-            moy_ue[ue['acronyme']][etudid] = ue_status['moy']
+            ue_code_s = ue['ue_code'] + '_%s' % nt.sem['semestre_id']
+            moy_ue[ue_code_s][etudid] = ue_status['moy']
+            ue_acro[ue_code_s] = (ue['numero'], ue['acronyme'])
         
         if Se.prev:
             try:
@@ -111,17 +118,12 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         nbabs[etudid] = AbsEtudSem.CountAbs()
         nbabsjust[etudid] = AbsEtudSem.CountAbsJust()
     
-    # Construit table
-    all_ues =  context.do_ue_list(args={ 'formation_id' : sem['formation_id']})
-    ue_prev_acros = [] # celles qui sont utilisees ici
-    for ue in all_ues:
-        if prev_moy_ue.has_key(ue['acronyme']):
-            ue_prev_acros.append(ue['acronyme'])
-    
-    ue_acros = [] # celles qui sont utilisees ici
-    for ue in all_ues:
-        if moy_ue.has_key(ue['acronyme']):
-            ue_acros.append(ue['acronyme'])
+    # Codes des UE "semestre précédent":
+    ue_prev_codes = prev_moy_ue.keys()
+    ue_prev_codes.sort( lambda x,y, prev_ue_acro=prev_ue_acro: cmp( prev_ue_acro[x], prev_ue_acro[y]) )
+    # Codes des UE "semestre courant":
+    ue_codes = moy_ue.keys()
+    ue_codes.sort( lambda x,y, ue_acro=ue_acro: cmp( ue_acro[x], ue_acro[y]) )
 
     sid = sem['semestre_id']
     sn = sp = ''
@@ -136,8 +138,8 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     
     titles = ['', 'etudid', 'Civ.', 'Nom', 'Prénom', 'Naissance', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
-        titles += ue_prev_acros + ['Moy %s'% sp, 'Décision %s' % sp]
-    titles += ue_acros + ['Moy %s' % sn]
+        titles += [ prev_ue_acro[x][1] for x in ue_prev_codes] + ['Moy %s'% sp, 'Décision %s' % sp]
+    titles += [ue_acro[x][1] for x in ue_codes] + ['Moy %s' % sn]
     if moy_inter:
         titles += ['Moy %s-%s' % (sp,sn)]
     titles += [ 'Abs', 'Abs Just.' ]
@@ -153,10 +155,10 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     style_note_bold = sco_excel.Excel_MakeStyle(halign='right',bold=True)
     if prev_moy:
         col_prev_moy = 7
-        col_prev_moy += len(ue_prev_acros) + 1
-        col_moy = col_prev_moy + len(ue_acros) + 2
+        col_prev_moy += len(ue_prev_codes) + 1
+        col_moy = col_prev_moy + len(ue_codes) + 2
     else:
-        col_moy = 8 + len(ue_acros)
+        col_moy = 8 + len(ue_codes)
     L.set_style( style_bold, li=0)
     L.set_style( style_bold, li=2)
     def fmt(x):
@@ -176,7 +178,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
               parcours[etudid], groupestd[etudid] ]
         co = len(l)
         if prev_moy:
-            for ue_acro in ue_prev_acros:
+            for ue_acro in ue_prev_codes:
                 l.append(fmt(prev_moy_ue.get(ue_acro, {}).get(etudid,'')))
                 L.set_style(style_note, li=i+2, co=co)
                 co += 1
@@ -186,7 +188,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             L.set_style(style_moy,  li=i+2, co=col_prev_moy+1) # decision prev
             co += 2
 
-        for ue_acro in ue_acros:
+        for ue_acro in ue_codes:
             l.append(fmt(moy_ue.get(ue_acro, {}).get(etudid,'')))
             L.set_style(style_note, li=i+2, co=co)
             co += 1

@@ -55,6 +55,10 @@ def sidebar_common(context, REQUEST=None):
         H.append( """<a href="%(ScoURL)s/Users" class="sidebar">Utilisateurs</a> <br/>"""
                   % params )
 
+    if 0: # XXX experimental
+        H.append( """<a href="%(ScoURL)s/Notes/Services" class="sidebar">Services</a> <br/>"""
+                  % params )
+
     if authuser.has_permission(ScoChangePreferences, context):
         H.append( """<a href="%(ScoURL)s/edit_preferences" class="sidebar">Paramétrage</a> <br/>"""
                   % params )

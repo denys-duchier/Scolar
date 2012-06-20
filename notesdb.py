@@ -129,7 +129,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         cursor.execute( req, vals )
     except:
         log('Exception in DBSelectArgs:\n\treq="%s"\n\tvals="%s"\n' % (req,vals))
-        raise ScoException
+        raise ScoException()
     return cursor.dictfetchall()
 
 def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
