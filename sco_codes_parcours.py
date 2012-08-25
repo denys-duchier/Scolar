@@ -238,6 +238,14 @@ class ParcoursMonoUCAC(ParcoursUCAC):
 
 register_parcours(ParcoursMonoUCAC())
 
+class Parcours6Sem(TypeParcours):
+    """Parcours générique en 6 semestres"""
+    TYPE_PARCOURS = 600
+    NAME = "Formation en 6 semestres"
+    NB_SEM = 6
+    COMPENSATION_UE = True
+
+register_parcours(Parcours6Sem)
 
 # # En cours d'implémentation:
 # class ParcoursLicenceLMD(TypeParcours):
