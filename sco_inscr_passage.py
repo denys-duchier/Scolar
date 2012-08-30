@@ -323,7 +323,7 @@ def formsemestre_inscr_passage_help(sem):
     return """<div class="pas_help"><h3><a name="help">Explications</a></h3>
     <p>Cette page permet d'inscrire des étudiants dans le semestre destination
     <a class="stdlink"
-    href="formsemestre_status?formsemestre_id=(formsemestre_id)s">%(titreannee)s</a>, 
+    href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a>, 
     et d'en désincrire si besoin.
     </p>
     <p>Les étudiants sont groupés par semestres d'origines. Ceux qui sont en caractères
