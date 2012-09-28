@@ -32,6 +32,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
+from gen_tables import GenTable
 import sco_groups
 import sco_formsemestre_validation
 import sco_codes_parcours
@@ -265,6 +266,8 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
 <li><a class="stdlink" href="formation_create_new_version?formation_id=%(formation_id)s">Créer une nouvelle version (non verrouillée)</a></li>
 """ % F)
     H.append("""
+<li><a class="stdlink" href="formation_table_recap?formation_id=%(formation_id)s">Table récapitulative de la formation</a></li>
+    
 <li><a class="stdlink" href="formation_export?formation_id=%(formation_id)s&format=xml">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
 <li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
 </ul>
@@ -366,3 +369,54 @@ def do_ue_edit(context, args):
     # Invalide les semestres utilisant cette formation:
     for sem in context.do_formsemestre_list(args={ 'formation_id' : ue['formation_id'] } ):
         context._inval_cache(formsemestre_id=sem['formsemestre_id']) #> formation (ue) modif.  
+
+
+# ---- Table recap formation
+def formation_table_recap(context, formation_id, format='html', REQUEST=None):
+    """
+    """
+    F = context.formation_list( args={ 'formation_id' : formation_id } )
+    if not F:
+        raise ScoValueError("invalid formation_id")
+    F = F[0]
+    T = []
+    ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
+    for UE in ue_list:
+        Matlist = context.do_matiere_list( args={ 'ue_id' : UE['ue_id'] } )
+        for Mat in Matlist:
+            Modlist = context.do_module_list( args={ 'matiere_id' : Mat['matiere_id'] } )
+            for Mod in Modlist:
+                Mod['nb_moduleimpls'] = context.module_count_moduleimpls(Mod['module_id'])
+                #
+                T.append( {
+                    'UE_acro' : UE['acronyme'],
+                    'Mat_tit' : Mat['titre'],
+                    'Mod_tit' : Mod['abbrev'] or Mod['titre'],
+                    'Mod_code' : Mod['code'],
+                    'Mod_coef' : Mod['coefficient'],
+                    'Mod_sem' : Mod['semestre_id'],
+                    'nb_moduleimpls' : Mod['nb_moduleimpls']
+                    })
+    columns_ids = [ 'UE_acro', 'Mat_tit', 'Mod_tit', 'Mod_code', 'Mod_coef', 'Mod_sem', 'nb_moduleimpls' ]
+    titles = { 'UE_acro' : 'UE',
+               'Mat_tit' : 'Matière',
+               'Mod_tit' : 'Module',
+               'Mod_code' : 'Code',
+               'Mod_coef' : 'Coef.',
+               'Mod_sem' : 'Sem.',
+               'nb_moduleimpls' : 'Nb utilisé' }
+    
+    title = """Formation %(titre)s (%(acronyme)s) [version %(version)s] code %(formation_code)s""" % F
+    tab = GenTable(
+        columns_ids=columns_ids, rows=T, titles=titles,
+        origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+        caption = title,
+        html_caption = title,
+        html_class='gt_table table_leftalign',
+        base_url = '%s?formation_id=%s' % (REQUEST.URL0, formation_id),
+        page_title = title,
+        html_title = '<h2>' + title + '</h2>',
+        pdf_title = title,
+        preferences=context.get_preferences()
+        )
+    return  tab.make_page(context, format=format, REQUEST=REQUEST)      

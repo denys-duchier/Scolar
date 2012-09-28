@@ -415,7 +415,6 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
              'Coef.' : sum_coef }
     R.append(sums)
     columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'ECTS', 'Inscrits', 'Responsable' ]
-    titles = columns_ids
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )

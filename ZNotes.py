@@ -262,6 +262,8 @@ class ZNotes(ObjectManager,
     ue_list = sco_edit_ue.ue_list
     security.declareProtected(ScoView, 'ue_sharing_code')
     ue_sharing_code = sco_edit_ue.ue_sharing_code
+    security.declareProtected(ScoView, 'formation_table_recap')
+    formation_table_recap = sco_edit_ue.formation_table_recap
     
     security.declareProtected(ScoChangeFormation, 'matiere_create')
     matiere_create = sco_edit_matiere.matiere_create
