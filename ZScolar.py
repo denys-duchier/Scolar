@@ -2279,15 +2279,19 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             return '\n'.join(H) + self.sco_footer(REQUEST)
     
     security.declareProtected(ScoEtudInscrit, "formsemestre_import_etud_admission")
-    def formsemestre_import_etud_admission(self, formsemestre_id, REQUEST):
+    def formsemestre_import_etud_admission(self, formsemestre_id, import_email=False, REQUEST=None):
         """Transitoire: reimporte donnees admissions pour anciens semestres Villetaneuse"""
-        no_nip, unknowns = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id, import_identite=True)
+        no_nip, unknowns, changed_mails = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id, import_identite=True, import_email=import_email)
         H = [ self.Notes.html_sem_header( REQUEST, 'Reimport données admission' ),
               '<h3>Opération effectuée</h3>' ]
         if no_nip:
             H.append('<p>Attention: étudiants sans NIP: ' + str(no_nip) + '</p>')
         if unknowns:
             H.append('<p>Attention: étudiants inconnus du portail: codes NIP=' + str(unknowns) + '</p>')
+        if changed_mails:
+            H.append('<h3>Adresses mails modifiées:</h3>')
+            for (info, new_mail) in changed_mails:
+                H.append('%s: <tt>%s</tt> devient <tt>%s</tt><br/>' % (info['nom'], info['email'], new_mail))
         return '\n'.join(H) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoEtudChangeAdr, "photos_import_files_form")

@@ -579,7 +579,7 @@ def get_bac(etud):
         spe_bac = None
     return serie_bac, spe_bac
 
-def formsemestre_import_etud_admission(context, formsemestre_id, import_identite=True):
+def formsemestre_import_etud_admission(context, formsemestre_id, import_identite=True, import_email=False):
     """Tente d'importer les données admission depuis le portail 
     pour tous les étudiants du semestre.
     Si  import_identite==True, recopie l'identité (nom/prenom/sexe/date_naissance)
@@ -591,6 +591,8 @@ def formsemestre_import_etud_admission(context, formsemestre_id, import_identite
     log('formsemestre_import_etud_admission: %s (%d etuds)' % (formsemestre_id, len(ins)))
     no_nip = [] # liste d'etudids sans code NIP
     unknowns = [] # etudiants avec NIP mais inconnus du portail
+    changed_mails = [] # modification d'adresse mails
+    log('XXX import_email=%s' % import_email)
     cnx = context.GetDBConnexion()
     for i in ins:
         etudid = i['etudid']
@@ -602,9 +604,13 @@ def formsemestre_import_etud_admission(context, formsemestre_id, import_identite
             etud = sco_portal_apogee.get_etud_apogee(context, code_nip)
             if etud:
                 do_import_etud_admission(context, cnx, etudid, etud, import_naissance=True, import_identite=import_identite)
+                log("%s, %s" % (info['email'], etud['mail']))
+                if import_email and info['email'] != etud['mail']:
+                    scolars.adresse_edit( cnx, args={'etudid': etudid, 'adresse_id': info['adresse_id'], 'email' : etud['mail']}, context=context )
+                    changed_mails.append( (info, etud['mail']) )
             else:
                 unknowns.append(code_nip)
-    return no_nip, unknowns
+    return no_nip, unknowns, changed_mails
 
 
 def do_synch_inscrits_etuds(context, sem, etuds, REQUEST=None):
