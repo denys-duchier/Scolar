@@ -865,7 +865,7 @@ Année scolaire: %(anneescolaire)s
         }
       ),
     ( 'email_from_addr',
-      { 'initvalue' : 'noreply@univ-paris13.fr', 
+      { 'initvalue' : 'noreply@scodoc.example.com', 
         'title' : 'adresse mail origine',
         'size' : 40,
         'explanation' : 'adresse expéditeur pour les envois par mails (bulletins)',

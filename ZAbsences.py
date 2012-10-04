@@ -518,7 +518,7 @@ class ZAbsences(ObjectManager,
         # sort
         R = A.values()
         R.sort( key=lambda x: (x['begin']) )
-        log('R=%s' % R)
+        # log('R=%s' % R)
         return R
     
     security.declareProtected(ScoView, 'ListeAbsJust')
