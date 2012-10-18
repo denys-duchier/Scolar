@@ -44,7 +44,55 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
     """Récupère liste d'etudiants avec etat et decision.
     """
     sem = context.get_formsemestre(formsemestre_id)
-    etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)    
+    etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
+    if only_primo:
+        primostr='primo-entrants du '
+    else:
+        primostr='du '
+    title = 'Lycées des étudiants %ssemestre '%primostr + sem['titreannee']
+    return _table_etuds_lycees(context, etuds, group_lycees, title, context.get_preferences(formsemestre_id))
+
+
+def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
+    """Table avec _tous_ les étudiants des semestres non verrouillés de _tous_ les départements.
+    """
+    semdepts = scodoc_get_all_unlocked_sems(context)
+    etuds = []
+    for (sem, deptcontext) in semdepts:
+        etuds += sco_report.tsp_etud_list(deptcontext, sem['formsemestre_id'])
+    
+    tab, etuds_by_lycee = _table_etuds_lycees(context, etuds, False, 'Lycées de TOUS les étudiants',
+                                              context.get_preferences(), no_links=True)
+    tab.base_url = REQUEST.URL0
+    t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
+    if format != 'html':
+        return t
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title, init_google_maps=True,init_jquery_ui=True,
+                             javascripts=[
+                                 'libjs/qtip/jquery.qtip.js',
+                                 'js/etud_info.js',
+                                 'js/map_lycees.js'
+                                 ], ),
+          """<h2 class="formsemestre">Lycées d'origine des %d étudiants (%d semestres)</h2>""" % (len(etuds),len(semdepts)),
+          t,
+          """<div id="lyc_map_canvas"></div>          
+          """,
+          js_coords_lycees(etuds_by_lycee),
+          context.sco_footer(REQUEST)
+          ]
+    return '\n'.join(H)
+
+
+def scodoc_get_all_unlocked_sems(context):
+    """Liste de tous les semestres non verrouillés de tous les départements"""
+    depts = context.list_depts()
+    log('depts=%s' % depts)
+    semdepts = []
+    for dept in depts:
+        semdepts += [ (sem, dept.Scolarite.Notes) for sem in dept.Scolarite.Notes.do_formsemestre_list() if sem['etat'] == '1' ]        
+    return semdepts
+
+def _table_etuds_lycees(context, etuds, group_lycees, title, preferences, no_links=False):
     etuds = [ scolars.etud_add_lycee_infos(e) for e in etuds ]
     etuds_by_lycee = group_by_key(etuds, 'codelycee')
     # 
@@ -61,15 +109,12 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
         L = etuds
         columns_ids = ('sexe', 'nom', 'prenom', 'codelycee', 'codepostallycee', 'villelycee', 'nomlycee')
         bottom_titles = None
-        for etud in etuds:
-            etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
-            etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
-            etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
+        if not no_links:
+            for etud in etuds:
+                etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+                etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+                etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
             
-    if only_primo:
-        primostr='primo-entrants du '
-    else:
-        primostr='du '
     tab = GenTable(columns_ids=columns_ids, rows=L,
                    titles={ 
                        'nbetuds' : "Nb d'étudiants",
@@ -81,12 +126,12 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
                        'villelycee' : 'Commune'
                        },
                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-                   caption = 'Lycées des étudiants %ssemestre '%primostr + sem['titreannee'],
-                   page_title = 'Parcours ' + sem['titreannee'],
+                   caption = title,
+                   page_title = "Carte lycées d'origine",
                    html_sortable=True,
                    html_class='gt_table table_leftalign table_listegroupe',
                    bottom_titles = bottom_titles,
-                   preferences=context.get_preferences(formsemestre_id)
+                   preferences=preferences
                    )
     return tab, etuds_by_lycee
 

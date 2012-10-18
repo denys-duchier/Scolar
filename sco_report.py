@@ -676,6 +676,7 @@ def _codeparcoursetud(context, etud):
 
 def tsp_etud_list(context, formsemestre_id, only_primo=False):
     """Liste des etud a considerer dans table suivi parcours"""
+    log('tsp_etud_list(%s)' % formsemestre_id)
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, 
     etudids = nt.get_etudids()
@@ -756,6 +757,8 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
     return tab
 
 def tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format):
+    """Element de formulaire pour choisir si restriction aux primos entrants et groupement par lycees
+    """
     F = [ """<form name="f" method="get" action="%s">""" % REQUEST.URL0 ]
     if only_primo:
         checked='checked=1'
