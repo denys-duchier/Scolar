@@ -514,12 +514,8 @@ Le Chef du département""",
          'category' : 'pvpdf'
          }),
     ('PV_LETTER_TEMPLATE',
-     { 'initvalue' : """<para>%(DirectorName)s
-</para>
-<para>%(DirectorTitle)s
-</para>
-
-<para leftindent="%(pv_htab1)s">%(INSTITUTION_CITY)s, le %(date_jury)s
+     { 'initvalue' : """<para spaceBefore="1mm"> </para>
+<para spaceBefore="20mm" leftindent="%(pv_htab1)s">%(INSTITUTION_CITY)s, le %(date_jury)s
 </para>
 
 <para leftindent="%(pv_htab1)s" spaceBefore="10mm">
@@ -528,13 +524,15 @@ Le Chef du département""",
 <para leftindent="%(pv_htab1)s">%(domicile)s</para>
 <para leftindent="%(pv_htab1)s">%(codepostaldomicile)s %(villedomicile)s</para>
 
-<para spaceBefore="25mm" fontSize="14">
-<b>Objet : jury de %(type_jury)s 
-du département %(DeptName)s</b>
+<para spaceBefore="25mm" fontSize="14" alignment="center">
+<b>Jury de %(type_jury)s  <br/> %(titre_formation)s</b>
 </para>
-<para spaceBefore="10mm" fontSize="14">
+
+<para spaceBefore="10mm" fontSize="14" leftindent="0">
 Le jury de %(type_jury_abbrv)s du département %(DeptName)s
-s'est réuni le %(date_jury)s. Les décisions vous concernant sont :
+s'est réuni le %(date_jury)s. 
+</para>
+<para fontSize="14" leftindent="0">Les décisions vous concernant sont :
 </para>
 
 <para leftindent="%(pv_htab2)s" spaceBefore="5mm" fontSize="14">%(prev_decision_sem_txt)s</para>
