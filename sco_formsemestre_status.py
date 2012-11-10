@@ -281,7 +281,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Documents archivés',
           'url' : 'formsemestre_list_archives?formsemestre_id=' + formsemestre_id,
-          'enabled' : sco_archives.Archive.list_formsemestre_archives(context,formsemestre_id)
+          'enabled' : sco_archives.PVArchive.list_obj_archives(context,formsemestre_id)
           },
         ]
     

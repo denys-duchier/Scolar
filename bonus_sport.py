@@ -159,3 +159,5 @@ def bonus_iutlh(notes_sport, coefs, infos=None):
 
         #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
     return bonus
+
+

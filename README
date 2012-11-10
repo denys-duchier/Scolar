@@ -1,15 +1,14 @@
 
             SCODOC: gestion de la scolarité
 
-(c) Emmanuel Viennet 1999 - 2011 (voir LICENCE.txt)
+(c) Emmanuel Viennet 1999 - 2012 (voir LICENCE.txt)
 
 
-Installation: voir instructions à jour sur https://www-rt.iutv.univ-paris13.fr/ScoDoc/GuideInstall2
+Installation: voir instructions à jour sur https://trac.lipn.univ-paris13.fr/projects/scodoc/wiki
 (version pas forcément à jour dans misc/INSTALL)
 
 
-Documentation utilisateur: https://www-rt.iutv.univ-paris13.fr/ScoDoc
-
+Documentation utilisateur: https://trac.lipn.univ-paris13.fr/projects/scodoc/wiki
 
 Ce logiciel est un produit pour Zope 2 (testé de 2.8 à 2.11) écrit en Python (2.4).
 
