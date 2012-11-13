@@ -58,7 +58,7 @@ import gen_tables
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
 class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
-    description = 'standard ScoDoc (version 2011, beta)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'standard ScoDoc (version 2011)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
     supported_formats = [ 'html', 'pdf' ]
 
     def bul_title_pdf(self):

@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -214,11 +214,11 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
         
         modules, ue_attente = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
-        if ue_status['cur_moy_ue'] != 'NA':            
-            u['modules'] = modules # detail des modules de l'UE (dans le semestre courant)
-        else:
-            u['modules'] = [] # pas de moyenne => pas de modules
-
+        #
+        u['modules'] = modules # detail des modules de l'UE (dans le semestre courant)
+        # auparavant on filtrait les modules sans notes
+        #   si ue_status['cur_moy_ue'] != 'NA' alors u['modules'] = [] (pas de moyenne => pas de modules)
+        
         u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
         if ue_status['is_capitalized']:
             sem_origin = context.get_formsemestre(ue_status['formsemestre_id'])
@@ -252,6 +252,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     C = make_context_dict(context, sem, I['etud'])
     C.update(I)
     #
+    # log( 'C = \n%s\n' % pprint.pformat(C) ) # tres pratique pour voir toutes les infos dispo
     return C
 
 def _sort_mod_by_matiere(modlist, nt, etudid):
@@ -377,7 +378,6 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                 mod['mod_rang_txt'] = ''
         if mod_attente:
             ue_attente = True
-    
     return mods, ue_attente
 
 
