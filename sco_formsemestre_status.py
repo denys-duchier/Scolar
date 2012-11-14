@@ -382,7 +382,7 @@ def formsemestre_page_title(context, REQUEST):
     return '\n'.join(H)
 
 # Description du semestre sous forme de table exportable
-def formsemestre_description_table(context, formsemestre_id, REQUEST):
+def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_evals=False):
     """Description du semestre sous forme de table exportable
     Liste des modules et de leurs coefficients
     """
@@ -410,15 +410,25 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
             sum_coef += M['module']['coefficient']
         if M['module']['ects']:
             sum_ects += M['module']['ects']
+        if with_evals:
+            # Ajoute lignes pour evaluations
+            evals = context.do_evaluation_list( { 'moduleimpl_id' : M['moduleimpl_id'] } )
+            evals.reverse() # ordre chronologique
+            R += evals
+    
     sums = { '_css_row_class' : 'moyenne sortbottom',
              'ECTS' : sum_ects,
              'Coef.' : sum_coef }
     R.append(sums)
     columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'ECTS', 'Inscrits', 'Responsable' ]
+    if with_evals:
+        columns_ids += [ 'jour', 'description', 'coefficient' ]
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
-    
+    titles['jour'] = 'Evaluation'
+    titles['description'] = ''
+    titles['coefficient'] = 'Coef. éval.'
     title = '%s %s' % (parcours.SESSION_NAME.capitalize(), sem['titremois'])
     
     return GenTable(
@@ -434,11 +444,18 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST):
         preferences=context.get_preferences(formsemestre_id)
         )
 
-def formsemestre_description(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_description(context, formsemestre_id, format='html', with_evals=False, REQUEST=None):
     """Description du semestre sous forme de table exportable
     Liste des modules et de leurs coefficients
     """
-    tab = formsemestre_description_table(context, formsemestre_id, REQUEST)
+    tab = formsemestre_description_table(context, formsemestre_id, REQUEST, with_evals=with_evals)
+    tab.html_before_table = """<form name="f" method="get" action="%s">
+    <input type="hidden" name="formsemestre_id" value="%s"></input>
+    <input type="checkbox" name="with_evals" value="0" onChange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
+    if with_evals:
+        tab.html_before_table += 'checked'
+    tab.html_before_table += '>indiquer les évaluations</input></form>'
+
     return tab.make_page(context, format=format, REQUEST=REQUEST)                          
 
 def formsemestre_lists(context, formsemestre_id, REQUEST=None):

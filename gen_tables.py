@@ -257,7 +257,7 @@ class GenTable:
             std = ' style="width:%s;"' % self.html_col_width
         else:
             std = ''
-        H = ['<table%s%s>' % (hid, cls)]
+        H = [ self.html_before_table, '<table%s%s>' % (hid, cls)]
 
         line_num = 0
         if self.titles:
