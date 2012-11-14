@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -123,6 +123,7 @@ class BaseArchiver:
             raise ValueError('invalid archive name')
         archive_id = os.path.join( self.get_obj_dir(context, oid), archive_name)
         if not os.path.isdir(archive_id):
+            log('invalid archive name: %s, oid=%s, archive_id=%s' % (archive_name, oid, archive_id))
             raise ValueError('invalid archive name')
         return archive_id
 
@@ -174,10 +175,27 @@ class BaseArchiver:
         fname = os.path.join(archive_id, filename)
         return open(fname).read()
 
+    def get_archived_file(self, context, REQUEST, oid, archive_name, filename):
+        """Recupere donnees du fichier indiqué et envoie au client
+        """
+        # XXX très incomplet: devrait inférer et assigner un type MIME
+        archive_id = self.get_id_from_name(context, oid, archive_name)
+        data = self.get(archive_id, filename)
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.html' or ext == '.htm':
+            return data
+        elif ext == '.xml':
+            REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
+            return data
+        elif ext == '.xls':
+            return sco_excel.sendExcelFile(REQUEST,data,filename)
+        elif ext == '.csv':
+            return sendCSVFile(REQUEST, data, filename )
+        elif ext == '.pdf':
+            return sendPDFFile(REQUEST, data, filename )
+        
+        return data # should set mimetype...
 
-class EtudsArchiver(BaseArchiver):
-    def __init__(self):
-        BaseArchiver.__init__(self, archive_type='docetuds')
         
 class SemsArchiver(BaseArchiver):
     def __init__(self):
@@ -331,23 +349,8 @@ def formsemestre_list_archives(context, REQUEST, formsemestre_id):
 def formsemestre_get_archived_file(context, REQUEST, formsemestre_id, archive_name, filename):
     """Send file to client.
     """
-    sem = context.get_formsemestre(formsemestre_id)
-    archive_id = PVArchive.get_id_from_name(context, formsemestre_id, archive_name)
-    data = PVArchive.get(archive_id, filename)
-    ext = os.path.splitext(filename)[1].lower()
-    if ext == '.html' or ext == '.htm':
-        return data
-    elif ext == '.xml':
-        REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
-        return data
-    elif ext == '.xls':
-        return sco_excel.sendExcelFile(REQUEST,data,filename)
-    elif ext == '.csv':
-        return sendCSVFile(REQUEST, data, filename )
-    elif ext == '.pdf':
-        return sendPDFFile(REQUEST, data, filename )
-    
-    return data # should set mimetype...
+    return PVArchive.get_archived_file(context, REQUEST, formsemestre_id, archive_name, filename)
+
 
 def formsemestre_delete_archive(context, REQUEST, formsemestre_id, archive_name, dialog_confirmed=False):
     """Delete an archive

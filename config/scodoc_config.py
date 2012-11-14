@@ -111,3 +111,5 @@ CONFIG.ETABL_FILENAME = 'config/etablissements.csv'
 # ----------------------------------------------------
 CONFIG.ALLOW_NULL_PRENOM = False # True for UCAC (étudiants camerounais sans prénoms)
 
+CONFIG.ETUD_MAX_FILE_SIZE = 10*1024*1024 # taille max des fichiers archive etudiants (en octets)
+

@@ -19,8 +19,8 @@ ScoAbsAddBillet = "Sco Add Abs Billet" # ajouter un billet d'absence via AddBill
 ScoEtudChangeAdr   = "Sco Change Etud Address" # changer adresse/photo ou pour envoyer bulletins par mail
 ScoEtudChangeGroups = "Sco Change Etud Groups"
 ScoEtudInscrit  = "Sco Inscrire Etud" # aussi pour demissions, diplomes
-ScoEtudAddAnnotations = "Sco Etud Add Annotations"
-ScoEtudSupprAnnotations = "Sco Etud Suppr Annotations"
+ScoEtudAddAnnotations = "Sco Etud Add Annotations" # aussi pour archives
+ScoEtudSupprAnnotations = "Sco Etud Suppr Annotations" # XXX inutile: utiliser Add !
 ScoEntrepriseView = "Sco View Entreprises"
 ScoEntrepriseChange = "Sco Change Entreprises"
 

@@ -41,6 +41,8 @@ from sco_formsemestre_status import makeMenu
 from sco_bulletins import etud_descr_situation_semestre
 import sco_parcours_dut
 from sco_formsemestre_validation import formsemestre_recap_parcours_table
+import sco_archives_etud
+
 
 def _menuScolarite(context, authuser, sem, etudid):
     """HTML pour menu "scolarite" pour un etudiant dans un semestre.
@@ -217,6 +219,10 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     else:
         adm_tmpl = '' # pas de boite "info admission"
     info['adm_data'] = adm_tmpl % info
+
+    # Fichiers archivés:
+    info['fichiers_archive_htm'] = '<div class="ficheadmission"><div class="fichetitre">Fichiers associés</div>' + sco_archives_etud.etud_list_archives_html(context, REQUEST, etudid) + '</div>'
+    
     # Devenir de l'étudiant:
     has_debouche =  info['debouche']
     if has_debouche:
@@ -276,6 +282,8 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 %(inscriptions_mkup)s
 
 %(adm_data)s
+
+%(fichiers_archive_htm)s
 
 %(debouche_html)s
 

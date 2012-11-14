@@ -86,6 +86,7 @@ import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
+import sco_archives_etud
 import sco_groups_edit
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
@@ -1286,6 +1287,15 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'ficheEtud')
     ficheEtud = sco_page_etud.ficheEtud
 
+    security.declareProtected(ScoView, 'etud_upload_file_form')
+    etud_upload_file_form = sco_archives_etud.etud_upload_file_form
+
+    security.declareProtected(ScoView, 'etud_delete_archive')
+    etud_delete_archive = sco_archives_etud.etud_delete_archive
+    
+    security.declareProtected(ScoView, 'etud_get_archived_file')
+    etud_get_archived_file = sco_archives_etud.etud_get_archived_file
+    
     def _descr_situation_etud(self, etudid, ne=''):
         """chaine decrivant la situation actuelle de l'etudiant
         """

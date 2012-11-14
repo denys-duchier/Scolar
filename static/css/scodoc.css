@@ -312,6 +312,29 @@ div.ficheadmission {
   border-radius: 8px;
 }
 
+div.etudarchive ul {
+    padding:0; 
+    margin:0; 
+    margin-left: 1em;
+    list-style-type:none; 
+}
+
+div.etudarchive ul li {
+    background-image: url(/ScoDoc/static/icons/bullet_arrow.png);
+    background-repeat: no-repeat;
+    background-position: 0 .4em;
+    padding-left: .6em;
+}
+div.etudarchive ul li.addetudarchive {
+    background-image: url(/ScoDoc/static/icons/bullet_plus.png);
+    padding-left: 1.2em
+}
+span.etudarchive_descr {
+    margin-right: .4em;
+}
+span.deletudarchive {
+    margin-left: 0.5em;
+}
 div.fichedebouche { 
   background-color: rgb( 0, 100, 0 ); 
   color: gold;
