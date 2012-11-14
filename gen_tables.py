@@ -95,6 +95,7 @@ class GenTable:
                  html_header=None,
                  html_next_section='', # html fragment to put after the table
                  html_with_td_classes=False, # put class=column_id in each <td>
+                 html_before_table='', # html snippet to put before the <table> in the page
                  base_url = None,
                  origin=None, # string added to excel and xml versions
                  filename='table', # filename, without extension
@@ -119,6 +120,7 @@ class GenTable:
         self.filename = filename
         self.caption = caption
         self.html_header=html_header
+        self.html_before_table = ''
         self.page_title = page_title
         self.pdf_link=pdf_link
         self.xls_link=xls_link
