@@ -912,7 +912,10 @@ class ZScolar(ObjectManager,
             if authuser.has_permission(ScoEtudInscrit,self):
                 H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a></li>'
                          % (group_id,etat))
-            
+            # Lien pour ajout fichiers étudiants
+            if authuser.has_permission(ScoEtudAddAnnotations,self):
+                H.append("""<li><a class="stdlink" href="etudarchive_import_files_form?group_id=%s">Télécharger des fichiers associés aux étudiants (e.g. dossiers d'admission)</a></li>"""
+                         % (group_id))
             H.append('</ul>')
             
             return '\n'.join(H)+self.sco_footer(REQUEST)
@@ -1295,6 +1298,12 @@ class ZScolar(ObjectManager,
     
     security.declareProtected(ScoView, 'etud_get_archived_file')
     etud_get_archived_file = sco_archives_etud.etud_get_archived_file
+    
+    security.declareProtected(ScoView, 'etudarchive_import_files_form')
+    etudarchive_import_files_form = sco_archives_etud.etudarchive_import_files_form
+
+    security.declareProtected(ScoView, 'etudarchive_generate_excel_sample')
+    etudarchive_generate_excel_sample = sco_archives_etud.etudarchive_generate_excel_sample
     
     def _descr_situation_etud(self, etudid, ne=''):
         """chaine decrivant la situation actuelle de l'etudiant

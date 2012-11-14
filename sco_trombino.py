@@ -423,10 +423,29 @@ def photos_import_files_form(context, group_id, REQUEST=None):
                                    zipfile=tf[2]['zipfile'],
                                    REQUEST=REQUEST)
 
+
 def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQUEST=None):
     """Importation des photos
     """
     members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id)
+    filename_title = 'fichier_photo'
+    page_title = 'Téléchargement des photos des étudiants'
+    def callback(context, etud, data, filename, REQUEST): 
+        sco_photos.store_photo(context, etud, data, REQUEST)
+    r = zip_excel_import_files(context, group_id, xlsfile, zipfile,
+                               REQUEST, callback, filename_title, page_title)
+    return r + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
+
+def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
+                           REQUEST=None,
+                           callback = None,
+                           filename_title = '', # doit obligatoirement etre specifié
+                           page_title = '' ):
+    """Importation de fichiers à partir d'un excel et d'un zip
+    La fonction
+       callback()
+    est appelé pour chaque fichier trouvé.
+    """
     # 1- build mapping etudid -> filename
     exceldata = xlsfile.read()
     if not exceldata:
@@ -434,18 +453,20 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
         raise ScoValueError('Fichier excel vide !')
-    # on doit avoir une colonne etudid et une colonne 'fichier_photo'
+    # on doit avoir une colonne etudid et une colonne filename_title ('fichier_photo')
     titles = data[0]
     try:
         etudid_idx = titles.index('etudid')
-        filename_idx = titles.index('fichier_photo')
+        filename_idx = titles.index(filename_title)
     except:
-        raise ScoValueError('Fichier excel incorrect (il faut une colonne etudid et une colonne fichier_photo) !')
+        raise ScoValueError('Fichier excel incorrect (il faut une colonne etudid et une colonne %s) !' % filename_title )
 
-    def normfilename(fn):
+    def normfilename(fn, lowercase=True):
         "normalisation used to match filenames"
         fn = fn.replace('\\','/') # not sure if this is necessary ?
-        fn = fn.lower().strip()
+        fn = fn.strip()
+        if lowercase:
+            fn = fn.lower()
         fn = fn.split('/')[-1] # use only last component, not directories
         return fn
 
@@ -474,8 +495,10 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
                     etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
                     del Filename2Etud[normname]
                 except:
-                    raise ScoValueError('ID étudiant invalide: %s' % etudid)                
-                sco_photos.store_photo(context, etud, data, REQUEST=REQUEST)
+                    raise ScoValueError('ID étudiant invalide: %s' % etudid)
+
+                callback(context, etud, data, normfilename(name, lowercase=False), REQUEST=REQUEST)
+                
                 stored.append( (etud, name) )
             else:
                 log('zip: zip name %s not in excel !' % name)
@@ -491,9 +514,9 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
         unmatched_files = []
     # 3- Result page
     H = [_trombino_html_header(context, REQUEST),
-         """<h2 class="formsemestre">Téléchargement des photos des étudiants</h2>
+         """<h2 class="formsemestre">%s</h2>
          <h3>Opération effectuée</h3>
-         """ ]
+         """ % page_title ]
     if ignored_zipfiles:
         H.append('<h4>Fichiers ignorés dans le zip:</h4><ul>')
         for name in ignored_zipfiles:
@@ -505,9 +528,9 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
             H.append('<li>%s</li>' % name)
         H.append('</ul>')
     if stored:
-        H.append('<h4>Images chargées:</h4><ul>')
+        H.append('<h4>Fichiers chargés:</h4><ul>')
         for (etud, name) in stored:
             H.append('<li>%s: <tt>%s</tt></li>' % (etud['nomprenom'], name))
         H.append('</ul>')
     
-    return '\n'.join(H) + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
+    return '\n'.join(H)

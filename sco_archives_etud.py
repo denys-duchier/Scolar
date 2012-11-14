@@ -32,6 +32,9 @@
 
 from sco_utils import *
 from notes_log import log
+import ImportScolars
+import sco_trombino
+import sco_excel
 
 from sco_archives import BaseArchiver
 
@@ -149,3 +152,66 @@ def etud_get_archived_file(context, REQUEST, etudid, archive_name, filename):
     """
     return EtudsArchive.get_archived_file(context, REQUEST, etudid, archive_name, filename)
 
+# --- Upload d'un ensemble de fichiers (pour un groupe d'étudiants)
+def etudarchive_generate_excel_sample(context, group_id=None, REQUEST=None):
+    """Feuille excel pour import fichiers etudiants (utilisé pour admissions)
+    """    
+    format = ImportScolars.sco_import_format()
+    data = ImportScolars.sco_import_generate_excel_sample(
+        format, context=context, group_id=group_id,
+        only_tables=['identite'], 
+        exclude_cols=[ 'date_naissance', 'lieu_naissance', 'nationalite', 'statut', 'photo_filename' ],
+        extra_cols = ['fichier_a_charger'])
+    return sco_excel.sendExcelFile(REQUEST, data, 'ImportFichiersEtudiants.xls')
+
+def etudarchive_import_files_form(context, group_id, REQUEST=None):
+    """Formualaire pour importation fichiers d'un groupe
+    """
+    H = [context.sco_header(REQUEST, page_title='Import de fichiers associés aux étudiants'),
+         """<h2 class="formsemestre">Téléchargement de fichier associés aux étudiants</h2>
+         <p><b>Vous pouvez aussi charger à tout moment de nouveaux fichiers, ou en supprimer, via la fiche de chaque étudiant.</b></p>
+         <p class="help">Cette page permet de charger en une seule fois les fichiers de plusieurs étudiants.<br/>
+          Il faut d'abord remplir une feuille excel donnant les noms 
+          des fichiers (un fichier par étudiant).
+         </p>
+         <p class="help">Ensuite, réunir vos fichiers dans un fichier zip, puis télécharger 
+         simultanément le fichier excel et le fichier zip.
+         </p>
+        <ol>
+        <li><a class="stdlink" href="etudarchive_generate_excel_sample?group_id=%s">
+        Obtenir la feuille excel à remplir</a>
+        </li>
+        <li style="padding-top: 2em;">
+         """ % group_id]
+    F = context.sco_footer(REQUEST)
+    tf = TrivialFormulator(
+        REQUEST.URL0, REQUEST.form,
+        (('xlsfile', {'title' : 'Fichier Excel:', 'input_type' : 'file', 'size' : 40 }),
+         ('zipfile', {'title' : 'Fichier zip:', 'input_type' : 'file', 'size' : 40 }),
+         ('description', { 'input_type' : 'textarea', 'rows' : 4, 'cols' : 77,
+                            'title' : 'Description' }),
+         ('group_id', {'input_type' : 'hidden' }),
+         ))
+    
+    if  tf[0] == 0:
+        return '\n'.join(H) + tf[1] + '</li></ol>' + F
+    elif tf[0] == -1:
+        # retrouve le semestre à partir du groupe:
+        g = sco_groups.get_group(context, group_id)
+        return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=' + g['formsemestre_id'] )
+    else:
+        return etudarchive_import_files(context, group_id=tf[2]['group_id'],
+                                        xlsfile=tf[2]['xlsfile'],
+                                        zipfile=tf[2]['zipfile'],
+                                        REQUEST=REQUEST,
+                                        description=tf[2]['description'])
+
+def etudarchive_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQUEST=None, description=''):
+    def callback(context, etud, data, filename, REQUEST):        
+        _store_etud_file_to_new_archive(context, REQUEST, etud['etudid'], data, filename, description)
+    filename_title = 'fichier_a_charger'
+    page_title = 'Téléchargement de fichiers associés aux étudiants'
+    # Utilise la fontion au depart developpee pour les photos
+    r = sco_trombino.zip_excel_import_files(context, group_id, xlsfile, zipfile,
+                                            REQUEST, callback, filename_title, page_title)
+    return r + context.sco_footer(REQUEST)
