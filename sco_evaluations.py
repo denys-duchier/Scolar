@@ -356,6 +356,8 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
                 e[4] += ', ' + description
                 if not etat['evalcomplete']:
                     e[2] = color_incomplete
+                if day > today:
+                    e[2] = color_futur
             
     CalHTML = ZAbsences.YearTable(context.Absences, year, events=events.values(), halfday=False, pad_width=None )
 
