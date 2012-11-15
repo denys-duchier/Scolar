@@ -83,6 +83,18 @@ def etud_list_archives_html(context, REQUEST, etudid):
     H.append('</ul></div>')
     return ''.join(H)
 
+def add_archives_info_to_etud_list(context, etuds):
+    """Add key 'etudarchive' describing archive of etuds
+    (used to list all archives of a group)
+    """
+    for etud in etuds:
+        l = []
+        for archive_id in EtudsArchive.list_obj_archives(context, etud['etudid']):
+            l.append( '%s (%s)' % (EtudsArchive.get_archive_description(archive_id),
+                                  EtudsArchive.list_archive(archive_id)[0] ) )
+            etud['etudarchive'] = ', '.join(l)
+
+
 def etud_upload_file_form(context, REQUEST, etudid):
     """Page with a form to choose and upload a file, with a description.
     """

@@ -802,13 +802,15 @@ class ZScolar(ObjectManager,
                    all_groups=0,
                    etat=None,
                    format='html',
-                   with_paiement=0 # si vrai, ajoute colonne infos paiement droits inscription (lent car interrogation portail)
+                   with_paiement=0, # si vrai, ajoute colonne infos paiement droits inscription (lent car interrogation portail)
+                   with_archives=0 # ajoute colonne avec noms fichiers archivés
                    ):
         """liste etudiants inscrits dans ce semestre
         format: html, csv, xls, xml, allxls, pdf, json
         Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
         Si all_groups, donne les groupes
         """
+        log('group_list with_archives=%s' % with_archives)
         authuser = REQUEST.AUTHENTICATED_USER
         members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
         if not group['group_name']:
@@ -817,12 +819,18 @@ class ZScolar(ObjectManager,
         with_codes = int(with_codes)
         all_groups = int(all_groups)
         with_paiement= int(with_paiement)
+        with_archives= int(with_archives)
+        if with_archives:
+            with_archives_checked = 'checked="checked"'
+        else:
+            with_archives_checked = ''
         if with_paiement:
             with_paiement_checked = 'checked="checked"'
         else:
             with_paiement_checked = ''
         base_url_np = '%s?group_id=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,group_id,with_codes,all_groups)
-        base_url = base_url_np + '&with_paiement=%s' % with_paiement
+        base_url = base_url_np + '&with_paiement=%s&with_archives=%s' % (with_paiement, with_archives)
+        
         formsemestre_id = group['formsemestre_id']
         #
         columns_ids=['nom', 'prenom' ] # colonnes a inclure
@@ -831,7 +839,8 @@ class ZScolar(ObjectManager,
                    'etat':'Etat',
                    'etudid':'etudid',
                    'code_nip':'code_nip', 'code_ine':'code_ine',
-                   'paiementinscription_str' : 'Paiement'
+                   'paiementinscription_str' : 'Paiement',
+                   'etudarchive' : 'Fichiers'
                    }
         
         if all_groups:
@@ -849,7 +858,9 @@ class ZScolar(ObjectManager,
         if with_paiement:
             sco_portal_apogee.check_paiement_etuds(self, members)
             columns_ids += ['paiementinscription_str']
-                
+        if with_archives:
+            sco_archives_etud.add_archives_info_to_etud_list(self, members)
+            columns_ids += ['etudarchive']
         # ajoute liens
         for etud in members:
             if  etud['email']:
@@ -899,8 +910,12 @@ class ZScolar(ObjectManager,
                                                           ],                   
                                              ),
                   tab.html(),
-                  """<form name="wpf"><input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0);">indiquer paiement inscription</input></form>
-                  """ % (with_paiement_checked, base_url_np),
+                  """<form name="wpf">
+                  <input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0);">indiquer paiement inscription</input>
+                  <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_archives='+(document.wpf.with_archives.checked|0);">indiquer fichiers archivés</input>
+                  </form>
+                  """ % (with_paiement_checked, base_url_np,
+                         with_archives_checked, base_url_np),
                   """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
                   % base_url,
                   """<li><a class="stdlink" href="trombino?group_id=%s&etat=I">Photos</a></li>"""
