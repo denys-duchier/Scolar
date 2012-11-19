@@ -46,6 +46,7 @@ import ZAbsences
 import sco_preferences
 import sco_bulletins_generator
 import sco_bulletins_xml
+import sco_bulletins_json
 
 
 def make_context_dict(context, sem, etud):
@@ -557,6 +558,8 @@ def can_send_bulletin_by_mail(context, formsemestre_id, REQUEST):
             or authuser.has_permission(ScoImplement, context)
             or sem['responsable_id'] == str(authuser))
 
+
+
 def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  version='long', # short, long, selectedevals
                                  format='html',
@@ -572,10 +575,16 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)
     etud = I['etud']
     
-    if format == 'xml':
+    if format == 'xml':        
         bul = repr(sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
             xml_with_decisions=xml_with_decisions, version=version))
+        return bul, I['filigranne']
+    
+    elif format == 'json':
+        bul = sco_bulletins_json.make_json_formsemestre_bulletinetud(
+            context, formsemestre_id,  etudid, REQUEST=REQUEST,
+            xml_with_decisions=xml_with_decisions, version=version)
         return bul, I['filigranne']
     
     elif format == 'html':            

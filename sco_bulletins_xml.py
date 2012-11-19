@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,6 +26,15 @@
 ##############################################################################
 
 """Génération du bulletin en format XML
+
+
+Note: la structure de ce XML est issue de (mauvais) choix historiques
+et ne peut pas être modifiée car d'autres logiciels l'utilisent (portail publication bulletins etudiants).
+
+Je recommande d'utiliser la version JSON.
+Malheureusement, le code de génération JSON et XML sont séparés, ce qui est absurde et complique la maintenance (si on ajoute des informations au xbuletins).
+
+Je propose de considérer le XMl comme "deprecated" et de ne plus le modifier, sauf nécessité.
 """
 
 from notes_table import *
