@@ -642,7 +642,7 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
         hea = ''
     
     msg = MIMEMultipart()
-    subj = Header( 'Relevé de note de %s' % etud['nomprenom'],  SCO_ENCODING )
+    subj = Header( 'Relevé de notes de %s' % etud['nomprenom'],  SCO_ENCODING )
     recipients = [ etud['email'] ] 
     msg['Subject'] = subj
     msg['From'] = context.get_preference('email_from_addr',formsemestre_id)
