@@ -160,4 +160,22 @@ def bonus_iutlh(notes_sport, coefs, infos=None):
         #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
     return bonus
 
+def bonus_iutr(notes_sport, coefs, infos=None):
+    """Calcul du bonus , regle de l'IUT de Roanne (contribuée par Raphael C., nov 2012)
 
+       Le bonus est compris entre 0 et 0.35 point.
+       cette procédure modifie la moyenne de chaque UE capitalisable.
+
+    """
+    #modifie les moyennes de toutes les UE:
+    # le bonus est le minimum entre 0.35 et la somme de toutes les bonifs
+    bonus = min(0.35,sum([x for x in notes_sport]))    
+    for ue_id in infos['moy_ues']:
+        #open('/tmp/log','a').write( ue_id +  infos['moy_ues'] + '\n\n' )    
+        ue_status = infos['moy_ues'][ue_id]
+        if ue_status['sum_coefs'] > 0:
+            #modifie moyenne UE dans semestre courant
+            ue_status['cur_moy_ue'] = ue_status['cur_moy_ue'] + bonus
+            if not ue_status['is_capitalized']:
+                ue_status['moy'] = ue_status['cur_moy_ue']
+    return bonus
