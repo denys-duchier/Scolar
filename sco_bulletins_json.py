@@ -184,10 +184,12 @@ def formsemestre_bulletinetud_published_dict(
                 titre=quote_xml_attr(mod['titre']),
                 abbrev=quote_xml_attr(mod['abbrev']),
                 ects=ects,
-                note = dict( value=mod_moy, 
-                             min=fmt_note(modstat['min']), max=fmt_note(modstat['max'])
-                    )
+                note = dict( value=mod_moy )
                 )
+            m['note'].update(modstat)
+            for k in ('min', 'max', 'moy'): # formatte toutes les notes
+                m['note'][k] = fmt_note(m['note'][k])
+            
             u['module'].append(m)
             if context.get_preference('bul_show_mod_rangs', formsemestre_id):            
                 m['rang'] = dict( value=nt.mod_rangs[modimpl['moduleimpl_id']][0][etudid] )

@@ -544,6 +544,13 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
             R.append("""</a>""")
         R.append("""</p>""")
 
+        # Place du diagramme radar
+        R.append("""<form id="params">
+        <input type="hidden" name="etudid" id="etudid" value="%s"/>
+        <input type="hidden" name="formsemestre_id" id="formsemestre_id" value="%s"/>
+        </form>""" % (etudid, formsemestre_id))
+        R.append('<div id="radar_bulletin"></div>')
+        
         # --- Pied de page
         R.append( context.sco_footer(REQUEST) )
 
@@ -572,22 +579,22 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     où bul est au format demandé (html, pdf, pdfmail, pdfpart, xml)
     et filigranne est un message à placer en "filigranne" (eg "Provisoire").
     """
-    I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)
-    etud = I['etud']
-    
     if format == 'xml':        
         bul = repr(sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
             xml_with_decisions=xml_with_decisions, version=version))
-        return bul, I['filigranne']
+        return bul, ''
     
     elif format == 'json':
         bul = sco_bulletins_json.make_json_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
             xml_with_decisions=xml_with_decisions, version=version)
-        return bul, I['filigranne']
+        return bul, ''
     
-    elif format == 'html':            
+    I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)
+    etud = I['etud']
+        
+    if format == 'html':            
         htm, junk = sco_bulletins_generator.make_formsemestre_bulletinetud(
             context, I, version=version, format='html', REQUEST=REQUEST)
         return htm, I['filigranne']
@@ -669,7 +676,13 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     authuser = REQUEST.AUTHENTICATED_USER
     uid = str(authuser)
     H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST,
-                             javascripts=['jQuery/jquery.js', 'js/bulletin.js']),
+                             javascripts=['jQuery/jquery.js',
+                                          'js/bulletin.js',
+                                          'libjs/d3.v2.min.js',
+                                          'js/radar_bulletin.js'
+                                          ],
+                             cssstyles=['radar_bulletin.css']
+                                          ),
           """<table class="bull_head"><tr><td>
           <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>
           """ % etud,

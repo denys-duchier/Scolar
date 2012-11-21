@@ -403,6 +403,9 @@ class ZScolar(ObjectManager,
             doc = jaxml.XML_document( encoding=SCO_ENCODING )
             doc.error( msg=msg )
             return repr(doc)
+        elif format == 'json':
+            REQUEST.RESPONSE.setHeader('content-type', JSON_MIMETYPE)
+            return 'undefined' # XXX voir quoi faire en cas d'erreur json
         else:
             raise ValueError('ScoErrorResponse: invalid format')
 
