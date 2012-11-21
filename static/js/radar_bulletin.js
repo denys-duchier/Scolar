@@ -73,6 +73,8 @@ function draw_radar(notes) {
 
     var notes_circ = notes.slice(0);
     notes_circ.push(notes[0])
+    var notes_circ_valid = notes_circ.filter( function(e,i,a) { return e.note != 'NA' && e.note != '-'; } );
+    var notes_valid = notes.filter( function(e,i,a) { return e.note != 'NA' && e.note != '-'; } )
 
     /* Crée l'élément SVG */
     g = d3.select("#radar_bulletin").append("svg")
@@ -115,7 +117,7 @@ function draw_radar(notes) {
 
     g.append( "svg:path" )
         .attr("class", "radarnoteslines")
-        .attr("d", ligne(notes_circ));
+        .attr("d", ligne(notes_circ_valid));
 
     var ligne_moy = d3.svg.line() 
         .x(function(d) { return d["x_moy"]; })
@@ -123,11 +125,11 @@ function draw_radar(notes) {
 
     g.append( "svg:path" )
         .attr("class", "radarmoylines")
-        .attr("d", ligne_moy(notes_circ));
+        .attr("d", ligne_moy(notes_circ_valid));
 
     /* Points (notes) */
     g.selectAll("circle1")
-        .data(notes)
+        .data(notes_valid)
         .enter().append("circle")
         .attr("cx", function(d) { return d["x_v"]; })
         .attr("cy", function(d) { return d["y_v"]; })
@@ -158,7 +160,7 @@ function draw_radar(notes) {
 
     /* Valeurs des notes */
     g.selectAll("notes_labels")
-        .data(notes)
+        .data(notes_valid)
         .enter().append("text")
         .text(function(d) { return d["note"]; })
         .attr("x", function(d) { 
@@ -174,7 +176,7 @@ function draw_radar(notes) {
 
     /* Petits points sur les poyennes */
     g.selectAll("circle2")
-        .data(notes)
+        .data(notes_valid)
         .enter().append("circle")
         .attr("cx", function(d) { return d["x_moy"]; })
         .attr("cy", function(d) { return d["y_moy"]; })
