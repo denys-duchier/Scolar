@@ -446,7 +446,7 @@ def CalAbs(context, REQUEST=None): # etud implied
         events.append( (str(a['jour']), 'a', '#F8B7B0', '', a['matin'], a['description'] ) )
     for a in context.ListeAbsNonJust(etudid=etudid, datedebut=datedebut):
         events.append( (str(a['jour']), 'A', '#EE0000', '', a['matin'], a['description'] ) )
-    for a in context.ListeJustifsNoAbs(etudid=etudid, datedebut=datedebut):
+    for a in context.ListeJustifs(etudid=etudid, datedebut=datedebut, only_no_abs=True):
         events.append( (str(a['jour']), ' ', '#FFDDD0', '', a['matin'], a['description'] ) )
     CalHTML = ZAbsences.YearTable(context, AnneeScolaire, events=events, halfday=1 )
     

@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,24 @@
 ##############################################################################
 
 """ Gestion des absences (v4)
+
+C'est la partie la plus ancienne de ScoDoc, et elle est à revoir.
+
+L'API de plus bas niveau est en gros:
+
+ AnnuleAbsencesDatesNoJust(etudid, dates)
+ CountAbs(etudid, debut, fin, matin=None, moduleimpl_id=None)
+ CountAbsJust(etudid, debut, fin, matin=None, moduleimpl_id=None)
+ ListeAbsJust(etudid, datedebut)  [pas de fin ?]
+ ListeAbsNonJust(etudid, datedebut)  [pas de fin ?]
+ ListeJustifsNoAbs(etudid, datedebut, datefin=None, only_no_abs=True)
+
+ ListeAbsJour(date, am=True, pm=True, is_abs=None, is_just=None)
+ ListeAbsNonJustJour(date, am=True, pm=True)
+
+
 """
+
 import urllib
 
 from OFS.SimpleItem import Item # Basic zope object
@@ -556,18 +573,26 @@ class ZAbsences(ObjectManager,
         return A
     
     security.declareProtected(ScoView, 'ListeAbsJust')
-    def ListeJustifsNoAbs(self, etudid, datedebut):
-        "Liste des justificatifs (sans absence relevée) à partir d'une date"
+    def ListeJustifs(self, etudid, datedebut, datefin=None, only_no_abs=False):
+        """Liste des justificatifs (sans absence relevée) à partir d'une date,
+        ou, si datefin spécifié, entre deux dates.
+        Si only_no_abs: seulement les justificatifs correspondant aux jours sans absences relevées.
+        """
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute("""SELECT DISTINCT ETUDID, JOUR, MATIN FROM ABSENCES A
+        req = """SELECT DISTINCT ETUDID, JOUR, MATIN FROM ABSENCES A
  WHERE A.ETUDID = %(etudid)s
- AND A.JOUR >= %(datedebut)s
  AND A.ESTJUST
+ AND A.JOUR >= %(datedebut)s"""
+        if datefin:
+            req += """AND A.JOUR <= %(datefin)s"""
+        if only_no_abs:
+                req += """
  EXCEPT SELECT ETUDID, JOUR, MATIN FROM ABSENCES B 
  WHERE B.estabs
  AND B.ETUDID = %(etudid)s
-        """, vars() )
+        """
+        cursor.execute(req, vars() )
         A = cursor.dictfetchall()
         for a in A:
             a['description'] = self._GetAbsDescription(a, cursor=cursor)
@@ -606,20 +631,26 @@ class ZAbsences(ObjectManager,
         return desc
 
     security.declareProtected(ScoView, 'ListeAbsJour')
-    def ListeAbsJour(self, date, am=True, pm=True):
-        "Liste des absences ce jour"
+    def ListeAbsJour(self, date, am=True, pm=True, is_abs=True, is_just=None):
+        """Liste des absences et/ou justificatifs ce jour.
+        is_abs: None (peu importe), True, False
+        is_just: idem
+        """
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         req = """SELECT DISTINCT etudid, jour, matin FROM ABSENCES A 
-    WHERE A.estabs 
-    AND A.jour = %(date)s
+    WHERE A.jour = %(date)s
     """
+        if is_abs != None:
+            req += " AND A.estabs = %(is_abs)s"
+        if is_just != None:
+            req += " AND A.estjust = %(is_just)s"
         if not am:
-            req += "AND NOT matin "
+            req += " AND NOT matin "
         if not pm:
-            req += "AND matin"
+            req += " AND matin"
         
-        cursor.execute(req, { 'date' : date } )
+        cursor.execute(req, { 'date' : date, 'is_just' : is_just, 'is_abs' : is_abs } )
         A = cursor.dictfetchall()
         for a in A:
             a['description'] = self._GetAbsDescription(a, cursor=cursor)

@@ -495,6 +495,7 @@ def evaluation_check_absences(context, evaluation_id):
     Cas incohérents que l'on peut rencontrer pour chaque étudiant:
       note et absent  
       ABS et pas noté absent
+      ABS et absent justifié
       EXC et pas noté absent
       EXC et pas justifie
     Ramene 3 listes d'etudid
@@ -513,14 +514,17 @@ def evaluation_check_absences(context, evaluation_id):
     A = context.Absences.ListeAbsJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
     As = Set( [ x['etudid'] for x in A ] ) # ensemble des etudiants absents
     NJ = context.Absences.ListeAbsNonJustJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
-
     NJs = Set( [ x['etudid'] for x in NJ ] )# ensemble des etudiants absents non justifies
+    Just = context.Absences.ListeAbsJour(DateDMYtoISO(E['jour']), am=am, pm=pm, is_abs=None, is_just=True)
+    Justs = Set( [ x['etudid'] for x in Just ] )# ensemble des etudiants avec justif
+    
     # Les notes:
     NotesDB = context._notes_getall(evaluation_id)
     ValButAbs = [] # une note mais noté absent
     AbsNonSignalee = [] # note ABS mais pas noté absent
     ExcNonSignalee = [] # note EXC mais pas noté absent
     ExcNonJust = [] #  note EXC mais absent non justifie
+    AbsButExc = [] # note ABS mais justifié
     for etudid in etudids:
         if NotesDB.has_key(etudid):
             val = NotesDB[etudid]['value']
@@ -531,13 +535,16 @@ def evaluation_check_absences(context, evaluation_id):
                 # absent mais pas signale comme tel
                 AbsNonSignalee.append(etudid)
             if val == NOTES_NEUTRALISE and not etudid in As:
-                # nbeutralise mais pas signale absent
+                # Neutralisé mais pas signale absent
                 ExcNonSignalee.append(etudid)
             if val == NOTES_NEUTRALISE and etudid in NJs:
-                # EXC mais pas justifie
+                # EXC mais pas justifié
                 ExcNonJust.append(etudid)
+            if val is None and etudid in Justs:
+                # ABS mais justificatif
+                AbsButExc.append(etudid)
 
-    return ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust
+    return ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust, AbsButExc
 
 
 def evaluation_check_absences_html(context, evaluation_id, with_header=True, show_ok=True, REQUEST=None):
@@ -546,7 +553,7 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
     E = context.do_evaluation_list({'evaluation_id' : evaluation_id})[0]
     am, pm, demijournee = _eval_demijournee(E)
     
-    ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust = evaluation_check_absences(context, evaluation_id)
+    ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust, AbsButExc = evaluation_check_absences(context, evaluation_id)
 
     if with_header:
         H = [ context.html_sem_header(REQUEST, "Vérification absences à l'évaluation"),
@@ -587,9 +594,13 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
         etudlist(ExcNonSignalee)
 
     if ExcNonJust or show_ok:
-        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifés</em>:</h3>""")
+        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifiés</em>:</h3>""")
         etudlist(ExcNonJust)
 
+    if AbsButExc or show_ok:
+        H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ont une <em>justification</em>:</h3>""")
+        etudlist(AbsButExc)
+    
     if with_header:
         H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
