@@ -927,9 +927,9 @@ class ZScolar(ObjectManager,
                   ]
             
             # Lien pour verif codes INE/NIP
-            if authuser.has_permission(ScoEtudInscrit,self):
+            if authuser.has_permission(ScoEtudInscrit,self):                
                 H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a></li>'
-                         % (group_id,etat))
+                         % (group_id,etat or ''))
             # Lien pour ajout fichiers étudiants
             if authuser.has_permission(ScoEtudAddAnnotations,self):
                 H.append("""<li><a class="stdlink" href="etudarchive_import_files_form?group_id=%s">Télécharger des fichiers associés aux étudiants (e.g. dossiers d'admission)</a></li>"""
@@ -2039,6 +2039,7 @@ function tweakmenu( gname ) {
         """Verification des codes Apogee et mail de tout un groupe.
         Si fix == True, change les codes avec Apogée.
         """
+        etat = etat or None
         members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
         formsemestre_id = group['formsemestre_id']
         
@@ -2079,7 +2080,7 @@ function tweakmenu( gname ) {
             if email:
                 mailstat = 'ok'
             else:
-                if fixmail and len(infos) == 1:
+                if fixmail and len(infos) == 1 and 'mail' in infos[0]:
                     mail_apogee = infos[0]['mail']
                     adrs = scolars.adresse_list(cnx, {'etudid' : etudid})
                     if adrs:
