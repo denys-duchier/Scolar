@@ -540,7 +540,7 @@ class ZAbsences(ObjectManager,
     
     security.declareProtected(ScoView, 'ListeAbsJust')
     def ListeAbsJust(self, etudid, datedebut):
-        "Liste des absences justifiees"
+        "Liste des absences justifiees (par ordre chronologique)"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT DISTINCT A.ETUDID, A.JOUR, A.MATIN FROM ABSENCES A, ABSENCES B
@@ -548,6 +548,7 @@ class ZAbsences(ObjectManager,
  AND A.ETUDID = B.ETUDID 
  AND A.JOUR = B.JOUR AND A.MATIN = B.MATIN AND A.JOUR >= %(datedebut)s
  AND A.ESTABS AND (A.ESTJUST OR B.ESTJUST)
+ ORDER BY A.JOUR
         """, vars() )
         A = cursor.dictfetchall()
         for a in A:
@@ -556,7 +557,7 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoView, 'ListeAbsNonJust')
     def ListeAbsNonJust(self, etudid, datedebut):
-        "Liste des absences NON justifiees"
+        "Liste des absences NON justifiees (par ordre chronologique)"
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         cursor.execute("""SELECT ETUDID, JOUR, MATIN FROM ABSENCES A 
@@ -566,6 +567,7 @@ class ZAbsences(ObjectManager,
     EXCEPT SELECT ETUDID, JOUR, MATIN FROM ABSENCES B 
     WHERE B.estjust 
     AND B.ETUDID = %(etudid)s
+    ORDER BY JOUR
         """, vars() )
         A = cursor.dictfetchall()
         for a in A:
