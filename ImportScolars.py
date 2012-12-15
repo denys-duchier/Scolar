@@ -333,7 +333,7 @@ def _import_one_student(context, cnx, REQUEST, formsemestre_id, values,
     Import d'un étudiant et inscription dans le semestre.
     Return: id du semestre dans lequel il a été inscrit.
     """
-    log( 'scolars_import_excel_file: values=%s' % str(values) ) 
+    log( 'scolars_import_excel_file: formsemestre_id=%s values=%s' % (formsemestre_id, str(values)) ) 
     # Identite
     args = values.copy()
     etudid = scolars.identite_create(cnx, args, context=context)
@@ -352,6 +352,7 @@ def _import_one_student(context, cnx, REQUEST, formsemestre_id, values,
         args['formsemestre_id'] = formsemestre_id
     else:
         args['formsemestre_id'] = values['codesemestre']
+        formsemestre_id = values['codesemestre']
     # recupere liste des groupes:
     if formsemestre_id not in GroupIdInferers:
         GroupIdInferers[formsemestre_id] = sco_groups.GroupIdInferer(context, formsemestre_id)
@@ -363,7 +364,7 @@ def _import_one_student(context, cnx, REQUEST, formsemestre_id, values,
     group_ids = [ gi[group_name] for group_name in groupes ]
     group_ids = {}.fromkeys(group_ids).keys() # uniq
     if None in group_ids:
-        raise ScoValueError("groupe invalide sur la ligne %d" % (linenum))
+        raise ScoValueError("groupe invalide sur la ligne %d (groupe %s)" % (linenum, groupes))
 
     do_formsemestre_inscription_with_modules(context, args['formsemestre_id'], 
                                              etudid, group_ids,
