@@ -479,6 +479,17 @@ etud_annotations_delete = _etud_annotationsEditor.delete
 etud_annotations_list   = _etud_annotationsEditor.list
 etud_annotations_edit   = _etud_annotationsEditor.edit
 
+def add_annotations_to_etud_list(context, etuds):
+    """Add key 'annotations' describing annotations of etuds
+    (used to list all annotations of a group)
+    """
+    cnx = context.GetDBConnexion()
+    for etud in etuds:
+        l = []
+        for a in etud_annotations_list(cnx, args={ 'etudid' : etud['etudid'] }): 
+            l.append( '%(comment)s (%(date)s)' % a)
+        etud['annotations_str'] = ', '.join(l)
+
 # -------- APPRECIATIONS (sur bulletins) -------------------
 # Les appreciations sont dans la table postgres notes_appreciations
 _appreciationsEditor = EditableTable(
