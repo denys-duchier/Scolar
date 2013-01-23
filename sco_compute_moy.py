@@ -192,7 +192,7 @@ def do_moduleimpl_moyennes(context, mod):
     
     # filtre les evals valides (toutes les notes entrées)        
     valid_evals = [ e for e in evals
-                    if ((e['etat']['evalcomplete'] or e['etat']['evalattente'])) ]
+                    if ((e['etat']['evalcomplete'] or e['etat']['evalattente']) and (e['note_max'] > 0)) ]
     # 
     R = {}
     for etudid in insmod_set: # inscrits au semestre et au module
