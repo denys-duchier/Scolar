@@ -42,7 +42,7 @@ import tempfile, urllib, re
 import sco_formsemestre_status
 from sco_pdf import SU
 
-def formsemestre_etuds_stats(context, sem):
+def formsemestre_etuds_stats(context, sem, only_primo=False):
     """Récupère liste d'etudiants avec etat et decision.
     """
     nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id']) #> get_table_moyennes_triees, identdict, get_etud_decision_sem, get_etud_etat, 
@@ -51,7 +51,7 @@ def formsemestre_etuds_stats(context, sem):
     etuds = []
     for t in T:
         etudid = t[-1]
-        etud= nt.identdict[etudid].copy()
+        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         decision = nt.get_etud_decision_sem(etudid)
         if decision:
             etud['codedecision'] = decision['code']
@@ -68,7 +68,8 @@ def formsemestre_etuds_stats(context, sem):
             bs.append(etud['specialite'])
         etud['bac-specialite'] = ' '.join(bs)
         #
-        etuds.append(etud)
+        if (not only_primo) or context.isPrimoEtud(etud,sem):
+            etuds.append(etud)
     return etuds
 
 
@@ -192,14 +193,15 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
 #         format=format, page_title = title, REQUEST=REQUEST )
 
 def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=None,
-                               category='bac', result='codedecision', allkeys=False):
+                               category='bac', result='codedecision', allkeys=False,
+                               only_primo=False):
     """
     Tableau comptage avec choix des categories
     """
     sem = context.get_formsemestre(formsemestre_id)
     category_name = category.capitalize()
     title = "Comptages " + category_name
-    etuds = formsemestre_etuds_stats(context, sem)
+    etuds = formsemestre_etuds_stats(context, sem, only_primo=only_primo)
     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
                               category=category, result=result,
                               category_name=category_name,
@@ -231,8 +233,12 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                 selected = ''
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
+        if only_primo:
+            checked='checked=1'
+        else:
+            checked=''
+        F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
         F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)        
-        F.append('<input type="submit" value="OK"/>')
         F.append('</p></form>')
 
     t = tab.make_page(
