@@ -231,7 +231,7 @@ def do_moduleimpl_moyennes(context, mod):
             coefs_mask = [] # 0/1, 0 si coef a ete annulé
             nb_notes = 0 # nombre de notes valides
             for e in evals:                
-                if (e['etat']['evalcomplete'] or e['etat']['evalattente']) and e['notes'].has_key(etudid):
+                if ((e['etat']['evalcomplete'] or e['etat']['evalattente']) and e['notes'].has_key(etudid)) and (e['note_max'] > 0):
                     note = e['notes'][etudid]['value']
                     if note is None:
                         note = 0

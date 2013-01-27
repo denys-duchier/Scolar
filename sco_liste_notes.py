@@ -373,8 +373,11 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
             if val == NOTES_ATTENTE:
                 nb_att += 1
             # calcul moyenne SANS LES ABSENTS
-            if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE: 
-                valsur20 = val * 20. / e['note_max'] # remet sur 20
+            if val != None and val != NOTES_NEUTRALISE and val != NOTES_ATTENTE:
+                if e['note_max'] > 0:
+                    valsur20 = val * 20. / e['note_max'] # remet sur 20
+                else:
+                    valsur20 = 0
                 notes.append(valsur20) # toujours sur 20 pour l'histogramme
                 if note_sur_20:                            
                     val = valsur20 # affichage notes / 20 demandé

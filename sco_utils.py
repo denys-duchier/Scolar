@@ -106,7 +106,7 @@ def fmt_note(val, note_max=None, keep_numeric=False):
     if val == NOTES_ATTENTE:
         return 'ATT' # attente, note neutralisee
     if type(val) == type(0.0) or type(val) == type(1):
-        if note_max != None:
+        if note_max != None and note_max > 0:
             val = val * 20. / note_max
         if keep_numeric:
             return val
