@@ -56,6 +56,7 @@ def _fill_reptable():
         (u"2",  [0x00B2]), # deux exposant
         (u" ",  [0x00A0]), # &nbsp
         (u"",  [0xB0]), # degre
+        (u"",  [0xA9]), # copyright
         ]
     global _reptable
     for repchar,codes in _corresp :
