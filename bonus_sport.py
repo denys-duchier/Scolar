@@ -160,6 +160,18 @@ def bonus_iutlh(notes_sport, coefs, infos=None):
         #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
     return bonus
 
+# Bonus sport IUT Tours
+def bonus_tours(notes_sport, coefs, infos=None):
+    """Calcul bonus sport & culture IUT Tours sur moyenne generale
+
+    La note de sport & culture de nos etudiants va de 0 ? 0,5 points.
+    Le bonus est applique sur la moyenne generale.
+    """
+    sumc = sum(coefs) # assumes sum. coefs > 0
+    moy_notes = sum(map(mul, notes_sport, coefs)) / sumc # moyenne ponderee sur 20
+    bonus = moy_notes / 40 # bonus sur 0,5
+    return bonus
+
 def bonus_iutr(notes_sport, coefs, infos=None):
     """Calcul du bonus , regle de l'IUT de Roanne (contribuée par Raphael C., nov 2012)
 
