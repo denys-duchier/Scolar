@@ -179,3 +179,35 @@ def bonus_iutr(notes_sport, coefs, infos=None):
             if not ue_status['is_capitalized']:
                 ue_status['moy'] = ue_status['cur_moy_ue']
     return bonus
+
+def bonus_iutam(notes_sport, coefs, infos=None):
+    """Calcul bonus modules optionels (sport), regle IUT d'Amiens.
+   Les etudiants de l'IUT peuvent suivre des enseignements optionnels.
+   Si la note est de 10.00 a 10.49 -> 0.50% de la moyenne
+   Si la note est de 10.50 a 10.99 -> 0.75%
+   Si la note est de 11.00 a 11.49 -> 1.00%
+   Si la note est de 11.50 a 11.99 -> 1.25%
+   Si la note est de 12.00 a 12.49 -> 1.50%
+   Si la note est de 12.50 a 12.99 -> 1.75%
+   Si la note est de 13.00 a 13.49 -> 2.00%
+   Si la note est de 13.50 a 13.99 -> 2.25%
+   Si la note est de 14.00 a 14.49 -> 2.50%
+   Si la note est de 14.50 a 14.99 -> 2.75%
+   Si la note est de 15.00 a 15.49 -> 3.00%
+   Si la note est de 15.50 a 15.99 -> 3.25%
+   Si la note est de 16.00 a 16.49 -> 3.50%
+   Si la note est de 16.50 a 16.99 -> 3.75%
+   Si la note est de 17.00 a 17.49 -> 4.00%
+   Si la note est de 17.50 a 17.99 -> 4.25%
+   Si la note est de 18.00 a 18.49 -> 4.50%
+   Si la note est de 18.50 a 18.99 -> 4.75%
+   Si la note est de 19.00 a 20.00 -> 5.00%
+   Ce bonus s'ajoute a la moyenne generale du semestre de l'etudiant.
+   """
+    # une seule note
+   note_sport = notes_sport[0]
+   if note_sport < 10.:
+       return 0
+   prc = min( (int(2*n-20.)+2)*0.25, 5 )
+   bonus = infos['moy'] * prc/100
+   return bonus
