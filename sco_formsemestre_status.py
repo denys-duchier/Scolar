@@ -437,7 +437,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
         caption = title,
         html_caption = title,
         html_class='gt_table table_leftalign',
-        base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
+        base_url = '%s?formsemestre_id=%s&with_evals=%s' % (REQUEST.URL0, formsemestre_id, with_evals),
         page_title = title,
         html_title = context.html_sem_header(REQUEST, 'Description du semestre', sem, with_page_header=False), 
         pdf_title = title,
@@ -448,10 +448,12 @@ def formsemestre_description(context, formsemestre_id, format='html', with_evals
     """Description du semestre sous forme de table exportable
     Liste des modules et de leurs coefficients
     """
+    with_evals = int(with_evals)
+    log("with_evals=%s" % with_evals)
     tab = formsemestre_description_table(context, formsemestre_id, REQUEST, with_evals=with_evals)
     tab.html_before_table = """<form name="f" method="get" action="%s">
     <input type="hidden" name="formsemestre_id" value="%s"></input>
-    <input type="checkbox" name="with_evals" value="0" onChange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
+    <input type="checkbox" name="with_evals" value="1" onChange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
     if with_evals:
         tab.html_before_table += 'checked'
     tab.html_before_table += '>indiquer les évaluations</input></form>'
