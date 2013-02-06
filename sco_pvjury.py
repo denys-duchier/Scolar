@@ -156,7 +156,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['autorisations_descr'] = descr_autorisations(znotes, d['autorisations'])
         
         d['validation_parcours'] = Se.parcours_validated()
-        d['parcours'] = Se.get_parcours_descr()
+        d['parcours'] = Se.get_parcours_descr(filter_futur=True)
         
         # Observations sur les compensations:
         obs = ''

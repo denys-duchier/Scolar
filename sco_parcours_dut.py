@@ -258,15 +258,19 @@ class SituationEtudParcours:
         l'étudiant (quelle que soit la formation), le plus ancien en tête"""
         return self.sems
 
-    def get_parcours_descr(self):
+    def get_parcours_descr(self, filter_futur=False):
         """Description brève du parcours: "S1, S2, ..."
+        Si filter_futur, ne mentionne pas les semestres qui sont après le semestre courant.
         """
+        cur_begin_date = self.sem['dateord']
         p = []
         for s in self.sems:
             if s['ins']['etat'] == 'D':
                 dem = ' (dem.)'
             else:
                 dem = ''
+            if filter_futur and s['dateord'] > cur_begin_date:
+                continue # skip semestres demarrant apres le courant
             if s['semestre_id'] >= 0:
                 p.append( 'S%d%s' % (s['semestre_id'],dem) )
             else:
