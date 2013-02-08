@@ -707,6 +707,14 @@ s'est réuni le %(date_jury)s.
         'labels' : ['non', 'oui']
         }
       ),
+    ( 'bul_show_coef', 
+      { 'initvalue' : 1,
+        'title' : 'Afficher coefficient des ue/modules sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
       ( 'bul_show_ue_cap_details', 
       { 'initvalue' : 0,
         'title' : 'Afficher détail des notes des UE capitalisées sur les bulletins',

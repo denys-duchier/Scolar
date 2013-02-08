@@ -215,13 +215,16 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         with_col_abs = prefs['bul_show_abs_modules']
         with_col_minmax = prefs['bul_show_minmax'] or prefs['bul_show_minmax_mod']
         with_col_rang = prefs['bul_show_rangs']
+        with_col_coef = prefs['bul_show_coef']
 
         colkeys = ['titre', 'module' ] # noms des colonnes à afficher
         if with_col_rang:
             colkeys += ['rang']
         if with_col_minmax:
             colkeys += ['min', 'max']
-        colkeys += ['note', 'coef']
+        colkeys += ['note']
+        if with_col_coef:
+            colkeys += ['coef']
         if with_col_abs:
             colkeys += ['abs']
         colidx = {}  # { nom_colonne : indice à partir de 0 } (pour styles platypus)
