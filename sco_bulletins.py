@@ -452,8 +452,12 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
             else:
                 date_inscr = event['event_date']
         elif event_type == 'DEMISSION':
-            assert date_dem == None, 'plusieurs démissions !'
-            date_dem = event['event_date']
+            # assert date_dem == None, 'plusieurs démissions !'
+            if date_dem: # cela ne peut pas arriver sauf bug (signae a Evry 2013?)
+                log('etud_descr_situation_semestre: removing duplicate DEMISSION event !')
+                scolars.scolar_events_delete( cnx, event['event_id'] )
+            else:
+                date_dem = event['event_date']
     if show_date_inscr: 
         if not date_inscr:
             infos['date_inscription'] = ''
