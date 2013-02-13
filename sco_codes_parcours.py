@@ -245,7 +245,7 @@ class Parcours6Sem(TypeParcours):
     NB_SEM = 6
     COMPENSATION_UE = True
 
-register_parcours(Parcours6Sem)
+register_parcours(Parcours6Sem())
 
 # # En cours d'implémentation:
 # class ParcoursLicenceLMD(TypeParcours):

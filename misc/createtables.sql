@@ -291,6 +291,10 @@ INSERT INTO notes_semestres (semestre_id) VALUES (1);
 INSERT INTO notes_semestres (semestre_id) VALUES (2);
 INSERT INTO notes_semestres (semestre_id) VALUES (3);
 INSERT INTO notes_semestres (semestre_id) VALUES (4);
+INSERT INTO notes_semestres (semestre_id) VALUES (5);
+INSERT INTO notes_semestres (semestre_id) VALUES (6);
+INSERT INTO notes_semestres (semestre_id) VALUES (7);
+INSERT INTO notes_semestres (semestre_id) VALUES (8);
 
 CREATE TABLE notes_modules (
 	module_id text default notes_newid('MOD') PRIMARY KEY,

@@ -351,7 +351,13 @@ for dept in get_depts():
                  # et en profite pour corrige le From par defaut des mails:
                  "update sco_prefs set value='noreply@univ-paris13.fr' where name='email_from_addr' and value='noreply'"
                  ])
-    
+    # Increase semestre indices
+    for i in range(5,9):
+        cursor.execute("SELECT * from notes_semestres where semestre_id=%(i)s", { 'i' : i } )
+        r = cursor.fetchall()
+        if not r:
+            log("adding semestre_id %s" % i)
+            cursor.execute("INSERT INTO notes_semestres (semestre_id) VALUES (%(i)d)", { 'i' : i } )
     # Add here actions to performs after upgrades:
     
     cnx.commit()
