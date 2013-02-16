@@ -2374,9 +2374,10 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                       helpmsg=None):
         # dialog de confirmation simple
         parameters[target_variable] = 1
-        H = [ message,
-              """<form action="%s" method="post">
-              <input type="submit" value="%s"/>""" % (dest_url, OK) ]
+        H = [ 
+              """<form action="%s" method="post">""" % dest_url,
+              message,
+              """<input type="submit" value="%s"/>""" % OK ]
         if cancel_url:
             H.append(
                 """<input type ="button" value="%s"

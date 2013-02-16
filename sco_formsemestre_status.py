@@ -120,7 +120,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : True,
           'helpmsg' : 'Tableau de bord du semestre'
           },
-        { 'title' : 'Voir la formation %(acronyme)s' % F,
+        { 'title' : 'Voir la formation %(acronyme)s (v%(version)s)' % F,
           'url' : 'ue_list?formation_id=%(formation_id)s' % sem,
           'enabled' : True,
           'helpmsg' : 'Tableau de bord du semestre'

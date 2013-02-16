@@ -944,11 +944,12 @@ class ZNotes(ObjectManager,
         return repr(doc)
 
     security.declareProtected(ScoImplement, 'do_formsemestre_edit')
-    def do_formsemestre_edit(self, *a, **kw ):
+    def do_formsemestre_edit(self, sem, cnx=None, **kw ):
         "edit a formsemestre"
-        cnx = self.GetDBConnexion()
-        self._formsemestreEditor.edit(cnx, *a, **kw )
-        self._inval_cache(formsemestre_id=a[0]['formsemestre_id']) #> modif formsemestre
+        if not cnx:
+            cnx = self.GetDBConnexion()
+        self._formsemestreEditor.edit(cnx, sem, **kw )
+        self._inval_cache(formsemestre_id=sem['formsemestre_id']) #> modif formsemestre
     
     security.declareProtected(ScoView,'formsemestre_edit_uecoefs')
     formsemestre_edit_uecoefs = sco_formsemestre_edit.formsemestre_edit_uecoefs
@@ -1054,9 +1055,10 @@ class ZNotes(ObjectManager,
         return modimpls
 
     security.declareProtected(ScoImplement, 'do_moduleimpl_edit')
-    def do_moduleimpl_edit(self, args, formsemestre_id=None):
+    def do_moduleimpl_edit(self, args, formsemestre_id=None, cnx=None):
         "edit a moduleimpl"
-        cnx = self.GetDBConnexion()
+        if not cnx:
+            cnx = self.GetDBConnexion()
         self._moduleimplEditor.edit(cnx, args)
         
         self._inval_cache(formsemestre_id=formsemestre_id) #> modif moduleimpl 

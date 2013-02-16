@@ -1862,3 +1862,18 @@ div.cal_evaluations table.monthcalendar td a {
    width:  900px;
    height: 600px; 
 }
+
+div.othersemlist {
+    margin-bottom: 10px;
+    margin-right: 5px;
+    padding-bottom: 4px;
+    padding-left: 5px;
+    border: 1px solid gray;
+}
+div.othersemlist p {
+   font-weight: bold;
+   margin-top: 0px;
+}
+div.othersemlist input {
+   margin-left: 20px;
+}

@@ -672,42 +672,78 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
 
 # ---------------------------------------------------------------------------------------
 
-def formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None, dialog_confirmed=False):
+def formsemestre_associate_new_version(context, formsemestre_id,
+                                       other_formsemestre_ids=[],
+                                       REQUEST=None, dialog_confirmed=False):
     """Formulaire changement formation d'un semestre"""
     if not dialog_confirmed:
+        # dresse le liste des semestres de la meme formation et version
+        sem = context.get_formsemestre(formsemestre_id)
+        F = context.formation_list(args={ 'formation_id' :sem['formation_id']})[0]
+        othersems = context.do_formsemestre_list(args={ 'formation_id' : F['formation_id'], 'version' : F['version'], 'etat' : '1' })
+        of = []
+        for s in othersems:
+            if s['formsemestre_id'] == formsemestre_id or s['formsemestre_id'] in other_formsemestre_ids:
+                checked = 'checked="checked"'
+            else:
+                checked = ''
+            if s['formsemestre_id'] == formsemestre_id:
+                disabled = 'disabled="1"'
+            else:
+                disabled = ''
+            of.append('<div><input type="checkbox" name="other_formsemestre_ids:list" value="%s" %s %s>%s</input></div>'
+                          % (s['formsemestre_id'], checked, disabled, s['titremois']))
+        
         return context.confirmDialog(
-            """<h2>Associer une nouvelle version de formation non verrouillée ?</h2>
+            """<h2>Associer à une nouvelle version de formation non verrouillée ?</h2>
                 <p>Le programme pédagogique ("formation") va être dupliqué pour que vous puissiez le modifier sans affecter les autres semestres. Les autres paramètres (étudiants, notes...) du semestre seront inchangés.</p>
                 <p>Veillez à ne pas abuser de cette possibilité, car créer trop de versions de formations va vous compliquer la gestion (à vous de garder trace des différences et à ne pas vous tromper par la suite...).
                 </p>
-                """,
+                <div class="othersemlist"><p>Si vous voulez associer aussi d'autres semestres à la nouvelle version, cochez-les:</p>""" + ''.join(of) + "</div>",
+                OK = 'Associer ces semestres à une nouvelle version',
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'formsemestre_id' : formsemestre_id})
     else:
-        do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=REQUEST)
+        do_formsemestres_associate_new_version(context, [formsemestre_id] + other_formsemestre_ids, REQUEST=REQUEST)
         return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Formation%%20dupliquée' % formsemestre_id )
 
 
-def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None):
-    """Cree une nouvelle version de la formation du semestre, et y rattache ce semestre.
+def do_formsemestres_associate_new_version(context, formsemestre_ids, REQUEST=None):
+    """Cree une nouvelle version de la formation du semestre, et y rattache les semestres.
     Tous les moduleimpl sont ré-associés à la nouvelle formation, ainsi que les decisions de jury 
     si elles existent (codes d'UE validées).
+    Les semestre doivent tous appartenir à la meme version de la formation
     """
-    log('formsemestre_change_formation %s' % formsemestre_id)
-    sem = context.get_formsemestre(formsemestre_id)
+    log('do_formsemestres_associate_new_version %s' % formsemestre_ids)
+    if not formsemestre_ids:
+        return
+    # Check: tous de la même formation
+    sem = context.get_formsemestre(formsemestre_ids[0])
+    formation_id = sem['formation_id']
+    for formsemestre_id in formsemestre_ids[1:]:
+        sem = context.get_formsemestre(formsemestre_id)
+        if formation_id != sem['formation_id']:
+            raise ScoValueError('les semestres ne sont pas tous de la même formation !')
+    
     cnx = context.GetDBConnexion()
     # New formation:
-    formation_id, modules_old2new, ues_old2new = context.formation_create_new_version(sem['formation_id'], redirect=False, REQUEST=REQUEST)
-    # --- should be a transaction !
-    sem['formation_id'] = formation_id
-    context.do_formsemestre_edit(sem, html_quote=False)
+    formation_id, modules_old2new, ues_old2new = context.formation_create_new_version(formation_id, redirect=False, REQUEST=REQUEST)
     
+    for formsemestre_id in formsemestre_ids:
+        sem = context.get_formsemestre(formsemestre_id)
+        sem['formation_id'] = formation_id
+        context.do_formsemestre_edit(sem, cnx=cnx, html_quote=False)
+        _reassociate_moduleimpls(context, cnx, formsemestre_id, ues_old2new, modules_old2new)
+    
+    cnx.commit()
+
+def _reassociate_moduleimpls(context, cnx, formsemestre_id, ues_old2new, modules_old2new):
     # re-associate moduleimpls to new modules:
     modimpls = context.do_moduleimpl_list( {'formsemestre_id':formsemestre_id} )
     for mod in modimpls:
         mod['module_id'] = modules_old2new[mod['module_id']]
-        context.do_moduleimpl_edit(mod, formsemestre_id=formsemestre_id)
+        context.do_moduleimpl_edit(mod, formsemestre_id=formsemestre_id, cnx=cnx)
     # update decisions:
     events = scolars.scolar_events_list(cnx, args={'formsemestre_id' : formsemestre_id} )
     for e in events:
@@ -721,7 +757,7 @@ def do_formsemestre_associate_new_version(context, formsemestre_id, REQUEST=None
             e['ue_id'] = ues_old2new[e['ue_id']]
         #log('e=%s' % e )
         sco_parcours_dut.scolar_formsemestre_validation_edit(cnx, e)
-    # transaction done.
+
 
 
 def formsemestre_delete(context, formsemestre_id, REQUEST=None):
