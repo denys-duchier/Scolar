@@ -168,6 +168,8 @@ class SituationEtudParcours:
             return passage + ', ou semestre S%s' % (s)
         elif devenir == NEXT_OR_NEXT2:
             return passage + ', ou en semestre S%s' % (s+2) # coherent avec  get_next_semestre_ids
+        elif devenir == NEXT2:
+            return 'Passe en S%s' % (s+2) 
         else:
             log('explique_devenir: code devenir inconnu: %s' % devenir)
             return 'Code devenir inconnu !'
@@ -354,9 +356,10 @@ class SituationEtudParcours:
             ids = [s-1, s]
         elif devenir == RS_OR_NEXT:
             ids = [s, self._get_next_semestre_id()]
-        elif devenir == NEXT_OR_NEXT2:
-            
+        elif devenir == NEXT_OR_NEXT2:            
             ids = [self._get_next_semestre_id(), s+2] # cohérent avec explique_devenir()
+        elif devenir == NEXT2:
+            ids = [s+2]         
         else:
             ids = [] # reoriente ou autre: pas de next !
         # clip [1..NB_SEM]

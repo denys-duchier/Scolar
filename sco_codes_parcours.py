@@ -52,6 +52,7 @@ RA_OR_RS  = 'RA_OR_RS'   # redouble annee ou semestre
 RS_OR_NEXT= 'RS_OR_NEXT' # redouble semestre ou passe en Sn+1
 NEXT_OR_NEXT2='NEXT_OR_NEXT2' # passe en suivant (Sn+1) ou sur-suivant (Sn+2)
 NEXT='NEXT'
+NEXT2 = 'NEXT2' # passe au sur-suivant (Sn+2) 
 REO='REO'
 BUG='BUG'
 
@@ -90,6 +91,7 @@ DEVENIR_EXPL = {
     RA_OR_RS  : 'Redoublement année, ou redoublement semestre', # slt si sems decales
     RS_OR_NEXT: 'Passage, ou redoublement semestre',
     NEXT_OR_NEXT2 : "Passage en semestre suivant ou à celui d'après",
+    NEXT2     : 'Passage au sur-suivant',
     REO       : 'Réorientation'
 }
 
@@ -103,7 +105,7 @@ DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
 DEVENIRS_DEC = { REDOSEM:1, RS_OR_NEXT:1 }
 
 # Devenirs en n+2 (sautant un semestre)  (si semestres décalés et s'il ne manque qu'un semestre avant le n+2)
-DEVENIRS_NEXT2 = { NEXT_OR_NEXT2: 1 }
+DEVENIRS_NEXT2 = { NEXT_OR_NEXT2: 1, NEXT2 : 1 }
 
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres
 
