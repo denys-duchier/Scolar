@@ -403,13 +403,13 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
               'Inscrits' : len(ModInscrits),
               'Responsable' : context.Users.user_info(M['responsable_id'],REQUEST)['nomprenom'],
               'Coef.' : M['module']['coefficient'],
-              'ECTS' : M['module']['ects'],
+              # 'ECTS' : M['module']['ects'],
               }
         R.append(l)
         if M['module']['coefficient']:
             sum_coef += M['module']['coefficient']
-        if M['module']['ects']:
-            sum_ects += M['module']['ects']
+        # if M['module']['ects']:
+        #    sum_ects += M['module']['ects']
         if with_evals:
             # Ajoute lignes pour evaluations
             evals = context.do_evaluation_list( { 'moduleimpl_id' : M['moduleimpl_id'] } )
@@ -417,10 +417,10 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
             R += evals
     
     sums = { '_css_row_class' : 'moyenne sortbottom',
-             'ECTS' : sum_ects,
+             # 'ECTS' : sum_ects,
              'Coef.' : sum_coef }
     R.append(sums)
-    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'ECTS', 'Inscrits', 'Responsable' ]
+    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
     if with_evals:
         columns_ids += [ 'jour', 'description', 'coefficient' ]
     titles = {}

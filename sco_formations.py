@@ -46,6 +46,8 @@ def formation_export(context, formation_id, export_ids=False, format=None, REQUE
         if not export_ids:
             del ue['ue_id']
             del ue['formation_id']
+        if ue['ects'] is None:
+            del ue['ects']
         mats = context.do_matiere_list({ 'ue_id' : ue_id })
         ue['matiere'] = mats
         for mat in mats:

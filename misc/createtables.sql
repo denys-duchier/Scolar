@@ -271,7 +271,8 @@ CREATE TABLE notes_ue (
 	numero int, -- ordre de presentation
 	titre text,
 	type  int DEFAULT 0, -- 0 normal, 1 "sport", 2 "projet et stage (LP)"
-	ue_code text default notes_newid_fcod('UCOD') NOT NULL
+	ue_code text default notes_newid_fcod('UCOD') NOT NULL,
+    ects real -- nombre de credits ECTS
 ) WITH OIDS;
 
 CREATE TABLE notes_matieres (
@@ -310,7 +311,7 @@ CREATE TABLE notes_modules (
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
 	numero int, -- ordre de presentation
 	abbrev text, -- nom court
-	ects real -- nombre de credits ECTS
+	ects real -- nombre de credits ECTS (inutilises: ils sont associes aux UE)
 ) WITH OIDS;
 
 -- Mise en oeuvre d'un semestre de formation

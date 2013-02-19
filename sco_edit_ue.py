@@ -93,6 +93,7 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
                    'input_type' : 'menu',
                    'allowed_values': ue_types,
                    'labels' : ue_types_names }),
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
         ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
     ]
     if create:
@@ -194,7 +195,11 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
     H.append('<ul class="notes_ue_list">')
     ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
     for UE in ue_list:
-        H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s)</span>' % UE)
+        if UE['ects']:
+            UE['ects_str'] = ', %g ECTS' %  UE['ects']
+        else:
+            UE['ects_str'] = ''
+        H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s%(ects_str)s)</span>' % UE)
         if UE['type'] != UE_STANDARD:
             H.append('<span class="ue_type">%s</span>' % UE_TYPE_NAME[UE['type']])
         ue_editable = editable and not context.ue_is_locked(UE['ue_id'])

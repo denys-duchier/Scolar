@@ -171,10 +171,10 @@ def formsemestre_bulletinetud_published_dict(
             if mod_moy == 'NI': # ne mentionne pas les modules ou n'est pas inscrit
                 continue
             mod = modimpl['module']
-            if mod['ects'] is None:
-                ects = ''
-            else:
-                ects = str(mod['ects'])
+            #if mod['ects'] is None:
+            #    ects = ''
+            #else:
+            #    ects = str(mod['ects'])
             modstat = nt.get_mod_stats(modimpl['moduleimpl_id'])
 
             m = dict(
@@ -183,7 +183,7 @@ def formsemestre_bulletinetud_published_dict(
                 numero=mod['numero'],
                 titre=quote_xml_attr(mod['titre']),
                 abbrev=quote_xml_attr(mod['abbrev']),
-                ects=ects,
+                # ects=ects, ects des modules maintenant inutilisés
                 note = dict( value=mod_moy )
                 )
             m['note'].update(modstat)
@@ -273,7 +273,8 @@ def formsemestre_bulletinetud_published_dict(
                         numero=quote_xml_attr(ue['numero']),
                         acronyme=quote_xml_attr(ue['acronyme']),
                         titre=quote_xml_attr(ue['titre']),
-                        code=decision['decisions_ue'][ue_id]['code']
+                        code=decision['decisions_ue'][ue_id]['code'],
+                        ects=quote_xml_attr(ue['ects'] or '')
                         ))
             d['autorisation_inscription'] = []
             for aut in decision['autorisations']:

@@ -164,16 +164,16 @@ def make_xml_formsemestre_bulletinetud(
                 continue
             mod = modimpl['module']
             doc._push()
-            if mod['ects'] is None:
-                ects = ''
-            else:
-                ects = str(mod['ects'])
+            #if mod['ects'] is None:
+            #    ects = ''
+            #else:
+            #    ects = str(mod['ects'])
             doc.module( id=modimpl['moduleimpl_id'], code=mod['code'],
                         coefficient=mod['coefficient'],
                         numero=mod['numero'],
                         titre=quote_xml_attr(mod['titre']),
                         abbrev=quote_xml_attr(mod['abbrev']),
-                        ects=ects
+                        # ects=ects ects des modules maintenant inutilisés
                         )
             doc._push()
             modstat = nt.get_mod_stats(modimpl['moduleimpl_id'])

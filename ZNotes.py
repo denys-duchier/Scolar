@@ -451,10 +451,11 @@ class ZNotes(ObjectManager,
         'notes_ue',
         'ue_id',
         ('ue_id', 'formation_id', 'acronyme', 'numero', 'titre',
-         'type', 'ue_code' ),
+         'type', 'ue_code', 'ects' ),
         sortkey='numero',
         input_formators = { 'type' : int_null_is_zero },
-        output_formators = { 'numero' : int_null_is_zero },
+        output_formators = { 'numero' : int_null_is_zero,
+                             'ects' : float_null_is_null },
         )
 
     security.declareProtected(ScoChangeFormation, 'do_ue_create')
