@@ -896,9 +896,15 @@ class ZAbsences(ObjectManager,
     def SignaleAbsenceGrSemestre(self, datedebut, datefin, 
                                  destination, group_id,
                                  nbweeks=4, # ne montre que les nbweeks dernieres semaines
+                                 moduleimpl_id=None,
                                  REQUEST=None):
-        """Saisie des absences sur une journée sur un semestre
-        (ou intervalle de dates) entier"""
+        """Saisie des absences sur une journée sur un semestre (ou intervalle de dates) entier
+        """
+        log('SignaleAbsenceGrSemestre: moduleimpl_id=%s' % moduleimpl_id)
+        if not moduleimpl_id:
+            moduleimp_id = None
+        base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&group_id=%s&destination=%s' % (datedebut, datefin, group_id, destination)
+        base_url = base_url_noweeks + '&nbweeks=%s'%nbweeks # sans le moduleimpl_id
         group = sco_groups.get_group(self, group_id)
         formsemestre_id = group['formsemestre_id']
         nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
@@ -929,6 +935,9 @@ class ZAbsences(ObjectManager,
                 dates = dates[-nbweeks:]
                 msg = 'Montrer toutes les semaines'
                 nwl = 0
+        url_link_semaines = base_url_noweeks + '&nbweeks=%s'%nwl
+        if moduleimpl_id:
+            url_link_semaines += '&moduleimpl_id=' + moduleimpl_id
         #
         colnames = [ str(x) for x in dates ]
         dates = [ x.ISO() for x in dates ]
@@ -950,11 +959,9 @@ class ZAbsences(ObjectManager,
               <h2>Saisie des absences %s %s, 
               les <span class="fontred">%s</span></h2>
               <p>
-              <a href="SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&formsemestre_id=%s&group_id=%s&destination=%s&nbweeks=%d">%s</a>
+              <a href="%s">%s</a>
               <form action="doSignaleAbsenceGrSemestre" method="post">              
-              """ % (gr_tit, sem['titre_num'],
-                     dayname,
-                     datedebut, datefin, formsemestre_id, group_id, destination, nwl, msg) ]
+              """ % (gr_tit, sem['titre_num'], dayname, url_link_semaines, msg) ]
         #
         etuds = self.getEtudInfoGroupe(group_id)
         if etuds:
@@ -974,14 +981,25 @@ class ZAbsences(ObjectManager,
 
             menu_module = ''
             for modimpl in modimpls_list:
-                menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
-
+                if modimpl['moduleimpl_id'] == moduleimpl_id:
+                    sel = 'selected'
+                else:
+                    sel = ''
+                menu_module += """<option value="%(modimpl_id)s" %(sel)s>%(modname)s</option>\n""" % {
+                    'modimpl_id': modimpl['moduleimpl_id'],
+                    'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']),
+                    'sel' : sel
+                    }
+            if moduleimpl_id:
+                sel = ''
+            else:
+                sel = 'selected' # aucun module specifie
             H.append("""<p>
-    Module concerné par ces absences (optionnel): <select name="moduleimpl_id">
-    <option value="NULL" selected>non spécifié</option>
+    Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+    <option value="" %(sel)s>non spécifié</option>
     %(menu_module)s
     </select>
-</p>""" % {'menu_module': menu_module})
+</p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
 
         H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname)
         H.append(self.sco_footer(REQUEST))
