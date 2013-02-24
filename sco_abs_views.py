@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -142,9 +142,10 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 <p>
 <input type="submit" value="Envoyer"/> 
-
-<p>(<em>toutes les dates au format jour/mois/annee</em>)</p>
-
+<em>
+ <p>Seuls les modules du semestre en cours apparaissent.</p><p> Evitez de saisir une absence pour un module qui n'est pas en place à cette date.</p>
+<p>Toutes les dates sont au format jour/mois/annee</p>
+</em>
 
 </form> 
           """ % {'etudid': etud['etudid'], 'menu_module': menu_module},
@@ -198,7 +199,7 @@ def JustifAbsenceEtud(context, REQUEST=None): # etudid implied
     etudid = etud['etudid']
     H = [ context.sco_header(REQUEST,page_title="Justification d'une absence pour %(nomprenom)s" % etud, init_jquery_ui=True ),
           """<table><tr><td>
-          <h2>Signalement d'une absence pour %(nomprenom)s</h2>
+          <h2>Justification d'une absence pour %(nomprenom)s</h2>
           </td><td>
           """ % etud,
           """<a href="%s/ficheEtud?etudid=%s">""" % (context.ScoURL(), etud['etudid']),
@@ -220,11 +221,9 @@ def JustifAbsenceEtud(context, REQUEST=None): # etudid implied
 </table>
 <br/>
 
-&nbsp; <select name="demijournee">
-       <option value="2">Toute(s) la (ou les) journ&eacute;e(s)</option>
-       <option value="1">Matin(s) seulement</option>
-       <option value="0">Apr&egrave;s midi seulement</option>
-       </select>
+<input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
+&nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
+&nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
 
 <br/><br/>
 Raison: <input type="text" name="description" size="42"/> (optionnel)
@@ -239,7 +238,7 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 
 def doAnnuleAbsence(context, datedebut, datefin, demijournee, REQUEST=None): # etudid implied
-    """Annulation d'une absence
+    """Annulation des absences pour une demi journée
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     etudid = etud['etudid']
@@ -248,12 +247,12 @@ def doAnnuleAbsence(context, datedebut, datefin, demijournee, REQUEST=None): # e
     nbadded = 0
     for jour in dates:
         if demijournee=='2':
-            context._AnnuleAbsence(etudid,jour,False,REQUEST)
-            context._AnnuleAbsence(etudid,jour,True,REQUEST)
+            context._AnnuleAbsence(etudid,jour,False,REQUEST=REQUEST)
+            context._AnnuleAbsence(etudid,jour,True,REQUEST=REQUEST)
             nbadded += 2
         else:
             matin = int(demijournee)
-            context._AnnuleAbsence(etudid,jour,matin,REQUEST)
+            context._AnnuleAbsence(etudid,jour,matin,REQUEST=REQUEST)
             nbadded += 1
     #
     H = [ context.sco_header(REQUEST,page_title="Annulation d'une absence pour %(nomprenom)s" % etud ),
@@ -291,8 +290,8 @@ def AnnuleAbsenceEtud(context, REQUEST=None): # etudid implied
           context.etud_photo_html(etudid=etudid, title='fiche de '+etud['nomprenom'], REQUEST=REQUEST),
           """</a></td></tr></table>""",
           """<p>A n'utiliser que suite à une erreur de saisie ou lorsqu'il s'avère
-      que l'étudiant était en fait présent. Dans les autres cas,
-      <a href="JustifAbsenceEtud?etudid=%(etudid)s">justifier l'absence</a></p>
+      que l'étudiant était en fait présent. </p><p>
+	<font color="#FF0000">Si plusieurs modules sont affectés, les absences seront toutes effacées. </font></p>
           """ % etud,
           """<table frame="border" border="1"><tr><td>
 <form action="doAnnuleAbsence" method="get"> 
@@ -310,11 +309,9 @@ def AnnuleAbsenceEtud(context, REQUEST=None): # etudid implied
 </tr>
 </table>
 
-&nbsp; <select name="demijournee">
-       <option value="2">Toute(s) la (ou les) journ&eacute;e(s)</option>
-       <option value="1">Matin(s) seulement</option>
-       <option value="0">Apr&egrave;s midi seulement</option>
-       </select>
+<input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
+&nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
+&nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
 
 
 <p>
@@ -338,6 +335,13 @@ def AnnuleAbsenceEtud(context, REQUEST=None): # etudid implied
 </tr>
 </table>
 <p>
+
+<input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
+&nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
+&nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
+
+
+<p>
 <input type="submit" value="Supprimer les justificatifs"> 
 <i>(utiliser ceci en cas de justificatif erron&eacute; saisi ind&eacute;pendemment d'une absence)</i>
 </form> 
@@ -346,7 +350,7 @@ def AnnuleAbsenceEtud(context, REQUEST=None): # etudid implied
           ]
     return '\n'.join(H)
 
-def doAnnuleJustif(context, datedebut0, datefin0, REQUEST=None): # etudid implied
+def doAnnuleJustif(context, datedebut0, datefin0, demijournee, REQUEST=None): # etudid implied
     """Annulation d'une justification 
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
@@ -355,9 +359,14 @@ def doAnnuleJustif(context, datedebut0, datefin0, REQUEST=None): # etudid implie
     nbadded = 0
     for jour in dates:
         # Attention: supprime matin et après midi
-        context._AnnuleJustif(etudid, jour, False, REQUEST)
-        context._AnnuleJustif(etudid, jour, True, REQUEST)
-        nbadded += 2
+	if demijournee=='2':
+            context._AnnuleJustif(etudid, jour, False, REQUEST=REQUEST)
+            context._AnnuleJustif(etudid, jour, True, REQUEST=REQUEST)
+	    nbadded += 2
+	else: 
+	    matin = int(demijournee)
+	    context._AnnuleJustif(etudid, jour, matin, REQUEST=REQUEST)
+       	    nbadded += 1
     #
     H = [ context.sco_header(REQUEST,page_title="Annulation d'une justification pour %(nomprenom)s" % etud ),
           """<h2>Annulation de justifications pour %(nomprenom)s</h2>"""%etud ]
@@ -446,8 +455,8 @@ def CalAbs(context, REQUEST=None): # etud implied
         events.append( (str(a['jour']), 'a', '#F8B7B0', '', a['matin'], a['description'] ) )
     for a in context.ListeAbsNonJust(etudid=etudid, datedebut=datedebut):
         events.append( (str(a['jour']), 'A', '#EE0000', '', a['matin'], a['description'] ) )
-    for a in context.ListeJustifs(etudid=etudid, datedebut=datedebut, only_no_abs=True):
-        events.append( (str(a['jour']), ' ', '#FFDDD0', '', a['matin'], a['description'] ) )
+    for a in context.ListeJustifs(etudid=etudid, datedebut=datedebut,only_no_abs=True):
+        events.append( (str(a['jour']), 'X', '#8EA2C6', '', a['matin'], a['description'] ) )
     CalHTML = ZAbsences.YearTable(context, AnneeScolaire, events=events, halfday=1 )
     
     #
@@ -457,6 +466,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
           """<font color="#EE0000">A : absence NON justifiée</font><br>
              <font color="#F8B7B0">a : absence justifiée</font><br>
+	     <font color="#8EA2C6">X : justifification sans absence</font><br>
              %d absences sur l'année, dont %d justifiées (soit %d non justifiées)
            """  % (nbabs, nbabsjust, nbabs-nbabsjust),
            """</td>

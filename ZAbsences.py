@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2012 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -358,19 +358,24 @@ class ZAbsences(ObjectManager,
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    def _AnnuleAbsence(self, etudid, jour, matin, REQUEST):
-        "Annule une absence ds base"
+    def _AnnuleAbsence(self, etudid, jour, matin, moduleimpl_id=None, REQUEST=None):
+        """Annule une absence ds base
+        Si moduleimpl_id, n'annule que pour ce module
+        """
         # unpublished
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
-        cursor.execute('delete from absences where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s and estabs', vars())
+        req = 'delete from absences where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s and estabs'
+        if moduleimpl_id:
+            req += ' and moduleimpl_id=%(moduleimpl_id)s'
+        cursor.execute(req, vars())
         logdb(REQUEST, cnx, 'AnnuleAbsence', etudid=etudid,
-              msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
+              msg='JOUR=%(jour)s,MATIN=%(matin)s,moduleimpl_id=%(moduleimpl_id)s'%vars())
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    def _AnnuleJustif(self, etudid, jour, matin, REQUEST):
+    def _AnnuleJustif(self, etudid, jour, matin, REQUEST=None):
         "Annule un justificatif"
         # unpublished
         matin = _toboolean(matin)
@@ -383,29 +388,32 @@ class ZAbsences(ObjectManager,
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    def _AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin, REQUEST=None):
-        """Supprime les absences entre ces dates (incluses).
-        mais ne supprime pas les justificatifs.
-        """
-        # unpublished
-        cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
-        # supr les absences non justifiees
-        cursor.execute("delete from absences where etudid=%(etudid)s and (not estjust) and jour BETWEEN %(datedebut)s AND %(datefin)s",
-                       vars() )
-        # s'assure que les justificatifs ne sont pas "absents"
-        cursor.execute("update absences set estabs=FALSE where  etudid=%(etudid)s and jour BETWEEN %(datedebut)s AND %(datefin)s", vars())
-        logdb(REQUEST, cnx, 'AnnuleAbsencesPeriodNoJust', etudid=etudid,
-              msg='%(datedebut)s - %(datefin)s'%vars())
-        cnx.commit()
-        invalidateAbsEtudDate(self, etudid, datedebut)
-        invalidateAbsEtudDate(self, etudid, datefin) # si un semestre commence apres datedebut et termine avant datefin, il ne sera pas invalide. Tant pis ;-)
+    # Fonction inutile à supprimer (gestion moduleimpl_id incorrecte):
+    # def _AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin,
+    #                                 moduleimpl_id=None, REQUEST=None):
+    #     """Supprime les absences entre ces dates (incluses).
+    #     mais ne supprime pas les justificatifs.
+    #     """
+    #     # unpublished
+    #     cnx = self.GetDBConnexion()
+    #     cursor = cnx.cursor()
+    #     # supr les absences non justifiees
+    #     cursor.execute("delete from absences where etudid=%(etudid)s and (not estjust) and moduleimpl_id=(moduleimpl_id)s and jour BETWEEN %(datedebut)s AND %(datefin)s",
+    #                    vars() )
+    #     # s'assure que les justificatifs ne sont pas "absents"
+    #     cursor.execute("update absences set estabs=FALSE where  etudid=%(etudid)s and jour and moduleimpl_id=(moduleimpl_id)s  BETWEEN %(datedebut)s AND %(datefin)s", vars())
+    #     logdb(REQUEST, cnx, 'AnnuleAbsencesPeriodNoJust', etudid=etudid,
+    #           msg='%(datedebut)s - %(datefin)s - (moduleimpl_id)s'%vars())
+    #     cnx.commit()
+    #     invalidateAbsEtudDate(self, etudid, datedebut)
+    #     invalidateAbsEtudDate(self, etudid, datefin) # si un semestre commence apres datedebut et termine avant datefin, il ne sera pas invalide. Tant pis ;-)
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesDatesNoJust')
-    def AnnuleAbsencesDatesNoJust(self, etudid, dates, REQUEST=None):
+    def AnnuleAbsencesDatesNoJust(self, etudid, dates, moduleimpl_id=None, REQUEST=None):
         """Supprime les absences aux dates indiquées
         mais ne supprime pas les justificatifs.
         """
+        #log('AnnuleAbsencesDatesNoJust: moduleimpl_id=%s' % moduleimpl_id)
         if not dates:
             return
         date0 = dates[0]
@@ -419,20 +427,20 @@ class ZAbsences(ObjectManager,
                     matin=0
                 else:
                     raise ValueError, 'invalid ampm !'
-                self._AnnuleAbsence(etudid, jour, matin, REQUEST)
+                self._AnnuleAbsence(etudid, jour, matin, moduleimpl_id, REQUEST)
             return
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor()
         # supr les absences non justifiees
         for date in dates:
             cursor.execute(
-                "delete from absences where etudid=%(etudid)s and (not estjust) and jour=%(date)s",
+                "delete from absences where etudid=%(etudid)s and (not estjust) and jour=%(date)s and moduleimpl_id=%(moduleimpl_id)s",
                 vars() )
             invalidateAbsEtudDate(self, etudid, date)
         # s'assure que les justificatifs ne sont pas "absents"
         for date in dates:
             cursor.execute(
-                "update absences set estabs=FALSE where  etudid=%(etudid)s and jour=%(date)s",
+                "update absences set estabs=FALSE where  etudid=%(etudid)s and jour=%(date)s and moduleimpl_id=%(moduleimpl_id)s",
                 vars())
         if dates:
             date0 = dates[0]
@@ -443,7 +451,7 @@ class ZAbsences(ObjectManager,
         else:
             date1 = None
         logdb(REQUEST, cnx, 'AnnuleAbsencesDatesNoJust', etudid=etudid,
-              msg='%s - %s' % (date0,date1) )
+              msg='%s - %s - %s' % (date0,date1,moduleimpl_id) )
         cnx.commit()
 
     security.declareProtected(ScoView, 'CountAbs')
@@ -598,7 +606,7 @@ class ZAbsences(ObjectManager,
         A = cursor.dictfetchall()
         for a in A:
             a['description'] = self._GetAbsDescription(a, cursor=cursor)
-            log(a)
+        
         return A
     
     def _GetAbsDescription(self, a, cursor=None):
@@ -615,7 +623,7 @@ class ZAbsences(ObjectManager,
         cursor.execute("""select * from absences where etudid=%(etudid)s and jour=%(jour)s and matin=%(matin)s order by entry_date desc""", a)
         A = cursor.dictfetchall()
         desc = None
-        module = None
+        module = ''
         for a in A:
             if a['description']:
                 desc = a['description']
@@ -624,13 +632,16 @@ class ZAbsences(ObjectManager,
                 Mlist = self.Notes.do_moduleimpl_withmodule_list(args={'moduleimpl_id': a['moduleimpl_id']})
                 if Mlist:
                     M = Mlist[0]
-                    module = '(module : %s)' % M['module']['code']
+                    module += '%s ' % M['module']['code']
 
-        if desc and module:
-            return '%s %s' % (desc, module)
+	    # retiré par D.SOUDIERE (expérimental)	
+        #if desc and module:
+	if desc:
+            return '(%s) %s' % (desc, module)
+            return desc
         if module:
             return module
-        return desc
+        return ''
 
     security.declareProtected(ScoView, 'ListeAbsJour')
     def ListeAbsJour(self, date, am=True, pm=True, is_abs=True, is_just=None):
@@ -680,29 +691,33 @@ class ZAbsences(ObjectManager,
             a['description'] = self._GetAbsDescription(a, cursor=cursor)
         return A
 
-    security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
-    def doSignaleAbsenceGrHebdo(self, moduleimpl_id=None, abslist=[],
-                                datedebut=None, datefin=None, etudids=[],
-                                destination=None, REQUEST=None):
-        """Enregistre absences hebdo. Efface les anciennes absences et
-        signale les nouvelles.
-        abslist : liste etudid:date:ampm des absences signalees
-        etudids : liste des etudids concernes
-        datedebut, datefin: dates (ISO) de la semaine        
-        """
-        if etudids:
-            etudids = etudids.split(',')
-        else:
-            etudids = []
+    # Code inutile: le formulaire est géré en ajax.
+    #    et la suppression par module est peut être incorrecte (?)
+    # security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
+    # def doSignaleAbsenceGrHebdo(self, moduleimpl_id=None, abslist=[],
+    #                             datedebut=None, datefin=None, etudids=[],
+    #                             destination=None, REQUEST=None):
+    #     """Enregistre absences hebdo. Efface les anciennes absences et
+    #     signale les nouvelles.
+    #     abslist : liste etudid:date:ampm des absences signalees
+    #     etudids : liste des etudids concernes
+    #     datedebut, datefin: dates (ISO) de la semaine        
+    #     """
+    #     log('XXX: doSignaleAbsenceGrHebdo  moduleimpl_id=' %  moduleimpl_id)
+    #     if etudids:
+    #         etudids = etudids.split(',')
+    #     else:
+    #         etudids = []
         
-        # 1- Efface les absences
-        for etudid in etudids:
-            self._AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, REQUEST) 
-        
-        # 2- Ajoute les absences        
-        self._add_abslist(abslist, REQUEST, moduleimpl_id)
-
-        return "Absences ajoutées"
+    #     # 1- Efface les absences
+    #     for etudid in etudids:
+    #         self._AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, moduleimpl_id, REQUEST) 
+    #         return "Absences effacées"
+    #     # 2- Ajoute les absences 
+	# if abslist:       
+    #          self._add_abslist(abslist, REQUEST, moduleimpl_id)
+    #          return "Absences ajoutées"
+    #     return 
 
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrSemestre')
     def doSignaleAbsenceGrSemestre(self, moduleimpl_id=None, abslist=[],
@@ -723,13 +738,13 @@ class ZAbsences(ObjectManager,
             dates = []
         # 1- Efface les absences
         for etudid in etudids:
-            self.AnnuleAbsencesDatesNoJust(etudid, dates, REQUEST) 
-
+            self.AnnuleAbsencesDatesNoJust(etudid, dates, moduleimpl_id, REQUEST) 
+	    return "Absences effacées"
         # 2- Ajoute les absences
         if abslist:
             self._add_abslist(abslist, REQUEST, moduleimpl_id)
-
-        return "Absences ajoutées"
+	    return "Absences ajoutées"
+        return 
 
     def _add_abslist(self, abslist, REQUEST, moduleimpl_id=None):
         for a in abslist:
@@ -741,7 +756,7 @@ class ZAbsences(ObjectManager,
             else:
                 raise ValueError, 'invalid ampm !'
              # ajoute abs si pas deja absent
-            if self.CountAbs( etudid, jour, jour, matin) == 0:                
+            if self.CountAbs( etudid, jour, jour, matin,moduleimpl_id) == 0:                
                 self._AddAbsence( etudid, jour, matin, 0, REQUEST, '', moduleimpl_id)
         
     #
@@ -827,8 +842,14 @@ class ZAbsences(ObjectManager,
     # ------------ HTML Interfaces
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
     def SignaleAbsenceGrHebdo(self, datelundi, group_id,
-                              destination, REQUEST=None):
+                              destination,moduleimpl_id=None, REQUEST=None):
         "Saisie hebdomadaire des absences"
+  	    # log('SignaleAbsenceGrHebdo: moduleimpl_id=%s' % moduleimpl_id)
+        if not moduleimpl_id:
+            moduleimp_id = None
+
+        base_url='SignaleAbsenceGrHebdo?datelundi=%s&group_id=%s&destination=%s' % (datelundi, group_id, destination)
+	    
         group = sco_groups.get_group(self, group_id)
         formsemestre_id = group['formsemestre_id']
         nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
@@ -837,6 +858,7 @@ class ZAbsences(ObjectManager,
         datessem = [ DateDMYtoISO(datelundi) ]
         for jour in self.day_names()[1:]:
             datessem.append( self.NextISODay(datessem[-1]) )
+
         #                
         if group['partition_name']:
             gr_tit = 'du groupe <span class="fontred">%s %s</span> de' % (group['partition_name'], group['group_name'])
@@ -878,16 +900,28 @@ class ZAbsences(ObjectManager,
 
             menu_module = ''
             for modimpl in modimpls_list:
-                menu_module += """<option value="%(modimpl_id)s">%(modname)s</option>\n""" % {'modimpl_id': modimpl['moduleimpl_id'], 'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']) }
+                if modimpl['moduleimpl_id'] == moduleimpl_id:
+                    sel = 'selected'
+                else:
+                    sel = ''
+                menu_module += """<option value="%(modimpl_id)s" %(sel)s>%(modname)s</option>\n""" % {
+                    'modimpl_id': modimpl['moduleimpl_id'],
+                    'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']),
+                    'sel' : sel
+                    }
+            if moduleimpl_id:
+                sel = ''
+            else:
+                sel = 'selected' # aucun module specifie
 
-            H.append("""<p>Module concerné par ces absences (optionnel): 
-    <select name="moduleimpl_id">
-    <option value="NULL" selected>non spécifié</option>
+            H.append("""
+ Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+    <option value="" %(sel)s>non spécifié</option>
     %(menu_module)s
     </select>
-    </p>""" % {'menu_module': menu_module})
+    </p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
         
-        H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination)
+        H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination, None, moduleimpl_id)
 
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
@@ -900,7 +934,7 @@ class ZAbsences(ObjectManager,
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre (ou intervalle de dates) entier
         """
-        log('SignaleAbsenceGrSemestre: moduleimpl_id=%s' % moduleimpl_id)
+        # log('SignaleAbsenceGrSemestre: moduleimpl_id=%s' % moduleimpl_id)
         if not moduleimpl_id:
             moduleimp_id = None
         base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&group_id=%s&destination=%s' % (datedebut, datefin, group_id, destination)
@@ -1001,11 +1035,11 @@ class ZAbsences(ObjectManager,
     </select>
 </p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
 
-        H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname)
+        H += self._gen_form_saisie_groupe(etuds, colnames, dates, destination, dayname, moduleimpl_id)
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
     
-    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination='', dayname=''):
+    def _gen_form_saisie_groupe(self, etuds, colnames, dates, destination='', dayname='',moduleimpl_id=None):
         H = [ """
         <script type="text/javascript">
         function colorize(obj) {
@@ -1067,14 +1101,14 @@ class ZAbsences(ObjectManager,
                      % (bgcolor, etudid, etudid, etud['nomprenom'], capstr))
             for date in dates:
                 # matin
-                if self.CountAbs( etudid, date, date, True):
+                if self.CountAbs( etudid, date, date, True, moduleimpl_id=moduleimpl_id):
                     checked = 'checked'
                 else:
                     checked = ''
                 H.append('<td %s><input type="checkbox" name="abslist:list" value="%s" %s onclick="on_toggled(this, \'%s\', \'%s\')"/></td>'
                          % (matin_bgcolor, etudid+':'+date+':'+'am', checked, etudid, date+':am'))
                 # apres midi
-                if self.CountAbs( etudid, date, date, False):
+                if self.CountAbs( etudid, date, date, False, moduleimpl_id=moduleimpl_id):
                     checked = 'checked'
                 else:
                     checked = ''
@@ -1128,6 +1162,12 @@ class ZAbsences(ObjectManager,
                 and mi.moduleimpl_id = m.moduleimpl_id and mi.etudid = %(etudid)s""",
                                { 'jour' : a['jour'].strftime('%Y-%m-%d'), 'etudid' : etudid } )
                 a['evals'] = cursor.dictfetchall() 
+                cursor.execute("""select mi.moduleimpl_id
+                from  absences abs, notes_moduleimpl_inscription mi, notes_moduleimpl m
+                where abs.matin = %(matin)s and abs.jour = %(jour)s and abs.etudid=%(etudid)s and 					abs.moduleimpl_id=mi.moduleimpl_id and mi.moduleimpl_id=m.moduleimpl_id 
+		and mi.etudid = %(etudid)s""",
+				{'matin': bool(a['matin']),'jour': a['jour'].strftime('%Y-%m-%d'),'etudid' : etudid } )
+                a['absent'] = cursor.dictfetchall() 
         # Mise en forme HTML:
         etud = self.getEtudInfo(etudid=etudid,filled=True)[0]
         H = [ self.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) ]
@@ -1147,11 +1187,24 @@ class ZAbsences(ObjectManager,
                 mod = self.Notes.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : ev['moduleimpl_id']})[0]
                 if format == 'html':
                     ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
-                           % (mod['moduleimpl_id'], mod['module']['abbrev']))
+                           % (mod['moduleimpl_id'], mod['module']['code']))
                 else:
-                    ex.append(mod['module']['abbrev'])
+                    ex.append(mod['module']['code'])
             if ex:
-                return ' ce jour: contrôles de: ' + ', '.join(ex)
+                return  ', '.join(ex)
+            return ''
+
+        def descr_abs(a):
+            ex = []
+            for ev in a['absent']:
+                mod = self.Notes.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : ev['moduleimpl_id']})[0]
+                if format == 'html':
+                    ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
+                           % (mod['moduleimpl_id'], mod['module']['code']))
+                else:
+                    ex.append(mod['module']['code'])
+            if ex:
+                return  ', '.join(ex)
             return ''
 
         # ajoute date formattee et exams
@@ -1162,20 +1215,26 @@ class ZAbsences(ObjectManager,
                 a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
                 a['matin_o'] = a['matin']
                 a['matin'] = matin(a['matin'])
-                a['description'] = a['description'] or ''
+		index=a['description'].find(')')
+		if index != -1:
+		     a['motif'] = a['description'][1:index]
+		else: 
+		     a['motif']=''
+                a['description'] = descr_abs(a) or ''
+		
         # ajoute lien pour justifier
         if format == 'html':
             for a in absnonjust:
                 a['justlink'] = '<em>justifier</em>'
                 a['_justlink_target'] = 'doJustifAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s'%(etudid, a['datedmy'], a['datedmy'], a['matin_o'])
         #
-        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens', 'justlink' : '', 'description' : 'Raison' }
+        titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens ce jour', 'justlink' : '', 'description' : 'Modules', 'motif': 'Motif' }
         columns_ids=['datedmy', 'matin']
         if with_evals:
             columns_ids.append('exams')
             
         columns_ids.append('description')
-
+	columns_ids.append('motif')
         if format == 'html':
             columns_ids.append('justlink')
         
