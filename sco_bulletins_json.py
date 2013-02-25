@@ -109,7 +109,7 @@ def formsemestre_bulletinetud_published_dict(
     
     # Disponible pour publication ?
     if not published:
-        return doc # stop !
+        return d # stop !
     
     # Groupes:
     partitions = sco_groups.get_partitions_list(context, formsemestre_id, with_default=False)
