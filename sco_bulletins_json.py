@@ -289,7 +289,7 @@ def formsemestre_bulletinetud_published_dict(
         args={'etudid':etudid, 'formsemestre_id' : formsemestre_id } )
     d['appreciation'] = []
     for app in apprecs:
-        d['appreciation'].append( dict( quote_xml_attr(app['comment']), date=DateDMYtoISO(app['date'])) )
+        d['appreciation'].append( dict( comment=quote_xml_attr(app['comment']), date=DateDMYtoISO(app['date'])) )
     
     #
     return d
