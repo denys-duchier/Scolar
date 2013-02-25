@@ -188,6 +188,26 @@ class ParcoursLP(TypeParcours):
 register_parcours(ParcoursLP())
 
 
+class ParcoursLP2sem(ParcoursLP):
+    """Licence Pro (en deux "semestres")"""
+    TYPE_PARCOURS = 210
+    NAME = "LP2sem"
+    NB_SEM = 2
+    COMPENSATION_UE = True
+
+register_parcours(ParcoursLP2sem())
+
+class ParcoursLP2semEvry(ParcoursLP):
+    """Licence Pro (en deux "semestres", U. Evry)"""
+    TYPE_PARCOURS = 220
+    NAME = "LP2semEvry"
+    NB_SEM = 2
+    COMPENSATION_UE = True
+    BARRE_UE_DEFAULT = 10. # barre à 10 dans toutes les UE
+
+register_parcours(ParcoursLP2semEvry())
+
+
 class ParcoursMono(TypeParcours):
     """Formation en une session"""
     TYPE_PARCOURS = 300
