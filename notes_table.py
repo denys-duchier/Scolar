@@ -282,6 +282,10 @@ class NotesTable:
         "formatte nom d'un etud"
         etud =  self.identdict[etudid]
         return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom'])])
+
+    def get_displayed_etud_code(self, etudid):
+        'code à afficher sur les listings "anonymes"'
+        return self.identdict[etudid]['code_nip'] or self.identdict[etudid]['etudid'] 
     
     def get_etud_etat(self, etudid):
         "Etat de l'etudiant: 'I', 'D' ou '' (si pas connu dans ce semestre)"

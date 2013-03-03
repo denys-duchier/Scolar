@@ -103,17 +103,18 @@ class EntreprisesEditor(EditableTable):
         cursor = cnx.cursor()
         cursor.execute('select E.*, I.nom as etud_nom, I.prenom as etud_prenom, C.date from entreprises E, entreprise_contact C, identite I where C.entreprise_id = E.entreprise_id and C.etudid = I.etudid and I.nom ~* %(etud_nom)s ORDER BY E.nom',
                        args )
-        titles, res = [ x[0] for x in cursor.description ], cursor.fetchall()
+        titles, res = [ x[0] for x in cursor.description ], cursor.dictfetchall()
         R = []
         for r in res:
-            r['prenom'] = r['prenom'] or ''
+            log('r=' + str(r))
+            r['etud_prenom'] = r['etud_prenom'] or ''
             d = {}
-            for i in range(len(titles)):
-                v = r[i]
+            for key in r:
+                v = r[key]
                 # format value 
-                if not disable_formatting and self.output_formators.has_key(titles[i]):
-                    v = self.output_formators[titles[i]](v)
-                d[titles[i]] = v
+                if not disable_formatting and self.output_formators.has_key(key):
+                    v = self.output_formators[key](v)
+                d[key] = v
             R.append(d)
         # sort
         if sort_on_contact:
