@@ -6,25 +6,33 @@
 se connecte et accede a la page d'accueil du premier departement
 """
 from splinter import Browser
-import re
+import re, sys, time
 import urlparse
 import pdb
+from optparse import OptionParser
 
 from conn_info import *
 
+parser = OptionParser()
+parser.add_option("-d", "--dept", dest="dept_index", default=0, help="indice du departement")
+options, args = parser.parse_args()
+
+dept_index = int(options.dept_index)
+
+t0 = time.time()
 browser = Browser('zope.testbrowser')
 browser.visit(SCODOC)
-print browser.title
-print browser.url
+print 'Start: title:', browser.title
+print 'URL: ', browser.url
 # print browser.html
 
 links = browser.find_link_by_partial_text('Scolarit')
 print '%d departements' % len(links)
 
-links[0].click()
+links[dept_index].click() # va sur le premier departement
 
 # ---- Formulaire authentification
-print browser.url
+print 'Authentification: ', browser.url
 
 browser.fill('__ac_name', USER)
 browser.fill('__ac_password', PASSWD)
@@ -34,5 +42,7 @@ button[0].click()
 # ---- Page accueil Dept
 print browser.url
 
-links = browser.find_link_by_partial_text('DUT informatique en FI')
+links = browser.find_link_by_partial_text('DUT')
 links[0].click()
+print 'Starting test from %s' % browser.url
+print browser.title

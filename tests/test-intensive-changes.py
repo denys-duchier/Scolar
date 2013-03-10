@@ -55,7 +55,10 @@ def add_to_notes(increment):
 for i in range(10):
     browser.visit(url_form) # va sur form saisie notes
     add_to_notes(1)
-    time.sleep(1)
+    #time.sleep(1)
     browser.visit(url_form) # va sur form saisie notes
     add_to_notes(-1)
-    time.sleep(1)
+    #time.sleep(1)
+
+t1 = time.time()
+print 'done in %gs' % (t1-t0)
