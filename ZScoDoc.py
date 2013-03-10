@@ -38,8 +38,6 @@ except: from StringIO import StringIO
 from zipfile import ZipFile
 import os.path, glob
 
-import psycopg
-
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.MIMEBase import MIMEBase
@@ -507,23 +505,24 @@ Ce site est
 
 <!-- login -->
 <form action="doLogin" method="post">
-   <input type="hidden" name="destination" value="Scolarite">
+   <input type="hidden" name="destination" value="Scolarite"/>
 <p>
  <table border="0" cellpadding="3">
     <tr>
       <td><b>Nom:</b></td>
-      <td><input type="text" name="__ac_name" size="20"></td>
+      <td><input id="name" type="text" name="__ac_name" size="20"/></td>
     </tr><tr>
       <td><b>Mot de passe:</b></td>
-      <td><input type="password" name="__ac_password" size="20"></td>
-      <td><input type="submit" value="OK "></td>
+      <td><input id="password" type="password" name="__ac_password" size="20"/></td>
+      <td><input id="submit" name="submit" type="submit" value="OK"/></td>
     </tr>
  </table>
+</p>
 </form>
 
 
 <p>Pour quitter, <a href="acl_users/logout">logout</a>
-
+</p>
 <p>Ce site est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
 ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</p>
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
@@ -707,7 +706,7 @@ ErrorType: %(error_type)s
         self.send_debug_alert(txt, REQUEST=REQUEST)
         # ---
         log('done processing exception')
-        log( '\n page=\n' + '\n'.join(H) )
+        # log( '\n page=\n' + '\n'.join(H) )
         return '\n'.join(H)
 
     def _report_request(self, REQUEST, format='txt'):

@@ -283,11 +283,11 @@ class TF:
         # ---- build form
         buttons_markup = ''
         if self.submitbutton:
-            buttons_markup+= ('<input type="submit" name="%s_submit" value="%s" %s>'
-                              % (self.formid,self.submitlabel, ' '.join(self.submitbuttonattributes)))
+            buttons_markup+= ('<input type="submit" name="%s_submit" id="%s_submit" value="%s" %s/>'
+                              % (self.formid,self.formid,self.submitlabel, ' '.join(self.submitbuttonattributes)))
         if self.cancelbutton:
-            buttons_markup += (' <input type="submit" name="%s_cancel" value="%s">'
-                               % (self.formid,self.cancelbutton))
+            buttons_markup += (' <input type="submit" name="%s_cancel" id="%s_cancel" value="%s"/>'
+                               % (self.formid,self.formid,self.cancelbutton))
 
         R = []
         suggest_js = []
