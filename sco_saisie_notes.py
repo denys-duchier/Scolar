@@ -719,7 +719,7 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     Return number of changed notes
     """
     uid = str(uid)
-    now = apply(DB.Timestamp, time.localtime()[:6]) #datetime.datetime.now().isoformat()
+    now = apply(psycopg2.Timestamp, time.localtime()[:6]) #datetime.datetime.now().isoformat()
     # Verifie inscription et valeur note
     inscrits = {}.fromkeys(sco_groups.do_evaluation_listeetuds_groups(
             context, evaluation_id, getallstudents=True, include_dems=True))
@@ -729,15 +729,15 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
     # Recherche notes existantes
     NotesDB = context._notes_getall(evaluation_id)
     # Met a jour la base
-    cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cnx = context.GetDBConnexion(autocommit=False)
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     nb_changed = 0
     nb_suppress = 0
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     M = context.do_moduleimpl_list(args={ 'moduleimpl_id' : E['moduleimpl_id']})[0]
     existing_decisions = [] # etudids pour lesquels il y a une decision de jury et que la note change
     try:
-        for (etudid,value) in notes:
+        for (etudid,value) in notes:            
             changed = False
             if not NotesDB.has_key(etudid):
                 # nouvelle note
@@ -747,7 +747,7 @@ def _notes_add(context, uid, evaluation_id, notes, comment=None, do_it=True ):
                               'value': value, 'comment' : comment, 'uid' : uid, 
                               'date' : now}
                         quote_dict(aa)
-                        cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s,%(evaluation_id)s,%(value)f,%(comment)s,%(date)s,%(uid)s)', aa )
+                        cursor.execute('insert into notes_notes (etudid,evaluation_id,value,comment,date,uid) values (%(etudid)s,%(evaluation_id)s,%(value)s,%(comment)s,%(date)s,%(uid)s)', aa )
                     changed = True
             else:
                 # il y a deja une note

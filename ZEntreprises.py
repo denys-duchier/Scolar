@@ -68,10 +68,10 @@ class EntreprisesEditor(EditableTable):
     def delete(self, cnx, oid):
         "delete correspondants and contacts, then self"
         # first, delete all correspondants and contacts
-        cursor = cnx.cursor()
-        cursor.execute('delete from entreprise_contact where entreprise_id=%(entreprise_id)d',
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
+        cursor.execute('delete from entreprise_contact where entreprise_id=%(entreprise_id)s',
                        { 'entreprise_id' : oid } )    
-        cursor.execute('delete from entreprise_correspondant where entreprise_id=%(entreprise_id)d',
+        cursor.execute('delete from entreprise_correspondant where entreprise_id=%(entreprise_id)s',
                        { 'entreprise_id' : oid } )
         cnx.commit()
         EditableTable.delete(self, cnx, oid)
@@ -100,7 +100,7 @@ class EntreprisesEditor(EditableTable):
     def list_by_etud(self, cnx, args={},
                      sort_on_contact=False, disable_formatting=False):
         "cherche rentreprise ayant eu contact avec etudiant"
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('select E.*, I.nom as etud_nom, I.prenom as etud_prenom, C.date from entreprises E, entreprise_contact C, identite I where C.entreprise_id = E.entreprise_id and C.etudid = I.etudid and I.nom ~* %(etud_nom)s ORDER BY E.nom',
                        args )
         titles, res = [ x[0] for x in cursor.description ], cursor.dictfetchall()
@@ -413,7 +413,7 @@ class ZEntreprises(ObjectManager,
         if not etudiant:
             return 1, None
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('select etudid, nom, prenom from identite where upper(nom) ~ upper(%(etudiant)s) or etudid=%(etudiant)s',
                        { 'etudiant' : etudiant } )
         r = cursor.fetchall()
@@ -438,7 +438,7 @@ class ZEntreprises(ObjectManager,
         raise NotImplementedError
         # XXXXX fonction non achevee , non testee...
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         vals = dictfilter(args, self.dbfields)
         # DBSelect    
         what=['*']

@@ -45,7 +45,7 @@ Opérations:
  - annuler une modif d'une note
 """
 
-from mx.DateTime import TimeDelta, DateTime
+import datetime
 
 from sco_utils import *
 from notesdb import *
@@ -56,7 +56,7 @@ from intervals import intervalmap
 
 # deux notes (de même uid) sont considérées comme de la même opération si
 # elles sont séparées de moins de 2*tolerance:
-OPERATION_DATE_TOLERANCE = TimeDelta(seconds=0.1)
+OPERATION_DATE_TOLERANCE = datetime.timedelta(seconds=0.1)
 
 
 class NotesOperation(dict):

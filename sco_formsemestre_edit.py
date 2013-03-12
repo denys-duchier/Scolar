@@ -144,7 +144,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
 
     # Liste des ID de semestres
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( "select semestre_id from notes_semestres" )
     semestre_id_list = [ str(x[0]) for x in cursor.fetchall() ]
     semestre_id_labels = []
@@ -846,7 +846,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
         
         context.do_moduleimpl_delete(mod['moduleimpl_id'], formsemestre_id=formsemestre_id)
     # --- Desinscription des etudiants
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     req = "DELETE FROM notes_formsemestre_inscription WHERE formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Suppression des evenements

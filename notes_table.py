@@ -721,7 +721,7 @@ class NotesTable:
         Si la decision n'a pas été prise, la clé etudid n'est pas présente.
         """
         cnx = self.context.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select etudid, code, assidu, compense_formsemestre_id, event_date from scolar_formsemestre_validation where formsemestre_id=%(formsemestre_id)s and ue_id is NULL;",
                        {'formsemestre_id' : self.formsemestre_id} )
         decisions_jury = {}
@@ -774,12 +774,14 @@ class NotesTable:
                     ue_cap['moy_ue'] = moy_ue_cap
                     if type(moy_ue_cap) == FloatType and moy_ue_cap >= self.parcours.NOTES_BARRE_VALID_UE:
                         if not cnx:
-                            cnx = self.context.GetDBConnexion()
+                            cnx = self.context.GetDBConnexion(autocommit=False)
                         sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt_cap, ue_cap['formsemestre_id'], etudid,  ue_cap['ue_id'], ue_cap['code'])
                     else:
                         log('*** valid inconsistency: moy_ue_cap=%s (etudid=%s, ue_id=%s formsemestre_id=%s)' % (moy_ue_cap, etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
                 ue_cap['moy'] = ue_cap['moy_ue'] # backward compat (needs refactoring)
                 self.ue_capitalisees[etudid].append(ue_cap)
+        if cnx:
+            cnx.commit()
     
     def comp_ue_coefs(self, cnx):
         """Les coefficients sont attribués aux modules, pas aux UE.
@@ -814,7 +816,7 @@ class NotesTable:
         (ne compte que les notes en attente dans des évaluation avec coef. non nul).
         """
         cnx = self.context.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select n.* from notes_notes n, notes_evaluation e, notes_moduleimpl m, notes_moduleimpl_inscription i where n.etudid = %(etudid)s and n.value = %(code_attente)s and n.evaluation_id=e.evaluation_id and e.moduleimpl_id=m.moduleimpl_id and m.formsemestre_id=%(formsemestre_id)s and e.coefficient != 0 and m.moduleimpl_id=i.moduleimpl_id and i.etudid=%(etudid)s",
                        {'formsemestre_id' : self.formsemestre_id, 'etudid' : etudid, 'code_attente' : NOTES_ATTENTE} )
         return len(cursor.fetchall()) > 0

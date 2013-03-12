@@ -86,7 +86,7 @@ def abs_notify_send(context, destinations, etudid, msg, nbabs, nbabsjust, formse
     """Actually send the notification by email, and register it in database"""
     cnx = context.GetDBConnexion()
     log('abs_notify: sending notification to %s' % destinations)
-    cursor=cnx.cursor()
+    cursor=cnx.cursor(cursor_factory=ScoDocCursor)
     for email in destinations:
         del msg['To']
         msg['To'] = email
@@ -156,7 +156,7 @@ def etud_nbabs_last_notified(context, etudid, formsemestre_id=None):
     """nbabs lors de la dernière notification envoyée pour cet étudiant dans ce semestre
     ou sans semestre (ce dernier cas est nécessaire pour la transition au nouveau code)"""
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select * from absences_notifications where etudid = %(etudid)s and (formsemestre_id = %(formsemestre_id)s or formsemestre_id is NULL) order by notification_date desc""",
                    vars() )
     res = cursor.dictfetchone()
@@ -168,7 +168,7 @@ def etud_nbabs_last_notified(context, etudid, formsemestre_id=None):
 def user_nbdays_since_last_notif(context, email_addr, etudid):
     """nb days since last notification to this email, or None if no previous notification"""
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select * from absences_notifications where email = %(email_addr)s and etudid=%(etudid)s order by notification_date desc""", {'email_addr' : email_addr, 'etudid' : etudid} )
     res = cursor.dictfetchone()
     if res:

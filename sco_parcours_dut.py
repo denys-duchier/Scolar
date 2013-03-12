@@ -394,7 +394,7 @@ class SituationEtudParcours:
         """Enregistre la decision (instance de DecisionSem)
         Enregistre codes semestre et UE, et autorisations inscription.
         """
-        cnx = self.znotes.GetDBConnexion()
+        cnx = self.znotes.GetDBConnexion(autocommit=False)
         # -- check
         if decision.code_etat == 'ADC':
             fsid = decision.formsemestre_id_utilise_pour_compenser
@@ -419,6 +419,7 @@ class SituationEtudParcours:
                 decision.code_etat, decision.assiduite,
                 decision.formsemestre_id_utilise_pour_compenser)
         logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
+              commit=False,
               msg='formsemestre_id=%s code=%s'%(self.formsemestre_id, decision.code_etat))
         # -- decisions UEs
         formsemestre_validate_ues(self.znotes, self.formsemestre_id, self.etudid,
@@ -435,6 +436,7 @@ class SituationEtudParcours:
                 self.etudid, decision.new_code_prev, assidu=1,
                 formsemestre_id_utilise_pour_compenser=fsid)
             logdb(REQUEST, cnx, method='validate_sem', etudid=self.etudid,
+                  commit=False,
                   msg='formsemestre_id=%s code=%s'%(self.prev['formsemestre_id'],
                                                     decision.new_code_prev))
             # modifs des codes d'UE (pourraient passer de ADM a CMP, meme sans modif des notes)
@@ -446,7 +448,7 @@ class SituationEtudParcours:
             self.znotes._inval_cache(formsemestre_id=self.prev['formsemestre_id']) #> modif decisions jury (sem, UE)
 
         # -- supprime autorisations venant de ce formsemestre        
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         try:
             cursor.execute("""delete from scolar_autorisation_inscription
             where etudid = %(etudid)s and origin_formsemestre_id=%(origin_formsemestre_id)s
@@ -541,7 +543,7 @@ def formsemestre_validate_sem(cnx, formsemestre_id, etudid, code, assidu=True,
     "Ajoute ou change validation semestre"
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid }
     # delete existing
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     try:
         cursor.execute("""delete from scolar_formsemestre_validation
         where etudid = %(etudid)s and formsemestre_id=%(formsemestre_id)s and ue_id is null""", args )    
@@ -570,7 +572,7 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'code' : code,
              'assidu': int(assidu)}
     log('formsemestre_update_validation_sem: %s' % args )
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     to_invalidate = []
 
     # enleve compensations si necessaire
@@ -609,7 +611,7 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
     Les UE des semestres NON ASSIDUS ne sont jamais validées (code AJ).
     """
     valid_semestre = CODES_SEM_VALIDES.get(code_etat_sem, False)
-    cnx = znotes.GetDBConnexion()
+    cnx = znotes.GetDBConnexion(autocommit=False)
     nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_ues, get_etud_ue_status
     ue_ids = [ x['ue_id'] for x in nt.get_ues(etudid=etudid, filter_sport=True) ]
     for ue_id in ue_ids:
@@ -630,7 +632,8 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
         
         if REQUEST:
             logdb(REQUEST, cnx, method='validate_ue', etudid=etudid,
-                  msg='ue_id=%s code=%s'%(ue_id, code_ue))
+                  msg='ue_id=%s code=%s'%(ue_id, code_ue), commit=False)
+    cnx.commit()
 
 def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None, semestre_id=None):
     "Ajoute ou change validation UE"
@@ -642,7 +645,7 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
         args['event_date'] = date
         
     # delete existing
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     try:
         cond =  "etudid = %(etudid)s and ue_id=%(ue_id)s"
         if formsemestre_id:
@@ -665,7 +668,7 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
 
 def etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id):
     """Vrai si l'étudiant est inscrit a au moins un module de cette UE dans ce semestre"""
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select mi.* from notes_moduleimpl mi, notes_modules mo, notes_ue ue, notes_moduleimpl_inscription i
     where i.etudid = %(etudid)s and i.moduleimpl_id=mi.moduleimpl_id
     and mi.formsemestre_id = %(formsemestre_id)s
@@ -709,7 +712,7 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
                   } ]
     """
     cnx = znotes.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select SFV.*, ue.ue_code from notes_ue ue, notes_formations nf, notes_formations nf2,
     scolar_formsemestre_validation SFV, notes_formsemestre sem
 
@@ -743,7 +746,7 @@ def list_formsemestre_utilisateurs_uecap( znotes, formsemestre_id ):
     cnx = znotes.GetDBConnexion()
     sem = znotes.do_formsemestre_list({'formsemestre_id' : formsemestre_id})[0]
     F = znotes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select sem.formsemestre_id
     from notes_formsemestre sem, notes_formations F
     where sem.formation_id = F.formation_id

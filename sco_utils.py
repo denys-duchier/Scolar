@@ -48,7 +48,7 @@ from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
 from sco_permissions import *
 from TrivialFormulator import TrivialFormulator, TF, tf_error_message
-
+from notes_log import log
 
 # ----- CALCUL ET PRESENTATION DES NOTES
 NOTES_PRECISION=1e-4 # evite eventuelles erreurs d'arrondis
@@ -579,3 +579,14 @@ def icontag(name, file_format='png', **attrs):
         attrs['border'] = 0
     s = ' '.join([ '%s="%s"' % (k, attrs[k]) for k in attrs ])
     return '<img %s src="/ScoDoc/static/icons/%s.%s" />' % (s, name, file_format)
+
+
+def sort_dates(L, reverse=False):
+    """Return sorted list of dates, allowing None items (they are put at the beginning)"""
+    mindate = datetime.datetime(datetime.MINYEAR, 1, 1)
+    try:
+        return sorted(L, key=lambda x: x or mindate, reverse=reverse)
+    except:
+        # Helps debugging 
+        log('sort_dates( %s )' % L )
+        raise

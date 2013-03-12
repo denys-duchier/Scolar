@@ -136,9 +136,10 @@ class ZScoUsers(ObjectManager,
         # not published
         try:
             # a database adaptor called UsersDB must exist
-            cnx = self.UsersDB().db 
+            self.UsersDB().encoding = 'LATIN1'
+            cnx = self.UsersDB().getconn(init=False)
         except:
-            # backward compat: try to use same DB
+            # backward compat: try to use same DB (usually will not work !!!)
             log('warning: ZScoUsers using Sco DB connexion')
             cnx = self.GetDBConnexion() 
         cnx.commit() # sync !
@@ -354,7 +355,7 @@ class ZScoUsers(ObjectManager,
         assert len(user) == 1, 'database inconsistency: len(r)=%d'%len(r)
         # should not occur, already tested in _can_handle_passwd
         cnx = self.GetUsersDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('update sco_users set date_modif_passwd=now(), passwd_temp=0 where user_name=%(user_name)s',
                        { 'user_name' : user_name } )
         cnx.commit()
@@ -737,7 +738,7 @@ class ZScoUsers(ObjectManager,
 
         # Des noms/prénoms semblables existent ?            
         cnx = self.GetUsersDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('select * from sco_users where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;', { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
         res = cursor.dictfetchall()
         if edit:
@@ -1028,7 +1029,7 @@ Il devra ensuite se connecter et le changer.
         self.do_change_password(user_name, password)
         # Flag it as temporary:
         cnx = self.GetUsersDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         ui = { 'user_name' : user_name }
         cursor.execute("update sco_users set passwd_temp=1 where user_name='%(user_name)s'" % ui)
 

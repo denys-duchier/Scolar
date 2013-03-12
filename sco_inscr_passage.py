@@ -118,7 +118,7 @@ def list_inscrits_date(context, sem):
     SAUF sem à la date de début de sem.
     """    
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     sem['date_debut_iso'] = DateDMYtoISO(sem['date_debut'])
     cursor.execute("""select I.etudid
                       from notes_formsemestre_inscription I, notes_formsemestre S

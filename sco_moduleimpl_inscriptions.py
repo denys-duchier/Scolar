@@ -373,7 +373,7 @@ def do_etud_desinscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None)
     """Desincrit l'etudiant de tous les modules de cette UE dans ce semestre.
     """
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( """DELETE FROM notes_moduleimpl_inscription 
     WHERE moduleimpl_inscription_id IN (
       SELECT i.moduleimpl_inscription_id FROM
@@ -403,7 +403,7 @@ def do_etud_inscrit_ue(context, etudid, formsemestre_id, ue_id, REQUEST=None):
         raise ScoValueError("%s n'est pas inscrit au semestre !" % etudid)
     
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( """SELECT mi.moduleimpl_id 
       FROM notes_moduleimpl mi, notes_modules mod, notes_formsemestre sem
       WHERE sem.formsemestre_id = %(formsemestre_id)s

@@ -165,7 +165,7 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
     """legacy code: used by group_list and trombino
     """
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     group = get_group(context, group_id)
     sem = context.Notes.get_formsemestre(group['formsemestre_id'])
     other_partitions = [ p for p in get_partitions_list(context, sem['formsemestre_id'] ) if p['partition_id'] != group['partition_id'] and p['partition_name'] ]
@@ -363,7 +363,7 @@ def set_group(context, etudid, group_id):
     Warning: don't check if group_id exists (the caller should check).
     """
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     args = { 'etudid' : etudid, 'group_id' : group_id }
     # déjà inscrit ?
     r = SimpleDictFetch(context, "SELECT * FROM group_membership gm WHERE etudid=%(etudid)s and group_id=%(group_id)s", args, cursor=cursor)
@@ -442,7 +442,7 @@ def setGroups(context, partition_id,
                 change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST=REQUEST)
         # Retire les anciens membres:
         cnx = context.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for etudid in old_members_set:            
             log('removing %s from group %s' % (etudid,group_id))
             SimpleQuery(context, "DELETE FROM group_membership WHERE etudid=%(etudid)s and group_id=%(group_id)s", { 'etudid' : etudid, 'group_id' : group_id }, cursor=cursor)
@@ -929,7 +929,7 @@ def do_evaluation_listeetuds_groups(context, evaluation_id, groups=None,
         req += " and Isem.etat='I'"
     req += r
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( req, { 'evaluation_id' : evaluation_id } )
     #log('listeetuds_groups: getallstudents=%s  groups=%s' % (getallstudents,groups))
     #log('req=%s' % (req % { 'evaluation_id' : "'"+evaluation_id+"'" }))
@@ -948,7 +948,7 @@ def do_evaluation_listegroupes(context, evaluation_id, include_default=False):
     else:
         c =  ' AND p.partition_name is not NULL'
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()    
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
     cursor.execute( "SELECT DISTINCT gd.group_id FROM group_descr gd, group_membership gm, partition p, notes_moduleimpl m, notes_evaluation e WHERE gm.group_id = gd.group_id and gd.partition_id = p.partition_id and p.formsemestre_id = m.formsemestre_id and m.moduleimpl_id = e.moduleimpl_id and e.evaluation_id = %(evaluation_id)s" + c, { 'evaluation_id' : evaluation_id } )
     res = cursor.fetchall()
     group_ids = [ x[0] for x in res ]
@@ -956,7 +956,7 @@ def do_evaluation_listegroupes(context, evaluation_id, include_default=False):
 
 def listgroups(context, group_ids):
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     groups = []
     for group_id in group_ids:
         cursor.execute( "SELECT gd.*, p.* FROM group_descr gd, partition p WHERE p.partition_id = gd.partition_id AND gd.group_id = %(group_id)s",

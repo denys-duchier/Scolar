@@ -29,13 +29,14 @@
 """
 
 import sys
+import traceback
 import time, string, glob, re
 import urllib, urllib2, cgi, xml
 try: from cStringIO import StringIO
 except: from StringIO import StringIO
 from zipfile import ZipFile
-
-import psycopg
+import thread
+import psycopg2
 
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
@@ -63,6 +64,7 @@ file_path = Globals.package_home(globals())
 log( 'ZScolar home=%s' % file_path )
 
 from sco_utils import *
+import notesdb
 from notesdb import *
 from scolog import logdb
 
@@ -91,10 +93,7 @@ import sco_groups_edit
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
 
-try:
-    import Products.ZPsycopgDA.DA as ZopeDA
-except:
-    import ZPsycopgDA.DA as ZopeDA # interp.py
+# import essai_cas
 
 # ---------------
 
@@ -111,7 +110,7 @@ class ZScolar(ObjectManager,
     meta_type = 'ZScolar'
     security=ClassSecurityInfo()
     file_path = Globals.package_home(globals())
-    
+
     # This is the list of the methods associated to 'tabs' in the ZMI
     # Be aware that The first in the list is the one shown by default, so if
     # the 'View' tab is the first, you will never see your tabs by cliquing
@@ -128,14 +127,14 @@ class ZScolar(ObjectManager,
         )
         + Item.manage_options            # add the 'Undo' & 'Owner' tab 
         + RoleManager.manage_options     # add the 'Security' tab
-        )
-
+        )    
+    
     # no permissions, only called from python
     def __init__(self, id, title, db_cnx_string=None):
-	"initialise a new instance of ZScolar"
+        "initialise a new instance of ZScolar"
         log('*** creating ZScolar instance')
         self.id = id
-	self.title = title
+        self.title = title
         self._db_cnx_string = db_cnx_string        
         self._cnx = None
         # --- add editable DTML documents:
@@ -144,19 +143,19 @@ class ZScolar(ObjectManager,
         #                    'sidebar_dept')
         
         # --- add DB connector
-        id = 'DB'
-        da = ZopeDA.Connection(
-            id, 'DB connector', db_cnx_string, False,
-            check=1, tilevel=2, encoding='iso8859-15')
-        self._setObject(id, da)
+        #id = 'DB'
+        #da = ZopeDA.Connection(
+        #    id, 'DB connector', db_cnx_string, False,
+        #    check=1, tilevel=2, encoding='iso8859-15')
+        #self._setObject(id, da)
         # --- add Scousers instance
         id = 'Users'
         obj = ZScoUsers.ZScoUsers( id, 'Gestion utilisateurs zope')
-	self._setObject(id, obj)        
+        self._setObject(id, obj)        
         # --- add Notes instance
         id = 'Notes'
         obj = ZNotes.ZNotes( id, 'Gestion Notes')
-	self._setObject(id, obj)
+        self._setObject(id, obj)
         # --- add Absences instance
         id = 'Absences'
         obj = ZAbsences.ZAbsences(id, 'Gestion absences')
@@ -165,7 +164,7 @@ class ZScolar(ObjectManager,
         id = 'Entreprises'
         obj = ZEntreprises.ZEntreprises(id, 'Suivi entreprises')
         self._setObject(id, obj)
-
+        
         #
         self.manage_addProperty('roles_initialized', '0', 'string')
     
@@ -266,7 +265,7 @@ class ZScolar(ObjectManager,
         raise ValueError('essai exception')
         #raise ScoValueError('essai exception !', dest_url='totoro', REQUEST=REQUEST)
 
-        #cursor = cnx.cursor()
+        #cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         #cursor.execute("select * from notes_formations")
         #b += str(cursor.fetchall())
         #b = self.Notes.gloups()
@@ -327,32 +326,23 @@ class ZScolar(ObjectManager,
     #    GESTION DE LA BD
     #
     # --------------------------------------------------------------------
-    security.declareProtected('Change DTML Documents', 'GetDBConnexion')    
+    security.declareProtected('Change DTML Documents', 'GetDBConnexionString')    
     def GetDBConnexionString(self):
         # should not be published (but used from contained classes via acquisition)
         return self._db_cnx_string
 
     security.declareProtected('Change DTML Documents', 'GetDBConnexion')
-    def GetDBConnexion(self,new=False):
-        # should not be published (but used from contained classes via acquisition)
-        if not self._db_cnx_string:
-            raise ScolarError('invalid db connexion string')
-        cnx = self.DB().db # a database adaptor called DB must exists        
-        cnx.commit() # sync !
-        return cnx
-#         if new:
-#             log('GetDBConnexion: requested new connexion')
-#             return DB.connect( self._db_cnx_string )        
-#         if self._cnx:
-#             self._cnx.commit() # terminate transaction
-#             return _cnx
-#         log('GetDBConnexion: opening new db connexion')
-#         self._cnx = DB.connect( self._db_cnx_string )
-#         return self._cnx
+    GetDBConnexion = notesdb.GetDBConnexion
+    #    def GetDBConnexion(self, autocommit=True):
+    #    # should not be published (but used from contained classes via acquisition)
+    #    
+    #    if not getattr(self, '_zscolar_initialized', False):
+    #        self.initialize()
+    #    cnx = self._pg_pool.getconn(key=(thread.get_ident(),autocommit))
+    #    cnx.autocommit = autocommit
+    #    # self.DB().encoding = 'LATIN1' # necessaire car anciennes installs en iso8859-15
+    #    return cnx
 
-#    def g(self):
-#        "debug"
-#        return '<html><body>voila:' + str(self.DB) + '<br>' + str(self.DB()) + '<br>' + str(dir(self.DB().db)) + '</body></html>'
 
     security.declareProtected(ScoView, "TrivialFormulator")
     def TrivialFormulator(self, form_url, values, formdescription=(), initvalues={},
@@ -437,7 +427,10 @@ class ZScolar(ObjectManager,
         "Check date and convert to ISO string"
         return DateDMYtoISO(dmy)
 
-
+    # XXX essai XXX
+    # security.declareProtected(ScoView, 'essai_cas')
+    # essai_cas = essai_cas.essai_cas
+    
     # --------------------------------------------------------------------
     #
     #    PREFERENCES
@@ -553,7 +546,7 @@ class ZScolar(ObjectManager,
     def listScoLog(self,etudid):
         "liste des operations effectuees sur cet etudiant"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select * from scolog where etudid=%(etudid)s ORDER BY DATE DESC",
                        {'etudid':etudid})
         return cursor.dictfetchall()
@@ -1338,7 +1331,7 @@ class ZScolar(ObjectManager,
         """chaine decrivant la situation actuelle de l'etudiant
         """
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select I.formsemestre_id, I.etat from notes_formsemestre_inscription I,  notes_formsemestre S where etudid=%(etudid)s and S.formsemestre_id = I.formsemestre_id and date_debut < now() and date_fin > now() order by S.date_debut desc;",                       
                        {'etudid' : etudid} )
         r = cursor.dictfetchone()
@@ -1771,7 +1764,7 @@ function tweakmenu( gname ) {
         cnx = self.GetDBConnexion()
         self.Notes.do_formsemestre_inscription_edit(args=ins, formsemestre_id=formsemestre_id)
         logdb(REQUEST,cnx,method='cancelDem', etudid=etudid)
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute( "delete from scolar_events where etudid=%(etudid)s and formsemestre_id=%(formsemestre_id)s and event_type='DEMISSION'",
                         { 'etudid':etudid, 'formsemestre_id':formsemestre_id})
         cnx.commit()
@@ -2031,7 +2024,7 @@ function tweakmenu( gname ) {
                    'absences', 
                    'billet_absence',
                    'identite' ]
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for table in tables:
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
                             etud )            
@@ -2455,8 +2448,8 @@ def manage_addZScolarForm(context, DeptId, REQUEST=None):
             db_cnx_string = 'user=%s dbname=%s port=%s' % (db_user, db_name, SCO_DEFAULT_SQL_PORT)
         # vérifie que la bd existe et possede le meme nom de dept.
         try:
-            cnx = psycopg.connect(db_cnx_string)        
-            cursor = cnx.cursor()
+            cnx = psycopg2.connect(db_cnx_string)        
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             cursor.execute( "select * from sco_prefs where name='DeptName'" )
         except:
             return _simple_error_page(context,

@@ -31,6 +31,7 @@ from sets import Set
 
 from notes_log import log
 from sco_utils import *
+from notesdb import *
 import sco_news
 import sco_groups
 import ZAbsences
@@ -227,7 +228,7 @@ def do_evaluation_list_in_sem(context, formsemestre_id):
     """
     req = "select evaluation_id from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()    
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     res = cursor.fetchall()
     evaluation_ids = [ x[0] for x in res ]
@@ -241,7 +242,7 @@ def formsemestre_evaluations_list(context, formsemestre_id):
     """Liste des evals pour ce semestre"""
     req = "select E.* from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()    
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     return cursor.dictfetchall()
 
@@ -263,7 +264,9 @@ def _eval_etat(evals):
         else:
             nb_evals_en_cours += 1
         dates.append(e['last_modif'])
-    dates.sort()
+
+    dates = sort_dates(dates)
+    
     if len(dates):
         last_modif = dates[-1] # date de derniere modif d'une note dans un module
     else:

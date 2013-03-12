@@ -685,7 +685,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, get_ues, get_etud_decision_ues, get_etud_ue_status
     etudids = nt.get_etudids()
     modifs = [] # liste d'étudiants modifiés
-    cnx = context.GetDBConnexion()
+    cnx = context.GetDBConnexion(autocommit=False)
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
@@ -720,6 +720,7 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
                 modifs.append(msg)
                 log(msg)
                 sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
+    cnx.commit()
     #
     H = [context.sco_header(REQUEST, page_title='Réparation des codes UE'),
          sco_formsemestre_status.formsemestre_status_head(context, REQUEST=REQUEST,
@@ -739,8 +740,8 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
     """Suppression des decisions de jury pour un etudiant.
     """
     log('formsemestre_validation_suppress_etud( %s, %s)' % (formsemestre_id, etudid))
-    cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cnx = context.GetDBConnexion(autocommit=False)
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     args = { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid }
     try:
         # -- Validation du semestre et des UEs
@@ -836,15 +837,16 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
                                          REQUEST=None):
     """Enregistre validation d'UE"""
     sem = context.get_formsemestre(formsemestre_id)
-    cnx = context.GetDBConnexion()
+    cnx = context.GetDBConnexion(autocommit=False)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id ) #> get_etud_ue_status
 
     sco_parcours_dut.do_formsemestre_validate_ue(
         cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date, semestre_id=semestre_id)
 
     logdb(REQUEST, cnx, method='formsemestre_validate_previous_ue',
-          etudid=etudid, msg='Validation UE %s' % ue_id)
+          etudid=etudid, msg='Validation UE %s' % ue_id, commit=False)
     _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])
+    cnx.commit()
 
 def _invalidate_etud_formation_caches(context, etudid, formation_id):
     "Invalide tous les semestres de cette formation où l'etudiant est inscrit..."
@@ -888,7 +890,7 @@ def etud_ue_suppress_validation(context, etudid, formsemestre_id, ue_id, REQUEST
     """Suppress a validation (ue_id, etudid) and redirect to formsemestre"""
     log('etud_ue_suppress_validation( %s, %s, %s)' % (etudid, formsemestre_id, ue_id))
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("DELETE FROM scolar_formsemestre_validation WHERE etudid=%(etudid)s and ue_id=%(ue_id)s", 
                    { 'etudid' : etudid, 'ue_id' : ue_id } )
     

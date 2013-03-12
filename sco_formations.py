@@ -31,7 +31,7 @@
 from sco_utils import *
 import xml.dom.minidom
 
-from notesdb import quote_dict
+from notesdb import *
 from notes_log import log
 
 def formation_export(context, formation_id, export_ids=False, format=None, REQUEST=None):
@@ -113,7 +113,7 @@ def formation_import_xml(context, REQUEST, doc, encoding=SCO_ENCODING):
     log('F_quoted=%s' % F_quoted )
     # find new version number
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     log('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s' % F_quoted)
     cursor.execute('select max(version) from notes_formations where acronyme=%(acronyme)s and titre=%(titre)s', F_quoted)
     res = cursor.fetchall()

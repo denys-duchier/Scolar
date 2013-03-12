@@ -67,6 +67,9 @@ chmod -R g+w "${SCODOC_DIR}"/static/photos
 ./install_simplejson.sh
 export PYTHON_EGG_CACHE=/tmp/.egg_cache
 
+# check and install psycopg2
+./install_psycopg2.sh 
+
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
 "$SCODOC_DIR"/config/postupgrade.py

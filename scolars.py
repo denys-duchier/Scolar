@@ -190,7 +190,7 @@ def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     if FORBIDDEN_CHARS_EXP.search(nom) or FORBIDDEN_CHARS_EXP.search(prenom):
         return False, 0
     # Now count homonyms:
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     req = 'select etudid from identite where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s'
     if etudid:
         req += '  and etudid <> %(etudid)s'

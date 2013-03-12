@@ -159,8 +159,8 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     et les inscrit dans le semestre indiqué (et à TOUS ses modules)
     """
     log('scolars_import_excel_file: formsemestre_id=%s'%formsemestre_id)
-    cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cnx = context.GetDBConnexion(autocommit=False)
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     annee_courante = time.localtime()[0]
     always_require_ine = context.get_preference('always_require_ine') 
     exceldata = datafile.read()
@@ -299,7 +299,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
         log('scolars_import_excel_file: aborting transaction !')
         # Nota: db transaction is sometimes partly commited...
         # here we try to remove all created students
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for etudid in created_etudids:
             log('scolars_import_excel_file: deleting etudid=%s'%etudid)
             cursor.execute('delete from notes_moduleimpl_inscription where etudid=%(etudid)s', { 'etudid':etudid })
@@ -384,7 +384,7 @@ def scolars_import_admission( datafile, context, REQUEST,
     """
     log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     annee_courante = time.localtime()[0]
     exceldata = datafile.read()
     if not exceldata:

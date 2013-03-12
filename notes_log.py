@@ -2,7 +2,6 @@
 # -*- coding: iso8859-15 -*-
 
 import pdb,os,sys,time,re,inspect
-from sco_utils import SCO_ENCODING
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from email.Header import Header
@@ -84,13 +83,14 @@ def retreive_dept():
 
 # Alarms by email:
 def sendAlarm( context, subj, txt ):
+    import sco_utils
     msg = MIMEMultipart()
-    subj = Header( subj,  SCO_ENCODING )
+    subj = Header( subj,  sco_utils.SCO_ENCODING )
     msg['Subject'] = subj
     msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = ALARM_DESTINATION
     msg.epilogue = ''
-    txt = MIMEText( txt, 'plain', SCO_ENCODING )
+    txt = MIMEText( txt, 'plain', sco_utils.SCO_ENCODING )
     msg.attach(txt)
     context.sendEmail(msg)
 

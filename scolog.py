@@ -28,7 +28,7 @@
 
 import pdb,os,sys,psycopg
 from sco_exceptions import *
-from notesdb import quote_dict
+from notesdb import *
 from notes_log import retreive_request
 DB = psycopg
 
@@ -47,7 +47,7 @@ def logdb(REQUEST=None, cnx=None, method=None, etudid=None, msg=None, commit=Tru
                  'remote_host' : None }
     args.update( { 'method' : method, 'etudid' : etudid, 'msg' : msg })
     quote_dict(args)
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute('insert into scolog (authenticated_user,remote_addr,remote_host,method,etudid,msg) values (%(authenticated_user)s,%(remote_addr)s,%(remote_host)s,%(method)s,%(etudid)s,%(msg)s)', args )
     if commit:
         cnx.commit()
@@ -55,6 +55,6 @@ def logdb(REQUEST=None, cnx=None, method=None, etudid=None, msg=None, commit=Tru
 def loglist(cnx, method=None, authenticated_user=None):
     """List of events logged for these method and user
     """
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute('select * from scolog where method=%(method)s and authenticated_user=%(authenticated_user)s', { 'method' : method, 'authenticated_user' : authenticated_user})
     return cursor.dictfetchall()

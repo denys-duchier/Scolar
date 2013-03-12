@@ -30,7 +30,7 @@
 
 
 from sco_utils import *
-from notes_log import log
+
 import sco_portal_apogee
 import sco_inscr_passage
 import scolars
@@ -387,7 +387,7 @@ def list_all(context, etudsapo_set):
     # si tres grosse base, il serait mieux de faire une requete
     # d'interrogation par etudiant.
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( 'select ' + EKEY_SCO + ', etudid from identite' )
     key2etudid = dict( [ (x[0], x[1]) for x in cursor.fetchall() ] )
     all_set = set(key2etudid.keys())
@@ -496,7 +496,7 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
         log('do_import_etuds_from_portal: aborting transaction !')
         # Nota: db transaction is sometimes partly commited...
         # here we try to remove all created students
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for etudid in created_etudids:
             log('do_import_etuds_from_portal: deleting etudid=%s'%etudid)
             cursor.execute('delete from notes_moduleimpl_inscription where etudid=%(etudid)s', { 'etudid':etudid })

@@ -357,7 +357,7 @@ for dept in get_depts():
         r = cursor.fetchall()
         if not r:
             log("adding semestre_id %s" % i)
-            cursor.execute("INSERT INTO notes_semestres (semestre_id) VALUES (%(i)d)", { 'i' : i } )
+            cursor.execute("INSERT INTO notes_semestres (semestre_id) VALUES (%(i)s)", { 'i' : i } )
     # ECTS associes aux UE:
     check_field(cnx, 'notes_ue', 'ects',
                 ['alter table notes_ue add column ects float DEFAULT NULL',

@@ -602,7 +602,7 @@ class ZNotes(ObjectManager,
     def do_matiere_formation_id(self, matiere_id):
         "get formation_id from matiere"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('select UE.formation_id from notes_matieres M, notes_ue UE where M.matiere_id = %(matiere_id)s and M.ue_id = UE.ue_id',
                        { 'matiere_id' : matiere_id } )
         res = cursor.fetchall()
@@ -1033,7 +1033,7 @@ class ZNotes(ObjectManager,
         "delete moduleimpl (desinscrit tous les etudiants)"
         cnx = self.GetDBConnexion()
         # --- desinscription des etudiants
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         req = "DELETE FROM notes_moduleimpl_inscription WHERE moduleimpl_id=%(moduleimpl_id)s"
         cursor.execute( req, { 'moduleimpl_id' : oid } )
         # --- suppression des enseignants
@@ -1433,7 +1433,7 @@ class ZNotes(ObjectManager,
                     sem_ens[ensd['ens_id']]['mods'].append(mod)
         # compte les absences ajoutées par chacun dans tout le semestre
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for ens in sem_ens:
             cursor.execute("select * from scolog L, notes_formsemestre_inscription I where method='AddAbsence' and authenticated_user=%(authenticated_user)s and L.etudid = I.etudid and  I.formsemestre_id=%(formsemestre_id)s and date > %(date_debut)s and date < %(date_fin)s", { 'authenticated_user' : ens, 'formsemestre_id' : formsemestre_id, 'date_debut' : DateDMYtoISO(sem['date_debut']), 'date_fin' : DateDMYtoISO(sem['date_fin']) })
             
@@ -1648,7 +1648,7 @@ class ZNotes(ObjectManager,
         insem = insem[0]
         # -- desinscription de tous les modules
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute( "select moduleimpl_inscription_id from notes_moduleimpl_inscription Im, notes_moduleimpl M  where Im.etudid=%(etudid)s and Im.moduleimpl_id = M.moduleimpl_id and M.formsemestre_id = %(formsemestre_id)s",
                         { 'etudid' : etudid, 'formsemestre_id' : formsemestre_id } )
         res = cursor.fetchall()
@@ -1703,7 +1703,7 @@ class ZNotes(ObjectManager,
         "retourne liste des etudids inscrits a ce module"
         req = "select distinct Im.etudid from notes_moduleimpl_inscription Im, notes_formsemestre_inscription Isem, notes_moduleimpl M where Isem.etudid=Im.etudid and Im.moduleimpl_id=M.moduleimpl_id and M.moduleimpl_id = %(moduleimpl_id)s"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()    
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
         cursor.execute( req, { 'moduleimpl_id' : moduleimpl_id } )
         res = cursor.fetchall()
         return [ x[0] for x in res ]
@@ -1713,7 +1713,7 @@ class ZNotes(ObjectManager,
                                             moduleimpl_id,formsemestre_id):
         "inscrit tous les etudiants inscrit au semestre a ce module"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         req = """INSERT INTO notes_moduleimpl_inscription
                              (moduleimpl_id, etudid)
                     SELECT %(moduleimpl_id)s, I.etudid
@@ -1740,7 +1740,7 @@ class ZNotes(ObjectManager,
         # Desinscriptions
         if reset:
             cnx = self.GetDBConnexion()
-            cursor = cnx.cursor()
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             cursor.execute( "delete from notes_moduleimpl_inscription where moduleimpl_id = %(moduleimpl_id)s", { 'moduleimpl_id' : moduleimpl_id })
         # Inscriptions au module:
         inmod_set = Set( [ x['etudid'] for x in self.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : moduleimpl_id } ) ])
@@ -2270,7 +2270,7 @@ class ZNotes(ObjectManager,
             if r != None:
                 return r
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select * from " + table + " where evaluation_id=%(evaluation_id)s",
                        { 'evaluation_id' : evaluation_id } )
         res = cursor.dictfetchall()

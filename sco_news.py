@@ -96,7 +96,7 @@ def scolar_news_summary(context, n=5):
     """
     # XXX mauvais algo: oblige a extraire toutes les news pour faire le resume
     cnx = context.GetDBConnexion()
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute( 'select * from scolar_news order by date asc' )
     selected_news = {} # (type,object) : news dict
     for r in resultset(cursor):

@@ -336,7 +336,7 @@ class ZAbsences(ObjectManager,
         estjust = _toboolean(estjust)
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin,description, moduleimpl_id) values (%(etudid)s, %(jour)s, TRUE, %(estjust)s, %(matin)s, %(description)s, %(moduleimpl_id)s )', vars())
         logdb(REQUEST, cnx, 'AddAbsence', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s,ESTJUST=%(estjust)s,description=%(description)s,moduleimpl_id=%(moduleimpl_id)s'%vars())
@@ -351,7 +351,7 @@ class ZAbsences(ObjectManager,
             raise ScoValueError('date justificatif trop loin dans le futur !')
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('insert into absences (etudid,jour,estabs,estjust,matin, description) values (%(etudid)s,%(jour)s, FALSE, TRUE, %(matin)s, %(description)s )', vars() )
         logdb(REQUEST, cnx, 'AddJustif', etudid=etudid,
               msg='JOUR=%(jour)s,MATIN=%(matin)s'%vars())
@@ -365,7 +365,7 @@ class ZAbsences(ObjectManager,
         # unpublished
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         req = 'delete from absences where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s and estabs'
         if moduleimpl_id:
             req += ' and moduleimpl_id=%(moduleimpl_id)s'
@@ -380,7 +380,7 @@ class ZAbsences(ObjectManager,
         # unpublished
         matin = _toboolean(matin)
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('delete from absences where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s and ESTJUST AND NOT ESTABS', vars() )
         cursor.execute('update absences set estjust=false where jour=%(jour)s and matin=%(matin)s and etudid=%(etudid)s', vars() )
         logdb(REQUEST, cnx, 'AnnuleJustif', etudid=etudid,
@@ -396,7 +396,7 @@ class ZAbsences(ObjectManager,
     #     """
     #     # unpublished
     #     cnx = self.GetDBConnexion()
-    #     cursor = cnx.cursor()
+    #     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     #     # supr les absences non justifiees
     #     cursor.execute("delete from absences where etudid=%(etudid)s and (not estjust) and moduleimpl_id=(moduleimpl_id)s and jour BETWEEN %(datedebut)s AND %(datefin)s",
     #                    vars() )
@@ -430,7 +430,7 @@ class ZAbsences(ObjectManager,
                 self._AnnuleAbsence(etudid, jour, matin, moduleimpl_id, REQUEST)
             return
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         # supr les absences non justifiees
         for date in dates:
             cursor.execute(
@@ -467,7 +467,7 @@ class ZAbsences(ObjectManager,
         else:
             modul = ''
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("""SELECT COUNT(*) AS NbAbs FROM (
     SELECT DISTINCT A.JOUR, A.MATIN
     FROM ABSENCES A
@@ -491,7 +491,7 @@ class ZAbsences(ObjectManager,
         else:
             modul = ''
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("""SELECT COUNT(*) AS NbAbsJust FROM (
   SELECT DISTINCT A.JOUR, A.MATIN
   FROM ABSENCES A, ABSENCES B
@@ -509,7 +509,7 @@ class ZAbsences(ObjectManager,
     def _ListeAbsDate(self, etudid, beg_date, end_date):
         # Liste des absences et justifs entre deux dates
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("""SELECT jour, matin, estabs, estjust, description FROM ABSENCES A 
      WHERE A.ETUDID = %(etudid)s
      AND A.jour >= %(beg_date)s 
@@ -550,7 +550,7 @@ class ZAbsences(ObjectManager,
     def ListeAbsJust(self, etudid, datedebut):
         "Liste des absences justifiees (par ordre chronologique)"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("""SELECT DISTINCT A.ETUDID, A.JOUR, A.MATIN FROM ABSENCES A, ABSENCES B
  WHERE A.ETUDID = %(etudid)s
  AND A.ETUDID = B.ETUDID 
@@ -567,7 +567,7 @@ class ZAbsences(ObjectManager,
     def ListeAbsNonJust(self, etudid, datedebut):
         "Liste des absences NON justifiees (par ordre chronologique)"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("""SELECT ETUDID, JOUR, MATIN FROM ABSENCES A 
     WHERE A.ETUDID = %(etudid)s
     AND A.estabs 
@@ -589,7 +589,7 @@ class ZAbsences(ObjectManager,
         Si only_no_abs: seulement les justificatifs correspondant aux jours sans absences relevées.
         """
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         req = """SELECT DISTINCT ETUDID, JOUR, MATIN FROM ABSENCES A
  WHERE A.ETUDID = %(etudid)s
  AND A.ESTJUST
@@ -613,9 +613,9 @@ class ZAbsences(ObjectManager,
         "Description associee a l'absence"
         if not cursor:
             cnx = self.GetDBConnexion()
-            cursor = cnx.cursor()
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         a = a.copy()
-        a['jour'] = a['jour'].date
+        # a['jour'] = a['jour'].date()
         if a['matin']: # devrait etre booleen... :-(
             a['matin'] = True
         else:
@@ -634,9 +634,7 @@ class ZAbsences(ObjectManager,
                     M = Mlist[0]
                     module += '%s ' % M['module']['code']
 
-	    # retiré par D.SOUDIERE (expérimental)	
-        #if desc and module:
-	if desc:
+        if desc:
             return '(%s) %s' % (desc, module)
             return desc
         if module:
@@ -650,7 +648,7 @@ class ZAbsences(ObjectManager,
         is_just: idem
         """
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         req = """SELECT DISTINCT etudid, jour, matin FROM ABSENCES A 
     WHERE A.jour = %(date)s
     """
@@ -673,7 +671,7 @@ class ZAbsences(ObjectManager,
     def ListeAbsNonJustJour(self, date, am=True, pm=True):
         "Liste des absences non justifiees ce jour"
         cnx = self.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         reqa = ''
         if not am:
             reqa += " AND NOT matin "
@@ -1154,7 +1152,7 @@ class ZAbsences(ObjectManager,
         # examens ces jours là ?
         if with_evals:
             cnx = self.GetDBConnexion()
-            cursor = cnx.cursor()
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             for a in absnonjust + absjust:
                 cursor.execute("""select eval.*
                 from notes_evaluation eval, notes_moduleimpl_inscription mi, notes_moduleimpl m
@@ -1213,7 +1211,7 @@ class ZAbsences(ObjectManager,
                 if with_evals:
                     a['exams'] = descr_exams(a)
                 a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
-                a['matin_o'] = a['matin']
+                a['matin_o'] = int(a['matin'])
                 a['matin'] = matin(a['matin'])
 		index=a['description'].find(')')
 		if index != -1:

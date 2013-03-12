@@ -2,7 +2,9 @@
 # -*- coding: iso8859-15 -*-
 
 import pdb, os, sys, string
-import psycopg
+import traceback
+import psycopg2
+import thread
 from notes_log import log
 from sco_exceptions import *
 from types import *
@@ -24,12 +26,41 @@ def unquote(s):
     # XX voir aussi sco_utils.unescape_html
     return s.replace('&amp;', '&')
 
-DB = psycopg
+# Ramene une connexion a la base de donnees scolarite
+# pour l'instance donnee par context
+# La connexion est unique (réutilisée) pour chaque thread
+# et est par défaut en autocommit
+_pools = {}
+def GetDBConnexion(context, autocommit=True):
+    pool = _pools.get( context._db_cnx_string, None)
+    if not pool:
+        pool = psycopg2.pool.ThreadedConnectionPool(2, 8, dsn=context._db_cnx_string )
+        _pools[context._db_cnx_string] = pool
+        log('GetDBConnexion: created pool for "%s"' % context._db_cnx_string)
+    cnx = pool.getconn(key=(thread.get_ident(),autocommit))
+    #log('GetDBConnexion: autocommit=%s cnx=%s' % (autocommit,cnx))
+    if cnx.autocommit != autocommit:
+        cnx.autocommit = autocommit
+    return cnx
+
+
+class ScoDocCursor(psycopg2.extensions.cursor):
+    """A database cursor emulating some methods of psycopg v1 cursors"""
+    def dictfetchall(cursor):
+        col_names = [ d[0] for d in cursor.description ]
+        return [ dict(zip(col_names, row)) for row in cursor.fetchall() ]
+    def dictfetchone(cursor):
+        col_names = [ d[0] for d in cursor.description ]
+        row = cursor.fetchone()
+        if row:
+            return dict(zip(col_names, row))
+        else:
+            return {}
 
 def SimpleQuery(context, query, args, cursor=None):
     if not cursor:
         cnx = context.GetDBConnexion()
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     #log( 'SimpleQuery(%s)' % (query % args) )
     cursor.execute( query, args )
     return cursor
@@ -40,7 +71,7 @@ def SimpleDictFetch(context, query, args, cursor=None):
 
 def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
     "insert into table values in dict 'vals'"
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     if convert_empty_to_nulls:
         for col in vals.keys():
             if vals[col] == '':
@@ -59,7 +90,7 @@ def DBInsertDict( cnx, table, vals, commit=0,convert_empty_to_nulls=1):
         else:
             cursor.execute('insert into %s default values'
                            % table )
-        oid = cursor.lastoid()
+        oid = cursor.lastrowid
     except:
         log('DBInsertDict: EXCEPTION !')
         log('DBInsertDict: table=%s, vals=%s' % (str(table),str(vals)))
@@ -78,7 +109,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
     Returns cnx, columns_names, list of tuples
     aux_tables = ( tablename, id_name )
     """
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     if sortkey:
         orderby = ' order by ' + sortkey
     else:
@@ -129,6 +160,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         cursor.execute( req, vals )
     except:
         log('Exception in DBSelectArgs:\n\treq="%s"\n\tvals="%s"\n' % (req,vals))
+        log(traceback.format_exc())
         raise ScoException()
     return cursor.dictfetchall()
 
@@ -136,7 +168,7 @@ def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
                   convert_empty_to_nulls=1 ):
     if not vals or where is None:
         return
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     if convert_empty_to_nulls:
         for col in vals.keys():
             if vals[col] == '':
@@ -155,7 +187,7 @@ def DBUpdateArgs(cnx, table, vals, where=None, commit=False,
         cnx.commit()
 
 def DBDelete(cnx, table, colid, val, commit=False ):
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     try:
         cursor.execute('delete from ' + table + ' where %s=%%(%s)s'%(colid,colid),
                        { colid: val })
@@ -214,7 +246,7 @@ class EditableTable:
         # insert
         oid = DBInsertDict(cnx, self.table_name, vals, commit=True )        
         # get back new object id
-        cursor = cnx.cursor()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute("select %(id_name)s from %(table_name)s where oid=%(oid)s"
                        %
                        { 'id_name' : self.id_name,
@@ -302,7 +334,7 @@ class EditableTable:
             #self.sql_default_values = vals
             #
             # Méthode spécifique à postgresql (>= 7.4)
-            cursor = cnx.cursor()
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             cursor.execute("SELECT column_name, data_type, column_default FROM information_schema.columns WHERE table_name = '%s'" % self.table_name)
             d = {}
             for info in cursor.dictfetchall():
@@ -494,7 +526,7 @@ def copy_tuples_changing_attribute( cnx, table, column, old_value, new_value, to
 
     Will raise exception if violation of integerity constraint !
     """
-    cursor = cnx.cursor()
+    cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("select * from %s where %s=%%(old_value)s" 
                    % (table, column),
                    { 'old_value' :  old_value } )
