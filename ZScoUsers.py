@@ -49,6 +49,7 @@ file_path = Globals.package_home(globals())
 
 # ---------------
 
+import notesdb
 from notesdb import *
 from notes_log import log
 from scolog import logdb
@@ -113,9 +114,9 @@ class ZScoUsers(ObjectManager,
 
     # no permissions, only called from python
     def __init__(self, id, title):
-	"initialise a new instance"
+        "initialise a new instance"
         self.id = id
-	self.title = title
+        self.title = title
     
     # The form used to edit this object
     def manage_editZScousers(self, title, RESPONSE=None):
@@ -131,20 +132,13 @@ class ZScoUsers(ObjectManager,
         f.close()     
         self.manage_addDTMLMethod(id,title,file)
 
-    security.declareProtected('Change DTML Documents', 'GetUsersDBConnexion')
-    def GetUsersDBConnexion(self,new=False):
-        # not published
-        try:
-            # a database adaptor called UsersDB must exist
-            self.UsersDB().encoding = 'LATIN1'
-            cnx = self.UsersDB().getconn(init=False)
-        except:
-            # backward compat: try to use same DB (usually will not work !!!)
-            log('warning: ZScoUsers using Sco DB connexion')
-            cnx = self.GetDBConnexion() 
-        cnx.commit() # sync !
-        return cnx
+    # Connexion to SQL database of users:
 
+    # Ugly but necessary during transition out of Zope:
+    _db_cnx_string = "dbname=SCOUSERS port=5432"
+    security.declareProtected('Change DTML Documents', 'GetUsersDBConnexion')
+    GetUsersDBConnexion = notesdb.GetUsersDBConnexion
+    
     # --------------------------------------------------------------------
     #
     #   Users (top level)

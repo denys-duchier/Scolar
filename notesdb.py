@@ -4,6 +4,7 @@
 import pdb, os, sys, string
 import traceback
 import psycopg2
+import psycopg2.pool
 import thread
 from notes_log import log
 from sco_exceptions import *
@@ -32,13 +33,26 @@ def unquote(s):
 # et est par défaut en autocommit
 _pools = {}
 def GetDBConnexion(context, autocommit=True):
-    pool = _pools.get( context._db_cnx_string, None)
+    pool = _pools.get(context._db_cnx_string, None)
     if not pool:
         pool = psycopg2.pool.ThreadedConnectionPool(2, 8, dsn=context._db_cnx_string )
         _pools[context._db_cnx_string] = pool
-        log('GetDBConnexion: created pool for "%s"' % context._db_cnx_string)
+        # log('GetDBConnexion: created pool for "%s"' % context._db_cnx_string)
     cnx = pool.getconn(key=(thread.get_ident(),autocommit))
     #log('GetDBConnexion: autocommit=%s cnx=%s' % (autocommit,cnx))
+    if cnx.autocommit != autocommit:
+        cnx.autocommit = autocommit
+    return cnx
+
+# Same for users:
+_users_pools = {}
+def GetUsersDBConnexion(context, autocommit=True):
+    pool = _users_pools.get(context._db_cnx_string, None)
+    if not pool:
+        pool = psycopg2.pool.ThreadedConnectionPool(2, 8, dsn=context._db_cnx_string )
+        _users_pools[context._db_cnx_string] = pool
+        log('GetUsersDBConnexion: created pool for "%s"' % context._db_cnx_string)
+    cnx = pool.getconn(key=(thread.get_ident(),autocommit))
     if cnx.autocommit != autocommit:
         cnx.autocommit = autocommit
     return cnx
