@@ -578,7 +578,7 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
     H.append('<tr><td><input type="checkbox" name="assidu" checked="checked">assidu</input></td></tr>')
     
     H.append("""</table>
-    <input type="submit" value="Valider décision manuelle"/>
+    <input type="submit" name="formvalidmanu_submit" value="Valider décision manuelle"/>
     <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer décision existante</a></span>
     </form>
     """ % (etudid, formsemestre_id))

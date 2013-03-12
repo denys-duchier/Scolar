@@ -37,6 +37,7 @@ url_form = urlparse.urljoin(url, 'notes_evaluation_formnotes?evaluation_id='+eva
 def add_to_notes(increment):
     etudids = re.findall( r'name="note_(.*?)"', browser.html )[1:]
     note_max = float(re.search( r'notes sur ([0-9]+?)</span>\)', browser.html ).group(1))
+    print 'add_to_notes: %d etudiants' % len(etudids)
     for etudid in etudids:
         # essaie d'ajouter 1 à la note !
         old_val = browser.find_by_name('note_%s' % etudid).value
