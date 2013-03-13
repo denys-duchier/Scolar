@@ -1157,7 +1157,7 @@ class ZScolar(ObjectManager,
             else:
                 adr = adrs[0]
                 if len(adrs) > 1:
-                    log('fillEtudsInfo: etudid=%d a %d adresses'%(etudid,len(adrs)))
+                    log('fillEtudsInfo: etudid=%s a %d adresses'%(etudid,len(adrs)))
             etud.update(adr)
             etud['nom'] = format_nom(etud['nom'])
             etud['prenom'] = format_nom(etud['prenom'])
@@ -1990,7 +1990,11 @@ function tweakmenu( gname ) {
     def etudident_delete(self, etudid, dialog_confirmed=False, REQUEST=None):
         "Delete a student"
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        etuds = scolars.etudident_list(cnx, {'etudid':etudid})
+        if not etuds:
+            raise ScoValueError('Etudiant inexistant !')
+        else:
+            etud = etuds[0]
         self.fillEtudsInfo([etud])
         if not dialog_confirmed:
             return self.confirmDialog(
@@ -2139,7 +2143,7 @@ function tweakmenu( gname ) {
         else:
             sem = None
         if sem and sem['etat'] != '1':
-            ScoValueError('Modification impossible: semestre verrouille')
+            raise ScoValueError('Modification impossible: semestre verrouille')
         H = [self.sco_header(REQUEST, page_title='Import etudiants'),
              """<h2 class="formsemestre">Téléchargement d\'une nouvelle liste d\'etudiants</h2>
              <div style="color: red">
