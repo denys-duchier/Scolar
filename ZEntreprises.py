@@ -88,14 +88,13 @@ class EntreprisesEditor(EditableTable):
                     args={ 'entreprise_id' : r['entreprise_id'] },
                     disable_formatting=True)
                 if c:
-                    r['date'] = max( [ x['date'] for x in c ] )
+                    r['date'] = max( [ x['date'] or datetime.date.min for x in c ] )
                 else:
-                    r['date'] = None
+                    r['date'] = datetime.date.min
             # sort
-            R.sort( lambda r1, r2: cmp(r2['date'] or datetime.datetime.min,
-                                       r1['date'] or datetime.datetime.min) )
+            R.sort( lambda r1, r2: cmp(r2['date'], r1['date']) )
             for r in R:
-                r['date'] = DateISOtoDMY(r['date'] or datetime.datetime.min)
+                r['date'] = DateISOtoDMY(r['date'])
         return R
 
     def list_by_etud(self, cnx, args={},
@@ -107,7 +106,6 @@ class EntreprisesEditor(EditableTable):
         titles, res = [ x[0] for x in cursor.description ], cursor.dictfetchall()
         R = []
         for r in res:
-            log('r=' + str(r))
             r['etud_prenom'] = r['etud_prenom'] or ''
             d = {}
             for key in r:
@@ -119,9 +117,9 @@ class EntreprisesEditor(EditableTable):
             R.append(d)
         # sort
         if sort_on_contact:
-            R.sort( lambda r1, r2: cmp(r2['date'] or datetime.datetime.min,r1['date'] or datetime.datetime.min) )
+            R.sort( lambda r1, r2: cmp(r2['date'] or datetime.date.min, r1['date'] or datetime.date.min) )
         for r in R:
-            r['date'] = DateISOtoDMY(r['date'] or datetime.datetime.min)
+            r['date'] = DateISOtoDMY(r['date'] or datetime.date.min)
         return R
 
 _entreprisesEditor = EntreprisesEditor(
