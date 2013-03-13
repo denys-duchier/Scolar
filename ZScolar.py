@@ -386,7 +386,7 @@ class ZScolar(ObjectManager,
         """Send an error message to the client, in html or xml format.
         """
         REQUEST.RESPONSE.setStatus(404, reason=msg)
-        if format == 'html':
+        if format == 'html' or format == 'pdf':
             raise ScoValueError(msg)
         elif format == 'xml':
             REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
