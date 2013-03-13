@@ -10,6 +10,7 @@ from notes_log import log
 from sco_exceptions import *
 from types import *
 from cgi import escape
+import datetime
 
 quote_html = escape
 

@@ -92,9 +92,10 @@ class EntreprisesEditor(EditableTable):
                 else:
                     r['date'] = None
             # sort
-            R.sort( lambda r1, r2: cmp(r2['date'],r1['date']) )
+            R.sort( lambda r1, r2: cmp(r2['date'] or datetime.datetime.min,
+                                       r1['date'] or datetime.datetime.min) )
             for r in R:
-                r['date'] = DateISOtoDMY(r['date'])
+                r['date'] = DateISOtoDMY(r['date'] or datetime.datetime.min)
         return R
 
     def list_by_etud(self, cnx, args={},
@@ -118,9 +119,9 @@ class EntreprisesEditor(EditableTable):
             R.append(d)
         # sort
         if sort_on_contact:
-            R.sort( lambda r1, r2: cmp(r2['date'],r1['date']) )
+            R.sort( lambda r1, r2: cmp(r2['date'] or datetime.datetime.min,r1['date'] or datetime.datetime.min) )
         for r in R:
-            r['date'] = DateISOtoDMY(r['date'])
+            r['date'] = DateISOtoDMY(r['date'] or datetime.datetime.min)
         return R
 
 _entreprisesEditor = EntreprisesEditor(
