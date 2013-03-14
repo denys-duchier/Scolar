@@ -30,6 +30,7 @@
 
 
 from sco_utils import *
+from notesdb import *
 
 import sco_portal_apogee
 import sco_inscr_passage
