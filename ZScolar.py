@@ -1014,7 +1014,7 @@ class ZScolar(ObjectManager,
             etud = self.getEtudInfo(etudid=m['etudid'],filled=True)[0]
             etuds.append(etud)
         # tri par nom
-        etuds.sort( lambda x,y: cmp(x['nom'],y['nom']) )
+        etuds.sort( lambda x,y: cmp((x['nom'],x['prenom']),(y['nom'],y['prenom'])) )
         return etuds
         
     # -------------------------- INFOS SUR ETUDIANTS --------------------------
