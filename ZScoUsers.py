@@ -348,18 +348,18 @@ class ZScoUsers(ObjectManager,
         user = self._user_list( args={'user_name':user_name} )
         assert len(user) == 1, 'database inconsistency: len(r)=%d'%len(r)
         # should not occur, already tested in _can_handle_passwd
-        cnx = self.GetUsersDBConnexion()
+        cnx = self.GetUsersDBConnexion() # en mode autocommit
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('update sco_users set date_modif_passwd=now(), passwd_temp=0 where user_name=%(user_name)s',
                        { 'user_name' : user_name } )
-        cnx.commit()
         req = { 'password' : password,
                 'password_confirm' : password,
                 'roles' : [user[0]['roles']] }
 
         # Laisse le exUserFolder modifier les donnees
         self.acl_users.manage_editUser( user_name, req )
-        
+        # Termine cette transaction:
+        self.UsersDB().db.commit()
         log("change_password: change ok for %s" % user_name)
         self.get_userlist_cache().inval_cache() #>
 
@@ -1026,11 +1026,11 @@ Il devra ensuite se connecter et le changer.
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         ui = { 'user_name' : user_name }
         cursor.execute("update sco_users set passwd_temp=1 where user_name='%(user_name)s'" % ui)
-
         # Send email
         info['passwd'] = password
         sco_import_users.mail_password(info, context=self, reset=True)
 
+                
 # --------------------------------------------------------------------
 #
 # Zope Product Administration
