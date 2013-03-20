@@ -68,14 +68,14 @@ def is_up_to_date(context):
     
     last_stable_ver = get_last_stable_version()
     cur_ver = get_svn_version(context.file_path) # in sco_utils
+    cur_ver2 = cur_ver
+    cur_ver_num = -1
     # Convert versions to integers:
     try:
         # cur_ver can be "1234" or "1234M' or '1234:1245M'...
         fs = cur_ver.split(':',1)
         if len(fs) > 1:
             cur_ver2 = fs[-1]
-        else:
-            cur_ver2 = cur_ver
         m = re.match( r'([0-9]*)', cur_ver2 )
         if not m:
             raise ValueError('invalid svn version') # should never occur, regexp always (maybe empty) match
@@ -96,7 +96,7 @@ def is_up_to_date(context):
     else:
         _UP_TO_DATE = True
         _UP_TO_DATE_MSG = ''
-        log('ScoDoc is up-to-date (cur_ver: %s)' % cur_ver)
+        log('ScoDoc is up-to-date (cur_ver: %s, using %s=%s)' % (cur_ver, cur_ver2, cur_ver_num))
     
     return _UP_TO_DATE, _UP_TO_DATE_MSG
 
