@@ -36,9 +36,11 @@ else
   mode=install  
 fi
 
-SVERSION=$(curl --connect-timeout 5 --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn="$SVNVERSION"\&sn="$SN")
-if [ ! -z "$SVERSION" ]; then
+SVERSION=$(curl --fail --connect-timeout 5 --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn="$SVNVERSION"\&sn="$SN")
+if [ $? == 0 ]; then
   echo "${SVERSION}" > "${SCODOC_DIR}"/config/scodoc.sn
+else
+  echo 'Warning: cannot connect to scodoc release server'
 fi
 
 # Check that no Zope "access" file has been forgotten in the way:

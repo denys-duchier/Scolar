@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,12 +28,7 @@
 """Liaison avec le portail ENT (qui donne accès aux infos Apogée)
 """
 
-import urllib, urllib2, xml, xml.dom.minidom
-import socket
-
-from notes_log import log
 from sco_utils import *
-from SuppressAccents import suppression_diacritics
 
 def has_portal(context):
     "True if we are connected to a portal"
@@ -96,21 +91,8 @@ def query_apogee_portal(context, **args):
     if not portal_url:
         return []
     req = portal_url + 'getEtud.php?' + urllib.urlencode(args.items())
-    doc = query_portal(req)
+    doc = query_portal(req) # sco_utils
     return xml_to_list_of_dicts(doc, req=req)
-
-def query_portal(req):
-    log('query_portal: %s' % req )
-    # band aid for Python 2.4: must use GLOBAL socket timeout
-    orig_timeout = socket.getdefaulttimeout()
-    try:        
-        socket.setdefaulttimeout(3) #  seconds / request
-        f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
-    except:
-        log("query_apogee_portal: can't connect to Apogee portal")
-        return ''
-    socket.setdefaulttimeout(orig_timeout)
-    return f.read()
 
 def xml_to_list_of_dicts(doc, req=None):
     if not doc:

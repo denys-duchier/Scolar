@@ -36,9 +36,15 @@ import pprint
 from types import StringType, IntType, FloatType, UnicodeType, ListType, TupleType
 import operator, bisect
 import thread
-import urllib, time, datetime, cgi
-from sets import Set
+import urllib
+import urllib2
+import socket
 import xml.sax.saxutils
+import xml, xml.dom.minidom
+import time, datetime, cgi
+
+from sets import Set
+
 from PIL import Image as PILImage
 
 # XML generation package (apt-get install jaxml)
@@ -590,3 +596,20 @@ def sort_dates(L, reverse=False):
         # Helps debugging 
         log('sort_dates( %s )' % L )
         raise
+
+
+def query_portal(req, msg='Apogee', timeout=3):
+    """retreive external data using http request
+    (used to connect to Apogee portal, or ScoDoc server)
+    """
+    log('query_portal: %s' % req )
+    # band aid for Python 2.4: must use GLOBAL socket timeout
+    orig_timeout = socket.getdefaulttimeout()
+    try:        
+        socket.setdefaulttimeout(timeout) #  seconds / request
+        f = urllib2.urlopen(req) # XXX ajouter timeout (en Python 2.6 !)
+    except:
+        log("query_portal: can't connect to %s" % msg)
+        return ''
+    socket.setdefaulttimeout(orig_timeout)
+    return f.read()

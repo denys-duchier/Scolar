@@ -90,6 +90,7 @@ import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
 import sco_archives_etud
 import sco_groups_edit
+import sco_up_to_date
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
 
@@ -561,14 +562,18 @@ class ZScolar(ObjectManager,
     # ----------  PAGE ACCUEIL (listes) --------------
     security.declareProtected(ScoView, 'index_html')
     def index_html(self,REQUEST=None, showcodes=0, showlocked=0):
-        "page accueil sco"
+        "Page accueil département (liste des semestres)"
         showlocked=int(showlocked)
         H = []
-        # news
+
+        # News:
         rssicon = self.icons.rssicon_img.tag(title='Flux RSS', border='0') 
         H.append( sco_news.scolar_news_summary_html(self, rssicon=rssicon) )
 
-        # liste de toutes les sessions
+        # Avertissement de mise à jour:
+        H.append(sco_up_to_date.html_up_to_date_box(self))
+
+        # Liste de toutes les sessions:
         sems = self.Notes.do_formsemestre_list()
         now = time.strftime( '%Y-%m-%d' )
 

@@ -1,5 +1,5 @@
 /* # -*- mode: css -*- 
-           ScoDoc, (c) Emmanuel Viennet 1998 - 2012
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2013
  */
 
 html,body {
@@ -1876,4 +1876,22 @@ div.othersemlist p {
 }
 div.othersemlist input {
    margin-left: 20px;
+}
+
+
+div.update_warning {
+    border: 1px solid red;
+    background-color: rgb(250,220,220);
+    margin: 3ex;
+    padding-left: 1ex;
+    padding-right: 1ex;
+    padding-bottom: 1ex;
+}
+div.update_warning span:before {
+    content: url(/ScoDoc/static/icons/warning_img.png);
+    vertical-align: -80%;  
+}
+div.update_warning_sub {
+    font-size: 80%;
+    padding-left: 8ex;
 }
