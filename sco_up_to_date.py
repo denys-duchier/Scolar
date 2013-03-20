@@ -71,7 +71,12 @@ def is_up_to_date(context):
     # Convert versions to integers:
     try:
         # cur_ver can be "1234" or "1234M' or '1234:1245M'...
-        m = re.match( r'([0-9]*)', cur_ver )
+        fs = cur_ver.split(':',1)
+        if len(fs) > 1:
+            cur_ver2 = fs[-1]
+        else:
+            cur_ver2 = cur_ver
+        m = re.match( r'([0-9]*)', cur_ver2 )
         if not m:
             raise ValueError('invalid svn version') # should never occur, regexp always (maybe empty) match
         cur_ver_num = int(m.group(1))
