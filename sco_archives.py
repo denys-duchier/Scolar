@@ -64,22 +64,30 @@ class BaseArchiver:
         path = dirs[0]
         for dir in dirs[1:]:
             path = os.path.join(path, dir)
-            if not os.path.isdir(path):
-                log('creating directory %s' % path)
-                os.mkdir(path)
-        
+            try:
+                GSL.acquire()
+                if not os.path.isdir(path):
+                    log('creating directory %s' % path)
+                    os.mkdir(path)
+            finally:
+                GSL.release()
+    
     def get_obj_dir(self, context, oid):
         """Returns path to directory of archives for this object (formsemestre_id or etudid).
         If directory does not yet exist, create it.
         """
         dept_dir = os.path.join(self.root, context.DeptId())
-        if not os.path.isdir(dept_dir):
-            log('creating directory %s' % dept_dir)
-            os.mkdir(dept_dir)
-        obj_dir = os.path.join(dept_dir, oid)
-        if not os.path.isdir(obj_dir):
-            log('creating directory %s' % obj_dir)
-            os.mkdir(obj_dir)
+        try:
+            GSL.acquire()
+            if not os.path.isdir(dept_dir):
+                log('creating directory %s' % dept_dir)
+                os.mkdir(dept_dir)
+            obj_dir = os.path.join(dept_dir, oid)
+            if not os.path.isdir(obj_dir):
+                log('creating directory %s' % obj_dir)
+                os.mkdir(obj_dir)
+        finally:
+            GSL.release()
         return obj_dir
 
     def list_obj_archives(self, context, oid):
@@ -96,7 +104,11 @@ class BaseArchiver:
 
     def delete_archive(self, archive_id):
         """Delete (forever) this archive"""
-        shutil.rmtree(archive_id, ignore_errors=True)
+        try:
+            GSL.acquire()
+            shutil.rmtree(archive_id, ignore_errors=True)
+        finally:
+            GSL.release()
 
     def get_archive_date(self, archive_id):
         """Returns date (as a DateTime object) of an archive"""
@@ -105,7 +117,11 @@ class BaseArchiver:
     
     def list_archive(self, archive_id):
         """Return list of filenames (without path) in archive"""
-        files = os.listdir(archive_id)
+        try:
+            GSL.acquire()
+            files = os.listdir(archive_id)
+        finally:
+            GSL.release()
         files.sort()
         return [ f for f in files if f and f[0] != '_' ]
 
@@ -135,7 +151,11 @@ class BaseArchiver:
         """Creates a new archive for this object and returns its id."""
         archive_id = self.get_obj_dir(context, oid) + os.path.sep + '-'.join([ '%02d'%x for x in time.localtime()[:6] ])
         log('creating archive: %s' % archive_id)
-        os.mkdir(archive_id) # if exists, raises an OSError
+        try:
+            GSL.acquire()
+            os.mkdir(archive_id) # if exists, raises an OSError
+        finally:
+            GSL.release()
         self.store( archive_id, '_description.txt', description ) 
         return archive_id
     
@@ -161,10 +181,14 @@ class BaseArchiver:
         """
         filename = self.sanitize_filename(filename)
         log("storing %s (%d bytes) in %s" % (filename, len(data), archive_id))
-        fname = os.path.join(archive_id, filename)
-        f = open(fname, 'w')
-        f.write(data)
-        f.close()
+        try:
+            GSL.acquire()
+            fname = os.path.join(archive_id, filename)
+            f = open(fname, 'w')
+            f.write(data)
+            f.close()
+        finally:
+            GSL.release()
         return filename
 
     def get(self, archive_id, filename):
