@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2011 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,11 +26,11 @@
 ##############################################################################
 
 
-import pdb,os,sys,psycopg
+import pdb,os,sys
 from sco_exceptions import *
 from notesdb import *
 from notes_log import retreive_request
-DB = psycopg
+
 
 def logdb(REQUEST=None, cnx=None, method=None, etudid=None, msg=None, commit=True ):
     if not cnx:
