@@ -1,0 +1,35 @@
+2001-05-05  Carey Evans  <careye@spamcop.net>
+
+	* fcrypt.py: Add module doc string for pydoc, and other globals
+	for pydoc as well.  Add __all__ for Python 2.1, and add
+	underscores to the front of private variables and functions.
+	(_set_key): Remove overly clever copying of globals into default
+	parameters, explicitly copying _shift2 and _skb before the loop.
+	(_body): Copy _SPtrans explicitly, as above.  Remove CR_ENCRYPT
+	inline function, and reroll unrolled loop using the contents of
+	this function.  Result: more readable code, and a 400% speedup!
+	(crypt): Add doc string for pydoc and doctest.
+	(_test): New function for doctest.
+
+	* setup.py: Add fields for PKG-INFO metadata.
+
+	* README: Add URL of distutils installation manual.
+
+	* LICENSE: Add note about license on fcrypt.py being the union of
+	my license on the Python code and Eric Young's on the original C.
+
+2001-03-24  Carey Evans  <careye@spamcop.net>
+
+	* setup.py: Move license to separate file.  Change email address
+	to SpamCop forwardder.  Update version to 1.1.
+
+	* fcrypt.py: Update license text and email address.
+	(crypt): Fix bug where passwords longer than eight characters were
+	not truncated.
+
+	* README: Update crypt module URL.  Remove license text, and add
+	pointer to LICENSE file.  Update email address.
+
+	* MANIFEST.in: Add LICENSE, ChangeLog and MANIFEST.in.
+
+	* LICENSE: New file.

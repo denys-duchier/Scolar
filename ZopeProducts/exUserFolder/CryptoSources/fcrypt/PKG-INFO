@@ -1,0 +1,13 @@
+Metadata-Version: 1.0
+Name: fcrypt
+Version: 1.2
+Summary: The Unix password crypt function.
+Home-page: http://home.clear.net.nz/pages/c.evans/sw/
+Author: Carey Evans
+Author-email: careye@spamcop.net
+License: BSD
+Description: A pure Python implementation of the Unix DES password crypt function,
+        based on Eric Young's fcrypt.c.  It works with any version of Python
+        from version 1.5 or higher, and because it's pure Python it doesn't
+        need a C compiler to install it.
+Platform: UNKNOWN

@@ -1,0 +1,16 @@
+<dtml-var standard_html_header>
+<P>
+<CENTER>
+<p>Vous êtes déconnecté de ScoDoc.
+</p>
+
+<p><a href="<dtml-var "BASE0">">revenir à l'accueil</a></p>
+
+<br/>
+<p><em style="color: red;">(Attention: si vous êtes administrateur, vous ne pouvez vous déconnecter complètement qu'en relançant votre navigateur)
+</em></p>
+</CENTER>
+
+
+
+<dtml-var standard_html_footer>

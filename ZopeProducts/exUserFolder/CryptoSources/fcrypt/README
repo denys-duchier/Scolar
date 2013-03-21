@@ -1,0 +1,33 @@
+			      fcrypt.py
+			      ---------
+
+This is a pure Python implementation of the Unix DES password crypt
+function.  It was ported from C code by Eric Young (eay@mincom.oz.au).
+See the file LICENSE for copyright and license details.
+
+This module is packaged with Distutils.  If you have this installed,
+or it came with your version of Python, you can install it by typing:
+
+    python setup.py install
+
+If not, you can just copy `fcrypt.py' into a directory on your Python
+library path, or into the same directory as the program that wants to
+use it.
+
+For more information, see the documentation for Python's built-in
+crypt module at:
+
+    http://www.python.org/doc/current/lib/module-crypt.html
+
+Eric Young's fcrypt.c is available from:
+
+    ftp://ftp.psy.uq.oz.au/pub/Crypto/DES/
+
+For more Distutils information, see:
+
+    http://www.python.org/doc/current/inst/inst.html
+    http://www.python.org/sigs/distutils-sig/
+
+-- 
+Carey Evans  <careye@spamcop.net>
+5 May 2001

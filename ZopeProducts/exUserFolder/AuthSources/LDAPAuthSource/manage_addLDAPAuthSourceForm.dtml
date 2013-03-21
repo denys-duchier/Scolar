@@ -1,0 +1,86 @@
+<dtml-var "DialogHeader(_.None,_,DialogTitle='Add LDAP Authentication Source')">
+<FORM ACTION="&dtml-URL;" METHOD="POST">
+<dtml-in "REQUEST.form.keys()">
+<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_
+.getitem('sequence-item',0)]">">
+</dtml-in>
+<input type="HIDDEN" name="doProp" value="1">
+<table cellspacing="2">
+
+<tr><th><dtml-babel src="'en'">URL</dtml-babel></th>
+	<td><input name="LDAPUrl" type="text" value="ldap://" size="80"></td></tr>
+<tr><td colspan="2">(ldap://host:port/basedn?username_attribute?scope?filter) (use ldaps:// for secure)</td>
+
+<tr><th><dtml-babel src="'en'">BindDN</dtml-babel></th>
+	<td><input name="LDAPBindDN" type="text"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Bind Password</dtml-babel></th>
+	<td><input name="LDAPBindPassword" type="text"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Certificate DB Path</dtml-babel></th>
+	<td><input name="LDAPCertDBPath" type="text"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Require DN</dtml-babel></th>
+	<td><input name="LDAPRequireDN" type="text"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Compare DN On Server</dtml-babel></th>
+	<td><select name="LDAPCompareDNOnServer:int">
+		<option value="0">No</option>
+		<option value="1">Yes</option>
+		</select>
+		</td></tr>
+
+<tr><th><dtml-babel src="'en'">Dereference Aliases</dtml-babel></th>
+	<td><select name="LDAPDereferenceAliases:int">
+		<option value="0">Never</option>
+		<option value="1">Searching</option>
+		<option value="2">Finding</option>
+		<option value="3" selected>Always</option>
+		</select>
+		</td></tr>
+
+<tr><th><dtml-babel src="'en'">Group Attribute</dtml-babel></th>
+	<td><textarea name="LDAPGroupAttribute"></textarea></td></tr>
+
+<tr><th><dtml-babel src="'en'">Group Attribute is DN</dtml-babel></th>
+	<td><select name="LDAPGroupAttributeIsDN:int">
+		<option value="0">No</option>
+		<option value="1 selected">Yes</option>
+		</select>
+		</td></tr>
+
+<tr><th><dtml-babel src="'en'">Start TLS</dtml-babel></th>
+	<td><select name="LDAPStartTLS:int">
+		<option value="0">No</option>
+		<option value="1">Yes</option>
+		</select>
+		</td></tr>
+
+<tr><th><dtml-babel src="'en'">Require Group</dtml-babel></th>
+	<td><textarea name="LDAPRequireGroup:lines"></textarea></td></tr>
+
+<tr><th><dtml-babel src="'en'">Require User</dtml-babel></th>
+	<td><textarea name="LDAPRequireUser:lines"></textarea></td></tr>
+
+<tr><th><dtml-babel src="'en'">Manager User Name (must auth)</dtml-babel></th>
+	<td><input name="LDAPDefaultManager" type="text"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Default Role</dtml-babel></th>
+	<td><input name="LDAPDefaultRole" type="text"></td></tr>
+
+
+
+<tr><th><dtml-babel src="'en'">Search Cache Size</dtml-babel></th>
+	<td><input name="LDAPSearchCacheSize:int" type="text" value="1024"></td></tr>
+<tr><th><dtml-babel src="'en'">Search Cache TTL</dtml-babel></th>
+	<td><input name="LDAPSearchCacheTTL:int" type="text" value="1800"></td></tr>
+
+<tr><th><dtml-babel src="'en'">Compare Cache Size</dtml-babel></th>
+	<td><input name="LDAPCompareCacheSize:int" type="text" value="1024"></td></tr>
+<tr><th><dtml-babel src="'en'">Compare Cache TTL</dtml-babel></th>
+	<td><input name="LDAPCompareCacheTTL:int" type="text" value="1800"></td></tr>
+
+<tr><td><br><input type="SUBMIT" value="<dtml-babel src="'en'">Add</dtml-babel>"></td></tr>
+</table>
+</form>
+<dtml-var DialogFooter>

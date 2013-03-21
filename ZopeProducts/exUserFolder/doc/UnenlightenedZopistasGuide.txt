@@ -1,0 +1,671 @@
+The Unenlightened Zopistas Guide to exUserFolder.
+(C) 2001-2003 Andrew Milton <akm@theinternet.com.au>
+
+0. INTRODUCTION.
+
+exUserFolder is an extensible authentication product for the Zope
+Application Server. It allows a user to choose from a number of
+methods of authenticating their users, and allows the setting and
+fetching of arbitrary properties on a User object.
+
+Authentication methods, and Property methods do not have to use the
+same backing store, so it is possible to use legacy user sources, and
+still have configuration information stored about a user.
+
+exUserFolder supports HTTP Basic Authentication, and the so called
+Cookie Authentication schemes popular with most webservers.
+
+0.1 Audience.
+
+Everybody, and Nobody. If we build our product correctly, we shouldn't
+need user documentation, that's why Nobody. For some reason, normal
+sane people seem to lose all of their common sense when sitting in
+front of a computer. To the point where plain messages e.g. "Please
+Insert a Floppy", evoke a response of "What does that mean?" So that's
+why this document is for Everybody.
+
+This is not a guide for writing your own authentication, property, or
+membership sources. You need the Zen Masters Guide to exUserFolder
+document for that.
+
+
+1. GETTING STARTED
+
+exUserFolder requires Python 2.1 or above (may work with older
+pythons, but, this is not supported). And has been tested on Zope
+2.3.0 and above (including 2.4.3).
+
+exUserFolder comes as a source tarball, and it does not rely on any
+outside dependencies to be work. Some items may require additional
+products to be installed in your Zope tree, but, simply will not
+appear if these are not available. Some items may also require
+external products to add functionality to them, but, at no time should
+the Product not install because of these dependencies.
+
+
+1.1 Installing exUserFolder.
+
+Unpack exUserFolder in your Products directory. This can be achieved by
+executing the following on most UNIX systems.
+
+gzip -d -c exUserFolder-Ma_Mi_u.tgz | tar xvf -
+
+where exUserFolder-Ma_Mi_u.tgz is the version of exUserFolder you have
+downloaded.
+
+On systems that have the GNU tar this can be shortened to;
+
+tar zxvf exUserFolder-Ma_Mi_u.tgz
+
+You should restart Zope after unpacking. Installing the product will not
+affect your Zope installation in anyway.
+
+If you go to Folder inside your Zope Management Interface, you should see
+exUserFolder as a dropdown item near the bottom somewhere.
+
+Congratulations, it's installed.
+
+
+2. AUTHENTICATION SOURCES AND YOU.
+
+The only mandatory component of an exUserFolder installation, is
+choosing an Authentication Source. There are six Authentication
+Sources to choose from in the default install. There are other add-on
+Sources available from other parties.
+
+Each Authentication Source is different, and assumes at least some
+knowledge of that type of authentication scheme.
+
+Most if not all sources store the password encrypted in some
+manner. This means that discovering other people's passwords is going
+to be more difficult, than with the standard user folder that comes
+with Zope.
+
+By default crypt or fcrypt are used, which is are DES encryption
+methods.  While this is not the strongest, fastest, choose another
+superlative, of encryption techniques, it is certainly adequate for
+protecting webpages.
+
+In a later release exUserFolder will allow you to choose what method
+is used for password hashing.
+
+Some Authentication Sources can list the users that are available,
+some cannot (or will not). Some allow you to add users, and others do
+not.  What features are availble depend on the individual
+Authentication Source.
+
+
+2.1 ZODB Authentication Source
+
+The ZODB Authentication Source operates just like a normal User
+Folder. It stores its authentication items in the ZODB as the name
+suggests. This is the simplest folder to setup, requiring no
+parameters.
+
+Choosing ZODB Authentication Source is recommended for testing your install.
+
+
+2.2 File Based Authentication.
+
+File Based Authentication allows you to have a fixed set of users in a
+file with their encrypted passwords. The prerequisites for this are
+somewhat convoluted.
+
+In the root of your Zope Installation, on the actual file system (not
+in the ZODB), create a directory called exUsers. Make sure that Zope
+has access to that directory.
+
+This is the directory where you will create your files.
+
+This is a read only Authentication Source. You will not be able to
+create users, or modify their passwords. You can change their roles if you
+choose a Property Source.
+
+There are two parameters asked for;
+
+2.2.1 Password File
+
+This is the name of the file that contains your users and passwords.
+It should be of the format;
+
+username:cryptedPassword
+user2:otherCryptedPasswd
+
+I can contain other fields after the password also delimited by : but these
+will not be ussed.
+
+This file should exist inside the exUsers directory.
+
+2.2.2 Default Role
+
+This is the role that all users should be given when the log in. Because this
+is a Read Only authentication source, you may not be able to add Roles at a
+later date.
+
+
+2.3 Postgresql Authentication Source
+
+Postgresql Authentication source is an RDBMS backed user store. You
+can add, change, and list users. It requires a Postgresql Database
+Connection to be created before creating the User Folder.
+
+You should be familiar with databases, and with your schema before
+using this Authentication Source. If you don't already have a table
+structure in place, a default schema is provided called 'pgScheme.sql'
+in the exUserFolder distribution.
+
+The required schema is very simple. You need to store usernames,
+passwords, and roles. If your existing schema doesn't support a roles
+column you will have to add one.
+
+The configuration scheme looks daunting, but, it is setup to use the
+defaults for 'pgScheme.sql' so if you're using this you can safely
+continue.
+
+We will run through the items.
+
+2.3.1 Database Connection
+
+If you have any database connections, they will be listed in the drop
+down box. Choose the one that represents your connection to your users
+table.
+
+2.3.2 Table Name
+
+This is the name of the table containing your users. If you have a
+different table to the default, you should change it here.
+
+2.3.3 Username Column
+
+This is the name of the column inside your table that contains the
+usernames or logins of your users. This should contain exactly what
+the user needs to type in as their username.
+
+
+2.3.4 Password Column
+
+This is the name of the column inside your table that contains the
+encrypted passwords of your users.
+
+
+2.3.5 Roles Column
+
+This is where the roles are stored. These are used to provide access
+to items in Zope.
+
+
+2.4 User Supplied Authentication Source
+
+This allows you to create your methods in DTML, PythonScripts,
+External Methods, or any other callable Zope item for listing,
+authenticating, adding and changing your users.
+
+It is beyond the scope of this guide to describe how to do this, but,
+the API is quite well defined inside the source, and also in the
+README.API document.
+
+This Authentication Source has no configuration parameters.
+
+
+2.5 RADIUS Authentication Source
+
+This allows you to authenticate your users against a RADIUS server. If
+you don't know what this means, then this User Source is not for you
+:-)
+
+You will require a RADIUS server to be operating, and for the server
+that Zope is running on to have access to it. You will also need to
+know the secret key to access the RADIUS server.
+
+2.5.1 Host
+
+This is the host your RADIUS server is running on.
+
+2.5.2 Port
+
+This is the port your RADIUS server is running on. Older installs may
+require this to be 1645. The new 'blessed' port by IANA is 1812, and
+this is now the default port.
+
+2.5.3 Secret
+
+Every remote host has a secret key it has to share with the server in
+order to gain access to the authentication server. You need to know
+this.
+
+2.5.4 Retries
+
+Because this is a networked authentication service, errors can
+occur. This sets the number of times it will try to authenticate
+before giving up.
+
+2.5.5 Timeout
+
+This is how long the RADIUS authenticator will wait for a
+response. Because RADIUS operates over UDP, which is a connectionless
+protocol, answers may never come back, or never reach their
+destination in the first place.
+
+The default is 5 seconds which is actually quite a long time.
+
+
+2.6 SMB Authentication Source
+
+This source allows you to authenticate your users in a Microsoft
+Environment, using the SMB protocols. This is not the same as
+authenticating via Directory Services.
+
+If your SMB server requires passwords to be encrypted in transit, you'll 
+need to install mxCrypto.
+
+2.6.1 Host
+
+This is the host that your Authentication service is on, this is
+normally an NT or Win2K server, but, it can also be a UNIX box running
+Samba. This should be the NetBIOS name of the server.
+
+2.6.2 Domain
+
+This is the NT/Windows DOMAIN that the user is to authenticate
+against.
+
+2.6.3 WINS Server IP Address (optional)
+
+If provided, this should be the IP address of the WINS server to be
+queried to locate your auth host (see 2.5.1 above).
+
+If you leave this field empty, the location of the authentication host
+will be queried by broadcast, which works just fine if the Zope
+machine is on the same subnet as your auth host but not if the auth
+host is across a subnet link or if it's in the same machine as Zope
+(don't ask. Apparently, some braindmamaged creature at M$ decided that
+a machine shouldn't answer to its own broadcasts no matter what)
+
+Fill in this field if you are getting "NetBIOSTimeout" errors but you
+are sure that your auth host was specified correctly, or if Windows
+machines in your subnet also use a WINS server.
+
+
+2.7 LDAP Authentication
+
+This source allows you to authenticate your users against an LDAP
+server.  This code is based on the auth_ldap module for Apache. The
+documentation for these parameters is unashamedly lifted directly from
+the documentation of the Apache directives for auth_ldap.
+
+See: http://www.rudedog.org/auth_ldap/
+
+You must choose a property source when using LDAP Authentication, all
+of the properties associated with the LDAP user entry are stored as
+properties when they authenticate. Items with multiple entries are
+stored as a list of items.
+
+You will need the pyLDAP module installed to use this authsource.
+If you don't have it installed, you will not see an LDAP Auth Source available
+for use.
+
+2.7.1 URL
+
+An RFC 2255 URL which specifies the LDAP search parameters to use. The syntax
+of the URL is
+ldap://host:port/basedn?attribute?scope?filter
+
+ldap      For regular ldap, use the string ldap. For secure LDAP, use ldaps
+          instead. Secure LDAP is only available if auth_ldap was compiled with
+          SSL support.                                                         
+host:port The name/port of the ldap server (defaults to localhost:389 for ldap,
+          and localhost:636 for ldaps). 
+                        
+          Once a connection has been made to a server, that connection remains
+          active for the life of the Zope process, or until the LDAP server
+          goes down.
+                                                                          
+          If the LDAP server goes down and breaks an existing connection,
+          the Auth Source will attempt to re-connect
+                       
+basedn    The DN of the branch of the directory where all searches should start
+          from. At the very least, this must be the top of your directory tree,
+          but could also specify a subtree in the directory.
+
+attribute The attribute to search for. Although RFC 2255 allows a
+          comma-separated list of attributes, only the first attribute will be
+          used, no matter how many are provided. If no attributes are provided,
+          the default is to use uid. It's a good idea to choose an attribute
+          that will be unique across all entries in the subtree you will be
+          using.                                                              
+
+scope     The scope of the search. Can be either one or sub. Note that a scope
+          of base is also supported by RFC 2255, but is not supported by this
+          module. If the scope is not provided, or if base scope is specified,
+          the default is to use a scope of sub.
+
+filter    A valid LDAP search filter. If not provided, defaults to (objectClass
+          =*), which will search for all objects in the tree.
+
+When doing searches, the attribute, filter and username passed by the HTTP
+client are combined to create a search filter that looks like (&(filter)
+(attribute=username)).
+
+For example, consider an URL of ldap://ldap.xuf.com/o=XUF?cn?sub?(posixid
+=*). When a client attempts to connect using a username of The Jester, the
+resulting search filter will be (&(posixid=*)(cn=The Jester)).
+
+
+2.7.2 Bind DN
+
+An optional Distinguished Name user to bind to the server when searching
+for entries. If not provided an Anonymous bind will be used.
+
+2.7.3 Bind Password.
+A bind password to use in conjunction with the bind DN. Note that the bind
+password is probably sensitive data, and should be properly protected. You
+should only use the Bind DN and Bind Password if you absolutely
+need them to search the directory.
+
+2.7.4 Cert DB Path
+
+Specifies in which directory LDAP Auth Source should look for the certificate
+authorities database. There should be a file named cert7.db in that directory.
+
+2.7.5 Compare DN On Server
+
+When set, LDAP Auth Source will use the LDAP server to compare the
+DNs. This is the only foolproof way to compare DNs. LDAP Auth Source
+will search the directory for the DN specified with the require dn
+directive, then, retrieve the DN and compare it with the DN retrieved
+from the user entry. If this directive is not set, LDAP Auth Source
+simply does a string comparison. It is possible to get false negatives
+with this approach, but it is much faster. Note the LDAP Auth Source cache
+can speed up DN comparison in most situations.
+
+2.7.6 Dereference Aliases
+
+This directive specifies when LDAP Auth Source will de-reference
+aliases during LDAP operations. The default is always.
+
+2.7.7 Group Attribute is DN
+
+When set, this directive says to use the distinguished name of the
+client username when checking for group membership. Otherwise, the
+username will be used. For example, assume that the client sent the
+username tjester, which corresponds to the LDAP DN cn=The Jester,
+o=XUF. If this directive is set, LDAP Auth Source will check if the
+group has cn=The Jester, o=XUF as a member. If this directive is not
+set, then LDAP Auth Source will check if the group has tjester as a
+member.
+
+2.7.8 Compare Cache Size
+
+This specifies the size of the cache used to cache LDAP compare
+operations. The default is 1024 entries. Setting it to 0 disables
+operation caching.
+
+2.7.9 Compare Cache TTL
+
+Specifies the time (in seconds) that entries in the operation cache
+remain valid. The default is 600 seconds.
+
+2.7.10 Start TLS
+
+If this is set to Yes, LDAP Auth Source will start a secure TLS
+session after connecting to the LDAP server. This requires your LDAP
+server to support TLS.
+
+2.7.11 Require User (one per line)
+
+The require user directive specifies what usernames can access the
+resource.  Once LDAP Auth Source has retrieved a unique DN from the
+directory, it does an LDAP compare operation using the username
+specified in the require user to see if that username is part of the
+just-fetched LDAP entry. Multiple users can be granted access by
+putting multiple usernames in the box, separated with newlines. For
+example, with a AuthLDAPURL of ldap://ldap/o=XUF?cn (i.e., cn is used
+for searches), the following require entries could be used to restrict
+access: The Jester Fred User Joe Manager
+
+Because of the way that LDAP Auth Source handles this directive, The
+Jester could sign on as The Jester, Zen Jester or any other cn that he
+has in his LDAP entry. Only the single require user line is needed to
+support all values of the attribute in the user's entry.
+
+If the uid attribute was used instead of the cn attribute in the URL
+above, the above three lines could be;
+
+tj
+fred_u
+jmanager
+
+2.7.12 Require Group (one per line)
+
+This directive specifies an LDAP group whose members are allowed
+access. It takes the distinguished name of the LDAP group. For
+example, assume that the following entry existed in the LDAP
+directory:
+
+dn: cn=Administrators, o=XUF
+objectClass: groupOfUniqueNames
+uniqueMember: cn=The Jester, o=XUF
+uniqueMember: cn=Fred User, o=XUF
+
+The following directive would grant access to both Fred and Jester:
+
+require group cn=Administrators, o=XUF
+
+Behavior of this directive is modified by the Group Attribute and 
+Group Attribute Is DN options.
+
+2.7.13 Require DN
+
+The require dn option allows the administrator to grant access based
+on distinguished names. It specifies a DN that must match for access
+to be granted. If the distinguished name that was retrieved from the
+directory server matches the distinguished name in the require dn,
+then authorization is granted.
+
+The following directive would grant access to a specific DN:
+require dn cn=The Jester, o=XUF
+
+Behavior of this directive is modified by the Compare DN On Server option.
+
+2.7.14 Default Manager
+
+This allows you to specify the username of the Manager for this area.
+The manager will still need to meet auth requirements above, but, if
+they do they will get the 'Manager' role added to their list of roles.
+
+2.7.15 Default Role
+
+This is a role to be assigned to users when they auth correctly. This
+is to differentiate them from merely being 'authenticated'.
+
+2.7.16 Examples
+
+  * Grant access to anyone who exists in the LDAP directory, using their UID
+    for searches.
+    URL ldap://ldap1.zope.com:389/ou=People, o=XUF?uid?sub?(objectClass=*)
+
+  * The next example is similar to the previous one, but is uses the common
+    name instead of the UID. Note that this could be problematical if multiple
+    people in the directory share the same cn, because a search on cn must
+    return exactly one entry. That's why this approach is not recommended: it's
+    a better idea to choose an attribute that is guaranteed unique in your
+    directory, such as uid.
+    URL ldap://ldap.zope.com/ou=People, o=XUF?cn
+
+  * Grant access to anybody in the Administrators group. The users must
+    authenticate using their UID.
+    URL ldap://ldap.zope.com/o=XUF?uid
+    require group: 
+    cn=Administrators, o=XUF
+
+  * The next example assumes that everyone at XUF who carries an
+    alphanumeric pager will have an LDAP attribute of qpagePagerID. The example
+    will grant access only to people (authenticated via their UID) who have
+    alphanumeric pagers:
+    URL: ldap://ldap.zope.com/o=XUF?uid??(qpagePagerID=*)
+
+  * The next example demonstrates the power of using filters to accomplish
+    complicated administrative requirements. Without filters, it would have
+    been necessary to create a new LDAP group and ensure that the group's
+    members remain synchronized with the pager users. This becomes trivial with
+    filters. The goal is to grant access to anyone who has a filter, plus grant
+    access to Joe Manager, who doesn't have a pager, but does need to access
+    the same resource:
+    URL ldap://ldap.zope.com/o=XUF?uid??(|(qpagePagerID=*)(uid=jmanager))
+
+    This last may look confusing at first, so it helps to evaluate what the
+    search filter will look like based on who connects, as shown below.
+    If Fred User connects as fuser, the filter would look like
+   
+    (&(|(qpagePagerID=*)(uid=jmanager))(uid=fuser))
+   
+    The above search will only succeed if fuser has a pager. When Joe Manager
+    connects as jmanager, the filter looks like
+   
+    (&(|(qpagePagerID=*)(uid=jmanager))(uid=jmanager))
+
+    The above search will succeed whether jmanager has a pager or not.
+
+
+2.8 General Items.
+
+You can choose to use standard auth, or cookie auth, and you can
+decide how long you want to cache the users credentials before
+retrying.
+
+2.8.1 Authentication Type
+
+2.8.1.1 Standard Authentication
+
+This method causes the browser to pop up a dialog box to ask for the
+username and password.
+
+2.8.1.2 Cookie Authentication
+
+This method allows you to use a normal HTML form to get the username
+and password from the user. It also will present the default form to
+the user if they try to access an unauthorised area.
+
+
+2.8.1.3 Secure Cookie based Authentication
+
+This method, like Cookie Authentication allows you to use a HTML form
+to get the user details. However, the cookie it uses does not contain
+any login information. It is internally checked against a cache of
+hashes and the information is derived from that. This cache disappears
+if you restart Zope, so this is not a good option for people who want
+to persistently cache logins across sessions.
+
+
+2.8.2 Credential Cache Timeout in Seconds
+
+exUserFolder by default caches credential information, so that the
+authorisation source isn't hit *for every object and page* that has to
+be fetched. For remote authentication services this can slow things
+down quite considerably. Even setting this to a modest setting will
+quicken response times.
+
+Setting this too long could cause problems if you want to lock out a
+troublesome user. The credential cache is flushed if someone provides
+a password that doesn't match the one in the cache.
+
+
+2.8.3 Negative Credential Cache Timeout in Seconds
+
+exUserFolder allows you to cache login failures for users that do not
+exist. This means you don't have to go out to your auth source when
+you know for certain this user is never going to be able to
+authenticate.
+
+Due to the way some auth sources are designed, this doesn't work for
+auth sources like SMB Auth Source that lie initially about the user
+existing (because you can't verify the existence of a user without
+authenticating them), and then check the credentials later.
+
+It's possible to create a hybrid auth source that lets this work
+correctly for auth sources that can't list the users.
+
+
+2.8.4 Log out users who expire from cache?
+
+If you've got caching turned on, then this will force any user who has
+their session expire to login again. Some people like to do this.
+
+
+2.8.5 Activate Session Tracking for anoymous users?
+
+For any anonymous user, a new temporary user is created. This allows
+you to set/get properties for anonymous users too. Currently
+experimental.
+
+
+3.0 PROPERTY SOURCES
+
+4.0 MEMBERSHIP SOURCES
+
+5.0 TIPS FOR THE UNWARY
+
+Generally these things apply to Cookie Authentication models, since
+there is additional access required to present the login form.
+
+5.1 Too much protection.
+
+A lot of people try to protect a folder by placing an exUserFolder
+inside.  They then change the permissions on this folder to only allow
+Authenticated or some Local Role to have permission.
+
+5.1.1 The problem
+
+When you try to access the folder, instead of getting the form, you
+get a popup box, even though you chose Cookie Authentication. Even
+when you enter a username and password it doesn't work.
+
+
+5.1.2 What happened
+
+You tried to access an area you don't have access to. Zope found the
+closest user folder to the object you were trying to access. The user
+folder decided you were not authorised and tried to display the login
+form. You don't have access to view the login form, so Zope finds the
+nearest user folder to the login form, which is the user folder above
+the protected directory. It pops up the authentication dialog. If you
+put in a valid username and password for this top level, then lower
+level then displays the login form.
+
+5.1.3 Solution 1 (preferred).
+
+Place the user folder one level *above* the folder you want to protect,
+that is in the unprotected area. Everything should work fine.
+
+5.1.4. Solution 2 (not so preferred).
+
+Set the 'View' permission on the docLogin form inside the acl_users
+folder.  You can get there by Choosing 'Contents' on docLogin and
+scrolling down to the bottom.
+
+6.0 MISCELLANY
+
+6.1 Adding an exUserFolder from a product.
+
+You can add an exUserFolder from a Python product fairly easily, if
+not a tad messily.
+
+
+from Products.exUserFolder.exUserFolder import manage_addexUserFolder, eUserFolder
+
+manage_addexUserFolder(authId='zodbAuthSource', propId='zodbPropSource',
+                       memberId='basicMemberSource',
+                       cookie_mode=1, session_length=600, REQUEST)
+
+Obviously change authId, propId, and memberId to what you want.
+However, you'll need to ram in the appropriate form fields for the various
+source constructors into your REQUEST.
+
+6.2 Session Tracking.
+
+Session tracking (currently) relies on having the credential cache
+active, and a property source active. Your trackable user will only
+last as long as they are not expired from the cache. You should set
+the cache expiry length to be somewhat longer than normal if you plan
+to use Session Tracking, and you should also be prepared to check that
+the current session is valid.

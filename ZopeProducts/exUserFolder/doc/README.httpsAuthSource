@@ -1,0 +1,28 @@
+This plugin implements authentication from an https service.  
+
+Upon installation, the mangament forms allow you to configure:
+* the url to the service, 
+* the parameter that will contain the username 
+* the parameter that will contain the password
+* The expected authorization response regex (returned from the authorization service).
+* The default role that authorized users will be assinged upon their first login
+
+The https auth source posts a request over https to the named service with the username and 
+passowrd passed according to the parameters defined in the configuration.  It will attempt 
+to match the authorization pattern specified, and if the pattern is found, the user will be
+authenticated.
+
+Once a user has logged in, they will appear in xuf user list, and their roles can be updated.
+
+This auth source has been developed using the zodbBTreeProps plugin, and stores the user's
+roles in this property tool.
+
+A typical use case for this authorization service might be to authenticate against
+a legacy user directory for which no xuf auth plugin currently exists.  Hopefully, the 
+development of a the auth service on the other end will be trivial, or better yet,
+already exist.
+
+IMPORTANT NOTE: In order to use this plugin you must compile your python to include 
+ssl support.  The python that ships with zope 2.X does not have this enabled by default.
+
+Thanks to akm, bcsaller, runyaga for all their help.

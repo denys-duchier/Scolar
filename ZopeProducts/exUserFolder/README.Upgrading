@@ -1,0 +1,14 @@
+If you are upgrading an existing site from < 0.50
+
+I have restructured the source tree. This will make this version
+incompatible with previous versions, as the classes have moved. This
+breaks upgrading existing installs unless you keep the old classes
+around. If you only use external Auth/Prop/Group sources, you will
+probably be unaffected.
+
+This means for those of you using SQL or LDAP or any non-ZODB sources,
+you can remove and then re-add your XUF acl_users to get going again.
+
+If you are using a ZODB source, then you need to keep the old classes
+and the old paths around (e.g. symlink zodbAuthSource to
+AuthSources/zodbAuthSource).

@@ -1,0 +1,40 @@
+<dtml-var "DialogHeader(_.None,_,DialogTitle='Add MySQL Authentication Source')">
+<FORM ACTION="&dtml-URL;" METHOD="POST">
+<dtml-in "REQUEST.form.keys()">
+<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_.getitem('sequence-item',0)]">">
+</dtml-in>
+<input type="HIDDEN" name="doProp" value="1">
+<TABLE CELLSPACING="2">
+<tr><th><dtml-babel src="'en'">Database Connection</dtml-babel>:</th>
+    <td>
+        <select name="mysqlauth_connection">
+        <dtml-in "SQLConnectionIDs()">
+            <option value="<dtml-var sequence-item>">
+            <dtml-var sequence-key></option>
+        </dtml-in>
+        </select>
+     </td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Table Name</dtml-babel>:</th>
+	<td><input type="text" name="mysqlauth_table" value="passwd"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Username Column</dtml-babel>:</th>
+	<td><input type="text" name="mysqlauth_usernameColumn" value="username"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Password Column</dtml-babel>:</th>
+	<td><input type="text" name="mysqlauth_passwordColumn" value="password"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Roles Column</dtml-babel>:</th>
+	<td><input type="text" name="mysqlauth_rolesColumn" value="roles"></td>
+</tr>
+<TR>
+<TD></TD>
+<TD><BR><INPUT TYPE="SUBMIT" VALUE="<dtml-babel src="'en'">Add</dtml-babel>"></TD>
+</TR>
+</TABLE>
+</FORM>
+<dtml-var DialogFooter>

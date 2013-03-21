@@ -1,0 +1,37 @@
+<dtml-var "DialogHeader(_.None,_,DialogTitle='Postgresql Authentication Source',dialog_width='100%')">
+<dtml-var manage_tabs>
+<FORM ACTION="manage_editAuthSource" METHOD="POST">
+<TABLE CELLSPACING="2">
+<tr><th><dtml-babel src="'en'">Database Connection</dtml-babel>:</th>
+    <td>
+        <select name="pgauth_connection">
+        <dtml-in "SQLConnectionIDs()">
+			<option value="<dtml-var sequence-item>"<dtml-if "currentAuthSource.connection==_['sequence-item']"> SELECTED</dtml-if>>
+            <dtml-var sequence-key></option>
+        </dtml-in>
+        </select>
+     </td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Table Name</dtml-babel>:</th>
+	<td><input type="text" name="pgauth_table" value="<dtml-var "currentAuthSource.table">"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Username Column</dtml-babel>:</th>
+	<td><input type="text" name="pgauth_usernameColumn" value="<dtml-var "currentAuthSource.usernameColumn">"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Password Column</dtml-babel>:</th>
+	<td><input type="text" name="pgauth_passwordColumn" value="<dtml-var "currentAuthSource.passwordColumn">"></td>
+</tr>
+<tr>
+	<th><dtml-babel src="'en'">Roles Column</dtml-babel>:</th>
+	<td><input type="text" name="pgauth_rolesColumn" value="<dtml-var "currentAuthSource.rolesColumn">"></td>
+</tr>
+<TR>
+<TD></TD>
+<TD><BR><INPUT TYPE="SUBMIT" VALUE=" <dtml-babel src="'en'">Edit</dtml-babel> "></TD>
+</TR>
+</TABLE>
+</FORM>
+<dtml-var DialogFooter>

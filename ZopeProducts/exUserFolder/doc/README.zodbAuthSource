@@ -1,0 +1,13 @@
+ZODB Authentication Source for exUserFolder
+
+This is an auth source that works pretty much like the standard user folder provided by zope.
+It stores the usernames, roles and passwords on a ZODB persistent dictionary. 
+
+It doesn't require any configuration at all, just select it as your auth source and you're
+ready to add user accounts.
+
+
+Author: Alex Verstraeten (aka: zxc)
+Email: alex@quad.com.ar
+
+

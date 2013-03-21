@@ -1,0 +1,171 @@
+User Sources
+------------
+
+This is the list of functions your auth source should provide.
+
+createUser(self, username, password, roles)
+Create a User to authenticate against username, password and roles,
+should all be obvious.
+
+
+updateUser(self, username, password, roles)
+Update a user's roles and password.
+An empty password means do not change passwords, so at least at this time
+it's not possible to have passwordless accounts.
+
+
+cryptPassword(self, username, password)
+Encrypt a password
+If no 'crypt' method is supplied return the Password -- 
+i.e. plaintext password.
+
+
+deleteUsers(self, userids)
+Delete a set of users, userids is a list of usernames to delete.
+
+
+listUserNames(self)
+returns a list of usernames.
+
+listOneUser(self,username)
+Return one user matching the username
+Should be a dictionary; 
+	{'username':username, 'password':cryptedPassword, 'roles':list_of_roles}
+Once again, you can provide more information than this if you're customising
+the forms.
+
+listUsers(self)
+Return the list of users in the same format as listOneUser
+
+
+remoteAuthMethod(self, username, password)
+You can define this to go off and do the authentication instead of
+using the basic one inside the User Object. Useful for IMAP/LDAP auth
+type methods where the authentication is handled elsewhere and we just want
+to know success or failure. If you don't want to do this you should have;
+
+remoteAuthMethod=None
+
+in your AuthSource (to explicitly tell the exUserFolder that you don't).
+
+------------------------------------------------------------------------
+This is a skeleton class;
+
+manage_addfooAuthSourceForm=HTMLFile('manage_addfooAuthSourceForm', globals())
+manage_editfooAuthSourceForm=HTMLFile('manage_editfooAuthSourceForm', globals())
+
+class fooAuthSource(Folder):
+
+	meta_type='Authentication Source'
+	title='User Supplied Authentication'
+	icon ='misc_/exUserFolder/exUserFolderPlugin.gif'
+	manage_editForm=manage_editfooAuthSourceForm
+		
+	def __init__(self):
+		self.id='fooAuthSource'
+
+	# Create a User to authenticate against
+	# username, password and roles
+	def createUser(self, username, password, roles):
+		""" Add A Username """
+		pass
+
+	# Update a user's roles and password
+	# An empty password means do not change passwords...
+	def updateUser(self, username, password, roles):
+		pass
+
+	# Encrypt a password
+	# If no 'crypt' method is supplied return the
+	# Password -- i.e. plaintext password
+	def cryptPassword(self, username, password):
+		pass
+
+	# Delete a set of users
+	def deleteUsers(self, userids):
+		pass
+
+	# Return a list of usernames
+	def listUserNames(self):
+		pass
+		
+	# Return a list of user dictionaries with
+	# {'username':username} can be extended to pass back other
+	# information, but, we don't do that just now
+	def listUsers(self):
+		pass
+
+	# Return one user matching the username
+	# Should be a dictionary;
+	# {'username':username, 'password':cryptedPassword, 'roles':list_of_roles}
+	def listOneUser(self,username):
+		pass
+
+	#
+	# Return a list of users, dictionary format as for listOneUser
+	#
+	def getUsers(self):
+		pass
+
+	#
+	# You can define this to go off and do the authentication instead of
+	# using the basic one inside the User Object
+	#
+	remoteAuthMethod=None
+
+##	def remoteAuthMethod(self, username, password):
+##		pass
+
+	def postInitialisation(self, REQUEST):
+		pass
+
+fooAuthReg=PluginRegister('fooAuthSource', 'User Supplied Authentication Source',
+						 fooAuthSource, manage_addfooAuthSourceForm,
+						 manage_addfooAuthSource,
+						 manage_editfooAuthSourceForm)
+exUserFolder.authSources['fooAuthSource']=fooAuthReg
+
+------------------------------------------------------------------------
+
+Property Sources
+----------------
+
+Property Sources have only a few things they need to provide;
+
+hasProperty(self, key)
+Returns true if the current user has that property
+
+setProperty(self, key, value)
+Sets a property for the current user
+
+
+setUserProperty(self, key, username, value)
+Sets a property for the given user.
+
+
+getProperty(self, key, default=None)
+Returns the requested property or the default for the current user.
+
+
+getUserProperty(self, key, username, default=None)
+Returns the requested property or the default for the named user.
+
+
+listProperties(self)
+Returns a list of properties (just the properties not their values).
+
+
+listUserProperties(self, username)
+Returns a list of properties for the named user.
+
+createUser(self, username, REQUEST)
+Creates a new user, and adds in the properties in the REQUEST.
+New properties are preceded with "user_KEYNAME", so strip user_ to
+set the property.
+
+deleteUsers(self, userids)
+Delete the list of users (and their properties) contained within userids.
+
+updateUser(self, username, REQUEST)
+Change the list of properties for a user, the variables are formatted as for
+createUser.

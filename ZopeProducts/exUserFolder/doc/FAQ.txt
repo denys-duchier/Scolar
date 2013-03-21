@@ -1,0 +1,119 @@
+Frequently Asked Questions
+
+1.  Why shouldn't I use Core Session Tracking + Login Manager?
+XUF serves a different set of users to the combination above. XUF
+aims to be a simple out of the box solution. Login Manager allows
+for very complex authorisation schemes that can query multiple user
+sources. We don't do that.
+
+2.  Why use XUF at all?
+In its simplest configuration, XUF provides the same functionality
+as the standard User Folder, but, is more secure. Passwords are
+stored encrypted, which is not the case for the standard User Folder.
+So even if you don't want to set properties on users, or any
+membership facilities, there is a benefit to running XUF.
+
+3.  Do I have to have all this other stuff?
+No. The only thing you need to enable is authentication. There is
+a null property source, and a null membership source. Everything
+other than authentication is optional.
+
+4.  Can I use it as a root folder?
+Some people have reported success in doing so. We don't recommend
+it for various reasons. The main one is that the internal Zope API
+can change without warning, which could break XUF and lock you out
+of your Zope. This can happen with any User Folder product. We
+recommend you look at VHM and other Site Access methods to allow
+you to store your main site in a sub-folder.
+
+5.  When will XUF support authentication against XYZ system?
+That depends. First the active developers need to have an interest
+in it, and more importantly they need to be able to test it. Writing
+your authentication method is very simple, so if you understand
+what you want to authenticate against, and know some python you
+could write one in an hour.  You can also use the usAuthSource to
+write one using PythonScripts, ExternalMethods, DTML, or any other
+callable method that Zope supports.
+
+6.  I wrote this cool authentication source can I get it into the main
+    distribution?
+Yes and No. If your authentication is Open Source, and has a
+compatible license with XUF, and doesn't require any external
+libraries, odds are it'll go into the main distribution. If it
+depends on external libraries, it's possible it can conditionally
+go into the main distribution. The nice thing about XUF is that
+Authentication, Property, and Membership sources are all packagable
+as independent products, so you can distribute it as a standalone
+product, and it'll work (without having to have the code drop into
+the XUF directory either).
+
+7.  Is XUF going to be part of the Core Zope?
+No idea. At the moment (0.10.5) XUF is probably not at a level that
+Zope Corporation would consider mature enough for core inclusion
+anyway.
+
+Actually the answer now, is probably not. At a minimum smbAuthSource,
+and radiusAuthSource would have to be stripped and distributed
+seperately.  Over and above that, I would have to assign Zope Corp
+co-ownership rights on the IP, which amongst other things gives
+them or anyone that buys them unlimited access to future derived
+works. I refuse to do this on principle, the liberal licensing of
+the product should be more than adequate for any (especially open
+source) endeavour.
+
+8.  What's with the Management Screens?
+It's a joke on the Zope World.
+
+9.  But they're really ugly I want to change them.
+That's fine, you do that, that's the point.
+
+10. Can I send you patches to put them back to standard Management
+    Screens?
+You can put patches into the tracker at Source Forge if you want to.
+
+11. HELP!!!! I tried to install XUF as my root folder, without
+    reading the FAQ, or really knowing what I'm doing, and now I'm
+    hosed!!!
+That's a shame.
+
+12. Will XUF work with ZEO?
+Unknown. However, it's almost certain that in its current form
+credential caching will not work across ZEO -- you will get a
+seperate User Cache for each Zope Client (which isn't really all
+that bad). However, it means that if you want to use Session Tracking,
+you need to lock users to one particular server. Most commercial
+Load Balancers do this for you anyhow. A persistent cache will form
+part of an upcoming release which will allow all of this to work
+transparently across ZEO farms.
+
+13. Shouldn't it be EUF?
+No, it should be XUF :-P
+
+14. How can I log in a user via a form submission?
+Yes, the key is sending the __ac_name and __ac_password (yes that's
+two underscores in front) as form variables to any object covered
+by the XUF.
+
+This form will take your users to the /index_html and log them in.
+You can place this anywhere in your site including /index_html.
+
+<form action="/index_html">
+Name: <input type="text" size="20" name="__ac_name"><br>
+Password: <input type="password" size="20" name="__ac_password">
+<input type="submit" value="Log in">
+</form>
+
+15. That Dialog box sure is ugly! How can I customize it so it looks
+    right in my site?
+Under the contents tab add an object called MessageDialog , it can
+be a dtml document, method, or even a page template.  Make it look
+how you want, it will acquire all objects from the folder the XUF
+is in so you can use the standard_html_header, call scripts, etc.
+
+16. Why can't I change the default crypto method?
+Because someone will change it, and all the existing passwords will cease
+to work. Then I'll get lots of hate-mail, or get slagged off on other mailing
+lists :-)
+
+17. Where is the Zen Master's Guide to exUserFolder?
+Everywhere and nowhere.

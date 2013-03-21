@@ -1,0 +1,20 @@
+This alternate pgAuthSource was developed to allow Zope and jakarta-tomcat to 
+share common PostGreSQL auth tables. It's really just a mod of the original 
+pgAuthSource, with changes to the original kept to a minimum. This should help
+when it comes to cross porting improvements / maintenence changes between the 
+two versions.
+
+The only thing that's new is the table schema. This auth source uses:
+A user table 
+	Username, password
+
+A role table:
+	rolename
+
+and a associative userrole table for relating the two:
+	username, rolename
+
+ps. Use the Source, Luke!
+If you dig a little you will find a couple of different ways of crypting 
+passwords commented out (plain and MD5).
+

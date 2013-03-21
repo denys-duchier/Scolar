@@ -1,0 +1,45 @@
+<dtml-var "DialogHeader(DialogTitle='HTTPS Authentication Source',dialog_width='100%')">
+<dtml-var manage_tabs>
+<FORM ACTION="manage_editAuthSource" METHOD="POST">
+<TABLE CELLSPACING="2">
+<TR>
+
+  <th align="LEFT" valign="TOP"><em><dtml-babel src="'en'">Service URL</dtml-babel></em></th>
+  <TD ALIGN="LEFT" VALIGN="TOP">
+	    <input name=serviceUrl value="<dtml-var "currentAuthSource.serviceUrl">">
+  </TD>
+</tr>
+<TR>
+
+  <th align="LEFT" valign="TOP"><em><dtml-babel src="'en'">User Name Parameter</dtml-babel></em></th>
+  <TD ALIGN="LEFT" VALIGN="TOP">
+	    <input name=userNameParam value="<dtml-var "currentAuthSource.userNameParam">">
+  </TD>
+</tr>
+<TR>
+
+  <th align="LEFT" valign="TOP"><em><dtml-babel src="'en'">Passwd Parameter</dtml-babel></em></th>
+  <TD ALIGN="LEFT" VALIGN="TOP">
+	    <input name=passwdParam value="<dtml-var "currentAuthSource.passwdParam">">
+  </TD>
+</tr>
+<TR>
+  <th align="LEFT" valign="TOP"><em><dtml-babel src="'en'">Authorization Response Pattern</dtml-babel></em></th>
+  <TD ALIGN="LEFT" VALIGN="TOP">
+	    <input name=authResponse value="<dtml-var "currentAuthSource.authResponse">">
+  </TD>
+</tr>
+<tr>
+  <th align="LEFT" valign="TOP"><em><dtml-babel src="'en'">Default Role</dtml-babel></em></th>
+  <TD ALIGN="LEFT" VALIGN="TOP">
+	    <input name=defaultRole value="<dtml-var "currentAuthSource.defaultRole">">
+  </TD>
+
+</TR>
+<TR>
+<TD></TD>
+<TD><BR><INPUT TYPE="SUBMIT" VALUE=" <dtml-babel src="'en'">Edit</dtml-babel> "></TD>
+</TR>
+</TABLE>
+</FORM>
+<dtml-var DialogFooter>

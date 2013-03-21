@@ -1,0 +1,91 @@
+XUF as a whole is covered by the BSD License, however it uses software 
+covered by other compatible licenses (see below)
+
+------------------------------------------------------------------------
+
+All of the documentation and software included in the exUserFolder
+Releases is copyrighted by The Internet (Aust) Pty Ltd and contributors
+ACN: 082 081 472  ABN: 83 082 081 472
+
+Copyright 2001, 2002 The Internet (Aust) Pty Ltd
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+------------------------------------------------------------------------
+
+This product includes software developed by Digital Creations for use in 
+the Z Object Publishing Environment (http://www.zope.org/) 
+
+Portions of smbAuthSource Copyright (C) 2001 Michael Teo 
+
+Portions of radiusAuthSource Copyright (C) 1999 Stuart Bishop 
+
+fcrypt is Copyright (C) 2001, 2001 Carey Evans 
+
+This product includes cryptographic software written by Eric Young 
+(eay@mincom.oz.au)
+
+------------------------------------------------------------------------
+
+Brief discussion of what the license means to you, not meant to be
+all encompassing, but, to give you the general idea. This editorial does
+not need to be distributed d8)
+
+If you want to incorporate this product (or parts of it) into a commercial 
+product that's fine.
+
+If you want to modify this product that's fine.
+
+If you want to modify and distribute this product that's fine (even in
+commercial products).
+
+If you want to incorporate this into a larger work that's fine (even
+if that work has a different license).
+
+None of the previous items place any obligation of notification, compensation,
+or return of code to us. In fact we don't care if you do these things. Go
+forth and prosper. Basically as long as you recognise that this doesn't
+belong to you, you can do what you want with it even charge money for it.
+
+Note: If you do distribute this as source, then the XUF components are
+removable and distributable independently of your license as a whole
+(although that's a lot of trouble to go to when they could just download it
+from the same place you did).
+
+What you can't do, is claim it's yours, and this one thing encompasses a lot
+of things, here's a few.
+
+If it's not yours you can't;
+
+Change the license even if you change the code since the copyright
+of the modified files remains with the original copyright holders.
+
+Use bits of it inside products that require the license to change, because
+only the copyright holders have the right to modify the license (not a
+concern for commercial projects, only some other Free/Open Source licenses).
+
+Assign the copyright or other IP to any other party of the whole or any
+part (even if you change the code), because it's not yours to give away or
+sell to a 3rd party.
+
+If the fact you can almost do whatever you want with this code isn't 
+liberal enough for you, contact us and we'll see what we can arrange.

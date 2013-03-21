@@ -1,0 +1,143 @@
+<dtml-var "DialogHeader(_.None, _, DialogTitle='Add Basic Membership Source', dialog_width='')">
+<b><dtml-babel src="'en'">Membership requires a valid property source, you cannot use this with NULL Property Source</dtml-babel></b>
+<FORM ACTION="&dtml-URL;" METHOD="POST">
+		<dtml-in "REQUEST.form.keys()">
+			<dtml-if "getVariableType(REQUEST[_['sequence-item']]) == 'List'">
+				<dtml-let listVar=sequence-item>
+					<dtml-in "REQUEST[listVar]">
+						<input type="HIDDEN" name="<dtml-var listVar>:list" value="<dtml-var sequence-item>">
+					</dtml-in>
+				</dtml-let>
+			<dtml-else>
+				<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_.getitem('sequence-item',0)]">">
+			</dtml-if>
+
+		</dtml-in>
+
+<input type="HIDDEN" name="doGroup" value="1">
+<table cellspacing="2">
+<tr><td align="right"><b><dtml-babel src="'en'">Site Name (used in emails)</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_sitename">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Site Email (used for emails)</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_siteemail">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Mail Host</dtml-babel></b></td>
+	<td>
+        <select name="basicmember_mailhost">
+        <dtml-in "MailHostIDs()">
+            <option value="<dtml-var sequence-item>">
+            <dtml-var sequence-key></option>
+        </dtml-in>
+        </select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Site Base</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_baseurl"
+			value="<dtml-var "absolute_url()">">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path (from base) of Login Page</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_loginpage"	value="LoginForm">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path (from base) of Signup Page</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_signuppage" value="SignupForm">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path (from base) of Change Password Page</dtml-babel></b></td>
+	<td><input type="text" name="basicmember_passwordpage" value="ChangePasswordForm">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Password Validation Features</dtml-babel></b></td>
+	<td>
+		<select name="basicmember_pvfeatures:list" multiple>
+		<option value="minlength">Minimum Length</option>
+		<option value="mixedcase">Must have Mixed Case</option>
+		<option value="specichar">Must have Special Chars</option>
+		<option value="notstupid">Not Stupid (username/email/part of name)</option>
+		</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Minimum Length (0 if not required)</dtml-babel></b></td>
+	<td>
+		<input type="text" name="basicmember_minpasslen:int" value="0">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Password Policy</dtml-babel></b></td>
+	<td>
+		<select name="basicmember_passwordpolicy">
+		<option value="user">User Chooses</option>
+		<option value="system">System Chooses and emails User</option>
+		</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Forgotten Passwords</dtml-babel></b></td>
+	<td>
+		<select name="basicmember_forgottenpasswords">
+		<option value="hint"><dtml-babel src="'en'">Email a Hint</dtml-babel></option>
+		<option value="reset"><dtml-babel src="'en'">Reset and Email New password</dtml-babel></option>
+		</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Allow users to change passwords</dtml-babel></b></td>
+	<td>
+		<input type="checkbox" name="basicmember_changepasswords" checked><dtml-babel src="'en'">Yes</dtml-babel>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Create 'Home Directory'</dtml-babel></b></td>
+	<td>
+		<input type="checkbox" name="basicmember_createhomedir"><dtml-babel src="'en'">Yes</dtml-babel>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path to 'Home Directory' Root</dtml-babel></b></td>
+	<td>
+		<input type="text" name="basicmember_homeroot" value="Members">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Copy initial 'Home Directory' files from...(empty=No Copy)</dtml-babel></b></td>
+	<td>
+		<input type="text" name="basicmember_copyfiles", value="<dtml-var "_.string.join(getPhysicalPath()[1:], '/')">">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">After login....</dtml-babel></b></td>
+	<td>
+	<select name="basicmember_postlogin">
+	<option value="destination"><dtml-babel src="'en'">Go to intended destination</dtml-babel></option>
+	<option value="fixed"><dtml-babel src="'en'">Go to fixed destination</dtml-babel></option>
+	<option value="varied"><dtml-babel src="'en'">Go to Home Directory</dtml-babel></option>
+	</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Fixed Destination</dtml-babel></b></td>
+	<td>
+		<input type="text" name="basicmember_fixeddest">
+	</td>
+</tr>
+<tr>
+  <td valign="top" align="right"><b><dtml-babel src="'en'">Default Roles</dtml-babel></b></td>
+  <td align="left" valign="top">
+  <select name="basicmember_roles:list" size="5" multiple>
+  <dtml-in valid_roles>
+  <dtml-if expr="_vars['sequence-item'] != 'Anonymous'">
+  <dtml-if expr="_vars['sequence-item'] != 'Authenticated'">
+  <dtml-if expr="_vars['sequence-item'] != 'Shared'">
+  <option value="<dtml-var sequence-item html_quote>"><dtml-var sequence-item>
+  </dtml-if>
+  </dtml-if>
+  </dtml-if>
+  </dtml-in valid_roles>
+  </select>
+</td>
+</tr>
+</table>
+<input type="SUBMIT" value="<dtml-babel src="'en'">Add</dtml-babel>">
+</form>
+<dtml-var DialogFooter>

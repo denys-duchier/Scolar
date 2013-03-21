@@ -1,0 +1,41 @@
+<head><body>
+<FORM ACTION="<dtml-var action>" METHOD="POST" <dtml-if target>TARGET="<dtml-var target>"</dtml-if>>
+<dtml-in "REQUEST.form.keys()">
+	<dtml-if "getVariableType(REQUEST[_['sequence-item']]) == 'List'">
+		<dtml-let listVar=sequence-item>
+			<dtml-in "REQUEST[listVar]">
+				<input type="HIDDEN" name="<dtml-var listVar>:list" value="<dtml-var sequence-item>">
+			</dtml-in>
+		</dtml-let>
+	<dtml-else>
+		<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_.getitem('sequence-item',0)]">">
+	</dtml-if>
+</dtml-in>
+<dtml-var "DialogHeader(DialogTitle=title, dialog_width='')">
+<TABLE BORDER="0" WIDTH="100%" CELLPADDING="10">
+<TR>
+  <TD VALIGN="TOP">
+  <BR>
+  <CENTER><B><FONT SIZE="+6" COLOR="#77003B">!</FONT></B></CENTER>
+  </TD>
+  <TD VALIGN="TOP">
+  <BR><BR>
+  <CENTER>
+  <dtml-babel src="'en'" literal="1"><dtml-var message></dtml-babel>
+  </CENTER>
+  </TD>
+</TR>
+<TR>
+  <TD VALIGN="TOP">
+  </TD>
+  <TD VALIGN="TOP">
+  <CENTER>
+  <INPUT TYPE="SUBMIT" VALUE="   <dtml-babel src="'en'">Ok</dtml-babel>   ">
+  </CENTER>
+  </TD>
+</TR>
+</TABLE>
+<dtml-var DialogFooter>
+</FORM>
+
+</head></body>

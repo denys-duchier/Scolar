@@ -1,0 +1,31 @@
+<dtml-var "DialogHeader(DialogTitle='Signup', dialog_width='')">
+<form action="acl_users/manage_signupUser" method="POST">
+<table>
+<tr>
+	<td align="right"><b><dtml-babel src="'en'">Username</dtml-babel></td>
+	<td><input name="username" type="text" value="&dtml.missing-username;"></td>
+</tr>
+<dtml-if "passwordPolicy=='user'">
+<tr>
+        <td align="right"><b><dtml-babel src="'en'">Password</dtml-babel></b></td>
+        <td><input type="password" name="password" value="&dtml.missing-password;"></td>
+</tr>
+        <td align="right"><b><dtml-babel src="'en'">Confirm Password</dtml-babel></b></td>
+        <td><input type="password" name="password_confirm"></td>
+</tr>
+<dtml-if "forgottenPasswords=='hint'">
+<tr><td align="right"><b><dtml-babel src="'en'">Password Hint</dtml-babel></b></td>
+        <td><input type="text" name="user_hint" value="&dtml.missing-user_hint;"></td>
+</tr>
+</dtml-if>
+</dtml-if>
+<tr><td align="right"><b><dtml-babel src="'en'">Real Name</dtml-babel></b></td>
+        <td><input type="text" name="user_realname" value="&dtml.missing-user_realname;"></td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'"><dtml-babel src="'en'">Email</dtml-babel></dtml-babel></b></td>
+        <td><input type="text" name="user_email" value="&dtml.missing-user_email;"></td>
+</tr>
+</table>
+<input type="submit" value=" <dtml-babel src="'en'">Signup</dtml-babel> ">
+</form>
+<dtml-var DialogFooter>

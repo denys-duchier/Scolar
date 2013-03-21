@@ -1,0 +1,33 @@
+<dtml-var manage_page_header>
+  <dtml-if currentGroupSource>
+    <dtml-var "MessageDialog(title='Group Source Exists', message='Error: There is already a group source here.  Please delete it first', action='manage_main')">
+  <dtml-elif allDone>
+    <dtml-var expr="manage_addGroupSource(REQUEST)">
+  <dtml-elif groupId>
+    <dtml-call "REQUEST.set('groupForm',doGroupSourceForm(groupId=groupId))">
+    <dtml-var "groupForm(mapping=_)">
+  <dtml-else>
+    <dtml-var "DialogHeader(_.None,_,DialogTitle='Add eXtensible User Folder Group Source')">
+    <form action="&dtml-URL;" method="post">
+      <table cellspacing="2">
+	<tr>
+	  <td align="left" valign="top">
+	    <b><dtml-babel src="'en'">Group Source</dtml-babel></b>
+	  </td>
+	  <td>
+	    <select name="groupId">
+	      <dtml-in getGroupSources sort="name">
+		<option value="<dtml-var "_['sequence-item'].name">"><dtml-var description></option>
+	      </dtml-in>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td></td>
+	  <td><br><input type="submit" value=" <dtml-babel src="'en'">Add</dtml-babel> "></td>
+	</tr>
+      </table>
+    </form>
+    <dtml-var DialogFooter>
+  </dtml-if>
+<dtml-var manage_page_footer>

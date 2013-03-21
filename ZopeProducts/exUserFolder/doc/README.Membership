@@ -1,0 +1,144 @@
+There are now membership hooks defined, and a basic membership
+source defined for exUserFolder. This is a first stab at this, so
+please be careful :-)
+
+Membership adds a level of complexity to everything, and basically is a
+controlled way of breaching your security.
+
+You will need to prepare a few things before trying to add an exUserFolder
+with Membership support;
+
+a) You will need a MailHost object available
+b) You will need to define some methods for Membership to use
+	  i) a Login Page
+	 ii) a Change Password Page
+	iii) a Signup Page
+	 iv) a Forgot My Password Page (optional)
+	  v) a change Properties Page (optional)
+   These should live at the same level as your acl_user (i.e. not inside).
+   These should be fairly simple, I've included some examples below.
+   These should just wrap the ones below acl_users. There will be methods
+   you can edit to get all your fields and layout done.
+c) If you want the results pages from Signup, Change Password, etc to fit 
+   your site, you'll need to add a MessageDialog document in the contents 
+   of the XUF. See FAQ 15 for more
+
+
+When you see the creation form, obviously some of the options are
+mutually exclusive.
+
+e.g. You can't choose system defined passwords, and have the system
+     email a hint, if they forgot their password. So try to pick sane
+     combinations of options.
+
+
+
+
+
+If you choose to have Home Directories, basicMemberSource will create
+the path you provide, so you don't need to do that in advance.
+
+If you want to have skeleton files copied to their homedir you'll need
+to have that directory (it can be empty) setup and ready to go, before
+the first user signs up.
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+If you get basicMembershipSource to create Home Directories for your 
+users, it will create a 'Folder' and it will give the user management
+permissions on that Folder. This means that they will be able to add
+any object you can, just at a level below this. You should create/have
+a proper HomeFolder object that is restricted in what is available
+for adding, and change makeHomeDir() in basicMemberSource.py to create
+one of those.
+
+I will look at creating a restricted HomeDirectory Object in a later
+release, and allow you to add and remove meta_types from it.
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+
+========================================================================
+
+
+
+------------------------------------------------------------------------
+LoginForm
+------------------------------------------------------------------------
+<dtml-with acl_users>
+<dtml-var docLogin>
+</dtml-with>
+------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------
+ChangePasswordForm
+------------------------------------------------------------------------
+<dtml-var standard_html_header>
+<dtml-with acl_users>
+<dtml-with currentMembershipSource>
+<dtml-var PasswordForm>
+</dtml-with>
+</dtml-with>
+<dtml-var standard_html_footer>
+------------------------------------------------------------------------
+
+
+
+------------------------------------------------------------------------
+SignupForm
+------------------------------------------------------------------------
+<dtml-var standard_html_header>
+<dtml-with acl_users>
+<dtml-with currentMembershipSource>
+<dtml-var SignupForm>
+</dtml-with>
+</dtml-with>
+<dtml-var standard_html_footer>
+
+
+------------------------------------------------------------------------
+ForgotMyPassword
+------------------------------------------------------------------------
+<dtml-var standard_html_header>
+<form action="acl_users/manage_forgotPassword" method="POST">
+Username: <input type="text" name="username">
+</form>
+<dtml-var standard_html_footer>
+
+
+
+------------------------------------------------------------------------
+ChangePropertiesForm
+------------------------------------------------------------------------
+<dtml-var standard_html_header>
+
+<h2> Changing Properties for <dtml-var AUTHENTICATED_USER></h2>
+<dtml-with acl_users>
+
+<form action="acl_users/manage_changeProps" method="POST">
+
+
+                <hr>
+                <h2>Properties</h2>
+                <table border>
+                <tr>
+                        <th>Property Name</th><th>Value</th>
+                </tr>
+        <dtml-in "AUTHENTICATED_USER.listProperties()"> 
+        <tr>                    <td><dtml-var sequence-item></td>
+                <td><input name="user_<dtml-var sequence-item>"
+value="<dtml-var
+"AUTHENTICATED_USER.getProperty(_['sequence-item'])">"></td>
+                </tr>
+                </dtml-in>
+                </table>
+
+        <input type="submit" value=" Change ">
+        </form>
+
+</dtml-with>
+<dtml-var standard_html_footer>
+------------------------------------------------------------------------

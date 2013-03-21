@@ -1,0 +1,26 @@
+<HTML>
+<HEAD>
+<TITLE>Logging In</TITLE>
+<dtml-call makeRedirectPath>
+<META HTTP-EQUIV=Expires CONTENT="<dtml-var "ZopeTime()-1" fmt="%Y-%m-%d">">
+<META HTTP-EQUIV=Refresh CONTENT="0; URL=&dtml-URL1;/acl_users/redirectToLogin?destination=&dtml-URL;<dtml-if "REQUEST.has_key('authFailedCode')">&authFailedCode=&dtml-authFailedCode;</dtml-if>">
+</HEAD>
+<BODY>
+<!-- This is here to stop IE's default 512 byte limit from kicking in and
+     showing us "Friendly" error pages.
+
+The Unenlightened Zopistas Guide to exUserFolder.
+(C) 2001-2003 Andrew Milton <akm@theinternet.com.au>
+
+0. INTRODUCTION.
+
+exUserFolder is an extensible authentication product for the Zope
+Application Server. It allows a user to choose from a number of
+methods of authenticating their users, and allows the setting and
+fetching of arbitrary properties on a User object.
+
+Authentication methods, and Property methods do not have to use the
+same backing store, so it is possible to use legacy user sources, and
+-->
+</BODY></HTML>
+

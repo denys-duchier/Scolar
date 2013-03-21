@@ -1,0 +1,10 @@
+<dtml-var "DialogHeader(_.None,_,DialogTitle='NIS Authentication  Source',dialog_width='100%')">
+<dtml-var manage_tabs>
+<FORM ACTION="manage_editAuthSource" METHOD="POST">
+<Table><tr><th><dtml-babel src="'en'">Default Role</dtml-babel></th>   
+        <td><input name="nisauth_default_role:required" value="<dtml-var "currentAuthSource.default_role">"></td></tr>
+       <tr><th>Do not use local roles</th>
+       <td><input name="nisauth_NoLocalRoles" type="Checkbox" <dtml-if "currentAuthSource.NoLocalRoles">CHECKED</dtml-if>></td></tr></Table>
+<INPUT TYPE="SUBMIT" VALUE=" Next ">
+</FORM>
+<dtml-var DialogFooter>

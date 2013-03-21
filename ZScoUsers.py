@@ -102,12 +102,8 @@ class ZScoUsers(ObjectManager,
         ( {'label': 'Contents', 'action': 'manage_main'}, )
         + PropertyManager.manage_options # add the 'Properties' tab
         + (
-# this line is kept as an example with the files :
-#     dtml/manage_editZScolarForm.dtml
-#     html/ZScolar-edit.stx
-#	{'label': 'Properties', 'action': 'manage_editForm',},
-	{'label': 'View',       'action': 'index_html'},
-        )
+            {'label': 'View',       'action': 'index_html'},
+            )
         + Item.manage_options            # add the 'Undo' & 'Owner' tab 
         + RoleManager.manage_options     # add the 'Security' tab
         )
@@ -230,13 +226,15 @@ class ZScoUsers(ObjectManager,
         u = self._user_list( args={'user_name':user_name} )[0]
         if u['status'] == 'old' and u['roles'] and u['roles'][0] != '-':
             roles = [ '-' + r for r in u['roles'].split(',') ]
-            self.acl_users.manage_editUser( user_name, {'roles' : roles} )
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
+            self.acl_users.scodoc_editUser(cursor, user_name, roles=roles )
             self.get_userlist_cache().inval_cache()
         elif not u['status'] and u['roles'] and u['roles'][0] == '-':
             roles = [ r[1:] for r in u['roles'].split(',') if (r and r[0] == '-')]
-            self.acl_users.manage_editUser( user_name, {'roles' : roles} )
+            cursor = cnx.cursor(cursor_factory=ScoDocCursor)
+            self.acl_users.scodoc_editUser(cursor, user_name, roles=roles )
             self.get_userlist_cache().inval_cache()
-        
+    
     def _user_delete(self, user_name):
         # delete user
         cnx = self.GetUsersDBConnexion()
@@ -352,14 +350,10 @@ class ZScoUsers(ObjectManager,
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('update sco_users set date_modif_passwd=now(), passwd_temp=0 where user_name=%(user_name)s',
                        { 'user_name' : user_name } )
-        req = { 'password' : password,
-                'password_confirm' : password,
-                'roles' : [user[0]['roles']] }
-
-        # Laisse le exUserFolder modifier les donnees
-        self.acl_users.manage_editUser( user_name, req )
-        # Termine cette transaction:
-        self.UsersDB().db.commit()
+        
+        # Laisse le exUserFolder modifier les donnees:
+        self.acl_users.scodoc_editUser(cursor, user_name, password=password, roles=[user[0]['roles']])
+        
         log("change_password: change ok for %s" % user_name)
         self.get_userlist_cache().inval_cache() #>
 
@@ -806,7 +800,8 @@ class ZScoUsers(ObjectManager,
     security.declareProtected(ScoUsersAdmin, 'create_user')
     def create_user(self, args, REQUEST=None):
         "creation utilisateur zope"
-        cnx = self.GetUsersDBConnexion()        
+        cnx = self.GetUsersDBConnexion()
+        cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         passwd = args['passwd']
         args['passwd'] = 'undefined'
         if 'passwd2' in args:
@@ -814,12 +809,11 @@ class ZScoUsers(ObjectManager,
         log('create_user: args=%s' % args) # log apres supr. du mot de passe !
         r = self._userEditor.create(cnx, args)
         self.get_userlist_cache().inval_cache() #>
+        
         # call exUserFolder to set passwd
-        args['password'] = passwd
-        args['password_confirm'] = passwd
-        args['roles'] = args['roles'].split(',')
-        junk = self.acl_users.manage_editUser( args['user_name'], args )
-        #log('create_user: junk=%s\n' % junk )
+        roles = args['roles'].split(',')
+        self.acl_users.scodoc_editUser(cursor, args['user_name'], password=passwd, roles=roles )
+        
         if REQUEST:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
 
@@ -1041,10 +1035,7 @@ def manage_addZScoUsers(self, id= 'id_ZScousers', title='The Title for ZScoUsers
    self._setObject(id, ZScoUsers(id, title))
    if REQUEST is not None:
         return self.manage_main(self, REQUEST)
-        #return self.manage_editForm(self, REQUEST)
 
-# The form used to get the instance id from the user.
-#manage_addZAbsencesForm = DTMLFile('dtml/manage_addZAbsencesForm', globals())
 
 
     

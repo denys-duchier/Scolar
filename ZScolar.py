@@ -1531,25 +1531,25 @@ function tweakmenu( gname ) {
         
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
 
-    security.declareProtected(ScoView, 'doChangeGroup') # XXX unused
-    def _xxx_doChangeGroup(self, etudid, partition_id, group_id, REQUEST=None,
-                       redirect=True):
-        """Change le groupe de l'etudiant dans cette partition. 
-        Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
-        """
-        # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
-        partition = sco_groups.get_partition(self, partition_id)
-        formsemestre_id=partition['formsemestre_id']
-        if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
-            raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
-        sem = self.Notes.get_formsemestre(partition['formsemestre_id'])        
-        if sem['etat'] != '1':
-            raise ScoValueError('Modification impossible: semestre verrouillé')
+    # security.declareProtected(ScoView, 'doChangeGroup') # XXX unused
+    # def _xxx_doChangeGroup(self, etudid, partition_id, group_id, REQUEST=None,
+    #                    redirect=True):
+    #     """Change le groupe de l'etudiant dans cette partition. 
+    #     Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
+    #     """
+    #     # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
+    #     partition = sco_groups.get_partition(self, partition_id)
+    #     formsemestre_id=partition['formsemestre_id']
+    #     if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
+    #         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+    #     sem = self.Notes.get_formsemestre(partition['formsemestre_id'])        
+    #     if sem['etat'] != '1':
+    #         raise ScoValueError('Modification impossible: semestre verrouillé')
         
-        log('doChangeGroup(etudid=%s,partition_id=%s,group_id=%s)'%(etudid,formsemestre_id, group_id))
-        sco_groups.change_etud_group_in_partition(self, etudid, group_id, partition, REQUEST=REQUEST)        
-        if redirect:
-            REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
+    #     log('doChangeGroup(etudid=%s,partition_id=%s,group_id=%s)'%(etudid,formsemestre_id, group_id))
+    #     sco_groups.change_etud_group_in_partition(self, etudid, group_id, partition, REQUEST=REQUEST)        
+    #     if redirect:
+    #         REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
     # --- Gestion des groupes:
     security.declareProtected(ScoView, 'affectGroups')

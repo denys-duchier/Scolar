@@ -1,0 +1,12 @@
+I have converted ZRadius to work with exUserFolder as an AuthSource
+it should function at least as well as it functioned with GUF d8)
+-- akm
+
+Radius
+
+    This product implements simple Radius authentication. If you need
+    to authenticate Zope users from a Radius server, this product will
+    plug into the GenericUserFolder product.
+
+    &copy; Copywrite 1999 Stuart Bishop &LT;zen@cs.rmit.edu.au&GT;
+

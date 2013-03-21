@@ -58,6 +58,7 @@ from Globals import Persistent
 from Globals import INSTANCE_HOME
 from Acquisition import Implicit
 
+# 
 try:
     import Products.ZPsycopgDA.DA as ZopeDA
 except:
@@ -192,13 +193,15 @@ class ZScoDoc(ObjectManager,
         Note: la connexion est fixée (SCOUSERS) (base crée par l'installeur) !
         Les utilisateurs avancés pourront la changer ensuite.
         """
+        # ce connecteur zope - db est encore pour l'instant utilisé par exUserFolder.pgAuthSource
+        # (en lecture seule en principe)
         oid = 'UsersDB'
         log('create_users_cnx: in %s' % self.id)
         da = ZopeDA.Connection(
             oid, 'Cnx bd utilisateurs',
             SCO_DEFAULT_SQL_USERS_CNX,
             False,
-            check=1, tilevel=2, encoding='iso8859-15')
+            check=1, tilevel=2, encoding='LATIN1')
         self._setObject(oid, da)
         
     security.declareProtected('View', 'change_admin_user')

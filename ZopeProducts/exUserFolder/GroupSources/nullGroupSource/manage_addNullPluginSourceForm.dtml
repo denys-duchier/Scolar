@@ -1,0 +1,21 @@
+<dtml-var "DialogHeader(_.None, _, DialogTitle='Add Basic Group Source', dialog_width='')">
+<FORM ACTION="&dtml-URL;" METHOD="POST">
+		<dtml-in "REQUEST.form.keys()">
+			<dtml-if "getVariableType(REQUEST[_['sequence-item']]) == 'List'">
+				<dtml-let listVar=sequence-item>
+					<dtml-in "REQUEST[listVar]">
+						<input type="HIDDEN" name="<dtml-var listVar>:list" value="<dtml-var sequence-item>">
+					</dtml-in>
+				</dtml-let>
+			<dtml-else>
+				<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_.getitem('sequence-item',0)]">">
+			</dtml-if>
+
+		</dtml-in>
+
+<input type="HIDDEN" name="allDone" value="1">
+<b><dtml-babel src="'en'">This Group Source has no configuration Items</dtml-babel></b><br>
+<br>
+<input type="SUBMIT" value="<dtml-babel src="'en'">Add</dtml-babel>">
+</form>
+<dtml-var DialogFooter>

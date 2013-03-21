@@ -1,0 +1,10 @@
+<dtml-var "DialogHeader(_.None,_,DialogTitle='Add User Supplied Authentication Source')">
+<FORM ACTION="&dtml-URL;" METHOD="POST">
+<dtml-in "REQUEST.form.keys()">
+<input type="HIDDEN" name="<dtml-var sequence-item>" value="<dtml-var "REQUEST[_.getitem('sequence-item',0)]">">
+</dtml-in>
+<input type="HIDDEN" name="doProp" value="1">
+<b><dtml-babel src="'en'">This authentication source requires no user configuration items at this time.</dtml-babel></b><br>
+<INPUT TYPE="SUBMIT" VALUE=" <dtml-babel src="'en'">NEXT</dtml-babel> ">
+</FORM>
+<dtml-var DialogFooter>

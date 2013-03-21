@@ -1,0 +1,116 @@
+<dtml-var "DialogHeader(_.None, _, DialogTitle='Edit Basic Membership Source', dialog_width='')">
+<dtml-var manage_tabs>
+<FORM ACTION="manage_editMembershipSource" METHOD="POST">
+<dtml-with currentMembershipSource>
+<table cellspacing="2">
+<tr><td align="right"><b><dtml-babel src="'en'">Site Name (used in emails)</dtml-babel></b></td>
+	<td><input type="text" name="sitename" value="&dtml.missing-siteName;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Site Email (used for emails)</dtml-babel></b></td>
+	<td><input type="text" name="siteemail" value="&dtml.missing-siteEmail;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Mail Host</dtml-babel></b></td>
+	<td>
+        <select name="mailhost">
+        <dtml-in "MailHostIDs()">
+            <option value="<dtml-var sequence-item>"<dtml-if "mailHost==_.getitem('sequence-item',0)"> selected</dtml-if>><dtml-var sequence-key></option>
+        </dtml-in>
+        </select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Site Base</dtml-babel></b></td>
+	<td><input type="text" name="baseurl"
+			value="&dtml.missing-baseURL;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path (from base) of Login Page</dtml-babel></b></td>
+	<td><input type="text" name="loginpage"	value="&dtml.missing-loginPage;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel>Relative Path (from base) of Signup Page</dtml-babel></b></td>
+	<td><input type="text" name="signuppage" value="&dtml.missing-signupPage;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">Relative Path (from base) of Change Password Page</dtml-babel></b></td>
+	<td><input type="text" name="passwordpage" value="&dtml.missing-passwordPage;">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Password Validation Features</dtml-babel></b></td>
+	<td>
+		<select name="pvfeatures:list" multiple>
+		<option value="minlength" <dtml-if "'minlength' in pvFeatures"> selected</dtml-if>><dtml-babel src="'en'">Minimum Length</dtml-babel></option>
+		<option value="mixedcase" <dtml-if "'mixedcase' in pvFeatures"> selected</dtml-if>><dtml-babel src="'en'">Must have Mixed Case</dtml-babel></option>
+		<option value="specichar" <dtml-if "'specichar' in pvFeatures"> selected</dtml-if>><dtml-babel src="'en'">Must have Special Chars</dtml-babel></option>
+		<option value="notstupid" <dtml-if "'notstupid' in pvFeatures"> selected</dtml-if>><dtml-babel src="'en'">Not Stupid (username/email/part of name)</dtml-babel></option>
+		</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Minimum Length (if required)</dtml-babel></b></td>
+	<td>
+		<input type="text" name="minpasslen:int" value="&dtml.missing-minLength;">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Allow users to change passwords</dtml-babel></b></td>
+	<td>
+		<input type="checkbox" name="changepasswords"<dtml-if usersCanChangePasswords> checked</dtml-if>><dtml-babel src="'en'">Yes</dtml-babel>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Create 'Home Directory'</dtml-babel></b></td>
+	<td>
+		<input type="checkbox" name="createhomedir"<dtml-if createHomeDir> checked</dtml-if>><dtml-babel src="'en'">Yes</dtml-babel>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Path to 'Home Directory' Root</dtml-babel></b></td>
+	<td>
+		<input type="text" name="homeroot" value="&dtml.missing-homeRoot;">
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Copy initial 'Home Directory' files from...(empty=No Copy)</dtml-babel></b></td>
+	<td>
+		<input type="text" name="copyfiles" value="&dtml.missing-copyFilesFrom;">
+	</td>
+</tr>
+
+<tr><td align="right"><b><dtml-babel src="'en'">After login....</dtml-babel></b></td>
+	<td>
+	<select name="postlogin">
+	<option value="destination"<dtml-if "postLogin=='destination'"> selected</dtml-if>><dtml-babel src="'en'">Go to intended destination</dtml-babel></option>
+	<option value="fixed"<dtml-if "postLogin=='fixed'"> selected</dtml-if>><dtml-babel src="'en'">Go to fixed destination</dtml-babel></option>
+	<option value="varied"<dtml-if "postLogin=='varied'"> selected</dtml-if>><dtml-babel src="'en'">Go to Home Directory</dtml-babel></option>
+	</select>
+	</td>
+</tr>
+<tr><td align="right"><b><dtml-babel src="'en'">Fixed Destination</dtml-babel></b></td>
+	<td>
+		<input type="text" name="fixeddest" value="&dtml.missing-fixedDest;">
+	</td>
+</tr>
+<tr>
+  <td valign="top" align="right"><b><dtml-babel src="'en'">Default Roles</dtml-babel></b></td>
+  <td align="left" valign="top">
+  <select name="memberroles:list" size="5" multiple>
+  <dtml-in valid_roles>
+  <dtml-if expr="_vars['sequence-item'] != 'Anonymous'">
+  <dtml-if expr="_vars['sequence-item'] != 'Authenticated'">
+  <dtml-if expr="_vars['sequence-item'] != 'Shared'">
+  <option value="<dtml-var sequence-item html_quote>"<dtml-if "_['sequence-item'] in defaultRoles"> selected</dtml-if>><dtml-var sequence-item>
+  </dtml-if>
+  </dtml-if>
+  </dtml-if>
+  </dtml-in valid_roles>
+  </select>
+</td>
+</tr>
+</table>
+<input type="SUBMIT" value=" <dtml-babel src="'en'">Update</dtml-babel> ">
+</dtml-with>
+</form>
+
+<dtml-var DialogFooter>

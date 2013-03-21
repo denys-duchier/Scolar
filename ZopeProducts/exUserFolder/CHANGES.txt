@@ -1,0 +1,865 @@
+Changes for 0.50.1
+
+Add a README.Upgrading file to explain the impact of the 0.50.0 source
+restructure, since people don't seem to be reading this file. --akm
+
+Fix the default docLogin to use &dtml-URL as the default destination.
+I porked the fcrypt import. It obviously doesn't get imported here since
+I have a crypt module installed. -- akm
+
+Fixed; https://sourceforge.net/tracker/?func=detail&aid=1084903&group_id=36318&atid=416446
+thanks to vigine -- akm
+
+Changes for 0.50.0
+
+Restructured Source Tree. This will make this version incompatible with
+previous versions, as the classes have moved. This breaks upgrading existing
+installs unless you keep the old classes around. If you only use external
+Auth/Prop/Group sources, you will probably be unaffected.
+
+o Auth Sources moved to single directory
+o Prop Sources moved to single directory
+o Group Sources moved to single directory
+o Docs moved to doc directory 
+--akm
+
+Added Pluggable Crypto methods. Any authSource that contains a
+cryptPassword method, will have it's method called, otherwise the
+method selected by the user is called. --akm
+
+Removed the cryptPassword method from existing Auth Sources. --akm
+
+docLoginRedirect is no longer used. --akm
+
+Changes for 0.20.2
+BLAH! I missed some LDAP changes! --akm
+
+Changes for 0.20.1
+
+Fix import problem for pgPropSource --akm
+Add performance boost to pgAuthSource and pgPropSource --akm
+Make zodbAuthSource.listUsernames return a list. --akm
+Update some LDAP Auth source bugs. --akm
+Change references to "Authorisation" to "Authentication" since XUF 
+auth sources authenticate, they don't authorise. --akm
+Changed the <h3> tags to <b> tags in the manage_adds.
+
+Changes for 0.20.0
+
+Fix:
+https://sourceforge.net/tracker/index.php?func=detail&aid=547327&group_id=36318&atid=416446
+https://sourceforge.net/tracker/index.php?func=detail&aid=616485&group_id=36318&atid=416448
+https://sourceforge.net/tracker/index.php?func=detail&aid=594081&group_id=36318&atid=416448
+https://sourceforge.net/tracker/index.php?func=detail&aid=594526&group_id=36318&atid=416448
+
+Added LDAPAuthSource, based on the auth_ldap module for Apache
+(http://www.rudedog.org/auth_ldap/) and the NDS Auth Source of
+Phil Harris (AKA ftmpsh). This is only lightly tested, I don't have
+the LDAP resources here to test all the features. Binding using uid/
+cn and using various filters works (if the userPassword item is
+present). This needs more testing by people with better LDAP setups
+that I do. --akm
+
+Padded docLoginRedirect to prevent IE from displaying "Friendly" error
+messages when -D flag not present when running Zope --akm.
+
+Update UZG to contain entry for LDAPAuthSource. Reformat text 
+slightly. --akm
+
+Propogate "unable to auth" here requests up. This means the Manager
+doesn't get locked out in cookie mode after adding an XUF instance.
+It also means that people using a non-existant username at this level
+get thrown up a level higher. This might not be what people want to
+happen. --akm
+
+Added method makeRedirectPath which is called from docLoginRedirect.
+This makes the destination include any querystring that was present
+when needing to redirect. -- akm.
+
+Removed some Class globals from exUseFolder.py. These are now set 
+in __set_state__ if not present in the class so that upgrading users
+don't get a crash (hopefully). -- akm.
+
+pgPropSource was losing track of properties under heavy load. 
+Only noticable if you were setting and deleting a lot of temporary
+properties. There is a global property timeout for pgPropSource. --akm
+
+Jason Gibson <jason.gibson@sbcglobal.net> provided a nisAuthSource,
+I've added it here --akm.
+
+Refactored validate method to behave a lot more like BasicUserFolder.
+Among other things, this fixes the issue where a local role could not
+be granted to a user and granted permissions on the same object.  --mb
+
+Add NuxUserGroups support (previously on NuxUserGroups_support_branch)
+and group sources.  --bmh, mb
+
+Now passes authFailedCode to Membership Login Page, The Default Login
+Page as defined in the README.Membership will correctly display reason
+for login being required --cab
+
+Fixed Edit management pages for user-supplied auth and property
+sources --bmh
+
+Removed overriding of __len__ to return the number of users.  This was
+causing performance problems during authentication.  See
+http://sourceforge.net/mailarchive/message.php?msg_id=2230743 for
+details.  WARNING: this means using len(acl_users) to get the number
+of users will no longer work!  If you were using this trick, please
+use len(acl_users.listUsers()) instead.  --bmh 
+
+Make title property editable --bmh
+
+Make Group Sources changeable dynamically after the acl_users folder has
+been created --bmh
+
+Inital import of https Auth source.  Also, added a listUsers method
+to the zodbBTreeProps source to support listUsers. -- jsb <jonah at cloud9.net>
+
+Changes for 0.10.10
+
+Added mysql Auth and mysql Prop source and mysql.sql schema. Just a
+copy of the appropriate pg source with sql that works with myqsl -cab
+
+Fixed negative user cache lookup in std_validade so that it actually
+works for users being authenticated thru basic auth, especially if
+they're authenticating in outer user folders -- rochael
+
+Made smbAuthSource catch NetBIOSTimeout errors during authentication -- rochael
+
+Fixed dtml/mainUser.dtml to be virtualhost-sensitive when displaying user
+icons -- rochael
+
+Updated UZG per user request. Fixed numbering, added information about
+addition parameters like Negative Caching.
+
+Changes for 0.10.9
+
+Made dummyZBabelTag compatible to replace the NoBabel in OrderedFolder
+while keeping its functionality in XUF -- cab
+
+Changed _doAddUser, _doChangeUser to work with the public interface for
+userfolders introduced in Zope2.5. Optional keyword arguments can now
+be passed to _doAddUser and _doChangeUser.
+
+PropertySource: Please note that createUser and updateUser, when called
+from _doAddUser and _doChangeUser, will no longer be passed a REQUEST,
+but a mapping with items from REQUEST updated with those from the
+optional keyword arguments.  -- pj
+
+Fixed the problem with upgrading from 0.10.7 and below that didn't
+account for existing XUF's not having a MessageDialog in their
+contents. Now unless specificy replace it will use the MessageDialog
+provided. Added how to do that to FAQ and README.Membership --cab
+
+Made docLoginRedirect provide an absolute URL --bmh
+
+MessageDialog in common no longer uses mangage_page_header and 
+mangage_page_footer v--cab
+
+Changes for 0.10.8
+
+Added the ability for members to change properties, and a default page
+in the README.Membership to show how to do it --cab
+
+MessageDialog is now an object in the ZODB that can be changed to fit
+the site --cab
+
+Now with 100% guaranteed race-condition-free UserCache goodness!  Those
+subclassing XUFUser, you will have to change your code.  See User.py
+for details.  --mb
+
+zodbBTreePropSource was returning None instead of the requested
+default value, when called with (e.g.) someuser.getProperty('shoesize',13).
+(Other property sources didn't have that bug.)
+--davidc@debian.org
+
+The tutorial loginform was wrong for Membership in README.Membership
+
+Seems delProperty has never worked.. fixed --akm
+Seems delProperty for pgPropSource has never worked.. fixed --akm
+
+Fixed Basic Auth not auth problem. --akm
+Fixed Basic Auth not cache problem. --akm
+Fixed Cached Users bypassing some auth checks. --akm
+
+Added usPropSource, which allows users to supply property methods TTW.
+--bmh
+
+Changes for 0.10.7
+
+PropertyEditor had a typo in dtml and was casting int to None. --zxc
+
+BasicAuth is now broken the other way, it'll allow any user to validate
+with any password. --akm
+
+Negative cache checking move was bogus. --akm
+
+redirectToLogin didn't have a security declaration so 2.5.0 refused to
+work in cookie mode *sigh* --akm
+
+Fixed the 'None' object has no attribute 'load' setstate errors that
+could crop up on propSources, and preemptively took care of the
+authSources as well.  Also fixed some of the weirder bugs relating to
+user object acquisition context. --mb
+
+Bug fixes from sf applied. --akm
+
+Changes for 0.10.6
+
+dummyZBabelTag used the python 2 re, which broke installations using
+python 1.5 which still used the now deprecated regex, changed it to
+catch the exception and use regex instead for python 1.5, else still
+use re --cab
+
+The redirectToLogin without Membership had a little logic problem where it
+would basically garantee the existence of a query string, with at least a
+lonely question mark even when there was no query string in the original
+URL --rochael
+
+smbAuthSource needed to cast NULL role properties to an empty list --akm
+
+smbAuthSource had some dodgey zLOGing in it. --akm
+
+smbAuthSource had some methods that should return [] instead of None. --akm
+
+s/postgres/RADIUS/ in the radiusAuthSource DTML --akm
+
+cookie_validate no longer pulls you from the cache if you're 
+logging in (which means your cookie wouldn't get set). --akm
+
+Cookies are no longer expired if you're successfully authenticated but
+merely unauthorized. --mb
+
+Basic auth resynched with standard user folder, trying to fix
+some basic auth issues. --akm.
+
+Negative cache checking now performed outside of the two specific
+validate methods. --akm.
+
+A fairly innocuous print debug statement turned into a zLOG at error
+level, removed --akm.
+
+Clean up smbAuthSource log messages, and quieten.  Only truly
+exceptional cases are now logged above BLATHER. --mb
+
+Changes for 0.10.5
+
+Membership redirecting to login was still broken. It should be better
+now (twice) --akm
+
+logout() wasn't clearing the advanced cookie. --akm
+
+Negative Cache Value wasn't being passed through to the XUF constructor. --akm
+Log Users Out DTML code was broken, should work now. --akm
+
+The User object now contains the authSource as well as the propSource,
+making access to roles for custom User-objects possible. --dlk
+
+Following akm's advice, fixed manage_beforeDelete to use two separate 
+try:except blocks to ensure that if cache-removal fails, deleting 
+the container.__allow_groups__  property is attempted. This should
+fix the problem where deleted xuf instances remain as "ghost" products
+causing interference with newer versions of xuf, and also fixes the 
+problem where deleting a xuf acl_users in a folder makes that folder
+inaccessible. --dlk
+
+Fixed cache_delete that was missing the "self" parameter in the method
+defintion. --dlk
+
+Fixed xcache_delete that was missing the "self" parameter in the method
+definition --akm d8)
+
+These previous two fix the problems with manage_beforeDelete, but, it
+will stay the same for now --akm.
+
+Fixed cache_deleteCookieCache that was missing the "self" parameter in
+the method defintion. --dlk ;)
+
+Changes for 0.10.4
+
+The instructions for File Based Auth were incorrect in the UZG --akm
+
+redirectToLogin was totally wrong for membership... --akm
+docLogin was fixed for VHM use. --akm
+
+Advanced Cookie Mode has changed so that it no longer sends the username
+and password. Instead a hash is used as a key into a module level cache.
+This should be 100% more secure than standard cookie mode, and removes
+the stupid back doors I enabled in the previous version. This work was
+based on conversations I had with Stuart Bishop (I basically lifted
+the hashing scheme from GUF). This makes use of the Module level cache
+code. --akm
+
+There was a code cleanup and a slight reorganisation of some files. --akm
+
+The main User Object has migrated to XUFUser and simarly with the
+AnonUser. There is now an empty [Anon]User class that has XUFUser as
+it's base. This allows people to create custom User Objects without
+jumping through hoops (and simplifies maintaining patches) --akm
+
+Cache Code has changed again. Now there is a module level cache, so
+that auth data is shared between threads for a single XUF (thanks to
+Stuart Bishop for an enlightening discussion on this and other issues,
+and thanks to Chris McDonough for talking me through setting up module 
+level globals [and sending me some code to work from]) --akm
+
+A Negative User Cache now exists. This is only generally useful for
+use with remote auth sources where repeatedly trying to auth non-existant
+users is very expensive (where they are authed at a higher level).
+You can enable this on creation or from the parameters screen (positive
+time in seconds enables). --akm
+
+Domain checking code finally removed. --akm
+
+zodbBTreePropSource changed to be friendlier about users that exist
+in remote locations (i.e. aren't create as such through the ZMI). -- akm
+
+Changed some 'print's in the code to use zLOG.LOG
+instead. Files affected so far (more to follow): -- rochael
+
+  * exUserFolder.py
+  * basicMemberSource/basicMemberSource.py
+  * zodbBTreePropSource/zodbBTreePropSource.py
+  * zodbPropSource/zodbPropSource.py
+
+Changed a couple things in smbAuthSource.py: -- rbanffy
+
+  * Method _authenticate_retry now logs several kinds of information
+    for debugging and diagnostics.
+
+  * Modified socket.error handling in _authenticate_retry: changed
+    "raise" to "return 0".
+
+  * Since this generated more problems (failed authentications) than
+    it solved (our impression it was not right not to return 0 in an
+    auth fail even due to a communications malfunction), we also
+    changed socket.error handling to retry no mather what errno tells
+    us (it said different things for the same problem under Windows
+    and Linux).
+
+  * In order to prevent infinite retries, changed retry handling a
+    bit. It now retries 3 times. Real-use data will tell us if we
+    should increase or not retries. To better convey the meaning of
+    the parameter, changed "retry_depth" to "retries". I strongly
+    advise the use of credential caching with smbAuthSource, tough, as
+    it reduces socket errors and load on the domain controllers.
+
+Changes for 0.10.3.1
+
+Readded support for I18N without ZBabel installation, somehow missed
+during the transition to SF CVS.
+
+Some text changes as well as an update to the dictionary while we're
+at it.  No functional changes for this release though.
+
+Changes for 0.10.3
+
+Missed a few LoginRequireds.
+
+Fixed a bug with __allow_groups__ not being set after paste
+(probably also not after import).
+
+The sources are now sorted by name in the drop down box..
+
+a BTree version of zodbAuthSource
+a BTree version of zodbPropSource
+
+These aren't really all that different to the originals that were
+provided by Alex, but, they use BTrees instead of PersistentMappings,
+and try to avoid various persistence problems associated with dicts.
+Both versions will continue to be supported.
+
+Patches from SF applied.
+
+Advanced Cookie Mode added.
+This mode adds a rotor cipher around the cookie. A secret is provided
+in order to encode the cookie. The username and password are placed
+within a small class which is pickled and then encrypted and then
+base64 encoded for transport. There is also a timestamp inside the cookie,
+so the ultra-paranoid of you can rotate the cookie based on the timestamp
+inside.
+
+Abstracted out the setting and decoding of cookies.
+
+Changes for 0.10.2
+
+all raise 'LoginRequired' <- raise 'Unauthorized'
+
+Raising unauthorizes breaks a million things. CMF people can just
+put up with configuring their portal properly.
+
+Radius resynced with version from sourceforge.
+manage_tabs redone to be ZBabel'd and to look like standard tabs.
+
+German Language added to the ZBabel dictionary.
+
+
+Changes for 0.10.1
+
+all raise 'LoginRequired' -> raise 'Unauthorized'
+
+Bug in etcAuthSource listUsers fixed, 
+and cryptPassword also fixed to get the actual salt.
+
+Zope 2.4.3 has dicked with security settings again.. I've had a round
+of permission whacking.
+
+Buggy handling of empty role lists was fixed.
+
+Change to smbAuthSource to use string.lower on usernames for
+python 1.5.2 compatibility?
+
+
+Changes for 0.10.0
+
+Added explicit roles for manage_editUser and friends, to allow
+the "Manage users" permission to be useful to non-Manager Users.
+Thanks to Heimo Laukkanen <huima@fountainpark.org> for reporting this
+one.
+
+zodbAuthSource made more persistent <alex@quad.com.ar>
+zodbPropSource was blowing when deleting temporary properties.
+
+XUF is now ZBabel'd which means you can view XUF in different languages
+for logging in and installation, if your browser locale is set up.
+You will need the latest ZBabel installed. The translation file is in the
+I18N directory. 
+
+Import this (using Import/Export in ZODB) at the same level as your 
+ZBabelTower, and then import it from ZBabel. If you have ZBabel installed, 
+but, your application can't find a ZBabelTower, because of a bug in the 
+current dtml-fish tag, you might experience some problems. This ZBabel 
+bug should be fixed sometime soon. 
+
+You do not need ZBabel installed to run XUF, XUF installs a dummy 
+interface for ZBabel so that XUF can continue to run (sorry folks it
+defaults to Australian English).
+
+getUserNames() was returning the wrong stuff (notably affected TheJester's
+WorkOrders Product)
+
+There is a now an 'Advanced Postgres' Auth Source that uses a seperate
+Roles table and a 'more relational' layout. The schema is with the
+auth source in pgAuthSourceAlt. Contributed by 
+Adam Manock <abmanock@earthlink.net>
+
+If you had a membership source and had specified a login page, XUF was
+still using the stock docLogin instead of the membership specified page
+(for redirectToLogin, exceptions still raise the docLogin).
+
+I changed the icon to something a *little* less hideous
+
+Leonardo Rochael Almeida <leo@hiper.com.br> made the following changes
+to smbAuthSource
+
+* Added a 'winsserver' constructor parameter and a '_winsserver'
+   instance variable to the 'smbAuthSource' class. This variable should
+   be the empty string, meaning that the authenticaton host will be
+   looked up by broadcast, or an IP address string pointing to a WINS
+   server.
+
+* Modified the dtml templates to ask for the above mentioned WINS
+   server (and also to replace 'Add' with 'Change' in
+   'manage_editsmbAuthSourceForm').
+
+* Refactored the smbAuthSource class to isolate all smb interaction
+   inside well defined methods.
+
+
+Changes for 0.9.0
+
+Messages are now sent back to the docLogin form. There's a file called
+LoginRequiredMessages.py where the messages are kept for now (it might
+end up a run-time configurable thing later).
+
+There's a new docLogin.dtml file on disk that shows how to use the new
+messages. Because docLogin is in the ZODB this won't be automatically
+upgraded.
+
+Idle Session Timeouts are in (this is the reason for the minor bump).
+If you flick the switch, then users are forced back to the login form
+(with a message saying their session timed out), when they're removed
+from the cache.
+
+I made some adjustments to the tabs on the management interface because
+they were too big, and I cleaned it up a bit for times when they run
+together.
+
+The internal API was inconsistent, so that's been updated.
+AuthSources no longer need to provide getUsers(), it was never
+being called anyway since exUserFolder built it's own.
+listUsers now returns the same data as listOneUser, this is used in
+other places as if it were a list of listOneUser calls.
+
+Fixed pgAuthSource to deal with NULL rather than empty roles
+columns (legacy columns).
+
+Changed Home Directory creation to use copy & paste functions to
+copy the skeleton data.
+
+Changes for 0.8.5
+
+I forgot to update the schema file for userproperties to reflect
+the temporary properties flag.
+
+Checks for existing cache weren't being performed before removing users
+from it, when their data was updated.
+
+Reversed the order for checking in cookie_validate, to allow logging
+in as a new user, when session tracking was on. Also now you can
+login as a different user, without logging out first, which might
+be useful to some people.
+
+etcAuthSource now looks for the correct salt from the file for
+encrypting the user supplied password
+
+Changes for 0.8.4
+
+Activating Session Tracking and then adding a new user when there
+were none in the XUF was broken.
+
+Changes for 0.8.3
+
+The idle users are flushed from the cache when you ask for the list
+of cache users (since it's iterating over the whole list anyway). So
+you can manually clear your cache by looking at the Cache Stats page.
+
+If you display the list of logged in users on your site, then your cache
+will be flushed for you automagically.
+
+Allowed a destination to be sent to redirectToLogin to allow you to
+manually override the destination after logging in.
+
+Added in a __setstate__ for pgPropSource to deal with new ZSQL Methods
+being added.
+
+Changes for 0.8.2
+A number of bugs related to temp properties fixed in pgPropSource
+
+FTP Access to folders protected with cookie_mode has been fixed, it
+now reverts to std_auth (which handles the FTP connection fine), since
+FTP auths are handled by getting a "Basic" auth tag coming through, which
+should never happen in cookie mode. 
+
+This has the knock-on effect of authenticating users that auth from a 
+higher acl_users that doesn't use cookies, 'more' correctly now. Which is
+if you have a user defined above, and in XUF and the XUF user has less
+permissions, it'll 401 you if you don't have permissions locally
+(which is the correct behaviour). This bit me in the arse when I changed it, 
+and I'm still leaving it this way. d8)
+
+Users are now flushed from the cache when you edit them (in case you changed
+roles), so that new roles should take effect immediately.
+
+The credential cache now uses the (Zope) builtin BTree Module for caching 
+rather than the AVL Tree implementation. There was a nasty issue with users 
+appearing multiple times in the AVL Tree which sucked.
+
+There is a report of the Radius Auth Source being broken (most likely
+by me), if your radius source stops working, you can try copying the
+py-radius.py file from sourceforge over the top of radius.py. If someone
+gives me a traceback, I can fix it. I don't seem to be having problems,
+but, I don't have a full time RADIUS source either.
+
+
+Changes for 0.8.1
+
+A bug in _doAddUser was fixed
+A bug in the User Object unconditionally calling the prop source was fixed.
+
+
+Changes for 0.8.0
+
+Experimental "Session Tracking" added (why is it called that? we don't really
+track anything, just associate arbitrary data with anonymous users).
+This relies on the credential cache being active. Your session will 
+automatically expire when the anonymous user is so idle that they are 
+expired from the cache. This is not currently acceptable (to me), but,
+it might be to other people, I await feedback on how sessions should expire
+gracefully.
+
+Updated the README.txt file to point at the UZG and to explain the
+version numbering system.
+
+All this time you couldn't delete properties from a user... who knew?
+It's fixed now.
+
+Temporary properties now available, you can setTempProperty() on a 
+user object, and also flushTempProperties() on a user object.
+Temporary properties are accessed like normal properties, and can be
+deleted in the same way. flushTempProperties is there to do a quick
+flush of all the crap you might have inserted (useful for sessions).
+If your user is flushed from the cache, then all temp properties will
+also be removed at that point.
+
+Propsource providers should look at the new temp properties stuff and
+update accordingly.
+
+Alex provided a whole heap of patches to make basicMembership more usable,
+well make it actually work.
+
+Matt Behrens supplied patches to prevent null logins and to allow case
+insensitive logins for smbAuthSource
+
+Added a basic FAQ.
+
+
+Changes for 0.7.10
+
+Active Users type functionality was added. The new function is called
+getUserCacheUsers(). It returns a list of dicts;
+
+{'username': theusername, 'lastAccessed': float_value} 
+
+lastAccessed represents the last time the user touched something.
+The Cache Stats page shows an example usage showing idle time (very cool
+I think :-)
+
+The logout method was not correctly removing users from the cache,
+although the cookie was removed, so logins were still enforced. I'm not
+sure of any side-effects related to it, but, 
+
+Some permissions were a little too liberal, including allowing arbitrary
+users to set and get Properties on the acl_users folder.
+
+Copy/Paste support for pasting exUserFolders into the root was added.
+I'm not sure I like the way this is done. I haven't found any side effects
+so far, but, just be wary. Adding an exUserFolder to the root becomes
+semi-trivial now. Create one in a sub-folder. Login as the emergency user.
+CUT the exUserFolder. Delete the standard acl_users folder. Paste exUserFolder.
+You should be away. At least it worked fine for me... YMMV
+
+_doChangeUser and _doDelUsers added so users can be altered and deleted 
+like for Standard UserFolder.
+
+_createInitialUser added so there should always be your initUser (hopefully) 
+when you create your exUserFolder.
+
+Emergency User checking brought into line with Standard Folder
+
+__creatable_by_emergency_user_ added and returns 1 to explicitly allow this.
+
+Unenlightened Zopistas Guide updated to have a 'Recipe' like section.
+Currently contains a section about adding exUserFolders from python.
+
+
+Changes for 0.7.9
+
+RADIUS authSource had a problem with non-integers being extracted from
+REQUEST (I wish someone at DC would fix this already). I worked around
+this problem
+
+Default port for RADIUS is now 1812 in line with the IANA sanctioned list.
+
+Unenlightened Zopistas Guide to exUserFolder version 0.0 included, 
+covers installation and authentication sources, and the most common 
+configuration mistake (or misunderstanding).
+
+I almost released with the daggy management screens all Purple or SkyBlue,
+so consider yoursevles lucky. This would have been the "Blue" release.
+
+Changes for 0.7.8
+
+zodbPropSource had a bug that must have been there since 0.0.0 where
+_p_changed wasn't being called on create, update, or delete user.
+Thanks to Bouke Scheurwater for spotting that one.
+
+Alex provided a number of patched to fix a whole bunch of goofy stuff
+with Basic Member Source that was stupidly wrong.
+
+Matt Behrens provided a patch to allow emergency user to own exUserFolders
+and some of the sources. I've grudgingly updated all the sources to allow
+this. It's just a hey nonny nonny to people using it as a root authenticator
+now.
+
+Matt Behrens also provided a patch to fix 'broken pipe' problems with
+smbAuthSource.
+
+pySMB is now at 0.2 for smbAuthSource WARNING: This will try to use DES 
+encrypted passwords. Apparently it should be ok if your server doesn't want
+them. However if it breaks, unpack the pySMB distribution in the 
+smbAuthSource directory, there are registry examples there to turn
+it off. It unfortunately needs the mxCrypto tools for encrypted passwords
+to work. When I've got a bit more time, I'll see if I can make it use
+crypt or fcrypt if available instead.
+
+Explicit checks for the emergency user were placed into the cookie_validate
+routines. I suspect this may have been the cause of some grief with people
+doing weird things like trying to make it the root auth folder.
+
+Changes for 0.7.7
+
+Some Auth sources had problems coping with no roles being selected when
+a user was created from the management interface, the stock ones were fixed.
+
+I screwed up some of the DTML, and forgot to change the loading of two of
+the methods from the dtml directory.
+
+NO MORE TRACEBACKS ON LOGIN FORMS, there is a little redirector dtml file
+dtml/docLoginRedirect that redirects to acl_users/docLogin with destination
+set to take them back to where they were going. If you have a custom loginPage
+change the redirector dtml to point to your new page.
+
+standard_html swapped for manage_page on Management Pages. Hopefully
+this doesn't break someone with an old copy of Zope.
+
+Credential Caching is now available by default for all Authentication Sources,
+upgrading installs will get this defaulted to 0 for no caching. You can alter
+the cache level from the Parameters Tab. Authors of external sources should
+remove any internal auth caching they're doing, and allow the user to decide
+how long to cache the credentials for.
+
+
+Changes for 0.7.6
+
+smbAuthSource included. Doesn't require any external libraries, or compiling.
+Uses pySMB from Micheal Teo <michaelteo@bigfoot.com>
+
+Changes for 0.7.5
+The Management Interface now batches the user list by 10. This isn't
+configurable at the moment (just change the dtml).
+
+The code was re-organised slightly, with all the DTML moving into its
+own directory for core.
+
+radiusAuthSource added, but, is so far untested. It is a direct port of
+ZRadius for GUF, but, I haven't had a chance to setup a RADIUS server to
+test it out.
+
+You can add properties to a user from the management interface.
+
+List Properties on users can be added and edited, if I can work out a decent 
+way to edit Dicts/Mappings, I'll add that feature in.
+
+This paves the way for defining a set of properties in the Membership 
+source, so it can create a Signup and Edit page for you automatically. 
+You will also be able to specify which properties the user can edit, or 
+roles required to edit a property, this will be in a later release though.
+
+pgPropSource was updated to take into account non-scalar types, and now
+pickles all data going into the database, this means ints will stay as ints,
+et al. 
+There is code in there to cope with older properties coming out as strings.
+The Schema remains the same.
+
+Changes for 0.7.2
+Changes to make it work with older version of python
+Some minor bug fixes for membership.
+
+Changes for 0.7.1
+DTML Change for cmfPropSource
+
+Changes for 0.7.0
+exUserFolder was a little too liberal in removing its cruft, this is now
+fixed.
+
+cmfPropSource was provided by Alan Runyan which is a layer around the CMF
+property stuff. It's conditionally imported, so if you don't have CMF
+installed you don't need to worry that'll it'll break.
+
+Property Sources are optional, and there is a NULL Property Source for this
+purpose.
+
+Membership hooks, and a rough start at membership (basicMemberSource),
+which has some usable functionality (you MUST read README.Membership before
+using this).
+
+Membership Sources are optional and there is a NULL Membership Source for
+this purpose.
+
+
+Changes for 0.6.2
+exUserFolder was leaving cruft around when it was being deleted from
+Folders. The cruft should now be obliterated if you delete an exUserFolder.
+
+Changes for 0.6.1
+Ownership tab enabled, for those sick monkeys that want to use it as a root
+Folder (there are some).
+
+fcrypt got the __init__.py that was missing from the 0.6.0 release
+zodbAuthSource updated to pull in fcrypt if crypt was missing.
+
+Changes for 0.6.0
+
+Updated for 2.4.1 / Python 2.1
+Bug in pgPropSource not deleting users from the property cache fixed.
+Bug with Local Roles not getting what it expected fixed.
+Alex Verstraeten provided zodbAuthSource, there's a README.zodbAuthSource,
+and the same README inside the zodbAuthSource directory.
+fcrypt is now included and used if crypt cannot be imported. More information 
+on fcrypt can be found at http://home.clear.net.nz/pages/c.evans/sw/. This
+should help particularly Windows users a lot.
+Rudimentary API doc included.
+
+Changes for 0.5.0
+
+A serious bug in zodbPropSource was fixed.
+
+There is now the option of providing a 'Remote Auth' function for
+validating. This allows things like IMAP/LDAP auth sources to do their
+authentication, since they don't return passwords you can use in general.
+
+There's already a 3rd Party solution that provides IMAP/POP3 authentication,
+using the new API.
+
+Changes for 0.4.6
+
+Minor dtml hacks
+
+Changes for 0.4.5
+
+Hooks for 'editing' Authentication and Property Sources were added, along
+with the relevant methods in each of the sources.
+
+The management interfaces got a little overhaul, just to make them 
+a little different (yes I know everything I do looks the same). The two
+I didn't want to mess with still have the acquired management interfaces.
+
+A fix for the ZODB Property Source which was missing a few methods.
+
+Changes for 0.4.0
+
+Based on an idea from Martin von Loewis, I added in support for defining
+roles for etcAuthSource. This basically uses the current Prop source to
+store a 'roles' property. The default role is still there as well for
+those of you who might be using it.
+
+Changes for 0.3.0
+
+Adrien Hernot noticed that properties for new users using zodbPropSource
+were causing havoc, and that the version.txt file was completely wrong.
+Andreas also noticed the version.txt was wrong. 
+
+I've been bugged enough by the pair of them to change the single += 
+into 1.5.2 compliant syntax. 
+
+I don't make any claims about it working under 1.5.2 though.
+
+Changes for 0.2.0
+
+Even more embarassment...
+
+Andreas Heckel provided fixes for some stupid things I left out including;
+
+o Fixing the way I was handling multiple roles coming out of the database
+o The wrong icon in the user display
+o Alerting me to the fact that pgPropSource didn't actually have a
+  deleteUsers hook
+o Providing a schema for automatically deleting properties in postgres
+  if you delete a user from the auth source (you have to be using both
+  pg sources for this to work, and they'd have to be in the same database)
+  I've put Andreas schema into the distribution, if you want to use 
+  exUserFolder as a straight pgUserFolder, you'll also need to edit
+  exUserFolder.py and comment out the line indicated in deleteUsers()
+
+Changes for 0.1.0
+
+Pretty embarassing really.
+
+M. Adam Kendall (DaJoker) found some stupid things in the 0.0.0 release 
+including the fact you couldn't edit user properties, or update them, 
+or actually change a user in anyway.
+
+I also discovered I was resetting the password to empty if you left it
+empty.. 

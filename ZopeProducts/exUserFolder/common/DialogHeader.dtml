@@ -1,0 +1,7 @@
+<table bgcolor="#808080" width="&dtml.missing-dialog_width;"><tr><td align="center" valign="middle">
+<table width="100%" border="1" bgcolor="White" cellpadding="0" cellspacing="0">
+<tr>
+    <td align="center"><table width="100%" bgcolor="#dddddd" border="0" cellspacing="0"><tr><td align="center"><font color="Black" size=+1 face="Helvetica"><b><dtml-babel src="'en'" literal="1"><dtml-var DialogTitle></dtml-babel></b></font></td></tr></table></td>
+</tr>
+<tr>
+   <td>
