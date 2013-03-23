@@ -145,7 +145,7 @@ echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
 #       1.0.3 idem (voir misc/testpydot.py)
 echo '\nInstallation de pydot\n'
 (cd /tmp; tar xfz $SCODOC_DIR/config/softs/pydot-0.9.10.tar.gz)
-(cd /tmp/pydot-0.9.10;  /usr/bin/python2.4 setup.py install)
+(cd /tmp/pydot-0.9.10;  $PYTHON setup.py install)
 
 # ------------ PYEXCELERATOR
 echo
@@ -153,7 +153,7 @@ echo 'Installation de pyExcelerator'
 echo
 
 (cd /tmp; tar xfz $SCODOC_DIR/config/softs/pyExcelerator-0.6.3a.patched.tgz)
-(cd /tmp/pyExcelerator-0.6.3a.patched; /usr/bin/python2.4 setup.py install)
+(cd /tmp/pyExcelerator-0.6.3a.patched; $PYTHON setup.py install)
 
 echo 'Done.'
 

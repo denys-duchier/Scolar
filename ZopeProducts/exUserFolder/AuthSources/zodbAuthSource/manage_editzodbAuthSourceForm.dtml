@@ -1,7 +1,0 @@
-<dtml-var "DialogHeader(_.None,_,DialogTitle='ZODB Auth Source',dialog_width='100%')">
-<dtml-var manage_tabs>
-<FORM ACTION="manage_main" METHOD="POST">
-<b><dtml-babel src="'en'">This Auth source requires no user configuration items at this time.</dtml-babel></b><br>
-<INPUT TYPE="SUBMIT" VALUE=" <dtml-babel src="'en'">OK</dtml-babel> ">
-</FORM>
-<dtml-var DialogFooter>

@@ -20,28 +20,28 @@
 # Author: Andrew Milton <akm@theinternet.com.au>
 # $Id: __init__.py,v 1.1 2004/11/10 14:15:34 akm Exp $
 
-import etcAuthSource
-import httpsAuthSource
-import mysqlAuthSource
+#import etcAuthSource
+#import httpsAuthSource
+#import mysqlAuthSource
 import pgAuthSource
-import pgAuthSourceAlt
-import radiusAuthSource
-import smbAuthSource
-import usAuthSource
-import zodbAuthSource
-import zodbBTreeAuthSource
+#import pgAuthSourceAlt
+#import radiusAuthSource
+#import smbAuthSource
+#import usAuthSource
+#import zodbAuthSource
+#import zodbBTreeAuthSource
 
 #
 # These have special requirements for external libraries
 # that my not be present.
 #
 
-try:
-	import nisAuthSource
-except:
-	pass
+# try:
+# 	import nisAuthSource
+# except:
+# 	pass
 
-try:
-	import LDAPAuthSource
-except:
-	pass
+# try:
+# 	import LDAPAuthSource
+# except:
+# 	pass

@@ -1,5 +1,0 @@
-etcUserFolder Changes
-
-  etcUserFolder 1.2.0
-
-    Initial release for Zope

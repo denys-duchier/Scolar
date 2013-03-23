@@ -92,7 +92,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import Globals, App.Undo, socket, os, string, sha, whrandom, sys, zLOG
+import Globals, App.Undo, socket, os, string, sha, random, sys, zLOG
 
 from Globals import DTMLFile, PersistentMapping
 from string import join,strip,split,lower,upper,find
@@ -123,6 +123,9 @@ from LoginRequiredMessages import LoginRequiredMessages
 
 from AccessControl import Unauthorized
 
+class LoginRequired(Exception):
+    """Login required"""
+    pass
 
 
 # If there is no NUG Product just define a dummy class
@@ -966,7 +969,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 				response.expireCookie('__aca', path='/')
 			if reason_code:
 				request.set('authFailedCode', reason_code)
-			raise 'LoginRequired', self.docLogin(self, request)
+			raise LoginRequired(self.docLogin(self, request))
 		else:
 			zLOG.LOG('exUserFolder', zLOG.DEBUG, 'not raising LoginRequired for %s' % reason_code)
 
@@ -1038,7 +1041,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 			c=decodestring(c)
 		except:
 			response.expireCookie('__ac', path='/')
-			raise 'LoginRequired', self.docLogin(self, request)
+			raise LoginRequired(self.docLogin(self, request))
 		
 		name,password=tuple(split(c, ':', 1))
 		return name, password
@@ -1052,7 +1055,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 			response.expireCookie('__aca', path='/')
 			response.expireCookie('__ac', path='/')	# Precaution
 			response.flush()
-			raise 'LoginRequired', self.docLogin(self, request)
+			raise LoginRequired(self.docLogin(self, request))
 
 		u = self.cache_getCookieCacheUser(c)
 		if u:
@@ -1061,7 +1064,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 		response.expireCookie('__aca', path='/')
 		response.expireCookie('__ac', path='/')	# Precaution
 		response.flush()
-		raise 'LoginRequired', self.docLogin(self, request)
+		raise LoginRequired(self.docLogin(self, request))
 
 	def setBasicCookie(self, name, password, request, response):
 		token='%s:%s' % (name, password)
@@ -1073,7 +1076,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 	def setAdvancedCookie(self, name, password, request, response):
 		xufid = self._p_oid
 		hash = encodestring(sha.new('%s%s%f%f%s'%(
-			name, password, time(), whrandom.random(), str(request))).digest())
+			name, password, time(), random.random(), str(request))).digest())
 		token=quote(hash)
 		response.setCookie('__aca', token, path='/')
 		response.flush()
