@@ -217,7 +217,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                     'codedecision', 'etat', 'sexe', 'qualite', 'villelycee' ]
         keys.sort()
         F = [ """<form name="f" method="get" action="%s"><p>
-              Colonnes: <select name="result" onChange="document.f.submit()">""" % REQUEST.URL0]
+              Colonnes: <select name="result" onchange="document.f.submit()">""" % REQUEST.URL0]
         for k in keys:
             if k == result:
                 selected = 'selected'
@@ -225,7 +225,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                 selected = ''
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
-        F.append(' Lignes: <select name="category" onChange="document.f.submit()">')
+        F.append(' Lignes: <select name="category" onchange="document.f.submit()">')
         for k in keys:
             if k == category:
                 selected = 'selected'
@@ -234,10 +234,10 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
         if only_primo:
-            checked='checked=1'
+            checked='checked="1"'
         else:
             checked=''
-        F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+        F.append('<br/><input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
         F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)        
         F.append('</p></form>')
 
@@ -542,7 +542,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     else:
         selected = 'selected'
     F = [ """<form name="f" method="get" action="%s">
-    <p>Bac: <select name="bac" onChange="document.f.submit()">
+    <p>Bac: <select name="bac" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % (base_url,selected) ]
     for b in bacs:
@@ -556,7 +556,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         selected = ''
     else:
         selected = 'selected'
-    F.append("""&nbsp; Bac/Specialité: <select name="bacspecialite" onChange="document.f.submit()">
+    F.append("""&nbsp; Bac/Specialité: <select name="bacspecialite" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % selected)
     for b in bacspecialites:
@@ -566,7 +566,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
             selected = ''
         F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
     F.append('</select>')
-    F.append("""&nbsp; Genre: <select name="sexe" onChange="document.f.submit()">
+    F.append("""&nbsp; Genre: <select name="sexe" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % selected)
     for b in sexes:
@@ -580,7 +580,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         checked='checked=1'
     else:
         checked=''
-    F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+    F.append('<br/><input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="percent" value="%s"/>' % percent)
     F.append('</p></form>')
@@ -770,12 +770,12 @@ def tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, form
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+    F.append('<input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
     if no_grouping:
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="no_grouping" onChange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
+    F.append('<input type="checkbox" name="no_grouping" onchange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="format" value="%s"/>' % format)
     F.append("""</form>""")
@@ -811,16 +811,15 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     return '\n'.join(H)
 
 # -------------
-def graph_parcours(context, formsemestre_id, format='svg'):
+def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
     """
     """
     if not WITH_PYDOT:
         raise ScoValueError('pydot module is not installed')
     sem = context.get_formsemestre(formsemestre_id)
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, 
-    etudids = nt.get_etudids()
-    log('graph_parcours: %s etuds' % len(etudids))
-    if not etudids:
+    etuds = tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
+    log('graph_parcours: %s etuds (only_primo=%s)' % (len(etuds), only_primo))
+    if not etuds:
         return ''
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
@@ -830,9 +829,9 @@ def graph_parcours(context, formsemestre_id, format='svg'):
     diploma_nodes = []
     dem_nodes = {} # formsemestre_id : noeud pour demissionnaires
     nar_nodes = {} # formsemestre_id : noeud pour NAR
-    for etudid in etudids:
-        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    for etud in etuds:
         next = None
+        etudid = etud['etudid']
         for s in etud['sems']: # du plus recent au plus ancien
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem, get_etud_etat
             dec = nt.get_etud_decision_sem(etudid)
@@ -855,10 +854,11 @@ def graph_parcours(context, formsemestre_id, format='svg'):
                 dem_nodes[s['formsemestre_id']] = nid
                 edges[(s['formsemestre_id'], nid)].add(etudid)
             # ajout noeud pour NAR (seulement pour noeud de depart)
-            if s['formsemestre_id'] == formsemestre_id and dec and dec['code'] == 'NAR':
-                nid = '_nar_' + s['formsemestre_id']
-                nar_nodes[s['formsemestre_id']] = nid
-                edges[(s['formsemestre_id'], nid)].add(etudid)
+            #if s['formsemestre_id'] == formsemestre_id and dec and dec['code'] == 'NAR':
+            #    nid = '_nar_' + s['formsemestre_id']
+            #    nar_nodes[s['formsemestre_id']] = nid
+            #    edges[(s['formsemestre_id'], nid)].add(etudid)
+            
             # si "terminal", ajoute noeud pour diplomes
             if s['semestre_id'] == nt.parcours.NB_SEM:                
                 if dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
@@ -962,28 +962,38 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         
     return data
 
-def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_primo=False, REQUEST=None):
     """Graphe suivi cohortes
     """
     sem = context.get_formsemestre(formsemestre_id)
     if format == 'pdf':
-        doc = graph_parcours(context, formsemestre_id, format='pdf')
+        doc = graph_parcours(context, formsemestre_id, format='pdf', only_primo=only_primo)
         filename = make_filename('flux ' + sem['titreannee'])
         return sco_pdf.sendPDFFile(REQUEST, doc, filename + '.pdf' )
     elif format == 'png':
         # 
-        doc = graph_parcours(context, formsemestre_id, format='png')
+        doc = graph_parcours(context, formsemestre_id, format='png', only_primo=only_primo)
         filename = make_filename('flux ' + sem['titreannee'])
         REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
         REQUEST.RESPONSE.setHeader('content-type', 'image/png' )
         return doc
     elif format == 'html':
         url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format="%sem)
+        if only_primo:
+            checked='checked="1"'
+        else:
+            checked=''
+        
         H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
               """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
 
-              graph_parcours(context, formsemestre_id),
+              graph_parcours(context, formsemestre_id, only_primo=only_primo),
 
+              """<form name="f_op" id="f_op" method="get" action="%s"><p>
+              <input type="checkbox" name="only_primo" onchange="document.getElementById('f_op').submit();" %s/>Restreindre aux primo-entrants</p>
+              <input type="hidden" name="formsemestre_id" value="%s"/>
+              </form>""" % (REQUEST.URL0, checked, formsemestre_id),
+              
               """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
               # En Debian 4, dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot
               # mais c'est OK en Debian 5
