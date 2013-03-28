@@ -702,7 +702,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
              <input type="hidden" name="formsemestre_id" value="%s"></input>""" % formsemestre_id,
           """<input type="hidden" name="etudid" value="%s"></input>""" % etudid,
           """<input type="hidden" name="format" value="%s"></input>""" % format,
-          """<select name="version" onChange="document.f.submit()" class="noprint">""",
+          """<select name="version" onchange="document.f.submit()" class="noprint">""",
           ]
     for (v,e) in ( ('short', 'Version courte'),
                    ('selectedevals', 'Version intermédiaire'),

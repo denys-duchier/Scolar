@@ -69,7 +69,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
                  '<input type="hidden" name="formsemestre_id" value="%s"></input>' % formsemestre_id ]
         if modejury:
             H.append('<input type="hidden" name="modejury" value="%s"></input>' % modejury)
-        H.append('<select name="tabformat" onChange="document.f.submit()" class="noprint">')
+        H.append('<select name="tabformat" onchange="document.f.submit()" class="noprint">')
         for (format, label) in (('html', 'HTML'), 
                                 ('xls', 'Fichier tableur (Excel)'),
                                 ('xlsall', 'Fichier tableur avec toutes les évals'),
@@ -83,7 +83,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append('</select>')
         
         H.append("""(cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="%s/Notes/formsemestre_bulletins_pdf?formsemestre_id=%s">ici avoir le classeur papier</a>)""" % (context.ScoURL(), formsemestre_id))
-        H.append( """<input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" """)
+        H.append( """<input type="checkbox" name="hidemodules" value="1" onchange="document.f.submit()" """)
         if hidemodules:
             H.append('checked')
         H.append(""" >cacher les modules</input>""")
@@ -480,14 +480,14 @@ def make_formsemestre_recapcomplet(
                 checked = 'checked'
             else:
                 checked = ''
-            H.append('<input type="radio" name="rank_partition_id" value="" onChange="document.f.submit()" %s/>tous ' 
+            H.append('<input type="radio" name="rank_partition_id" value="" onchange="document.f.submit()" %s/>tous ' 
                      %(checked))
             for p in partitions:
                 if p['partition_id'] == rank_partition_id:
                     checked = 'checked'
                 else:
                     checked = ''
-                H.append('<input type="radio" name="rank_partition_id" value="%s" onChange="document.f.submit()" %s/>%s ' 
+                H.append('<input type="radio" name="rank_partition_id" value="%s" onchange="document.f.submit()" %s/>%s ' 
                          %(p['partition_id'], checked, p['partition_name']))
         
         # recap des decisions jury (nombre dans chaque code):

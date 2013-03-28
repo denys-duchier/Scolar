@@ -453,7 +453,7 @@ def formsemestre_description(context, formsemestre_id, format='html', with_evals
     tab = formsemestre_description_table(context, formsemestre_id, REQUEST, with_evals=with_evals)
     tab.html_before_table = """<form name="f" method="get" action="%s">
     <input type="hidden" name="formsemestre_id" value="%s"></input>
-    <input type="checkbox" name="with_evals" value="1" onChange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
+    <input type="checkbox" name="with_evals" value="1" onchange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
     if with_evals:
         tab.html_before_table += 'checked'
     tab.html_before_table += '>indiquer les évaluations</input></form>'

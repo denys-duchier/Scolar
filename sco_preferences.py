@@ -1262,7 +1262,7 @@ def _build_form(self, categories=[], global_edit=False):
                     # valeur actuelle globale (ou vient d'etre supprimee localement):
                     # montre la valeur et menus pour la rendre locale
                     descr['readonly'] = True
-                    menu_global = """<select class="tf-selglobal" onChange="sel_global(this, '%s');">
+                    menu_global = """<select class="tf-selglobal" onchange="sel_global(this, '%s');">
                         <option value=""><em>Valeur définie globalement</em></option>
                         <option value="create">Spécifier valeur pour ce semestre seulement</option>
                     </select>

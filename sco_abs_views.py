@@ -479,7 +479,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<form method="GET" action="CalAbs" name="f">""",
           """<input type="hidden" name="etudid" value="%s"/>""" % etudid,
           """Année scolaire %s-%s""" % (AnneeScolaire, AnneeScolaire+1),
-          """&nbsp;&nbsp;Changer année: <select name="sco_year" onChange="document.f.submit()">"""
+          """&nbsp;&nbsp;Changer année: <select name="sco_year" onchange="document.f.submit()">"""
           ]
     for y in range(AnneeScolaire, AnneeScolaire-10, -1):
         H.append("""<option value="%s" """ % y )
