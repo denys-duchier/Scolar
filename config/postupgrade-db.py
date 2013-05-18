@@ -362,7 +362,10 @@ for dept in get_depts():
     check_field(cnx, 'notes_ue', 'ects',
                 ['alter table notes_ue add column ects float DEFAULT NULL',
                  ])
-    
+    # Numeros des evaluations:
+    check_field(cnx, 'notes_evaluation', 'numero',
+                ['alter table notes_evaluation add column numero int DEFAULT 0',
+                 ])
     # Add here actions to performs after upgrades:
     
     cnx.commit()

@@ -107,6 +107,8 @@ class GenTable:
 
                  xml_outer_tag='table',
                  xml_row_tag='row',
+
+                 text_fields_separator='\t',
                  
                  preferences=None
                  ):
@@ -148,6 +150,8 @@ class GenTable:
         # XML parameters
         self.xml_outer_tag=xml_outer_tag
         self.xml_row_tag=xml_row_tag
+        # TEXT parameters
+        self.text_fields_separator = text_fields_separator
         #
         if preferences:
             self.preferences = preferences
@@ -234,6 +238,8 @@ class GenTable:
             return self.html()
         elif format == 'xls':
             return self.excel()
+        elif format == 'text':
+            return self.text()
         elif format == 'pdf':
             return self.pdf()
         elif format == 'xml':
@@ -372,6 +378,11 @@ class GenTable:
             titles=self.get_titles_list(),
             lines=lines,
             SheetName=self.xls_sheet_name)            
+
+    def text(self):
+        "raw text representation of the table"
+        return '\n'.join( [ self.text_fields_separator.join([ x for x in line ])
+                            for line in self.get_data_list()] )
     
     def pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
@@ -514,6 +525,8 @@ class GenTable:
                 return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
             else:
                 return xls
+        elif format == 'text':
+            return self.text()
         elif format == 'xml':
             xml = self.xml()
             if REQUEST and publish:
@@ -525,6 +538,7 @@ class GenTable:
                 REQUEST.RESPONSE.setHeader('content-type', JSON_MIMETYPE)
             return js
         else:
+            log('make_page: format=%s' % format )
             raise ValueError('_make_page: invalid format')
 
 

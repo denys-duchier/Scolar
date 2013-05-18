@@ -12,8 +12,8 @@ $().ready(function(){
 	    },
 	    position: {
 		corner: {
-		    target: 'rightTop',
-		    tooltip: 'leftTop'
+		    target: 'rightBottom',
+		    tooltip: 'leftTop' // leftTop
 		}
 	    },
 	    style: {

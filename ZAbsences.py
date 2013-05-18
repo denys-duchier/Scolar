@@ -93,26 +93,23 @@ def _toboolean(x):
 def MonthNbDays(month,year):
     "returns nb of days in month"
     if month > 7:
-	month = month+1
+        month = month+1
     if month % 2:
-	return 31
+        return 31
     elif month == 2:
-	if calendar.isleap(year):
-	    return 29
-	else:
-	    return 28
+        if calendar.isleap(year):
+            return 29
+        else:
+            return 28
     else:
-	return 30
-    
-
-
+        return 30
 
 class ddmmyyyy:
     """immutable dates"""
-    def __init__(self,date=None,fmt='ddmmyyyy',work_saturday=False):
+    def __init__(self, date=None, fmt='ddmmyyyy', work_saturday=False):
         self.work_saturday = work_saturday
-	if date is None:
-	    return
+        if date is None:
+            return
         try:
             if fmt == 'ddmmyyyy':
                 self.day, self.month, self.year = string.split(date, '/')
@@ -125,63 +122,63 @@ class ddmmyyyy:
             self.day = string.atoi(self.day)
         except:
             raise ScoValueError('date invalide: %s' % date)
-	# accept years YYYY or YY, uses 1970 as pivot
-	if self.year < 1970:
-	    if self.year > 100:
-		raise ScoValueError('Année invalide: %s' % self.year)
-	    if self.year < 70:
-		self.year = self.year + 2000
-	    else:
-		self.year = self.year + 1900
-	if self.month < 1 or self.month > 12:
-	    raise ScoValueError('Mois invalide: %s' % self.month)
-	
-	if self.day < 1 or self.day > MonthNbDays(self.month,self.year):
-	    raise ScoValueError('Jour invalide: %s' % self.day)
+        # accept years YYYY or YY, uses 1970 as pivot
+        if self.year < 1970:
+            if self.year > 100:
+                raise ScoValueError('Année invalide: %s' % self.year)
+            if self.year < 70:
+                self.year = self.year + 2000
+            else:
+                self.year = self.year + 1900
+        if self.month < 1 or self.month > 12:
+            raise ScoValueError('Mois invalide: %s' % self.month)
+        
+        if self.day < 1 or self.day > MonthNbDays(self.month,self.year):
+            raise ScoValueError('Jour invalide: %s' % self.day)
         
         # weekday in 0-6, where 0 is monday
-	self.weekday = calendar.weekday(self.year,self.month,self.day)
+        self.weekday = calendar.weekday(self.year,self.month,self.day)
         
-	self.time = time.mktime( (self.year,self.month,self.day,0,0,0,0,0,0) )
+        self.time = time.mktime( (self.year,self.month,self.day,0,0,0,0,0,0) )
     
     def iswork(self):
-	"returns true if workable day"
+        "returns true if workable day"
         if self.work_saturday:
             nbdays = 6
         else:
             nbdays = 5
-	if self.weekday >= 0 and self.weekday < nbdays: # monday-friday or monday-saturday
-	    return 1
-	else:
-	    return 0
+        if self.weekday >= 0 and self.weekday < nbdays: # monday-friday or monday-saturday
+            return 1
+        else:
+            return 0
     
     def __repr__(self):
-	return "'%02d/%02d/%04d'" % (self.day,self.month, self.year)
+        return "'%02d/%02d/%04d'" % (self.day,self.month, self.year)
     def __str__(self):
-	return '%02d/%02d/%04d' % (self.day,self.month, self.year)
+        return '%02d/%02d/%04d' % (self.day,self.month, self.year)
     def ISO(self):
-	"iso8601 representation of the date"
-	return '%04d-%02d-%02d' % (self.year, self.month, self.day)
+        "iso8601 representation of the date"
+        return '%04d-%02d-%02d' % (self.year, self.month, self.day)
     
     def next(self,days=1):
-	"date for the next day (nota: may be a non workable day)"
-	day = self.day + days        
-	month = self.month
-	year = self.year
+        "date for the next day (nota: may be a non workable day)"
+        day = self.day + days        
+        month = self.month
+        year = self.year
         
         while day > MonthNbDays(month,year):
             day = day - MonthNbDays(month,year)
             month = month + 1
             if month > 12:
-		month = 1
-		year = year + 1
-	return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
+                month = 1
+                year = year + 1
+        return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
     
     def prev(self,days=1):
         "date for previous day"
         day = self.day - days 
         month = self.month
-	year = self.year        
+        year = self.year        
         while day <= 0:
             month = month - 1
             if month == 0:
@@ -189,7 +186,7 @@ class ddmmyyyy:
                 year = year - 1            
             day = day + MonthNbDays(month,year)
         
-	return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
+        return self.__class__( '%02d/%02d/%04d' % (day,month,year), work_saturday=self.work_saturday )
     
     def next_monday(self):
         "date of next monday"
@@ -203,13 +200,13 @@ class ddmmyyyy:
             return self.prev(self.weekday)
     
     def __cmp__ (self, other):
-	"""return a negative integer if self < other, 
-	zero if self == other, a positive integer if self > other"""
-	return int(self.time - other.time)
+        """return a negative integer if self < other, 
+        zero if self == other, a positive integer if self > other"""
+        return int(self.time - other.time)
     
     def __hash__(self):
-	"we are immutable !"
-	return hash(self.time) ^ hash(str(self))
+        "we are immutable !"
+        return hash(self.time) ^ hash(str(self))
 
 # d = ddmmyyyy( '21/12/99' )
 
@@ -267,21 +264,17 @@ class ZAbsences(ObjectManager,
         ( {'label': 'Contents', 'action': 'manage_main'}, )
         + PropertyManager.manage_options # add the 'Properties' tab
         + (
-# this line is kept as an example with the files :
-#     dtml/manage_editZScolarForm.dtml
-#     html/ZScolar-edit.stx
-#	{'label': 'Properties', 'action': 'manage_editForm',},
-	{'label': 'View',       'action': 'index_html'},
-        )
+            {'label': 'View',       'action': 'index_html'},
+            )
         + Item.manage_options            # add the 'Undo' & 'Owner' tab 
         + RoleManager.manage_options     # add the 'Security' tab
         )
 
     # no permissions, only called from python
     def __init__(self, id, title):
-	"initialise a new instance"
+        "initialise a new instance"
         self.id = id
-	self.title = title
+        self.title = title
     
     # The form used to edit this object
     def manage_editZAbsences(self, title, RESPONSE=None):
@@ -321,6 +314,9 @@ class ZAbsences(ObjectManager,
     doAnnuleAbsence = sco_abs_views.doAnnuleAbsence
     security.declareProtected(ScoAbsChange, 'doAnnuleJustif')
     doAnnuleJustif = sco_abs_views.doAnnuleJustif
+
+    security.declareProtected(ScoView, 'ListeAbsEtud')
+    ListeAbsEtud = sco_abs_views.ListeAbsEtud
 
     # --------------------------------------------------------------------
     #
@@ -688,43 +684,15 @@ class ZAbsences(ObjectManager,
         for a in A:
             a['description'] = self._GetAbsDescription(a, cursor=cursor)
         return A
-
-    # Code inutile: le formulaire est géré en ajax.
-    #    et la suppression par module est peut être incorrecte (?)
-    # security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrHebdo')
-    # def doSignaleAbsenceGrHebdo(self, moduleimpl_id=None, abslist=[],
-    #                             datedebut=None, datefin=None, etudids=[],
-    #                             destination=None, REQUEST=None):
-    #     """Enregistre absences hebdo. Efface les anciennes absences et
-    #     signale les nouvelles.
-    #     abslist : liste etudid:date:ampm des absences signalees
-    #     etudids : liste des etudids concernes
-    #     datedebut, datefin: dates (ISO) de la semaine        
-    #     """
-    #     log('XXX: doSignaleAbsenceGrHebdo  moduleimpl_id=' %  moduleimpl_id)
-    #     if etudids:
-    #         etudids = etudids.split(',')
-    #     else:
-    #         etudids = []
-        
-    #     # 1- Efface les absences
-    #     for etudid in etudids:
-    #         self._AnnuleAbsencesPeriodNoJust(etudid, datedebut, datefin, moduleimpl_id, REQUEST) 
-    #         return "Absences effacées"
-    #     # 2- Ajoute les absences 
-	# if abslist:       
-    #          self._add_abslist(abslist, REQUEST, moduleimpl_id)
-    #          return "Absences ajoutées"
-    #     return 
-
+    
     security.declareProtected(ScoAbsChange, 'doSignaleAbsenceGrSemestre')
     def doSignaleAbsenceGrSemestre(self, moduleimpl_id=None, abslist=[],
                                    dates='', etudids='',
                                    destination=None, REQUEST=None):
         """Enregistre absences aux dates indiquees (abslist et dates).
         dates est une liste de dates ISO (séparées par des ',').
-        Efface les absences aux dates indiquées par dates, et ajoute
-        celles de abslist.
+        Efface les absences aux dates indiquées par dates,
+        ou bien ajoute celles de abslist.
         """
         if etudids:
             etudids = etudids.split(',')
@@ -734,15 +702,19 @@ class ZAbsences(ObjectManager,
             dates = dates.split(',')
         else:
             dates = []
+        
         # 1- Efface les absences
-        for etudid in etudids:
-            self.AnnuleAbsencesDatesNoJust(etudid, dates, moduleimpl_id, REQUEST) 
-	    return "Absences effacées"
+        if dates:
+            for etudid in etudids:
+                self.AnnuleAbsencesDatesNoJust(etudid, dates, moduleimpl_id, REQUEST) 
+            return "Absences effacées"
+        
         # 2- Ajoute les absences
         if abslist:
             self._add_abslist(abslist, REQUEST, moduleimpl_id)
-	    return "Absences ajoutées"
-        return 
+            return "Absences ajoutées"
+        
+        return ''
 
     def _add_abslist(self, abslist, REQUEST, moduleimpl_id=None):
         for a in abslist:
@@ -842,12 +814,12 @@ class ZAbsences(ObjectManager,
     def SignaleAbsenceGrHebdo(self, datelundi, group_id,
                               destination,moduleimpl_id=None, REQUEST=None):
         "Saisie hebdomadaire des absences"
-  	    # log('SignaleAbsenceGrHebdo: moduleimpl_id=%s' % moduleimpl_id)
+        # log('SignaleAbsenceGrHebdo: moduleimpl_id=%s' % moduleimpl_id)
         if not moduleimpl_id:
             moduleimp_id = None
 
         base_url='SignaleAbsenceGrHebdo?datelundi=%s&group_id=%s&destination=%s' % (datelundi, group_id, destination)
-	    
+        
         group = sco_groups.get_group(self, group_id)
         formsemestre_id = group['formsemestre_id']
         nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
@@ -1140,43 +1112,44 @@ class ZAbsences(ObjectManager,
         """ % destination)
         return H
         
-    security.declareProtected(ScoView, 'ListeAbsEtud')
-    def ListeAbsEtud(self, etudid, with_evals=True, format='html',
-                     absjust_only=0, REQUEST=None):
-        "Liste des absences d'un étudiant sur l'année en cours"
-        datedebut = '%s-08-31' % self.AnneeScolaire(REQUEST)
-        #datefin = '%s-08-31' % (self.AnneeScolaire(REQUEST)+1)
+    def _TablesAbsEtud(self, etudid, datedebut,
+                       with_evals=True,
+                       format='html',
+                       absjust_only=0,
+                       REQUEST=None):
+        """Tables des absences justifiees et non justifiees d'un étudiant sur l'année en cours
+        """
         absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
         absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
-        absjust_only = int(absjust_only) # si vrai, table absjust seule (export xls ou pdf)
         # examens ces jours là ?
         if with_evals:
             cnx = self.GetDBConnexion()
             cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             for a in absnonjust + absjust:
-                cursor.execute("""select eval.*
+                cursor.execute(
+                    """select eval.*
                 from notes_evaluation eval, notes_moduleimpl_inscription mi, notes_moduleimpl m
                 where eval.jour = %(jour)s and eval.moduleimpl_id = m.moduleimpl_id
                 and mi.moduleimpl_id = m.moduleimpl_id and mi.etudid = %(etudid)s""",
-                               { 'jour' : a['jour'].strftime('%Y-%m-%d'), 'etudid' : etudid } )
+                    { 'jour' : a['jour'].strftime('%Y-%m-%d'), 'etudid' : etudid } )
                 a['evals'] = cursor.dictfetchall() 
-                cursor.execute("""select mi.moduleimpl_id
+                cursor.execute(
+                    """SELECT mi.moduleimpl_id
                 from  absences abs, notes_moduleimpl_inscription mi, notes_moduleimpl m
-                where abs.matin = %(matin)s and abs.jour = %(jour)s and abs.etudid=%(etudid)s and 					abs.moduleimpl_id=mi.moduleimpl_id and mi.moduleimpl_id=m.moduleimpl_id 
-		and mi.etudid = %(etudid)s""",
-				{'matin': bool(a['matin']),'jour': a['jour'].strftime('%Y-%m-%d'),'etudid' : etudid } )
-                a['absent'] = cursor.dictfetchall() 
-        # Mise en forme HTML:
-        etud = self.getEtudInfo(etudid=etudid,filled=True)[0]
-        H = [ self.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) ]
-        H.append( """<h2>Absences de %s (à partir du %s)</h2>"""
-                  % (etud['nomprenom'], DateISOtoDMY(datedebut)))
+                where abs.matin = %(matin)s and abs.jour = %(jour)s and abs.etudid=%(etudid)s and abs.moduleimpl_id=mi.moduleimpl_id and mi.moduleimpl_id=m.moduleimpl_id 
+                and mi.etudid = %(etudid)s""",
+                { 'matin': bool(a['matin']),
+                 'jour': a['jour'].strftime('%Y-%m-%d'),
+                 'etudid' : etudid }
+                    )
+                a['absent'] = cursor.dictfetchall()
         
         def matin(x):
             if x:
                 return 'matin'
             else:
                 return 'après midi'
+
         def descr_exams(a):
             if not a.has_key('evals'):
                 return ''
@@ -1194,7 +1167,7 @@ class ZAbsences(ObjectManager,
 
         def descr_abs(a):
             ex = []
-            for ev in a['absent']:
+            for ev in a.get('absent', []):
                 mod = self.Notes.do_moduleimpl_withmodule_list(args={ 'moduleimpl_id' : ev['moduleimpl_id']})[0]
                 if format == 'html':
                     ex.append( '<a href="Notes/moduleimpl_status?moduleimpl_id=%s">%s</a>'
@@ -1205,7 +1178,7 @@ class ZAbsences(ObjectManager,
                 return  ', '.join(ex)
             return ''
 
-        # ajoute date formattee et exams
+        # ajoute date formatée et évaluations
         for L in (absnonjust, absjust):
             for a in L:
                 if with_evals:
@@ -1213,13 +1186,13 @@ class ZAbsences(ObjectManager,
                 a['datedmy'] = a['jour'].strftime('%d/%m/%Y')
                 a['matin_o'] = int(a['matin'])
                 a['matin'] = matin(a['matin'])
-		index=a['description'].find(')')
-		if index != -1:
-		     a['motif'] = a['description'][1:index]
-		else: 
-		     a['motif']=''
+                index=a['description'].find(')')
+                if index != -1:
+                    a['motif'] = a['description'][1:index]
+                else: 
+                    a['motif']=''
                 a['description'] = descr_abs(a) or ''
-		
+        
         # ajoute lien pour justifier
         if format == 'html':
             for a in absnonjust:
@@ -1232,42 +1205,11 @@ class ZAbsences(ObjectManager,
             columns_ids.append('exams')
             
         columns_ids.append('description')
-	columns_ids.append('motif')
+        columns_ids.append('motif')
         if format == 'html':
             columns_ids.append('justlink')
         
-        if len(absnonjust):
-            H.append('<h3>%d absences non justifiées:</h3>' % len(absnonjust))
-            tab = GenTable( titles=titles, columns_ids=columns_ids, rows = absnonjust,
-                            html_class='gt_table table_leftalign',
-                            base_url = '%s?etudid=%s&absjust_only=0' % (REQUEST.URL0, etudid),
-                            filename='abs_'+make_filename(etud['nomprenom']),
-                            caption='Absences non justifiées de %(nomprenom)s' % etud,
-                            preferences=self.get_preferences())
-            if format != 'html' and absjust_only == 0:
-                return tab.make_page(self, format=format, REQUEST=REQUEST)
-            H.append( tab.html() )
-        else:
-            H.append( """<h3>Pas d'absences non justifiées</h3>""")
-            
-        if len(absjust):
-            H.append( """<h3>%d absences justifiées:</h3>""" % len(absjust),)
-            tab = GenTable( titles=titles, columns_ids=columns_ids, rows = absjust,
-                            html_class='gt_table table_leftalign',
-                            base_url = '%s?etudid=%s&absjust_only=1' % (REQUEST.URL0, etudid),
-                            filename='absjust_'+make_filename(etud['nomprenom']),
-                            caption='Absences justifiées de %(nomprenom)s' % etud,
-                            preferences=self.get_preferences())
-            if format != 'html' and absjust_only:
-                return tab.make_page(self, format=format, REQUEST=REQUEST)
-            H.append( tab.html() )
-        else:
-            H.append( """<h3>Pas d'absences justifiées</h3>""")
-        H.append("""<p style="top-margin: 1cm; font-size: small;">
-        Si vous avez besoin d'autres formats pour les listes d'absences,
-        envoyez un message sur la <a href="mailto:%s">liste</a>
-        ou déclarez un ticket sur <a href="%s">le site web</a>.</p>""" % (SCO_USERS_LIST, SCO_WEBSITE) )
-        return '\n'.join(H) + self.sco_footer(REQUEST)
+        return titles, columns_ids, absnonjust, absjust
 
     security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
     def EtatAbsencesGr(self, group_id, debut, fin, format='html', REQUEST=None): 
@@ -1717,17 +1659,15 @@ billet_absence_edit = _billet_absenceEditor.edit
 
 # MONTH/DAY NAMES:
 
-MONTHNAMES = ( 'Janvier', 'F&eacute;vrier', 'Mars', 'Avril', 'Mai',
-	       'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 
-	       'Novembre', 'D&eacute;cembre' )
+MONTHNAMES = (
+    'Janvier', 'F&eacute;vrier', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'D&eacute;cembre' )
 
-MONTHNAMES_ABREV = ( 'Jan.', 'F&eacute;v.', 'Mars', 'Avr.', 'Mai&nbsp;',
-	       'Juin', 'Juil', 'Aout', 'Sept', 'Oct.', 
-	       'Nov.', 'D&eacute;c.' )
+MONTHNAMES_ABREV = (
+    'Jan.', 'F&eacute;v.', 'Mars', 'Avr.', 'Mai&nbsp;', 'Juin',
+    'Juil', 'Aout', 'Sept', 'Oct.', 'Nov.', 'D&eacute;c.' )
 
-
-DAYNAMES   = ( 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 
-	       'Samedi', 'Dimanche' )
+DAYNAMES   = ( 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche' )
 
 DAYNAMES_ABREV = ( 'L', 'M', 'M', 'J', 'V', 'S', 'D' )
 
@@ -1744,7 +1684,7 @@ def MonthTableHead( month ):
     color = WHITE
     return """<table class="monthcalendar" border="0" cellpadding="0" cellspacing="0" frame="box">
      <tr bgcolor="%s"><td class="calcol" colspan="2" align="center">%s</td></tr>\n""" % (
-	 color,MONTHNAMES_ABREV[month-1])
+         color,MONTHNAMES_ABREV[month-1])
 
 def MonthTableTail():
     return '</table>\n'
@@ -1771,7 +1711,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
         for d in range(1,nbdays+1):
             weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
                                                          '%d/%m/%Y'))
-            day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
+            day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]
             if day in weekend:
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'
@@ -1837,7 +1777,7 @@ def MonthTableBody( month, year, events=[], halfday=0, trattributes='', work_sat
         for d in range(1,nbdays+1):
             weeknum = time.strftime( '%U', time.strptime('%d/%d/%d'%(d,month,year),
                                                          '%d/%m/%Y'))
-            day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]	
+            day = DAYNAMES_ABREV[ (firstday+d-1) % 7 ]
             if day in weekend:
                 bgcolor = WEEKENDCOLOR
                 weekclass = 'wkend'

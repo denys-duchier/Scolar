@@ -55,12 +55,12 @@ def ListMedian( L ):
     """Median of a list L"""
     n = len(L)
     if not n:
-	raise ValueError, 'empty list'
+        raise ValueError, 'empty list'
     L.sort()
     if n % 2:
-	return L[n/2]
+        return L[n/2]
     else:
-	return (L[n/2] + L[n/2-1])/2 
+        return (L[n/2] + L[n/2-1])/2 
 
 # --------------------------------------------------------------------
 
@@ -239,7 +239,7 @@ def do_evaluation_list_in_sem(context, formsemestre_id):
     return R 
 
 def formsemestre_evaluations_list(context, formsemestre_id):
-    """Liste des evals pour ce semestre"""
+    """Liste (non triée) des evals pour ce semestre"""
     req = "select E.* from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
@@ -376,4 +376,85 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
           context.sco_footer(REQUEST) ]
     return '\n'.join(H)
 
+def module_evaluation_insert_before(context, ModEvals, next_eval, REQUEST):
+    """Renumber evals such that an evaluation with can be inserted before next_eval
+    Returns numero suitable for the inserted evaluation
+    """
+    if next_eval:
+        n = next_eval['numero']
+        if n is None:
+            module_evaluation_renumber(context, next_eval['moduleimpl_id'], REQUEST)
+            next_eval = context.do_evaluation_list( args={ 'evaluation_id' : next_eval['evaluation_id'] } )[0]
+            n = next_eval['numero']
+    else:
+        n = 0
+    # log('inserting at position numero %s' % n )
+    # all numeros >= n are incremented
+    for e in ModEvals:
+        if e['numero'] >= n:
+            e['numero'] += 1
+            # log('incrementing %s to %s' % (e['evaluation_id'], e['numero']))
+            context.do_evaluation_edit(REQUEST, e)
     
+    return n
+    
+    
+def module_evaluation_move(context, evaluation_id, after=0, REQUEST=None, redirect=1):
+    """Move before/after previous one (decrement/increment numero)
+    (published)
+    """
+    e = context.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
+    redirect = int(redirect)
+
+    # access: can change eval ? (raises exception)
+    context._evaluation_check_write_access(REQUEST, moduleimpl_id=e['moduleimpl_id'])
+    
+    after = int(after) # 0: deplace avant, 1 deplace apres
+    if after not in (0,1):
+        raise ValueError('invalid value for "after"')
+    others = context.do_evaluation_list({'moduleimpl_id' : e['moduleimpl_id']})
+    # log('others=%s' % [ x['evaluation_id'] for x in others] ) 
+    if len(others) > 1:
+        idx = [ p['evaluation_id'] for p in others ].index(evaluation_id)
+        # log('module_evaluation_move: after=%s idx=%s' % (after, idx))
+        neigh = None # object to swap with
+        if after == 0 and idx > 0:
+            neigh = others[idx-1]            
+        elif after == 1 and idx < len(others)-1:
+            neigh = others[idx+1]
+        if neigh: # 
+            # swap numero between partition and its neighbor
+            # log('moving evaluation %s' % evaluation_id)
+            cnx = context.GetDBConnexion()
+            e['numero'], neigh['numero'] = neigh['numero'], e['numero']
+            if e['numero'] == neigh['numero']:
+                neigh['numero'] -= 2*after - 1
+            context.do_evaluation_edit(REQUEST, e)
+            context.do_evaluation_edit(REQUEST, neigh)
+    # redirect to moduleimpl page:
+    if redirect:
+        return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+e['moduleimpl_id'])
+
+
+def module_evaluation_renumber(context, moduleimpl_id, REQUEST=None, only_if_unumbered=False, redirect=0):
+    """Renumber evaluations in this module, according to their date. (numero=0: oldest one)
+    Needed because previous versions of ScoDoc did not have eval numeros
+    Note: existing numeros are ignored
+    """
+    redirect = int(redirect)
+
+    ModEvals = context.do_evaluation_list( args={ 'moduleimpl_id' : moduleimpl_id } )
+    # this is sorted by numero then date. Sort according to date/heure, ignoring numeros:
+    # (note that we place  evaluations with NULL date at the end)
+    ModEvals.sort( lambda x,y: cmp( (x['jouriso'] or '9999-12-31', x['heure_debut']),
+                                    (y['jouriso'] or '9999-12-31', y['heure_debut']) ) )    
+    # Reset all numeros:
+    i = 0
+    for e in ModEvals:
+        e['numero'] = i
+        context.do_evaluation_edit(REQUEST, e)
+        i += 1
+    
+    # If requested, redirect to moduleimpl page:
+    if redirect:
+        return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+e['moduleimpl_id'])

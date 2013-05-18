@@ -43,6 +43,7 @@ import sco_pvjury
 import sco_formsemestre_status
 import sco_photos
 import ZAbsences
+import sco_abs_views
 import sco_preferences
 import sco_bulletins_generator
 import sco_bulletins_xml
@@ -641,6 +642,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
 
 def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
     """Send bulletin by email to etud
+    If bul_mail_list_abs pref is true, put list of absences in mail body (text).
     """
     etud = I['etud']
     webmaster = context.get_preference('bul_mail_contact_addr', formsemestre_id)
@@ -652,6 +654,10 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
         hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
     else:
         hea = ''
+
+    if context.get_preference('bul_mail_list_abs'):
+        hea += '\n\n' + sco_abs_views.ListeAbsEtud(context,
+                                                   etud['etudid'], with_evals=False, format='text')
     
     msg = MIMEMultipart()
     subj = Header( 'Relevé de notes de %s' % etud['nomprenom'],  SCO_ENCODING )
@@ -665,6 +671,7 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
     msg.epilogue = ''
     # Text
     txt = MIMEText( hea, 'plain', SCO_ENCODING )
+    # log('hea:\n' + hea)
     msg.attach(txt)
     # Attach pdf
     att = MIMEBase('application', 'pdf')

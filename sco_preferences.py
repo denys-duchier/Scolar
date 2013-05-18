@@ -888,7 +888,14 @@ Année scolaire: %(anneescolaire)s
         'cols' : 85,
         'category' : 'bul_mail' }
       ),
-
+    ('bul_mail_list_abs',
+     { 'initvalue' : 0,
+        'title' : "Indiquer la liste des dates d'absences par mail",
+        'explanation' : "dans le mail envoyant le bulletin de notes",
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul_mail',
+        }
+     ),
     ( 'bul_mail_contact_addr',
       { 'initvalue' : "l'administrateur",
         'title' : 'Adresse mail contact "webmaster"',

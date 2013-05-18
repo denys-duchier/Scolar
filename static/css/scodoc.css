@@ -875,10 +875,22 @@ a.mievr_evalnodate:hover {
    color: rgb(153,51,51);
    text-decoration: underline;
 }
+
+span.evalindex_cont {
+ float: right;
+}
 span.evalindex {
  font-weight: normal;
- padding-left: 4em;
+ margin-right: 5px;
 }
+.eval_arrows_chld {
+ margin-right: 3px;
+ margin-top: 3px;
+}
+.eval_arrows_chld a {
+  margin-left: 3px;
+}
+
 
 /* Formulaire edition des partitions */
 form#editpart table {

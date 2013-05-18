@@ -543,7 +543,7 @@ class ZScoUsers(ObjectManager,
          else:
              submitlabel = 'Modifier utilisateur'
              initvalues = self._user_list( args={'user_name': user_name})[0]
-             initvalues['roles'] = initvalues['roles'].split(',')
+             initvalues['roles'] = initvalues['roles'].split(',') or []
              orig_roles = Set(initvalues['roles'])
              if initvalues['status'] == 'old':
                  editable_roles = Set() # can't change roles of a disabled user
@@ -665,7 +665,7 @@ class ZScoUsers(ObjectManager,
                      nom=vals['nom'], prenom=vals['prenom'],
                      email=vals['email'], roles=vals['roles'] )
                  if not ok:
-                     H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>")""" % msg))
+                     H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>" en bas de page)""" % msg))
 
                      return '\n'.join(H) + '\n' + tf[1] + F
              
@@ -681,7 +681,7 @@ class ZScoUsers(ObjectManager,
                  # traitement des roles: ne doit pas affecter les roles
                  # que l'on en controle pas:
                  for role in orig_roles:
-                     if not role in editable_roles:
+                     if role and not role in editable_roles:
                          roles.add(role)
 
                  vals['roles'] = ','.join(roles)
@@ -691,7 +691,7 @@ class ZScoUsers(ObjectManager,
                  #log('sco_users: previous_values=%s' % initvalues)                 
                  #log('sco_users: new_values=%s' % vals)
                  self._user_edit(user_name, vals)
-                 return REQUEST.RESPONSE.redirect( REQUEST.URL1 )
+                 return REQUEST.RESPONSE.redirect( REQUEST.URL1 + "?head_message=Utilisateur %s modifié" % user_name )
              else: # creation utilisateur
                  vals['roles'] = ','.join(vals['roles'])
                  # check passwords
@@ -713,10 +713,13 @@ class ZScoUsers(ObjectManager,
         Cherche homonymes.
         returns (ok, msg)
           - ok : si vrai, peut continuer avec ces parametres
+              (si ok est faux, l'utilisateur peut quand même forcer la creation)
           - msg: message warning a presenter l'utilisateur
         """
         if not user_name or not nom or not prenom:
             return False, 'champ requis vide'
+        if not email:
+            return False, "vous devriez indiquer le mail de l'utilisateur créé !"
         # ce login existe ?
         users = self._user_list( args={'user_name':user_name} )  
         if edit and not users: # safety net, le user_name ne devrait pas changer
@@ -736,8 +739,8 @@ class ZScoUsers(ObjectManager,
         if len(res) > minmatch:
             return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s (pseudo=%s)' % (x['prenom'], x['nom'], x['user_name']) for x in res ])
         # Roles ?
-        if not roles and (edit and users[0]['status'] != 'old'):
-            # nb: si utilisateur desactibe (old), pas de role attribué
+        if not roles and not (edit and users[0]['status'] == 'old'):
+            # nb: si utilisateur desactivé (old), pas de role attribué
             return False, "aucun rôle sélectionné, êtes vous sûr ?"
         # ok
         return True, ''
