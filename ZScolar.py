@@ -932,7 +932,7 @@ class ZScolar(ObjectManager,
                   % base_url,
                   """<li><a class="stdlink" href="trombino?group_id=%s&etat=I">Photos</a></li>"""
                   % (group_id,),
-                  '<li><a class="stdlink" href="mailto:%s">Envoyer un mail collectif au groupe de %s</a></li>' % (amail, group_tit)
+                  '<li><a class="stdlink" href="mailto:?bcc=%s">Envoyer un mail collectif au groupe de %s</a></li>' % (amail, group_tit)
                   ]
             
             # Lien pour verif codes INE/NIP
