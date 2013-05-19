@@ -789,6 +789,11 @@ div.moduleimpl_tableaubord {
   border: 2px solid gray;
 }
 
+.moduleimpl_evaluations_top_links {
+  font-size: 80%;
+  margin-bottom: 3px;
+}
+
 table.moduleimpl_evaluations {
   width: 100%;
   border-spacing: 0px;
@@ -817,6 +822,10 @@ td.moduleimpl_evaluation_row {
 
 tr.mievr {
    background-color:#eeeeee;
+}
+
+tr.mievr_spaced {
+   /* margin-top: 20px; */
 }
 
 tr.mievr_rattr {

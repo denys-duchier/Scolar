@@ -195,17 +195,30 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
 </p>
 """ % M)
     
-    # -------- Tableau des evaluations
+    # -------- Tableau des evaluations    
+    top_table_links = ''
+    if sem['etat'] == '1': # non verrouillé
+        top_table_links = """<a class="stdlink" href="evaluation_create?moduleimpl_id=%(moduleimpl_id)s">Créer nouvelle évaluation</a>
+        <a class="stdlink" style="margin-left:2em;" href="module_evaluation_renumber?moduleimpl_id=%(moduleimpl_id)s&redirect=1">Trier par date</a>
+        """ % M
+    if ModEvals:
+        H.append( '<div class="moduleimpl_evaluations_top_links">' + top_table_links + '</div>')
     H.append("""<table class="moduleimpl_evaluations">""")
     eval_index = len(ModEvals) - 1
+    first = True
     for eval in ModEvals:
         etat = sco_evaluations.do_evaluation_etat(context, eval['evaluation_id'], partition_id=partition_id, select_first_partition=True)
         if eval['evaluation_type'] == EVALUATION_RATTRAPAGE:
             tr_class = 'mievr_rattr'
         else:
             tr_class = 'mievr'
-        H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
-        H.append("""<tr class="mievr"><td class="mievr_tit" colspan="8">""" )
+        tr_class_1 = 'mievr'
+        if first:
+            first = False
+        else:
+            H.append("""<tr><td colspan="8">&nbsp;</td></tr>""")
+            tr_class_1 += ' mievr_spaced'
+        H.append("""<tr class="%s"><td class="mievr_tit" colspan="8">"""%tr_class_1 )
         if eval['jour']:
             H.append("""Le %(jour)s%(descrheure)s""" % eval )
         else:
@@ -218,7 +231,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         H.append('<span class="evalindex_cont">')
         if has_expression:
              H.append("""<span class="evalindex" title="Indice dans les vecteurs (formules)">%02d</span>""" % eval_index)
-        # H.append("""<span class="evalindex" title="Numero">%s</span>""" % eval['numero']) debug
+        
         # Fleches:
         H.append('<span class="eval_arrows_chld">')
         if eval_index != (len(ModEvals) - 1) and caneditevals:
@@ -336,11 +349,11 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         if sem['etat'] != '1':
             H.append("""%s semestre verrouillé""" % icontag('lock32_img'))
         else:
-            H.append("""<a class="stdlink" href="evaluation_create?moduleimpl_id=%s">Créer nouvelle évaluation</a>""" % M['moduleimpl_id'] )
+            H.append(top_table_links)
             if authuser.has_permission(ScoEtudInscrit,context):
-                H.append("""&nbsp;&nbsp;&nbsp;&nbsp;
-<a class="stdlink" href="moduleimpl_inscriptions_edit?moduleimpl_id=%s">Gérer les inscriptions à ce module</a>""" % M['moduleimpl_id'] )
-            H.append("""&nbsp;&nbsp;&nbsp;&nbsp;<a class="stdlink" href="module_evaluation_renumber?moduleimpl_id=%s&redirect=1">Trier par date</a>""" % M['moduleimpl_id'] )
+                H.append("""
+<a class="stdlink" style="margin-left:2em;" href="moduleimpl_inscriptions_edit?moduleimpl_id=%s">Gérer les inscriptions à ce module</a>""" % M['moduleimpl_id'] )
+
     H.append("""</td></tr>
 </table>
 

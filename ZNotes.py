@@ -1853,24 +1853,31 @@ class ZNotes(ObjectManager,
         if not 'numero' in args or args['numero'] is None:
             n = None
             # determine le numero avec la date
-            ModEvals = self.do_evaluation_list( args={ 'moduleimpl_id' : moduleimpl_id } )
-            ModEvals.reverse()
-            #log('ModEvals=[%s]' % ','.join( [x['evaluation_id'] for x in ModEvals ]) )
+            # Liste des eval existantes triees par date, la plus ancienne en tete
+            ModEvals = self.do_evaluation_list(
+                args={ 'moduleimpl_id' : moduleimpl_id },
+                sortkey='jour asc, heure_debut asc' )
+            log('ModEvals=[%s]' % ','.join( [x['evaluation_id'] for x in ModEvals ]) )
             if args['jour']:
                 next_eval = None
+                t = (DateDMYtoISO(args['jour']),
+                     TimetoISO8601( args['heure_debut']))
+                log( 'args: t=%s' % str(t))
                 for e in ModEvals:
-                    if (e['jour'], e['heure_debut']) > (args['jour'], args['heure_debut']):
+                    if (DateDMYtoISO(e['jour']), TimetoISO8601(e['heure_debut'])) > t:
                         next_eval = e
-                        break
+                        break                
                 if next_eval:
+                    log('inserting !')
                     n = sco_evaluations.module_evaluation_insert_before(self, ModEvals, next_eval, REQUEST)
                 else:
                     n = None # a placer en fin
             if n is None: # pas de date ou en fin:
                 if ModEvals:
-                    n = ModEvals[0]['numero'] + 1
+                    n = ModEvals[-1]['numero'] + 1
                 else:
                     n = 0 # the only one
+            log('creating with numero n=%d' % n)
             args['numero'] = n
                     
         #
@@ -1961,10 +1968,10 @@ class ZNotes(ObjectManager,
         
 
     security.declareProtected(ScoView, 'do_evaluation_list')
-    def do_evaluation_list(self, args ):
+    def do_evaluation_list(self, args, sortkey=None ):
         "List evaluations, sorted by numero (or most recent date first)."
         cnx = self.GetDBConnexion()
-        evals = self._evaluationEditor.list(cnx, args)
+        evals = self._evaluationEditor.list(cnx, args, sortkey=sortkey)
         # calcule duree (chaine de car.) de chaque evaluation et ajoute jouriso
         for e in evals:
             e['jouriso'] = DateDMYtoISO(e['jour'])
