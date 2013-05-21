@@ -382,13 +382,13 @@ def module_evaluation_insert_before(context, ModEvals, next_eval, REQUEST):
     """
     if next_eval:
         n = next_eval['numero']
-        if n is None:
+        if not n:
             log('renumbering old evals')
             module_evaluation_renumber(context, next_eval['moduleimpl_id'], REQUEST)
             next_eval = context.do_evaluation_list( args={ 'evaluation_id' : next_eval['evaluation_id'] } )[0]
             n = next_eval['numero']
     else:
-        n = 0
+        n = 1
     # log('inserting at position numero %s' % n )
     # all numeros >= n are incremented
     for e in ModEvals:
@@ -409,27 +409,25 @@ def module_evaluation_move(context, evaluation_id, after=0, REQUEST=None, redire
 
     # access: can change eval ? (raises exception)
     context._evaluation_check_write_access(REQUEST, moduleimpl_id=e['moduleimpl_id'])
+
+    module_evaluation_renumber(context, e['moduleimpl_id'], REQUEST=REQUEST, only_if_unumbered=True)
+    e = context.do_evaluation_list( args={ 'evaluation_id' : evaluation_id } )[0]
     
     after = int(after) # 0: deplace avant, 1 deplace apres
     if after not in (0,1):
         raise ValueError('invalid value for "after"')
-    others = context.do_evaluation_list({'moduleimpl_id' : e['moduleimpl_id']})
-    # log('others=%s' % [ x['evaluation_id'] for x in others] ) 
-    if len(others) > 1:
-        idx = [ p['evaluation_id'] for p in others ].index(evaluation_id)
-        # log('module_evaluation_move: after=%s idx=%s' % (after, idx))
+    ModEvals = context.do_evaluation_list({'moduleimpl_id' : e['moduleimpl_id']})
+    # log('ModEvals=%s' % [ x['evaluation_id'] for x in ModEvals] ) 
+    if len(ModEvals) > 1:
+        idx = [ p['evaluation_id'] for p in ModEvals ].index(evaluation_id)
         neigh = None # object to swap with
         if after == 0 and idx > 0:
-            neigh = others[idx-1]            
-        elif after == 1 and idx < len(others)-1:
-            neigh = others[idx+1]
+            neigh = ModEvals[idx-1]            
+        elif after == 1 and idx < len(ModEvals)-1:
+            neigh = ModEvals[idx+1]
         if neigh: # 
-            # swap numero between partition and its neighbor
-            # log('moving evaluation %s' % evaluation_id)
-            cnx = context.GetDBConnexion()
-            e['numero'], neigh['numero'] = neigh['numero'], e['numero']
-            if e['numero'] == neigh['numero']:
-                neigh['numero'] -= 2*after - 1
+            # swap numero with neighbor
+            e['numero'], neigh['numero'] = neigh['numero'], e['numero']            
             context.do_evaluation_edit(REQUEST, e)
             context.do_evaluation_edit(REQUEST, neigh)
     # redirect to moduleimpl page:
@@ -443,20 +441,20 @@ def module_evaluation_renumber(context, moduleimpl_id, REQUEST=None, only_if_unu
     Note: existing numeros are ignored
     """
     redirect = int(redirect)
-
+    log('module_evaluation_renumber( moduleimpl_id=%s )' % moduleimpl_id )
     # List sorted according to date/heure, ignoring numeros:
     # (note that we place  evaluations with NULL date at the end)
     ModEvals = context.do_evaluation_list(
         args={ 'moduleimpl_id' : moduleimpl_id },
         sortkey='jour asc, heure_debut asc' )
 
-    all_numbered =  None not in [ x['numero'] for x in ModEvals ]
+    all_numbered =  False not in [ x['numero'] > 0 for x in ModEvals ]
     if all_numbered and only_if_unumbered:
         return # all ok
     
     log('module_evaluation_renumber')
     # Reset all numeros:
-    i = 0
+    i = 1
     for e in ModEvals:
         e['numero'] = i
         context.do_evaluation_edit(REQUEST, e)
