@@ -441,7 +441,7 @@ def module_evaluation_renumber(context, moduleimpl_id, REQUEST=None, only_if_unu
     Note: existing numeros are ignored
     """
     redirect = int(redirect)
-    log('module_evaluation_renumber( moduleimpl_id=%s )' % moduleimpl_id )
+    #log('module_evaluation_renumber( moduleimpl_id=%s )' % moduleimpl_id )
     # List sorted according to date/heure, ignoring numeros:
     # (note that we place  evaluations with NULL date at the end)
     ModEvals = context.do_evaluation_list(
@@ -452,7 +452,7 @@ def module_evaluation_renumber(context, moduleimpl_id, REQUEST=None, only_if_unu
     if all_numbered and only_if_unumbered:
         return # all ok
     
-    log('module_evaluation_renumber')
+    #log('module_evaluation_renumber')
     # Reset all numeros:
     i = 1
     for e in ModEvals:

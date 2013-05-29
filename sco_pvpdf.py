@@ -112,7 +112,8 @@ class CourrierIndividuelTemplate(PageTemplate) :
                  image_dir = '',
                  preferences=None,  # dictionnary with preferences, required
                  force_header=False,
-                 force_footer=False # always add a footer (whatever the preferences, use for PV)
+                 force_footer=False, # always add a footer (whatever the preferences, use for PV)
+                 template_name='CourrierJuryTemplate'
                  ):
         """Initialise our page template."""
         self.pagesbookmarks = pagesbookmarks
@@ -139,7 +140,7 @@ class CourrierIndividuelTemplate(PageTemplate) :
             document.pagesize[0] - self.right_p-self.left_p - left*mm-right*mm,
             document.pagesize[1] - self.top_p-self.bot_p - top*mm-bottom*mm)
         
-        PageTemplate.__init__(self, "PVJuryTemplate", [content])
+        PageTemplate.__init__(self, template_name, [content])
         
         self.logo_footer = Image( image_dir + '/logo_footer.jpg', height=LOGO_FOOTER_HEIGHT, width=LOGO_FOOTER_WIDTH )
         self.logo_header = Image( image_dir + '/logo_header.jpg', height=LOGO_HEADER_HEIGHT, width=LOGO_HEADER_WIDTH )
@@ -179,9 +180,27 @@ class PVTemplate(CourrierIndividuelTemplate):
         CourrierIndividuelTemplate.__init__(self, document, author=author, title=title, subject=subject,
                                             margins=margins, image_dir=image_dir, 
                                             preferences=preferences,
-                                            force_header=True, force_footer=True)
+                                            force_header=True, force_footer=True,
+                                            template_name='PVJuryTemplate'
+            )
         self.with_page_numbers = True
         self.header_only_on_first_page = True
+    
+    def afterDrawPage(self, canvas, doc):
+        """Called after all flowables have been drawn on a page"""        
+        pass
+    
+    def beforeDrawPage(self, canvas, doc):
+        """Called before any flowables are drawn on a page"""
+        # If the page number is even, force a page break
+        CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
+        # Note: on cherche un moyen de generer un saut de page double
+        #  (redémarrer sur page impaire, nouvelle feuille en recto/verso). Pas trouvé en Platypus.
+        #
+        #if self.__pageNum % 2 == 0:
+        #    canvas.showPage()
+        #    # Increment pageNum again since we've added a blank page
+        #    self.__pageNum += 1
 
 def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='', signature=None):
     """Document PDF avec les lettres d'avis pour les etudiants mentionnés
@@ -241,8 +260,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     return data
 
 
-def _descr_jury(sem, semestre_non_terminal):
-    if semestre_non_terminal:
+def _descr_jury(sem, diplome):
+    if not diplome:
         t = "passage de Semestre %d en Semestre %d" % (sem['semestre_id'],sem['semestre_id']+1)
         s = "passage de semestre"
     else:
@@ -258,7 +277,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     #
     formsemestre_id = sem['formsemestre_id']
     Se = decision['Se']
-    t, s = _descr_jury(sem, Se.semestre_non_terminal)
+    t, s = _descr_jury(sem, Se.parcours_validated() or not Se.semestre_non_terminal)
     objects = []
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 14
@@ -376,10 +395,59 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     """
     if not dpv:
         return {}
-    formsemestre_id = dpv['formsemestre']['formsemestre_id']
     sem = dpv['formsemestre']
+    formsemestre_id = sem['formsemestre_id']
+        
+    objects = _pvjury_pdf_type(context, dpv, only_diplome=False,
+                                dateCommission=dateCommission, numeroArrete=numeroArrete,
+                                dateJury=dateJury, showTitle=showTitle
+        )
+
+    jury_de_diplome = not dpv['semestre_non_terminal']
     
+    # Si Jury de passage et qu'un étudiant valide le parcours (car il a validé antérieurement le dernier semestre)
+    # alors on génère aussi un PV de diplome (à la suite dans le même doc PDF)
+    if not jury_de_diplome:
+        validations_parcours = [ x['validation_parcours'] for x in dpv['decisions'] ]
+        if True in validations_parcours:
+            # au moins un etudiant a validé son diplome:
+            objects.append(PageBreak())
+            objects += _pvjury_pdf_type(context, dpv, only_diplome=True,
+                                        dateCommission=dateCommission, numeroArrete=numeroArrete,
+                                        dateJury=dateJury, showTitle=showTitle
+                )
+
+    # ----- Build PDF
+    report = cStringIO.StringIO() # in-memory document, no disk file
+    document = BaseDocTemplate(report)
+    document.pagesize = landscape(A4)
+    document.addPageTemplates( PVTemplate(
+        document,
+        author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
+        title=SU('PV du jury de %s' % sem['titre_num']),
+        subject='PV jury',
+        image_dir = context.file_path + '/logos/',
+        preferences=context.get_preferences(formsemestre_id)))
+
+    document.build(objects)
+    data = report.getvalue()
+    return data
+
+
+def _pvjury_pdf_type(context, dpv, only_diplome=False,
+                     dateCommission=None, numeroArrete=None, dateJury=None, showTitle=False):
+    """Doc PDF récapitulant les décisions de jury pour un type de jury (passage ou delivrance)
+    dpv: result of dict_pvjury
+    """
+    # Jury de diplome si sem. terminal OU que l'on demande les diplomés d'un semestre antérieur
+    diplome = (not dpv['semestre_non_terminal']) or only_diplome
+
+    sem = dpv['formsemestre']
+    formsemestre_id = sem['formsemestre_id']
+    titre_jury, titre_court_jury = _descr_jury(sem, diplome)
+
     objects = []
+    
     style = reportlab.lib.styles.ParagraphStyle({})
     style.fontSize= 12
     style.fontName= context.get_preference('PV_FONTNAME', formsemestre_id)
@@ -399,12 +467,11 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
     bulletStyle.bulletFontSize=11
     bulletStyle.spaceBefore=5*mm
     bulletStyle.spaceAfter=5*mm
-                                   
-    t, s = _descr_jury(sem, dpv['semestre_non_terminal'])
+
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
     <para align="center"><b>Procès-verbal de %s du département %s - Session %s</b></para>    
-    """ % (t, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
+    """ % (titre_jury, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
 
     if showTitle:
         objects += makeParas("""<para align="center"><b>Semestre: %s</b></para>"""%sem['titre'], style)
@@ -415,13 +482,13 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
                          + context.get_preference('PV_INTRO', formsemestre_id)
                          % { 'Decnum' : numeroArrete,
                              'UnivName' : context.get_preference('UnivName', formsemestre_id),
-                             'Type' : t,
+                             'Type' : titre_jury,
                              'Date' : dateCommission,
                              } + '</para>', bulletStyle )
     
     objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
-    lines, titles, columns_ids = sco_pvjury.pvjury_table(context, dpv)
+    lines, titles, columns_ids = sco_pvjury.pvjury_table(context, dpv, only_diplome=only_diplome)
     # convert to lists of tuples:
     columns_ids=['etudid'] + columns_ids
     lines = [ [ line.get(x,'') for x in columns_ids ] for line in lines ]
@@ -471,19 +538,5 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
                            colWidths = (2*cm, None),
                            style=TableStyle2 ) )
     
+    return objects
 
-    # ----- Build PDF
-    report = cStringIO.StringIO() # in-memory document, no disk file
-    document = BaseDocTemplate(report)
-    document.pagesize = landscape(A4)
-    document.addPageTemplates( PVTemplate(
-        document,
-        author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-        title=SU('PV du jury de %s' % sem['titre_num']),
-        subject='PV jury',
-        image_dir = context.file_path + '/logos/',
-        preferences=context.get_preferences(formsemestre_id)))
-
-    document.build(objects)
-    data = report.getvalue()
-    return data

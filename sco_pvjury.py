@@ -116,6 +116,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                         'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
                         'autorisations' : [ { 'semestre_id' : { ... } },
+                        'validation_parcours' : True si parcours validé (diplome obtenu)
                         'prev_code' : code (calculé slt si with_prev),
                         'mention' : mention (en fct moy gen)
                     ]
@@ -157,7 +158,6 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         
         d['validation_parcours'] = Se.parcours_validated()
         d['parcours'] = Se.get_parcours_descr(filter_futur=True)
-        
         # Observations sur les compensations:
         obs = ''
         compensators = sco_parcours_dut.scolar_formsemestre_validation_list(
@@ -214,8 +214,9 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'decisions' : L }
 
 
-def pvjury_table(context, dpv):
+def pvjury_table(context, dpv, only_diplome=False):
     """idem mais rend list de dicts
+    Si only_diplome, n'extrait que les etudiants qui valident leur diplome.
     """
     sem = dpv['formsemestre']
     if sem['semestre_id'] >= 0:
@@ -258,7 +259,8 @@ def pvjury_table(context, dpv):
             l['devenir'] = "Diplôme obtenu"
         if dpv['has_prev']:
             l['prev_decision'] = descr_decision_sem_abbrev(context, None, e['prev_decision_sem'])
-        lines.append(l)
+        if e['validation_parcours'] or not only_diplome:
+            lines.append(l)
     return lines, titles, columns_ids
 
     
