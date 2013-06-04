@@ -77,7 +77,7 @@ def make_xml_formsemestre_bulletinetud(
                       publie=published,
                       etape_apo=sem['etape_apo'] or '',
                       etape_apo2=sem['etape_apo2'] or '',
-                      etape_apo3=sem['etape_apo3'] or ''
+                      etape_apo3=sem['etape_apo3'] or '',
                       etape_apo4=sem['etape_apo4'] or ''
         )
 
