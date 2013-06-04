@@ -341,6 +341,7 @@ CREATE TABLE notes_formsemestre (
 	etape_apo text, -- code etape Apogée
 	etape_apo2 text,-- code etape Apogée secondaire (si deux etapes pour meme semestre)
 	etape_apo3 text,-- code etape Apogée secondaire (si trois etapes pour meme semestre)
+	etape_apo4 text,-- code etape Apogée secondaire (si quatre etapes pour meme semestre)
 	modalite text,   -- FI, FC, APP, ''
 	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
 	resp_can_change_ens integer default 1, -- autorise resp. a modifier slt les enseignants
