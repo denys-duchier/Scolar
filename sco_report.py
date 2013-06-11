@@ -150,7 +150,7 @@ def _results_by_category(etuds, category='', result='', category_name=None,
 def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
                         category='bac', result='codedecision', 
                         category_name='', result_name='',
-                        title='Statistiques'):    
+                        title='Statistiques', only_primo=None):    
     """
     Tableau sur résultats (result) par type de category bac
     """
@@ -172,6 +172,8 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
     tab.caption = 'Répartition des résultats par %s, semestre %s' % (category_name, sem['titreannee'])
     tab.html_caption = "Répartition des résultats par %s." % category_name
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    if only_primo:
+        tab.base_url += '&only_primo=on'
     return tab
 
 
@@ -205,7 +207,9 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
                               category=category, result=result,
                               category_name=category_name,
-                              title=title)
+                              title=title,
+                              only_primo=only_primo
+        )
     if not etuds:
         F = [ """<p><em>Aucun étudiant</em></p>""" ]
     else:
@@ -468,6 +472,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     else:
         pp = ''
         titles['row_title'] = ''
+    if only_primo:
+        pp += '(restreint aux primo-entrants) '
     if bac:
         dbac = ' (bacs %s)' % bac
     else:
@@ -513,6 +519,8 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         context, formsemestre_id, percent=percent,
         bac=bac, bacspecialite=bacspecialite, sexe=sexe, only_primo=only_primo)
     tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
+    if only_primo:
+        tab.base_url += '&only_primo=on'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
