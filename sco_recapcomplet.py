@@ -218,6 +218,7 @@ def make_formsemestre_recapcomplet(
                             e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
                         mod_evals[modimpl['moduleimpl_id']] = evals
                         h += _list_notes_evals_titles(context, code, evals)
+    h += ['code_nip', 'etudid']
     F.append(h)
     
     ue_index = [] # indices des moy UE dans l (pour appliquer style css)
@@ -292,6 +293,7 @@ def make_formsemestre_recapcomplet(
                         if format == 'xlsall':
                             l += _list_notes_evals(context, mod_evals[modimpl['moduleimpl_id']], etudid)
                     j += 1
+        l.append(nt.identdict[etudid]['code_nip'] or '') # avant-derniere colonne = code_nip
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
     # Dernière ligne: moyennes, min et max des UEs et modules
@@ -336,7 +338,7 @@ def make_formsemestre_recapcomplet(
                             l += _list_notes_evals_stats(context, mod_evals[modimpl['moduleimpl_id']], key)
         if modejury:
             l.append('') # case vide sur ligne "Moyennes"
-        F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
+        F.append(l + ['', ''] ) # ajoute cellules code_nip et etudid inutilisees ici
     
     add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'min', 'Min')
@@ -382,7 +384,7 @@ def make_formsemestre_recapcomplet(
             </script>
             """ % (int(sortcol)) )
         cells = '<tr class="recap_row_tit sortbottom" id="recap_trtit">'
-        for i in range(len(F[0])):
+        for i in range(len(F[0])-2):
             if i in ue_index:
                 cls = 'recap_tit_ue'
             else:
@@ -421,7 +423,7 @@ def make_formsemestre_recapcomplet(
                 else:
                     cells = '<tr class="recap_row_odd" id="etudid%s">' % etudid
             ir += 1
-            nsn = [ x.replace('NA0', '-') for x in l[:-1] ] # notes sans le NA0
+            nsn = [ x.replace('NA0', '-') for x in l[:-2] ] # notes sans le NA0
             cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
             cells += '<td class="recap_col">%s</td>' % el # nom etud (lien)
             cells += '<td class="recap_col">%s</td>' % nsn[2] # group name
@@ -500,7 +502,7 @@ def make_formsemestre_recapcomplet(
             H.append('</table>')
         return '\n'.join(H), '', 'html'
     elif format == 'csv':
-        CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x[:-1]) for x in F ] )
+        CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in F ] )
         semname = sem['titre_num'].replace( ' ', '_' )
         date = time.strftime( '%d-%m-%Y')
         filename = 'notes_modules-%s-%s.csv' % (semname,date)
@@ -513,8 +515,8 @@ def make_formsemestre_recapcomplet(
         else:
             filename = 'notes_modules_evals-%s-%s.xls' % (semname,date)
         xls = sco_excel.Excel_SimpleTable(
-            titles= ['etudid'] + F[0],
-            lines = [ [x[-1]] + x[:-1] for x in F[1:] ], # reordonne cols (etudid en 1er)
+            titles= ['etudid', 'code_nip' ] + F[0],
+            lines = [ [x[-1], x[-2] ] + x[:-2] for x in F[1:] ], # reordonne cols (etudid et nip en 1er)
             SheetName = 'notes %s %s' % (semname,date) )
         return xls, filename, 'xls'
     else:
