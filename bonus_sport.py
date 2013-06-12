@@ -38,7 +38,6 @@ def bonus_iutv(notes_sport, coefs, infos=None):
     optionnelles sont cumulés et 5% de ces points cumulés s'ajoutent à
     la moyenne générale du semestre déjà obtenue par l'étudiant.
     """
-    #open('/tmp/log','a').write( pprint.pformat(infos) + '\n\n' )    
     sumc = sum(coefs) # assumes sum. coefs > 0
     note_sport = sum(map(mul, notes_sport, coefs)) / sumc # moyenne pondérée
     bonus = sum( [ (x - 10) / 20. for x in notes_sport if x > 10 ])
@@ -63,7 +62,7 @@ def bonus_colmar(notes_sport, coefs, infos=None):
 
 def bonus_iutva(notes_sport, coefs, infos=None):
     """Calcul bonus modules optionels (sport, culture), règle IUT Ville d'Avray
-
+    
     Les étudiants de l'IUT peuvent suivre des enseignements optionnels
     de l'Université Paris 10 (C2I) non rattachés à une unité d'enseignement.
     Si la note est >= 10 et < 12, bonus de 0.1 point
@@ -83,15 +82,14 @@ def bonus_iutva(notes_sport, coefs, infos=None):
     return 0
 
 def bonus_iut1grenoble_v0(notes_sport, coefs, infos=None):
-    """Calcul bonus sport IUT Grenoble sr moyenne générale
-
+    """Calcul bonus sport IUT Grenoble sur la moyenne générale
+    
     La note de sport de nos étudiants va de 0 à 5 points. 
     Chaque point correspond à un % qui augmente la moyenne de chaque UE et la moyenne générale.
     Par exemple : note de sport 2/5 : chaque UE sera augmentée de 2%, ainsi que la moyenne générale.
-
+    
     Calcul ici du bonus sur moyenne générale et moyennes d'UE non capitalisées.
     """
-    #open('/tmp/log','a').write( '\n---------------\n' + pprint.pformat(infos) + '\n' )
     # les coefs sont ignorés
     # notes de 0 à 5
     points = sum( [ x for x in notes_sport ])
@@ -130,7 +128,7 @@ def bonus_iutlh(notes_sport, coefs, infos=None):
     """Calcul bonus sport IUT du Havre sur moyenne générale et UE
 
     La note de sport de nos étudiants va de 0 à 20 points. 
-	          m2=m1*(1+0.005*((10-N1)+(10-N2))
+      m2=m1*(1+0.005*((10-N1)+(10-N2))
    m2 : Nouvelle moyenne de l'unité d'enseignement si note de sport et/ou de langue supérieure à 10
    m1 : moyenne de l'unité d'enseignement avant bonification
    N1 : note de sport si supérieure à 10
@@ -138,12 +136,11 @@ def bonus_iutlh(notes_sport, coefs, infos=None):
     Par exemple : sport 15/20 et langue 12/20 : chaque UE sera multipliée par 1+0.005*7, ainsi que la moyenne générale.
     Calcul ici de la moyenne générale et moyennes d'UE non capitalisées.
     """
-    #open('/tmp/log','a').write( '\n---------------\n' + pprint.pformat(infos) + '\n' )
     # les coefs sont ignorés
     points = sum( [ x - 10 for x in notes_sport if x > 10 ])
     points = min( 10, points) # limite total à 10
     factor = (1. + (0.005 * points))
-	# bonus nul puisque les moyennes sont directement modifiées par factor
+    # bonus nul puisque les moyennes sont directement modifiées par factor
     bonus = 0
     # Modifie la moyenne générale
     infos['moy'] = infos['moy'] * factor
@@ -223,3 +220,19 @@ def bonus_iutam(notes_sport, coefs, infos=None):
     prc = min( (int(2*n-20.)+2)*0.25, 5 )
     bonus = infos['moy'] * prc/100
     return bonus
+
+def bonus_demo(notes_sport, coefs, infos=None):
+    """Fausse fonction "bonus" pour afficher les informations disponibles
+    et aider les développeurs.
+    Les informations sont placées dans le fichier /tmp/scodoc_bonus.log    
+    qui est ECRASE à chaque appel.
+    *** Ne pas utiliser en production !!! ***
+    """
+    f = open('/tmp/scodoc_bonus.log','w') # mettre 'a' pour ajouter en fin
+    f.write( '\n---------------\n' + pprint.pformat(infos) + '\n' )
+    # Statut de chaque UE
+    # for ue_id in infos['moy_ues']:
+    #    ue_status = infos['moy_ues'][ue_id]
+    #   #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
+    
+    return 0.

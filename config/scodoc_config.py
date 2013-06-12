@@ -66,6 +66,7 @@ CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE = "Edité par %(scodoc_name)s le %(day)s/%(mon
 from bonus_sport import *
 
 CONFIG.compute_bonus = bonus_iutv
+# Mettre "bonus_demo" pour logguer des informations utiles au developpement...
 
 #
 #   ------------- Capitalisation des UEs -------------
