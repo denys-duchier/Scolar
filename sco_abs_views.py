@@ -469,7 +469,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
           """<font color="#EE0000">A : absence NON justifiée</font><br>
              <font color="#F8B7B0">a : absence justifiée</font><br>
-	     <font color="#8EA2C6">X : justifification sans absence</font><br>
+	     <font color="#8EA2C6">X : justification sans absence</font><br>
              %d absences sur l'année, dont %d justifiées (soit %d non justifiées)
            """  % (nbabs, nbabsjust, nbabs-nbabsjust),
            """</td>
