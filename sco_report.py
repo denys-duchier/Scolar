@@ -218,7 +218,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
         else:
             # clés présentées à l'utilisateur:
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
-                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee' ]
+                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut' ]
         keys.sort()
         F = [ """<form name="f" method="get" action="%s"><p>
               Colonnes: <select name="result" onchange="document.f.submit()">""" % REQUEST.URL0]
@@ -265,7 +265,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 # --------------------------------------------------------------------------
 def table_suivi_cohorte(context, formsemestre_id, percent=False,
                         bac='', # selection sur type de bac
-                        bacspecialite='', sexe='',
+                        bacspecialite='', sexe='', statut='',
                         only_primo=False
                         ):
     """
@@ -297,6 +297,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     bacs = Set()
     bacspecialites = Set()
     sexes = Set()
+    statuts = Set()
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         bacspe = etud['bac'] + ' / ' + etud['specialite']
@@ -304,6 +305,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         if ((not bac or (bac == etud['bac']))
             and (not bacspecialite or (bacspecialite == bacspe))
             and (not sexe or (sexe == etud['sexe']))
+            and (not statut or (statut == etud['statut']))
             and (not only_primo or context.isPrimoEtud(etud,sem))):
             orig_set.add(etudid)
             # semestres suivants:
@@ -313,6 +315,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         bacs.add(etud['bac'])
         bacspecialites.add(bacspe)
         sexes.add(etud['sexe'])
+        if etud['statut']: # ne montre pas les statuts non renseignés
+            statuts.add(etud['statut'])
     sems = S.values()
     # tri les semestres par date de debut
     for s in sems:
@@ -482,6 +486,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         dbac += ' (spécialité %s)' % bacspecialite
     if sexe:
         dbac += ' genre: %s' % sexe
+    if statut:
+        dbac += ' statut: %s' % statut
     tab = GenTable( titles=titles, columns_ids=columns_ids,
                     rows=L, 
                     html_col_width='4em', html_sortable=True,
@@ -505,19 +511,19 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             expl.append(', '.join(ls) + '</li>')
         expl.append('</ul>')
     logt('Z: table_suivi_cohorte done')
-    return tab, '\n'.join(expl), bacs, bacspecialites, sexes
+    return tab, '\n'.join(expl), bacs, bacspecialites, sexes, statuts
 
 def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=1,
-                               bac='', bacspecialite='', sexe='',
+                               bac='', bacspecialite='', sexe='', statut='',
                                only_primo=False,
                                REQUEST=None):
     """Affiche suivi cohortes par numero de semestre
     """
     percent = int(percent)
     sem = context.get_formsemestre(formsemestre_id)
-    tab, expl, bacs, bacspecialites, sexes = table_suivi_cohorte(
+    tab, expl, bacs, bacspecialites, sexes, statuts = table_suivi_cohorte(
         context, formsemestre_id, percent=percent,
-        bac=bac, bacspecialite=bacspecialite, sexe=sexe, only_primo=only_primo)
+        bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut, only_primo=only_primo)
     tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
     if only_primo:
         tab.base_url += '&only_primo=on'
@@ -531,10 +537,12 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     bacspecialites.sort()
     sexes = list(sexes)
     sexes.sort()
+    statuts = list(statuts)
+    statuts.sort()
 
     base_url = REQUEST.URL0
-    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s' % (
-        base_url, formsemestre_id, bac, bacspecialite, sexe)
+    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s&statut=%s' % (
+        base_url, formsemestre_id, bac, bacspecialite, sexe, statut)
     if percent:
         pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
     else:
@@ -584,6 +592,18 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
             selected = ''
         F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
     F.append('</select>')
+    
+    F.append("""&nbsp; Statut: <select name="statut" onchange="document.f.submit()">
+    <option value="" %s>tous</option>
+    """ % selected)
+    for b in statuts:
+        if statut == b:
+            selected = 'selected'
+        else:
+            selected = ''
+        F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
+    F.append('</select>')
+
     if only_primo:
         checked='checked=1'
     else:
