@@ -256,7 +256,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                     try:
                         val = scolars.normalize_sexe(val)
                     except:
-                        raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MLLE', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
+                        raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'MR' ou 'MME' ou 'H' ou 'F', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
                 # Excel date conversion:
                 if titleslist[i].lower() == 'date_naissance':
                     if val:

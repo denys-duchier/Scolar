@@ -428,13 +428,13 @@ def formsemestre_synchro_etuds_help(context, sem):
 
 
 def gender2sex(gender):
-    """Le portail code en 'M', 'F', et ScoDoc en 'MR', 'MME', 'MLLE'
-    Les F sont ici codées en MLLE
+    """Le portail code en 'M', 'F', et ScoDoc en 'MR', 'MME'
+    Les F sont ici codées en MME
     """
     if gender == 'M':
         return 'MR'
     elif gender == 'F':
-        return 'MLLE'
+        return 'MME'
     log('gender2sex: invalid value "%s", defaulting to "M"' % gender)
     return 'MR'
 

@@ -1870,8 +1870,8 @@ function tweakmenu( gname ) {
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
             ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':CONFIG.ALLOW_NULL_PRENOM }),
-            ('sexe',      { 'input_type' : 'menu', 'labels' : ['MR','MME','MLLE'],
-                            'allowed_values' : ['MR','MME','MLLE'], 'title' : 'Genre' }),
+            ('sexe',      { 'input_type' : 'menu', 'labels' : ['H','F'],
+                            'allowed_values' : ['MR','MME'], 'title' : 'Genre' }),
             ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date', 'explanation' : 'j/m/a' }),
             ('lieu_naissance', {  'title' : 'Lieu de naissance', 'size' : 32 }),
             ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
