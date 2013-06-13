@@ -677,16 +677,20 @@ class ZNotes(ObjectManager,
         return self._moduleEditor.list(cnx, *args, **kw)
 
     security.declareProtected(ScoChangeFormation, 'do_module_edit')
-    def do_module_edit(self, *args, **kw ):
+    def do_module_edit(self, val):
         "edit a module"
         # check
-        mod = self.do_module_list({'module_id' : args[0]['module_id']})[0]
+        mod = self.do_module_list({'module_id' : val['module_id']})[0]
         if self.module_is_locked(mod['module_id']):
-            raise ScoLockedFormError()
+            # formation verrouillée: empeche de modifier certains champs:
+            protected_fields = ('coefficient', 'ue_id', 'matiere_id', 'semestre_id')
+            for f in protected_fields:
+                if f in val:
+                    del val[f]
         # edit
         cnx = self.GetDBConnexion()
-        self._moduleEditor.edit(cnx, *args, **kw )
-
+        self._moduleEditor.edit(cnx, val)
+        
         sems = self.do_formsemestre_list(args={ 'formation_id' : mod['formation_id'] })
         if sems:
             self._inval_cache(formsemestre_id_list=[s['formsemestre_id'] for s in sems]) #> modif module

@@ -233,7 +233,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                              % (Mod['module_id'], delete_icon))
                 else:
                     H.append(delete_disabled_icon)
-                mod_editable = editable and not context.module_is_locked(Mod['module_id'])
+                mod_editable = editable # and not context.module_is_locked(Mod['module_id'])
                 if mod_editable:
                     H.append('<a class="discretelink" title="Modifier le module numéro %(numero)s, utilisé par %(nb_moduleimpls)d sessions" href="module_edit?module_id=%(module_id)s">' % Mod)                    
                 H.append('%(code)s %(titre)s' % Mod )

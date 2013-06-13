@@ -137,6 +137,7 @@ def module_edit(context, module_id=None, REQUEST=None):
     if not Mod:
         raise ScoValueError('invalid module !')
     Mod = Mod[0]
+    unlocked = not context.module_is_locked(module_id)
     Fo = context.formation_list( args={ 'formation_id' : Mod['formation_id'] } )[0]
     parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
     M  = SimpleDictFetch(context, "SELECT ue.acronyme, mat.* FROM notes_matieres mat, notes_ue ue WHERE mat.ue_id = ue.ue_id AND ue.formation_id = %(formation_id)s ORDER BY ue.numero, mat.numero", {'formation_id' : Mod['formation_id']})
@@ -152,6 +153,9 @@ def module_edit(context, module_id=None, REQUEST=None):
           """<h2>Modification du module %(titre)s""" % Mod,
           """ (formation %(acronyme)s, version %(version)s)</h2>""" % Fo,
           _MODULE_HELP ]
+    if not unlocked:
+        H.append("""<div class="ue_warning"><span>Formation verrouillée, seuls certains éléments peuvent être modifiés</span></div>""")
+    
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
@@ -161,20 +165,20 @@ def module_edit(context, module_id=None, REQUEST=None):
         ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
         ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
         
-        ('coefficient'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False }),
-        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
+        ('coefficient'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False, 'enabled' : unlocked }),
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS',  'enabled' : unlocked }),
         ('formation_id', { 'input_type' : 'hidden' }),
         ('ue_id',        { 'input_type' : 'hidden' }),
         ('module_id',    { 'input_type' : 'hidden' }),
         
         ('ue_matiere_id', { 'input_type' : 'menu', 'title' : 'Matière', 
                             'explanation' : 'un module appartient à une seule matière.',
-                            'labels' : Mnames, 'allowed_values' : Mids }),
+                            'labels' : Mnames, 'allowed_values' : Mids, 'enabled' : unlocked }),
 
         ('semestre_id', { 'input_type' : 'menu', 'type' : 'int',
                           'title' : parcours.SESSION_NAME.capitalize(), 
                           'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
-                          'labels' : [ str(x) for x in semestres_indices ] , 'allowed_values' : semestres_indices}),
+                          'labels' : [ str(x) for x in semestres_indices ] , 'allowed_values' : semestres_indices,  'enabled' : unlocked }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
                         'type' : 'int' }),        
         ),
