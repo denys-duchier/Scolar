@@ -99,6 +99,10 @@ def defMenuStats(context,formsemestre_id):
           'url' : 'report_debouche_date',
           'enabled' : True,
           },
+         { 'title' : "Estimation du coût de la formation",
+          'url' : 'formsemestre_estim_cost?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          },         
         ]
 
 
@@ -341,12 +345,32 @@ def formsemestre_page_title(context, REQUEST):
     except:
         log("can't find formsemestre_id %s" % formsemestre_id)
         return ''
+    
     sem['notes'] = notes.absolute_url()
+    fill_formsemestre(context, sem, REQUEST=REQUEST)
+
+    H = [ 
+        """<div class="formsemestre_page_title">""", 
+        
+        """<div class="infos">
+<span class="semtitle"><a class="stdlink" href="%(notes)s/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a><a title="%(etape_apo_str)s">%(num_sem)s</a>%(modalitestr)s</span><span class="dates"><a title="du %(date_debut)s au %(date_fin)s ">%(mois_debut)s - %(mois_fin)s</a></span><span class="resp"><a title="%(nomcomplet)s">%(resp)s</a></span><span class="nbinscrits"><a class="discretelink" href="%(notes)s/formsemestre_lists?formsemestre_id=%(formsemestre_id)s">%(nbinscrits)d inscrits</a></span><span class="lock">%(locklink)s</span></div>""" % sem,
+
+        formsemestre_status_menubar(notes, sem, REQUEST),
+
+        """</div>"""
+          ]
+    return '\n'.join(H)
+
+def fill_formsemestre(context, sem, REQUEST=None):
+    """Add some useful fields to help display formsemestres
+    """
+    formsemestre_id = sem['formsemestre_id']
     if sem['etat'] != '1':
         sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (sem['notes'], sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
     else:
         sem['locklink'] = ''
-    F = notes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    F = context.Notes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    sem['formation'] = F
     parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     if sem['semestre_id'] != -1:
         sem['num_sem'] = ', %s %s' % (parcours.SESSION_NAME, sem['semestre_id'])
@@ -366,22 +390,13 @@ def formsemestre_page_title(context, REQUEST):
             sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo4']
     else:
         sem['etape_apo_str'] = 'Pas de code étape'
-    inscrits = notes.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
+    
+    inscrits = context.Notes.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     sem['nbinscrits'] = len(inscrits)
     u = context.Users.user_info(sem['responsable_id'],REQUEST)
     sem['resp'] = u['prenomnom']
     sem['nomcomplet'] = u['nomcomplet']
-    H = [ 
-        """<div class="formsemestre_page_title">""", 
-        
-        """<div class="infos">
-<span class="semtitle"><a class="stdlink" href="%(notes)s/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre)s</a><a title="%(etape_apo_str)s">%(num_sem)s</a>%(modalitestr)s</span><span class="dates"><a title="du %(date_debut)s au %(date_fin)s ">%(mois_debut)s - %(mois_fin)s</a></span><span class="resp"><a title="%(nomcomplet)s">%(resp)s</a></span><span class="nbinscrits"><a class="discretelink" href="%(notes)s/formsemestre_lists?formsemestre_id=%(formsemestre_id)s">%(nbinscrits)d inscrits</a></span><span class="lock">%(locklink)s</span></div>""" % sem,
 
-        formsemestre_status_menubar(notes, sem, REQUEST),
-
-        """</div>"""
-          ]
-    return '\n'.join(H)
 
 # Description du semestre sous forme de table exportable
 def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_evals=False):

@@ -78,6 +78,7 @@ import sco_report
 import sco_lycee
 import sco_poursuite_dut
 import sco_debouche
+import sco_cost_formation
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -2707,6 +2708,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, "report_debouche_date")
     report_debouche_date = sco_debouche.report_debouche_date
+    
+    security.declareProtected(ScoView, "formsemestre_estim_cost")
+    formsemestre_estim_cost = sco_cost_formation.formsemestre_estim_cost
     
     # --------------------------------------------------------------------
     # DEBUG

@@ -101,6 +101,7 @@ class GenTable:
                  filename='table', # filename, without extension
 
                  xls_sheet_name='feuille',
+                 xls_before_table=[], # liste de cellules a placer avant la table
                  pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
                  pdf_col_widths=None,
@@ -143,6 +144,7 @@ class GenTable:
         self.html_col_width = html_col_width
         # XLS parameters
         self.xls_sheet_name = xls_sheet_name
+        self.xls_before_table = xls_before_table
         # PDF parameters
         self.pdf_table_style = pdf_table_style
         self.pdf_col_widths = pdf_col_widths
@@ -365,20 +367,22 @@ class GenTable:
         
     def excel(self):
         "Simple Excel representation of the table"
-        lines = [ [ x for x in line ] for line in self.get_data_list()]
-        if self.caption:
-            lines.append( [] ) # empty line  
-            lines.append( [self.caption] )
+        L = sco_excel.ScoExcelSheet( sheet_name=self.xls_sheet_name)
+        style_bold = sco_excel.Excel_MakeStyle(bold=True)
         
+        L.cells += self.xls_before_table
+        L.set_style( style_bold, li=len(L.cells))
+        L.append(self.get_titles_list())
+        L.cells +=  [ [ x for x in line ] for line in self.get_data_list()]
+        if self.caption:
+            L.append( [] ) # empty line  
+            L.append( [self.caption] )
         if self.origin:
-            lines.append( [] ) # empty line        
-            lines.append( [self.origin] )
-        #log('lines=%s'%lines)
-        return sco_excel.Excel_SimpleTable(
-            titles=self.get_titles_list(),
-            lines=lines,
-            SheetName=self.xls_sheet_name)            
+            L.append( [] ) # empty line        
+            L.append( [self.origin] )
 
+        return L.gen_workbook() 
+    
     def text(self):
         "raw text representation of the table"
         return '\n'.join( [ self.text_fields_separator.join([ x for x in line ])
