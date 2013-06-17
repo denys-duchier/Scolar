@@ -837,10 +837,11 @@ class ZAbsences(ObjectManager,
         
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
                               init_jquery_ui=True,
-                              javascripts=['libjs/qtip/jquery.qtip.js',
-                                           'js/etud_info.js',
-                                           'js/abs_ajax.js'
-                                           ],
+                              init_qtip=True,
+                              javascripts=[
+                                  'js/etud_info.js',
+                                  'js/abs_ajax.js'
+                                  ],
                               no_side_bar=1, REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
               <h2>Saisie des absences %s %s, 
@@ -954,10 +955,11 @@ class ZAbsences(ObjectManager,
         
         H = [ self.sco_header(page_title='Saisie des absences',
                               init_jquery_ui=True,
-                              javascripts=['libjs/qtip/jquery.qtip.js',
-                                           'js/etud_info.js',
-                                           'js/abs_ajax.js'
-                                           ],
+                              init_qtip = True,
+                              javascripts=[
+                                  'js/etud_info.js',
+                                  'js/abs_ajax.js'
+                                  ],
                               no_side_bar=1, REQUEST=REQUEST),
               """<table border="0" cellspacing="16"><tr><td>
               <h2>Saisie des absences %s %s, 
@@ -1259,12 +1261,13 @@ class ZAbsences(ObjectManager,
                                'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
                        html_sortable=True,
                        html_class='gt_table table_leftalign',
-                       html_header=self.sco_header(REQUEST, 
-                                                   page_title=title, 
-                                                   init_jquery_ui=True,
-                                                   javascripts=['libjs/qtip/jquery.qtip.js',
-                                                                'js/etud_info.js'
-                                                                ]),
+                       html_header=self.sco_header(
+                           REQUEST, 
+                           page_title=title, 
+                           init_jquery_ui=True,
+                           init_qtip = True,
+                           javascripts=['js/etud_info.js']
+                           ),
                        html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
                                                                 with_page_header=False) 
                        +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),

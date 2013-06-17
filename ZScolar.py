@@ -913,13 +913,13 @@ class ZScolar(ObjectManager,
                     htitle = 'Les %d étudiants inscrits' % len(members)
             else:
                 htitle = 'Aucun étudiant'
-            H = [ self.Notes.html_sem_header(REQUEST, htitle, sem,
-                                             javascripts=['jQuery/jquery.js', 
-                                                          'libjs/qtip/jquery.qtip.js',
-                                                          'js/etud_info.js'
-                                                          ],                   
-                                             ),
-                  tab.html(),
+            H = [ self.Notes.html_sem_header(
+                REQUEST,
+                htitle, sem,
+                init_qtip = True,
+                javascripts=['js/etud_info.js']
+                ),
+                tab.html(),
                   """<form name="wpf">
                   <input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer paiement inscription</input>
                   <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer fichiers archivés</input>
@@ -1124,10 +1124,8 @@ class ZScolar(ObjectManager,
         H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'étudiant</p>""")
         if add_headers:
             return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', 
-                                   javascripts=['jQuery/jquery.js', 
-                                                'libjs/qtip/jquery.qtip.js',
-                                                'js/etud_info.js'
-                                                ],       
+                                   init_qtip = True,
+                                   javascripts=['js/etud_info.js'],
                                    no_side_bar=no_side_bar
                                    ) + '\n'.join(H) + self.sco_footer(REQUEST)
         else:

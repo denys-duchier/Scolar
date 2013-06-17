@@ -59,9 +59,8 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H += [ context.sco_header(REQUEST, 
                                   page_title='Récapitulatif', 
                                   no_side_bar=True,
-                                  javascripts=['jQuery/jquery.js', 
-                                               'libjs/qtip/jquery.qtip.js',
-                                               'js/etud_info.js']
+                                  init_qtip = True,
+                                  javascripts=['js/etud_info.js'],
                                   ),
                sco_formsemestre_status.formsemestre_status_head(
                 context, formsemestre_id=formsemestre_id, REQUEST=REQUEST),

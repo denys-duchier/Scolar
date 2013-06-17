@@ -126,9 +126,7 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
     return tab.make_page(
         context, 
         title =  """<h2 class="formsemestre">Poursuite d'études</h2>""",
-        javascripts=['jQuery/jquery.js', 
-                     'libjs/qtip/jquery.qtip.js',
-                     'js/etud_info.js'
-                     ],
+        init_qtip = True,
+        javascripts=['js/etud_info.js'],
         format=format, REQUEST=REQUEST, with_html_headers=True)
 

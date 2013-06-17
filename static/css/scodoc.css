@@ -189,13 +189,13 @@ div.logo-insidebar {
 }
 
 div.etud_info_div {
-    border: 4px solid gray;
+    border: 2px solid gray;
     height: 90px;
     background-color: #f7f7ff;
 }
 
 div.eid_left {
-    padding: 4px; 
+    padding: 2px; 
     border: 0px;
     vertical-align: top;
     margin-right: 100px;
@@ -205,8 +205,24 @@ span.eid_right {
     padding: 0px;
     border: 0px;
     position: absolute;
-    right: 5px;
-    top: 5px;
+    right: 2px;
+    top: 2px;
+}
+
+span.eid_nom {
+    color: blue;
+    font-family: arial,verdana,sans-serif;
+    font-size: 120%;
+}
+
+.qtip-etud {
+    border-width: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.qtip-etud .qtip-content {
+	padding: 0px 0px;
 }
 
 table.listesems th { 

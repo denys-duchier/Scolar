@@ -297,10 +297,8 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     H = [ context.html_sem_header(
             REQUEST, 'Décisions du jury pour le semestre', sem,
-            javascripts=['jQuery/jquery.js', 
-                         'libjs/qtip/jquery.qtip.js',
-                         'js/etud_info.js'
-                         ],                
+            init_qtip = True,
+            javascripts=['js/etud_info.js'],
             ),
           """<p>(dernière modif le %s)</p>""" % dpv['date'] ]
     

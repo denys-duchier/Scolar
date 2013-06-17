@@ -827,10 +827,9 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     F = [ tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format) ]    
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title,
-                             javascripts=['jQuery/jquery.js', 
-                                          'libjs/qtip/jquery.qtip.js',
-                                          'js/etud_info.js'
-                                          ], ),
+                             init_qtip = True,
+                             javascripts=['js/etud_info.js']
+                             ),
           """<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>""",
           '\n'.join(F),
           t, 

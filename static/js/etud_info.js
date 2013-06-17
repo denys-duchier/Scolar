@@ -6,21 +6,24 @@ $().ready(function(){
 
     var elems = $(".etudinfo");
     for (var i=0; i < elems.length; i++) {
-	$(elems[i]).qtip({
-	    content: {
-		url : 'etud_info_html?etudid=' + elems[i].id
-	    },
-	    position: {
-		corner: {
-		    target: 'rightBottom',
-		    tooltip: 'leftTop' // leftTop
-		}
-	    },
-	    style: {
-		width: 'auto',
-		padding: 0,
-	    }
-	});
+	$(elems[i]).qtip(
+        {
+	        content: {
+		        ajax: {
+			        url: "etud_info_html?etudid=" + elems[i].id
+		        },
+		        text: "Loading..."
+	        },
+	        position: {
+		        at: "right bottom",
+		        my: "left top"
+	        },
+	        style: {
+		        classes: 'qtip-etud'
+	        },
+            // utile pour debugguer le css: hide: { event: 'unfocus' }
+        }
+    );
     }
 });
 

@@ -358,10 +358,12 @@ def etud_info_html(context, etudid, REQUEST=None, debug=False):
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
+
+
     etud['photo_html'] = photo_html
     H = """<div class="etud_info_div">
     <div class="eid_left">
-    <span class="eid_nom">%(nomprenom)s</span>
+     <span class="eid_nom">%(nomprenom)s</span>
     </div>
     <span class="eid_right">
     %(photo_html)s

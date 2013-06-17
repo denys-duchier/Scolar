@@ -57,9 +57,9 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     if sem['etat'] != '1':
         raise ScoValueError('opération impossible: semestre verrouille')
     header = context.sco_header(REQUEST, page_title='Inscription au module',
-                                javascripts=['jQuery/jquery.js', 
-                                             'libjs/qtip/jquery.qtip.js',
-                                             'js/etud_info.js'])
+                                init_qtip = True,
+                                javascripts=['js/etud_info.js']
+                                )
     footer = context.sco_footer(REQUEST)
     H = [header, """<h2>Inscriptions au module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a> (%s)</a></h2>
     <p class="help">Cette page permet d'éditer les étudiants inscrits à ce module
