@@ -130,12 +130,11 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
 </tr>
 </table>
 <br/>
-
-%(menu_module)s
-
 <input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
 &nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
 &nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
+
+%(menu_module)s
 
 <p>
 <input type="checkbox" name="estjust"/>Absence justifi&eacute;e.
