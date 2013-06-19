@@ -452,7 +452,7 @@ def make_formsemestre_recapcomplet(
                     ue = ues[ue_number]
                     ue_number += 1
                     
-                    if ir == nblines - 1:
+                    if (ir < (nblines-5)) or (ir == nblines - 2):
                         try:                            
                             if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']): # NOTES_BARRE_UE
                                 cssclass = 'recap_col_ue_inf'
@@ -462,7 +462,7 @@ def make_formsemestre_recapcomplet(
                             pass
                 else:
                     cssclass = 'recap_col'
-                    if ir == nblines - 1: # si moyenne generale module < bare ue, surligne:
+                    if ir == nblines - 2: # si moyenne generale module < barre ue, surligne:
                         try:
                             if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']):
                                 cssclass = 'recap_col_moy_inf'
