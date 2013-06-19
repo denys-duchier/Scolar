@@ -517,10 +517,12 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
 
 
 # ------ Page bulletin
-def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
-                              format='html', version='long',
-                              xml_with_decisions=False,
-                              REQUEST=None):
+def formsemestre_bulletinetud(
+        context, etudid=None, formsemestre_id=None,
+        format='html', version='long',
+        xml_with_decisions=False,
+        force_publishing=False, # force publication meme si semestre non publie sur "portail"
+        REQUEST=None):
     "page bulletin de notes"
     try:
         etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
@@ -538,6 +540,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
     R.append( do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                            format=format, version=version,
                                            xml_with_decisions=xml_with_decisions,
+                                           force_publishing=force_publishing,
                                            REQUEST=REQUEST)[0])
     
     if format == 'html' or format == 'pdfmail':
@@ -578,7 +581,8 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  format='html',
                                  REQUEST=None,
                                  nohtml=False,
-                                 xml_with_decisions=False # force decisions dans XML
+                                 xml_with_decisions=False, # force decisions dans XML
+                                 force_publishing=False # force publication meme si semestre non publie sur "portail"
                                  ):
     """Génère le bulletin au format demandé.
     Retourne: (bul, filigranne)
@@ -588,13 +592,15 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     if format == 'xml':        
         bul = repr(sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
-            xml_with_decisions=xml_with_decisions, version=version))
+            xml_with_decisions=xml_with_decisions, force_publishing=force_publishing,
+            version=version))
         return bul, ''
     
     elif format == 'json':
         bul = sco_bulletins_json.make_json_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
-            xml_with_decisions=xml_with_decisions, version=version)
+            xml_with_decisions=xml_with_decisions, force_publishing=force_publishing,
+            version=version)
         return bul, ''
     
     I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)

@@ -1066,16 +1066,21 @@ tr.recap_row_even { /* bordures noires pour impression */
    border-bottom: 1px solid black;
 }
 }
-tr.recap_row_moy {
+tr.recap_row_min {
    border-top: 1px solid blue;
-   font-weight: bold;
 }
 tr.recap_row_min, tr.recap_row_max {
    font-weight: normal;
    font-style: italic;
 }
-tr.recap_row_max {
-   border-bottom: 1px solid blue;
+tr.recap_row_coef {   
+}
+tr.recap_row_moy {
+    font-weight: bold;
+}
+tr.recap_row_nbeval {
+    border-bottom: 1px solid blue;
+    color: green;
 }
 td.recap_tit {
    font-weight: bold;

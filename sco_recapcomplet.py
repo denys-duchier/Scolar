@@ -313,7 +313,7 @@ def make_formsemestre_recapcomplet(
                 l += [ '' ] # rangs dans les groupes
         for ue in ues:
             if ue['type'] != UE_SPORT:
-                if key == 'coef':
+                if key == 'coef' or key == 'nb_valid_evals':
                     l.append('')
                 else:
                     l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
@@ -331,18 +331,25 @@ def make_formsemestre_recapcomplet(
                                 coef = str(coef)
                             l.append(coef)
                         else:
-                            l.append(fmt_note(mods_stats[modimpl['moduleimpl_id']][key],
-                                              keep_numeric=keep_numeric)) # moyenne du module
+                            val = mods_stats[modimpl['moduleimpl_id']][key]
+                            if key == 'nb_valid_evals':
+                                if format[:3] != 'xls': # garde val numerique pour excel
+                                    val = str(val)
+                            else: # moyenne du module
+                                val = fmt_note(val, keep_numeric=keep_numeric)
+                            l.append(val) 
+                            
                         if format == 'xlsall':
                             l += _list_notes_evals_stats(context, mod_evals[modimpl['moduleimpl_id']], key)
         if modejury:
             l.append('') # case vide sur ligne "Moyennes"
         F.append(l + ['', ''] ) # ajoute cellules code_nip et etudid inutilisees ici
     
-    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'min', 'Min')
     add_bottom_stat( 'max', 'Max')
+    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'coef', 'Coef')
+    add_bottom_stat( 'nb_valid_evals', 'Nb évals')
     
     # Generation table au format demandé
     if format == 'html':
@@ -391,10 +398,12 @@ def make_formsemestre_recapcomplet(
             if i == 0: # Rang: force tri numerique pour sortable
                 cls = cls + ' sortnumeric'
             if cod2mod.has_key(F[0][i]): # lien vers etat module
-                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>' % (
+                mod = cod2mod[F[0][i]]
+                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s (%s)">%s</a></td>' % (
                     cls,
-                    cod2mod[F[0][i]]['moduleimpl_id'],
-                    cod2mod[F[0][i]]['module']['titre'],
+                    mod['moduleimpl_id'],
+                    mod['module']['titre'],
+                    context.Users.user_info(mod['responsable_id'])['nomcomplet'],
                     F[0][i])
             else:
                 cells += '<td class="%s">%s</td>' % (cls, F[0][i])
@@ -410,9 +419,10 @@ def make_formsemestre_recapcomplet(
         nblines = len(F)-1
         for l in F[1:]:
             etudid = l[-1]
-            if ir >= nblines-4:
-                el = l[1] # derniere ligne
-                styl = ( 'recap_row_moy', 'recap_row_min', 'recap_row_max')[ir-nblines+3]
+            if ir >= nblines-5:
+                # dernieres lignes:
+                el = l[1] 
+                styl = ('recap_row_min', 'recap_row_max', 'recap_row_moy', 'recap_row_coef', 'recap_row_nbeval')[ir-nblines+5]
                 cells = '<tr class="%s sortbottom">' % styl
             else:
                 el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1],
@@ -426,7 +436,7 @@ def make_formsemestre_recapcomplet(
             cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
             cells += '<td class="recap_col">%s</td>' % el # nom etud (lien)
             cells += '<td class="recap_col">%s</td>' % nsn[2] # group name
-            # grise si moyenne generale < barre
+            # Style si moyenne generale < barre
             cssclass = 'recap_col_moy'
             try:
                 if float(nsn[3]) < NOTES_BARRE_GEN:
@@ -442,7 +452,7 @@ def make_formsemestre_recapcomplet(
                     ue = ues[ue_number]
                     ue_number += 1
                     
-                    if ir < nblines - 2:
+                    if ir == nblines - 1:
                         try:                            
                             if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']): # NOTES_BARRE_UE
                                 cssclass = 'recap_col_ue_inf'
@@ -452,6 +462,12 @@ def make_formsemestre_recapcomplet(
                             pass
                 else:
                     cssclass = 'recap_col'
+                    if ir == nblines - 1: # si moyenne generale module < bare ue, surligne:
+                        try:
+                            if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']):
+                                cssclass = 'recap_col_moy_inf'
+                        except:
+                            pass
                 cells += '<td class="%s">%s</td>' % (cssclass,nsn[i])
             if modejury and etudid:
                 decision_sem = nt.get_etud_decision_sem(etudid)
@@ -470,7 +486,7 @@ def make_formsemestre_recapcomplet(
                     cells += ''' <a href="#" onclick="va_saisir('%s', '%s')">%s</a>''' % (formsemestre_id, etudid, act)
                 cells += '</td>'
             H.append( cells + '</tr>' )
-            #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')
+        
         H.append( ligne_titres )
         H.append('</table>')
         

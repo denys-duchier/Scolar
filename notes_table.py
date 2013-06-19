@@ -131,7 +131,7 @@ class NotesTable:
 
         self.bonus = DictDefault(defaultvalue=0)
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
-        self._modmoys, self._modimpls, valid_evals, mods_att, self.expr_diagnostics =\
+        self._modmoys, self._modimpls, self._valid_evals_per_mod, valid_evals, mods_att, self.expr_diagnostics =\
             sco_compute_moy.do_formsemestre_moyennes(context, formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
         self._matmoys = {} # moyennes par matieres
@@ -388,7 +388,9 @@ class NotesTable:
         else:
             moy, min_note, max_note = 'NA', '-', '-'
         s = { 'moy' : moy, 'max' : max_note, 'min' : min_note,
-              'nb_notes' : nb_notes, 'nb_missing' : nb_missing }
+              'nb_notes' : nb_notes, 'nb_missing' : nb_missing,
+              'nb_valid_evals' : len(self._valid_evals_per_mod[moduleimpl_id])
+              }
         self.moduleimpl_stats[moduleimpl_id] = s
         return s
     
