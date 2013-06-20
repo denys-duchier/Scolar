@@ -73,7 +73,7 @@ def formsemestre_table_estim_cost(context, formsemestre_id,
     sum_td = sum( [ t['heures_td'] for t in T ] )
     sum_tp = sum( [ t['heures_tp'] for t in T ] )
     sum_heqtd = sum_td + coef_cours*sum_cours + coef_tp*sum_tp
-    assert sum([ t['HeqTD'] for t in T ]) == sum_heqtd
+    assert abs(sum([ t['HeqTD'] for t in T ]) - sum_heqtd) < 0.01, '%s != %s' % (sum([ t['HeqTD'] for t in T ]), sum_heqtd)
 
     T.append( {
         'code' : 'TOTAL SEMESTRE',
