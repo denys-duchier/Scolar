@@ -851,6 +851,7 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
+    decisions = DictDefault(defaultvalue={}) # formsemestre_id : { code : nb_etud } 
     isolated_nodes = []
     connected_nodes = Set()
     diploma_nodes = []
@@ -875,6 +876,13 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
             sems[s['formsemestre_id']] = s
             effectifs[s['formsemestre_id']].add(etudid)
             next = s
+            # Compte decisions jury de chaque semestres:
+            dc = decisions[s['formsemestre_id']]
+            if dec:
+                if dec['code'] in dc:
+                    dc[dec['code']] += 1
+                else:
+                    dc[dec['code']] = 1
             # ajout noeud pour demissionnaires
             if nt.get_etud_etat(etudid) == 'D':
                 nid = '_dem_' + s['formsemestre_id']
@@ -979,8 +987,12 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
         data = exp.sub(repl, data)
         # Substitution des titres des boites (semestres)
         exp1 = re.compile(r'<a xlink:href="formsemestre_status\?formsemestre_id=(?P<fid>\w*).*?".*?xlink:title="(?P<title>.*?)"', re.M|re.DOTALL)
-        def repl_title(m):            
-            return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (m.group('fid'), suppress_accents(sems[m.group('fid')]['titreannee'])) # evite accents car svg utf-8 vs page en latin1...
+        def repl_title(m):
+            fid = m.group('fid')
+            title = sems[fid]['titreannee']
+            if decisions[fid]:
+                title += (' (' + str(decisions[fid]) + ')').replace('{','').replace("'", "")
+            return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (fid, suppress_accents(title)) # evite accents car svg utf-8 vs page en latin1...
         data = exp1.sub(repl_title, data)
         # Substitution de Arial par Helvetica (new prblem in Debian 5) ???
         # bug turnaround: il doit bien y avoir un endroit ou regler cela ?
