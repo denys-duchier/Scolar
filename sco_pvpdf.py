@@ -445,7 +445,7 @@ def _pvjury_pdf_type(context, dpv, only_diplome=False,
     sem = dpv['formsemestre']
     formsemestre_id = sem['formsemestre_id']
     titre_jury, titre_court_jury = _descr_jury(sem, diplome)
-
+    titre_diplome = dpv['formation']['titre_officiel']
     objects = []
     
     style = reportlab.lib.styles.ParagraphStyle({})
@@ -472,6 +472,10 @@ def _pvjury_pdf_type(context, dpv, only_diplome=False,
     objects += makeParas("""
     <para align="center"><b>Procès-verbal de %s du département %s - Session %s</b></para>    
     """ % (titre_jury, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
+
+    objects += makeParas("""
+    <para align="center"><b><i>%s</i></b></para>
+    """ % titre_diplome, style)
 
     if showTitle:
         objects += makeParas("""<para align="center"><b>Semestre: %s</b></para>"""%sem['titre'], style)
