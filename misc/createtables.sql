@@ -447,7 +447,7 @@ CREATE TABLE notes_evaluation (
 	coefficient real,
         visibulletin integer default 1,
 	publish_incomplete integer default 0, -- prise en compte meme si incomplete
-	evaluation_type integer default 0 -- type d'evaluation: 0 normale, 1 rattrapage
+	evaluation_type integer default 0, -- type d'evaluation: 0 normale, 1 rattrapage
     numero int -- ordre de presentation (le plus petit numero est normalement la plus ancienne eval)
 ) WITH OIDS;
 
