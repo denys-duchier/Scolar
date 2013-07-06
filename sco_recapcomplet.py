@@ -238,9 +238,12 @@ def make_formsemestre_recapcomplet(
         dec = nt.get_etud_decision_sem(etudid)
         if dec:
             codes_nb[dec['code']] += 1
-        if nt.get_etud_etat(etudid) == 'D':
-            gr_name = 'dem'
+        etud_etat = nt.get_etud_etat(etudid)
+        if etud_etat == 'D':
+            gr_name = 'Dém.'
             is_dem[etudid] = True
+        elif etud_etat == 'DEF':
+            gr_name = 'Déf.'
         else:
             group = sco_groups.get_etud_main_group(context, etudid, sem)
             gr_name = group['group_name'] or ''

@@ -300,6 +300,8 @@ class NotesTable:
             return ''
         elif etat == 'D':
             return ' <font color="red">(DEMISSIONNAIRE)</font> '
+        elif etat == 'DEF':
+            return ' <font color="red">(DEFAILLANT)</font> '
         else:
             return ' <font color="red">(%s)</font> ' % etat
         
@@ -372,7 +374,7 @@ class NotesTable:
         moys = self._modmoys[moduleimpl_id]
         vals = []
         for etudid in self.get_etudids():
-            # saute les demissionnaires:
+            # saute les demissionnaires et les défaillants:
             if self.inscrdict[etudid]['etat'] != 'I':
                 continue
             val = moys.get(etudid, None) # None si non inscrit
@@ -409,9 +411,10 @@ class NotesTable:
         T = self.get_table_moyennes_triees()
         for t in T:
             etudid = t[-1]
-            # saute les demissionnaires:
+            # saute les demissionnaires et les défaillants:
             if self.inscrdict[etudid]['etat'] != 'I':
-                nb_dem += 1
+                if self.inscrdict[etudid]['etat'] == 'D':
+                    nb_dem += 1
                 continue
             try:
                 sum_moy += float(t[0])
