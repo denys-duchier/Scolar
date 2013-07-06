@@ -111,7 +111,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     'formsemestre' : sem,
     'formation' : { 'acronyme' :, 'titre': ... }
     'decisions' : { [ { 'identite' : {'nom' :, 'prenom':,  ...,},
-                        'etat' : I ou D
+                        'etat' : I ou D ou DEF
                         'decision' : {'code':, 'code_prev': },
                         'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
@@ -141,7 +141,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         semestre_non_terminal = semestre_non_terminal or Se.semestre_non_terminal
         d = {}
         d['identite'] = nt.identdict[etudid]
-        d['etat'] = nt.get_etud_etat(etudid) # I|D  (inscription ou démission)
+        d['etat'] = nt.get_etud_etat(etudid) # I|D|DEF  (inscription ou démission ou défaillant)
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
         if d['decision_sem']:

@@ -1681,7 +1681,24 @@ function tweakmenu( gname ) {
     #
     security.declareProtected(ScoEtudInscrit, "formDem")
     def formDem(self, etudid, formsemestre_id, REQUEST):
-        "Formulaire Demission Etudiant"
+        "Formulaire Démission Etudiant"
+        return self._formDem_of_Def(
+            etudid, formsemestre_id, REQUEST=REQUEST,
+            operation_name='Démission',
+            operation_method='doDemEtudiant')
+
+    security.declareProtected(ScoEtudInscrit, "formDef")
+    def formDef(self, etudid, formsemestre_id, REQUEST):
+        "Formulaire Défaillance Etudiant"
+        return self._formDem_of_Def(
+            etudid, formsemestre_id, REQUEST=REQUEST,
+            operation_name='Défaillance',
+            operation_method='doDefEtudiant')
+
+    def _formDem_of_Def(self, etudid, formsemestre_id, REQUEST=None,
+                        operation_name='',
+                        operation_method=''):
+        "Formulaire démission ou défaillance Etudiant"
         cnx = self.GetDBConnexion()    
         etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
@@ -1691,25 +1708,55 @@ function tweakmenu( gname ) {
         etud['formsemestre_id']=formsemestre_id
         etud['semtitre'] = sem['titremois']
         etud['nowdmy'] = time.strftime('%d/%m/%Y')
+        etud['operation_name'] = operation_name
         #
         header = self.sco_header(
             REQUEST,
-            page_title='Démission de  %(prenom)s %(nom)s (du semestre %(semtitre)s)'%etud)
-        H = [ '<h2><font color="#FF0000">Démission de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
-        H.append("""<form action="doDemEtudiant" method="GET">
-<b>Date de la d&eacute;mission (J/M/AAAA):&nbsp;</b><input type="text" name="event_date" width=20 value="%(nowdmy)s">
+            page_title = '%(operation_name)s de  %(prenom)s %(nom)s (du semestre %(semtitre)s)'%etud)
+        H = [ '<h2><font color="#FF0000">%(operation_name)s de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
+        H.append("""<form action="%s" method="GET">
+        <b>Date de la %s (J/M/AAAA):&nbsp;</b>
+        """ % (operation_method, operation_name.lower()))
+        H.append("""
+<input type="text" name="event_date" width=20 value="%(nowdmy)s">
 <input type="hidden" name="etudid" value="%(etudid)s">
 <input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s">
 <p>
-<input type="submit" value="Confirmer la d&eacute;mission">
-
+<input type="submit" value="Confirmer">
 </form>""" % etud )
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
     
     security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
     def doDemEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
-        "demission d'un etudiant"
-        # marque D dans l'inscription au semestre et ajoute
+        "Déclare la démission d'un etudiant dans le semestre"
+        return self._doDem_or_Def_Etudiant(
+            etudid, formsemestre_id,
+            event_date=event_date,
+            etat_new='D',
+            operation_method='demEtudiant',
+            event_type='DEMISSION',
+            REQUEST=REQUEST)
+
+    security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
+    def doDefEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
+        "Déclare la défaillance d'un etudiant dans le semestre"
+        return self._doDem_or_Def_Etudiant(
+            etudid, formsemestre_id,
+            event_date=event_date,
+            etat_new='DEF',
+            operation_method='defailleEtudiant',
+            event_type='DEFAILLANCE',
+            REQUEST=REQUEST)
+
+    def _doDem_or_Def_Etudiant(
+            self, etudid, formsemestre_id,
+            event_date=None,
+            etat_new='D', # 'D' or 'DEF'
+            operation_method='demEtudiant',
+            event_type='DEMISSION',
+            REQUEST=None):
+        "Démission ou défaillance d'un étudiant"
+        # marque 'D' ou 'DEF' dans l'inscription au semestre et ajoute
         # un "evenement" scolarite
         cnx = self.GetDBConnexion()
         # check lock
@@ -1719,23 +1766,58 @@ function tweakmenu( gname ) {
         #
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
-        if ins['etat'] != 'I':
-            raise ScoException('etudiant non inscrit !')
-        ins['etat'] = 'D'
+        if not ins:
+            raise ScoException('etudiant non inscrit ?!')
+        ins['etat'] = etat_new
         self.Notes.do_formsemestre_inscription_edit(args=ins, formsemestre_id=formsemestre_id)
-        logdb(REQUEST,cnx,method='demEtudiant', etudid=etudid)
+        logdb(REQUEST,cnx,method=operation_method, etudid=etudid)
         scolars.scolar_events_create( cnx, args = {
             'etudid' : etudid,
             'event_date' : event_date,
             'formsemestre_id' : formsemestre_id,
-            'event_type' : 'DEMISSION' } )
+            'event_type' : event_type } )
         if REQUEST:
             return REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
 
     security.declareProtected(ScoEtudInscrit, "doCancelDem")
     def doCancelDem(self,etudid,formsemestre_id,dialog_confirmed=False, args=None,
                     REQUEST=None):
-        "annule une demission"
+        "Annule une démission"
+        return self._doCancelDem_or_Def(
+            etudid, formsemestre_id, dialog_confirmed=dialog_confirmed,
+            args=args,
+            operation_name='démission',
+            etat_current='D',
+            etat_new='I',
+            operation_method = 'cancelDem',
+            event_type='DEMISSION',
+            REQUEST=REQUEST)
+
+    security.declareProtected(ScoEtudInscrit, "doCancelDef")
+    def doCancelDef(self,etudid,formsemestre_id,dialog_confirmed=False, args=None,
+                    REQUEST=None):
+        "Annule la défaillance de l'étudiant"
+        return self._doCancelDem_or_Def(
+            etudid, formsemestre_id, dialog_confirmed=dialog_confirmed,
+            args=args,
+            operation_name='défaillance',
+            etat_current='DEF',
+            etat_new='I',
+            operation_method = 'cancelDef',
+            event_type='DEFAILLANCE',
+            REQUEST=REQUEST)
+    
+    def _doCancelDem_or_Def(
+            self, etudid, formsemestre_id,
+            dialog_confirmed=False,
+            args=None,
+            operation_name='', # "démission" ou "défaillance"
+            etat_current='D',
+            etat_new='I',
+            operation_method = 'cancelDem',
+            event_type='DEMISSION',
+            REQUEST=None):
+        "Annule une demission ou une défaillance"
         # check lock
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         if sem['etat'] != '1':
@@ -1745,15 +1827,15 @@ function tweakmenu( gname ) {
         ok = False
         for i in info['ins']:
             if i['formsemestre_id'] == formsemestre_id:
-                if i['etat'] != 'D':
-                    raise ScoValueError('etudiant non demissionnaire !')
+                if i['etat'] != etat_current:
+                    raise ScoValueError('etudiant non %s !' % operation_name)
                 ok = True
                 break
         if not ok:
             raise ScoValueError('etudiant non inscrit ???')
         if not dialog_confirmed:
             return self.confirmDialog(
-                '<p>Confirmer l\'annulation de la démission ?</p>',
+                '<p>Confirmer l\'annulation de la %s ?</p>' % operation_name,
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="ficheEtud?etudid=%s"%etudid,
                 parameters={'etudid' : etudid,
@@ -1761,14 +1843,14 @@ function tweakmenu( gname ) {
         # 
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
-        if ins['etat'] != 'D':
-            raise ScoException('etudiant non dem. !!!') # obviously a bug
-        ins['etat'] = 'I'
+        if ins['etat'] != etat_current:
+            raise ScoException('etudiant non %s !!!' % etat_current) # obviously a bug
+        ins['etat'] = etat_new
         cnx = self.GetDBConnexion()
         self.Notes.do_formsemestre_inscription_edit(args=ins, formsemestre_id=formsemestre_id)
-        logdb(REQUEST,cnx,method='cancelDem', etudid=etudid)
+        logdb(REQUEST,cnx,method=operation_method, etudid=etudid)
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
-        cursor.execute( "delete from scolar_events where etudid=%(etudid)s and formsemestre_id=%(formsemestre_id)s and event_type='DEMISSION'",
+        cursor.execute( "delete from scolar_events where etudid=%(etudid)s and formsemestre_id=%(formsemestre_id)s and event_type='" + event_type + "'",
                         { 'etudid':etudid, 'formsemestre_id':formsemestre_id})
         cnx.commit()
         return REQUEST.RESPONSE.redirect("ficheEtud?etudid=%s"%etudid)

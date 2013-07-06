@@ -398,7 +398,7 @@ CREATE TABLE notes_formsemestre_inscription (
 	formsemestre_inscription_id text default notes_newid2('SI') PRIMARY KEY,
 	etudid text REFERENCES identite(etudid),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	etat text, -- I inscrit, D demission en cours de semestre
+	etat text, -- I inscrit, D demission en cours de semestre, DEF si "defaillant"
 	UNIQUE(formsemestre_id, etudid)
 ) WITH OIDS;
 

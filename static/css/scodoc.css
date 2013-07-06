@@ -1715,6 +1715,11 @@ tr.sfv_pbass {
   background-color: rgb(90%,70%,80%);
 }
 
+div.link_defaillance {
+  padding-top: 8px;
+  font-weight: bold;
+}
+
 div.pas_sembox {
   margin-top: 10px;
   border: 2px solid #a0522d;

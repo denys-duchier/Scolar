@@ -145,6 +145,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if I['etud_etat'] == 'D':
         I['demission'] = '(Démission)'
         I['filigranne'] = 'Démission'
+    elif I['etud_etat'] == 'DEF':
+        I['demission'] = '(Défaillant)'
+        I['filigranne'] = 'Défaillant'
     elif (prefs['bul_show_temporary'] and not I['decision_sem']) or prefs['bul_show_temporary_forced']:
         I['filigranne'] = prefs['bul_temporary_txt']
     
@@ -423,6 +426,7 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     date_demission   : (vide si pas demission ou si show_date_inscr est faux)
     descr_inscription : "Inscrit" ou "Pas inscrit[e]"
     descr_demission   : "Démission le 01/02/2000" ou vide si pas de démission
+    descr_defaillance  : "Défaillant" ou vide si non défaillant.
     decision_jury     :  "Validé", "Ajourné", ... (code semestre)
     descr_decision_jury : "Décision jury: Validé" (une phrase)
     decisions_ue        : noms (acronymes) des UE validées, séparées par des virgules.
@@ -439,6 +443,7 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         cnx, args={'etudid':etudid, 'formsemestre_id':formsemestre_id} )
     date_inscr = None
     date_dem = None
+    date_def = None
     date_echec = None
     for event in events:
         event_type = event['event_type']
@@ -454,11 +459,17 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
                 date_inscr = event['event_date']
         elif event_type == 'DEMISSION':
             # assert date_dem == None, 'plusieurs démissions !'
-            if date_dem: # cela ne peut pas arriver sauf bug (signae a Evry 2013?)
+            if date_dem: # cela ne peut pas arriver sauf bug (signale a Evry 2013?)
                 log('etud_descr_situation_semestre: removing duplicate DEMISSION event !')
                 scolars.scolar_events_delete( cnx, event['event_id'] )
             else:
                 date_dem = event['event_date']
+        elif event_type == 'DEFAILLANCE':
+            if date_def: 
+                log('etud_descr_situation_semestre: removing duplicate DEFAILLANCE event !')
+                scolars.scolar_events_delete( cnx, event['event_id'] )
+            else:
+                date_def = event['event_date']
     if show_date_inscr: 
         if not date_inscr:
             infos['date_inscription'] = ''
@@ -471,12 +482,18 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         infos['descr_inscription'] = ''
 
     infos['situation'] = infos['descr_inscription']
+    
     if date_dem:
         infos['descr_demission'] = 'Démission le %s.' % date_dem
         infos['date_demission'] = date_dem
         infos['descr_decision_jury'] = 'Démission'
         infos['situation'] += ' ' + infos['descr_demission']
         return infos, None # ne donne pas les dec. de jury pour les demissionnaires
+    if date_def:
+        infos['descr_defaillance'] = 'Défaillant%s' % ne
+        infos['date_defaillance'] = date_def
+        infos['descr_decision_jury'] = 'Défaillant%s' % ne
+        infos['situation'] += ' ' + infos['descr_defaillance']
     
     dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=[etudid])
 
