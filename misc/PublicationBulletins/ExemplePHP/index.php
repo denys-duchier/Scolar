@@ -13,20 +13,20 @@
 include_once 'CAS.php';
 
 phpCAS::setDebug();
-phpCAS::client(CAS_VERSION_2_0,'URL_DU_CAS',443,'');
+phpCAS::client(CAS_VERSION_2_0,'URL_CAS',443,'');
 phpCAS::setNoCasServerValidation();
 phpCAS::forceAuthentication();
 
 $nip = phpCAS::getUser();
 
 // Login information of a scodoc user that can access notes
-$sco_user = '';
-$sco_pw = '';
-$sco_url = ''; // https://notes.u-univ.fr/scodoc/
+$sco_user = 'USER';
+$sco_pw = 'PASS';
+$sco_url = 'https://SERVEUR/ScoDoc/';
 
 $user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; fr; rv:1.8.1) Gecko/20061010 Firefox/2.0';
 
-
+// Définition de la fonction d'encodage des headers
 function http_build_headers( $headers ) {
 
        $headers_brut = '';
@@ -40,6 +40,9 @@ function http_build_headers( $headers ) {
 
 function get_EtudInfos_page($nip, $dept)
 {
+	global $sco_user;
+	global $sco_pw;
+	global $sco_url;
     $donnees = array(
         'code_nip' => $nip,
         '__ac_name' => $sco_user,
@@ -69,6 +72,9 @@ function get_EtudInfos_page($nip, $dept)
 }
 
 function get_bulletinetud_page($nip, $sem, $dept) {
+	global $sco_user;
+	global $sco_pw;
+	global $sco_url;
     $donnees = array(
         'format' => 'xml',
         'code_nip' => $nip,
@@ -102,6 +108,9 @@ function get_bulletinetud_page($nip, $sem, $dept) {
 
 function get_semestre_info($sem, $dept)
 {
+	global $sco_user;
+	global $sco_pw;
+	global $sco_url;
     $donnees = array(
         'formsemestre_id' => $sem,
         '__ac_name' => $sco_user,
@@ -259,6 +268,7 @@ echo '  <td>' . $coef . '</td>
 
 function get_dept($nip)
 {
+	global $sco_url;
     $dept = file_get_contents( $sco_url . 'get_etud_dept?code_nip=' . $nip);
     return ($dept);
 }
