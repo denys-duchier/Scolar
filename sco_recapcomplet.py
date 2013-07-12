@@ -244,6 +244,7 @@ def make_formsemestre_recapcomplet(
             is_dem[etudid] = True
         elif etud_etat == 'DEF':
             gr_name = 'Déf.'
+            is_dem[etudid] = False
         else:
             group = sco_groups.get_etud_main_group(context, etudid, sem)
             gr_name = group['group_name'] or ''
