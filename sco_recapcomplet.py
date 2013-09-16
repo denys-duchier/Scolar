@@ -379,7 +379,7 @@ def make_formsemestre_recapcomplet(
             lnk = document.getElementById("recap_trtit").childNodes[clid].childNodes[0];
             ts_resortTable(lnk,clid);
             // Scroll window:
-            eid = document.location.hash
+            eid = document.location.hash;
             if (eid) {
               var eid = eid.substring(1); // remove #
               var e = document.getElementById(eid);

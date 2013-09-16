@@ -62,10 +62,14 @@ def descr_decisions_ues(znotes, decisions_ue, decision_sem):
         return ''
     uelist = []
     for ue_id in decisions_ue.keys():
-        if decisions_ue[ue_id] and decisions_ue[ue_id]['code'] == 'ADM' \
-           or (CONFIG.CAPITALIZE_ALL_UES and sco_codes_parcours.code_semestre_validant(decision_sem['code'])):
-            ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-            uelist.append(ue)
+        try:
+            if decisions_ue[ue_id] and (decisions_ue[ue_id]['code'] == 'ADM' \
+               or (CONFIG.CAPITALIZE_ALL_UES and sco_codes_parcours.code_semestre_validant(decision_sem['code']))):
+                ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+                uelist.append(ue)
+        except:
+            log('descr_decisions_ues: ue_id=%s decisions_ue=%s' % (ue_id, decisions_ue))
+            pass
     uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
     ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
     return ue_acros
