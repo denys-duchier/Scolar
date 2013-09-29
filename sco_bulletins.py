@@ -43,6 +43,7 @@ import sco_pvjury
 import sco_formsemestre_status
 import sco_photos
 import ZAbsences
+import sco_abs_views
 import sco_preferences
 import sco_bulletins_generator
 import sco_bulletins_xml
@@ -144,6 +145,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     if I['etud_etat'] == 'D':
         I['demission'] = '(Démission)'
         I['filigranne'] = 'Démission'
+    elif I['etud_etat'] == 'DEF':
+        I['demission'] = '(Défaillant)'
+        I['filigranne'] = 'Défaillant'
     elif (prefs['bul_show_temporary'] and not I['decision_sem']) or prefs['bul_show_temporary_forced']:
         I['filigranne'] = prefs['bul_temporary_txt']
     
@@ -422,6 +426,7 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     date_demission   : (vide si pas demission ou si show_date_inscr est faux)
     descr_inscription : "Inscrit" ou "Pas inscrit[e]"
     descr_demission   : "Démission le 01/02/2000" ou vide si pas de démission
+    descr_defaillance  : "Défaillant" ou vide si non défaillant.
     decision_jury     :  "Validé", "Ajourné", ... (code semestre)
     descr_decision_jury : "Décision jury: Validé" (une phrase)
     decisions_ue        : noms (acronymes) des UE validées, séparées par des virgules.
@@ -438,6 +443,7 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         cnx, args={'etudid':etudid, 'formsemestre_id':formsemestre_id} )
     date_inscr = None
     date_dem = None
+    date_def = None
     date_echec = None
     for event in events:
         event_type = event['event_type']
@@ -453,11 +459,17 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
                 date_inscr = event['event_date']
         elif event_type == 'DEMISSION':
             # assert date_dem == None, 'plusieurs démissions !'
-            if date_dem: # cela ne peut pas arriver sauf bug (signae a Evry 2013?)
+            if date_dem: # cela ne peut pas arriver sauf bug (signale a Evry 2013?)
                 log('etud_descr_situation_semestre: removing duplicate DEMISSION event !')
                 scolars.scolar_events_delete( cnx, event['event_id'] )
             else:
                 date_dem = event['event_date']
+        elif event_type == 'DEFAILLANCE':
+            if date_def: 
+                log('etud_descr_situation_semestre: removing duplicate DEFAILLANCE event !')
+                scolars.scolar_events_delete( cnx, event['event_id'] )
+            else:
+                date_def = event['event_date']
     if show_date_inscr: 
         if not date_inscr:
             infos['date_inscription'] = ''
@@ -470,12 +482,18 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         infos['descr_inscription'] = ''
 
     infos['situation'] = infos['descr_inscription']
+    
     if date_dem:
         infos['descr_demission'] = 'Démission le %s.' % date_dem
         infos['date_demission'] = date_dem
         infos['descr_decision_jury'] = 'Démission'
         infos['situation'] += ' ' + infos['descr_demission']
         return infos, None # ne donne pas les dec. de jury pour les demissionnaires
+    if date_def:
+        infos['descr_defaillance'] = 'Défaillant%s' % ne
+        infos['date_defaillance'] = date_def
+        infos['descr_decision_jury'] = 'Défaillant%s' % ne
+        infos['situation'] += ' ' + infos['descr_defaillance']
     
     dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=[etudid])
 
@@ -516,10 +534,12 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
 
 
 # ------ Page bulletin
-def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
-                              format='html', version='long',
-                              xml_with_decisions=False,
-                              REQUEST=None):
+def formsemestre_bulletinetud(
+        context, etudid=None, formsemestre_id=None,
+        format='html', version='long',
+        xml_with_decisions=False,
+        force_publishing=False, # force publication meme si semestre non publie sur "portail"
+        REQUEST=None):
     "page bulletin de notes"
     try:
         etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
@@ -537,6 +557,7 @@ def formsemestre_bulletinetud(context, etudid=None, formsemestre_id=None,
     R.append( do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                            format=format, version=version,
                                            xml_with_decisions=xml_with_decisions,
+                                           force_publishing=force_publishing,
                                            REQUEST=REQUEST)[0])
     
     if format == 'html' or format == 'pdfmail':
@@ -577,7 +598,8 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  format='html',
                                  REQUEST=None,
                                  nohtml=False,
-                                 xml_with_decisions=False # force decisions dans XML
+                                 xml_with_decisions=False, # force decisions dans XML
+                                 force_publishing=False # force publication meme si semestre non publie sur "portail"
                                  ):
     """Génère le bulletin au format demandé.
     Retourne: (bul, filigranne)
@@ -587,13 +609,15 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
     if format == 'xml':        
         bul = repr(sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
-            xml_with_decisions=xml_with_decisions, version=version))
+            xml_with_decisions=xml_with_decisions, force_publishing=force_publishing,
+            version=version))
         return bul, ''
     
     elif format == 'json':
         bul = sco_bulletins_json.make_json_formsemestre_bulletinetud(
             context, formsemestre_id,  etudid, REQUEST=REQUEST,
-            xml_with_decisions=xml_with_decisions, version=version)
+            xml_with_decisions=xml_with_decisions, force_publishing=force_publishing,
+            version=version)
         return bul, ''
     
     I = formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, REQUEST=REQUEST)
@@ -641,6 +665,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
 
 def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
     """Send bulletin by email to etud
+    If bul_mail_list_abs pref is true, put list of absences in mail body (text).
     """
     etud = I['etud']
     webmaster = context.get_preference('bul_mail_contact_addr', formsemestre_id)
@@ -652,6 +677,10 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
         hea = intro_mail % { 'nomprenom' : etud['nomprenom'], 'dept':dept, 'webmaster':webmaster }
     else:
         hea = ''
+
+    if context.get_preference('bul_mail_list_abs'):
+        hea += '\n\n' + sco_abs_views.ListeAbsEtud(context,
+                                                   etud['etudid'], with_evals=False, format='text')
     
     msg = MIMEMultipart()
     subj = Header( 'Relevé de notes de %s' % etud['nomprenom'],  SCO_ENCODING )
@@ -665,6 +694,7 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
     msg.epilogue = ''
     # Text
     txt = MIMEText( hea, 'plain', SCO_ENCODING )
+    # log('hea:\n' + hea)
     msg.attach(txt)
     # Attach pdf
     att = MIMEBase('application', 'pdf')
@@ -702,7 +732,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
              <input type="hidden" name="formsemestre_id" value="%s"></input>""" % formsemestre_id,
           """<input type="hidden" name="etudid" value="%s"></input>""" % etudid,
           """<input type="hidden" name="format" value="%s"></input>""" % format,
-          """<select name="version" onChange="document.f.submit()" class="noprint">""",
+          """<select name="version" onchange="document.f.submit()" class="noprint">""",
           ]
     for (v,e) in ( ('short', 'Version courte'),
                    ('selectedevals', 'Version intermédiaire'),

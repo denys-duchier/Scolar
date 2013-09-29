@@ -29,6 +29,9 @@
    (la plupart portées du DTML)
 """
 
+from stripogram import html2text, html2safehtml
+from gen_tables import GenTable
+
 from notesdb import *
 from sco_utils import *
 from notes_log import log
@@ -127,12 +130,11 @@ def SignaleAbsenceEtud(context, REQUEST=None): # etudid implied
 </tr>
 </table>
 <br/>
-
-%(menu_module)s
-
 <input type="radio" name="demijournee" value="2" checked>journ&eacute;e(s)
 &nbsp;<input type="radio" name="demijournee" value="1">Matin(s)
 &nbsp;<input type="radio" name="demijournee" value="0">Apr&egrave;s midi
+
+%(menu_module)s
 
 <p>
 <input type="checkbox" name="estjust"/>Absence justifi&eacute;e.
@@ -466,7 +468,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
           """<font color="#EE0000">A : absence NON justifiée</font><br>
              <font color="#F8B7B0">a : absence justifiée</font><br>
-	     <font color="#8EA2C6">X : justifification sans absence</font><br>
+	     <font color="#8EA2C6">X : justification sans absence</font><br>
              %d absences sur l'année, dont %d justifiées (soit %d non justifiées)
            """  % (nbabs, nbabsjust, nbabs-nbabsjust),
            """</td>
@@ -479,7 +481,7 @@ def CalAbs(context, REQUEST=None): # etud implied
           """<form method="GET" action="CalAbs" name="f">""",
           """<input type="hidden" name="etudid" value="%s"/>""" % etudid,
           """Année scolaire %s-%s""" % (AnneeScolaire, AnneeScolaire+1),
-          """&nbsp;&nbsp;Changer année: <select name="sco_year" onChange="document.f.submit()">"""
+          """&nbsp;&nbsp;Changer année: <select name="sco_year" onchange="document.f.submit()">"""
           ]
     for y in range(AnneeScolaire, AnneeScolaire-10, -1):
         H.append("""<option value="%s" """ % y )
@@ -490,6 +492,87 @@ def CalAbs(context, REQUEST=None): # etud implied
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
+
+def ListeAbsEtud(context, etudid,
+                 with_evals=True, # indique les evaluations aux dates d'absences
+                 format='html',
+                 absjust_only=0, # si vrai, renvoie table absences justifiées
+                 REQUEST=None):
+    """Liste des absences d'un étudiant sur l'année en cours
+    En format 'html': page avec deux tableaux (non justifiées et justifiées).
+    En format xls ou pdf: l'un ou l'autre des table, suivant absjust_only.
+    En format 'text': texte avec liste d'absences (pour mails).
+    """
+    absjust_only = int(absjust_only) # si vrai, table absjust seule (export xls ou pdf)
+    datedebut = '%s-08-31' % context.AnneeScolaire(REQUEST)
+    
+    etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
+        
+    # Liste des absences et titres colonnes tables:
+    titles, columns_ids, absnonjust, absjust = context.Absences._TablesAbsEtud(
+        etudid, datedebut, with_evals=with_evals, format=format )
+
+    if REQUEST:
+        base_url_nj =  '%s?etudid=%s&absjust_only=0' % (REQUEST.URL0, etudid)
+        base_url_j = '%s?etudid=%s&absjust_only=1' % (REQUEST.URL0, etudid)
+    else:
+        base_url_nj = base_url_j = ''
+    tab_absnonjust = GenTable( titles=titles, columns_ids=columns_ids, rows = absnonjust,
+                        html_class='gt_table table_leftalign',
+                        base_url = base_url_nj,
+                        filename='abs_'+make_filename(etud['nomprenom']),
+                        caption='Absences non justifiées de %(nomprenom)s' % etud,
+                        preferences=context.get_preferences())
+    tab_absjust = GenTable( titles=titles, columns_ids=columns_ids, rows = absjust,
+                        html_class='gt_table table_leftalign',
+                        base_url = base_url_j,
+                        filename='absjust_'+make_filename(etud['nomprenom']),
+                        caption='Absences justifiées de %(nomprenom)s' % etud,
+                        preferences=context.get_preferences())
+
+    # Formats non HTML et demande d'une seule table:
+    if format != 'html' and format != 'text':
+        if absjust_only == 0:
+            return tab_absjust.make_page(context, format=format, REQUEST=REQUEST)
+        else:
+            return tab_absnonjust.make_page(context, format=format, REQUEST=REQUEST)
+    
+    if format == 'html':
+        # Mise en forme HTML:
+        H = []
+        H.append( context.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) )
+        H.append( """<h2>Absences de %s (à partir du %s)</h2>"""
+                  % (etud['nomprenom'], DateISOtoDMY(datedebut)))
+
+        if len(absnonjust):
+            H.append('<h3>%d absences non justifiées:</h3>' % len(absnonjust))
+            H.append( tab_absnonjust.html() )
+        else:
+            H.append( """<h3>Pas d'absences non justifiées</h3>""")
+
+        if len(absjust):
+            H.append( """<h3>%d absences justifiées:</h3>""" % len(absjust),)
+            H.append( tab_absjust.html() )
+        else:
+            H.append( """<h3>Pas d'absences justifiées</h3>""")
+        return '\n'.join(H) + context.sco_footer(REQUEST)
+    
+    elif format == 'text':
+        T = []
+        if not len(absnonjust) and not len(absjust):
+            T.append("""--- Pas d'absences enregistrées depuis le %s""" % DateISOtoDMY(datedebut))
+        else:
+            T.append("""--- Absences enregistrées à partir du %s:""" % DateISOtoDMY(datedebut))
+            T.append('\n')
+        if len(absnonjust):
+            T.append('* %d absences non justifiées:' % len(absnonjust))
+            T.append( tab_absnonjust.text() )
+        if len(absjust):
+            T.append('* %d absences justifiées:' % len(absjust))
+            T.append( tab_absjust.text() )
+        return '\n'.join(T)
+    else:
+        raise ValueError('Invalid format !')
 
 def absences_index_html(context, REQUEST=None):
     """Gestionnaire absences, page principale"""

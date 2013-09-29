@@ -57,10 +57,8 @@ def report_debouche_date(context, start_year=None, format='html', REQUEST=None):
     return tab.make_page(
         context, 
         title =  """<h2 class="formsemestre">Débouchés étudiants </h2>""",
-        javascripts=['jQuery/jquery.js', 
-                     'libjs/qtip/jquery.qtip.js',
-                     'js/etud_info.js'
-                     ],
+        init_qtip = True,
+        javascripts=['js/etud_info.js'],
         format=format, REQUEST=REQUEST, with_html_headers=True)
 
 def get_etudids_with_debouche(context, start_year):

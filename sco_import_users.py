@@ -169,9 +169,11 @@ Bonjour %(prenom)s %(nom)s,
     if reset:
         txt += """
 votre mot de passe ScoDoc a été ré-initialisé.
-Le nouveau mot de passe est:  %(passwd)s
 
-Vous devrez le changer lors de votre première connexion 
+Le nouveau mot de passe est:  %(passwd)s
+Votre nom d'utilisateur est %(user_name)s
+
+Vous devrez changer ce mot de passe lors de votre première connexion 
 sur %(url)s
 """ % u
     else:

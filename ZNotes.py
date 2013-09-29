@@ -78,6 +78,7 @@ import sco_report
 import sco_lycee
 import sco_poursuite_dut
 import sco_debouche
+import sco_cost_formation
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
 import sco_inscr_passage, sco_synchro_etuds
@@ -248,7 +249,11 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_evaluations_cal')
     formsemestre_evaluations_cal = sco_evaluations.formsemestre_evaluations_cal
-
+    security.declareProtected(ScoView, 'module_evaluation_renumber')
+    module_evaluation_renumber = sco_evaluations.module_evaluation_renumber
+    security.declareProtected(ScoView, 'module_evaluation_move')
+    module_evaluation_move = sco_evaluations.module_evaluation_move
+    
     security.declareProtected(ScoView, 'formsemestre_list_saisies_notes')
     formsemestre_list_saisies_notes = sco_undo_notes.formsemestre_list_saisies_notes
 
@@ -672,16 +677,20 @@ class ZNotes(ObjectManager,
         return self._moduleEditor.list(cnx, *args, **kw)
 
     security.declareProtected(ScoChangeFormation, 'do_module_edit')
-    def do_module_edit(self, *args, **kw ):
+    def do_module_edit(self, val):
         "edit a module"
         # check
-        mod = self.do_module_list({'module_id' : args[0]['module_id']})[0]
+        mod = self.do_module_list({'module_id' : val['module_id']})[0]
         if self.module_is_locked(mod['module_id']):
-            raise ScoLockedFormError()
+            # formation verrouillée: empeche de modifier certains champs:
+            protected_fields = ('coefficient', 'ue_id', 'matiere_id', 'semestre_id')
+            for f in protected_fields:
+                if f in val:
+                    del val[f]
         # edit
         cnx = self.GetDBConnexion()
-        self._moduleEditor.edit(cnx, *args, **kw )
-
+        self._moduleEditor.edit(cnx, val)
+        
         sems = self.do_formsemestre_list(args={ 'formation_id' : mod['formation_id'] })
         if sems:
             self._inval_cache(formsemestre_id_list=[s['formsemestre_id'] for s in sems]) #> modif module
@@ -758,10 +767,10 @@ class ZNotes(ObjectManager,
             raise ValueError('invalid value for "after"')
         formation_id = module['formation_id']
         others = self.do_module_list({'matiere_id' : module['matiere_id']})
-        log('others=%s' % others)
+        # log('others=%s' % others)
         if len(others) > 1:
             idx = [ p['module_id'] for p in others ].index(module_id)
-            log('module_move: after=%s idx=%s' % (after, idx))
+            # log('module_move: after=%s idx=%s' % (after, idx))
             neigh = None # object to swap with
             if after == 0 and idx > 0:
                 neigh = others[idx-1]            
@@ -769,7 +778,7 @@ class ZNotes(ObjectManager,
                 neigh = others[idx+1]
             if neigh: # 
                 # swap numero between partition and its neighbor
-                log('moving module %s' % module_id)
+                # log('moving module %s' % module_id)
                 cnx = self.GetDBConnexion()
                 module['numero'], neigh['numero'] = neigh['numero'], module['numero']
                 if module['numero'] == neigh['numero']:
@@ -789,7 +798,7 @@ class ZNotes(ObjectManager,
          'date_debut', 'date_fin', 'responsable_id',
          'gestion_compensation', 'gestion_semestrielle',
          'etat', 'bul_hide_xml', 'bul_bgcolor',
-         'etape_apo', 'etape_apo2', 'etape_apo3',
+         'etape_apo', 'etape_apo2', 'etape_apo3', 'etape_apo4',
          'modalite', 'resp_can_edit', 'resp_can_change_ens',
          'ens_can_edit_eval'
          ),
@@ -898,7 +907,8 @@ class ZNotes(ObjectManager,
                           formation_id=None,                          
                           etape_apo=None,
                           etape_apo2=None,
-                          etape_apo3=None
+                          etape_apo3=None,
+                          etape_apo4=None
                           ):
         """List formsemestres in given format.
         kw can specify some conditions: examples:
@@ -907,7 +917,7 @@ class ZNotes(ObjectManager,
         # XAPI: new json api
         args = {}
         L = locals()
-        for argname in ('formsemestre_id', 'formation_id', 'etape_apo', 'etape_apo2', 'etape_apo3'):
+        for argname in ('formsemestre_id', 'formation_id', 'etape_apo', 'etape_apo2', 'etape_apo3', 'etape_apo4'):
             if L[argname] is not None:
                 args[argname] = L[argname]
         sems = self.do_formsemestre_list(args=args)
@@ -1798,13 +1808,14 @@ class ZNotes(ObjectManager,
         ('evaluation_id', 'moduleimpl_id',
          'jour', 'heure_debut', 'heure_fin', 'description',
          'note_max', 'coefficient', 'visibulletin', 'publish_incomplete',
-         'evaluation_type' ),
-        sortkey = 'jour desc',
-        output_formators = { 'jour' : DateISOtoDMY,
+         'evaluation_type', 'numero' ),
+         sortkey = 'numero desc, jour desc, heure_debut desc', # plus recente d'abord
+         output_formators = { 'jour' : DateISOtoDMY,
                              'heure_debut' : TimefromISO8601,
                              'heure_fin'   : TimefromISO8601,
                              'visibulletin': str,
                              'publish_incomplete' : str,
+                             # numero: int or None
                              },
         input_formators  = { 'jour' : DateDMYtoISO,
                              'heure_debut' : TimetoISO8601,
@@ -1837,10 +1848,44 @@ class ZNotes(ObjectManager,
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')
     def do_evaluation_create(self, REQUEST, args):
-        "create a evaluation"
+        """Create an evaluation
+        """
         moduleimpl_id = args['moduleimpl_id']
         self._evaluation_check_write_access(REQUEST, moduleimpl_id=moduleimpl_id)
         self._check_evaluation_args(args)
+        # Check numeros
+        sco_evaluations.module_evaluation_renumber(
+            self, moduleimpl_id, REQUEST=REQUEST, only_if_unumbered=True)
+        if not 'numero' in args or args['numero'] is None:
+            n = None
+            # determine le numero avec la date
+            # Liste des eval existantes triees par date, la plus ancienne en tete
+            ModEvals = self.do_evaluation_list(
+                args={ 'moduleimpl_id' : moduleimpl_id },
+                sortkey='jour asc, heure_debut asc' )
+            log('ModEvals=[%s]' % ','.join( [x['evaluation_id'] for x in ModEvals ]) )
+            if args['jour']:
+                next_eval = None
+                t = (DateDMYtoISO(args['jour']),
+                     TimetoISO8601( args['heure_debut']))
+                log( 'args: t=%s' % str(t))
+                for e in ModEvals:
+                    if (DateDMYtoISO(e['jour']), TimetoISO8601(e['heure_debut'])) > t:
+                        next_eval = e
+                        break                
+                if next_eval:
+                    log('inserting !')
+                    n = sco_evaluations.module_evaluation_insert_before(self, ModEvals, next_eval, REQUEST)
+                else:
+                    n = None # a placer en fin
+            if n is None: # pas de date ou en fin:
+                if ModEvals:
+                    n = ModEvals[-1]['numero'] + 1
+                else:
+                    n = 0 # the only one
+            log('creating with numero n=%d' % n)
+            args['numero'] = n
+                    
         #
         cnx = self.GetDBConnexion()
         r = self._evaluationEditor.create(cnx, args)
@@ -1929,12 +1974,13 @@ class ZNotes(ObjectManager,
         
 
     security.declareProtected(ScoView, 'do_evaluation_list')
-    def do_evaluation_list(self, args ):
-        "List evaluations, sorted by date, most recent first."
+    def do_evaluation_list(self, args, sortkey=None ):
+        "List evaluations, sorted by numero (or most recent date first)."
         cnx = self.GetDBConnexion()
-        evals = self._evaluationEditor.list(cnx, args)
-        # calcule duree (chaine de car.) de chaque evaluation
+        evals = self._evaluationEditor.list(cnx, args, sortkey=sortkey)
+        # calcule duree (chaine de car.) de chaque evaluation et ajoute jouriso
         for e in evals:
+            e['jouriso'] = DateDMYtoISO(e['jour'])
             heure_debut, heure_fin = e['heure_debut'], e['heure_fin']
             d = TimeDuration(heure_debut, heure_fin)
             if d is not None:
@@ -2666,6 +2712,9 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, "report_debouche_date")
     report_debouche_date = sco_debouche.report_debouche_date
+    
+    security.declareProtected(ScoView, "formsemestre_estim_cost")
+    formsemestre_estim_cost = sco_cost_formation.formsemestre_estim_cost
     
     # --------------------------------------------------------------------
     # DEBUG

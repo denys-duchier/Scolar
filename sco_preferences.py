@@ -888,7 +888,14 @@ Année scolaire: %(anneescolaire)s
         'cols' : 85,
         'category' : 'bul_mail' }
       ),
-
+    ('bul_mail_list_abs',
+     { 'initvalue' : 0,
+        'title' : "Indiquer la liste des dates d'absences par mail",
+        'explanation' : "dans le mail envoyant le bulletin de notes",
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul_mail',
+        }
+     ),
     ( 'bul_mail_contact_addr',
       { 'initvalue' : "l'administrateur",
         'title' : 'Adresse mail contact "webmaster"',
@@ -1170,7 +1177,7 @@ function sel_global(el, pref_name) {
 function set_global_pref(el, pref_name) {
      document.getElementById('tf').suppress.value = pref_name;
      document.getElementById('tf').destination.value = 'again';
-     f = document.getElementById('tf')[pref_name];
+     var f = document.getElementById('tf')[pref_name];
      if (f) {
        f.disabled = true;
      } else {
@@ -1200,9 +1207,10 @@ function set_global_pref(el, pref_name) {
         elif tf[0] == -1:
             return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=Annulé' ) # cancel
         else:
-            #log('tf[2]=%s' % tf[2])
+            # log('tf[2]=%s' % tf[2]) # XXX
             # Supprime pref locale du semestre (retour à la valeur globale)
             if tf[2]['suppress']:
+                # log('suppress %s' % tf[2]['suppress']) # XXX
                 self.base_prefs.delete(self.formsemestre_id, tf[2]['suppress'])
             # Cree pref local (copie valeur globale)
             if tf[2]['create_local']:
@@ -1262,7 +1270,7 @@ def _build_form(self, categories=[], global_edit=False):
                     # valeur actuelle globale (ou vient d'etre supprimee localement):
                     # montre la valeur et menus pour la rendre locale
                     descr['readonly'] = True
-                    menu_global = """<select class="tf-selglobal" onChange="sel_global(this, '%s');">
+                    menu_global = """<select class="tf-selglobal" onchange="sel_global(this, '%s');">
                         <option value=""><em>Valeur définie globalement</em></option>
                         <option value="create">Spécifier valeur pour ce semestre seulement</option>
                     </select>

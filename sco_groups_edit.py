@@ -72,7 +72,7 @@ def affectGroups(context, partition_id, REQUEST=None):
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="button" onClick="document.location = 'formsemestre_status?formsemestre_id=%s'" value="Annuler" />&nbsp;&nbsp;&nbsp;&nbsp;
 Editer groupes de
-<select name="other_partition_id" onChange="GotoAnother();">""" % formsemestre_id ]
+<select name="other_partition_id" onchange="GotoAnother();">""" % formsemestre_id ]
     for p in sco_groups.get_partitions_list(context, formsemestre_id, with_default=False):
         H.append('<option value="%s"' % p['partition_id'])
         if p['partition_id'] == partition_id:

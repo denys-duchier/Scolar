@@ -101,12 +101,15 @@ class GenTable:
                  filename='table', # filename, without extension
 
                  xls_sheet_name='feuille',
+                 xls_before_table=[], # liste de cellules a placer avant la table
                  pdf_title='', # au dessus du tableau en pdf
                  pdf_table_style=None,
                  pdf_col_widths=None,
 
                  xml_outer_tag='table',
                  xml_row_tag='row',
+
+                 text_fields_separator='\t',
                  
                  preferences=None
                  ):
@@ -141,6 +144,7 @@ class GenTable:
         self.html_col_width = html_col_width
         # XLS parameters
         self.xls_sheet_name = xls_sheet_name
+        self.xls_before_table = xls_before_table
         # PDF parameters
         self.pdf_table_style = pdf_table_style
         self.pdf_col_widths = pdf_col_widths
@@ -148,6 +152,8 @@ class GenTable:
         # XML parameters
         self.xml_outer_tag=xml_outer_tag
         self.xml_row_tag=xml_row_tag
+        # TEXT parameters
+        self.text_fields_separator = text_fields_separator
         #
         if preferences:
             self.preferences = preferences
@@ -234,6 +240,8 @@ class GenTable:
             return self.html()
         elif format == 'xls':
             return self.excel()
+        elif format == 'text':
+            return self.text()
         elif format == 'pdf':
             return self.pdf()
         elif format == 'xml':
@@ -359,19 +367,26 @@ class GenTable:
         
     def excel(self):
         "Simple Excel representation of the table"
-        lines = [ [ x for x in line ] for line in self.get_data_list()]
-        if self.caption:
-            lines.append( [] ) # empty line  
-            lines.append( [self.caption] )
+        L = sco_excel.ScoExcelSheet( sheet_name=self.xls_sheet_name)
+        style_bold = sco_excel.Excel_MakeStyle(bold=True)
         
+        L.cells += self.xls_before_table
+        L.set_style( style_bold, li=len(L.cells))
+        L.append(self.get_titles_list())
+        L.cells +=  [ [ x for x in line ] for line in self.get_data_list()]
+        if self.caption:
+            L.append( [] ) # empty line  
+            L.append( [self.caption] )
         if self.origin:
-            lines.append( [] ) # empty line        
-            lines.append( [self.origin] )
-        #log('lines=%s'%lines)
-        return sco_excel.Excel_SimpleTable(
-            titles=self.get_titles_list(),
-            lines=lines,
-            SheetName=self.xls_sheet_name)            
+            L.append( [] ) # empty line        
+            L.append( [self.origin] )
+
+        return L.gen_workbook() 
+    
+    def text(self):
+        "raw text representation of the table"
+        return '\n'.join( [ self.text_fields_separator.join([ x for x in line ])
+                            for line in self.get_data_list()] )
     
     def pdf(self):
         "PDF representation: returns a ReportLab's platypus Table instance"
@@ -481,7 +496,10 @@ class GenTable:
     def make_page(self, context, title='', format='html', page_title='',
                   filename=None, REQUEST=None,
                   javascripts=[],
-                  with_html_headers=True, publish=True ):
+                  with_html_headers=True,
+                  publish=True,
+                  init_qtip=False
+                  ):
         """
         Build page at given format
         This is a simple page with only a title and the table.
@@ -494,7 +512,7 @@ class GenTable:
         if format == 'html':
             H = []
             if with_html_headers:                
-                H.append(self.html_header or context.sco_header(REQUEST, page_title=page_title, javascripts=javascripts))
+                H.append(self.html_header or context.sco_header(REQUEST, page_title=page_title, javascripts=javascripts, init_qtip=init_qtip))
             if html_title:
                 H.append(html_title)
             H.append(self.html())
@@ -514,6 +532,8 @@ class GenTable:
                 return sco_excel.sendExcelFile(REQUEST, xls, filename + '.xls' )
             else:
                 return xls
+        elif format == 'text':
+            return self.text()
         elif format == 'xml':
             xml = self.xml()
             if REQUEST and publish:
@@ -525,6 +545,7 @@ class GenTable:
                 REQUEST.RESPONSE.setHeader('content-type', JSON_MIMETYPE)
             return js
         else:
+            log('make_page: format=%s' % format )
             raise ValueError('_make_page: invalid format')
 
 

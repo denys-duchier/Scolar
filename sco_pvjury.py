@@ -62,10 +62,14 @@ def descr_decisions_ues(znotes, decisions_ue, decision_sem):
         return ''
     uelist = []
     for ue_id in decisions_ue.keys():
-        if decisions_ue[ue_id]['code'] == 'ADM' \
-           or (CONFIG.CAPITALIZE_ALL_UES and sco_codes_parcours.code_semestre_validant(decision_sem['code'])):
-            ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-            uelist.append(ue)
+        try:
+            if decisions_ue[ue_id] and (decisions_ue[ue_id]['code'] == 'ADM' \
+               or (CONFIG.CAPITALIZE_ALL_UES and sco_codes_parcours.code_semestre_validant(decision_sem['code']))):
+                ue = znotes.do_ue_list( args={ 'ue_id' : ue_id } )[0]
+                uelist.append(ue)
+        except:
+            log('descr_decisions_ues: ue_id=%s decisions_ue=%s' % (ue_id, decisions_ue))
+            pass
     uelist.sort( lambda x,y: cmp(x['numero'],y['numero']) )
     ue_acros = ', '.join( [ ue['acronyme'] for ue in uelist ] )
     return ue_acros
@@ -111,11 +115,12 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     'formsemestre' : sem,
     'formation' : { 'acronyme' :, 'titre': ... }
     'decisions' : { [ { 'identite' : {'nom' :, 'prenom':,  ...,},
-                        'etat' : I ou D
+                        'etat' : I ou D ou DEF
                         'decision' : {'code':, 'code_prev': },
                         'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
                         'autorisations' : [ { 'semestre_id' : { ... } },
+                        'validation_parcours' : True si parcours validé (diplome obtenu)
                         'prev_code' : code (calculé slt si with_prev),
                         'mention' : mention (en fct moy gen)
                     ]
@@ -140,7 +145,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         semestre_non_terminal = semestre_non_terminal or Se.semestre_non_terminal
         d = {}
         d['identite'] = nt.identdict[etudid]
-        d['etat'] = nt.get_etud_etat(etudid) # I|D  (inscription ou démission)
+        d['etat'] = nt.get_etud_etat(etudid) # I|D|DEF  (inscription ou démission ou défaillant)
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
         if d['decision_sem']:
@@ -157,7 +162,6 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         
         d['validation_parcours'] = Se.parcours_validated()
         d['parcours'] = Se.get_parcours_descr(filter_futur=True)
-        
         # Observations sur les compensations:
         obs = ''
         compensators = sco_parcours_dut.scolar_formsemestre_validation_list(
@@ -214,8 +218,9 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
              'decisions' : L }
 
 
-def pvjury_table(context, dpv):
+def pvjury_table(context, dpv, only_diplome=False):
     """idem mais rend list de dicts
+    Si only_diplome, n'extrait que les etudiants qui valident leur diplome.
     """
     sem = dpv['formsemestre']
     if sem['semestre_id'] >= 0:
@@ -258,7 +263,8 @@ def pvjury_table(context, dpv):
             l['devenir'] = "Diplôme obtenu"
         if dpv['has_prev']:
             l['prev_decision'] = descr_decision_sem_abbrev(context, None, e['prev_decision_sem'])
-        lines.append(l)
+        if e['validation_parcours'] or not only_diplome:
+            lines.append(l)
     return lines, titles, columns_ids
 
     
@@ -295,10 +301,8 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     H = [ context.html_sem_header(
             REQUEST, 'Décisions du jury pour le semestre', sem,
-            javascripts=['jQuery/jquery.js', 
-                         'libjs/qtip/jquery.qtip.js',
-                         'js/etud_info.js'
-                         ],                
+            init_qtip = True,
+            javascripts=['js/etud_info.js'],
             ),
           """<p>(dernière modif le %s)</p>""" % dpv['date'] ]
     

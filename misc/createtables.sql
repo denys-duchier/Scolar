@@ -341,6 +341,7 @@ CREATE TABLE notes_formsemestre (
 	etape_apo text, -- code etape Apogée
 	etape_apo2 text,-- code etape Apogée secondaire (si deux etapes pour meme semestre)
 	etape_apo3 text,-- code etape Apogée secondaire (si trois etapes pour meme semestre)
+	etape_apo4 text,-- code etape Apogée secondaire (si quatre etapes pour meme semestre)
 	modalite text,   -- FI, FC, APP, ''
 	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
 	resp_can_change_ens integer default 1, -- autorise resp. a modifier slt les enseignants
@@ -397,7 +398,7 @@ CREATE TABLE notes_formsemestre_inscription (
 	formsemestre_inscription_id text default notes_newid2('SI') PRIMARY KEY,
 	etudid text REFERENCES identite(etudid),
 	formsemestre_id text REFERENCES notes_formsemestre(formsemestre_id),
-	etat text, -- I inscrit, D demission en cours de semestre
+	etat text, -- I inscrit, D demission en cours de semestre, DEF si "defaillant"
 	UNIQUE(formsemestre_id, etudid)
 ) WITH OIDS;
 
@@ -444,10 +445,10 @@ CREATE TABLE notes_evaluation (
 	description text,
 	note_max real,
 	coefficient real,
-        visibulletin integer default 1,
+    visibulletin integer default 1,
 	publish_incomplete integer default 0, -- prise en compte meme si incomplete
-	evaluation_type integer default 0 -- type d'evaluation: 0 normale, 1 rattrapage
-	--	numero_expr integer; idée abandonnée
+	evaluation_type integer default 0, -- type d'evaluation: 0 normale, 1 rattrapage
+    numero int -- ordre de presentation (le plus petit numero est normalement la plus ancienne eval)
 ) WITH OIDS;
 
 -- Les notes...

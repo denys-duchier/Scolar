@@ -150,7 +150,7 @@ def _results_by_category(etuds, category='', result='', category_name=None,
 def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
                         category='bac', result='codedecision', 
                         category_name='', result_name='',
-                        title='Statistiques'):    
+                        title='Statistiques', only_primo=None):    
     """
     Tableau sur résultats (result) par type de category bac
     """
@@ -172,6 +172,8 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
     tab.caption = 'Répartition des résultats par %s, semestre %s' % (category_name, sem['titreannee'])
     tab.html_caption = "Répartition des résultats par %s." % category_name
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
+    if only_primo:
+        tab.base_url += '&only_primo=on'
     return tab
 
 
@@ -205,7 +207,9 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,
                               category=category, result=result,
                               category_name=category_name,
-                              title=title)
+                              title=title,
+                              only_primo=only_primo
+        )
     if not etuds:
         F = [ """<p><em>Aucun étudiant</em></p>""" ]
     else:
@@ -214,10 +218,10 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
         else:
             # clés présentées à l'utilisateur:
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
-                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee' ]
+                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut' ]
         keys.sort()
         F = [ """<form name="f" method="get" action="%s"><p>
-              Colonnes: <select name="result" onChange="document.f.submit()">""" % REQUEST.URL0]
+              Colonnes: <select name="result" onchange="document.f.submit()">""" % REQUEST.URL0]
         for k in keys:
             if k == result:
                 selected = 'selected'
@@ -225,7 +229,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                 selected = ''
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
-        F.append(' Lignes: <select name="category" onChange="document.f.submit()">')
+        F.append(' Lignes: <select name="category" onchange="document.f.submit()">')
         for k in keys:
             if k == category:
                 selected = 'selected'
@@ -234,10 +238,10 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
             F.append('<option value="%s" %s>%s</option>' % (k,selected,k))
         F.append('</select>')
         if only_primo:
-            checked='checked=1'
+            checked='checked="1"'
         else:
             checked=''
-        F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+        F.append('<br/><input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
         F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)        
         F.append('</p></form>')
 
@@ -261,7 +265,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 # --------------------------------------------------------------------------
 def table_suivi_cohorte(context, formsemestre_id, percent=False,
                         bac='', # selection sur type de bac
-                        bacspecialite='', sexe='',
+                        bacspecialite='', sexe='', statut='',
                         only_primo=False
                         ):
     """
@@ -293,6 +297,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     bacs = Set()
     bacspecialites = Set()
     sexes = Set()
+    statuts = Set()
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         bacspe = etud['bac'] + ' / ' + etud['specialite']
@@ -300,6 +305,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         if ((not bac or (bac == etud['bac']))
             and (not bacspecialite or (bacspecialite == bacspe))
             and (not sexe or (sexe == etud['sexe']))
+            and (not statut or (statut == etud['statut']))
             and (not only_primo or context.isPrimoEtud(etud,sem))):
             orig_set.add(etudid)
             # semestres suivants:
@@ -309,6 +315,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         bacs.add(etud['bac'])
         bacspecialites.add(bacspe)
         sexes.add(etud['sexe'])
+        if etud['statut']: # ne montre pas les statuts non renseignés
+            statuts.add(etud['statut'])
     sems = S.values()
     # tri les semestres par date de debut
     for s in sems:
@@ -468,6 +476,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     else:
         pp = ''
         titles['row_title'] = ''
+    if only_primo:
+        pp += '(restreint aux primo-entrants) '
     if bac:
         dbac = ' (bacs %s)' % bac
     else:
@@ -476,6 +486,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         dbac += ' (spécialité %s)' % bacspecialite
     if sexe:
         dbac += ' genre: %s' % sexe
+    if statut:
+        dbac += ' statut: %s' % statut
     tab = GenTable( titles=titles, columns_ids=columns_ids,
                     rows=L, 
                     html_col_width='4em', html_sortable=True,
@@ -499,20 +511,22 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             expl.append(', '.join(ls) + '</li>')
         expl.append('</ul>')
     logt('Z: table_suivi_cohorte done')
-    return tab, '\n'.join(expl), bacs, bacspecialites, sexes
+    return tab, '\n'.join(expl), bacs, bacspecialites, sexes, statuts
 
 def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=1,
-                               bac='', bacspecialite='', sexe='',
+                               bac='', bacspecialite='', sexe='', statut='',
                                only_primo=False,
                                REQUEST=None):
     """Affiche suivi cohortes par numero de semestre
     """
     percent = int(percent)
     sem = context.get_formsemestre(formsemestre_id)
-    tab, expl, bacs, bacspecialites, sexes = table_suivi_cohorte(
+    tab, expl, bacs, bacspecialites, sexes, statuts = table_suivi_cohorte(
         context, formsemestre_id, percent=percent,
-        bac=bac, bacspecialite=bacspecialite, sexe=sexe, only_primo=only_primo)
+        bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut, only_primo=only_primo)
     tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
+    if only_primo:
+        tab.base_url += '&only_primo=on'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
@@ -523,10 +537,12 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     bacspecialites.sort()
     sexes = list(sexes)
     sexes.sort()
+    statuts = list(statuts)
+    statuts.sort()
 
     base_url = REQUEST.URL0
-    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s' % (
-        base_url, formsemestre_id, bac, bacspecialite, sexe)
+    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s&statut=%s' % (
+        base_url, formsemestre_id, bac, bacspecialite, sexe, statut)
     if percent:
         pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
     else:
@@ -542,7 +558,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     else:
         selected = 'selected'
     F = [ """<form name="f" method="get" action="%s">
-    <p>Bac: <select name="bac" onChange="document.f.submit()">
+    <p>Bac: <select name="bac" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % (base_url,selected) ]
     for b in bacs:
@@ -556,7 +572,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         selected = ''
     else:
         selected = 'selected'
-    F.append("""&nbsp; Bac/Specialité: <select name="bacspecialite" onChange="document.f.submit()">
+    F.append("""&nbsp; Bac/Specialité: <select name="bacspecialite" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % selected)
     for b in bacspecialites:
@@ -566,7 +582,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
             selected = ''
         F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
     F.append('</select>')
-    F.append("""&nbsp; Genre: <select name="sexe" onChange="document.f.submit()">
+    F.append("""&nbsp; Genre: <select name="sexe" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % selected)
     for b in sexes:
@@ -576,11 +592,23 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
             selected = ''
         F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
     F.append('</select>')
+    
+    F.append("""&nbsp; Statut: <select name="statut" onchange="document.f.submit()">
+    <option value="" %s>tous</option>
+    """ % selected)
+    for b in statuts:
+        if statut == b:
+            selected = 'selected'
+        else:
+            selected = ''
+        F.append('<option value="%s" %s>%s</option>' % (b, selected, b))
+    F.append('</select>')
+
     if only_primo:
         checked='checked=1'
     else:
         checked=''
-    F.append('<br/><input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+    F.append('<br/><input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="percent" value="%s"/>' % percent)
     F.append('</p></form>')
@@ -770,12 +798,12 @@ def tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, form
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="only_primo" onChange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
+    F.append('<input type="checkbox" name="only_primo" onchange="document.f.submit()" %s>Restreindre aux primo-entrants</input>' % checked)
     if no_grouping:
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="no_grouping" onChange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
+    F.append('<input type="checkbox" name="no_grouping" onchange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="format" value="%s"/>' % format)
     F.append("""</form>""")
@@ -799,10 +827,9 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     F = [ tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format) ]    
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title,
-                             javascripts=['jQuery/jquery.js', 
-                                          'libjs/qtip/jquery.qtip.js',
-                                          'js/etud_info.js'
-                                          ], ),
+                             init_qtip = True,
+                             javascripts=['js/etud_info.js']
+                             ),
           """<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>""",
           '\n'.join(F),
           t, 
@@ -811,28 +838,28 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     return '\n'.join(H)
 
 # -------------
-def graph_parcours(context, formsemestre_id, format='svg'):
+def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
     """
     """
     if not WITH_PYDOT:
         raise ScoValueError('pydot module is not installed')
     sem = context.get_formsemestre(formsemestre_id)
-    nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, 
-    etudids = nt.get_etudids()
-    log('graph_parcours: %s etuds' % len(etudids))
-    if not etudids:
+    etuds = tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
+    log('graph_parcours: %s etuds (only_primo=%s)' % (len(etuds), only_primo))
+    if not etuds:
         return ''
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
+    decisions = DictDefault(defaultvalue={}) # formsemestre_id : { code : nb_etud } 
     isolated_nodes = []
     connected_nodes = Set()
     diploma_nodes = []
     dem_nodes = {} # formsemestre_id : noeud pour demissionnaires
     nar_nodes = {} # formsemestre_id : noeud pour NAR
-    for etudid in etudids:
-        etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+    for etud in etuds:
         next = None
+        etudid = etud['etudid']
         for s in etud['sems']: # du plus recent au plus ancien
             nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_decision_sem, get_etud_etat
             dec = nt.get_etud_decision_sem(etudid)
@@ -849,16 +876,24 @@ def graph_parcours(context, formsemestre_id, format='svg'):
             sems[s['formsemestre_id']] = s
             effectifs[s['formsemestre_id']].add(etudid)
             next = s
+            # Compte decisions jury de chaque semestres:
+            dc = decisions[s['formsemestre_id']]
+            if dec:
+                if dec['code'] in dc:
+                    dc[dec['code']] += 1
+                else:
+                    dc[dec['code']] = 1
             # ajout noeud pour demissionnaires
             if nt.get_etud_etat(etudid) == 'D':
                 nid = '_dem_' + s['formsemestre_id']
                 dem_nodes[s['formsemestre_id']] = nid
                 edges[(s['formsemestre_id'], nid)].add(etudid)
             # ajout noeud pour NAR (seulement pour noeud de depart)
-            if s['formsemestre_id'] == formsemestre_id and dec and dec['code'] == 'NAR':
-                nid = '_nar_' + s['formsemestre_id']
-                nar_nodes[s['formsemestre_id']] = nid
-                edges[(s['formsemestre_id'], nid)].add(etudid)
+            #if s['formsemestre_id'] == formsemestre_id and dec and dec['code'] == 'NAR':
+            #    nid = '_nar_' + s['formsemestre_id']
+            #    nar_nodes[s['formsemestre_id']] = nid
+            #    edges[(s['formsemestre_id'], nid)].add(etudid)
+            
             # si "terminal", ajoute noeud pour diplomes
             if s['semestre_id'] == nt.parcours.NB_SEM:                
                 if dec and code_semestre_validant(dec['code']) and nt.get_etud_etat(etudid) == 'I':
@@ -952,8 +987,12 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         data = exp.sub(repl, data)
         # Substitution des titres des boites (semestres)
         exp1 = re.compile(r'<a xlink:href="formsemestre_status\?formsemestre_id=(?P<fid>\w*).*?".*?xlink:title="(?P<title>.*?)"', re.M|re.DOTALL)
-        def repl_title(m):            
-            return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (m.group('fid'), suppress_accents(sems[m.group('fid')]['titreannee'])) # evite accents car svg utf-8 vs page en latin1...
+        def repl_title(m):
+            fid = m.group('fid')
+            title = sems[fid]['titreannee']
+            if decisions[fid]:
+                title += (' (' + str(decisions[fid]) + ')').replace('{','').replace("'", "")
+            return '<a xlink:href="formsemestre_status?formsemestre_id=%s" xlink:title="%s"' % (fid, suppress_accents(title)) # evite accents car svg utf-8 vs page en latin1...
         data = exp1.sub(repl_title, data)
         # Substitution de Arial par Helvetica (new prblem in Debian 5) ???
         # bug turnaround: il doit bien y avoir un endroit ou regler cela ?
@@ -962,28 +1001,38 @@ def graph_parcours(context, formsemestre_id, format='svg'):
         
     return data
 
-def formsemestre_graph_parcours(context, formsemestre_id, format='html', REQUEST=None):
+def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_primo=False, REQUEST=None):
     """Graphe suivi cohortes
     """
     sem = context.get_formsemestre(formsemestre_id)
     if format == 'pdf':
-        doc = graph_parcours(context, formsemestre_id, format='pdf')
+        doc = graph_parcours(context, formsemestre_id, format='pdf', only_primo=only_primo)
         filename = make_filename('flux ' + sem['titreannee'])
         return sco_pdf.sendPDFFile(REQUEST, doc, filename + '.pdf' )
     elif format == 'png':
         # 
-        doc = graph_parcours(context, formsemestre_id, format='png')
+        doc = graph_parcours(context, formsemestre_id, format='png', only_primo=only_primo)
         filename = make_filename('flux ' + sem['titreannee'])
         REQUEST.RESPONSE.setHeader('content-disposition', 'attachment; filename="%s"' % filename)
         REQUEST.RESPONSE.setHeader('content-type', 'image/png' )
         return doc
     elif format == 'html':
         url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format="%sem)
+        if only_primo:
+            checked='checked="1"'
+        else:
+            checked=''
+        
         H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
               """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
 
-              graph_parcours(context, formsemestre_id),
+              graph_parcours(context, formsemestre_id, only_primo=only_primo),
 
+              """<form name="f_op" id="f_op" method="get" action="%s"><p>
+              <input type="checkbox" name="only_primo" onchange="document.getElementById('f_op').submit();" %s/>Restreindre aux primo-entrants</p>
+              <input type="hidden" name="formsemestre_id" value="%s"/>
+              </form>""" % (REQUEST.URL0, checked, formsemestre_id),
+              
               """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
               # En Debian 4, dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot
               # mais c'est OK en Debian 5

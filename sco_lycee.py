@@ -67,9 +67,11 @@ def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
-    H = [ context.sco_header(REQUEST, page_title=tab.page_title, init_google_maps=True,init_jquery_ui=True,
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title,
+                             init_google_maps=True,
+                             init_jquery_ui=True,
+                             init_qtip = True,
                              javascripts=[
-                                 'libjs/qtip/jquery.qtip.js',
                                  'js/etud_info.js',
                                  'js/map_lycees.js'
                                  ], ),
@@ -150,9 +152,11 @@ def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
     if format != 'html':
         return t
     F = [ sco_report.tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, format) ]    
-    H = [ context.sco_header(REQUEST, page_title=tab.page_title, init_google_maps=True,init_jquery_ui=True,
+    H = [ context.sco_header(REQUEST, page_title=tab.page_title,
+                             init_google_maps=True,
+                             init_jquery_ui=True,
+                             init_qtip = True,
                              javascripts=[
-                                 'libjs/qtip/jquery.qtip.js',
                                  'js/etud_info.js',
                                  'js/map_lycees.js'
                                  ], ),

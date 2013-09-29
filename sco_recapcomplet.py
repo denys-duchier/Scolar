@@ -59,9 +59,8 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H += [ context.sco_header(REQUEST, 
                                   page_title='Récapitulatif', 
                                   no_side_bar=True,
-                                  javascripts=['jQuery/jquery.js', 
-                                               'libjs/qtip/jquery.qtip.js',
-                                               'js/etud_info.js']
+                                  init_qtip = True,
+                                  javascripts=['js/etud_info.js'],
                                   ),
                sco_formsemestre_status.formsemestre_status_head(
                 context, formsemestre_id=formsemestre_id, REQUEST=REQUEST),
@@ -69,7 +68,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
                  '<input type="hidden" name="formsemestre_id" value="%s"></input>' % formsemestre_id ]
         if modejury:
             H.append('<input type="hidden" name="modejury" value="%s"></input>' % modejury)
-        H.append('<select name="tabformat" onChange="document.f.submit()" class="noprint">')
+        H.append('<select name="tabformat" onchange="document.f.submit()" class="noprint">')
         for (format, label) in (('html', 'HTML'), 
                                 ('xls', 'Fichier tableur (Excel)'),
                                 ('xlsall', 'Fichier tableur avec toutes les évals'),
@@ -83,7 +82,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append('</select>')
         
         H.append("""(cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="%s/Notes/formsemestre_bulletins_pdf?formsemestre_id=%s">ici avoir le classeur papier</a>)""" % (context.ScoURL(), formsemestre_id))
-        H.append( """<input type="checkbox" name="hidemodules" value="1" onChange="document.f.submit()" """)
+        H.append( """<input type="checkbox" name="hidemodules" value="1" onchange="document.f.submit()" """)
         if hidemodules:
             H.append('checked')
         H.append(""" >cacher les modules</input>""")
@@ -218,6 +217,7 @@ def make_formsemestre_recapcomplet(
                             e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
                         mod_evals[modimpl['moduleimpl_id']] = evals
                         h += _list_notes_evals_titles(context, code, evals)
+    h += ['code_nip', 'etudid']
     F.append(h)
     
     ue_index = [] # indices des moy UE dans l (pour appliquer style css)
@@ -238,9 +238,13 @@ def make_formsemestre_recapcomplet(
         dec = nt.get_etud_decision_sem(etudid)
         if dec:
             codes_nb[dec['code']] += 1
-        if nt.get_etud_etat(etudid) == 'D':
-            gr_name = 'dem'
+        etud_etat = nt.get_etud_etat(etudid)
+        if etud_etat == 'D':
+            gr_name = 'Dém.'
             is_dem[etudid] = True
+        elif etud_etat == 'DEF':
+            gr_name = 'Déf.'
+            is_dem[etudid] = False
         else:
             group = sco_groups.get_etud_main_group(context, etudid, sem)
             gr_name = group['group_name'] or ''
@@ -292,6 +296,7 @@ def make_formsemestre_recapcomplet(
                         if format == 'xlsall':
                             l += _list_notes_evals(context, mod_evals[modimpl['moduleimpl_id']], etudid)
                     j += 1
+        l.append(nt.identdict[etudid]['code_nip'] or '') # avant-derniere colonne = code_nip
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
     # Dernière ligne: moyennes, min et max des UEs et modules
@@ -312,7 +317,7 @@ def make_formsemestre_recapcomplet(
                 l += [ '' ] # rangs dans les groupes
         for ue in ues:
             if ue['type'] != UE_SPORT:
-                if key == 'coef':
+                if key == 'coef' or key == 'nb_valid_evals':
                     l.append('')
                 else:
                     l.append( fmt_note(ue[key], keep_numeric=keep_numeric) ) 
@@ -330,18 +335,25 @@ def make_formsemestre_recapcomplet(
                                 coef = str(coef)
                             l.append(coef)
                         else:
-                            l.append(fmt_note(mods_stats[modimpl['moduleimpl_id']][key],
-                                              keep_numeric=keep_numeric)) # moyenne du module
+                            val = mods_stats[modimpl['moduleimpl_id']][key]
+                            if key == 'nb_valid_evals':
+                                if format[:3] != 'xls': # garde val numerique pour excel
+                                    val = str(val)
+                            else: # moyenne du module
+                                val = fmt_note(val, keep_numeric=keep_numeric)
+                            l.append(val) 
+                            
                         if format == 'xlsall':
                             l += _list_notes_evals_stats(context, mod_evals[modimpl['moduleimpl_id']], key)
         if modejury:
             l.append('') # case vide sur ligne "Moyennes"
-        F.append(l + [''] ) # ajoute cellule etudid inutilisee ici
+        F.append(l + ['', ''] ) # ajoute cellules code_nip et etudid inutilisees ici
     
-    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'min', 'Min')
     add_bottom_stat( 'max', 'Max')
+    add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'coef', 'Coef')
+    add_bottom_stat( 'nb_valid_evals', 'Nb évals')
     
     # Generation table au format demandé
     if format == 'html':
@@ -367,7 +379,7 @@ def make_formsemestre_recapcomplet(
             lnk = document.getElementById("recap_trtit").childNodes[clid].childNodes[0];
             ts_resortTable(lnk,clid);
             // Scroll window:
-            eid = document.location.hash
+            eid = document.location.hash;
             if (eid) {
               var eid = eid.substring(1); // remove #
               var e = document.getElementById(eid);
@@ -382,7 +394,7 @@ def make_formsemestre_recapcomplet(
             </script>
             """ % (int(sortcol)) )
         cells = '<tr class="recap_row_tit sortbottom" id="recap_trtit">'
-        for i in range(len(F[0])):
+        for i in range(len(F[0])-2):
             if i in ue_index:
                 cls = 'recap_tit_ue'
             else:
@@ -390,10 +402,12 @@ def make_formsemestre_recapcomplet(
             if i == 0: # Rang: force tri numerique pour sortable
                 cls = cls + ' sortnumeric'
             if cod2mod.has_key(F[0][i]): # lien vers etat module
-                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>' % (
+                mod = cod2mod[F[0][i]]
+                cells += '<td class="%s"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s (%s)">%s</a></td>' % (
                     cls,
-                    cod2mod[F[0][i]]['moduleimpl_id'],
-                    cod2mod[F[0][i]]['module']['titre'],
+                    mod['moduleimpl_id'],
+                    mod['module']['titre'],
+                    context.Users.user_info(mod['responsable_id'])['nomcomplet'],
                     F[0][i])
             else:
                 cells += '<td class="%s">%s</td>' % (cls, F[0][i])
@@ -409,9 +423,10 @@ def make_formsemestre_recapcomplet(
         nblines = len(F)-1
         for l in F[1:]:
             etudid = l[-1]
-            if ir >= nblines-4:
-                el = l[1] # derniere ligne
-                styl = ( 'recap_row_moy', 'recap_row_min', 'recap_row_max')[ir-nblines+3]
+            if ir >= nblines-5:
+                # dernieres lignes:
+                el = l[1] 
+                styl = ('recap_row_min', 'recap_row_max', 'recap_row_moy', 'recap_row_coef', 'recap_row_nbeval')[ir-nblines+5]
                 cells = '<tr class="%s sortbottom">' % styl
             else:
                 el = etudlink % { 'formsemestre_id' : formsemestre_id, 'etudid' : etudid, 'name' : l[1],
@@ -421,11 +436,11 @@ def make_formsemestre_recapcomplet(
                 else:
                     cells = '<tr class="recap_row_odd" id="etudid%s">' % etudid
             ir += 1
-            nsn = [ x.replace('NA0', '-') for x in l[:-1] ] # notes sans le NA0
+            nsn = [ x.replace('NA0', '-') for x in l[:-2] ] # notes sans le NA0
             cells += '<td class="recap_col">%s</td>' % nsn[0] # rang
             cells += '<td class="recap_col">%s</td>' % el # nom etud (lien)
             cells += '<td class="recap_col">%s</td>' % nsn[2] # group name
-            # grise si moyenne generale < barre
+            # Style si moyenne generale < barre
             cssclass = 'recap_col_moy'
             try:
                 if float(nsn[3]) < NOTES_BARRE_GEN:
@@ -441,7 +456,7 @@ def make_formsemestre_recapcomplet(
                     ue = ues[ue_number]
                     ue_number += 1
                     
-                    if ir < nblines - 2:
+                    if (ir < (nblines-5)) or (ir == nblines - 2):
                         try:                            
                             if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']): # NOTES_BARRE_UE
                                 cssclass = 'recap_col_ue_inf'
@@ -451,6 +466,12 @@ def make_formsemestre_recapcomplet(
                             pass
                 else:
                     cssclass = 'recap_col'
+                    if ir == nblines - 2: # si moyenne generale module < barre ue, surligne:
+                        try:
+                            if float(nsn[i]) < nt.parcours.get_barre_ue(ue['type']):
+                                cssclass = 'recap_col_moy_inf'
+                        except:
+                            pass
                 cells += '<td class="%s">%s</td>' % (cssclass,nsn[i])
             if modejury and etudid:
                 decision_sem = nt.get_etud_decision_sem(etudid)
@@ -469,7 +490,7 @@ def make_formsemestre_recapcomplet(
                     cells += ''' <a href="#" onclick="va_saisir('%s', '%s')">%s</a>''' % (formsemestre_id, etudid, act)
                 cells += '</td>'
             H.append( cells + '</tr>' )
-            #H.append( '<tr><td class="recap_col">%s</td><td class="recap_col">%s</td><td class="recap_col">' % (l[0],el) +  '</td><td class="recap_col">'.join(nsn) + '</td></tr>')
+        
         H.append( ligne_titres )
         H.append('</table>')
         
@@ -480,14 +501,14 @@ def make_formsemestre_recapcomplet(
                 checked = 'checked'
             else:
                 checked = ''
-            H.append('<input type="radio" name="rank_partition_id" value="" onChange="document.f.submit()" %s/>tous ' 
+            H.append('<input type="radio" name="rank_partition_id" value="" onchange="document.f.submit()" %s/>tous ' 
                      %(checked))
             for p in partitions:
                 if p['partition_id'] == rank_partition_id:
                     checked = 'checked'
                 else:
                     checked = ''
-                H.append('<input type="radio" name="rank_partition_id" value="%s" onChange="document.f.submit()" %s/>%s ' 
+                H.append('<input type="radio" name="rank_partition_id" value="%s" onchange="document.f.submit()" %s/>%s ' 
                          %(p['partition_id'], checked, p['partition_name']))
         
         # recap des decisions jury (nombre dans chaque code):
@@ -500,7 +521,7 @@ def make_formsemestre_recapcomplet(
             H.append('</table>')
         return '\n'.join(H), '', 'html'
     elif format == 'csv':
-        CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x[:-1]) for x in F ] )
+        CSV = CSV_LINESEP.join( [ CSV_FIELDSEP.join(x) for x in F ] )
         semname = sem['titre_num'].replace( ' ', '_' )
         date = time.strftime( '%d-%m-%Y')
         filename = 'notes_modules-%s-%s.csv' % (semname,date)
@@ -513,8 +534,8 @@ def make_formsemestre_recapcomplet(
         else:
             filename = 'notes_modules_evals-%s-%s.xls' % (semname,date)
         xls = sco_excel.Excel_SimpleTable(
-            titles= ['etudid'] + F[0],
-            lines = [ [x[-1]] + x[:-1] for x in F[1:] ], # reordonne cols (etudid en 1er)
+            titles= ['etudid', 'code_nip' ] + F[0],
+            lines = [ [x[-1], x[-2] ] + x[:-2] for x in F[1:] ], # reordonne cols (etudid et nip en 1er)
             SheetName = 'notes %s %s' % (semname,date) )
         return xls, filename, 'xls'
     else:

@@ -43,6 +43,7 @@ AJ ='AJ'
 CMP='CMP' # utile pour UE seulement
 NAR='NAR'
 RAT='RAT' # en attente rattrapage, pas dans Apogée
+DEF = 'DEF' # défaillance (b'est pas un code jury dans scodoc mais un état, comme inscrit ou demission)
 
 # codes actions
 REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
@@ -68,6 +69,7 @@ CODES_EXPL = {
     AJ  : 'Ajourné (échec)',
     NAR : 'Echec, non autorisé à redoubler',
     RAT : "En attente d'un rattrapage",
+    DEF : "Défaillant"
     }
 
 CODES_SEM_VALIDES = { ADM : True, ADC : True, ADJ : True } # semestre validé

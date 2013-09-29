@@ -111,8 +111,14 @@ def formsemestre_validation_etud_form(
              % (context.ScoURL(), etudid,    
                 sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST)))
 
-    if nt.get_etud_etat(etudid) == 'D':
+    etud_etat = nt.get_etud_etat(etudid)
+    if etud_etat == 'D':
         H.append('<div class="ue_warning"><span>Etudiant démissionnaire</span></div>')
+    if etud_etat == 'DEF':
+        H.append('<div class="ue_warning"><span>Etudiant défaillant</span></div>')
+    if etud_etat != 'I':
+        H.append(tf_error_message("""Impossible de statuer sur cet étudiant: il est démissionnaire ou défaillant (voir <a href="%s/ficheEtud?etudid=%s">sa fiche</a>)""" % (context.ScoURL(), etudid)))
+        return '\n'.join(H+Footer)
     
     H.append( formsemestre_recap_parcours_table(context, Se, etudid, with_links=(check and not readonly)) )
     if check:
@@ -224,6 +230,8 @@ def formsemestre_validation_etud_form(
     H.append('</form>')
 
     H.append( form_decision_manuelle(context, Se, formsemestre_id, etudid) )
+
+    H.append( """<div class="link_defaillance">Ou <a class="stdlink" href="formDef?etudid=%s&formsemestre_id=%s">déclarer l'étudiant comme défaillant dans ce semestre</a></div>""" % (etudid, formsemestre_id) )
 
     H.append('<p style="font-size: 50%;">Formation ' )
     if Se.sem['gestion_semestrielle'] == '1':

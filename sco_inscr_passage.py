@@ -110,8 +110,9 @@ def list_etuds_from_sem(context, src, dst):
     dpv = sco_pvjury.dict_pvjury(context, src['formsemestre_id'])
     if not dpv:
         return []
-    return [ x['identite'] for x in dpv['decisions']
-             if target in [ a['semestre_id'] for a in x['autorisations'] ] ]
+    etuds = [ x['identite'] for x in dpv['decisions']
+              if target in [ a['semestre_id'] for a in x['autorisations'] ] ]
+    return etuds
 
 def list_inscrits_date(context, sem):
     """Liste les etudiants inscrits dans n'importe quel semestre
@@ -375,6 +376,8 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
         infos['comment'] = infos.get('comment', '') # commentaire dans sous-titre boite
         help = infos.get('help', '')
         etuds = auth_etuds_by_cat[src_cat]['etuds']
+        etuds.sort( lambda x,y: cmp(x['nom'], y['nom']) )
+        
         with_checkbox = auth_etuds_by_cat[src_cat]['infos'].get('with_checkbox', True)
         checkbox_name = auth_etuds_by_cat[src_cat]['infos'].get('checkbox_name', 'etuds')
         etud_key = auth_etuds_by_cat[src_cat]['infos'].get('etud_key', 'etudid')

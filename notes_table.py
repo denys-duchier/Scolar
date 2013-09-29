@@ -131,7 +131,7 @@ class NotesTable:
 
         self.bonus = DictDefault(defaultvalue=0)
         # Notes dans les modules  { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
-        self._modmoys, self._modimpls, valid_evals, mods_att, self.expr_diagnostics =\
+        self._modmoys, self._modimpls, self._valid_evals_per_mod, valid_evals, mods_att, self.expr_diagnostics =\
             sco_compute_moy.do_formsemestre_moyennes(context, formsemestre_id)
         self._mods_att = mods_att # liste des modules avec des notes en attente
         self._matmoys = {} # moyennes par matieres
@@ -288,7 +288,7 @@ class NotesTable:
         return self.identdict[etudid]['code_nip'] or self.identdict[etudid]['etudid'] 
     
     def get_etud_etat(self, etudid):
-        "Etat de l'etudiant: 'I', 'D' ou '' (si pas connu dans ce semestre)"
+        "Etat de l'etudiant: 'I', 'D', 'DEF' ou '' (si pas connu dans ce semestre)"
         if self.inscrdict.has_key(etudid):
             return self.inscrdict[etudid]['etat']
         else:
@@ -300,6 +300,8 @@ class NotesTable:
             return ''
         elif etat == 'D':
             return ' <font color="red">(DEMISSIONNAIRE)</font> '
+        elif etat == 'DEF':
+            return ' <font color="red">(DEFAILLANT)</font> '
         else:
             return ' <font color="red">(%s)</font> ' % etat
         
@@ -372,7 +374,7 @@ class NotesTable:
         moys = self._modmoys[moduleimpl_id]
         vals = []
         for etudid in self.get_etudids():
-            # saute les demissionnaires:
+            # saute les demissionnaires et les défaillants:
             if self.inscrdict[etudid]['etat'] != 'I':
                 continue
             val = moys.get(etudid, None) # None si non inscrit
@@ -388,7 +390,9 @@ class NotesTable:
         else:
             moy, min_note, max_note = 'NA', '-', '-'
         s = { 'moy' : moy, 'max' : max_note, 'min' : min_note,
-              'nb_notes' : nb_notes, 'nb_missing' : nb_missing }
+              'nb_notes' : nb_notes, 'nb_missing' : nb_missing,
+              'nb_valid_evals' : len(self._valid_evals_per_mod[moduleimpl_id])
+              }
         self.moduleimpl_stats[moduleimpl_id] = s
         return s
     
@@ -407,9 +411,10 @@ class NotesTable:
         T = self.get_table_moyennes_triees()
         for t in T:
             etudid = t[-1]
-            # saute les demissionnaires:
+            # saute les demissionnaires et les défaillants:
             if self.inscrdict[etudid]['etat'] != 'I':
-                nb_dem += 1
+                if self.inscrdict[etudid]['etat'] == 'D':
+                    nb_dem += 1
                 continue
             try:
                 sum_moy += float(t[0])
@@ -719,6 +724,7 @@ class NotesTable:
         decisions_jury = { etudid : { 'code' : None|'ATT'|..., 'assidu' : 0|1 }}
         decision_jury_ues={ etudid : { ue_id : { 'code' : Note|ADM|CMP, 'event_date' }}}
         Si la decision n'a pas été prise, la clé etudid n'est pas présente.
+        Si l'étudiant est défaillant, met un code DEF sur toutes les UE
         """
         cnx = self.context.GetDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
@@ -727,8 +733,9 @@ class NotesTable:
         decisions_jury = {}
         for (etudid, code, assidu, compense_formsemestre_id, event_date) in cursor.fetchall():
             decisions_jury[etudid] = {'code' : code, 'assidu' : assidu,
-                                      'compense_formsemestre_id' : compense_formsemestre_id,
-                                      'event_date' : DateISOtoDMY(event_date) }
+                        'compense_formsemestre_id' : compense_formsemestre_id,
+                        'event_date' : DateISOtoDMY(event_date) }
+        
         self.decisions_jury = decisions_jury
         # UEs:
         cursor.execute("select etudid, ue_id, code, event_date from scolar_formsemestre_validation where formsemestre_id=%(formsemestre_id)s and ue_id is not NULL;",
@@ -737,21 +744,31 @@ class NotesTable:
         for (etudid, ue_id, code, event_date) in cursor.fetchall():
             if not decisions_jury_ues.has_key(etudid):
                 decisions_jury_ues[etudid] = {}
-            decisions_jury_ues[etudid][ue_id] = {'code' : code, 
-                                                 'event_date' : DateISOtoDMY(event_date)}
+            decisions_jury_ues[etudid][ue_id] = {'code' : code,
+                                                 'event_date' : DateISOtoDMY(event_date) }
+        
         self.decisions_jury_ues = decisions_jury_ues
     
     def get_etud_decision_sem(self, etudid):
         """Decision du jury prise pour cet etudiant, ou None s'il n'y en pas eu.
-        { 'code' : None|'ATT'|..., 'assidu' : 0|1, 'event_date' : }
-        """        
-        return self.decisions_jury.get(etudid, None)
+        { 'code' : None|'ATT'|..., 'assidu' : 0|1, 'event_date' : , compense_formsemestre_id }
+        Si état défaillant, force le code a DEF
+        """
+        if self.get_etud_etat(etudid) == 'DEF':
+            return { 'code' : 'DEF', 'assidu' : 0,
+                     'event_date' : '', 'compense_formsemestre_id' : None }
+        else:
+            return self.decisions_jury.get(etudid, None)
 
     def get_etud_decision_ues(self, etudid):
         """Decisions du jury pour les UE de cet etudiant, ou None s'il n'y en pas eu.
         { ue_id : { 'code' : ADM|CMP|AJ, 'event_date' : }
+        Ne renvoie aucune decision d'UE pour les défaillants
         """
-        return self.decisions_jury_ues.get(etudid, None)
+        if self.get_etud_etat(etudid) == 'DEF':
+            return {}
+        else:
+            return self.decisions_jury_ues.get(etudid, None)
 
     # Capitalisation des UEs
     def comp_ue_capitalisees(self):

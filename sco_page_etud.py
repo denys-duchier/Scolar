@@ -64,7 +64,15 @@ def _menuScolarite(context, authuser, sem, etudid):
     else:
         dem_title = 'Annuler la démission'
         dem_url = 'doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
-    
+
+    # Note: seul un etudiant inscrit (I) peut devenir défaillant.
+    if ins['etat'] != 'DEF':
+        def_title = 'Déclarer défaillance'
+        def_url = 'formDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+    elif ins['etat'] == 'DEF':
+        def_title = 'Annuler la défaillance'
+        def_url = 'doCancelDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+    def_enabled = (ins['etat'] != 'D') and authuser.has_permission(ScoEtudInscrit,context) and not locked
     items = [
 #        { 'title' : 'Changer de groupe',
 #          'url' : 'formChangeGroup?etudid=%s&formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
@@ -78,11 +86,15 @@ def _menuScolarite(context, authuser, sem, etudid):
           'url' : "Notes/formsemestre_validation_etud_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
+        { 'title' : def_title,
+          'url' : def_url,
+          'enabled' : def_enabled
+        },
         { 'title' : "Inscrire à un module optionnel (ou au sport)",
           'url' : "Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
-        { 'title' : "désinscrire (en cas d'erreur)",
+        { 'title' : "Désinscrire (en cas d'erreur)",
           'url' : "Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
@@ -144,7 +156,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         info['last_formsemestre_id'] = ''
     sem_info={}
     for sem in info['sems']: 
-        if sem['ins']['etat'] == 'D':
+        if sem['ins']['etat'] != 'I':
             descr, junk = etud_descr_situation_semestre(context.Notes, etudid, sem['formsemestre_id'], info['ne'], show_date_inscr=False)
             grlink = '<span class="fontred">%s</span>' % descr['situation']
         else:       
@@ -358,10 +370,11 @@ def etud_info_html(context, etudid, REQUEST=None, debug=False):
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
+    
     etud['photo_html'] = photo_html
     H = """<div class="etud_info_div">
     <div class="eid_left">
-    <span class="eid_nom">%(nomprenom)s</span>
+     <span class="eid_nom">%(nomprenom)s</span>
     </div>
     <span class="eid_right">
     %(photo_html)s

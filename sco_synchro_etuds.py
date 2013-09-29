@@ -83,10 +83,12 @@ def formsemestre_synchro_etuds(
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
     if sem['etape_apo3']:
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo3']
+    if sem['etape_apo4']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo4']
     # -- check lock
     if sem['etat'] != '1':
         raise ScoValueError('opération impossible: semestre verrouille')
-    if not sem['etape_apo'] and not sem['etape_apo2'] and not sem['etape_apo3']:
+    if not sem['etape_apo'] and not sem['etape_apo2'] and not sem['etape_apo3'] and not sem['etape_apo4']:
         raise ScoValueError("""opération impossible: ce semestre n'a pas de code étape
         (voir "<a href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier ce semestre</a>")
         """ % sem )
@@ -229,6 +231,8 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
     if sem['etape_apo3']:
         sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo3']
+    if sem['etape_apo4']:
+        sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo4']
     H = [
         """<h2 class="formsemestre">Synchronisation des étudiants du semestre avec Apogée</h2>""",
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
@@ -278,7 +282,7 @@ def list_synch(context, sem, anneeapogee=None):
 #         if e[EKEY_SCO]:
 #             allinscrits_set.add(e[EKEY_SCO])
 
-    etapes = set((sem['etape_apo'], sem['etape_apo2'], sem['etape_apo3']))
+    etapes = set((sem['etape_apo'], sem['etape_apo2'], sem['etape_apo3'], sem['etape_apo4']))
     etudsapo_set = set()
     etudsapo_ident = {}
     for etape in etapes:
@@ -424,13 +428,13 @@ def formsemestre_synchro_etuds_help(context, sem):
 
 
 def gender2sex(gender):
-    """Le portail code en 'M', 'F', et ScoDoc en 'MR', 'MME', 'MLLE'
-    Les F sont ici codées en MLLE
+    """Le portail code en 'M', 'F', et ScoDoc en 'MR', 'MME'
+    Les F sont ici codées en MME
     """
     if gender == 'M':
         return 'MR'
     elif gender == 'F':
-        return 'MLLE'
+        return 'MME'
     log('gender2sex: invalid value "%s", defaulting to "M"' % gender)
     return 'MR'
 

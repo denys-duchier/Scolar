@@ -49,11 +49,15 @@ class ScoDocJSONEncoder(json.JSONEncoder):
 
 def make_json_formsemestre_bulletinetud(
         context, formsemestre_id,  etudid, REQUEST=None,
-        xml_with_decisions=False, version='long'):
+        xml_with_decisions=False, version='long',
+        force_publishing=False # force publication meme si semestre non publie sur "portail"
+        ):
     """Renvoie bulletin en chaine JSON"""
     
     d = formsemestre_bulletinetud_published_dict(
-        context, formsemestre_id,  etudid, REQUEST=REQUEST,
+        context, formsemestre_id,  etudid,
+        force_publishing=force_publishing,
+        REQUEST=REQUEST,
         xml_with_decisions=xml_with_decisions, version=version)
     
     if REQUEST:
@@ -94,7 +98,9 @@ def formsemestre_bulletinetud_published_dict(
               publie=published,
               etape_apo=sem['etape_apo'] or '',
               etape_apo2=sem['etape_apo2'] or '',
-              etape_apo3=sem['etape_apo3'] or '')
+              etape_apo3=sem['etape_apo3'] or '',
+              etape_apo4=sem['etape_apo4'] or ''
+        )
     
     # Infos sur l'etudiant
     etudinfo = context.getEtudInfo(etudid=etudid,filled=1)[0]

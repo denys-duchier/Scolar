@@ -394,11 +394,13 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
     # fill matrix 
     sheet_name, values = P[0]
     sheet_name = sheet_name.encode(SCO_ENCODING, 'backslashreplace')
-    # diag.append(str(values))
+    if not values:
+        diag.append('Aucune valeur trouvée dans le classeur !')
+        return diag, None
     indexes = values.keys()
     # search numbers of rows and cols
-    rows = [ x[0] for x in values.keys() ]
-    cols = [ x[1] for x in values.keys() ]
+    rows = [ x[0] for x in indexes ]
+    cols = [ x[1] for x in indexes ]
     nbcols = max(cols) + 1
     nbrows = max(rows) + 1
     M = []

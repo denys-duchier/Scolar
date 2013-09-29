@@ -43,6 +43,7 @@ def sco_header(context, REQUEST=None,
                bodyOnLoad='',      # JS
                init_jquery=False,  # load and init jQuery
                init_jquery_ui=False,# include all stuff for jquery-ui and initialize scripts
+               init_qtip=False,    # include qTip 
                init_google_maps=False,# Google maps
                titrebandeau='',    # titre dans bandeau superieur
                head_message='',    # message action (petit cadre jaune en haut)
@@ -89,6 +90,8 @@ def sco_header(context, REQUEST=None,
 
     if init_jquery_ui:
         init_jquery = True
+    if init_qtip:
+        init_jquery = True
 
     H = [ """<?xml version="1.0" encoding="%(encoding)s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -120,10 +123,17 @@ def sco_header(context, REQUEST=None,
 <script type="text/javascript">
  window.onload=function(){enableTooltips("gtrcontent")};
 </script>""" % params )
-
+    
     # jQuery
     if init_jquery:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery.js"></script>')
+        # Seems necessary for the new (2.0.1) qtip with jQuery 1.10.1
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery-migrate-1.2.0.min.js"></script>')
+    # qTip
+    if init_qtip:
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/qtip/jquery.qtip.js"></script>')
+        H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/jquery.qtip.min.css" />')
+
     if init_jquery_ui:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-1.7.2.custom.min.js"></script>')
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-i18n.js"></script>')

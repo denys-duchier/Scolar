@@ -283,16 +283,18 @@ def do_formsemestre_moyennes(context, formsemestre_id):
     # recupere les moyennes des etudiants de tous les modules
     D = {}
     valid_evals = []
+    valid_evals_per_mod = {} # { moduleimpl_id : eval }
     mods_att = []
     expr_diags = []
     for mod in mods:
-        assert not D.has_key(mod['moduleimpl_id'])
-        D[mod['moduleimpl_id']], valid_evals_mod, attente, expr_diag =\
-            do_moduleimpl_moyennes(context, mod)
+        moduleimpl_id = mod['moduleimpl_id']
+        assert not D.has_key(moduleimpl_id)
+        D[moduleimpl_id], valid_evals_mod, attente, expr_diag = do_moduleimpl_moyennes(context, mod)
+        valid_evals_per_mod[moduleimpl_id] = valid_evals_mod
         valid_evals += valid_evals_mod
         if attente:
             mods_att.append(mod)
         if expr_diag:
             expr_diags.append(expr_diag)
     #
-    return D, mods, valid_evals, mods_att, expr_diags
+    return D, mods, valid_evals_per_mod, valid_evals, mods_att, expr_diags

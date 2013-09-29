@@ -1,1 +1,1 @@
-jquery.qtip-1.0.0-rc3.min.js
+jquery.qtip-2.0.1.min.js

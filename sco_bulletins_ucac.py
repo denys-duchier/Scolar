@@ -171,7 +171,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
                 if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
                     nb_modules=len(ue['modules_capitalized'])
                     hidden = False
-                    css_style = ''
+                    cssstyle = ''
                 else:
                     nb_modules = 0
                     hidden = True

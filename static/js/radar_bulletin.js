@@ -33,7 +33,7 @@ function get_notes_and_draw(formsemestre_id, etudid) {
           'moy' : 16 },
     ];
     */
-    var query = "formsemestre_bulletinetud?formsemestre_id=" + formsemestre_id + "&etudid=" + etudid + "&format=json&version=selectedevals"
+    var query = "formsemestre_bulletinetud?formsemestre_id=" + formsemestre_id + "&etudid=" + etudid + "&format=json&version=selectedevals&force_publishing=1"
     
     $.get( query, '',  function(bul){ 
         var notes = [];
