@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# ScoDoc: save all user data (database, configs, images...) in separate directory
+# ScoDoc: save all user data (database, configs, images, archives...) in separate directory
 # 
 #  Utile pour migrer ScoDoc d'un serveur a un autre
 #  Executer en tant que root sur le serveur d'origine

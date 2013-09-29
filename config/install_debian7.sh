@@ -2,7 +2,7 @@
 
 #
 # ScoDoc: install third-party software necessary for our installation
-# starting for a minimal Debian (Squeeze, 6.0) install.
+# starting for a minimal Debian (Wheezy, 7.0) install.
 #
 # E. Viennet, Jun 2008, Apr 2009, Sept 2011, Sept 2013
 #
@@ -13,6 +13,21 @@ source utils.sh
 check_uid_root $0
 
 PYTHON=/opt/zope213/bin/python
+
+# ------------ Safety checks
+if [ $debian_version != "7" ]
+then
+   echo "Version du systeme Linux Debian incompatible"
+   exit 1
+fi
+
+if [ $(arch) != "x86_64" ]
+then
+   echo "Version du systeme Linux Debian incompatible (pas X86 64 bits)"
+   exit 1
+fi
+
+
 
 # ------------ LOCALES
 echo 
