@@ -12,3 +12,34 @@ Emmanuel Viennet, juin 2008
 
 
 1) Creation de la base utilisateurs (initialement vide)
+
+-------
+
+Sept 2013: ScoDoc 7 : python2.7, Debian 7, Zope 2.13.21
+
+
+Pour la construction de Zope: 
+attention: on veut bénéficier des paquets python Debian !
+donc
+
+apt-get install python-dev 
+apt-get install python-virtualenv
+virtualenv --system-site-packages /opt/zope213
+cd zope213/
+bin/easy_install -i http://download.zope.org/Zope2/index/2.13.21 Zope2
+# ...long...
+
+bin/easy_install Products.ZSQLMethods
+bin/easy_install ZPsycopgDA
+
+# Création de l'instance Zope:
+bin/mkzopeinstance -d /opt/inst
+
+(XXX admin / admin)
+
+
+2) Migration bases de données
+Sur ScoDoc6:
+  pg_dumpall > scodoc.dump.txt
+
+

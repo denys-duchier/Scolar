@@ -48,7 +48,7 @@ done
 
 echo "Old scodoc files moved to /opt/scodoc6"
 mv /opt/scodoc /opt/scodoc6
-mv /opt/scodoc7 scodoc
+mv /opt/scodoc7 /opt/scodoc
 
 # done
 touch /opt/scodoc/upgraded_to_v7

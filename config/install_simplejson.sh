@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# ScoDoc use Zope which runs only on Python2.4
+# UNUSED IN ScoDoc 7 (uses standard json module)
+
+# ScoDoc 6 use Zope which runs only on Python2.4
 # and Python2.4 does not include json module in std libs
 # -> we must install an old simplejson 2.1 ourself (from python egg)
 

@@ -3,8 +3,8 @@
 # ScoDoc: environment variables
 
 export SCODOC_DIR=${PWD%/*}
+# normalement: /opt/scodoc/Products/ScoDoc
 
-export ZOPE_VERSION=2.11.0
 
 # Postgresql superuser:
 export POSTGRES_SUPERUSER=postgres
@@ -16,17 +16,29 @@ export POSTGRES_USER=www-data
 # psql command: if various versions installed, force the one we want:
 debian_version=$(cat /etc/debian_version)
 debian_version=${debian_version// /}
-if [ ${debian_version:0:1} = "5" ] 
+if [ ${debian_version:0:1} = "7" ] 
 then
+ PSQL=/usr/lib/postgresql/9.1/bin/psql
+elif [ ${debian_version:0:1} = "5" ] 
+ then
    PSQL=/usr/lib/postgresql/8.3/bin/psql
-elif [ ${debian_version:0:1} = "6" ] 
-then
+ elif [ ${debian_version:0:1} = "6" ] 
+ then
    PSQL=/usr/lib/postgresql/8.4/bin/psql
-else
+ else
    PSQL=/usr/lib/postgresql/8.1/bin/psql
 fi
+
 
 # tcp port for SQL server (under Debian 4, 5432 or 5433 for 8.1 if 7.4 also installed !)
 # Important note: if changed, you should probably also change it in
 #      sco_utils.py (SCO_DEFAULT_SQL_PORT).
 export POSTGRES_PORT=5432
+
+# Utilise par le script de reset du mot de passe: XXX A tester
+if [ ${debian_version:0:1} = "7" ] 
+then
+  export ZOPE_VERSION=2.13
+else
+  export ZOPE_VERSION=2.11.0
+fi

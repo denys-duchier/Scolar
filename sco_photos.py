@@ -214,11 +214,11 @@ def save_image(context, etudid, data):
     filename = get_new_filename(context, etudid)
     path = PHOTO_DIR + filename
     log('saving %dx%d jpeg to %s' % (img.size[0], img.size[1], path))
-    img.save(path + EXT, format = 'JPEG', quality = 92.)
+    img.save(path + EXT, format = 'JPEG', quality = 92)
     # resize:
     img = scale_height(img)
     log('saving %dx%d jpeg to %s.h90' % (img.size[0], img.size[1], filename))
-    img.save(path + H90 + EXT, format = 'JPEG', quality = 92.)
+    img.save(path + H90 + EXT, format = 'JPEG', quality = 92)
     return filename
 
 def scale_height(img, W=None, H=REDUCED_HEIGHT):
