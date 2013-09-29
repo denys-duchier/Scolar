@@ -58,12 +58,7 @@ class DB(TM, dbi_db.DB):
                 conn.set_session(isolation_level=int(self.tilevel))
             else:
                 conn.set_isolation_level(int(self.tilevel))
-            encoding = self.encoding
-            # Compatibility LATIN1/iso8859-15 fro ScoDoc:
-            if encoding == 'iso8859-15':
-                encoding = 'LATIN1'
-            conn.set_client_encoding(encoding)
-
+            conn.set_client_encoding(self.encoding)
             for tc in self.typecasts:
                 register_type(tc, conn)
         return conn
@@ -86,7 +81,7 @@ class DB(TM, dbi_db.DB):
             self.putconn()
         except AttributeError:
             pass
-
+            
     def _abort(self, *ignored):
         try:
             conn = self.getconn(False)
@@ -100,7 +95,7 @@ class DB(TM, dbi_db.DB):
         # then get and immediately release a connection
         self.getconn()
         self.putconn()
-
+        
     def close(self):
         # FIXME: if this connection is closed we flush all the pool associated
         # with the current DSN; does this makes sense?
