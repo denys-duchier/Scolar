@@ -26,7 +26,7 @@ else
   exit 2
 fi
 
-INSTANCE_DIR=/opt/scodoc/instance
+INSTANCE_DIR=/opt/scodoc
 SCODOC_DIR="$INSTANCE_DIR/Products/ScoDoc"
 
 source utils.sh
