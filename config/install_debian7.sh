@@ -15,7 +15,7 @@ check_uid_root $0
 PYTHON=/opt/zope213/bin/python
 
 # ------------ Safety checks
-if [ $debian_version != "7" ]
+if [ ${debian_version:0:1} != "7" ]
 then
    echo "Version du systeme Linux Debian incompatible"
    exit 1
