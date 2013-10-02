@@ -145,6 +145,7 @@ class TypeParcours:
     NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
     SESSION_NAME = 'semestre'
+    UNUSED_CODES = set() # Ensemble des codes jury non autorisés dans ce parcours
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
     def get_barre_ue(self, ue_type, tolerance=True):
@@ -186,6 +187,8 @@ class ParcoursLP(TypeParcours):
     NB_SEM = 1
     COMPENSATION_UE = False
     BARRE_UE = { UE_STAGE_LP : 10. }
+    # pas de codes ATT en LP
+    UNUSED_CODES = set( (ADC, ATT, ATB) )
 
 register_parcours(ParcoursLP())
 
@@ -216,6 +219,7 @@ class ParcoursMono(TypeParcours):
     NAME = "Mono"
     NB_SEM = 1
     COMPENSATION_UE = False
+    UNUSED_CODES = set( (ADC, ATT, ATB) )
 
 register_parcours(ParcoursMono())
 
@@ -259,7 +263,8 @@ class ParcoursMonoUCAC(ParcoursUCAC):
     TYPE_PARCOURS = 503
     NAME = "Formation UCAC en 1 session de durée variable"
     NB_SEM = 1
-
+    UNUSED_CODES = set( (ADC, ATT, ATB) )
+    
 register_parcours(ParcoursMonoUCAC())
 
 class Parcours6Sem(TypeParcours):

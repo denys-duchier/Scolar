@@ -114,7 +114,10 @@ class SituationEtudParcours:
                  self.can_compensate_with_prev, self.semestre_non_terminal)
         # log('get_possible_choices: state=%s' % str(state) )
         for rule in DUTRules:
-            # saute regles REDOSEM si pas de semestres decales:
+            # Saute codes non autorisés dans ce parcours (eg ATT en LP)
+            if rule.conclusion[0] in self.parcours.UNUSED_CODES:
+                continue
+            # Saute regles REDOSEM si pas de semestres decales:
             if self.sem['gestion_semestrielle'] != '1' and rule.conclusion[3] == 'REDOSEM':
                 continue
             if rule.match(state):
@@ -394,8 +397,11 @@ class SituationEtudParcours:
         """Enregistre la decision (instance de DecisionSem)
         Enregistre codes semestre et UE, et autorisations inscription.
         """
-        cnx = self.znotes.GetDBConnexion(autocommit=False)
+        cnx = self.znotes.GetDBConnexion(autocommit=False)        
         # -- check
+        if decision.code_etat in self.parcours.UNUSED_CODES:
+            raise ScoValueError('code decision invalide dans ce parcours')
+        #
         if decision.code_etat == 'ADC':
             fsid = decision.formsemestre_id_utilise_pour_compenser
             if fsid:

@@ -206,28 +206,30 @@ def formsemestre_validation_etud_form(
     H.append('.</p>')
         
     # Décisions possibles
-    H.append("""<form method="get" action="formsemestre_validation_etud" id="formvalid" class="sfv_decisions">
-    <input type="hidden" name="etudid" value="%s"/>
-    <input type="hidden" name="formsemestre_id" value="%s"/>""" %
-             (etudid, formsemestre_id) )
-    if desturl:
-        H.append('<input type="hidden" name="desturl" value="%s"/>' % desturl)
-    if sortcol:
-        H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
-    H.append('<h3 class="sfv">Décisions <em>recommandées</em> :</h3>')
-    H.append('<table>')
-    H.append(decisions_possible_rows(Se, True, subtitle='Etudiant assidu:', trclass='sfv_ass'))
-    
-    rows_pb_assiduite = decisions_possible_rows(Se, False,
-                                                subtitle='Si problème d\'assiduité:',
-                                                trclass='sfv_pbass')
-    if rows_pb_assiduite:
-        H.append('<tr><td>&nbsp;</td></tr>') # spacer
-        H.append(rows_pb_assiduite)
+    rows_assidu = decisions_possible_rows(Se, True, subtitle='Etudiant assidu:', trclass='sfv_ass')
+    rows_non_assidu = decisions_possible_rows(Se, False,
+                                              subtitle='Si problème d\'assiduité:', trclass='sfv_pbass')
+    # s'il y a des decisions recommandees issues des regles:
+    if rows_assidu or rows_non_assidu: 
+        H.append("""<form method="get" action="formsemestre_validation_etud" id="formvalid" class="sfv_decisions">
+        <input type="hidden" name="etudid" value="%s"/>
+        <input type="hidden" name="formsemestre_id" value="%s"/>""" %
+                 (etudid, formsemestre_id) )
+        if desturl:
+            H.append('<input type="hidden" name="desturl" value="%s"/>' % desturl)
+        if sortcol:
+            H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
 
-    H.append('</table>')    
-    H.append('<p><br/></p><input type="submit" value="Valider ce choix" disabled="1" id="subut"/>')
-    H.append('</form>')
+        H.append('<h3 class="sfv">Décisions <em>recommandées</em> :</h3>')
+        H.append('<table>')
+        H.append(rows_assidu)        
+        if rows_non_assidu:
+            H.append('<tr><td>&nbsp;</td></tr>') # spacer
+            H.append(rows_non_assidu)
+
+        H.append('</table>')    
+        H.append('<p><br/></p><input type="submit" value="Valider ce choix" disabled="1" id="subut"/>')
+        H.append('</form>')
 
     H.append( form_decision_manuelle(context, Se, formsemestre_id, etudid) )
 
@@ -279,6 +281,8 @@ def formsemestre_validation_etud_manu(
         assidu = 1
     etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
     Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
+    if code_etat in Se.parcours.UNUSED_CODES:
+        raise ScoValueError('code decision invalide dans ce parcours')
     # Si code ADC, extrait le semestre utilisé:
     if code_etat[:3] == 'ADC':
         formsemestre_id_utilise_pour_compenser = code_etat.split('_')[1]
@@ -532,6 +536,8 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
 
     H.append('<tr><td>Code semestre: </td><td><select name="code_etat"><option value="" selected>Choisir...</option>')
     for cod in codes:
+        if cod in Se.parcours.UNUSED_CODES:
+            continue
         if cod != 'ADC':
             H.append('<option value="%s">%s (code %s)</option>' % (cod, sco_codes_parcours.CODES_EXPL[cod], cod) )
         elif Se.sem['gestion_compensation'] == '1':

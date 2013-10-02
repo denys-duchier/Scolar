@@ -2456,6 +2456,12 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
                       helpmsg=None):
         # dialog de confirmation simple
         parameters[target_variable] = 1
+        # Attention: la page a pu etre servie en GET avec des parametres
+        # si on laisse l'url "action" vide, les parametres restent alors que l'on passe en POST...
+        if not dest_url:
+            dest_url = REQUEST.URL
+        # strip remaining parameters from destination url:
+        dest_url = urllib.splitquery(dest_url)[0]
         H = [ 
               """<form action="%s" method="post">""" % dest_url,
               message,
