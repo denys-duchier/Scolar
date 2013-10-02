@@ -10,7 +10,7 @@
 #
 
 
-INSTANCE_DIR=/opt/scodoc/instance
+INSTANCE_DIR=/opt/scodoc/
 SCODOC_DIR="$INSTANCE_DIR/Products/ScoDoc"
 
 source utils.sh
@@ -51,6 +51,13 @@ then
   cd "$tmp"
   tar xfz "$SRC" 
   SRC=$(ls -1d "$tmp"/*)
+  IS_TMP=1
+  # If source is a tgz, can use mv
+  COPY="mv"
+else
+  IS_TMP=0
+  # If source is a directory, does not modify its content
+  COPY="cp -rp"
 fi
 
 echo "Source is $SRC"
@@ -67,23 +74,29 @@ su -c "$SCODOC_DIR/config/psql_restore_databases.sh $PG_DUMPFILE" postgres
 # 
 echo Copying data files...
 rm -rf "$SCODOC_DIR/config/depts" 
-cp -rp "$SRC/depts" "$SCODOC_DIR/config/depts"
+$COPY "$SRC/depts" "$SCODOC_DIR/config/depts"
 
 rm -rf "$INSTANCE_DIR/var"
-cp -rp "$SRC/var" "$INSTANCE_DIR"
+$COPY "$SRC/var" "$INSTANCE_DIR"
 
 rm -rf  "$SCODOC_DIR/static/photos" 
-cp -rp "$SRC/photos" "$SCODOC_DIR/static/" 
+$COPY "$SRC/photos" "$SCODOC_DIR/static/" 
 
 rm -rf "$SCODOC_DIR/logos"
-cp -rp "$SRC/logos" "$SCODOC_DIR/"
+$COPY "$SRC/logos" "$SCODOC_DIR/"
 
 mv "$SCODOC_DIR/config/scodoc_config.py"  "$SCODOC_DIR/config/scodoc_config.py.bak" 
-cp -p "$SRC/scodoc_config.py" "$SCODOC_DIR/config/"
+$COPY "$SRC/scodoc_config.py" "$SCODOC_DIR/config/"
 
 rm -rf "$INSTANCE_DIR/log"
-cp -rp "$SRC/log" "$INSTANCE_DIR/"
+$COPY "$SRC/log" "$INSTANCE_DIR/"
 
+# Remove tmp directory
+if [ $IS_TMP = "1" ]
+then
+  cd /
+  rm -rf $tmp
+fi
 #
 echo
 echo "Ok. Run \"/etc/init.d/scodoc start\" to start ScoDoc."

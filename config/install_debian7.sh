@@ -27,7 +27,10 @@ then
    exit 1
 fi
 
-
+# ------------ Permissions
+# source dir should be writable by scodoc to write bytecode files
+chgrp www-data $SCODOC_DIR $SCODOC_DIR/ZopeProducts/*
+chmod g+w $SCODOC_DIR $SCODOC_DIR/ZopeProducts/*
 
 # ------------ LOCALES
 echo 
