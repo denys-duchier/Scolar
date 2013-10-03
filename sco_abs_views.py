@@ -532,7 +532,7 @@ def ListeAbsEtud(context, etudid,
 
     # Formats non HTML et demande d'une seule table:
     if format != 'html' and format != 'text':
-        if absjust_only == 0:
+        if absjust_only == 1:
             return tab_absjust.make_page(context, format=format, REQUEST=REQUEST)
         else:
             return tab_absnonjust.make_page(context, format=format, REQUEST=REQUEST)
