@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.4
+#!/opt/zope213/bin/python
 
 """
 ScoDoc post-upgrade script: databases housekeeping
@@ -19,7 +19,7 @@ from scodocutils import *
 for dept in get_depts():
     log('\nChecking database for dept %s' % dept)
     try:
-        cnx = psycopg.connect( get_dept_cnx_str(dept) )
+        cnx = psycopg2.connect( get_dept_cnx_str(dept) )
     except:
         log('\n*** Error: departement %s not upgraded ! ***\n' % dept)
         continue
@@ -376,7 +376,7 @@ for dept in get_depts():
 
 # Base utilisateurs:
 log('\nChecking users database')
-cnx = psycopg.connect( get_users_cnx_str() )
+cnx = psycopg2.connect( get_users_cnx_str() )
 cursor = cnx.cursor()
 check_field(cnx, 'sco_users', 'passwd_temp',
             ['alter table sco_users add column passwd_temp int default 0',

@@ -4,17 +4,16 @@
 #   SVN must be properly configured and have read access to ScoDoc repository
 # This script STOP and RESTART ScoDoc and should be runned as root
 #
-# E. Viennet, june 2008
+# Script pour ScoDoc 7
+#
+# E. Viennet, septembre 2013
 
 source config.sh
 source utils.sh
 
 check_uid_root $0
 
-if [ ! -e /usr/bin/curl ]; then
-  apt-get update
-  apt-get -y install curl # now necessary
-fi
+apt-get update
 
 echo "Stopping ScoDoc..."
 /etc/init.d/scodoc stop
@@ -67,36 +66,6 @@ chgrp www-data "${SCODOC_DIR}"
 chmod g+w "${SCODOC_DIR}"
 chgrp -R www-data "${SCODOC_DIR}"/ZopeProducts
 chmod -R g+w "${SCODOC_DIR}"/ZopeProducts
-
-# check and upgrade reportlab
-./install_reportlab23.sh
-
-# check and install simplejson
-./install_simplejson.sh
-export PYTHON_EGG_CACHE=/tmp/.egg_cache
-
-# check and install psycopg2
-./install_psycopg2.sh 
-
-# check symlinks to our customized Zope products
-for P in exUserFolder ZPsycopgDA
-do
-  if [ ! -h $SCODOC_DIR/../$P ]
-  then
-     dest=$SCODOC_DIR/../../Attic
-     if [ ! -e "$dest" ]
-     then
-       mkdir $dest
-     fi
-     if [ -e $SCODOC_DIR/../$P ]
-     then
-       echo "Moving old product $P to $dest"
-       mv "$SCODOC_DIR/../$P" "$dest"
-     fi
-     echo "creating symlink to product $P"
-     (cd $SCODOC_DIR/..; ln -s ScoDoc/ZopeProducts/$P)
-  fi
-done
 
 # post-upgrade scripts
 echo "Executing post-upgrade script..."

@@ -1,7 +1,7 @@
 """
     Some utilities used by upgrade scripts
 """
-import sys, os, psycopg, glob, subprocess, traceback, time
+import sys, os, psycopg2, glob, subprocess, traceback, time
 
 sys.path.append('..')
 

@@ -4,7 +4,10 @@
 
 # This script installs from shipped archive
 
-PYTHON=python2.4
+# Nota: for now ScoDoc 7 uses Debian's python-psycopg2 package (shipping 2.4.5)
+# and this scipt is not used 
+
+PYTHON=/opt/zope213/bin/python
 
 SRC_ARCHIVE="/opt/scodoc/instance/Products/ScoDoc/config/softs/psycopg2-2.4.6.tar.gz"
 

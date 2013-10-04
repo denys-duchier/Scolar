@@ -32,6 +32,9 @@ fi
 chgrp www-data $SCODOC_DIR $SCODOC_DIR/ZopeProducts/*
 chmod g+w $SCODOC_DIR $SCODOC_DIR/ZopeProducts/*
 
+chgrp -R www-data "${SCODOC_DIR}"/static/photos
+chmod -R g+w "${SCODOC_DIR}"/static/photos
+
 # ------------ LOCALES
 echo 
 echo '---- Configuration des locales...'

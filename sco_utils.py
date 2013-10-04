@@ -49,7 +49,7 @@ from PIL import Image as PILImage
 
 # XML generation package (apt-get install jaxml)
 import jaxml
-# import simplejson as json # Attention: ceci pour Python 2.4 (ou 2.5)
+
 import json
 from SuppressAccents import suppression_diacritics
 from sco_exceptions import *
