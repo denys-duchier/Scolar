@@ -1,3 +1,4 @@
+#!/opt/zope213/bin/python
 # -*- mode: python -*-
 # -*- coding: iso8859-15 -*-
 
@@ -15,13 +16,13 @@ import time
 from common import *
 # -> ici on est sur la page d'accueil du departement !
 
-links = browser.find_link_by_partial_text('DUT informatique en FI')
-links[0].click()
+links = browser.find_link_by_partial_text('DUT')
+links[0].click() # va sur le 1er semestre de DUT trouve
 
 # ---- Tableau bord semestre
 print browser.url
-# va dans module AP2 saisir des notes (dans la p1ere evaluation):
-browser.find_link_by_partial_text('AP1').first.click()
+# va dans module M1101 saisir des notes (dans la p1ere evaluation):
+browser.find_link_by_partial_text('M1101').first.click()
 browser.find_link_by_partial_text('Saisir notes').first.click()
 
 # ---- Ici c'est complique car le bouton submit est disabled
@@ -39,7 +40,7 @@ def add_to_notes(increment):
     note_max = float(re.search( r'notes sur ([0-9]+?)</span>\)', browser.html ).group(1))
     print 'add_to_notes: %d etudiants' % len(etudids)
     for etudid in etudids:
-        # essaie d'ajouter 1 à la note !
+        # essaie d'ajouter 1 a la note !
         old_val = browser.find_by_name('note_%s' % etudid).value
         try:
             val = max(0,min(float(old_val) + increment, note_max))

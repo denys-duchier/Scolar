@@ -21,6 +21,7 @@ dept_index = int(options.dept_index)
 
 t0 = time.time()
 browser = Browser('zope.testbrowser')
+browser._browser.mech_browser.set_handle_robots(False) # must ignore ScoDoc robots.txt
 browser.visit(SCODOC)
 print 'Start: title:', browser.title
 print 'URL: ', browser.url
