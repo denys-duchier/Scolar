@@ -89,7 +89,7 @@ def sidebar(context, REQUEST=None):
         params.update(etud)
         # compte les absences du semestre en cours
         H.append("""<h2 id="insidebar-etud"><a href="%(ScoURL)s/ficheEtud?etudid=%(etudid)s" class="sidebar">
-    <font color="#FF0000">%(sexe)s %(nom)s</font></a>
+    <font color="#FF0000">%(sexe)s %(nom_disp)s</font></a>
     </h2>
     <b>Absences</b>""" % params)
         if etud['cursem']:

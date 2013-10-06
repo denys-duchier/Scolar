@@ -1334,7 +1334,6 @@ class ZNotes(ObjectManager,
             if nb_abs:
                 nb_abs_just = self.Absences.CountAbsJust(etudid=etudid, debut=debut_sem, fin=fin_sem, moduleimpl_id=moduleimpl_id)
                 etud = self.getEtudInfo(etudid=etudid, filled=True)[0]
-                # nomprenom = etud['nomprenom'] # .capitalize() + ' ' + etud['nom']
                 T.append({
                     'nomprenom' : etud['nomprenom'],
                     'just' : nb_abs_just,

@@ -38,6 +38,7 @@ import sco_formsemestre_inscriptions
 from sets import Set
 from gen_tables import GenTable
 import sco_groups
+import scolars
 
 def list_authorized_etuds_by_sem(context, sem, delai=274):
     """Liste des etudiants autorisés à s'inscrire dans sem.
@@ -245,18 +246,18 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
             if a_inscrire:
                 H.append('<h3>Etudiants à inscrire</h3><ol>')
                 for etud in set_to_sorted_etud_list(a_inscrire):
-                    H.append('<li>%s</li>' % context.nomprenom(etud))
+                    H.append('<li>%(nomprenom)s</li>' % etud)
                 H.append('</ol>')
             a_inscrire_en_double = inscrits_ailleurs.intersection(a_inscrire)
             if a_inscrire_en_double:
                 H.append('<h3>dont étudiants déjà inscrits:</h3><ul>')
                 for etud in set_to_sorted_etud_list(a_inscrire_en_double):
-                    H.append('<li class="inscrailleurs">%s</li>' % context.nomprenom(etud))
+                    H.append('<li class="inscrailleurs">%(nomprenom)s</li>' % etud)
                 H.append('</ul>')
             if a_desinscrire:
                 H.append('<h3>Etudiants à désinscrire</h3><ol>')
                 for etudid in a_desinscrire:
-                    H.append('<li class="desinscription">%s</li>' % context.nomprenom(inscrits[etudid]))
+                    H.append('<li class="desinscription">%(nomprenom)s</li>' % inscrits[etudid])
                 H.append('</ol>')
             if not a_inscrire and not a_desinscrire:
                 H.append("""<h3>Il n'y a rien à modifier !</h3>""")
@@ -412,11 +413,13 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
                         c = ' inscrailleurs'
                     else:
                         c = ''
+                scolars.format_etud_ident(etud)
                 if etud['etudid']:
                     elink = """<a class="discretelink %s" href="ficheEtud?etudid=%s">%s</a>""" % (
-                        c, etud['etudid'], context.nomprenom(etud))
+                        c, etud['etudid'], etud['nomprenom'])
                 else:
-                    elink = context.nomprenom(etud)
+                    # ce n'est pas un etudiant ScoDoc
+                    elink = etud['nomprenom']
                 if not etud.get('paiementinscription', True):
                     elink = '<span class="paspaye">' + elink + ' (non paiement)</span>'
                 H.append("""<div class="pas_etud%s">""" % c )

@@ -121,9 +121,11 @@ class NotesTable:
             i = scolars.etudident_list( cnx, { 'etudid' : x['etudid'] } )[0]
             self.identdict[x['etudid']] = i
             self.inscrdict[x['etudid']] = x
-            x['nomp'] = i['nom'] + i['prenom'] # pour tri
+            x['nomp'] = (i['nom_usuel'] or i['nom']) + i['prenom'] # pour tri
+        
         # Tri les etudids par NOM
         self.inscrlist.sort( lambda x,y: cmp(x['nomp'],y['nomp']) )
+        
         # { etudid : rang dans l'ordre alphabetique }
         rangalpha = {}
         for i in range(len(self.inscrlist)):
@@ -271,17 +273,21 @@ class NotesTable:
         else:
             # Tri par ordre alphabetique de NOM
             return [ x['etudid'] for x in self.inscrlist ]
-
+    
     def get_sexnom(self,etudid):
-        return self.identdict[etudid]['sexe'] + ' ' + self.identdict[etudid]['nom'].upper()
+        "M. DUPONT"
+        etud =  self.identdict[etudid]
+        return etud['sexe'] + ' ' + (etud['nom_usuel'] or etud['nom']).upper()
+    
     def get_nom_short(self, etudid):
         "formatte nom d'un etud (pour table recap)"
-        return self.identdict[etudid]['nom'].upper() + ' ' + self.identdict[etudid]['prenom'][:2].capitalize() + '.'
-
-    def get_nom_long(self, etudid):
-        "formatte nom d'un etud"
         etud =  self.identdict[etudid]
-        return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom'])])
+        return (etud['nom_usuel'] or etud['nom']).upper() + ' ' + etud['prenom'][:2].capitalize() + '.'
+    
+    def get_nom_long(self, etudid):
+        "formatte nom d'un etud:  M. Pierre DUPONT"
+        etud =  self.identdict[etudid]
+        return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom_usuel'] or etud['nom'])])
 
     def get_displayed_etud_code(self, etudid):
         'code à afficher sur les listings "anonymes"'

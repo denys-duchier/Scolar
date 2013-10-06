@@ -6,8 +6,9 @@ Code_NIP;     text;     identite;   1; code etudiant (NIP Apogee)
 Code_INE;     text;     identite;   1; code INE
 #
 nom;          text;     identite;   0;  nom de l'etudiant
+nom_usuel; text;    identite;   1;  nom usuel (si different)
 prenom;       text;     identite;   0;  prenom de l'etudiant
-sexe (MR ou MLLE);         text;     identite;   0;  sexe ('MR' ou 'MLLE')
+sexe (H ou F);         text;     identite;   0;  sexe ('H' ou 'F')
 date_naissance;text;identite;   1;  date de naissance (jj/mm/aaaa)
 lieu_naissance;text;identite; 1; lieu de naissance
 nationalite;  text;     identite;   1;  nationalite

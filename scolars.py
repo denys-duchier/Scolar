@@ -54,10 +54,45 @@ monthsnames = [ 'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
                 'juillet', 'aout', 'septembre', 'octobre', 'novembre',
                 'décembre' ]                
 
+def format_etud_ident(etud):
+    """Format identite de l'étudiant (modifié en place)
+    nom, prénom et formes associees
+    """
+    etud['nom'] = format_nom(etud['nom'])
+    if 'nom_usuel' in etud:
+        etud['nom_usuel'] =  format_nom(etud['nom_usuel'])
+    else:
+        etud['nom_usuel'] = ''
+    etud['prenom'] = format_prenom(etud['prenom'])
+    etud['sexe'] = format_sexe(etud['sexe'])
+    # Nom à afficher:
+    if etud['nom_usuel']:
+        etud['nom_disp'] = etud['nom_usuel']
+        if etud['nom']:
+            etud['nom_disp'] += ' (' + etud['nom'] + ')'
+    else:
+        etud['nom_disp'] = etud['nom']
+
+    etud['nomprenom'] = format_nomprenom(etud) # M. Pierre DUPONT
+    if etud['sexe'] == 'M.':
+        etud['ne'] = ''
+    else:
+        etud['ne'] = 'e'
+    if 'email' in etud and etud['email']:
+        etud['emaillink'] = '<a class="stdlink" href="mailto:%s">%s</a>'%(etud['email'],etud['email'])
+    else:
+        etud['emaillink'] = '<em>(pas d\'adresse e-mail)</em>'
+
+
+
 def force_uppercase(s):
     if s:
         s = s.upper()
     return s
+
+def format_nomprenom(etud):
+    "formatte sexe/nom/prenom pour affichages"
+    return ' '.join([ format_sexe(etud['sexe']), format_prenom(etud['prenom']), etud['nom_disp']])
 
 def format_prenom(s):
     "formatte prenom etudiant pour affichage"
@@ -77,6 +112,8 @@ def format_prenom(s):
 #    return '-'.join( [ x.lower().capitalize() for x in frags ] )
 
 def format_nom(s):
+    if not s:
+        return ''
     return s.upper()
 
 def format_sexe(sexe):
@@ -147,8 +184,8 @@ def pivot_year(y):
 _identiteEditor = EditableTable(
     'identite',
     'etudid',
-    ('etudid','nom','prenom','sexe',
-     'date_naissance','lieu_naissance',
+    ('etudid', 'nom', 'nom_usuel', 'prenom', 'sexe',
+     'date_naissance', 'lieu_naissance',
      'nationalite', 
      'statut',
      'foto', 'photo_filename', 'code_ine', 'code_nip'),
@@ -174,6 +211,11 @@ def identite_list(cnx, *a, **kw):
         else:
             o['annee_naissance'] = o['date_naissance']
     return objs
+
+def identite_edit_nocheck(cnx, args):
+    """Modifie les champs mentionnes dans args, sans verification ni notification.
+    """
+    _identiteEditor.edit(cnx, args)
 
 def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     """Check if nom and prenom are valid.
@@ -247,7 +289,8 @@ def identite_edit(cnx, args, context=None, REQUEST=None):
     if notify_to:
         # etat AVANT edition pour envoyer diffs
         before = identite_list(cnx, {'etudid':args['etudid']})[0]    
-    _identiteEditor.edit(cnx, args)
+    
+    identite_edit_nocheck(cnx, args)
 
     # Notification du changement par e-mail:
     if notify_to:
@@ -256,9 +299,6 @@ def identite_edit(cnx, args, context=None, REQUEST=None):
         notify_etud_change(context, notify_to, etud, before, after,
                            'Modification identite %(nomprenom)s' % etud)
 
-def identite_edit_nocheck(cnx, args):
-    "Modifie les champs mentionnes dans args, sans verification ni notification"""
-    _identiteEditor.edit(cnx, args)
 
 def identite_create( cnx, args, context=None, REQUEST=None ):
     "check unique etudid, then create"

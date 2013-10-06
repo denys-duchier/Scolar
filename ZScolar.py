@@ -839,8 +839,9 @@ class ZScolar(ObjectManager,
         
         formsemestre_id = group['formsemestre_id']
         #
-        columns_ids=['nom', 'prenom' ] # colonnes a inclure
-        titles = { 'nom' : 'Nom', 'prenom' : 'Prénom',
+        columns_ids=['nom_disp', 'prenom' ] # colonnes a inclure
+        titles = { 'nom_disp' : 'Nom',
+                   'prenom' : 'Prénom',
                    'email' : 'Mail',
                    'etat':'Etat',
                    'etudid':'etudid',
@@ -877,7 +878,7 @@ class ZScolar(ObjectManager,
                 etud['_email_target'] = 'mailto:' + etud['email']
             else:
                 etud['_email_target'] = ''
-            etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
+            etud['_nom_disp_target'] = 'ficheEtud?etudid=' + etud['etudid']
             etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
 
             etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
@@ -964,7 +965,7 @@ class ZScolar(ObjectManager,
             if not members:
                 return ''            
             keys = ['etudid', 'code_nip', 'etat',
-                    'sexe', 'nom','prenom',
+                    'sexe', 'nom', 'nom_usuel', 'prenom',
                     'inscriptionstr']
             if with_paiement:
                 keys.append('paiementinscription')
@@ -1019,7 +1020,7 @@ class ZScolar(ObjectManager,
             etud = self.getEtudInfo(etudid=m['etudid'],filled=True)[0]
             etuds.append(etud)
         # tri par nom
-        etuds.sort( lambda x,y: cmp((x['nom'],x['prenom']),(y['nom'],y['prenom'])) )
+        etuds.sort( lambda x,y: cmp((x['nom_disp'],x['prenom']),(y['nom_disp'],y['prenom'])) )
         return etuds
         
     # -------------------------- INFOS SUR ETUDIANTS --------------------------
@@ -1048,12 +1049,6 @@ class ZScolar(ObjectManager,
         log("unknown student: etudid=%s code_nip=%s code_ine=%s"
             % (etudid, code_nip, code_ine))
         return self.ScoErrorResponse( 'unknown student', format=format, REQUEST=REQUEST)
-    
-    #
-    security.declareProtected(ScoView, 'nomprenom')
-    def nomprenom(self, etud):
-        "formatte sexe/nom/prenom pour affichages"
-        return ' '.join([ format_sexe(etud['sexe']), format_prenom(etud['prenom']), format_nom(etud['nom'])])
     
     security.declareProtected(ScoView, "chercheEtud")
     def chercheEtud(self, expnom=None,
@@ -1151,6 +1146,7 @@ class ZScolar(ObjectManager,
         cnx = self.GetDBConnexion()
         #open('/tmp/t','w').write( str(etuds) )
         for etud in etuds:
+            scolars.format_etud_ident(etud)
             etudid = etud['etudid']
             adrs = scolars.adresse_list(cnx, {'etudid':etudid})
             if not adrs:
@@ -1162,18 +1158,7 @@ class ZScolar(ObjectManager,
                 if len(adrs) > 1:
                     log('fillEtudsInfo: etudid=%s a %d adresses'%(etudid,len(adrs)))
             etud.update(adr)
-            etud['nom'] = format_nom(etud['nom'])
-            etud['prenom'] = format_nom(etud['prenom'])
-            etud['sexe'] = format_sexe(etud['sexe'])
-            etud['nomprenom'] = self.nomprenom(etud) # M. Pierre DUPONT
-            if etud['sexe'] == 'M.':
-                etud['ne'] = ''
-            else:
-                etud['ne'] = 'e'
-            if etud['email']:
-                etud['emaillink'] = '<a class="stdlink" href="mailto:%s">%s</a>'%(etud['email'],etud['email'])
-            else:
-                etud['emaillink'] = '<em>(pas d\'adresse e-mail)</em>'
+            
             # Semestres dans lesquel il est inscrit
             ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
             etud['ins'] = ins
@@ -1258,14 +1243,14 @@ class ZScolar(ObjectManager,
             # etudiant non trouvé: message d'erreur
             d = {
                 'etudid' : etudid,
-                'nom' : '?', 'prenom' : '?', 'sexe' : '?', 'email' : '?',
+                'nom' : '?', 'nom_usuel' : '', 'prenom' : '?', 'sexe' : '?', 'email' : '?',
                 'error' : 'code etudiant inconnu' }
             return sendResult(REQUEST, d, name='etudiant', format=format, force_outer_xml_tag=False)
         d = {}
         etud = etuds[0]
         self.fillEtudsInfo([etud])
         
-        for a in ('etudid', 'code_nip', 'code_ine', 'nom', 'prenom', 'sexe',
+        for a in ('etudid', 'code_nip', 'code_ine', 'nom', 'nom_usuel', 'prenom', 'sexe',
                   'nomprenom', 'email',
                   'domicile', 'codepostaldomicile', 'villedomicile', 'paysdomicile', 'telephone', 'telephonemobile', 'fax',
                   'bac', 'specialite', 'annee_bac',
@@ -1423,17 +1408,17 @@ class ZScolar(ObjectManager,
     
     security.declareProtected(ScoEtudChangeAdr, 'formChangeCoordonnees')
     def formChangeCoordonnees(self,etudid,REQUEST):
-        "edit coordonnes etudiant"
+        "edit coordonnees etudiant"
         cnx = self.GetDBConnexion()        
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         adrs = scolars.adresse_list(cnx, {'etudid':etudid})
         if adrs:
             adr = adrs[0]
         else:
             adr = {} # no data for this student
-        H = [ '<h2><font color="#FF0000">Changement des coordonnées de </font> %(prenom)s %(nom)s</h2><p>' % etud ]
+        H = [ '<h2><font color="#FF0000">Changement des coordonnées de </font> %(nomprenom)s</h2><p>' % etud ]
         header = self.sco_header(
-            REQUEST, page_title='Changement adresse de %(prenom)s %(nom)s' % etud )
+            REQUEST, page_title='Changement adresse de %(nomprenom)s' % etud )
         
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
@@ -1469,7 +1454,7 @@ class ZScolar(ObjectManager,
         if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
             raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
         cnx = self.GetDBConnexion()
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         ins = self.Notes.do_formsemestre_inscription_list(
             { 'etudid'  : etudid, 'formsemestre_id' : formsemestre_id })[0]
@@ -1480,9 +1465,9 @@ class ZScolar(ObjectManager,
             raise ScoValueError('Modification impossible: semestre verrouille')
         #
         etud['semtitre'] = sem['titremois']
-        H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
+        H = [ '<h2><font color="#FF0000">Changement de groupe de</font> %(nomprenom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         header = self.sco_header(
-            REQUEST, page_title='Changement de groupe de %(prenom)s %(nom)s'%etud)
+            REQUEST, page_title='Changement de groupe de %(nomprenom)s' % etud)
         # Liste des groupes existants
         raise NotImplementedError # XXX utiliser form_group_choice ou supprimer completement ?
         #
@@ -1700,7 +1685,7 @@ function tweakmenu( gname ) {
                         operation_method=''):
         "Formulaire démission ou défaillance Etudiant"
         cnx = self.GetDBConnexion()    
-        etud = scolars.etudident_list(cnx, {'etudid':etudid})[0]
+        etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         if sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
@@ -1712,8 +1697,8 @@ function tweakmenu( gname ) {
         #
         header = self.sco_header(
             REQUEST,
-            page_title = '%(operation_name)s de  %(prenom)s %(nom)s (du semestre %(semtitre)s)'%etud)
-        H = [ '<h2><font color="#FF0000">%(operation_name)s de</font> %(prenom)s %(nom)s (semestre %(semtitre)s)</h2><p>' % etud ]
+            page_title = '%(operation_name)s de  %(nomprenom)s (du semestre %(semtitre)s)'%etud)
+        H = [ '<h2><font color="#FF0000">%(operation_name)s de</font> %(nomprenom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         H.append("""<form action="%s" method="GET">
         <b>Date de la %s (J/M/AAAA):&nbsp;</b>
         """ % (operation_method, operation_name.lower()))
@@ -1949,6 +1934,7 @@ function tweakmenu( gname ) {
             ('adm_id', { 'input_type' : 'hidden' }),
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
+            ('nom_usuel', { 'size' : 25, 'title' : 'Nom usuel', 'allow_null':True }),
             ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':CONFIG.ALLOW_NULL_PRENOM }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['H','F'],
                             'allowed_values' : ['MR','MME'], 'title' : 'Genre' }),
@@ -2139,12 +2125,12 @@ function tweakmenu( gname ) {
         cnx = self.GetDBConnexion()
         H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % group['group_name'], sem),
               '<table class="sortable" id="listegroupe">',
-              '<tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
+              '<tr><th>Nom</th><th>Nom usuel</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
         nerrs = 0 # nombre d'anomalies détectées
         nfix = 0 # nb codes changes
         nmailmissing = 0 # nb etuds sans mail
         for t in members:
-            nom, prenom, etudid, email, code_nip = t['nom'], t['prenom'], t['etudid'], t['email'], t['code_nip']
+            nom, nom_usuel, prenom, etudid, email, code_nip = t['nom'], t['nom_usuel'], t['prenom'], t['etudid'], t['email'], t['code_nip']
             infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
             if not infos:
                 info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid
@@ -2188,8 +2174,8 @@ function tweakmenu( gname ) {
                 else:
                     mailstat = 'inconnu'
                     nmailmissing += 1
-            H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
-                          (etudid, nom, prenom, mailstat, code_nip, info_apogee) )
+            H.append( '<tr><td><a href="ficheEtud?etudid=%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' %
+                          (etudid, nom, nom_usuel, prenom, mailstat, code_nip, info_apogee) )
         H.append('</table>')
         H.append('<ul>')
         if nfix:

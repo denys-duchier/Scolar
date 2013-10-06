@@ -338,7 +338,7 @@ def menus_etud(context, REQUEST=None):
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
 
     menuEtud = [
-        { 'title' : '%(sexe)s %(prenom)s %(nom)s' % etud,
+        { 'title' : etud['nomprenom'],
           'url' : 'ficheEtud?etudid=%(etudid)s' % etud,
           'enabled' : True,
           'helpmsg' : 'Fiche étudiant'

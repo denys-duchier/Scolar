@@ -114,7 +114,7 @@ def etud_photo_html(context, etud, title=None, REQUEST=None):
     """HTML img tag for the photo, in small size.
     """
     path = etud_photo_url(context, etud, REQUEST=REQUEST)
-    nom = etud.get('nomprenom', etud['nom'])
+    nom = etud.get('nomprenom', etud['nom_disp'])
     if title is None:
         title = nom
     if not etud_photo_is_local(context, etud):
@@ -129,7 +129,7 @@ def etud_photo_orig_html(context, etud, title=None):
     They are the original uploaded images, converted in jpeg.
     """
     path = has_photo(context, etud)
-    nom = etud.get('nomprenom', etud['nom'])
+    nom = etud.get('nomprenom', etud['nom_disp'])
     if not path:
         path = unknown_image_path()
     path = url_from_rel_path(path)
@@ -286,24 +286,25 @@ def copy_portal_photo_to_fs(context, etud, REQUEST=None):
     """Copy the photo from portal (distant website) to local fs.
     Returns rel. path or None if copy failed, a a diagnotic message
     """
+    scolars.format_etud_ident(etud)
     etudid = etud['etudid']
     url = photo_portal_url(context, etud)
     if not url:
-        return None, '%s: pas de code NIP' % context.nomprenom(etud)
+        return None, '%(nomprenom)s: pas de code NIP' % etud
     f = None
     try:
         log('copy_portal_photo_to_fs: getting %s' % url)
         f = urllib2.urlopen(url) # in python 2.6, should use a timeout
     except:
         log('download failed: exception:\n%s' % traceback.format_exc())        
-        return None, '%s: erreur chargement de %s' % (context.nomprenom(etud), url)
+        return None, '%s: erreur chargement de %s' % (etud['nomprenom'], url)
     if not f:
         log('download failed')
-        return None, '%s: erreur chargement de %s' % (context.nomprenom(etud), url)
+        return None, '%s: erreur chargement de %s' % (etud['nomprenom'], url)
     data = f.read()
     status, diag = store_photo(context, etud, data, REQUEST=REQUEST)
     if status == 1:
         log('copy_portal_photo_to_fs: copied %s' % url)
-        return has_photo(context, etud), '%s: photo chargée' % context.nomprenom(etud)
+        return has_photo(context, etud), '%s: photo chargée' % etud['nomprenom']
     else:
-        return None, '%s: <b>%s</b>' % (context.nomprenom(etud), diag)
+        return None, '%s: <b>%s</b>' % (etud['nomprenom'], diag)

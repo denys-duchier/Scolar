@@ -368,6 +368,10 @@ for dept in get_depts():
     check_field(cnx, 'notes_evaluation', 'numero',
                 ['alter table notes_evaluation add column numero int DEFAULT 0',
                  ])
+    # add nom_usuel to identite
+    check_field(cnx, 'identite', 'nom_usuel',
+                ['alter table identite add column nom_usuel text DEFAULT NULL',
+                 ])
     # Add here actions to performs after upgrades:
     
     cnx.commit()

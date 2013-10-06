@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2006 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 """Edition des PV de jury
 """
 
+import scolars
 import sco_parcours_dut
 import sco_codes_parcours
 import sco_excel
@@ -248,8 +249,9 @@ def pvjury_table(context, dpv, only_diplome=False):
     
     lines = []
     for e in dpv['decisions']:
+        scolars.format_etud_ident(e['identite'])
         l = { 'etudid' : e['identite']['etudid'],
-              'nomprenom' : context.nomprenom(e['identite']),
+              'nomprenom' : e['identite']['nomprenom'],
               '_nomprenom_target' : '%s/ficheEtud?etudid=%s' % (context.ScoURL(),e['identite']['etudid']),
               '_nomprenom_td_attrs' : 'id="%s" class="etudinfo"' % e['identite']['etudid'],
               'parcours' : e['parcours'],

@@ -155,10 +155,15 @@ def get_group_members(context, group_id, etat=None):
     
     r = SimpleDictFetch(context, req, { 'group_id' : group_id, 'etat' : etat} )
 
-    r.sort(key=operator.itemgetter('nom'))
+    for etud in r:
+        scolars.format_etud_ident(etud)
+    
+    r.sort(key=operator.itemgetter('nom_disp')) # tri selon nom_usuel ou nom
+        
     if CONFIG.ALLOW_NULL_PRENOM:
         for x in r:
             x['prenom'] = x['prenom'] or ''
+    
     return r
 
 def get_group_infos(context, group_id, etat=None): # was _getlisteetud

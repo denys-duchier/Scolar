@@ -152,11 +152,12 @@ def formsemestre_synchro_etuds(
             if a_desinscrire or a_desinscrire_without_key:
                 H.append('<h3>Etudiants à désinscrire :</h3><ol>')
                 for key in a_desinscrire:
-                    etud = context.getEtudInfo(code_nip=key)[0]
-                    H.append('<li class="desinscription">%s</li>' % context.nomprenom(etud) )
+                    etud = context.getEtudInfo(filled=1, code_nip=key)[0]
+                    H.append('<li class="desinscription">%(nomprenom)s</li>' % etud )
                 for etudid in a_desinscrire_without_key:
                     etud = inscrits_without_key_all[etudid]
-                    H.append('<li class="desinscription">%s</li>' % context.nomprenom(etud) )
+                    scolars.format_etud_ident(etud)
+                    H.append('<li class="desinscription">%(nomprenom)s</li>' % etud )
                 H.append('</ol>')
 
             if not a_importer and not a_inscrire and not a_desinscrire:
@@ -238,7 +239,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         """<p>Actuellement <b>%d</b> inscrits dans ce semestre.</p>"""
         % (len(etuds_by_cat['etuds_ok']['etuds'])+len(etuds_by_cat['etuds_nonapogee']['etuds'])+len(etuds_by_cat['inscrits_without_key']['etuds'])),
         """<p>Code étape Apogée: %(etape_apo_str)s</p>
-        <form method="post">
+        <form method="post" action="formsemestre_synchro_etuds">
         """ % sem,
         """
         Année Apogée: <select id="anneeapogee" name="anneeapogee" onchange="document.location='formsemestre_synchro_etuds?formsemestre_id=%s&anneeapogee='+document.getElementById('anneeapogee').value">""" % (sem['formsemestre_id']),
