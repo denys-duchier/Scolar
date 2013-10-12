@@ -56,7 +56,7 @@ CREATE TABLE identite (
     foto text, -- deprecated
     photo_filename text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)
-    code_ine text UNIQUE  -- code INE Apogee    
+    code_ine text UNIQUE,  -- code INE Apogee    
     nom_usuel text -- optionnel (si present, affiché à la place du nom)
 )  WITH OIDS;
 
