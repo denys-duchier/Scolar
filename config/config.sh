@@ -1,6 +1,7 @@
 
 
 # ScoDoc: environment variables
+umask 0022
 
 export SCODOC_DIR=${PWD%/*}
 # normalement: /opt/scodoc/Products/ScoDoc

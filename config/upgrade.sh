@@ -49,11 +49,24 @@ then
 fi
 
 # Fix some permissions which may have been altered in the way:
-chown -R root.root "$SCODOC_DIR"/config
+chown root.www-data "$SCODOC_DIR" # important to create .pyc
+chmod 775 "${SCODOC_DIR}"
+chmod a+r "$SCODOC_DIR"/*.py
+
+chown -R root.www-data "$SCODOC_DIR"/config
+chmod 775 "$SCODOC_DIR"/config
 chmod a+rx "$SCODOC_DIR"/config/postupgrade-db.py
 chmod a+r "$SCODOC_DIR"/config/scodocutils.py
-chmod a+r "$SCODOC_DIR"/*.py
+chmod 775 "$SCODOC_DIR"/config/depts
+
+chown -R root.www-data "$SCODOC_DIR"/misc
 chmod -R a+r "$SCODOC_DIR"/misc
+# ScoDoc must be able to write to this directory:
+chgrp -R www-data "${SCODOC_DIR}"/static/photos
+chmod -R g+w "${SCODOC_DIR}"/static/photos
+# Important to create .pyc:
+chgrp -R www-data "${SCODOC_DIR}"/ZopeProducts
+chmod -R g+w "${SCODOC_DIR}"/ZopeProducts
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z "$SCODOC_UPGRADE_RUNNING" ]
@@ -62,17 +75,6 @@ then
   ./upgrade.sh
   exit 0
 fi
-
-# check permissions
-# ScoDoc must be able to write to this directory:
-chgrp -R www-data "${SCODOC_DIR}"/static/photos
-chmod -R g+w "${SCODOC_DIR}"/static/photos
-
-# Important to create .pyc:
-chgrp www-data "${SCODOC_DIR}"
-chmod g+w "${SCODOC_DIR}"
-chgrp -R www-data "${SCODOC_DIR}"/ZopeProducts
-chmod -R g+w "${SCODOC_DIR}"/ZopeProducts
 
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
