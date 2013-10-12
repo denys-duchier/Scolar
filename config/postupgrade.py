@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/opt/zope213/bin/python
 
 """
 ScoDoc post-upgrade script.

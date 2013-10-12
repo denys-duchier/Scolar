@@ -26,7 +26,7 @@ SVNVERSION=$(cd ..; svnversion)
 if [ -e "$SCODOC_DIR"/config/scodoc.sn ]
 then
   SN=$(cat "$SCODOC_DIR"/config/scodoc.sn)
-  if [ ${SN:0:5} == '<body' ] 
+  if [[ -n "$SN" && ${SN:0:5} == '<body' ]]
   then
     SN='' # fix for invalid previous replies
   fi 
