@@ -53,6 +53,7 @@ chown -R root.root "$SCODOC_DIR"/config
 chmod a+rx "$SCODOC_DIR"/config/postupgrade-db.py
 chmod a+r "$SCODOC_DIR"/config/scodocutils.py
 chmod a+r "$SCODOC_DIR"/*.py
+chmod -R a+r "$SCODOC_DIR"/misc
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z "$SCODOC_UPGRADE_RUNNING" ]
