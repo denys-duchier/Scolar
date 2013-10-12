@@ -11,7 +11,7 @@ Runned as "www-data" with Zope shutted down and postgresql up.
 Useful to update database schema (eg add new tables or columns to 
 existing scodoc instances).
 
-E. Viennet, june 2008
+E. Viennet, june 2008, sept 2013
 """
 
 from scodocutils import *
