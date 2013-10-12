@@ -48,7 +48,11 @@ then
   mv $SCODOC_DIR/../../access $SCODOC_DIR/../../access.bak
 fi
 
+# Fix some permissions which may have been altered in the way:
+chown -R root.root "$SCODOC_DIR"/config
 chmod a+rx "$SCODOC_DIR"/config/postupgrade-db.py
+chmod a+r "$SCODOC_DIR"/config/scodocutils.py
+chmod a+r "$SCODOC_DIR"/*.py
 
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z "$SCODOC_UPGRADE_RUNNING" ]
