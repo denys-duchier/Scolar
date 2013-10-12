@@ -48,6 +48,8 @@ then
   mv $SCODOC_DIR/../../access $SCODOC_DIR/../../access.bak
 fi
 
+chmod a+x "$SCODOC_DIR"/config/postupgrade-db.py
+
 # Se recharge car ce fichier peut avoir change durant le svn up !
 if [ -z "$SCODOC_UPGRADE_RUNNING" ]
 then
