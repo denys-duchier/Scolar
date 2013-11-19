@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,14 +27,14 @@
 
 """(Nouvelle) gestion des photos d'etudiants
 
-Note: jusqu'à novembre 2009, les images étaient stockées dans Zope (ZODB). 
+Note: jusqu'Ã  novembre 2009, les images Ã©taient stockÃ©es dans Zope (ZODB). 
 
-Les images sont maintenant stockées en dehors de Zope, dans static/photos
+Les images sont maintenant stockÃ©es en dehors de Zope, dans static/photos
 L'attribut "photo_filename" de la table identite donne le nom du fichier image, sans extension.
-Toutes les images sont converties en jpg, et stockées dans photo_filename.jpg en taille originale.
-Elles sont aussi réduites en 90 pixels de hauteur, et stockées dans photo_filename.h90.jpg
+Toutes les images sont converties en jpg, et stockÃ©es dans photo_filename.jpg en taille originale.
+Elles sont aussi rÃ©duites en 90 pixels de hauteur, et stockÃ©es dans photo_filename.h90.jpg
 
-Opérations:
+OpÃ©rations:
  - obtenir le tag html pour un etudiant (reduit ou entier)
  - stocker une nouvelle image
 
@@ -305,6 +305,6 @@ def copy_portal_photo_to_fs(context, etud, REQUEST=None):
     status, diag = store_photo(context, etud, data, REQUEST=REQUEST)
     if status == 1:
         log('copy_portal_photo_to_fs: copied %s' % url)
-        return has_photo(context, etud), '%s: photo chargée' % etud['nomprenom']
+        return has_photo(context, etud), '%s: photo chargÃ©e' % etud['nomprenom']
     else:
         return None, '%s: <b>%s</b>' % (etud['nomprenom'], diag)

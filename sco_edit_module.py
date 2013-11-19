@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -35,17 +35,17 @@ import sco_codes_parcours
 from TrivialFormulator import TrivialFormulator, TF
 
 _MODULE_HELP = """<p class="help">
-Les modules sont décrits dans le programme pédagogique. Un module est pour ce 
-logiciel l'unité pédagogique élémentaire. On va lui associer une note 
-à travers des <em>évaluations</em>. <br/>
-Cette note (moyenne de module) sera utilisée pour calculer la moyenne
-générale (et la moyenne de l'UE à laquelle appartient le module). Pour
-cela, on utilisera le <em>coefficient</em> associé au module.
+Les modules sont dÃ©crits dans le programme pÃ©dagogique. Un module est pour ce 
+logiciel l'unitÃ© pÃ©dagogique Ã©lÃ©mentaire. On va lui associer une note 
+Ã  travers des <em>Ã©valuations</em>. <br/>
+Cette note (moyenne de module) sera utilisÃ©e pour calculer la moyenne
+gÃ©nÃ©rale (et la moyenne de l'UE Ã  laquelle appartient le module). Pour
+cela, on utilisera le <em>coefficient</em> associÃ© au module.
 </p>
 
-<p class="help">Un module possède un enseignant responsable
+<p class="help">Un module possÃ¨de un enseignant responsable
 (typiquement celui qui dispense le cours magistral). On peut associer
-au module une liste d'enseignants (typiquement les chargés de TD).
+au module une liste d'enseignants (typiquement les chargÃ©s de TD).
 Tous ces enseignants, plus le responsable du semestre, pourront
 saisir et modifier les notes de ce module.
 </p> """ 
@@ -61,8 +61,8 @@ def module_create(context, matiere_id=None, REQUEST=None):
     Fo = context.formation_list( args={ 'formation_id' : UE['formation_id'] } )[0]
     parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
     semestres_indices = range(1, parcours.NB_SEM+1)
-    H = [ context.sco_header(REQUEST, page_title="Création d'un module"),
-          """<h2>Création d'un module dans la matière %(titre)s""" % M,
+    H = [ context.sco_header(REQUEST, page_title="CrÃ©ation d'un module"),
+          """<h2>CrÃ©ation d'un module dans la matiÃ¨re %(titre)s""" % M,
           """ (UE %(acronyme)s)</h2>""" % UE,
           _MODULE_HELP
           ]
@@ -75,14 +75,14 @@ def module_create(context, matiere_id=None, REQUEST=None):
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
-        ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrégé (pour bulletins)' }),
+        ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrÃ©gÃ© (pour bulletins)' }),
 
         ('heures_cours' , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de cours' }),
-        ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
+        ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux DirigÃ©s' }),
         ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
         
         ('coefficient'  , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False }),
-        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS (inutilisés: les crédits sont associés aux UE)' }),
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crÃ©dits ECTS (inutilisÃ©s: les crÃ©dits sont associÃ©s aux UE)' }),
 
         ('formation_id', { 'default' : UE['formation_id'], 'input_type' : 'hidden' }),
         ('ue_id', { 'default' : M['ue_id'], 'input_type' : 'hidden' }),
@@ -90,12 +90,12 @@ def module_create(context, matiere_id=None, REQUEST=None):
         
         ('semestre_id', { 'input_type' : 'menu',  'type' : 'int',
                           'title' : parcours.SESSION_NAME.capitalize(), 
-                          'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
+                          'explanation' : '%s de dÃ©but du module dans la formation standard' % parcours.SESSION_NAME,
                           'labels' : [ str(x) for x in semestres_indices ], 'allowed_values' : semestres_indices }),
-        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
+        ('numero',    { 'size' : 2, 'explanation' : 'numÃ©ro (1,2,3,4...) pour ordre d\'affichage',
                         'type' : 'int', 'default': default_num }),
         ),
-                           submitlabel = 'Créer ce module')
+                           submitlabel = 'CrÃ©er ce module')
     if tf[0] == 0:
         return '\n'.join(H) + tf[1] + context.sco_footer(REQUEST)
     else:
@@ -154,32 +154,32 @@ def module_edit(context, module_id=None, REQUEST=None):
           """ (formation %(acronyme)s, version %(version)s)</h2>""" % Fo,
           _MODULE_HELP ]
     if not unlocked:
-        H.append("""<div class="ue_warning"><span>Formation verrouillée, seuls certains éléments peuvent être modifiés</span></div>""")
+        H.append("""<div class="ue_warning"><span>Formation verrouillÃ©e, seuls certains Ã©lÃ©ments peuvent Ãªtre modifiÃ©s</span></div>""")
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
-        ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrégé (pour bulletins)' }),
+        ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrÃ©gÃ© (pour bulletins)' }),
 
         ('heures_cours' , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de cours' }),
-        ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Dirigés' }),
+        ('heures_td'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux DirigÃ©s' }),
         ('heures_tp'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'nombre d\'heures de Travaux Pratiques' }),
         
         ('coefficient'    , { 'size' : 4, 'type' : 'float', 'explanation' : 'coefficient dans la formation (PPN)', 'allow_null' : False, 'enabled' : unlocked }),
-        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS',  'enabled' : unlocked }),
+        ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crÃ©dits ECTS',  'enabled' : unlocked }),
         ('formation_id', { 'input_type' : 'hidden' }),
         ('ue_id',        { 'input_type' : 'hidden' }),
         ('module_id',    { 'input_type' : 'hidden' }),
         
-        ('ue_matiere_id', { 'input_type' : 'menu', 'title' : 'Matière', 
-                            'explanation' : 'un module appartient à une seule matière.',
+        ('ue_matiere_id', { 'input_type' : 'menu', 'title' : 'MatiÃ¨re', 
+                            'explanation' : 'un module appartient Ã  une seule matiÃ¨re.',
                             'labels' : Mnames, 'allowed_values' : Mids, 'enabled' : unlocked }),
 
         ('semestre_id', { 'input_type' : 'menu', 'type' : 'int',
                           'title' : parcours.SESSION_NAME.capitalize(), 
-                          'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
+                          'explanation' : '%s de dÃ©but du module dans la formation standard' % parcours.SESSION_NAME,
                           'labels' : [ str(x) for x in semestres_indices ] , 'allowed_values' : semestres_indices,  'enabled' : unlocked }),
-        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',
+        ('numero',    { 'size' : 2, 'explanation' : 'numÃ©ro (1,2,3,4...) pour ordre d\'affichage',
                         'type' : 'int' }),        
         ),
                            initvalues = Mod,

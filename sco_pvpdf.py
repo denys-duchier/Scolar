@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -195,7 +195,7 @@ class PVTemplate(CourrierIndividuelTemplate):
         # If the page number is even, force a page break
         CourrierIndividuelTemplate.beforeDrawPage(self, canvas, doc)
         # Note: on cherche un moyen de generer un saut de page double
-        #  (redémarrer sur page impaire, nouvelle feuille en recto/verso). Pas trouvé en Platypus.
+        #  (redÃ©marrer sur page impaire, nouvelle feuille en recto/verso). Pas trouvÃ© en Platypus.
         #
         #if self.__pageNum % 2 == 0:
         #    canvas.showPage()
@@ -203,8 +203,8 @@ class PVTemplate(CourrierIndividuelTemplate):
         #    self.__pageNum += 1
 
 def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='', signature=None):
-    """Document PDF avec les lettres d'avis pour les etudiants mentionnés
-    (tous ceux du semestre, ou la liste indiquée par etudids)
+    """Document PDF avec les lettres d'avis pour les etudiants mentionnÃ©s
+    (tous ceux du semestre, ou la liste indiquÃ©e par etudids)
     Renvoie pdf data
     """
 
@@ -220,7 +220,7 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     params = {
         'date_jury' : dateJury,
         'titre_formation' : dpv['formation']['titre_officiel'],
-        'htab1' : "8cm", # lignes à droite (entete, signature)
+        'htab1' : "8cm", # lignes Ã  droite (entete, signature)
         'htab2' : "1cm",
     }
     # copie preferences
@@ -239,7 +239,7 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
                                                 signature, context=context ) 
             objects.append( PageBreak() )
             i += 1
-    # Paramètres de mise en page
+    # ParamÃ¨tres de mise en page
     margins = (prefs['left_margin'],prefs['top_margin'],prefs['right_margin'],prefs['bottom_margin'])
     
     # ----- Build PDF
@@ -248,8 +248,8 @@ def pdf_lettres_individuelles(context, formsemestre_id, etudids=None, dateJury='
     document.addPageTemplates( CourrierIndividuelTemplate(
         document,
         author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-        title='Lettres décision %s' % sem['titreannee'],
-        subject='Décision jury',
+        title='Lettres dÃ©cision %s' % sem['titreannee'],
+        subject='DÃ©cision jury',
         margins=margins,
         pagesbookmarks=bookmarks,
         image_dir=context.file_path + '/logos/',
@@ -265,13 +265,13 @@ def _descr_jury(sem, diplome):
         t = "passage de Semestre %d en Semestre %d" % (sem['semestre_id'],sem['semestre_id']+1)
         s = "passage de semestre"
     else:
-        t = "délivrance du diplôme"
+        t = "dÃ©livrance du diplÃ´me"
         s = t
     return t, s # titre long, titre court
 
 def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, context=None ):
     """
-    Renvoie une liste d'objets PLATYPUS pour intégration
+    Renvoie une liste d'objets PLATYPUS pour intÃ©gration
     dans un autre document.
     """
     #
@@ -288,7 +288,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     params['semestre_id'] = sem['semestre_id']
     params['decision_sem_descr'] = decision['decision_sem_descr']
     params['type_jury'] = t # type de jury (passage ou delivrance)
-    params['type_jury_abbrv'] = s # idem, abbrégé
+    params['type_jury_abbrv'] = s # idem, abbrÃ©gÃ©
     params['decisions_ue_descr'] = decision['decisions_ue_descr']
     params['INSTITUTION_CITY'] = context.get_preference('INSTITUTION_CITY', formsemestre_id)
     if decision['prev_decision_sem']:
@@ -300,19 +300,19 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     if params['domicile']:
         params['domicile'] = params['domicile'].replace('\\n', '<br/>')
     
-    # Décision semestre courant:
+    # DÃ©cision semestre courant:
     if sem['semestre_id'] >= 0:
         params['decision_orig'] = 'du semestre S%s' % sem['semestre_id']
     else:
         params['decision_orig'] = ''
 
     if decision['prev_decision_sem']:
-        params['prev_decision_sem_txt'] = """<b>Décision du semestre antérieur S%(prev_semestre_id)s :</b> %(prev_code_descr)s""" % params
+        params['prev_decision_sem_txt'] = """<b>DÃ©cision du semestre antÃ©rieur S%(prev_semestre_id)s :</b> %(prev_code_descr)s""" % params
     else:
         params['prev_decision_sem_txt'] = ''
-    # UE capitalisées:
+    # UE capitalisÃ©es:
     if decision['decisions_ue'] and decision['decisions_ue_descr']:
-        params['decision_ue_txt'] = """<b>Unités d'Enseignement %(decision_orig)s capitalisées : </b>%(decisions_ue_descr)s</b>""" % params
+        params['decision_ue_txt'] = """<b>UnitÃ©s d'Enseignement %(decision_orig)s capitalisÃ©es : </b>%(decisions_ue_descr)s</b>""" % params
     else:
         params['decision_ue_txt'] = ''
     # Mention
@@ -328,12 +328,12 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
             s = 's'
         else:
             s = ''
-        params['autorisations_txt'] = """Vous êtes autorisé%s à continuer dans le%s semestre%s : <b>%s</b>""" % (etud['ne'], s, s, decision['autorisations_descr'])
+        params['autorisations_txt'] = """Vous Ãªtes autorisÃ©%s Ã  continuer dans le%s semestre%s : <b>%s</b>""" % (etud['ne'], s, s, decision['autorisations_descr'])
     else:
         params['autorisations_txt'] =  ''
     
     if decision['decision_sem'] and Se.parcours_validated():
-        params['diplome_txt'] = """Vous avez donc obtenu le diplôme : <b>%(titre_formation)s</b>""" % params
+        params['diplome_txt'] = """Vous avez donc obtenu le diplÃ´me : <b>%(titre_formation)s</b>""" % params
     else:
         params['diplome_txt'] = ''
     
@@ -342,7 +342,7 @@ def pdf_lettre_individuelle( sem, decision, etud, params, signature=None, contex
     
     # Signature:
     # nota: si semestre terminal, signature par directeur IUT, sinon, signature par
-    # chef de département.
+    # chef de dÃ©partement.
     if Se.semestre_non_terminal:
         sig = context.get_preference('PV_LETTER_PASSAGE_SIGNATURE', formsemestre_id) % params
         sig = _simulate_br(sig, '<para leftindent="%(htab1)s">')
@@ -390,7 +390,7 @@ def _make_signature_image(signature, leftindent, formsemestre_id, context=None):
 # PV complet, tableau en format paysage
 
 def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, dateJury=None, showTitle=False):
-    """Doc PDF récapitulant les décisions de jury
+    """Doc PDF rÃ©capitulant les dÃ©cisions de jury
     dpv: result of dict_pvjury
     """
     if not dpv:
@@ -405,12 +405,12 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
 
     jury_de_diplome = not dpv['semestre_non_terminal']
     
-    # Si Jury de passage et qu'un étudiant valide le parcours (car il a validé antérieurement le dernier semestre)
-    # alors on génère aussi un PV de diplome (à la suite dans le même doc PDF)
+    # Si Jury de passage et qu'un Ã©tudiant valide le parcours (car il a validÃ© antÃ©rieurement le dernier semestre)
+    # alors on gÃ©nÃ¨re aussi un PV de diplome (Ã  la suite dans le mÃªme doc PDF)
     if not jury_de_diplome:
         validations_parcours = [ x['validation_parcours'] for x in dpv['decisions'] ]
         if True in validations_parcours:
-            # au moins un etudiant a validé son diplome:
+            # au moins un etudiant a validÃ© son diplome:
             objects.append(PageBreak())
             objects += _pvjury_pdf_type(context, dpv, only_diplome=True,
                                         dateCommission=dateCommission, numeroArrete=numeroArrete,
@@ -436,10 +436,10 @@ def pvjury_pdf(context, dpv, REQUEST, dateCommission=None, numeroArrete=None, da
 
 def _pvjury_pdf_type(context, dpv, only_diplome=False,
                      dateCommission=None, numeroArrete=None, dateJury=None, showTitle=False):
-    """Doc PDF récapitulant les décisions de jury pour un type de jury (passage ou delivrance)
+    """Doc PDF rÃ©capitulant les dÃ©cisions de jury pour un type de jury (passage ou delivrance)
     dpv: result of dict_pvjury
     """
-    # Jury de diplome si sem. terminal OU que l'on demande les diplomés d'un semestre antérieur
+    # Jury de diplome si sem. terminal OU que l'on demande les diplomÃ©s d'un semestre antÃ©rieur
     diplome = (not dpv['semestre_non_terminal']) or only_diplome
 
     sem = dpv['formsemestre']
@@ -470,7 +470,7 @@ def _pvjury_pdf_type(context, dpv, only_diplome=False,
 
     objects += [ Spacer(0,5*mm) ]
     objects += makeParas("""
-    <para align="center"><b>Procès-verbal de %s du département %s - Session %s</b></para>    
+    <para align="center"><b>ProcÃ¨s-verbal de %s du dÃ©partement %s - Session %s</b></para>    
     """ % (titre_jury, context.get_preference('DeptName', formsemestre_id), sem['annee']), style)
 
     objects += makeParas("""
@@ -490,7 +490,7 @@ def _pvjury_pdf_type(context, dpv, only_diplome=False,
                              'Date' : dateCommission,
                              } + '</para>', bulletStyle )
     
-    objects += makeParas("""<para>Le jury propose les décisions suivantes :</para>""", style)
+    objects += makeParas("""<para>Le jury propose les dÃ©cisions suivantes :</para>""", style)
     objects += [ Spacer(0,4*mm) ]
     lines, titles, columns_ids = sco_pvjury.pvjury_table(context, dpv, only_diplome=only_diplome)
     # convert to lists of tuples:
@@ -524,11 +524,11 @@ def _pvjury_pdf_type(context, dpv, only_diplome=False,
          context.get_preference('DirectorName', formsemestre_id)),
         style)
 
-    # Légende des codes
+    # LÃ©gende des codes
     codes = sco_codes_parcours.CODES_EXPL.keys()
     codes.sort()
     objects += makeParas( """<para spaceBefore="15mm" fontSize="14">
-    <b>Codes utilisés :</b></para>""", style )
+    <b>Codes utilisÃ©s :</b></para>""", style )
     L = []
     for code in codes:
         L.append( (code, sco_codes_parcours.CODES_EXPL[code]))

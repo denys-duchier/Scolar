@@ -1,19 +1,19 @@
 #!/usr/bin/env python
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 """Change un etudid
 
 Suite a de fausses manips, il arrive que l'on est des "doublons":
-le même étudiant est enregistré sous deux "etudid" différents !
+le mÃªme Ã©tudiant est enregistrÃ© sous deux "etudid" diffÃ©rents !
 
-Normalement, l'utilisation d'imports basés sur le code NIP (Apogée)
-évite le problème (qui ne se pose qu'en cas d'inscriptions manuelles
-mal gérées).
+Normalement, l'utilisation d'imports basÃ©s sur le code NIP (ApogÃ©e)
+Ã©vite le problÃ¨me (qui ne se pose qu'en cas d'inscriptions manuelles
+mal gÃ©rÃ©es).
 
-Ce script permet de changer un etudid, typiquement pour associer à un
-etudiant le code d'un autre étudiant (son doublon).
+Ce script permet de changer un etudid, typiquement pour associer Ã  un
+etudiant le code d'un autre Ã©tudiant (son doublon).
 
 Ne traite que les inscriptions, les notes, absences, annotations, mais
-évidemment pas les tables uniques (identité, adresse, admission).
+Ã©videmment pas les tables uniques (identitÃ©, adresse, admission).
 
 Attention: script a lancer en tant que "www-data", avec ScoDoc arrete
 et postgresql lance

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 import pdb,os,sys,time
 import urllib
@@ -104,7 +104,7 @@ notes_ue_delete   = _ueEditor.delete
 notes_ue_list     = _ueEditor.list
 notes_ue_edit     = _ueEditor.edit
 
-""" --- Gestion des matières
+""" --- Gestion des matiÃ¨res
 """
 _matiereEditor = EditableTable(
     'notes_matieres',
@@ -214,16 +214,16 @@ def notes_formsemestre_createwithmodules( REQUEST, userlist, edit=False ):
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id}),
         ('semestre_id',  { 'input_type' : 'hidden', 'default' : semestre_id}),
-        ('date_debut', { 'title' : 'Date de début (j/m/a)',
+        ('date_debut', { 'title' : 'Date de dÃ©but (j/m/a)',
                          'size' : 9, 'allow_null' : False }),
         ('date_fin', { 'title' : 'Date de fin (j/m/a)',
                          'size' : 9, 'allow_null' : False }),
         ('responsable_id', { 'input_type' : 'menu',
-                             'title' : 'Directeur des études',
+                             'title' : 'Directeur des Ã©tudes',
                              'allowed_values' : userlist }),        
         ('titre', { 'size' : 20, 'title' : 'Nom de ce semestre' }),
         ('sep', { 'input_type' : 'separator',
-                  'title' : '<h3>Sélectionner les modules et leur responsable:</h3>' }) ]
+                  'title' : '<h3>SÃ©lectionner les modules et leur responsable:</h3>' }) ]
     for mod in mods:
         modform.append( (str(mod['module_id']),
                          { 'input_type' : 'menu',
@@ -233,7 +233,7 @@ def notes_formsemestre_createwithmodules( REQUEST, userlist, edit=False ):
     if edit:
         submitlabel = 'Modifier ce semestre de formation'
     else:
-        submitlabel = 'Créer ce semestre de formation'
+        submitlabel = 'CrÃ©er ce semestre de formation'
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, modform,
                             submitlabel = submitlabel,
                             cancelbutton = 'Annuler',
@@ -256,10 +256,10 @@ def notes_formsemestre_createwithmodules( REQUEST, userlist, edit=False ):
             return 'ok<br>' + str(tf[2])
         else:
             # modification du semestre:
-            # on doit creer les modules nouvellement selectionnés
-            # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnés.
+            # on doit creer les modules nouvellement selectionnÃ©s
+            # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnÃ©s.
             # Note: la destruction echouera s'il y a des objets dependants
-            #       (eg des etudiants inscrits ou des evaluations définies)
+            #       (eg des etudiants inscrits ou des evaluations dÃ©finies)
             notes_formsemestre_edit(AUTHENTICATED_USER,tf[2])
             # nouveaux modules
             checkedmods = tf[2]['tf-checked']
@@ -296,9 +296,9 @@ def notes_formsemestre_createwithmodules( REQUEST, userlist, edit=False ):
             return 'edit ok<br>' + str(tf[2])
 
 
-""" --- Gestion des "Implémentations de Modules"
+""" --- Gestion des "ImplÃ©mentations de Modules"
      Un "moduleimpl" correspond a la mise en oeuvre d'un module
-     dans une formation spécifique, à une date spécifique.
+     dans une formation spÃ©cifique, Ã  une date spÃ©cifique.
 """
 
 class ModuleImplEditor(EditableTable):
@@ -395,7 +395,7 @@ def notes_moduleimpl_listeetuds(uid,moduleimpl_id):
     return [ x[0] for x in res ]
 
 
-# Pour gestion des listes d'étudiants XXXX
+# Pour gestion des listes d'Ã©tudiants XXXX
 #def notes_formsemestre_inscription_listegroupes( formsemestre_id, cnx=None ):
 #     """donne la liste des groupes (td,tp,anglais) dans lesquels figurent des etudiants
 #     inscrits a ce semestre
@@ -450,7 +450,7 @@ class EvaluationEditor(EditableTable):
         M = notes_moduleimpl_list(uid, args={ 'moduleimpl_id' : moduleimpl_id }  )[0]
         sem = notes_formsemestre_list(uid, args={ 'formsemestre_id' : M['formsemestre_id'] } )[0]
         if uid != 'admin' and uid != M['responsable_id'] and uid != sem['responsable_id']:
-            raise AccessDenied('Modification évaluation impossible pour %s'%uid)
+            raise AccessDenied('Modification Ã©valuation impossible pour %s'%uid)
         
 
 _evaluationEditor = EvaluationEditor(
@@ -489,8 +489,8 @@ def notes_evaluation_create_form(REQUEST, edit=False, readonly=False ):
         # creation nouvel
         moduleimpl_id = REQUEST.form['moduleimpl_id']
         initvalues = { 'note_max' : 20 }
-        submitlabel = 'Créer cette évaluation'
-        action = 'Création d\'une '
+        submitlabel = 'CrÃ©er cette Ã©valuation'
+        action = 'CrÃ©ation d\'une '
     else:
         # edition donnees existantes
         # setup form init values
@@ -499,7 +499,7 @@ def notes_evaluation_create_form(REQUEST, edit=False, readonly=False ):
         initvalues = notes_evaluation_list( AUTHENTICATED_USER,
                                             {'evaluation_id' : evaluation_id})[0]    
         moduleimpl_id = initvalues['moduleimpl_id']
-        submitlabel = 'Modifier les données'
+        submitlabel = 'Modifier les donnÃ©es'
         if readonly:
             action = ''
         else:
@@ -511,13 +511,13 @@ def notes_evaluation_create_form(REQUEST, edit=False, readonly=False ):
     #F = notes_formation_list( AUTHENTICATED_USER, args={ 'formation_id' : sem['formation_id'] } )[0]
     #ModEvals = notes_evaluation_list( AUTHENTICATED_USER, args={ 'moduleimpl_id' : M['moduleimpl_id'] } )
     #
-    H = ['<h2>%sévaluation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h2>'
+    H = ['<h2>%sÃ©valuation en <a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a></h2>'
          % (action, moduleimpl_id, Mod['code'], Mod['titre']),
          'Semestre: %s' % sem['titre'] ]
     if readonly:
         E = initvalues
-        # version affichage seule (générée ici pour etre plus jolie que le Formulator)
-        H.append( '<br>évaluation réalisée le %s de %s à %s'
+        # version affichage seule (gÃ©nÃ©rÃ©e ici pour etre plus jolie que le Formulator)
+        H.append( '<br>Ã©valuation rÃ©alisÃ©e le %s de %s Ã  %s'
                   % (E['jour'],E['heure_debut'],E['heure_fin']) )
         H.append( '<br>coefficient dans le module: %s</p>' % E['coefficient'] )
         return '<div class="eval_description">' + '\n'.join(H) + '</div>'
@@ -527,13 +527,13 @@ def notes_evaluation_create_form(REQUEST, edit=False, readonly=False ):
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
         ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
         ('moduleimpl_id', { 'default' : moduleimpl_id, 'input_type' : 'hidden' }),
-        ('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
-        ('heure_debut'   , { 'title' : 'Heure de début', 'explanation' : 'heure du début de l\'épreuve',
+        ('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrÃ´le' }),
+        ('heure_debut'   , { 'title' : 'Heure de dÃ©but', 'explanation' : 'heure du dÃ©but de l\'Ã©preuve',
                              'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
-        ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'épreuve',
+        ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'Ã©preuve',
                            'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
         ('coefficient'    , { 'size' : 10, 'type' : 'float', 'explanation' : 'coef. dans le module (choisi librement par l\'enseignant)', 'allow_null':False }),
-        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 à', 'explanation' : 'barème', 'allow_null':False, 'max_value' : NOTES_MAX }),
+        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 Ã ', 'explanation' : 'barÃ¨me', 'allow_null':False, 'max_value' : NOTES_MAX }),
         
         ('description' , { 'size' : 36, 'type' : 'text'  }),    
         ),
@@ -646,7 +646,7 @@ def notes_evaluation_etat(uid, evaluation_id):
 
 def notes_evaluation_list_in_sem(uid, formsemestre_id):
     """Liste des evaluations pour un semestre (dans tous le smodules de ce semestre)
-    Donne pour chaque eval son état:
+    Donne pour chaque eval son Ã©tat:
     (evaluation_id,nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif)
     """
     req = "select evaluation_id from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
@@ -695,7 +695,7 @@ def notes_evaluation_etat_in_mod(uid, moduleimpl_id):
     return _eval_etat(R)
 
 def notes_evaluation_listenotes( REQUEST ):
-    """Affichage des notes d'une évaluation"""
+    """Affichage des notes d'une Ã©valuation"""
     authuser = str(REQUEST.AUTHENTICATED_USER)
     evaluation_id = REQUEST.form.get('evaluation_id', None)
     # description de l'evaluation    
@@ -712,7 +712,7 @@ def notes_evaluation_listenotes( REQUEST ):
                          'allowed_values' : [ 'html', 'pdf', 'csv' ],
                          'labels' : ['page HTML', 'fichier PDF', 'fichier tableur' ],
                          'title' : 'Format' }),
-        ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'étudiants' }),
+        ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'Ã©tudiants' }),
         ('groupes', { 'input_type' : 'checkbox', 'title':'',
                       'allowed_values' : grnams, 'labels' : grlabs }) ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
@@ -742,8 +742,8 @@ def notes_evaluation_listenotes( REQUEST ):
         M = notes_moduleimpl_list(authuser, args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         Mod = notes_module_list(authuser, args={ 'module_id' : M['module_id'] } )[0]
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
-        hh = '<h4>%s du %s, groupes %s (%d étudiants)</h4>' % (E['description'], E['jour'], gr_title,len(etudids))
-        Th = ['', 'Nom', 'Prénom', 'Etat', 'Groupe', 'Note sur %d'% E['note_max'], 'Remarque']
+        hh = '<h4>%s du %s, groupes %s (%d Ã©tudiants)</h4>' % (E['description'], E['jour'], gr_title,len(etudids))
+        Th = ['', 'Nom', 'PrÃ©nom', 'Etat', 'Groupe', 'Note sur %d'% E['note_max'], 'Remarque']
         T = [] # list of lists, used to build HTML and CSV
         nb_notes = 0
         sum_notes = 0
@@ -798,10 +798,10 @@ def notes_evaluation_listenotes( REQUEST ):
                 Tm = [ '<tr class="tablenote"><td></td><td>Moyenne</td><td class="colnotemoy">%.3g</td><td class="colcomment">sur %d notes (sans les absents)</td></tr>' % (sum_notes/nb_notes, nb_notes) ]
                 Tab = [ '<table class="tablenote"><tr class="tablenotetitle">' ] + Th + ['</tr><tr><td>'] + Tb + Tm + [ '</td></tr></table>' ]
             else:
-                Tab = 'aucun étudiant !'
+                Tab = 'aucun Ã©tudiant !'
             return tf[1] + '\n'.join(H) + hh + '\n'.join(Tab) 
         elif liste_format == 'pdf':
-            return 'conversion PDF non implementée !'
+            return 'conversion PDF non implementÃ©e !'
         else:
             raise ValueError('invalid value for liste_format (%s)'%liste_format)
 
@@ -821,8 +821,8 @@ def notes_evaluation_selectetuds( REQUEST ):
         ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
                          'allowed_values' : [ 'csv', 'form' ],
                          'labels' : ['fichier tableur', 'formulaire web'],
-                         'title' : 'Méthode de saisie des notes' }),
-        ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'étudiants' }),
+                         'title' : 'MÃ©thode de saisie des notes' }),
+        ('s' , {'input_type' : 'separator', 'title': 'Choix du ou des groupes d\'Ã©tudiants' }),
         ('groupes', { 'input_type' : 'checkbox', 'title':'',
                       'allowed_values' : grnams, 'labels' : grlabs }) ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
@@ -860,10 +860,10 @@ def notes_evaluation_formnotes( REQUEST ):
     #
     note_method = REQUEST.form['note_method']
     okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
-    reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presenté comme "pret a soumettre"
+    reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presentÃ© comme "pret a soumettre"
     initvalues = {}
     CSV = [] # une liste de liste de chaines: lignes du fichier CSV
-    CSV.append( ['Fichier de notes (à enregistrer au format CSV)'])
+    CSV.append( ['Fichier de notes (Ã  enregistrer au format CSV)'])
     # Construit liste des etudiants
     glist = REQUEST.form['groupes']
     gr_td = [ x[2:] for x in glist if x[:2] == 'td' ]
@@ -887,17 +887,17 @@ def notes_evaluation_formnotes( REQUEST ):
     if E['description']:
         evaltitre = '%s du %s' % (E['description'],E['jour'])
     else:
-        evaltitre = 'évaluation du %s' % E['jour']
+        evaltitre = 'Ã©valuation du %s' % E['jour']
     description = '%s: %s en %s (%s) resp. %s' % (sem['titre'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
     head = '<h3>%s</h3>' % description
     CSV.append ( [ description ] )
-    head += '<p>Etudiants des groupes %s (%d étudiants)</p>'%(gr_title,len(etudids))
+    head += '<p>Etudiants des groupes %s (%d Ã©tudiants)</p>'%(gr_title,len(etudids))
     
     head += '<em>%s</em> du %s (coef. %g, <span class="boldredmsg">notes sur %g</span>)' % (E['description'],E['jour'],E['coefficient'],E['note_max'])
     CSV.append ( [ '', 'date', 'coef.' ] )
     CSV.append ( [ '', '%s' % E['jour'], '%g' % E['coefficient'] ] )
     CSV.append( ['!%s' % evaluation_id ] )
-    CSV.append( [ '', 'Nom', 'Prénom', 'Etat', 'Groupe',
+    CSV.append( [ '', 'Nom', 'PrÃ©nom', 'Etat', 'Groupe',
                   'Note sur %d'% E['note_max'], 'Remarque' ] )    
     descr = [
         ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
@@ -942,7 +942,7 @@ def notes_evaluation_formnotes( REQUEST ):
     if okbefore:
         submitlabel = 'Entrer ces notes'
     else:        
-        submitlabel = 'Vérifier ces notes'
+        submitlabel = 'VÃ©rifier ces notes'
     tf =  TF( REQUEST.URL0, REQUEST.form, descr, initvalues=initvalues,
               cancelbutton='Annuler', submitlabel=submitlabel )
     form = tf.getform()
@@ -961,9 +961,9 @@ def notes_evaluation_formnotes( REQUEST ):
         if invalids:
             H.append( '<li class="tf-msg">%d notes invalides !</li>' % len(invalids) )
         if withoutnotes:
-            H.append( '<li class="tf-msg-notice">%d étudiants sans notes !</li>' % len(withoutnotes) )
+            H.append( '<li class="tf-msg-notice">%d Ã©tudiants sans notes !</li>' % len(withoutnotes) )
         if absents:
-            H.append( '<li class="tf-msg-notice">%d étudiants absents !</li>' % len(absents) )
+            H.append( '<li class="tf-msg-notice">%d Ã©tudiants absents !</li>' % len(absents) )
         H.append( '</ul>' )
 
         oknow = int(not len(invalids))
@@ -976,13 +976,13 @@ def notes_evaluation_formnotes( REQUEST ):
         if oknow and reviewed:
             # ok, on rentre ces notes
             nbchanged = notes_notes_add(authuser, evaluation_id, L, tf.result['comment'])
-            return '<p>OK !<br>%s notes modifiées<br></p>' % nbchanged
+            return '<p>OK !<br>%s notes modifiÃ©es<br></p>' % nbchanged
         else:            
             return head + '\n'.join(H) + tf.getform()
 
 def _sendFile(REQUEST,data,filename,title=None):
     """publication fichier.
-    (on ne doit rien avoir émis avant, car ici sont générés les entetes)
+    (on ne doit rien avoir Ã©mis avant, car ici sont gÃ©nÃ©rÃ©s les entetes)
     """
     if not title:
         title = filename
@@ -1011,7 +1011,7 @@ def notes_evaluation_upload_csv(REQUEST):
         raise NoteProcessError('Format de fichier invalide ! (pas de ligne evaludation_id)')
     eval_id = lines[i].split(CSV_FIELDSEP)[0].strip()[1:]
     if eval_id != evaluation_id:
-        raise NoteProcessError("Fichier invalide: le code d\'évaluation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
+        raise NoteProcessError("Fichier invalide: le code d\'Ã©valuation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
     # 2- get notes -> list (etudid, value)
     notes = []
     for line in lines[i+1:]:
@@ -1025,7 +1025,7 @@ def notes_evaluation_upload_csv(REQUEST):
         return '<p class="boldredmsg">Le fichier contient %d notes invalides</p>' % len(invalids)
     else:
         nb_changed = notes_notes_add( REQUEST.AUTHENTICATED_USER, evaluation_id, L )
-    return '<p>%d notes changées (%d sans notes, %d absents)</p>'%(len(notes),len(withoutnotes),len(absents)) + '<p>' + str(notes)
+    return '<p>%d notes changÃ©es (%d sans notes, %d absents)</p>'%(len(notes),len(withoutnotes),len(absents)) + '<p>' + str(notes)
 
 
 def notes_check_notes( notes, evaluation ):
@@ -1175,15 +1175,15 @@ def ListMedian( L ):
 """
 def notes_moduleimpl_moyennes(uid,moduleimpl_id):
     """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
-    à ce module, et la liste des evaluations "valides" (toutes notes entrées).
-    La moyenne est calculée en utilisant les coefs des évaluations.
+    Ã  ce module, et la liste des evaluations "valides" (toutes notes entrÃ©es).
+    La moyenne est calculÃ©e en utilisant les coefs des Ã©valuations.
     Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
-    Les notes ABS sont remplacées par des zéros.
+    Les notes ABS sont remplacÃ©es par des zÃ©ros.
     S'il manque des notes et que le coef n'est pas nul,
-    la moyenne n'est pas calculée: NA
-    Ne prend en compte que les evaluations où toutes les notes sont entrées
+    la moyenne n'est pas calculÃ©e: NA
+    Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es
         (ie nb_inscrits == nb_notes)
-    Le résultat est une note sur 20
+    Le rÃ©sultat est une note sur 20
     """
     uid = str(uid) # xxx access
     M = notes_moduleimpl_list(uid, args={ 'moduleimpl_id' : moduleimpl_id })[0]
@@ -1199,7 +1199,7 @@ def notes_moduleimpl_moyennes(uid,moduleimpl_id):
         e['nb_abs'] = len( [ x for x in notes if x is None ] )
         e['nb_neutre'] = len( [ x for x in notes if x == NOTES_NEUTRALISE ] )
         e['notes'] = NotesDB
-    # filtre les evals valides (toutes les notes entrées)
+    # filtre les evals valides (toutes les notes entrÃ©es)
     valid_evals = [ e for e in evals if e['nb_inscrits'] == e['nb_notes'] ]
     # 
     R = {}
@@ -1268,9 +1268,9 @@ def fmt_note(val, note_max=None):
         return val.replace('NA0', '-')  # notes sans le NA0
 
 def notes_formsemestre_recapcomplet(REQUEST,formsemestre_id,format='html'):
-    """Grand tableau récapitulatif avec toutes les notes de modules
-    pour tous les étudiants, les moyennes par UE et générale,
-    trié par moyenne générale décroissante.
+    """Grand tableau rÃ©capitulatif avec toutes les notes de modules
+    pour tous les Ã©tudiants, les moyennes par UE et gÃ©nÃ©rale,
+    triÃ© par moyenne gÃ©nÃ©rale dÃ©croissante.
     """
     uid = str(REQUEST.AUTHENTICATED_USER) # xxx access
     sem = notes_formsemestre_list(uid, args={ 'formsemestre_id' : formsemestre_id } )[0]
@@ -1306,7 +1306,7 @@ def notes_formsemestre_recapcomplet(REQUEST,formsemestre_id,format='html'):
                 j += 1
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
-    # Dernière ligne: moyennes UE et modules
+    # DerniÃ¨re ligne: moyennes UE et modules
     l = [ '', 'Moyennes', '' ] # todo: calcul moyenne des moyennes
     i = 0
     for ue in ues:
@@ -1317,7 +1317,7 @@ def notes_formsemestre_recapcomplet(REQUEST,formsemestre_id,format='html'):
             if modimpl['module']['ue_id'] == ue['ue_id']:
                 l.append(fmt_note(nt.get_mod_moy(modimpl['moduleimpl_id'])[0])) # moyenne du module
     F.append(l)
-    # Generation table au format demandé
+    # Generation table au format demandÃ©
     if format == 'html':
         # Table format HTML
         H = [ '<table class="notes_recapcomplet">' ]
@@ -1422,10 +1422,10 @@ def notes_formsemestre_bulletinetud(REQUEST,formsemestre_id,etudid,format='html'
     return '\n'.join(H)    
 
 class NotesTable:
-    """Une NotesTable représente un tableau de notes pour un semestre de formation.
+    """Une NotesTable reprÃ©sente un tableau de notes pour un semestre de formation.
     Les colonnes sont des modules.
-    Les lignes des étudiants.
-    On peut calculer les moyennes par étudiant (pondérées par les coefs)
+    Les lignes des Ã©tudiants.
+    On peut calculer les moyennes par Ã©tudiant (pondÃ©rÃ©es par les coefs)
     ou les moyennes par module.
     """
     def __init__(self,uid,formsemestre_id):
@@ -1460,7 +1460,7 @@ class NotesTable:
             # calcul moyennes du module et stocke dans le module
             #nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif=
         #
-        # liste des moyennes de tous, en chaines de car., triées
+        # liste des moyennes de tous, en chaines de car., triÃ©es
         T = []
         self.ues = self.uedict.values()
         self.ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
@@ -1475,7 +1475,7 @@ class NotesTable:
                         t.append(fmt_note(val))
             t.append(etudid)
             T.append(tuple(t))
-        # tri par moyennes décroissantes
+        # tri par moyennes dÃ©croissantes
         T.sort()
         T.reverse()
         self.T = T
@@ -1492,7 +1492,7 @@ class NotesTable:
         "formatte nom dun etud"
         return self.identdict[etudid]['nom'].upper() + ' ' + self.identdict[etudid]['prenom'].upper()[0] + '.'
     def get_ues(self):
-        "liste des ue, ordonnée par numero"
+        "liste des ue, ordonnÃ©e par numero"
         return self.ues
     def get_modimpls(self, ue_id=None):
         "liste des modules pour une UE (ou toutes si ue_id==None)"
@@ -1512,7 +1512,7 @@ class NotesTable:
         return [ e for e in self.valid_evals.values() if e['moduleimpl_id'] == moduleimpl_id ]
     def get_mod_moy(self, moduleimpl_id):
         """moyenne generale pour un module
-        Ne prend en compte que les evaluations où toutes les notes sont entrées
+        Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es
         (ie nb_inscrits == nb_notes)
         """
         nb_notes = 0
@@ -1538,7 +1538,7 @@ class NotesTable:
     
     def get_etud_moy(self, etudid, ue_id=None):
         """moyenne gen. pour un etudiant dans une UE (ou toutes si ue_id==None)
-        Ne prend en compte que les evaluations où toutes les notes sont entrées
+        Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es
         (ie nb_inscrits == nb_notes)
         Return: (moy, nb_notes, nb_missing)
         """

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -34,7 +34,7 @@ Main HTML page header for ScoDoc
 
 def sco_header(context, REQUEST=None, 
                # optional args
-               container=None,     # objet qui a lancé la demande
+               container=None,     # objet qui a lancÃ© la demande
                page_title='',      # page title
                no_side_bar=False,  # hide sidebar
                cssstyles=[],       # additionals CSS sheets
@@ -187,14 +187,14 @@ def sco_header(context, REQUEST=None,
     # Barre menu semestre:
     H.append( formsemestre_page_title(context, REQUEST) )
 
-    # Avertissement si mot de passe à changer
+    # Avertissement si mot de passe Ã  changer
     if user_check:
         authuser = REQUEST.AUTHENTICATED_USER
         passwd_temp = context.Users.user_info(user_name=str(authuser))['passwd_temp']
         if passwd_temp:
             H.append('''<div class="passwd_warn">
     Attention !<br/>
-    Vous avez reçu un mot de passe temporaire.<br/>
+    Vous avez reÃ§u un mot de passe temporaire.<br/>
     Vous devez le changer: <a href="%s/Users/form_change_password?user_name=%s">cliquez ici</a>
     </div>''' % (context.ScoURL(), str(authuser)) )
     #

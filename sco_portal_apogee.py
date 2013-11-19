@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Liaison avec le portail ENT (qui donne accès aux infos Apogée)
+"""Liaison avec le portail ENT (qui donne accÃ¨s aux infos ApogÃ©e)
 """
 
 from sco_utils import *
@@ -52,7 +52,7 @@ _PI = PortalInterface()
 get_portal_url = _PI.get_portal_url
 
 def get_inscrits_etape(context, code_etape, anneeapogee=None):
-    """Liste des inscrits à une étape Apogée
+    """Liste des inscrits Ã  une Ã©tape ApogÃ©e
     Result = list of dicts
     """
     log('get_inscrits_etape: code=%s anneeapogee=%s' % (code_etape, anneeapogee))
@@ -65,7 +65,7 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
     req = portal_url + 'getEtud.php?' + urllib.urlencode((('etape', code_etape),))
     doc = query_portal(req)
     if not doc:
-        raise ScoValueError('pas de réponse du portail !')
+        raise ScoValueError('pas de rÃ©ponse du portail !')
     etuds = xml_to_list_of_dicts(doc, req=req)
     # Filtre sur annee inscription Apogee:
     def check_inscription(e):
@@ -77,13 +77,13 @@ def get_inscrits_etape(context, code_etape, anneeapogee=None):
         else:
             log('get_inscrits_etape: pas inscription dans code_etape=%s e=%s' %
                 (code_etape, e))
-            return False # ??? pas d'annee d'inscription dans la réponse
+            return False # ??? pas d'annee d'inscription dans la rÃ©ponse
     if anneeapogee != '*':
         etuds = [ e for e in etuds if check_inscription(e) ]
     return etuds
 
 def query_apogee_portal(context, **args):
-    """Recupere les infos sur les etudiants nommés
+    """Recupere les infos sur les etudiants nommÃ©s
     args: non, prenom, code_nip
     (nom et prenom matchent des parties de noms)
     """
@@ -165,7 +165,7 @@ def get_infos_apogee(context, nom, prenom):
     prenom_st = prenom.replace('-', ' ')
     if nom_st != nom or prenom_st != prenom:
         infos += get_infos_apogee_allaccents(context, nom_st, prenom_st)
-    # si pas de match et nom ou prenom composé, essaie en coupant
+    # si pas de match et nom ou prenom composÃ©, essaie en coupant
     if not infos:
         if nom:
             nom1 = nom.split()[0]
@@ -180,7 +180,7 @@ def get_infos_apogee(context, nom, prenom):
     return infos
 
 def get_etud_apogee(context, code_nip):
-    """Informations à partir du code NIP.
+    """Informations Ã  partir du code NIP.
     None si pas d'infos sur cet etudiant.
     Exception si reponse invalide.
     """
@@ -199,7 +199,7 @@ def get_etud_apogee(context, code_nip):
     return d[0]
 
 def get_default_etapes(context):
-    """Liste par défaut: devrait etre lue d'un fichier de config
+    """Liste par dÃ©faut: devrait etre lue d'un fichier de config
     """
     filename = context.file_path + '/config/default-etapes.txt'
     log('get_default_etapes: reading %s' % filename )
@@ -219,8 +219,8 @@ def get_default_etapes(context):
 def get_etapes_apogee(context):
     """Liste des etapes apogee
     { departement : { code_etape : intitule } }
-    Demande la liste au portail, ou si échec utilise liste
-    par défaut
+    Demande la liste au portail, ou si Ã©chec utilise liste
+    par dÃ©faut
     """
     portal_url = get_portal_url(context)
     if not portal_url:
@@ -273,12 +273,12 @@ def get_etapes_apogee_dept(context):
     return etapes
 
 def check_paiement_etuds(context, etuds):
-    """Interroge le portail pour vérifier l'état de "paiement"
+    """Interroge le portail pour vÃ©rifier l'Ã©tat de "paiement"
     et renseigne l'attribut booleen 'paiementinscription' dans chaque etud.
-    Seuls les etudiants avec code NIP sont renseignés.
+    Seuls les etudiants avec code NIP sont renseignÃ©s.
     En sortie, 'paiementinscription' vaut True, False ou None
     """
-    # interrogation séquentielle longue...
+    # interrogation sÃ©quentielle longue...
     for etud in etuds:
         if not etud.has_key('code_nip'):
             etud['paiementinscription'] = None

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -70,7 +70,7 @@ def trombino(context, REQUEST, group_id,
         if nb_missing > 0:
             parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
             return context.confirmDialog(
-                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="trombino?%s&format=%s&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args, format ),
+                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas Ãªtre exportÃ©es.</p><p>Vous pouvez <a class="stdlink" href="trombino?%s&format=%s&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args, format ),
                 dest_url = 'trombino',
                 OK = 'Exporter seulement les photos existantes',
                 cancel_url="trombino?%s"%args,
@@ -114,9 +114,9 @@ def _trombino_html(context, group, members, REQUEST=None):
         if group['group_name'] != None:
             ng = 'Groupe %s' % group['group_name']
         else:
-            ng = 'Tous les étudiants'
+            ng = 'Tous les Ã©tudiants'
     else:
-        ng = "Aucun étudiant inscrit dans ce semestre !"
+        ng = "Aucun Ã©tudiant inscrit dans ce semestre !"
     H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]
     if members:
         H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td>' )
@@ -129,7 +129,7 @@ def _trombino_html(context, group, members, REQUEST=None):
         H.append('<td align="center">')
         if sco_photos.has_photo(context, t, version=sco_photos.H90):
             foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
-        else: # la photo n'est pas immédiatement dispo
+        else: # la photo n'est pas immÃ©diatement dispo
             foto = '<span class="unloaded_img" id="%s"><img border="0" height="90" alt="en cours" src="/ScoDoc/static/photos/loading.jpg"/></span>' % t['etudid']
         H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
         H.append('<br/>' + format_prenom(t['prenom']) + '<br/>' + format_nom(t['nom']) )
@@ -178,17 +178,17 @@ def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False
     if group['group_name'] != None:
         ng = 'Groupe %s' % group['group_name']
     else:
-        ng = 'Tous les étudiants'
+        ng = 'Tous les Ã©tudiants'
     portal_url = sco_portal_apogee.get_portal_url(context)
     header = context.sco_header(REQUEST, page_title='Chargement des photos') 
     footer = context.sco_footer(REQUEST)
     if not portal_url:
-        return header + '<p>portail non configuré</p><p><a href="trombino?group_id=%s">Retour au trombinoscope</a></p>'%group_id + footer
+        return header + '<p>portail non configurÃ©</p><p><a href="trombino?group_id=%s">Retour au trombinoscope</a></p>'%group_id + footer
     if not dialog_confirmed:
         return context.confirmDialog(
                 """<h2>Copier les photos du portail vers ScoDoc ?</h2>
-                <p>Les photos du groupe %s présentes dans ScoDoc seront remplacées par celles du portail (si elles existent).</p>
-                <p>(les photos sont normalement automatiquement copiées lors de leur première utilisation, l'usage de cette fonction n'est nécessaire que si les photos du portail ont été modifiées)</p>
+                <p>Les photos du groupe %s prÃ©sentes dans ScoDoc seront remplacÃ©es par celles du portail (si elles existent).</p>
+                <p>(les photos sont normalement automatiquement copiÃ©es lors de leur premiÃ¨re utilisation, l'usage de cette fonction n'est nÃ©cessaire que si les photos du portail ont Ã©tÃ© modifiÃ©es)</p>
                 """ % (ng),
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="trombino?group_id=%s" % group_id,
@@ -202,7 +202,7 @@ def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False
         if path:
             nok += 1
     
-    msg.append('<b>%d photos correctement chargées</b>' % nok )
+    msg.append('<b>%d photos correctement chargÃ©es</b>' % nok )
     args='group_id=%s' % group_id
     return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="trombino?%s">retour au trombinoscope</a>' % args + footer
 
@@ -261,7 +261,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
         currow += [' ']*(N_PER_ROW-len(currow))
         L.append(currow)
     if not L:
-        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+        table = Paragraph( SU('Aucune photo Ã  exporter !'),  StyleSheet['Normal'])
     else:
         table = Table( L, colWidths=[ COLWIDTH ]*N_PER_ROW,
                        style = TableStyle( [
@@ -278,7 +278,7 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     
     return sendPDFFile(REQUEST, data, filename)
 
-# --------------------- Sur une idée de l'IUT d'Orléans:
+# --------------------- Sur une idÃ©e de l'IUT d'OrlÃ©ans:
 def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
     "Doc pdf pour liste d'appel avec photos"
     objects = []
@@ -312,7 +312,7 @@ def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
         currow += [' ']*3
         L.append(currow)
     if not L:
-        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+        table = Paragraph( SU('Aucune photo Ã  exporter !'),  StyleSheet['Normal'])
     else:
         table = Table( L, colWidths=[ 2*cm, 4*cm, 27*mm, 5*mm, 2*cm, 4*cm, 27*mm ],
                        style = TableStyle( [
@@ -353,7 +353,7 @@ def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
             img ]
         
     if not L:
-        table = Paragraph( SU('Aucune photo à exporter !'),  StyleSheet['Normal'])
+        table = Paragraph( SU('Aucune photo Ã  exporter !'),  StyleSheet['Normal'])
     else:
         table = Table( L, colWidths=[ COLWIDTH ]*7,
                        style = TableStyle( [
@@ -363,7 +363,7 @@ def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
                            ] ) )
     objects.append(table)
     
-    # Réduit sur une page
+    # RÃ©duit sur une page
     objects = [KeepInFrame(0,0,objects,mode='shrink')]  
     
     # --- Build document
@@ -389,19 +389,19 @@ def photos_generate_excel_sample(context, group_id=None, REQUEST=None):
 def photos_import_files_form(context, group_id, REQUEST=None):
     """Formualaire pour importation photos
     """
-    H = [context.sco_header(REQUEST, page_title='Import des photos des étudiants'),
-         """<h2 class="formsemestre">Téléchargement des photos des étudiants</h2>
-         <p><b>Vous pouvez aussi charger les photos individuellement via la fiche de chaque étudiant (menu "Etudiant" / "Changer la photo").</b></p>
-         <p class="help">Cette page permet de charger en une seule fois les photos de plusieurs étudiants.<br/>
+    H = [context.sco_header(REQUEST, page_title='Import des photos des Ã©tudiants'),
+         """<h2 class="formsemestre">TÃ©lÃ©chargement des photos des Ã©tudiants</h2>
+         <p><b>Vous pouvez aussi charger les photos individuellement via la fiche de chaque Ã©tudiant (menu "Etudiant" / "Changer la photo").</b></p>
+         <p class="help">Cette page permet de charger en une seule fois les photos de plusieurs Ã©tudiants.<br/>
           Il faut d'abord remplir une feuille excel donnant les noms 
-          des fichiers images (une image par étudiant).
+          des fichiers images (une image par Ã©tudiant).
          </p>
-         <p class="help">Ensuite, réunir vos images dans un fichier zip, puis télécharger 
-         simultanément le fichier excel et le fichier zip.
+         <p class="help">Ensuite, rÃ©unir vos images dans un fichier zip, puis tÃ©lÃ©charger 
+         simultanÃ©ment le fichier excel et le fichier zip.
          </p>
         <ol>
         <li><a class="stdlink" href="photos_generate_excel_sample?group_id=%s">
-        Obtenir la feuille excel à remplir</a>
+        Obtenir la feuille excel Ã  remplir</a>
         </li>
         <li style="padding-top: 2em;">
          """ % group_id]
@@ -429,7 +429,7 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
     """
     members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id)
     filename_title = 'fichier_photo'
-    page_title = 'Téléchargement des photos des étudiants'
+    page_title = 'TÃ©lÃ©chargement des photos des Ã©tudiants'
     def callback(context, etud, data, filename, REQUEST): 
         sco_photos.store_photo(context, etud, data, REQUEST)
     r = zip_excel_import_files(context, group_id, xlsfile, zipfile,
@@ -439,12 +439,12 @@ def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQU
 def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
                            REQUEST=None,
                            callback = None,
-                           filename_title = '', # doit obligatoirement etre specifié
+                           filename_title = '', # doit obligatoirement etre specifiÃ©
                            page_title = '' ):
-    """Importation de fichiers à partir d'un excel et d'un zip
+    """Importation de fichiers Ã  partir d'un excel et d'un zip
     La fonction
        callback()
-    est appelé pour chaque fichier trouvé.
+    est appelÃ© pour chaque fichier trouvÃ©.
     """
     # 1- build mapping etudid -> filename
     exceldata = xlsfile.read()
@@ -495,7 +495,7 @@ def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
                     etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
                     del Filename2Etud[normname]
                 except:
-                    raise ScoValueError('ID étudiant invalide: %s' % etudid)
+                    raise ScoValueError('ID Ã©tudiant invalide: %s' % etudid)
 
                 callback(context, etud, data, normfilename(name, lowercase=False), REQUEST=REQUEST)
                 
@@ -508,27 +508,27 @@ def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
                 ignored_zipfiles.append(name)
             log('zip: ignoring %s' % name)
     if Filename2Etud:
-        # lignes excel non traitées
+        # lignes excel non traitÃ©es
         unmatched_files = Filename2Etud.keys()
     else:
         unmatched_files = []
     # 3- Result page
     H = [_trombino_html_header(context, REQUEST),
          """<h2 class="formsemestre">%s</h2>
-         <h3>Opération effectuée</h3>
+         <h3>OpÃ©ration effectuÃ©e</h3>
          """ % page_title ]
     if ignored_zipfiles:
-        H.append('<h4>Fichiers ignorés dans le zip:</h4><ul>')
+        H.append('<h4>Fichiers ignorÃ©s dans le zip:</h4><ul>')
         for name in ignored_zipfiles:
             H.append('<li>%s</li>' % name)
         H.append('</ul>')
     if unmatched_files:
-        H.append('<h4>Fichiers indiqués dans feuille mais non trouvés dans le zip:</h4><ul>')
+        H.append('<h4>Fichiers indiquÃ©s dans feuille mais non trouvÃ©s dans le zip:</h4><ul>')
         for name in unmatched_files:
             H.append('<li>%s</li>' % name)
         H.append('</ul>')
     if stored:
-        H.append('<h4>Fichiers chargés:</h4><ul>')
+        H.append('<h4>Fichiers chargÃ©s:</h4><ul>')
         for (etud, name) in stored:
             H.append('<li>%s: <tt>%s</tt></li>' % (etud['nomprenom'], name))
         H.append('</ul>')

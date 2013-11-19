@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 """Modification decision de jury
 """
@@ -34,7 +34,7 @@ def suppress_then_set( etudid, formsemestre_id, code='ADM' ):
     browser.find_by_name('formvalidmanu_submit').first.click()
     # pas de verification de la page résultat
 
-# Change decisions de jury de tous les etudiants:
+# Change decisions de jury de tous les étudiants:
 for etudid in etudids:
     print 'decision pour %s' % etudid
     suppress_then_set( etudid, formsemestre_id, code='ADM')

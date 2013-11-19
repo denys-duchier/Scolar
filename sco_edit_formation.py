@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -56,14 +56,14 @@ def formation_delete(context, formation_id=None, dialog_confirmed=False, REQUEST
         if not dialog_confirmed:
             return context.confirmDialog(
                 """<h2>Confirmer la suppression de la formation %(titre)s (%(acronyme)s) ?</h2>
-    <p><b>Attention:</b> la suppression d'une formation est <b>irréversible</b> et implique la supression de toutes les UE, matières et modules de la formation !
+    <p><b>Attention:</b> la suppression d'une formation est <b>irrÃ©versible</b> et implique la supression de toutes les UE, matiÃ¨res et modules de la formation !
 </p>
                 """ % F, REQUEST=REQUEST,
                 OK="Supprimer cette formation",
                 cancel_url=REQUEST.URL1, parameters={'formation_id':formation_id})
         else:
             context.do_formation_delete( F['formation_id'], REQUEST )
-            H.append("""<p>OK, formation supprimée.</p>
+            H.append("""<p>OK, formation supprimÃ©e.</p>
     <p><a class="stdlink" href="%s">continuer</a></p>""" % REQUEST.URL1)
 
     H.append(context.sco_footer(REQUEST))
@@ -79,16 +79,16 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
     """Edit or create a formation
     """
     if create:
-        H = [ context.sco_header(REQUEST, page_title="Création d'une formation"),
-          """<h2>Création d'une formation</h2>
+        H = [ context.sco_header(REQUEST, page_title="CrÃ©ation d'une formation"),
+          """<h2>CrÃ©ation d'une formation</h2>
 
-<p class="help">Une "formation" décrit une filière, comme un DUT ou une Licence. La formation se subdivise en unités pédagogiques (UE, matières, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place séparément.
+<p class="help">Une "formation" dÃ©crit une filiÃ¨re, comme un DUT ou une Licence. La formation se subdivise en unitÃ©s pÃ©dagogiques (UE, matiÃ¨res, modules). Elle peut se diviser en plusieurs semestres (ou sessions), qui seront mis en place sÃ©parÃ©ment.
 </p>
 
-<p>Le <tt>titre</tt> est le nom complet, parfois adapté pour mieux distinguer les modalités ou versions de programme pédagogique. Le <tt>titre_officiel</tt> est le nom complet du diplôme, qui apparaitra sur certains PV de jury de délivrance du diplôme.
+<p>Le <tt>titre</tt> est le nom complet, parfois adaptÃ© pour mieux distinguer les modalitÃ©s ou versions de programme pÃ©dagogique. Le <tt>titre_officiel</tt> est le nom complet du diplÃ´me, qui apparaitra sur certains PV de jury de dÃ©livrance du diplÃ´me.
 </p>
 """]
-        submitlabel = 'Créer cette formation'
+        submitlabel = 'CrÃ©er cette formation'
         initvalues = {}
     else:
         # edit an existing formation
@@ -103,16 +103,16 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('formation_id', { 'default' : formation_id, 'input_type' : 'hidden' }),
         ('acronyme',  { 'size' : 12, 'explanation' : 'identifiant de la formation (par ex. DUT R&T)',  'allow_null' : False }),
-        ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT Réseaux et Télécommunications',  'allow_null' : False }),
+        ('titre'    , { 'size' : 80, 'explanation' : 'nom complet de la formation (ex: DUT RÃ©seaux et TÃ©lÃ©communications',  'allow_null' : False }),
         ('titre_officiel'    , { 'size' : 80, 'explanation' : 'nom officiel (pour les PV de jury)', 'allow_null' : False }),
         ('type_parcours', { 'input_type' : 'menu',
                             'title' : 'Type de parcours',
                             'type' : 'int',
                             'allowed_values' : sco_codes_parcours.FORMATION_PARCOURS_TYPES,
                             'labels' : sco_codes_parcours.FORMATION_PARCOURS_DESCRS,
-                            'explanation' : "détermine notamment le nombre de semestres et les règles de validation d'UE et de semestres (barres)",
+                            'explanation' : "dÃ©termine notamment le nombre de semestres et les rÃ¨gles de validation d'UE et de semestres (barres)",
                             }),
-        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
+        ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le mÃªme code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
         ),
                            initvalues = initvalues,
                            submitlabel = submitlabel)
@@ -132,7 +132,7 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
         quote_dict(args)
         others = context.formation_list( args = args )
         if others and ((len(others) > 1) or others[0]['formation_id'] != formation_id):
-            return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe déjà une formation avec même titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
+            return '\n'.join(H) + tf_error_message("Valeurs incorrectes: il existe dÃ©jÃ  une formation avec mÃªme titre, acronyme et version.") + tf[1] + context.sco_footer(REQUEST)
         #
         if create:
             formation_id = context.do_formation_create(tf[2], REQUEST)

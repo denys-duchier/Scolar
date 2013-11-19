@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Géolocalisation du fichiers des lycees (etablissements.csv)
+"""GÃ©olocalisation du fichiers des lycees (etablissements.csv)
 Ajoute deux colonnes: LAT, LONG
 
 Utilise geopy http://www.geopy.org/ et l'API Google

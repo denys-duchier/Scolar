@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Opérations d'inscriptions aux modules (interface pour gérer options ou parcours)
+"""OpÃ©rations d'inscriptions aux modules (interface pour gÃ©rer options ou parcours)
 """
 
 
@@ -55,23 +55,23 @@ def moduleimpl_inscriptions_edit(context, moduleimpl_id, etuds=[],
     sem = context.get_formsemestre(formsemestre_id)
     # -- check lock
     if sem['etat'] != '1':
-        raise ScoValueError('opération impossible: semestre verrouille')
+        raise ScoValueError('opÃ©ration impossible: semestre verrouille')
     header = context.sco_header(REQUEST, page_title='Inscription au module',
                                 init_qtip = True,
                                 javascripts=['js/etud_info.js']
                                 )
     footer = context.sco_footer(REQUEST)
     H = [header, """<h2>Inscriptions au module <a href="moduleimpl_status?moduleimpl_id=%s">%s</a> (%s)</a></h2>
-    <p class="help">Cette page permet d'éditer les étudiants inscrits à ce module
-    (ils doivent évidemment être inscrits au semestre).
-    Les étudiants cochés sont (ou seront) inscrits. Vous pouvez facilement inscrire ou
-    désinscrire tous les étudiants d'un groupe à l'aide des menus "Ajouter" et "Enlever".
+    <p class="help">Cette page permet d'Ã©diter les Ã©tudiants inscrits Ã  ce module
+    (ils doivent Ã©videmment Ãªtre inscrits au semestre).
+    Les Ã©tudiants cochÃ©s sont (ou seront) inscrits. Vous pouvez facilement inscrire ou
+    dÃ©sinscrire tous les Ã©tudiants d'un groupe Ã  l'aide des menus "Ajouter" et "Enlever".
     </p>
     <p class="help">Aucune modification n'est prise en compte tant que l'on n'appuie pas sur le bouton
     "Appliquer les modifications".
     </p>
     """ % (moduleimpl_id, mod['titre'], mod['code'])]
-    # Liste des inscrits à ce semestre
+    # Liste des inscrits Ã  ce semestre
     inscrits = context.Notes.do_formsemestre_inscription_listinscrits(formsemestre_id)
     for ins in inscrits:
         etuds_info =  context.getEtudInfo(etudid=ins['etudid'], filled=1)
@@ -182,7 +182,7 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
 
     Modules communs (tous inscrits): <liste des modules (codes)
 
-    Autres modules: (regroupés par UE)
+    Autres modules: (regroupÃ©s par UE)
     UE 1
     <code du module>: <nb inscrits> (<description en termes de groupes>)
     ...
@@ -219,10 +219,10 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
     # Page HTML:
     H = [context.html_sem_header(REQUEST, 'Inscriptions aux modules du semestre' )]
         
-    H.append('<h3>Inscrits au semestre: %d étudiants</h3>' % len(inscrits))
+    H.append('<h3>Inscrits au semestre: %d Ã©tudiants</h3>' % len(inscrits))
 
     if options:
-        H.append('<h3>Modules auxquels tous les étudiants ne sont pas inscrits:</h3>')
+        H.append('<h3>Modules auxquels tous les Ã©tudiants ne sont pas inscrits:</h3>')
         H.append('<table class="formsemestre_status formsemestre_inscr"><tr><th>UE</th><th>Code</th><th>Inscrits</th><th></th></tr>')
         for mod in options:
             if can_change:
@@ -232,10 +232,10 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
             H.append('<tr class="formsemestre_status"><td>%s</td><td class="formsemestre_status_code">%s</td><td class="formsemestre_status_inscrits">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code'], mod['nb_inscrits'], c_link))
         H.append('</table>')
     else:
-        H.append('<span style="font-size:110%; font-style:italic; color: red;"">Tous les étudiants sont inscrits à tous les modules.</span>')
+        H.append('<span style="font-size:110%; font-style:italic; color: red;"">Tous les Ã©tudiants sont inscrits Ã  tous les modules.</span>')
 
     if commons:
-        H.append('<h3>Modules communs (auxquels tous les étudiants sont inscrits):</h3>')
+        H.append('<h3>Modules communs (auxquels tous les Ã©tudiants sont inscrits):</h3>')
         H.append('<table class="formsemestre_status formsemestre_inscr"><tr><th>UE</th><th>Code</th><th>Module</th></tr>')
         for mod in commons:
             if can_change:
@@ -245,10 +245,10 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
             H.append('<tr class="formsemestre_status_green"><td>%s</td><td class="formsemestre_status_code">%s</td><td>%s</td></tr>' % (mod['ue']['acronyme'], mod['module']['code'], c_link))
         H.append('</table>')
 
-    # Etudiants "dispensés" d'une UE (capitalisée)
+    # Etudiants "dispensÃ©s" d'une UE (capitalisÃ©e)
     UECaps = get_etuds_with_capitalized_ue(context, formsemestre_id)
     if UECaps:
-        H.append('<h3>Etudiants avec UEs capitalisées:</h3><ul class="ue_inscr_list">')        
+        H.append('<h3>Etudiants avec UEs capitalisÃ©es:</h3><ul class="ue_inscr_list">')        
         ues = [ context.do_ue_list({ 'ue_id' : ue_id })[0] for ue_id in UECaps.keys() ]
         ues.sort(key=lambda u:u['numero'])        
         for ue in ues:
@@ -264,24 +264,24 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
                     dm = ', '.join([ m['code'] or m['abbrev'] or 'pas_de_code' for m in info['is_ins'] ])
                     H.append('actuellement inscrit dans <a title="%s" class="discretelink">%d modules</a>' % (dm,len(info['is_ins'])))
                     if info['ue_status']['is_capitalized']:
-                        H.append("""<div><em style="font-size: 70%">UE actuelle moins bonne que l'UE capitalisée</em></div>""")
+                        H.append("""<div><em style="font-size: 70%">UE actuelle moins bonne que l'UE capitalisÃ©e</em></div>""")
                     else:
-                        H.append("""<div><em style="font-size: 70%">UE actuelle meilleure que l'UE capitalisée</em></div>""")
+                        H.append("""<div><em style="font-size: 70%">UE actuelle meilleure que l'UE capitalisÃ©e</em></div>""")
                     if can_change:
-                        H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">désinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
+                        H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">dÃ©sinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
                 else:
-                    H.append('(non réinscrit dans cette UE)')
+                    H.append('(non rÃ©inscrit dans cette UE)')
                     if can_change:
-                        H.append('<div><a class="stdlink" href="etud_inscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">inscrire à tous les modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
+                        H.append('<div><a class="stdlink" href="etud_inscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">inscrire Ã  tous les modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
                 H.append( '</li>' )
             H.append( '</ul></li>' )
         H.append('</ul>')
     
-        H.append("""<hr/><p class="help">Cette page décrit les inscriptions actuelles. 
+        H.append("""<hr/><p class="help">Cette page dÃ©crit les inscriptions actuelles. 
         Vous pouvez changer (si vous en avez le droit) les inscrits dans chaque module en 
         cliquant sur la ligne du module.</p>
-        <p  class="help">Note: la déinscription d'un module ne perd pas les notes. Ainsi, si 
-        l'étudiant est ensuite réinscrit au même module, il retrouvera ses notes.</p>
+        <p  class="help">Note: la dÃ©inscription d'un module ne perd pas les notes. Ainsi, si 
+        l'Ã©tudiant est ensuite rÃ©inscrit au mÃªme module, il retrouvera ses notes.</p>
         """)
 
     H.append(context.sco_footer(REQUEST))
@@ -322,10 +322,10 @@ def descr_inscrs_module(context, sem, moduleimpl_id, set_all, partitions, partit
     return False, len(ins), ' et '.join(r)
 
 def _fmt_etud_set(context, ins, max_list_size=7):
-    # max_list_size est le nombre max de noms d'etudiants listés
-    # au delà, on indique juste le nombre, sans les noms.
+    # max_list_size est le nombre max de noms d'etudiants listÃ©s
+    # au delÃ , on indique juste le nombre, sans les noms.
     if len(ins) > max_list_size:
-        return '%d étudiants' % len(ins)
+        return '%d Ã©tudiants' % len(ins)
     etuds = []
     for etudid in ins:
         etuds.append(context.getEtudInfo(etudid=etudid,filled=True)[0])
@@ -354,7 +354,7 @@ def get_etuds_with_capitalized_ue(context, formsemestre_id):
 
 def is_inscrit_ue(context, etudid, formsemestre_id, ue_id):
     """Modules de cette UE dans ce semestre
-    auxquels l'étudiant est inscrit.
+    auxquels l'Ã©tudiant est inscrit.
     """
     r = SimpleDictFetch(context, """SELECT mod.*
     FROM notes_moduleimpl mi, notes_modules mod,

@@ -5,16 +5,16 @@
 # E. Viennet, 2007
 
 # Format: Departement : Code_etape_apogee : nom de la formation
-# Le code departement est celui indiqué par la propriété
-# "portal_dept_name" du département.
+# Le code departement est celui indiquÃ© par la propriÃ©tÃ©
+# "portal_dept_name" du dÃ©partement.
 
-# Attention: le codage de ce fichier doit etre le même que 
+# Attention: le codage de ce fichier doit etre le mÃªme que 
 # celui de ScoDoc (iso8859-15 ou latin1)
 
-rt : V1RT  : DUT Réseaux et Télécommunications 1
-rt : V2RT2 : DUT Réseaux et Télécommunications 2
-rt : V3ASR3 : Licence Pro R&T ASSUR (FC)
-rt : V3ASR2 : Licence Pro R&T ASSUR (Apprentissage)
+rt : V1RT  : DUT RÃ©seaux et TÃ©lÃ©communications 1
+rt : V2RT2 : DUT RÃ©seaux et TÃ©lÃ©communications 2
+rt : V3ASR3 : Licence Pro R&T ASUR (FC)
+rt : V3ASR2 : Licence Pro R&T ASUR (Apprentissage)
 rt : V3ON  : Licence pro. Electronique, Optique et Nanotechnologies
 gea: V1GE  : DUT Gestion des Entreprises et Administration 1
 gea: V2GE  : DUT Gestion des Entreprises et Administration 2

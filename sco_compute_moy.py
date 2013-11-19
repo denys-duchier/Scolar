@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -50,11 +50,11 @@ def moduleimpl_has_expression(context, mod):
     return True
 
 def formsemestre_expressions_use_abscounts(context, formsemestre_id):
-    """True si les notes de ce semestre dépendent des compteurs d'absences.
+    """True si les notes de ce semestre dÃ©pendent des compteurs d'absences.
     Cela n'est normalement pas le cas, sauf si des formules utilisateur utilisent ces compteurs.
     """
     # check presence of 'nbabs' in expressions
-    ab = 'nbabs' # chaine recherchée
+    ab = 'nbabs' # chaine recherchÃ©e
     cnx = context.GetDBConnexion()
     # 1- moyennes d'UE:
     elist = formsemestre_ue_computation_expr_list(cnx, {'formsemestre_id':formsemestre_id})
@@ -101,7 +101,7 @@ def compute_user_formula(context, formsemestre_id, etudid,
                          diag_info={} # infos supplementaires a placer ds messages d'erreur
                          ):
     """Calcul moyenne a partir des notes et coefs, en utilisant la formule utilisateur (une chaine).
-    Retourne moy, et en cas d'erreur met à jour diag_info (msg)
+    Retourne moy, et en cas d'erreur met Ã  jour diag_info (msg)
     """
     AbsSemEtud = ZAbsences.getAbsSemEtud(context, formsemestre_id, etudid)
     nbabs = AbsSemEtud.CountAbs()
@@ -144,15 +144,15 @@ def compute_user_formula(context, formsemestre_id, etudid,
 
 def do_moduleimpl_moyennes(context, mod):
     """Retourne dict { etudid : note_moyenne } pour tous les etuds inscrits
-    au moduleimpl mod, la liste des evaluations "valides" (toutes notes entrées
+    au moduleimpl mod, la liste des evaluations "valides" (toutes notes entrÃ©es
     ou en attente), et att (vrai s'il y a des notes en attente dans ce module).
-    La moyenne est calculée en utilisant les coefs des évaluations.
+    La moyenne est calculÃ©e en utilisant les coefs des Ã©valuations.
     Les notes NEUTRES (abs. excuses) ne sont pas prises en compte.
-    Les notes ABS sont remplacées par des zéros.
+    Les notes ABS sont remplacÃ©es par des zÃ©ros.
     S'il manque des notes et que le coef n'est pas nul,
-    la moyenne n'est pas calculée: NA
-    Ne prend en compte que les evaluations où toutes les notes sont entrées.
-    Le résultat est une note sur 20.
+    la moyenne n'est pas calculÃ©e: NA
+    Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es.
+    Le rÃ©sultat est une note sur 20.
     """
     diag_info = {} # message d'erreur formule
     moduleimpl_id = mod['moduleimpl_id']
@@ -162,7 +162,7 @@ def do_moduleimpl_moyennes(context, mod):
                        context.do_formsemestre_inscription_listinscrits(mod['formsemestre_id'])])
     insmod_set = inssem_set.intersection(etudids) # inscrits au semestre et au module
     evals = context.do_evaluation_list(args={ 'moduleimpl_id' : moduleimpl_id })
-    evals.reverse() # la plus ancienne en tête
+    evals.reverse() # la plus ancienne en tÃªte
     user_expr = moduleimpl_has_expression(context, mod)
     attente = False
     # recupere les notes de toutes les evaluations
@@ -172,7 +172,7 @@ def do_moduleimpl_moyennes(context, mod):
             sco_groups.do_evaluation_listeetuds_groups(context, e['evaluation_id'],
                                                        getallstudents=True))
         NotesDB = context._notes_getall(e['evaluation_id']) # toutes, y compris demissions
-        # restreint aux étudiants encore inscrits à ce module        
+        # restreint aux Ã©tudiants encore inscrits Ã  ce module        
         notes = [ NotesDB[etudid]['value'] for etudid in NotesDB 
                   if (etudid in insmod_set) ]
         e['nb_notes'] = len(notes)
@@ -186,11 +186,11 @@ def do_moduleimpl_moyennes(context, mod):
         if e['evaluation_type'] == EVALUATION_RATTRAPAGE:
             if eval_rattr:
                 # !!! plusieurs rattrapages !
-                diag_info.update({ 'msg' : 'plusieurs évaluations de rattrapage !',
+                diag_info.update({ 'msg' : 'plusieurs Ã©valuations de rattrapage !',
                                    'moduleimpl_id' : moduleimpl_id })
             eval_rattr = e
     
-    # filtre les evals valides (toutes les notes entrées)        
+    # filtre les evals valides (toutes les notes entrÃ©es)        
     valid_evals = [ e for e in evals
                     if ((e['etat']['evalcomplete'] or e['etat']['evalattente']) and (e['note_max'] > 0)) ]
     # 
@@ -228,7 +228,7 @@ def do_moduleimpl_moyennes(context, mod):
             # (experimental) recalcule la moyenne en utilisant la formule utilisateur
             notes = []
             coefs = []
-            coefs_mask = [] # 0/1, 0 si coef a ete annulé
+            coefs_mask = [] # 0/1, 0 si coef a ete annulÃ©
             nb_notes = 0 # nombre de notes valides
             for e in evals:                
                 if ((e['etat']['evalcomplete'] or e['etat']['evalattente']) and e['notes'].has_key(etudid)) and (e['note_max'] > 0):

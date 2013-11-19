@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -37,28 +37,28 @@ import sco_bulletins_standard
 
 class BulletinGeneratorExample(sco_bulletins_standard.BulletinGeneratorStandard):
     """Un exemple simple de bulletin de notes en version PDF seulement.
-    Part du bulletin standard et redéfini la partie centrale.
+    Part du bulletin standard et redÃ©fini la partie centrale.
     """
-    description = 'exemple (ne pas utiliser)' # la description doit être courte: elle apparait dans le menu de paramètrage
-    supported_formats = [ 'pdf' ] # indique que ce générateur ne peut produire que du PDF (la version web sera donc celle standard de ScoDoc)
+    description = 'exemple (ne pas utiliser)' # la description doit Ãªtre courte: elle apparait dans le menu de paramÃ¨trage
+    supported_formats = [ 'pdf' ] # indique que ce gÃ©nÃ©rateur ne peut produire que du PDF (la version web sera donc celle standard de ScoDoc)
 
-    # En général, on veut définir un format de table spécial, sans changer le reste (titre, pied de page).
-    # Si on veut changer le reste, surcharger les méthodes:
+    # En gÃ©nÃ©ral, on veut dÃ©finir un format de table spÃ©cial, sans changer le reste (titre, pied de page).
+    # Si on veut changer le reste, surcharger les mÃ©thodes:
     #  .bul_title_pdf(self)  : partie haute du bulletin
     #  .bul_part_below(self, format='') : infos sous la table
     #  .bul_signatures_pdf(self) : signatures
 
     def bul_table(self, format=''):
-        """Défini la partie centrale de notre bulletin PDF.
+        """DÃ©fini la partie centrale de notre bulletin PDF.
         Doit renvoyer une liste d'objets PLATYPUS
         """
         assert format == 'pdf' # garde fou
         return [
-            Paragraph( SU("L'étudiant %(nomprenom)s a une moyenne générale de %(moy_gen)s" % self.infos),
+            Paragraph( SU("L'Ã©tudiant %(nomprenom)s a une moyenne gÃ©nÃ©rale de %(moy_gen)s" % self.infos),
                        self.CellStyle # un style pdf standard
                        )
             ]
 
-# Déclarer votre classe à ScoDoc:
+# DÃ©clarer votre classe Ã  ScoDoc:
 sco_bulletins_generator.register_bulletin_class(BulletinGeneratorExample)
 

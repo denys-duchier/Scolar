@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -50,10 +50,10 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     main_partition_id = sco_groups.formsemestre_get_main_partition(context, formsemestre_id)['partition_id']
 
     prev_moy_ue = DictDefault(defaultvalue={}) # ue_code_s : { etudid : moy ue }
-    prev_ue_acro = {} # ue_code_s : acronyme (‡ afficher)
+    prev_ue_acro = {} # ue_code_s : acronyme (√† afficher)
     prev_moy = {} # moyennes gen sem prec
     moy_ue = DictDefault(defaultvalue={}) # ue_acro : moyennes { etudid : moy ue }
-    ue_acro = {} #  ue_code_s : acronyme (‡ afficher)
+    ue_acro = {} #  ue_code_s : acronyme (√† afficher)
     moy = {} # moyennes gen
     moy_inter = {} # moyenne gen. sur les 2 derniers semestres
     code = {} # decision existantes s'il y en a
@@ -118,7 +118,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         nbabs[etudid] = AbsEtudSem.CountAbs()
         nbabsjust[etudid] = AbsEtudSem.CountAbsJust()
     
-    # Codes des UE "semestre prÈcÈdent":
+    # Codes des UE "semestre pr√©c√©dent":
     ue_prev_codes = prev_moy_ue.keys()
     ue_prev_codes.sort( lambda x,y, prev_ue_acro=prev_ue_acro: cmp( prev_ue_acro[x], prev_ue_acro[y]) )
     # Codes des UE "semestre courant":
@@ -133,18 +133,18 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
             sp = 'S%s' % (sid-1)
     
     L = sco_excel.ScoExcelSheet( sheet_name='Prepa Jury %s' % sn )
-    L.append( ['Feuille prÈparation Jury %s' % unescape_html(sem['titreannee']) ] )
+    L.append( ['Feuille pr√©paration Jury %s' % unescape_html(sem['titreannee']) ] )
     L.append( [] ) # empty line 
     
-    titles = ['', 'etudid', 'Civ.', 'Nom', 'PrÈnom', 'Naissance', 'Parcours', 'Groupe' ]
+    titles = ['', 'etudid', 'Civ.', 'Nom', 'Pr√©nom', 'Naissance', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
-        titles += [ prev_ue_acro[x][1] for x in ue_prev_codes] + ['Moy %s'% sp, 'DÈcision %s' % sp]
+        titles += [ prev_ue_acro[x][1] for x in ue_prev_codes] + ['Moy %s'% sp, 'D√©cision %s' % sp]
     titles += [ue_acro[x][1] for x in ue_codes] + ['Moy %s' % sn]
     if moy_inter:
         titles += ['Moy %s-%s' % (sp,sn)]
     titles += [ 'Abs', 'Abs Just.' ]
     if code:
-        titles.append('DÈcision %s' % sn)
+        titles.append('D√©cision %s' % sn)
     if autorisations:
         titles.append('Autorisations')
     titles.append('Assidu')
@@ -215,10 +215,10 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     L.append(['Explication des codes'])
     for code in codes:
         L.append([ '', code, sco_codes_parcours.CODES_EXPL[code] ])
-    L.append([ '', 'ADM+', 'indique que le semestre a dÈj‡ servi ‡ en compenser un autre'])    
+    L.append([ '', 'ADM+', 'indique que le semestre a d√©j√† servi √† en compenser un autre'])    
     #
     L.append( [''] )
-    L.append( ['PrÈparÈ par %s le %s sur %s pour %s' %
+    L.append( ['Pr√©par√© par %s le %s sur %s pour %s' %
                (VERSION.SCONAME, time.strftime('%d/%m/%Y'),
                 REQUEST.BASE0, REQUEST.AUTHENTICATED_USER) ] )
     

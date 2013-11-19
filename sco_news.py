@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -52,17 +52,17 @@ _scolar_news_editor = EditableTable(
     html_quote=False # no user supplied data, needed to store html links
 )
 
-NEWS_INSCR = 'INSCR' # inscription d'étudiants (object=None)
+NEWS_INSCR = 'INSCR' # inscription d'Ã©tudiants (object=None)
 NEWS_NOTE = 'NOTES'  # saisie note (object=moduleimpl_id)
 NEWS_FORM = 'FORM'   # modification formation (object=formation_id)
 NEWS_SEM  =  'SEM'   # creation semestre (object=None)
 NEWS_MISC = 'MISC'   # unused
 NEWS_MAP = {
-    NEWS_INSCR : "inscription d'étudiants",
+    NEWS_INSCR : "inscription d'Ã©tudiants",
     NEWS_NOTE : "saisie note",
     NEWS_FORM : "modification formation",
-    NEWS_SEM :  "création semestre",
-    NEWS_MISC : "opération", # unused
+    NEWS_SEM :  "crÃ©ation semestre",
+    NEWS_MISC : "opÃ©ration", # unused
     }
 NEWS_TYPES = NEWS_MAP.keys()
 
@@ -157,7 +157,7 @@ def scolar_news_summary_html(context, n=5, rssicon=None):
     news = scolar_news_summary(context,n=n)
     if not news:
         return ''
-    H= ['<div class="news"><span class="newstitle">Dernières opérations']
+    H= ['<div class="news"><span class="newstitle">DerniÃ¨res opÃ©rations']
     if rssicon:
         H.append( '<a href="rssnews">' + rssicon + '</a>' )
     H.append( '</span><ul class="newslist">' )
@@ -166,12 +166,12 @@ def scolar_news_summary_html(context, n=5, rssicon=None):
         H.append('<li class="newslist"><span class="newsdate">%(formatted_date)s</span><span class="newstext">%(text)s</span></li>' % n )
     H.append('</ul>')
 
-    # Informations générales
+    # Informations gÃ©nÃ©rales
     H.append( """<div>
-    Pour être informé des évolutions de ScoDoc,
+    Pour Ãªtre informÃ© des Ã©volutions de ScoDoc,
     vous pouvez vous
     <a class="stdlink" href="%s">
-    abonner à la liste de diffusion</a>.
+    abonner Ã  la liste de diffusion</a>.
     </div>
     """ % SCO_ANNONCES_WEBSITE)
 
@@ -220,7 +220,7 @@ def _send_news_by_mail(context, n):
         
     txt = '\n' + txt + """\n
 --- Ceci est un message de notification automatique issu de ScoDoc
---- vous recevez ce message car votre adresse est indiquée dans les paramètres de ScoDoc.
+--- vous recevez ce message car votre adresse est indiquÃ©e dans les paramÃ¨tres de ScoDoc.
 """
     
     # Transforme les URL en URL absolue

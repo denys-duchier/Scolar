@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -44,10 +44,10 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
                               rank_partition_id=None, # si None, calcul rang global 
                               REQUEST=None
                               ):
-    """Page récapitulant les notes d'un semestre.
-    Grand tableau récapitulatif avec toutes les notes de modules
-    pour tous les étudiants, les moyennes par UE et générale,
-    trié par moyenne générale décroissante.
+    """Page rÃ©capitulant les notes d'un semestre.
+    Grand tableau rÃ©capitulatif avec toutes les notes de modules
+    pour tous les Ã©tudiants, les moyennes par UE et gÃ©nÃ©rale,
+    triÃ© par moyenne gÃ©nÃ©rale dÃ©croissante.
     """
     # traduit du DTML
     modejury=int(modejury)
@@ -57,7 +57,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     H = []
     if not isFile:
         H += [ context.sco_header(REQUEST, 
-                                  page_title='Récapitulatif', 
+                                  page_title='RÃ©capitulatif', 
                                   no_side_bar=True,
                                   init_qtip = True,
                                   javascripts=['js/etud_info.js'],
@@ -71,7 +71,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append('<select name="tabformat" onchange="document.f.submit()" class="noprint">')
         for (format, label) in (('html', 'HTML'), 
                                 ('xls', 'Fichier tableur (Excel)'),
-                                ('xlsall', 'Fichier tableur avec toutes les évals'),
+                                ('xlsall', 'Fichier tableur avec toutes les Ã©vals'),
                                 ('csv', 'Fichier tableur (CSV)'),
                                 ('xml', 'Fichier XML')):
             if format == tabformat:
@@ -99,15 +99,15 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     
     if not isFile:
         H.append('</form>')
-        H.append("""<p><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s">Voir les décisions du jury</a></p>""" % formsemestre_id)
+        H.append("""<p><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s">Voir les dÃ©cisions du jury</a></p>""" % formsemestre_id)
         if context.can_validate_sem(REQUEST, formsemestre_id):
             H.append('<p>')
             if modejury:
-                H.append("""<a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=%s">Calcul automatique des décisions du jury</a></p><p><a class="stdlink" href="formsemestre_fix_validation_ues?formsemestre_id=%s">Vérification décisions UE</a> 
-<span style="font-size: 75%%;">(corrige incohérences éventuelles introduites avant juin 2008)<span>
+                H.append("""<a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=%s">Calcul automatique des dÃ©cisions du jury</a></p><p><a class="stdlink" href="formsemestre_fix_validation_ues?formsemestre_id=%s">VÃ©rification dÃ©cisions UE</a> 
+<span style="font-size: 75%%;">(corrige incohÃ©rences Ã©ventuelles introduites avant juin 2008)<span>
 </p>""" % (formsemestre_id, formsemestre_id))
             else:
-                H.append("""<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">Saisie des décisions du jury</a>""" % formsemestre_id)
+                H.append("""<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">Saisie des dÃ©cisions du jury</a>""" % formsemestre_id)
             H.append('</p>')
         H.append(context.sco_footer(REQUEST))
     return ''.join(H) # HTML or binary data...
@@ -116,15 +116,15 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
 def do_formsemestre_recapcomplet(
     context=None, REQUEST=None, formsemestre_id=None,
     format='html', # html, xml, xls, xlsall
-    hidemodules=False, # ne pas montrer les modules (ignoré en XML)
+    hidemodules=False, # ne pas montrer les modules (ignorÃ© en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
-    modejury=False, # saisie décisions jury
+    modejury=False, # saisie dÃ©cisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
     disable_etudlink=False,
     rank_partition_id=None # si None, calcul rang global 
     ):
-    """Calcule et renvoie le tableau récapitulatif.
+    """Calcule et renvoie le tableau rÃ©capitulatif.
     """
     data, filename, format = make_formsemestre_recapcomplet(**vars())
     if format == 'xml' or format == 'html':
@@ -139,17 +139,17 @@ def do_formsemestre_recapcomplet(
 def make_formsemestre_recapcomplet(
     context=None, REQUEST=None, formsemestre_id=None,
     format='html', # html, xml, xls, xlsall
-    hidemodules=False, # ne pas montrer les modules (ignoré en XML)
+    hidemodules=False, # ne pas montrer les modules (ignorÃ© en XML)
     xml_nodate=False, # format XML sans dates (sert pour debug cache: comparaison de XML)
-    modejury=False, # saisie décisions jury
+    modejury=False, # saisie dÃ©cisions jury
     sortcol=None, # indice colonne a trier dans table T
     xml_with_decisions=False,
     disable_etudlink=False,
     rank_partition_id=None # si None, calcul rang global 
     ):
-    """Grand tableau récapitulatif avec toutes les notes de modules
-    pour tous les étudiants, les moyennes par UE et générale,
-    trié par moyenne générale décroissante.
+    """Grand tableau rÃ©capitulatif avec toutes les notes de modules
+    pour tous les Ã©tudiants, les moyennes par UE et gÃ©nÃ©rale,
+    triÃ© par moyenne gÃ©nÃ©rale dÃ©croissante.
     """
     if format=='xml':
         return _formsemestre_recapcomplet_xml(context, formsemestre_id,
@@ -200,7 +200,7 @@ def make_formsemestre_recapcomplet(
             h.append( ue['acronyme'] )
         else: # UE_SPORT:
             # n'affiche pas la moyenne d'UE dans ce cas
-            # mais laisse col. vide si modules affichés (pour séparer les UE)
+            # mais laisse col. vide si modules affichÃ©s (pour sÃ©parer les UE)
             if not hidemodules:
                 h.append('')
             pass
@@ -240,10 +240,10 @@ def make_formsemestre_recapcomplet(
             codes_nb[dec['code']] += 1
         etud_etat = nt.get_etud_etat(etudid)
         if etud_etat == 'D':
-            gr_name = 'Dém.'
+            gr_name = 'DÃ©m.'
             is_dem[etudid] = True
         elif etud_etat == 'DEF':
-            gr_name = 'Déf.'
+            gr_name = 'DÃ©f.'
             is_dem[etudid] = False
         else:
             group = sco_groups.get_etud_main_group(context, etudid, sem)
@@ -299,7 +299,7 @@ def make_formsemestre_recapcomplet(
         l.append(nt.identdict[etudid]['code_nip'] or '') # avant-derniere colonne = code_nip
         l.append(etudid) # derniere colonne = etudid
         F.append(l)
-    # Dernière ligne: moyennes, min et max des UEs et modules
+    # DerniÃ¨re ligne: moyennes, min et max des UEs et modules
     if not hidemodules: # moy/min/max dans chaque module
         mods_stats = {} # moduleimpl_id : stats
         for modimpl in modimpls:
@@ -353,9 +353,9 @@ def make_formsemestre_recapcomplet(
     add_bottom_stat( 'max', 'Max')
     add_bottom_stat( 'moy', 'Moyennes', corner_value=fmt_note(nt.moy_moy, keep_numeric=keep_numeric) )
     add_bottom_stat( 'coef', 'Coef')
-    add_bottom_stat( 'nb_valid_evals', 'Nb évals')
+    add_bottom_stat( 'nb_valid_evals', 'Nb Ã©vals')
     
-    # Generation table au format demandé
+    # Generation table au format demandÃ©
     if format == 'html':
         # Table format HTML
         H = [ """
@@ -412,7 +412,7 @@ def make_formsemestre_recapcomplet(
             else:
                 cells += '<td class="%s">%s</td>' % (cls, F[0][i])
         if modejury:
-            cells += '<td class="recap_tit">Décision</td>'
+            cells += '<td class="recap_tit">DÃ©cision</td>'
         ligne_titres = cells + '</tr>'
         H.append( ligne_titres ) # titres
         if disable_etudlink:
@@ -513,7 +513,7 @@ def make_formsemestre_recapcomplet(
         
         # recap des decisions jury (nombre dans chaque code):
         if codes_nb:
-            H.append('<h4>Décisions du jury</h4><table>')
+            H.append('<h4>DÃ©cisions du jury</h4><table>')
             cods = codes_nb.keys()
             cods.sort()
             for cod in cods:

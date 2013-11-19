@@ -1,17 +1,17 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 #
 # Configuration globale de ScoDoc (version juin 2009)
 #
 
-# La plupart des réglages sont stoqués en base de donnée et accessibles via le web
-# (pages de paramètres ou préférences).
-# Les valeurs indiquées ici sont les valeurs initiales que prendront 
-# les paramètres lors de la création d'un nouveau département, 
-# elles ne sont plus utilisées ensuite.
+# La plupart des rÃ©glages sont stoquÃ©s en base de donnÃ©e et accessibles via le web
+# (pages de paramÃ¨tres ou prÃ©fÃ©rences).
+# Les valeurs indiquÃ©es ici sont les valeurs initiales que prendront 
+# les paramÃ¨tres lors de la crÃ©ation d'un nouveau dÃ©partement, 
+# elles ne sont plus utilisÃ©es ensuite.
 
-# Nota: il y a aussi des réglages dans sco_utils.py, mais ils nécessitent 
+# Nota: il y a aussi des rÃ©glages dans sco_utils.py, mais ils nÃ©cessitent 
 # souvent de comprendre le code qui les utilise pour ne pas faire d'erreur: attention.
 
 
@@ -29,10 +29,10 @@ CONFIG.SCOLAR_FONT = 'Helvetica'
 CONFIG.SCOLAR_FONT_SIZE = 10
 CONFIG.SCOLAR_FONT_SIZE_FOOT = 6
 
-# Pour pieds de pages Procès verbaux:
-#  (markup leger reportlab supporté, par ex. <b>blah blah</b>)
-CONFIG.INSTITUTION_NAME="<b>Institut Universitaire de Technologie - Université Paris 13</b>"
-CONFIG.INSTITUTION_ADDRESS="Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse"
+# Pour pieds de pages ProcÃ¨s verbaux:
+#  (markup leger reportlab supportÃ©, par ex. <b>blah blah</b>)
+CONFIG.INSTITUTION_NAME="<b>Institut Universitaire de Technologie - UniversitÃ© Paris 13</b>"
+CONFIG.INSTITUTION_ADDRESS="Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste ClÃ©ment - F 93430 Villetaneuse"
 
 CONFIG.INSTITUTION_CITY="Villetaneuse"
 
@@ -44,8 +44,8 @@ CONFIG.LOGO_FOOTER_HEIGHT = 10 # taille dans le document en millimetres
 CONFIG.LOGO_HEADER_ASPECT = 549 / 346. # XXX logo IUTV
 CONFIG.LOGO_HEADER_HEIGHT = 28 # taille verticale dans le document en millimetres
 
-# Pied de page PDF : un format Python, %(xxx)s est remplacé par la variable xxx.
-# Les variables définies sont:
+# Pied de page PDF : un format Python, %(xxx)s est remplacÃ© par la variable xxx.
+# Les variables dÃ©finies sont:
 #   day   : Day of the month as a decimal number [01,31]
 #   month : Month as a decimal number [01,12].
 #   year  : Year without century as a decimal number [00,99].
@@ -56,7 +56,7 @@ CONFIG.LOGO_HEADER_HEIGHT = 28 # taille verticale dans le document en millimetre
 #   server_url: URL du serveur ScoDoc
 #   scodoc_name: le nom du logiciel (ScoDoc actuellement, voir VERSION.py)
         
-CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE = "Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s sur %(server_url)s"
+CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE = "EditÃ© par %(scodoc_name)s le %(day)s/%(month)s/%(year)s Ã  %(hour)sh%(minute)s sur %(server_url)s"
 
 
 
@@ -70,13 +70,13 @@ CONFIG.compute_bonus = bonus_iutv
 
 #
 #   ------------- Capitalisation des UEs -------------
-# Deux écoles:
-#   - règle "DUT": capitalisation des UE obtenues avec moyenne UE >= 10 ET de toutes les UE
-#                   des semestres validés (ADM, ADC, AJ). (conforme à l'arrêté d'août 2005)
+# Deux Ã©coles:
+#   - rÃ¨gle "DUT": capitalisation des UE obtenues avec moyenne UE >= 10 ET de toutes les UE
+#                   des semestres validÃ©s (ADM, ADC, AJ). (conforme Ã  l'arrÃªtÃ© d'aoÃ»t 2005)
 #
-#   - règle "LMD": capitalisation uniquement des UE avec moy. > 10
+#   - rÃ¨gle "LMD": capitalisation uniquement des UE avec moy. > 10
 
-CONFIG.CAPITALIZE_ALL_UES = True # si vrai, capitalise toutes les UE des semestres validés (règle "LMD").
+CONFIG.CAPITALIZE_ALL_UES = True # si vrai, capitalise toutes les UE des semestres validÃ©s (rÃ¨gle "LMD").
 
 
 #
@@ -85,22 +85,22 @@ CONFIG.CAPITALIZE_ALL_UES = True # si vrai, capitalise toutes les UE des semestr
 # -------------- Personnalisation des pages
 #
 # -----------------------------------------------------
-# Nom (chemin complet) d'un fichier .html à inclure juste après le <body>
+# Nom (chemin complet) d'un fichier .html Ã  inclure juste aprÃ¨s le <body>
 #  le <body> des pages ScoDoc
 CONFIG.CUSTOM_HTML_HEADER = ''
 
 # Fichier html a inclure en fin des pages (juste avant le </body>)
 CONFIG.CUSTOM_HTML_FOOTER = ''
 
-# Fichier .html à inclure dans la pages connexion/déconnexion (accueil)
-# si on veut que ce soit différent (par défaut la même chose)
+# Fichier .html Ã  inclure dans la pages connexion/dÃ©connexion (accueil)
+# si on veut que ce soit diffÃ©rent (par dÃ©faut la mÃªme chose)
 CONFIG.CUSTOM_HTML_HEADER_CNX = CONFIG.CUSTOM_HTML_HEADER
 CONFIG.CUSTOM_HTML_FOOTER_CNX = CONFIG.CUSTOM_HTML_FOOTER
 
 
 # -----------------------------------------------------
 #
-# -------------- Noms de Lycées
+# -------------- Noms de LycÃ©es
 #
 # -----------------------------------------------------
 
@@ -110,7 +110,7 @@ CONFIG.ETABL_FILENAME = 'config/etablissements.csv'
 
 
 # ----------------------------------------------------
-CONFIG.ALLOW_NULL_PRENOM = False # True for UCAC (étudiants camerounais sans prénoms)
+CONFIG.ALLOW_NULL_PRENOM = False # True for UCAC (Ã©tudiants camerounais sans prÃ©noms)
 
 CONFIG.ETUD_MAX_FILE_SIZE = 10*1024*1024 # taille max des fichiers archive etudiants (en octets)
 

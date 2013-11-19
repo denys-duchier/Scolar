@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,9 +27,9 @@
 
 """Generation bulletins de notes dans l'ancien format de ScoDoc (avant juillet 2011).
 
- Code partiellement redondant, copié de l'ancien système de gestion des bulletins.
+ Code partiellement redondant, copiÃ© de l'ancien systÃ¨me de gestion des bulletins.
 
- Voir sco_bulletins_standard pour une version plus récente.
+ Voir sco_bulletins_standard pour une version plus rÃ©cente.
 
  CE FORMAT N'EVOLUERA PLUS ET EST CONSIDERE COMME OBSOLETE.
  
@@ -41,13 +41,13 @@ from notes_log import log
 import sco_bulletins_generator
 import sco_bulletins_pdf
 
-# Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
+# Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stockÃ© en base de donnÃ©es (dans les prÃ©fÃ©rences)
 class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
-    description = 'Ancien format ScoDoc'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'Ancien format ScoDoc'  # la description doit Ãªtre courte: elle apparait dans le menu de paramÃ¨trage ScoDoc
     supported_formats = [ 'html', 'pdf' ]
         
     def bul_title_pdf(self):
-        """Génère la partie "titre" du bulletin de notes.
+        """GÃ©nÃ¨re la partie "titre" du bulletin de notes.
         Renvoie une liste d'objets platypus
         """
         objects = sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_title'], self.infos, self.FieldStyle)
@@ -64,14 +64,14 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
             raise ValueError('invalid bulletin format (%s)' % format)
         
     def bul_table_pdf(self):
-        """Génère la table centrale du bulletin de notes
+        """GÃ©nÃ¨re la table centrale du bulletin de notes
         Renvoie une liste d'objets PLATYPUS (eg instance de Table).
         """
         P, pdfTableStyle, colWidths = _bulletin_pdf_table_legacy(self.context, self.infos, version=self.version)
         return [ self.buildTableObject(P, pdfTableStyle, colWidths) ]
 
     def bul_table_html(self):
-        """Génère la table centrale du bulletin de notes: chaine HTML
+        """GÃ©nÃ¨re la table centrale du bulletin de notes: chaine HTML
         """
         format = 'html'
         I = self.infos
@@ -110,7 +110,7 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
         def list_modules(ue_modules, rowstyle):
             for mod in ue_modules:
                 if mod['mod_moy_txt'] == 'NI':
-                    continue # saute les modules où on n'est pas inscrit
+                    continue # saute les modules oÃ¹ on n'est pas inscrit
                 H.append('<tr class="notes_bulletin_row_mod%s">' % rowstyle)
                 if context.get_preference('bul_show_minmax_mod', formsemestre_id):
                     rang_minmax = '%s <span class="bul_minmax" title="[min, max] UE">[%s, %s]</span>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))
@@ -177,8 +177,8 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
         return '\n'.join(H)
     
     def bul_part_below(self, format='html'):
-        """Génère les informations placées sous la table de notes
-        (absences, appréciations, décisions de jury...)
+        """GÃ©nÃ¨re les informations placÃ©es sous la table de notes
+        (absences, apprÃ©ciations, dÃ©cisions de jury...)
         """
         if format == 'pdf':
             return self.bul_part_below_pdf()
@@ -200,14 +200,14 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
             objects.append( Spacer(1, 2*mm) )
             if nbabs:
                 objects.append( Paragraph(
-                    SU("%d absences (1/2 journées), dont %d justifiées." % (nbabs, nbabsjust)), self.CellStyle ) )
+                    SU("%d absences (1/2 journÃ©es), dont %d justifiÃ©es." % (nbabs, nbabsjust)), self.CellStyle ) )
             else:
-                objects.append( Paragraph(SU("Pas d'absences signalées."), self.CellStyle) )
+                objects.append( Paragraph(SU("Pas d'absences signalÃ©es."), self.CellStyle) )
         
         # ----- APPRECIATIONS
         if self.infos.get('appreciations_list', False):
             objects.append( Spacer(1, 3*mm) )
-            objects.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
+            objects.append( Paragraph(SU('ApprÃ©ciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
         
         # ----- DECISION JURY
         if self.preferences['bul_show_decision']:
@@ -226,7 +226,7 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
         # --- Absences
         H.append("""<p>
         <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
-        <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
+        <b>Absences :</b> %(nbabs)s demi-journÃ©es, dont %(nbabsjust)s justifiÃ©es
         (pendant ce semestre).
         </a></p>
             """ % I )
@@ -240,7 +240,7 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
                         or (authuser.has_permission(ScoEtudInscrit,self.context)))
         H.append('<div class="bull_appreciations">')
         if I['appreciations_list']:
-            H.append('<p><b>Appréciations</b></p>')
+            H.append('<p><b>ApprÃ©ciations</b></p>')
         for app in I['appreciations_list']:
             if can_edit_app:
                 mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
@@ -249,13 +249,13 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
             H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
                          % (app['date'], app['comment'], mlink ) )
         if can_edit_app:
-            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une apprÃ©ciation</a></p>' % self.infos)
         H.append('</div>')
         # ---------------
         return '\n'.join(H)
 
     def bul_signatures_pdf(self):
-        """Génère les signatures placées en bas du bulletin
+        """GÃ©nÃ¨re les signatures placÃ©es en bas du bulletin
         Renvoie une liste d'objets platypus
         """
         show_left = self.preferences['bul_show_sig_left']
@@ -286,7 +286,7 @@ class BulTableStyle:
     LINEWIDTH = 0.5
     LINECOLOR = Color(0,0,0)
     UEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE
-    MODSEPCOLOR=Color(170/255.,170/255.,170/255.) # lignes séparant les modules
+    MODSEPCOLOR=Color(170/255.,170/255.,170/255.) # lignes sÃ©parant les modules
     def __init__(self):
         self.pdfTableStyle = [ ('LINEBELOW', (0,0), (-1,0), self.LINEWIDTH, self.LINECOLOR),
                                ]
@@ -294,7 +294,7 @@ class BulTableStyle:
 
     def get_style(self):
         "get resulting style (a list of platypus table commands)"
-        # ajoute cadre extérieur bleu:
+        # ajoute cadre extÃ©rieur bleu:
         self.pdfTableStyle.append( ('BOX', (0,0), (-1,-1), 0.4, blue) )
         
         return self.pdfTableStyle
@@ -316,7 +316,7 @@ class BulTableStyle:
         self.pdfTableStyle.append(('LINEABOVE', (0,i), (-1,i), 1, self.MODSEPCOLOR))
 
 def _bulletin_pdf_table_legacy(context, I, version='long'):
-    """Génère la table centrale du bulletin de notes
+    """GÃ©nÃ¨re la table centrale du bulletin de notes
     Renvoie un triplet:
     - table (liste de listes de chaines de caracteres)
     - style (commandes table Platypus)
@@ -342,10 +342,10 @@ def _bulletin_pdf_table_legacy(context, I, version='long'):
     P.append(bold_paras(t))
 
     def list_modules(ue_modules, ue_type=None):
-        "ajoute les lignes decrivant les modules d'une UE, avec eventuellement les évaluations de chacun"
+        "ajoute les lignes decrivant les modules d'une UE, avec eventuellement les Ã©valuations de chacun"
         for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
-                continue # saute les modules où on n'est pas inscrit
+                continue # saute les modules oÃ¹ on n'est pas inscrit
             S.modline(ue_type=ue_type)
             if context.get_preference('bul_show_minmax_mod', formsemestre_id):
                 rang_minmax = '%s <font size="8">[%s, %s]</font>' % (mod['mod_rang_txt'], fmt_note(mod['stats']['min']), fmt_note(mod['stats']['max']))

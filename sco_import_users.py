@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -94,24 +94,24 @@ def import_excel_file(datafile, REQUEST=None, context=None):
 
 def import_users(U, auth_dept='', context=None):
     """Import des utilisateurs:
-    Pour chaque utilisateur à créer:
-    - vérifier données
-    - générer mot de passe aléatoire
-    - créer utilisateur et mettre le mot de passe
+    Pour chaque utilisateur Ã  crÃ©er:
+    - vÃ©rifier donnÃ©es
+    - gÃ©nÃ©rer mot de passe alÃ©atoire
+    - crÃ©er utilisateur et mettre le mot de passe
     - envoyer mot de passe par mail
 
-    En cas d'erreur: supprimer tous les utilisateurs que l'on vient de créer.    
+    En cas d'erreur: supprimer tous les utilisateurs que l'on vient de crÃ©er.    
     """
-    created = [] # liste de uid créés
+    created = [] # liste de uid crÃ©Ã©s
     try:
         for u in U:
             ok, msg = context._check_modif_user(0, user_name=u['user_name'],
                                                 nom=u['nom'], prenom=u['prenom'],
                                                 email=u['email'], roles=u['roles'])
             if not ok:
-                raise ScoValueError('données invalides pour %s: %s' % (u['user_name'], msg))
+                raise ScoValueError('donnÃ©es invalides pour %s: %s' % (u['user_name'], msg))
             u['passwd'] = generate_password()
-            # si auth_dept, crée tous les utilisateurs dans ce departement
+            # si auth_dept, crÃ©e tous les utilisateurs dans ce departement
             if auth_dept:
                 u['dept'] = auth_dept
             #
@@ -129,8 +129,8 @@ def import_users(U, auth_dept='', context=None):
 
     return 'ok'
 
-#  --------- Génération du mot de passe initial -----------
-# Adapté de http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/440564
+#  --------- GÃ©nÃ©ration du mot de passe initial -----------
+# AdaptÃ© de http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/440564
 # Alphabet tres simple pour des mots de passe simples...
 
 import getpass, random, sha, string, md5, time, base64
@@ -168,30 +168,30 @@ Bonjour %(prenom)s %(nom)s,
 """ % u
     if reset:
         txt += """
-votre mot de passe ScoDoc a été ré-initialisé.
+votre mot de passe ScoDoc a Ã©tÃ© rÃ©-initialisÃ©.
 
 Le nouveau mot de passe est:  %(passwd)s
 Votre nom d'utilisateur est %(user_name)s
 
-Vous devrez changer ce mot de passe lors de votre première connexion 
+Vous devrez changer ce mot de passe lors de votre premiÃ¨re connexion 
 sur %(url)s
 """ % u
     else:
         txt += """
-vous avez été déclaré comme utilisateur du logiciel de gestion de scolarité ScoDoc.
+vous avez Ã©tÃ© dÃ©clarÃ© comme utilisateur du logiciel de gestion de scolaritÃ© ScoDoc.
 
 Votre nom d'utilisateur est %(user_name)s
 Votre mot de passe est: %(passwd)s
 
 Le logiciel est accessible sur: %(url)s
 
-Vous êtes invité à changer ce mot de passe au plus vite (cliquez sur
-votre nom en haut à gauche de la page d'accueil).
+Vous Ãªtes invitÃ© Ã  changer ce mot de passe au plus vite (cliquez sur
+votre nom en haut Ã  gauche de la page d'accueil).
 """ % u
 
     txt += """
         
-ScoDoc est un logiciel libre développé à l'Université Paris 13 par Emmanuel Viennet.
+ScoDoc est un logiciel libre dÃ©veloppÃ© Ã  l'UniversitÃ© Paris 13 par Emmanuel Viennet.
 Pour plus d'informations sur ce logiciel, voir %s
 
 """ % SCO_WEBSITE
@@ -199,7 +199,7 @@ Pour plus d'informations sur ce logiciel, voir %s
     if reset:
         msg['Subject'] = Header( 'Mot de passe ScoDoc',  SCO_ENCODING )
     else:
-        msg['Subject'] = Header( 'Votre accès ScoDoc',  SCO_ENCODING )
+        msg['Subject'] = Header( 'Votre accÃ¨s ScoDoc',  SCO_ENCODING )
     msg['From'] = context.get_preference('email_from_addr')
     msg['To'] = u['email']
     msg.epilogue = ''

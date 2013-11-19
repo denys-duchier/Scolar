@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -30,17 +30,17 @@
 
 note = {evaluation_id, etudid, value, date, uid, comment}
 
-Pour une évaluation:
+Pour une Ã©valuation:
  - notes actuelles: table notes_notes
  - historique: table notes_notes_log 
 
-saisie de notes == saisir ou supprimer une ou plusieurs notes (mêmes date et uid)
-/!\ tolérance sur les dates (200ms ?)
+saisie de notes == saisir ou supprimer une ou plusieurs notes (mÃªmes date et uid)
+/!\ tolÃ©rance sur les dates (200ms ?)
 Chaque saisie affecte ou remplace une ou plusieurs notes.
 
-Opérations:
+OpÃ©rations:
  - lister les saisies de notes
- - annuler une saisie complète
+ - annuler une saisie complÃ¨te
  - lister les modifs d'une seule note
  - annuler une modif d'une note
 """
@@ -54,8 +54,8 @@ from gen_tables import GenTable
 from intervals import intervalmap
 
 
-# deux notes (de même uid) sont considérées comme de la même opération si
-# elles sont séparées de moins de 2*tolerance:
+# deux notes (de mÃªme uid) sont considÃ©rÃ©es comme de la mÃªme opÃ©ration si
+# elles sont sÃ©parÃ©es de moins de 2*tolerance:
 OPERATION_DATE_TOLERANCE = datetime.timedelta(seconds=0.1)
 
 
@@ -137,7 +137,7 @@ def evaluation_list_operations(context, REQUEST, evaluation_id):
                'comment' : 'Commentaire' }
     tab = GenTable( titles=titles, columns_ids=columns_ids, rows=Ops, 
                     html_sortable=False, 
-                    html_title="<h2>Opérations sur l'évaluation %s du %s</h2>" % (E['description'], E['jour']),
+                    html_title="<h2>OpÃ©rations sur l'Ã©valuation %s du %s</h2>" % (E['description'], E['jour']),
                     preferences=context.get_preferences(M['formsemestre_id'])
                     )
     return tab.make_page(context, REQUEST=REQUEST)
@@ -161,6 +161,6 @@ def formsemestre_list_saisies_notes(context, formsemestre_id, format='html', REQ
                     caption='Saisies de notes dans %s' % sem['titreannee'],
                     preferences=context.get_preferences(formsemestre_id),
                     base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
-                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+                    origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
                     )
     return tab.make_page(context, format=format, REQUEST=REQUEST)

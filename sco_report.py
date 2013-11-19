@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -43,11 +43,11 @@ import sco_formsemestre_status
 from sco_pdf import SU
 
 def formsemestre_etuds_stats(context, sem, only_primo=False):
-    """Récupère liste d'etudiants avec etat et decision.
+    """RÃ©cupÃ¨re liste d'etudiants avec etat et decision.
     """
     nt = context._getNotesCache().get_NotesTable(context, sem['formsemestre_id']) #> get_table_moyennes_triees, identdict, get_etud_decision_sem, get_etud_etat, 
     T = nt.get_table_moyennes_triees()
-    # Construit liste d'étudiants du semestre avec leur decision
+    # Construit liste d'Ã©tudiants du semestre avec leur decision
     etuds = []
     for t in T:
         etudid = t[-1]
@@ -60,7 +60,7 @@ def formsemestre_etuds_stats(context, sem, only_primo=False):
             etud['codedecision'] = 'DEM'
         if not etud.has_key('codedecision'):
             etud['codedecision'] = '(nd)' # pas de decision jury
-        # Ajout clé 'bac-specialite'
+        # Ajout clÃ© 'bac-specialite'
         bs = []
         if etud['bac']:
             bs.append(etud['bac'])
@@ -87,10 +87,10 @@ def _categories_and_results(etuds, category, result):
 
 def _results_by_category(etuds, category='', result='', category_name=None,
                          context=None, formsemestre_id=None):
-    """Construit table: categories (eg types de bacs) en ligne, décisions jury en colonnes
+    """Construit table: categories (eg types de bacs) en ligne, dÃ©cisions jury en colonnes
 
     etuds est une liste d'etuds (dicts).
-    category et result sont des clés de etud (category définie les lignes, result les colonnes).
+    category et result sont des clÃ©s de etud (category dÃ©finie les lignes, result les colonnes).
 
     Retourne une table.
     """
@@ -136,7 +136,7 @@ def _results_by_category(etuds, category='', result='', category_name=None,
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(codes,codes) )
     titles['sum'] = 'Total'
     titles['sumpercent'] = '%'
-    titles['DEM'] = 'Dém.' # démissions
+    titles['DEM'] = 'DÃ©m.' # dÃ©missions
     for i in range(len(categories)):
         if categories[i] == '':
             categories[i] = '?'
@@ -152,7 +152,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
                         category_name='', result_name='',
                         title='Statistiques', only_primo=None):    
     """
-    Tableau sur résultats (result) par type de category bac
+    Tableau sur rÃ©sultats (result) par type de category bac
     """
     sem = context.get_formsemestre(formsemestre_id)
     if not category_name:
@@ -160,7 +160,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
     if not result_name:
         result_name = result
     if result_name == 'codedecision':
-        result_name = 'résultats'
+        result_name = 'rÃ©sultats'
     #
     tab = _results_by_category(etuds, category=category, category_name=category_name,
                                result=result, 
@@ -168,9 +168,9 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
     #
     tab.filename = make_filename('stats ' + sem['titreannee'])
     
-    tab.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
-    tab.caption = 'Répartition des résultats par %s, semestre %s' % (category_name, sem['titreannee'])
-    tab.html_caption = "Répartition des résultats par %s." % category_name
+    tab.origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+    tab.caption = 'RÃ©partition des rÃ©sultats par %s, semestre %s' % (category_name, sem['titreannee'])
+    tab.html_caption = "RÃ©partition des rÃ©sultats par %s." % category_name
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if only_primo:
         tab.base_url += '&only_primo=on'
@@ -180,7 +180,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
 
 # def formsemestre_report_bacs(context, formsemestre_id, format='html', REQUEST=None):
 #     """
-#     Tableau sur résultats par type de bac
+#     Tableau sur rÃ©sultats par type de bac
 #     """
 #     sem = context.get_formsemestre(formsemestre_id)
 #     title = 'Statistiques bacs ' + sem['titreannee']
@@ -191,7 +191,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
 #                               title=title)
 #     return tab.make_page(
 #         context, 
-#         title =  """<h2>Résultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
+#         title =  """<h2>RÃ©sultats de <a href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titreannee)s</a></h2>""" % sem,
 #         format=format, page_title = title, REQUEST=REQUEST )
 
 def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=None,
@@ -211,12 +211,12 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
                               only_primo=only_primo
         )
     if not etuds:
-        F = [ """<p><em>Aucun étudiant</em></p>""" ]
+        F = [ """<p><em>Aucun Ã©tudiant</em></p>""" ]
     else:
         if allkeys:
             keys = etuds[0].keys()
         else:
-            # clés présentées à l'utilisateur:
+            # clÃ©s prÃ©sentÃ©es Ã  l'utilisateur:
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
                     'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut' ]
         keys.sort()
@@ -247,15 +247,15 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
 
     t = tab.make_page(
         context, 
-        title =  """<h2 class="formsemestre">Comptes croisés</h2>""",
+        title =  """<h2 class="formsemestre">Comptes croisÃ©s</h2>""",
         format=format, REQUEST=REQUEST, with_html_headers=False)
     if format!='html':
         return t    
     H = [ context.sco_header(REQUEST, page_title=title),
           t, '\n'.join(F),
-          """<p class="help">Le tableau affiche le nombre d'étudiants de ce semestre dans chacun
-          des cas choisis: à l'aide des deux menus, vous pouvez choisir les catégories utilisées
-          pour les lignes et les colonnes. Le <tt>codedecision</tt> est le code de la décision 
+          """<p class="help">Le tableau affiche le nombre d'Ã©tudiants de ce semestre dans chacun
+          des cas choisis: Ã  l'aide des deux menus, vous pouvez choisir les catÃ©gories utilisÃ©es
+          pour les lignes et les colonnes. Le <tt>codedecision</tt> est le code de la dÃ©cision 
           du jury.
           </p>""",
           context.sco_footer(REQUEST)
@@ -269,7 +269,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                         only_primo=False
                         ):
     """
-    Tableau indicant le nombre d'etudiants de la cohorte dans chaque état:
+    Tableau indicant le nombre d'etudiants de la cohorte dans chaque Ã©tat:
     Etat     date_debut_Sn   date1  date2 ...
     S_n       #inscrits en Sn
     S_n+1
@@ -278,7 +278,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     Diplome
     Sorties
 
-    Determination des dates: on regroupe les semestres commençant à des dates proches
+    Determination des dates: on regroupe les semestres commenÃ§ant Ã  des dates proches
 
     """
     sem = context.get_formsemestre(formsemestre_id) # sem est le semestre origine
@@ -287,7 +287,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         if 0: # debug, set to 0 in production
             log('%s: %s' % (op, time.time()-t0))
     logt('table_suivi_cohorte: start')
-    # 1-- Liste des semestres posterieurs dans lesquels ont été les etudiants de sem
+    # 1-- Liste des semestres posterieurs dans lesquels ont Ã©tÃ© les etudiants de sem
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem
     etudids = nt.get_etudids()
 
@@ -301,7 +301,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         bacspe = etud['bac'] + ' / ' + etud['specialite']
-        # sélection sur bac:
+        # sÃ©lection sur bac:
         if ((not bac or (bac == etud['bac']))
             and (not bacspecialite or (bacspecialite == bacspe))
             and (not sexe or (sexe == etud['sexe']))
@@ -315,7 +315,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
         bacs.add(etud['bac'])
         bacspecialites.add(bacspe)
         sexes.add(etud['sexe'])
-        if etud['statut']: # ne montre pas les statuts non renseignés
+        if etud['statut']: # ne montre pas les statuts non renseignÃ©s
             statuts.add(etud['statut'])
     sems = S.values()
     # tri les semestres par date de debut
@@ -410,7 +410,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     etud_descr = _descr_etud_set(context, etuds_period)
                     d['_%s_help' % p.datedebut] = etud_descr
         L.append(d)
-    # Compte nb de démissions et de ré-orientation par période
+    # Compte nb de dÃ©missions et de rÃ©-orientation par pÃ©riode
     logt('D: cout dems reos')
     sem['dems'], sem['reos'] = _count_dem_reo(context, formsemestre_id, sem['members'])
     for p in P:
@@ -422,15 +422,15 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             p.reos.update(r)
     # Nombre total d'etudiants par periode
     l = { 'row_title' : 'Inscrits',
-          'row_title_help' : "Nombre d'étudiants inscrits",
+          'row_title_help' : "Nombre d'Ã©tudiants inscrits",
           '_css_row_class':'sortbottom',
           porigin.datedebut : fmtval(nb_initial) }    
     for p in P:
         l[p.datedebut] = fmtval(p.nb_etuds)        
     L.append(l)
-    # Nombre de démissions par période
-    l = {'row_title' :'Démissions',
-         'row_title_help' : 'Nombre de démissions pendant la période',
+    # Nombre de dÃ©missions par pÃ©riode
+    l = {'row_title' :'DÃ©missions',
+         'row_title_help' : 'Nombre de dÃ©missions pendant la pÃ©riode',
          '_css_row_class':'sortbottom',
          porigin.datedebut : fmtval(len(sem['dems'])) }
     if len(sem['dems']) < 10:
@@ -442,9 +442,9 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             etud_descr = _descr_etud_set(context, p.dems)
             l['_%s_help' % p.datedebut] = etud_descr
     L.append(l)
-    # Nombre de réorientations par période
+    # Nombre de rÃ©orientations par pÃ©riode
     l = { 'row_title' : 'Echecs',
-          'row_title_help' : 'Ré-orientations (décisions NAR)',
+          'row_title_help' : 'RÃ©-orientations (dÃ©cisions NAR)',
           '_css_row_class':'sortbottom',
           porigin.datedebut : fmtval(len(sem['reos'])) }
     if len(sem['reos']) < 10:
@@ -457,8 +457,8 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
             l['_%s_help' % p.datedebut] = etud_descr
     L.append(l)
     # derniere ligne: nombre et pourcentage de diplomes
-    l = { 'row_title' : 'Diplômes',
-          'row_title_help' : 'Nombre de diplômés à la fin de la période',
+    l = { 'row_title' : 'DiplÃ´mes',
+          'row_title_help' : 'Nombre de diplÃ´mÃ©s Ã  la fin de la pÃ©riode',
           '_css_row_class' :'sortbottom'}
     for p in P:
         nb_dipl = 0
@@ -483,7 +483,7 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
     else:
         dbac = ''
     if bacspecialite:
-        dbac += ' (spécialité %s)' % bacspecialite
+        dbac += ' (spÃ©cialitÃ© %s)' % bacspecialite
     if sexe:
         dbac += ' genre: %s' % sexe
     if statut:
@@ -492,17 +492,17 @@ def table_suivi_cohorte(context, formsemestre_id, percent=False,
                     rows=L, 
                     html_col_width='4em', html_sortable=True,
                     filename=make_filename('cohorte ' + sem['titreannee']),
-                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = 'Suivi cohorte ' + pp + sem['titreannee'] + dbac,
                     page_title = 'Suivi cohorte ' + sem['titreannee'],
                     html_class='gt_table table_cohorte',
                     preferences=context.get_preferences(formsemestre_id)
                     )
-    # Explication: liste des semestres associés à chaque date
+    # Explication: liste des semestres associÃ©s Ã  chaque date
     if not P:
-        expl = ['<p class="help">(aucun étudiant trouvé dans un semestre ultérieur)</p>']
+        expl = ['<p class="help">(aucun Ã©tudiant trouvÃ© dans un semestre ultÃ©rieur)</p>']
     else:
-        expl = [ '<h3>Semestres associés à chaque date:</h3><ul>' ]
+        expl = [ '<h3>Semestres associÃ©s Ã  chaque date:</h3><ul>' ]
         for p in P:        
             expl.append( '<li><b>%s</b>:' %  p.datedebut.strftime('%d/%m/%y'))
             ls = []
@@ -544,12 +544,12 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s&statut=%s' % (
         base_url, formsemestre_id, bac, bacspecialite, sexe, statut)
     if percent:
-        pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
+        pplink = '<p><a href="%s&percent=0">Afficher les rÃ©sultats bruts</a></p>' % burl
     else:
-        pplink = '<p><a href="%s&percent=1">Afficher les résultats en pourcentages</a></p>' % burl
+        pplink = '<p><a href="%s&percent=1">Afficher les rÃ©sultats en pourcentages</a></p>' % burl
     help = pplink + """    
-    <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>
-<p class="help">Les menus permettent de n'étudier que certaines catégories d'étudiants (titulaires d'un type de bac, garçons ou filles). La case "restreindre aux primo-entrants" permet de ne considérer que les étudiants qui n'ont jamais été inscrits dans ScoDoc avant le semestre considéré.</p>
+    <p class="help">Nombre d'Ã©tudiants dans chaque semestre. Les dates indiquÃ©es sont les dates approximatives de <b>dÃ©but</b> des semestres (les semestres commenÃ§ant Ã  des dates proches sont groupÃ©s). Le nombre de diplÃ´mÃ©s est celui Ã  la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 Ã©tudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>
+<p class="help">Les menus permettent de n'Ã©tudier que certaines catÃ©gories d'Ã©tudiants (titulaires d'un type de bac, garÃ§ons ou filles). La case "restreindre aux primo-entrants" permet de ne considÃ©rer que les Ã©tudiants qui n'ont jamais Ã©tÃ© inscrits dans ScoDoc avant le semestre considÃ©rÃ©.</p>
     """
 
     # form choix bac et/ou bacspecialite
@@ -572,7 +572,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
         selected = ''
     else:
         selected = 'selected'
-    F.append("""&nbsp; Bac/Specialité: <select name="bacspecialite" onchange="document.f.submit()">
+    F.append("""&nbsp; Bac/SpecialitÃ©: <select name="bacspecialite" onchange="document.f.submit()">
     <option value="" %s>tous</option>
     """ % selected)
     for b in bacspecialites:
@@ -614,7 +614,7 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     F.append('</p></form>')
     
     H = [ context.sco_header(REQUEST, page_title=tab.page_title),
-          """<h2 class="formsemestre">Suivi cohorte: devenir des étudiants de ce semestre</h2>""",
+          """<h2 class="formsemestre">Suivi cohorte: devenir des Ã©tudiants de ce semestre</h2>""",
           '\n'.join(F),
           t, help, expl,
           context.sco_footer(REQUEST)
@@ -651,8 +651,8 @@ C 5.6s
 D 5.9s
 Z 27s  => cache des semestres pour nt
 
-à chaud: 3s
-B: etuds sets: 2.4s => lent: N x getEtudInfo (non caché)
+Ã  chaud: 3s
+B: etuds sets: 2.4s => lent: N x getEtudInfo (non cachÃ©)
 """
 
 EXP_LIC = re.compile( r'licence', re.I )
@@ -661,7 +661,7 @@ EXP_LPRO = re.compile( r'professionnelle', re.I )
 def _codesem(sem, short=True, prefix=''):
     "code semestre: S1 ou S1d"
     idx = sem['semestre_id']
-    # semestre décalé ?
+    # semestre dÃ©calÃ© ?
     # les semestres pairs normaux commencent entre janvier et mars
     # les impairs normaux entre aout et decembre
     d = ''
@@ -682,12 +682,12 @@ def _codesem(sem, short=True, prefix=''):
 def _codeparcoursetud(context, etud):
     """calcule un code de parcours pour un etudiant
     exemples:
-       1234A pour un etudiant ayant effectué S1, S2, S3, S4 puis diplome
-       12D   pour un étudiant en S1, S2 puis démission en S2
-       12R   pour un etudiant en S1, S2 réorienté en fin de S2    
+       1234A pour un etudiant ayant effectuÃ© S1, S2, S3, S4 puis diplome
+       12D   pour un Ã©tudiant en S1, S2 puis dÃ©mission en S2
+       12R   pour un etudiant en S1, S2 rÃ©orientÃ© en fin de S2    
     """
     p = []
-    # élimine les semestres spéciaux sans parcours (LP...)
+    # Ã©limine les semestres spÃ©ciaux sans parcours (LP...)
     sems = [ s for s in etud['sems'] if s['semestre_id'] >= 0 ]
     i = len(sems)-1
     while i >= 0:
@@ -696,7 +696,7 @@ def _codeparcoursetud(context, etud):
         p.append( _codesem(s) )
         # code etat sur dernier semestre seulement
         if i == 0:
-            # Démission
+            # DÃ©mission
             if nt.get_etud_etat(etud['etudid']) == 'D':
                 p.append( ':D' )
             else:
@@ -722,7 +722,7 @@ def tsp_etud_list(context, formsemestre_id, only_primo=False):
     return etuds
 
 def tsp_grouped_list(context, codes_etuds):
-    """Liste pour table regroupant le nombre d'étudiants (+ bulle avec les noms) de chaque parcours
+    """Liste pour table regroupant le nombre d'Ã©tudiants (+ bulle avec les noms) de chaque parcours
     """
     L = []
     parcours = codes_etuds.keys()
@@ -734,7 +734,7 @@ def tsp_grouped_list(context, codes_etuds):
             l['_nb_help'] = _descr_etud_set(context,
                                             [e['etudid'] for e in codes_etuds[p]])
         L.append(l)                
-    # tri par effectifs décroissants
+    # tri par effectifs dÃ©croissants
     L.sort( lambda x,y: cmp(y['nb'], x['nb']) )
     return L
     
@@ -755,7 +755,7 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
         L = tsp_grouped_list(context, codes_etuds)
         columns_ids = ('parcours', 'nb')
     else:
-        # Table avec le parcours de chaque étudiant:
+        # Table avec le parcours de chaque Ã©tudiant:
         L = etuds
         columns_ids=('etudid', 'sexe', 'nom', 'prenom', 'codeparcours')    
         
@@ -763,25 +763,25 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
     if only_primo:
         primostr='primo-entrants du'
     else:
-        primostr='passés dans le'
+        primostr='passÃ©s dans le'
     tab = GenTable( columns_ids=columns_ids, rows=L,
                     titles={ 'parcours' : 'Code parcours',
-                             'nb' : "Nombre d'étudiants",
-                             'sexe' : '', 'nom' : 'Nom', 'prenom':'Prénom',
+                             'nb' : "Nombre d'Ã©tudiants",
+                             'sexe' : '', 'nom' : 'Nom', 'prenom':'PrÃ©nom',
                              'etudid' : 'etudid',
                              'codeparcours' : 'Code parcours',
                              },
-                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-                    caption = 'Parcours suivis, étudiants %s semestre '%primostr + sem['titreannee'],
+                    origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    caption = 'Parcours suivis, Ã©tudiants %s semestre '%primostr + sem['titreannee'],
                     page_title = 'Parcours ' + sem['titreannee'],
                     html_sortable=True,
                     html_class='gt_table table_leftalign table_listegroupe',
                     html_next_section="""<table class="help">
-                    <tr><td><tt>1, 2, ...</tt></td><td> numéros de semestres</td></tr>
-                    <tr><td><tt>1d, 2d, ...</tt></td><td>semestres "décalés"</td></tr>
-                    <tr><td><tt>:A</tt></td><td> étudiants diplômés</td></tr>
-                    <tr><td><tt>:R</tt></td><td> étudiants réorientés</td></tr>
-                    <tr><td><tt>:D</tt></td><td> étudiants démissionnaires</td></tr>
+                    <tr><td><tt>1, 2, ...</tt></td><td> numÃ©ros de semestres</td></tr>
+                    <tr><td><tt>1d, 2d, ...</tt></td><td>semestres "dÃ©calÃ©s"</td></tr>
+                    <tr><td><tt>:A</tt></td><td> Ã©tudiants diplÃ´mÃ©s</td></tr>
+                    <tr><td><tt>:R</tt></td><td> Ã©tudiants rÃ©orientÃ©s</td></tr>
+                    <tr><td><tt>:D</tt></td><td> Ã©tudiants dÃ©missionnaires</td></tr>
                     </table>""",
                     bottom_titles =  { 'parcours' : 'Total', 
                                        'nb' : len(etuds),
@@ -803,7 +803,7 @@ def tsp_form_primo_group(REQUEST, only_primo, no_grouping, formsemestre_id, form
         checked='checked=1'
     else:
         checked=''
-    F.append('<input type="checkbox" name="no_grouping" onchange="document.f.submit()" %s>Lister chaque étudiant</input>' % checked)
+    F.append('<input type="checkbox" name="no_grouping" onchange="document.f.submit()" %s>Lister chaque Ã©tudiant</input>' % checked)
     F.append('<input type="hidden" name="formsemestre_id" value="%s"/>' % formsemestre_id)
     F.append('<input type="hidden" name="format" value="%s"/>' % format)
     F.append("""</form>""")
@@ -830,7 +830,7 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
                              init_qtip = True,
                              javascripts=['js/etud_info.js']
                              ),
-          """<h2 class="formsemestre">Parcours suivis par les étudiants de ce semestre</h2>""",
+          """<h2 class="formsemestre">Parcours suivis par les Ã©tudiants de ce semestre</h2>""",
           '\n'.join(F),
           t, 
           context.sco_footer(REQUEST)
@@ -954,7 +954,7 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
         n.set_color('red')
         n.set_shape('ellipse')
         n.set('label', 'Diplome') # bug si accent (pas compris pourquoi)
-    # Arètes:
+    # ArÃ¨tes:
     bubbles = {} # substitue titres pour bulle aides: src_id:dst_id : etud_descr
     for (src_id,dst_id) in edges.keys():
         e = g.get_edge(src_id, dst_id)
@@ -975,10 +975,10 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False):
     log('dot generated %d bytes in %s format' % (len(data),format))
     if not data:
         log('graph.to_string=%s' % g.to_string() )
-        raise ValueError('Erreur lors de la génération du document au format %s' % format)
+        raise ValueError('Erreur lors de la gÃ©nÃ©ration du document au format %s' % format)
     os.unlink(path)
     if format == 'svg':
-        # dot génère un document XML complet, il faut enlever l'en-tête
+        # dot gÃ©nÃ¨re un document XML complet, il faut enlever l'en-tÃªte
         data = '<svg' + '<svg'.join( data.split('<svg')[1:])
         # Substitution des titres des URL des aretes pour bulles aide
         def repl(m):
@@ -1023,8 +1023,8 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_pr
         else:
             checked=''
         
-        H = [ context.sco_header(REQUEST, page_title='Parcours étudiants de %(titreannee)s'%sem, no_side_bar=True),
-              """<h2 class="formsemestre">Parcours des étudiants de ce semestre</h2>""",
+        H = [ context.sco_header(REQUEST, page_title='Parcours Ã©tudiants de %(titreannee)s'%sem, no_side_bar=True),
+              """<h2 class="formsemestre">Parcours des Ã©tudiants de ce semestre</h2>""",
 
               graph_parcours(context, formsemestre_id, only_primo=only_primo),
 
@@ -1033,18 +1033,18 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_pr
               <input type="hidden" name="formsemestre_id" value="%s"/>
               </form>""" % (REQUEST.URL0, checked, formsemestre_id),
               
-              """<p>Origine et devenir des étudiants inscrits dans %(titreannee)s""" % sem,
-              # En Debian 4, dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 générés par dot
+              """<p>Origine et devenir des Ã©tudiants inscrits dans %(titreannee)s""" % sem,
+              # En Debian 4, dot ne genere pas du pdf, et epstopdf ne marche pas sur le .ps ou ps2 gÃ©nÃ©rÃ©s par dot
               # mais c'est OK en Debian 5
               """(<a href="%spdf">version pdf</a> <span class="help">[non disponible partout]</span>""" % url,
               """, <a href="%spng">image PNG</a>)""" % url,
               """</p>""",
-              """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs récents.</p>""",
+              """<p class="help">Cette page ne s'affiche correctement que sur les navigateurs rÃ©cents.</p>""",
 
-              """<p class="help">Le graphe permet de suivre les étudiants inscrits dans le semestre
-              sélectionné (dessiné en vert). Chaque rectangle représente un semestre (cliquez dedans
-              pour afficher son tableau de bord). Les flèches indiquent le nombre d'étudiants passant
-              d'un semestre à l'autre (s'il y en a moins de 10, vous pouvez visualiser leurs noms en
+              """<p class="help">Le graphe permet de suivre les Ã©tudiants inscrits dans le semestre
+              sÃ©lectionnÃ© (dessinÃ© en vert). Chaque rectangle reprÃ©sente un semestre (cliquez dedans
+              pour afficher son tableau de bord). Les flÃ¨ches indiquent le nombre d'Ã©tudiants passant
+              d'un semestre Ã  l'autre (s'il y en a moins de 10, vous pouvez visualiser leurs noms en
               passant la souris sur le chiffre).
               </p>""",
               context.sco_footer(REQUEST)

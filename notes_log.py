@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 import pdb,os,sys,time,re,inspect
 from email.MIMEMultipart import MIMEMultipart

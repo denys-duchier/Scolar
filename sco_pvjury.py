@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -38,11 +38,11 @@ from gen_tables import GenTable
 import sco_pvpdf
 from sco_pdf import PDFLOCK
 
-"""PV Jury IUTV 2006: on détaillait 8 cas:
+"""PV Jury IUTV 2006: on dÃ©taillait 8 cas:
 Jury de semestre n
-    On a 8 types de décisions:
+    On a 8 types de dÃ©cisions:
     Passages:
-    1. passage de ceux qui ont validés Sn-1
+    1. passage de ceux qui ont validÃ©s Sn-1
     2. passage avec compensation Sn-1, Sn
     3. passage sans validation de Sn avec validation d'UE
     4. passage sans validation de Sn sans validation d'UE
@@ -58,7 +58,7 @@ Jury de semestre n
 """
 
 def descr_decisions_ues(znotes, decisions_ue, decision_sem):
-    "résumé textuel des décisions d'UE"
+    "rÃ©sumÃ© textuel des dÃ©cisions d'UE"
     if not decisions_ue:
         return ''
     uelist = []
@@ -76,9 +76,9 @@ def descr_decisions_ues(znotes, decisions_ue, decision_sem):
     return ue_acros
 
 def descr_decision_sem(znotes, etat, decision_sem):
-    "résumé textuel de la décision de semestre"
+    "rÃ©sumÃ© textuel de la dÃ©cision de semestre"
     if etat == 'D':
-        decision = 'Démission'
+        decision = 'DÃ©mission'
     else:
         if decision_sem:
             cod = decision_sem['code']
@@ -88,9 +88,9 @@ def descr_decision_sem(znotes, etat, decision_sem):
     return decision
 
 def descr_decision_sem_abbrev(znotes, etat, decision_sem):
-    "résumé textuel tres court (code) de la décision de semestre"
+    "rÃ©sumÃ© textuel tres court (code) de la dÃ©cision de semestre"
     if etat == 'D':
-        decision = 'Démission'
+        decision = 'DÃ©mission'
     else:
         if decision_sem:
             decision = decision_sem['code']
@@ -99,7 +99,7 @@ def descr_decision_sem_abbrev(znotes, etat, decision_sem):
     return decision
 
 def descr_autorisations(znotes, autorisations):
-    "résumé textuel des autorisations d'inscription (-> 'S1, S3' )"
+    "rÃ©sumÃ© textuel des autorisations d'inscription (-> 'S1, S3' )"
     alist = []
     for aut in autorisations:
         alist.append( 'S' + str(aut['semestre_id']) )
@@ -107,10 +107,10 @@ def descr_autorisations(znotes, autorisations):
 
 
 def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
-    """Données pour édition jury
+    """DonnÃ©es pour Ã©dition jury
     etudids == None => tous les inscrits, sinon donne la liste des ids
     Si with_prev: ajoute infos sur code jury semestre precedent
-    Résultat:
+    RÃ©sultat:
     {
     'date' : date de la decision la plus recente,
     'formsemestre' : sem,
@@ -121,8 +121,8 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
                         'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
                         'autorisations' : [ { 'semestre_id' : { ... } },
-                        'validation_parcours' : True si parcours validé (diplome obtenu)
-                        'prev_code' : code (calculé slt si with_prev),
+                        'validation_parcours' : True si parcours validÃ© (diplome obtenu)
+                        'prev_code' : code (calculÃ© slt si with_prev),
                         'mention' : mention (en fct moy gen)
                     ]
                   }
@@ -146,14 +146,14 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         semestre_non_terminal = semestre_non_terminal or Se.semestre_non_terminal
         d = {}
         d['identite'] = nt.identdict[etudid]
-        d['etat'] = nt.get_etud_etat(etudid) # I|D|DEF  (inscription ou démission ou défaillant)
+        d['etat'] = nt.get_etud_etat(etudid) # I|D|DEF  (inscription ou dÃ©mission ou dÃ©faillant)
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
         if d['decision_sem']:
             d['mention'] = get_mention(nt.get_etud_moy_gen(etudid))
         else:
             d['mention'] = ''
-        # Versions "en français":
+        # Versions "en franÃ§ais":
         d['decisions_ue_descr'] = descr_decisions_ues(znotes, d['decisions_ue'], d['decision_sem'])
         d['decision_sem_descr'] = descr_decision_sem(znotes, d['etat'], d['decision_sem'])
         
@@ -172,7 +172,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         for compensator in compensators:
             # nb: il ne devrait y en avoir qu'un !
             csem = znotes.get_formsemestre(compensator['formsemestre_id'])
-            obs += 'Compensé par %s' % csem['titreannee']
+            obs += 'CompensÃ© par %s' % csem['titreannee']
         
         if d['decision_sem'] and d['decision_sem']['compense_formsemestre_id']:
             compensed = znotes.get_formsemestre(d['decision_sem']['compense_formsemestre_id'])
@@ -180,7 +180,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         
         d['observation'] = obs
         
-        # Cherche la date de decision (sem ou UE) la plus récente:
+        # Cherche la date de decision (sem ou UE) la plus rÃ©cente:
         if d['decision_sem']:
             date = DateDMYtoISO(d['decision_sem']['event_date'])
             if date > max_date: # decision plus recente
@@ -230,9 +230,9 @@ def pvjury_table(context, dpv, only_diplome=False):
         id_cur = ''
     titles = {'etudid' : 'etudid', 'nomprenom' : 'Nom',
               'parcours' : 'Parcours',
-              'decision' : 'Décision' + id_cur,
+              'decision' : 'DÃ©cision' + id_cur,
               'mention' : 'Mention',
-              'ue_cap' : 'UE' + id_cur + ' capitalisées',
+              'ue_cap' : 'UE' + id_cur + ' capitalisÃ©es',
               'devenir' : 'Devenir', 'observations' : 'Observations'
               }
     columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap']
@@ -244,7 +244,7 @@ def pvjury_table(context, dpv, only_diplome=False):
         columns_ids[3:3] = ['mention']
     if dpv['has_prev']:
         id_prev = sem['semestre_id'] - 1 # numero du semestre precedent
-        titles['prev_decision'] = 'Décision S%s' % id_prev
+        titles['prev_decision'] = 'DÃ©cision S%s' % id_prev
         columns_ids[2:2] = ['prev_decision']
     
     lines = []
@@ -262,7 +262,7 @@ def pvjury_table(context, dpv, only_diplome=False):
               'mention' : e['mention']
               }
         if e['validation_parcours']:
-            l['devenir'] = "Diplôme obtenu"
+            l['devenir'] = "DiplÃ´me obtenu"
         if dpv['has_prev']:
             l['prev_decision'] = descr_decision_sem_abbrev(context, None, e['prev_decision_sem'])
         if e['validation_parcours'] or not only_diplome:
@@ -271,7 +271,7 @@ def pvjury_table(context, dpv, only_diplome=False):
 
     
 def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, REQUEST=None):
-    """Page récapitulant les décisions de jury
+    """Page rÃ©capitulant les dÃ©cisions de jury
     dpv: result of dict_pvjury
     """
     footer = context.sco_footer(REQUEST)
@@ -292,8 +292,8 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
     tab = GenTable(rows=rows, titles=titles,
                    columns_ids=columns_ids,
                    filename=make_filename('decisions ' + sem['titreannee']),
-                   origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
-                   caption = 'Décisions jury pour ' + sem['titreannee'],
+                   origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                   caption = 'DÃ©cisions jury pour ' + sem['titreannee'],
                    html_class='gt_table table_leftalign',
                    html_sortable=True,
                    preferences=context.get_preferences(formsemestre_id),
@@ -302,11 +302,11 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
         return tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST, publish=publish)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     H = [ context.html_sem_header(
-            REQUEST, 'Décisions du jury pour le semestre', sem,
+            REQUEST, 'DÃ©cisions du jury pour le semestre', sem,
             init_qtip = True,
             javascripts=['js/etud_info.js'],
             ),
-          """<p>(dernière modif le %s)</p>""" % dpv['date'] ]
+          """<p>(derniÃ¨re modif le %s)</p>""" % dpv['date'] ]
     
     H.append('<ul><li><a class="stdlink" href="formsemestre_lettres_individuelles?formsemestre_id=%s">Courriers individuels (classeur pdf)</a></li>' % formsemestre_id)
     H.append('<li><a class="stdlink" href="formsemestre_pvjury_pdf?formsemestre_id=%s">PV officiel (pdf)</a></li></ul>' % formsemestre_id)
@@ -320,7 +320,7 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
         # add codes for previous (for explanation, without count)
         if row.has_key('prev_decision') and row['prev_decision']:
             counts[row['prev_decision']] += 0
-    # Légende des codes
+    # LÃ©gende des codes
     codes = counts.keys() # sco_codes_parcours.CODES_EXPL.keys()
     codes.sort()
     H.append('<h3>Explication des codes</h3>')
@@ -340,7 +340,7 @@ def formsemestre_pvjury(context, formsemestre_id, format='html', publish=True, R
 # ---------------------------------------------------------------------------
 
 def formsemestre_pvjury_pdf(context, formsemestre_id, etudid=None, REQUEST=None):
-    """Generation PV jury en PDF: saisie des paramètres
+    """Generation PV jury en PDF: saisie des paramÃ¨tres
     Si etudid, PV pour un seul etudiant. Sinon, tout les inscrits au semestre.
     """
     sem = context.get_formsemestre(formsemestre_id)
@@ -351,11 +351,11 @@ def formsemestre_pvjury_pdf(context, formsemestre_id, etudid=None, REQUEST=None)
         etuddescr = ''
 
     H = [ context.html_sem_header(REQUEST,'Edition du PV de jury de %s'%etuddescr, sem),
-          """<p class="help">Utiliser cette page pour éditer des versions provisoires des PV.
-          <span class="fontred">Il est recommandé d'archiver les versions définitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span>
+          """<p class="help">Utiliser cette page pour Ã©diter des versions provisoires des PV.
+          <span class="fontred">Il est recommandÃ© d'archiver les versions dÃ©finitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span>
           </p>""" % formsemestre_id
           ]
-    F = [ """<p><em>Voir aussi si besoin les réglages sur la page "Paramétrage" (accessible à l'administrateur du département).</em>
+    F = [ """<p><em>Voir aussi si besoin les rÃ©glages sur la page "ParamÃ©trage" (accessible Ã  l'administrateur du dÃ©partement).</em>
         </p>""",
         context.sco_footer(REQUEST) ]
     descr = descrform_pvjury(sem)
@@ -363,7 +363,7 @@ def formsemestre_pvjury_pdf(context, formsemestre_id, etudid=None, REQUEST=None)
         descr.append( ('etudid', {'input_type' : 'hidden' }) )
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             cancelbutton = 'Annuler', method='GET',
-                            submitlabel = 'Générer document', 
+                            submitlabel = 'GÃ©nÃ©rer document', 
                             name='tf' )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1] + '\n'.join(F)
@@ -395,13 +395,13 @@ def formsemestre_pvjury_pdf(context, formsemestre_id, etudid=None, REQUEST=None)
         return sendPDFFile(REQUEST, pdfdoc, filename)
 
 def descrform_pvjury(sem):
-    """Définition de formulaire pour PV jury PDF
+    """DÃ©finition de formulaire pour PV jury PDF
     """
     return [
         ('dateCommission', {'input_type' : 'text', 'size' : 50, 'title' : 'Date de la commission', 'explanation' : '(format libre)'}),
         ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
-        ('numeroArrete', {'input_type' : 'text', 'size' : 50, 'title' : 'Numéro de l\'arrêté du président',
-        'explanation' : 'le président de l\'Université prend chaque année un arrêté formant les jurys'}),
+        ('numeroArrete', {'input_type' : 'text', 'size' : 50, 'title' : 'NumÃ©ro de l\'arrÃªtÃ© du prÃ©sident',
+        'explanation' : 'le prÃ©sident de l\'UniversitÃ© prend chaque annÃ©e un arrÃªtÃ© formant les jurys'}),
         ('showTitle', { 'input_type' : 'checkbox', 'title':'Indiquer le titre du semestre sur le PV', 'explanation' : '(le titre est "%s")' % sem['titre'], 'labels' : [''], 'allowed_values' : ('1',)}),
         ('formsemestre_id', {'input_type' : 'hidden' }) ]
 
@@ -410,15 +410,15 @@ def formsemestre_lettres_individuelles(context, formsemestre_id, REQUEST=None):
     "Lettres avis jury en PDF"
     sem = context.get_formsemestre(formsemestre_id)
     H = [context.html_sem_header(REQUEST,'Edition des lettres individuelles', sem),
-         """<p class="help">Utiliser cette page pour éditer des versions provisoires des PV.
-          <span class="fontred">Il est recommandé d'archiver les versions définitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span></p>
+         """<p class="help">Utiliser cette page pour Ã©diter des versions provisoires des PV.
+          <span class="fontred">Il est recommandÃ© d'archiver les versions dÃ©finitives: <a href="formsemestre_archive?formsemestre_id=%s">voir cette page</a></span></p>
          """ % formsemestre_id
          ]
     F = context.sco_footer(REQUEST)
     descr = descrform_lettres_individuelles()
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             cancelbutton = 'Annuler', method='POST',
-                            submitlabel = 'Générer document', 
+                            submitlabel = 'GÃ©nÃ©rer document', 
                             name='tf' )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1] + F
@@ -444,6 +444,6 @@ def formsemestre_lettres_individuelles(context, formsemestre_id, REQUEST=None):
 def descrform_lettres_individuelles():
     return  [
         ('dateJury', {'input_type' : 'text', 'size' : 50, 'title' : 'Date du Jury', 'explanation' : '(si le jury a eu lieu)' }),
-        ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature'}),
+        ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannÃ©e de la signature'}),
         ('formsemestre_id', {'input_type' : 'hidden' })]
 

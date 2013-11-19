@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -70,7 +70,7 @@ def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
 
 
 def defMenuStats(context,formsemestre_id):
-    "Définition du menu 'Statistiques' "
+    "DÃ©finition du menu 'Statistiques' "
     return [
         { 'title' : 'Statistiques...',
           'url' : 'formsemestre_report_counts?formsemestre_id=' + formsemestre_id,
@@ -87,7 +87,7 @@ def defMenuStats(context,formsemestre_id):
           'url' : 'formsemestre_suivi_parcours?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           },
-        { 'title' : "Lycées d'origine",
+        { 'title' : "LycÃ©es d'origine",
           'url' : 'formsemestre_etuds_lycees?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           },
@@ -95,11 +95,11 @@ def defMenuStats(context,formsemestre_id):
           'url' : 'formsemestre_poursuite_report?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           },
-        { 'title' : 'Table "débouchés" (experimental)',
+        { 'title' : 'Table "dÃ©bouchÃ©s" (experimental)',
           'url' : 'report_debouche_date',
           'enabled' : True,
           },
-         { 'title' : "Estimation du coût de la formation",
+         { 'title' : "Estimation du coÃ»t de la formation",
           'url' : 'formsemestre_estim_cost?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           },         
@@ -114,7 +114,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
     if int(sem['etat']):
         change_lock_msg = 'Verrouiller'
     else:
-        change_lock_msg = 'Déverrouiller'
+        change_lock_msg = 'DÃ©verrouiller'
 
     F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
 
@@ -134,12 +134,12 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
-        { 'title' : 'Préférences du semestre',
+        { 'title' : 'PrÃ©fÃ©rences du semestre',
           'url' : 'formsemestre_edit_preferences?formsemestre_id=%(formsemestre_id)s' % sem,
           'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
-          'helpmsg' : 'Préférences du semestre'
+          'helpmsg' : 'PrÃ©fÃ©rences du semestre'
           },
-        { 'title' : 'Réglages bulletins',
+        { 'title' : 'RÃ©glages bulletins',
           'url' :  'formsemestre_edit_options?formsemestre_id=' + formsemestre_id,
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           'helpmsg' : 'Change les options'
@@ -154,7 +154,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : True,
           'helpmsg' : ''
           },
-        { 'title' : 'Vérifier absences aux évaluations',
+        { 'title' : 'VÃ©rifier absences aux Ã©valuations',
           'url' :  'formsemestre_check_absences_html?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           'helpmsg' : ''
@@ -169,7 +169,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'enabled' : authuser.has_permission(ScoImplement, context),
           'helpmsg' : ''
           },
-        { 'title' : 'Associer à une nouvelle version du programme',
+        { 'title' : 'Associer Ã  une nouvelle version du programme',
           'url' :  'formsemestre_associate_new_version?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoChangeFormation, context) and (sem['etat']== '1'),
           'helpmsg' : ''
@@ -191,46 +191,46 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'moduleimpl_inscriptions_stats?formsemestre_id=' + formsemestre_id,
           } ]
     menuInscriptions += [        
-        { 'title' : 'Passage des étudiants depuis d\'autres semestres',
+        { 'title' : 'Passage des Ã©tudiants depuis d\'autres semestres',
           'url' : 'formsemestre_inscr_passage?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
-        { 'title' : 'Synchroniser avec étape Apogée',
+        { 'title' : 'Synchroniser avec Ã©tape ApogÃ©e',
           'url' : 'formsemestre_synchro_etuds?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url') and (sem['etat']== '1')
           },
-        { 'title' : 'Inscrire un étudiant',
+        { 'title' : 'Inscrire un Ã©tudiant',
           'url' : 'formsemestre_inscription_with_modules_etud?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
-        { 'title' : 'Importer des étudiants dans ce semestre (table Excel)',
+        { 'title' : 'Importer des Ã©tudiants dans ce semestre (table Excel)',
           'url' : 'form_students_import_excel?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and (sem['etat']== '1')
           },
-        { 'title' : 'Importer données admission',
+        { 'title' : 'Importer donnÃ©es admission',
           'url' : 'form_students_import_infos_admissions?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context)
           },
-        { 'title' : 'Resynchroniser données identité',
+        { 'title' : 'Resynchroniser donnÃ©es identitÃ©',
           'url' : 'formsemestre_import_etud_admission?formsemestre_id=' + formsemestre_id,
           'enabled' : authuser.has_permission(ScoEtudInscrit, context) and context.get_preference('portal_url'),
           },
 
-        { 'title' : 'Exporter table des étudiants',
+        { 'title' : 'Exporter table des Ã©tudiants',
           'url' : 'group_list?format=allxls&group_id='+ sco_groups.get_default_group(context, formsemestre_id),
           },
-        { 'title' : 'Vérifier inscriptions multiples',
+        { 'title' : 'VÃ©rifier inscriptions multiples',
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
           }
         ]
 
     menuGroupes = [
-        { 'title' : 'Listes des étudiants',
+        { 'title' : 'Listes des Ã©tudiants',
           'url' : 'formsemestre_lists?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
-          'helpmsg' : 'Accès aux listes des groupes d\'étudiants'
+          'helpmsg' : 'AccÃ¨s aux listes des groupes d\'Ã©tudiants'
           },
-        { 'title' : 'Créer/modifier les partitions...',
+        { 'title' : 'CrÃ©er/modifier les partitions...',
           'url' : 'editPartitionForm?formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
           },        
@@ -257,11 +257,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'formsemestre_bulletins_pdf_choice?formsemestre_id='+ formsemestre_id,
           'helpmsg' : 'PDF regroupant tous les bulletins'
           },
-        { 'title' : 'Envoyer à chaque étudiant son bulletin par e-mail',
+        { 'title' : 'Envoyer Ã  chaque Ã©tudiant son bulletin par e-mail',
           'url' : 'formsemestre_bulletins_mailetuds_choice?formsemestre_id='+ formsemestre_id,
           'enabled' : sco_bulletins.can_send_bulletin_by_mail(context, formsemestre_id, REQUEST)
           },
-        { 'title' : 'Calendrier des évaluations',
+        { 'title' : 'Calendrier des Ã©valuations',
           'url' : 'formsemestre_evaluations_cal?formsemestre_id='+ formsemestre_id,
           },
         { 'title' : 'Lister toutes les saisies de notes',
@@ -269,21 +269,21 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         ]
     menuJury = [
-        { 'title' : 'Voir les décisions du jury',
+        { 'title' : 'Voir les dÃ©cisions du jury',
           'url' : 'formsemestre_pvjury?formsemestre_id=' + formsemestre_id,
           },
-        { 'title' : 'Générer feuille préparation Jury',
+        { 'title' : 'GÃ©nÃ©rer feuille prÃ©paration Jury',
           'url' : 'feuille_preparation_jury?formsemestre_id=' + formsemestre_id,
           },
-        { 'title' : 'Saisie des décisions du jury',
+        { 'title' : 'Saisie des dÃ©cisions du jury',
           'url' : 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           },
-        { 'title' : 'Editer les PV et archiver les résultats',
+        { 'title' : 'Editer les PV et archiver les rÃ©sultats',
           'url' : 'formsemestre_archive?formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           },
-        { 'title' : 'Documents archivés',
+        { 'title' : 'Documents archivÃ©s',
           'url' : 'formsemestre_list_archives?formsemestre_id=' + formsemestre_id,
           'enabled' : sco_archives.PVArchive.list_obj_archives(context,formsemestre_id)
           },
@@ -307,7 +307,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
 # Element HTML decrivant un semestre (barre de menu et infos)
 def formsemestre_page_title(context, REQUEST):
     """Element HTML decrivant un semestre (barre de menu et infos)
-    Cherche dans REQUEST si un semestre est défini (formsemestre_id ou moduleimpl ou evaluation ou group)
+    Cherche dans REQUEST si un semestre est dÃ©fini (formsemestre_id ou moduleimpl ou evaluation ou group)
     """
     try:
         notes = context.Notes
@@ -370,7 +370,7 @@ def fill_formsemestre(context, sem, REQUEST=None):
     sem['notes_url'] = notes_url
     formsemestre_id = sem['formsemestre_id']
     if sem['etat'] != '1':
-        sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (notes_url, sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+        sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (notes_url, sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillÃ©'))
     else:
         sem['locklink'] = ''
     F = context.Notes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
@@ -385,7 +385,7 @@ def fill_formsemestre(context, sem, REQUEST=None):
     else:
         sem['modalitestr'] = ''
     if sem['etape_apo'] or sem['etape_apo2'] or sem['etape_apo3'] or sem['etape_apo4']:
-        sem['etape_apo_str'] = 'Code étape Apogée: %s' % (sem['etape_apo'] or '-')
+        sem['etape_apo_str'] = 'Code Ã©tape ApogÃ©e: %s' % (sem['etape_apo'] or '-')
         if sem['etape_apo2']:
             sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo2']
         if sem['etape_apo3']:
@@ -393,7 +393,7 @@ def fill_formsemestre(context, sem, REQUEST=None):
         if sem['etape_apo4']:
             sem['etape_apo_str'] += ' (+%s)' % sem['etape_apo4']
     else:
-        sem['etape_apo_str'] = 'Pas de code étape'
+        sem['etape_apo_str'] = 'Pas de code Ã©tape'
     
     inscrits = context.Notes.do_formsemestre_inscription_list( args={ 'formsemestre_id' : formsemestre_id } )
     sem['nbinscrits'] = len(inscrits)
@@ -449,12 +449,12 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
     titles['jour'] = 'Evaluation'
     titles['description'] = ''
-    titles['coefficient'] = 'Coef. éval.'
+    titles['coefficient'] = 'Coef. Ã©val.'
     title = '%s %s' % (parcours.SESSION_NAME.capitalize(), sem['titremois'])
     
     return GenTable(
         columns_ids=columns_ids, rows=R, titles=titles,
-        origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+        origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
         caption = title,
         html_caption = title,
         html_class='gt_table table_leftalign',
@@ -477,12 +477,12 @@ def formsemestre_description(context, formsemestre_id, format='html', with_evals
     <input type="checkbox" name="with_evals" value="1" onchange="document.f.submit()" """ % (REQUEST.URL0, formsemestre_id)
     if with_evals:
         tab.html_before_table += 'checked'
-    tab.html_before_table += '>indiquer les évaluations</input></form>'
+    tab.html_before_table += '>indiquer les Ã©valuations</input></form>'
 
     return tab.make_page(context, format=format, REQUEST=REQUEST)                          
 
 def formsemestre_lists(context, formsemestre_id, REQUEST=None):
-    """Listes des étudiants"""
+    """Listes des Ã©tudiants"""
     sem = context.get_formsemestre(formsemestre_id)
     H = [ context.html_sem_header(REQUEST, '', sem),
           context.make_listes_sem(sem, REQUEST),
@@ -510,11 +510,11 @@ def html_expr_diagnostic(context, diagnostics):
     return ''.join(H)
 
 def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_title=None):
-    """En-tête HTML des pages "semestre"
+    """En-tÃªte HTML des pages "semestre"
     """
     semlist = context.do_formsemestre_list( args={ 'formsemestre_id' : formsemestre_id } )
     if not semlist:
-        raise ScoValueError( 'Session inexistante (elle a peut être été supprimée ?)' )
+        raise ScoValueError( 'Session inexistante (elle a peut Ãªtre Ã©tÃ© supprimÃ©e ?)' )
     sem = semlist[0]
     F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
@@ -537,28 +537,28 @@ def formsemestre_status_head(context, formsemestre_id=None, REQUEST=None, page_t
             et += ' (+%s)' % sem['etape_apo3']
         if sem['etape_apo4']:
             et += ' (+%s)' % sem['etape_apo4']
-        H.append('&nbsp;&nbsp;&nbsp;(étape <b><tt>%s</tt></b>)' % et )
+        H.append('&nbsp;&nbsp;&nbsp;(Ã©tape <b><tt>%s</tt></b>)' % et )
     H.append('</td></tr>')
     
     evals = sco_evaluations.do_evaluation_etat_in_sem(context, formsemestre_id)   
     H.append('<tr><td class="fichetitre2">Evaluations: </td><td> %(nb_evals_completes)s ok, %(nb_evals_en_cours)s en cours, %(nb_evals_vides)s vides' % evals)
     if evals['last_modif']:
-        H.append(' <em>(dernière note saisie le %s)</em>' % evals['last_modif'].strftime('%d/%m/%Y à %Hh%M'))
+        H.append(' <em>(derniÃ¨re note saisie le %s)</em>' % evals['last_modif'].strftime('%d/%m/%Y Ã  %Hh%M'))
     H.append('</td></tr>')
     if evals['attente']:
         H.append("""<tr><td class="fichetitre2"></td><td class="redboldtext">
-Il y a des notes en attente ! Le classement des étudiants n'a qu'une valeur indicative. 
+Il y a des notes en attente ! Le classement des Ã©tudiants n'a qu'une valeur indicative. 
 </td></tr>""")
     H.append('</table>')
     if sem['bul_hide_xml'] != '0':
-        H.append('<p><em>Bulletins non publiés sur le portail</em></p>')
+        H.append('<p><em>Bulletins non publiÃ©s sur le portail</em></p>')
     
     return ''.join(H)
 
 
 def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
     """Tableau de bord semestre HTML"""
-    # porté du DTML
+    # portÃ© du DTML
     cnx = context.GetDBConnexion()
     sem = context.get_formsemestre(formsemestre_id)
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )
@@ -631,7 +631,7 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
         H.append('<td class="evals">')
         nb_evals = etat['nb_evals_completes']+etat['nb_evals_en_cours']+etat['nb_evals_vides']
         if nb_evals != 0:
-            H.append('<a href="moduleimpl_status?moduleimpl_id=%s" class="formsemestre_status_link">%s prévues, %s ok</a>' 
+            H.append('<a href="moduleimpl_status?moduleimpl_id=%s" class="formsemestre_status_link">%s prÃ©vues, %s ok</a>' 
                      % (M['moduleimpl_id'], nb_evals, etat['nb_evals_completes']))
             if etat['nb_evals_en_cours'] > 0:
                 H.append(', <span><a class="redlink" href="moduleimpl_status?moduleimpl_id=%s" title="Il manque des notes">%s en cours</a></span>' % (M['moduleimpl_id'], etat['nb_evals_en_cours']))

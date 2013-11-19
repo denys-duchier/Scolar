@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -43,7 +43,7 @@ def affectGroups(context, partition_id, REQUEST=None):
     partition = sco_groups.get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST,formsemestre_id):
-        raise AccessDenied("vous n'avez pas la permission d'effectuer cette opération")
+        raise AccessDenied("vous n'avez pas la permission d'effectuer cette opÃ©ration")
     
     sem = context.Notes.get_formsemestre(formsemestre_id)
     
@@ -58,7 +58,7 @@ def affectGroups(context, partition_id, REQUEST=None):
     
     H += [
         """</select></form>""",
-        """<p>Faites glisser les étudiants d'un groupe à l'autre. Les modifications ne sont enregistrées que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez créer de nouveaux groupes. Pour <em>supprimer</em> un groupe, utiliser le lien "suppr." en haut à droite de sa boite. Vous pouvez aussi <a class="stdlink" href="groups_auto_repartition?partition_id=%(partition_id)s">répartir automatiquement les groupes</a>.
+        """<p>Faites glisser les Ã©tudiants d'un groupe Ã  l'autre. Les modifications ne sont enregistrÃ©es que lorsque vous cliquez sur le bouton "<em>Enregistrer ces groupes</em>". Vous pouvez crÃ©er de nouveaux groupes. Pour <em>supprimer</em> un groupe, utiliser le lien "suppr." en haut Ã  droite de sa boite. Vous pouvez aussi <a class="stdlink" href="groups_auto_repartition?partition_id=%(partition_id)s">rÃ©partir automatiquement les groupes</a>.
 </p>""" % partition,
         """<div id="gmsg" class="head_message"></div>""",
         """<div id="ginfo"></div>""",
@@ -66,7 +66,7 @@ def affectGroups(context, partition_id, REQUEST=None):
         """<form name="formGroup" id="formGroup" onSubmit="return false;">""",
         """<input type="hidden" name="partition_id" value="%s"/>""" % partition_id,
         """<input name="groupName" size="6"/>
-<input type="button" onClick="createGroup();" value="Créer groupe"/>
+<input type="button" onClick="createGroup();" value="CrÃ©er groupe"/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="button" onClick="submitGroups( target='gmsg' );" value="Enregistrer ces groupes" />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -87,7 +87,7 @@ Editer groupes de
 </div>
 
 <div style="clear: left; margin-top: 15px;">
-<p class="help">Cette page ne fonctionne pas forcément avec tous les navigateurs (certaines versions d'Internet Explorer et de Safari posent problème). Utilisez de préférence Firefox.</p>
+<p class="help">Cette page ne fonctionne pas forcÃ©ment avec tous les navigateurs (certaines versions d'Internet Explorer et de Safari posent problÃ¨me). Utilisez de prÃ©fÃ©rence Firefox.</p>
 </div>
 
 </div>

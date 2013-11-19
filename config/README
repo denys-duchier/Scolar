@@ -43,3 +43,9 @@ Sur ScoDoc6:
   pg_dumpall > scodoc.dump.txt
 
 
+
+passage en UTF-8
+- sources Python
+- locale systeme (scrip install)
+- creation des bases (users et depts)
+- recodage du dump sql

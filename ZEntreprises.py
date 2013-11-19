@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -248,7 +248,7 @@ class ZEntreprises(ObjectManager,
         
         H.append("""<li class="insidebar"><a href="%(ScoURL)s/Entreprises/entreprise_contact_list" class="sidebar">Contacts</a> </li></ul> """ % params )
 
-        # --- entreprise selectionnée:
+        # --- entreprise selectionnÃ©e:
         if REQUEST.form.has_key('entreprise_id'):
             entreprise_id = REQUEST.form['entreprise_id']
             E = context.do_entreprise_list( args={ 'entreprise_id' : entreprise_id } )
@@ -417,15 +417,15 @@ class ZEntreprises(ObjectManager,
                        { 'etudiant' : etudiant } )
         r = cursor.fetchall()
         if len(r) < 1:
-            return 0, 'Aucun etudiant ne correspond à "%s"' % etudiant
+            return 0, 'Aucun etudiant ne correspond Ã  "%s"' % etudiant
         elif len(r) > 10:
-            return 0, '<b>%d etudiants</b> correspondent à ce nom (utilisez le code)'%len(r)
+            return 0, '<b>%d etudiants</b> correspondent Ã  ce nom (utilisez le code)'%len(r)
         elif len(r) > 1:
             e = [ '<ul class="entreprise_etud_list">' ]
             for x in r:
                 e.append( '<li>%s %s (code %s)</li>' % (x[1].upper(),x[2] or '',x[0].strip()) )
             e.append('</ul>')
-            return 0, 'Les étudiants suivants correspondent: préciser le nom complet ou le code\n' + '\n'.join(e) 
+            return 0, 'Les Ã©tudiants suivants correspondent: prÃ©ciser le nom complet ou le code\n' + '\n'.join(e) 
         else: # une seule reponse !
             return 1, r[0][0].strip()
 
@@ -466,13 +466,13 @@ class ZEntreprises(ObjectManager,
     # -------- Formulaires: traductions du DTML
     security.declareProtected(ScoEntrepriseChange, 'entreprise_create')
     def entreprise_create(self, REQUEST=None):
-        """Form. création entreprise"""
+        """Form. crÃ©ation entreprise"""
         context = self
-        H = [ self.entreprise_header(REQUEST, page_title="Création d'une entreprise"),
-              """<h2 class="entreprise_new">Création d'une entreprise</h2>""" ]
+        H = [ self.entreprise_header(REQUEST, page_title="CrÃ©ation d'une entreprise"),
+              """<h2 class="entreprise_new">CrÃ©ation d'une entreprise</h2>""" ]
         tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
             ('nom',       { 'size' : 25, 'title' : 'Nom de l\'entreprise' }),
-            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numéro, rue)' }),
+            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numÃ©ro, rue)' }),
             ('codepostal',   { 'size' : 8, 'title' : 'Code Postal', }),
             ('ville',     { 'size' : 30, 'title' : 'Ville' }),
             ('pays',      { 'size' : 30, 'title' : 'Pays', 'default' : 'France' }),
@@ -480,17 +480,17 @@ class ZEntreprises(ObjectManager,
                                'labels' : ['Ile de France', 'Province', 'Etranger'],
                                'allowed_values' : ['IDF', 'Province', 'Etranger'] }),
             
-            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activités' }),
+            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activitÃ©s' }),
             ('privee',   { 'input_type' : 'menu', 'title' : 'Statut',
                            'labels' : ['Entreprise privee', 'Entreprise Publique', 'Association' ],
                            'allowed_values' : ['privee', 'publique', 'association'] }),
     
             ('plus10salaries',  { 'title' : 'Masse salariale', 'type' : 'integer','input_type' : 'menu',
-                                  'labels' : ['10 salariés ou plus', 'Moins de 10 salariés', 'Inconnue' ],
+                                  'labels' : ['10 salariÃ©s ou plus', 'Moins de 10 salariÃ©s', 'Inconnue' ],
                                   'allowed_values' : [ 1, 0, -1 ] }),
-            ('qualite_relation', { 'title' : 'Qualité relation IUT/Entreprise',
+            ('qualite_relation', { 'title' : 'QualitÃ© relation IUT/Entreprise',
                                    'input_type' : 'menu', 'default' : '-1',
-                                   'labels' : ['Très bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
+                                   'labels' : ['TrÃ¨s bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
                                    'allowed_values' : [ '100', '75', '50', '25', '-1' ] }),
             ('contact_origine',     { 'size' : 30, 'title' : 'Origine du contact' }),
             ('note',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Note' }),
@@ -522,7 +522,7 @@ class ZEntreprises(ObjectManager,
             ('date_creation', { 'default' : time.strftime( '%Y-%m-%d' ), 'input_type' : 'hidden' }),
 
             ('nom',       { 'size' : 25, 'title' : 'Nom de l\'entreprise' }),
-            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numéro, rue)' }),
+            ('adresse',   { 'size' : 30, 'title' : 'Adresse', 'explanation' : '(numÃ©ro, rue)' }),
             ('codepostal',   { 'size' : 8, 'title' : 'Code Postal', }),
             ('ville',     { 'size' : 30, 'title' : 'Ville' }),
             ('pays',      { 'size' : 30, 'title' : 'Pays', 'default' : 'France' }),
@@ -530,17 +530,17 @@ class ZEntreprises(ObjectManager,
                                'labels' : ['Ile de France', 'Province', 'Etranger'],
                                'allowed_values' : ['IDF', 'Province', 'Etranger'] }),
 
-            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activités' }),
+            ('secteur',     { 'size' : 30, 'title' : 'Secteur d\'activitÃ©s' }),
             ('privee',   { 'input_type' : 'menu', 'title' : 'Statut',
                            'labels' : ['Entreprise privee', 'Entreprise Publique', 'Association' ],
                            'allowed_values' : ['privee', 'publique', 'association'] }),
 
             ('plus10salaries',  { 'title' : 'Masse salariale', 'input_type' : 'menu',
-                                  'labels' : ['10 salariés ou plus', 'Moins de 10 salariés', 'Inconnue' ],
+                                  'labels' : ['10 salariÃ©s ou plus', 'Moins de 10 salariÃ©s', 'Inconnue' ],
                                   'allowed_values' : [ '1', '0', '-1' ] }),
-            ('qualite_relation', { 'title' : 'Qualité relation IUT/Entreprise',
+            ('qualite_relation', { 'title' : 'QualitÃ© relation IUT/Entreprise',
                                    'input_type' : 'menu', 
-                                   'labels' : ['Très bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
+                                   'labels' : ['TrÃ¨s bonne', 'Bonne','Moyenne', 'Mauvaise', 'Inconnue' ],                       
                                    'allowed_values' : [ '100', '75', '50', '25', '-1' ] }),
             ('contact_origine',     { 'size' : 30, 'title' : 'Origine du contact' }),
             ('note',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Note' }),                ),
@@ -557,7 +557,7 @@ class ZEntreprises(ObjectManager,
             if not readonly:
                 H.append("""<p>%s&nbsp;<a class="entreprise_delete" href="entreprise_delete?entreprise_id=%s">Supprimer cette entreprise</a> </p>""" % (self.icons.delete_img.tag(title='delete', border='0'), F['entreprise_id']))
             if len(Cl):
-                H.append("""<h3>%d correspondants dans l'entreprise %s (<a href="entreprise_correspondant_list?entreprise_id=%s">liste complète</a>) :</h3>
+                H.append("""<h3>%d correspondants dans l'entreprise %s (<a href="entreprise_correspondant_list?entreprise_id=%s">liste complÃ¨te</a>) :</h3>
 <ul>""" % (len(Cl), F['nom'], F['entreprise_id']))
                 for c in Cl:
                     H.append("""<li><a href="entreprise_correspondant_edit?entreprise_corresp_id=%s">""" % c['entreprise_corresp_id'])
@@ -572,7 +572,7 @@ class ZEntreprises(ObjectManager,
                     H.append("""%s %s</a>&nbsp;(%s)</li>""" % (nom,prenom,c['fonction']))
                 H.append('</ul>')
             if len(Cts):
-                H.append("""<h3>%d contacts avec l'entreprise %s (<a href="entreprise_contact_list?entreprise_id=%s">liste complète</a>) :</h3><ul>""" % (len(Cts),F['nom'],F['entreprise_id']))
+                H.append("""<h3>%d contacts avec l'entreprise %s (<a href="entreprise_contact_list?entreprise_id=%s">liste complÃ¨te</a>) :</h3><ul>""" % (len(Cts),F['nom'],F['entreprise_id']))
                 for c in Cts:
                     H.append("""<li><a href="entreprise_contact_edit?entreprise_contact_id=%s">%s</a>&nbsp;&nbsp;&nbsp;""" % (c['entreprise_contact_id'],c['date']))
                     if c['type_contact']:
@@ -617,7 +617,7 @@ class ZEntreprises(ObjectManager,
     security.declareProtected(ScoEntrepriseView,'make_link_create_corr')
     def make_link_create_corr(self, entreprise_id):
         "yet another stupid code snippet"
-        return '<a href="entreprise_correspondant_create?entreprise_id='+str(entreprise_id)+'">créer un nouveau correspondant</a>'
+        return '<a href="entreprise_correspondant_create?entreprise_id='+str(entreprise_id)+'">crÃ©er un nouveau correspondant</a>'
     
 
 # --------------------------------------------------------------------

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,16 +25,16 @@
 #
 ##############################################################################
 
-"""Génération du bulletin en format XML
+"""GÃ©nÃ©ration du bulletin en format XML
 
 
 Note: la structure de ce XML est issue de (mauvais) choix historiques
-et ne peut pas être modifiée car d'autres logiciels l'utilisent (portail publication bulletins etudiants).
+et ne peut pas Ãªtre modifiÃ©e car d'autres logiciels l'utilisent (portail publication bulletins etudiants).
 
 Je recommande d'utiliser la version JSON.
-Malheureusement, le code de génération JSON et XML sont séparés, ce qui est absurde et complique la maintenance (si on ajoute des informations au xbuletins).
+Malheureusement, le code de gÃ©nÃ©ration JSON et XML sont sÃ©parÃ©s, ce qui est absurde et complique la maintenance (si on ajoute des informations au xbuletins).
 
-Je propose de considérer le XMl comme "deprecated" et de ne plus le modifier, sauf nécessité.
+Je propose de considÃ©rer le XMl comme "deprecated" et de ne plus le modifier, sauf nÃ©cessitÃ©.
 """
 
 from notes_table import *
@@ -43,7 +43,7 @@ import ZAbsences
 import sco_bulletins
 
 # -------- Bulletin en XML
-# (fonction séparée: n'utilise pas formsemestre_bulletinetud_dict()
+# (fonction sÃ©parÃ©e: n'utilise pas formsemestre_bulletinetud_dict()
 #   pour simplifier le code, mais attention a la maintenance !)
 #
 def make_xml_formsemestre_bulletinetud(
@@ -52,7 +52,7 @@ def make_xml_formsemestre_bulletinetud(
     force_publishing=False,
     xml_nodate=False,
     REQUEST=None,
-    xml_with_decisions=False, # inclue les decisions même si non publiées
+    xml_with_decisions=False, # inclue les decisions mÃªme si non publiÃ©es
     version='long'
     ):
     "bulletin au format XML"
@@ -175,7 +175,7 @@ def make_xml_formsemestre_bulletinetud(
                         numero=mod['numero'],
                         titre=quote_xml_attr(mod['titre']),
                         abbrev=quote_xml_attr(mod['abbrev']),
-                        # ects=ects ects des modules maintenant inutilisés
+                        # ects=ects ects des modules maintenant inutilisÃ©s
                         )
             doc._push()
             modstat = nt.get_mod_stats(modimpl['moduleimpl_id'])
@@ -206,7 +206,7 @@ def make_xml_formsemestre_bulletinetud(
                         val = fmt_note(val, note_max=e['note_max'] )
                         doc.note( value=val )
                         doc._pop()
-                # Evaluations incomplètes ou futures:
+                # Evaluations incomplÃ¨tes ou futures:
                 complete_eval_ids = Set( [ e['evaluation_id'] for e in evals ] )
                 if context.get_preference('bul_show_all_evals', formsemestre_id):
                     all_evals = context.do_evaluation_list(args={ 'moduleimpl_id' : modimpl['moduleimpl_id'] })

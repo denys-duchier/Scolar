@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -37,29 +37,29 @@ def matiere_create(context, ue_id=None, REQUEST=None):
     """Creation d'une matiere
     """
     UE = context.do_ue_list( args={ 'ue_id' : ue_id } )[0]
-    H = [ context.sco_header(REQUEST, page_title="Création d'une matière"),
-          """<h2>Création d'une matière dans l'UE %(titre)s (%(acronyme)s)</h2>""" % UE,
-          """<p class="help">Les matières sont des groupes de modules dans une UE
-d'une formation donnée. Les matières servent surtout pour la
-présentation (bulletins, etc) mais <em>n'ont pas de rôle dans le calcul
+    H = [ context.sco_header(REQUEST, page_title="CrÃ©ation d'une matiÃ¨re"),
+          """<h2>CrÃ©ation d'une matiÃ¨re dans l'UE %(titre)s (%(acronyme)s)</h2>""" % UE,
+          """<p class="help">Les matiÃ¨res sont des groupes de modules dans une UE
+d'une formation donnÃ©e. Les matiÃ¨res servent surtout pour la
+prÃ©sentation (bulletins, etc) mais <em>n'ont pas de rÃ´le dans le calcul
 des notes.</em>
 </p> 
 
 <p class="help">Si votre formation n'utilise pas la notion de
-"matières", créez une matière par UE, et donnez lui le même nom que l'UE
-(en effet, tout module doit appartenir à une matière).
+"matiÃ¨res", crÃ©ez une matiÃ¨re par UE, et donnez lui le mÃªme nom que l'UE
+(en effet, tout module doit appartenir Ã  une matiÃ¨re).
 </p>
 
-<p class="help">Comme les UE, les matières n'ont pas de coefficient
-associé.
+<p class="help">Comme les UE, les matiÃ¨res n'ont pas de coefficient
+associÃ©.
 </p>"""]    
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, ( 
         ('ue_id', { 'input_type' : 'hidden', 'default' : ue_id }),
-        ('titre'    , { 'size' : 30, 'explanation' : 'nom de la matière.' }),
-        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour affichage',
+        ('titre'    , { 'size' : 30, 'explanation' : 'nom de la matiÃ¨re.' }),
+        ('numero',    { 'size' : 2, 'explanation' : 'numÃ©ro (1,2,3,4...) pour affichage',
                         'type' : 'int' }),
         ),
-                           submitlabel = 'Créer cette matière')
+                           submitlabel = 'CrÃ©er cette matiÃ¨re')
 
     dest_url = REQUEST.URL1 + '/ue_list?formation_id=' + UE['formation_id']
 
@@ -71,7 +71,7 @@ associé.
         # check unicity
         mats = context.do_matiere_list(args={ 'ue_id' : ue_id, 'titre' : tf[2]['titre'] } )
         if mats:
-            return '\n'.join(H) + tf_error_message('Titre de matière déjà existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
+            return '\n'.join(H) + tf_error_message('Titre de matiÃ¨re dÃ©jÃ  existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
         matiere_id = context.do_matiere_create( tf[2], REQUEST )
         return REQUEST.RESPONSE.redirect(dest_url)
 
@@ -80,8 +80,8 @@ def matiere_delete(context, matiere_id=None, REQUEST=None):
     """Delete an UE"""
     M = context.do_matiere_list(args={ 'matiere_id' : matiere_id } )[0]
     UE = context.do_ue_list( args={ 'ue_id' : M['ue_id'] } )[0]
-    H = [ context.sco_header(REQUEST, page_title="Suppression d'une matière"),
-          "<h2>Suppression de la matière %(titre)s" % M,
+    H = [ context.sco_header(REQUEST, page_title="Suppression d'une matiÃ¨re"),
+          "<h2>Suppression de la matiÃ¨re %(titre)s" % M,
           " dans l'UE (%(acronyme)s))</h2>" % UE ]
     
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
@@ -104,7 +104,7 @@ def matiere_edit(context, matiere_id=None, REQUEST=None):
     """Edit matiere"""
     F = context.do_matiere_list(args={ 'matiere_id' : matiere_id } )
     if not F:
-        raise ScoValueError('Matière inexistante !')
+        raise ScoValueError('MatiÃ¨re inexistante !')
     F = F[0]
     U = context.do_ue_list( args={ 'ue_id' : F['ue_id'] } )
     if not F:
@@ -115,28 +115,28 @@ def matiere_edit(context, matiere_id=None, REQUEST=None):
     ues = context.do_ue_list( args={ 'formation_id' : U['formation_id'] } )
     ue_names = [ '%(acronyme)s (%(titre)s)' % u for u in ues ]
     ue_ids = [ u['ue_id'] for u in ues ]
-    H = [context.sco_header(REQUEST, page_title="Modification d'une matière"),
-         """<h2>Modification de la matière %(titre)s""" % F,
+    H = [context.sco_header(REQUEST, page_title="Modification d'une matiÃ¨re"),
+         """<h2>Modification de la matiÃ¨re %(titre)s""" % F,
          """(formation %(acronyme)s, version %(version)s)</h2>""" % Fo ]
-    help = """<p class="help">Les matières sont des groupes de modules dans une UE
-d'une formation donnée. Les matières servent surtout pour la
-présentation (bulletins, etc) mais <em>n'ont pas de rôle dans le calcul
+    help = """<p class="help">Les matiÃ¨res sont des groupes de modules dans une UE
+d'une formation donnÃ©e. Les matiÃ¨res servent surtout pour la
+prÃ©sentation (bulletins, etc) mais <em>n'ont pas de rÃ´le dans le calcul
 des notes.</em>
 </p> 
 
 <p class="help">Si votre formation n'utilise pas la notion de
-"matières", créez une matière par UE, et donnez lui le même nom que l'UE
-(en effet, tout module doit appartenir à une matière).
+"matiÃ¨res", crÃ©ez une matiÃ¨re par UE, et donnez lui le mÃªme nom que l'UE
+(en effet, tout module doit appartenir Ã  une matiÃ¨re).
 </p>
 
-<p class="help">Comme les UE, les matières n'ont pas de coefficient
-associé.
+<p class="help">Comme les UE, les matiÃ¨res n'ont pas de coefficient
+associÃ©.
 </p>"""
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, (
         ('matiere_id', { 'input_type' : 'hidden' }),
         ('ue_id', { 'input_type' : 'menu', 'allowed_values' : ue_ids, 'labels' : ue_names }),
-        ('titre'    , { 'size' : 30, 'explanation' : 'nom de cette matière' }),
-        ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour affichage',
+        ('titre'    , { 'size' : 30, 'explanation' : 'nom de cette matiÃ¨re' }),
+        ('numero',    { 'size' : 2, 'explanation' : 'numÃ©ro (1,2,3,4...) pour affichage',
                         'type' : 'int' }),
         ),
                             initvalues = F,
@@ -152,7 +152,7 @@ associé.
         # check unicity
         mats = context.do_matiere_list(args={ 'ue_id' : tf[2]['ue_id'], 'titre' : tf[2]['titre'] } )
         if len(mats) > 1 or (len(mats) == 1 and mats[0]['matiere_id'] != matiere_id):
-            return '\n'.join(H) + tf_error_message('Titre de matière déjà existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
+            return '\n'.join(H) + tf_error_message('Titre de matiÃ¨re dÃ©jÃ  existant dans cette UE') + tf[1] + context.sco_footer(REQUEST)
         
         # changement d'UE ?
         if tf[2]['ue_id'] != F['ue_id']:

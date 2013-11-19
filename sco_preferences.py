@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -35,52 +35,52 @@ import sco_bulletins_generator
 
 """Global/Semestre Preferences for ScoDoc (version dec 2008)
 
-Preferences (paramètres) communs à tous les utilisateurs.
-Peuvent être définis globalement (pour tous les semestres)
-ou bien seulement pour un semestre précis.
+Preferences (paramÃ¨tres) communs Ã  tous les utilisateurs.
+Peuvent Ãªtre dÃ©finis globalement (pour tous les semestres)
+ou bien seulement pour un semestre prÃ©cis.
 
-Chaque parametre est défini dans la base de données SQL par:
+Chaque parametre est dÃ©fini dans la base de donnÃ©es SQL par:
  - name : nom du parametre
- - value: valeur du parametre, ou NULL si on doit utiliser une valeur par défaut
- - formsemestre_id: semestre associé, ou NULL si applicable à tous les semestres
-                    pour lesquels une valeur spécifique n'est pas définie.
+ - value: valeur du parametre, ou NULL si on doit utiliser une valeur par dÃ©faut
+ - formsemestre_id: semestre associÃ©, ou NULL si applicable Ã  tous les semestres
+                    pour lesquels une valeur spÃ©cifique n'est pas dÃ©finie.
 
-Au niveau du code interface, on défini pour chaque préférence:
- - name (clé)
- - title : titre en français
- - initvalue : valeur initiale, chargée depuis config/scodoc_config.py
- - explanation: explication en français
+Au niveau du code interface, on dÃ©fini pour chaque prÃ©fÃ©rence:
+ - name (clÃ©)
+ - title : titre en franÃ§ais
+ - initvalue : valeur initiale, chargÃ©e depuis config/scodoc_config.py
+ - explanation: explication en franÃ§ais
  - size: longueur du chap texte
  - input_type: textarea,separator,... type de widget TrivialFormulator a utiliser
  - rows, rols: geometrie des textareas
  - category: misc ou bul ou page_bulletins ou abs ou general ou portal 
              ou pdf ou pvpdf ou ...
- - only_global (default False): si vraie, ne peut pas etre associée a un seul semestre.
+ - only_global (default False): si vraie, ne peut pas etre associÃ©e a un seul semestre.
 
-Les titres et sous-titres de chaque catégorie sont définis dans PREFS_CATEGORIES
+Les titres et sous-titres de chaque catÃ©gorie sont dÃ©finis dans PREFS_CATEGORIES
 
-On peut éditer les préférences d'une ou plusieurs catégories au niveau d'un 
+On peut Ã©diter les prÃ©fÃ©rences d'une ou plusieurs catÃ©gories au niveau d'un 
 semestre ou au niveau global. 
-* niveau global: changer les valeurs, liste de catégories.
+* niveau global: changer les valeurs, liste de catÃ©gories.
    
 * niveau d'un semestre:
-   présenter valeur courante: valeur ou "definie globalement" ou par defaut
+   prÃ©senter valeur courante: valeur ou "definie globalement" ou par defaut
     lien "changer valeur globale"
    
 ------------------------------------------------------------------------------
 Doc technique:
 
-* Base de données:
-Toutes les préférences sont stockées dans la table sco_prefs, qui contient
+* Base de donnÃ©es:
+Toutes les prÃ©fÃ©rences sont stockÃ©es dans la table sco_prefs, qui contient
 des tuples (name, value, formsemestre_id).
 Si formsemestre_id est NULL, la valeur concerne tous les semestres,
-sinon, elle ne concerne que le semestre indiqué. 
+sinon, elle ne concerne que le semestre indiquÃ©. 
 
 * Utilisation dans ScoDoc
   - lire une valeur: 
       context.get_preference(name, formsemestre_id)
       nb: les valeurs sont des chaines, sauf:
-         . si le type est spécfié (float ou int)
+         . si le type est spÃ©cfiÃ© (float ou int)
          . les boolcheckbox qui sont des entiers 0 ou 1
   - avoir un mapping (read only) de toutes les valeurs:
       context.get_preferences(context,formsemestre_id)
@@ -89,22 +89,22 @@ sinon, elle ne concerne que le semestre indiqué.
   - editer les preferences d'un semestre:
       sem_preferences(context,formsemestre_id).edit()
 
-* Valeurs par défaut:
-On a deux valeurs par défaut possibles: 
- - via le fichier scodoc_config.py, qui peut être modifié localement.
- - si rien dans scodoc_config.py, la valeur définie par
-   sco_preferences.py est utilisée (ne pas modifier ce fichier).
+* Valeurs par dÃ©faut:
+On a deux valeurs par dÃ©faut possibles: 
+ - via le fichier scodoc_config.py, qui peut Ãªtre modifiÃ© localement.
+ - si rien dans scodoc_config.py, la valeur dÃ©finie par
+   sco_preferences.py est utilisÃ©e (ne pas modifier ce fichier).
 
 
-* Implémentation: sco_preferences.py
+* ImplÃ©mentation: sco_preferences.py
 
-PREF_CATEGORIES : définition des catégories de préférences (pour
-dialogues édition)
-PREFS : pour chaque pref, donne infos pour édition (titre, type...) et
-valeur par défaut.
+PREF_CATEGORIES : dÃ©finition des catÃ©gories de prÃ©fÃ©rences (pour
+dialogues Ã©dition)
+PREFS : pour chaque pref, donne infos pour Ã©dition (titre, type...) et
+valeur par dÃ©faut.
 
 class sco_base_preferences
-Une instance unique par site (département, repéré par URL).
+Une instance unique par site (dÃ©partement, repÃ©rÃ© par URL).
 - charge les preferences pour tous le semestres depuis la BD.
  .get(formsemestre_id, name)
  .is_global(formsemestre_id, name)
@@ -127,21 +127,21 @@ get_base_preferences(context, formsemestre_id)
 """
 
 PREF_CATEGORIES = (
-    # sur page "Paramètres"
+    # sur page "ParamÃ¨tres"
     ('general', {}),
     ('abs'  , { 'title' : 'Suivi des absences', 'related' : ('bul',) }),
-    ('portal',{ 'title' : 'Liaison avec portail (Apogée, etc)' }),
+    ('portal',{ 'title' : 'Liaison avec portail (ApogÃ©e, etc)' }),
     ('pdf'  , { 'title' : 'Mise en forme des documents PDF',
                'related' : ('pvpdf', 'bul_margins')}),
-    ('pvpdf', { 'title' : 'Procès verbaux de jury (documents PDF)',
+    ('pvpdf', { 'title' : 'ProcÃ¨s verbaux de jury (documents PDF)',
                'related' : ('pdf', 'bul_margins') }),
     ('misc' , { 'title' : 'Divers' }),
-    # sur page "Réglages des bulletins de notes"
-    ('bul'  , { 'title' : 'Réglages des bulletins de notes',
+    # sur page "RÃ©glages des bulletins de notes"
+    ('bul'  , { 'title' : 'RÃ©glages des bulletins de notes',
                'related' : ('abs', 'bul_margins', 'bul_mail') }),
     # sur page "Mise en page des bulletins"
-    ('bul_margins'  , { 'title' : 'Marges additionnelles des bulletins, en millimètres', 
-                       'subtitle' : "Le bulletin de notes notes est toujours redimensionné pour occuper l'espace disponible entre les marges.",
+    ('bul_margins'  , { 'title' : 'Marges additionnelles des bulletins, en millimÃ¨tres', 
+                       'subtitle' : "Le bulletin de notes notes est toujours redimensionnÃ© pour occuper l'espace disponible entre les marges.",
                        'related' : ('bul', 'bul_mail', 'pdf')}),
     ('bul_mail', { 'title' : 'Envoi des bulletins par e-mail',
                    'related' : ('bul', 'bul_margins', 'pdf') }),
@@ -151,16 +151,16 @@ PREF_CATEGORIES = (
 PREFS = (
     ('DeptName',
       { 'initvalue' : 'Dept',
-        'title' : 'Nom abrégé du département',
+        'title' : 'Nom abrÃ©gÃ© du dÃ©partement',
         'size' : 12,
         'category' : 'general',
         'only_global' : True
         }
      ),
     ( 'DeptFullName',
-      { 'initvalue' : 'nom du département',
-        'title' : 'Nom complet du département',
-        'explanation' : 'inutilisé par défaut',
+      { 'initvalue' : 'nom du dÃ©partement',
+        'title' : 'Nom complet du dÃ©partement',
+        'explanation' : 'inutilisÃ© par dÃ©faut',
         'size' : 40,
         'category' : 'general',
         'only_global' : True
@@ -168,7 +168,7 @@ PREFS = (
       ),
     ( 'UnivName',
       { 'initvalue' : '',
-        'title' : 'Nom de l\'Université',
+        'title' : 'Nom de l\'UniversitÃ©',
         'explanation' : 'apparait sur les bulletins et PV de jury',
         'size' : 40,
         'category' : 'general',
@@ -178,7 +178,7 @@ PREFS = (
      ( 'InstituteName',
       { 'initvalue' : '',
         'title' : 'Nom de l\'Institut',
-        'explanation' : 'exemple "IUT de Villetaneuse". Peut être utilisé sur les bulletins.',
+        'explanation' : 'exemple "IUT de Villetaneuse". Peut Ãªtre utilisÃ© sur les bulletins.',
         'size' : 40,
         'category' : 'general',
         'only_global' : True
@@ -188,34 +188,34 @@ PREFS = (
       { 'initvalue' : 'Intranet',
         'title' : 'Nom lien intranet',
         'size' : 40,
-        'explanation' : 'titre du lien "Intranet" en haut à gauche',
+        'explanation' : 'titre du lien "Intranet" en haut Ã  gauche',
         'category' : 'general',
         'only_global' : True
         }
       ),
     ( 'DeptIntranetURL',
       { 'initvalue' : '',
-        'title' : """URL de l'"intranet" du département""",
+        'title' : """URL de l'"intranet" du dÃ©partement""",
         'size' : 40,
-        'explanation' : 'lien "Intranet" en haut à gauche',
+        'explanation' : 'lien "Intranet" en haut Ã  gauche',
         'category' : 'general',
         'only_global' : True
         }
       ),
     ('emails_notifications',
     { 'initvalue' : '',
-       'title' : 'e-mails à qui notifier les opérations',
+       'title' : 'e-mails Ã  qui notifier les opÃ©rations',
         'size' : 70,
-        'explanation' : 'adresses séparées par des virgules; notifie les opérations (saisies de notes, etc). (vous pouvez préférer utiliser le flux rss)',
+        'explanation' : 'adresses sÃ©parÃ©es par des virgules; notifie les opÃ©rations (saisies de notes, etc). (vous pouvez prÃ©fÃ©rer utiliser le flux rss)',
         'category' : 'general',
-        'only_global' : False # peut être spécifique à un semestre
+        'only_global' : False # peut Ãªtre spÃ©cifique Ã  un semestre
         }
       ),
     ( 'email_chefdpt',
       { 'initvalue' : '',
-        'title' : 'e-mail chef du département',
+        'title' : 'e-mail chef du dÃ©partement',
         'size' : 40,
-        'explanation' : 'utilisé pour envoi mail notification absences',
+        'explanation' : 'utilisÃ© pour envoi mail notification absences',
         'category' : 'abs',
         'only_global' : True
         }
@@ -226,7 +226,7 @@ PREFS = (
     
     ( 'work_saturday',
       { 'initvalue' : 0,
-        'title' : "Considérer le samedi comme travaillé",
+        'title' : "ConsidÃ©rer le samedi comme travaillÃ©",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         'only_global' : True # devrait etre par semestre, mais demanderait modif gestion absences
@@ -235,7 +235,7 @@ PREFS = (
     ( 'handle_billets_abs',
       { 'initvalue' : 0,
         'title' : "Gestion de \"billets\" d'absence",
-        'explanation' : "fonctions pour traiter les \"billets\" déclarés par les étudiants sur un portail externe",
+        'explanation' : "fonctions pour traiter les \"billets\" dÃ©clarÃ©s par les Ã©tudiants sur un portail externe",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         'only_global' : True
@@ -244,7 +244,7 @@ PREFS = (
     ( 'abs_notify_chief', # renamed from "send_mail_absence_to_chef"
       { 'initvalue' : 0,
         'title' : 'Notifier les absences au chef',
-        'explanation' : "Envoyer un mail au chef si un étudiant a beaucoup d\'absences",
+        'explanation' : "Envoyer un mail au chef si un Ã©tudiant a beaucoup d\'absences",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         'only_global' : True
@@ -252,8 +252,8 @@ PREFS = (
       ),
     ( 'abs_notify_respsem', 
       { 'initvalue' : 0,
-        'title' : 'Notifier les absences au dir. des études',
-        'explanation' : "Envoyer un mail au responsable du semestre si un étudiant a beaucoup d\'absences",
+        'title' : 'Notifier les absences au dir. des Ã©tudes',
+        'explanation' : "Envoyer un mail au responsable du semestre si un Ã©tudiant a beaucoup d\'absences",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         }
@@ -261,32 +261,32 @@ PREFS = (
     ( 'abs_notify_respeval', 
       { 'initvalue' : 0,
         'title' : 'Notifier les absences aux resp. de modules',
-        'explanation' : "Envoyer un mail à chaque absence aux responsable des modules avec évaluation à cette date",
+        'explanation' : "Envoyer un mail Ã  chaque absence aux responsable des modules avec Ã©valuation Ã  cette date",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         }
       ),
     ( 'abs_notify_etud', 
       { 'initvalue' : 0,
-        'title' : 'Notifier les absences aux étudiants concernés',
-        'explanation' : "Envoyer un mail à l'étudiant s'il a \"beaucoup\" d'absences",
+        'title' : 'Notifier les absences aux Ã©tudiants concernÃ©s',
+        'explanation' : "Envoyer un mail Ã  l'Ã©tudiant s'il a \"beaucoup\" d'absences",
         'input_type' : 'boolcheckbox',
         'category' : 'abs',
         }
       ),
     ( 'abs_notify_email',
       { 'initvalue' : '',
-        'title' : "Notifier à:",
-        'explanation' : "e-mail à qui envoyer des notification d'absences (en sus des autres destinataires éventuels, comme le chef etc.)",
+        'title' : "Notifier Ã :",
+        'explanation' : "e-mail Ã  qui envoyer des notification d'absences (en sus des autres destinataires Ã©ventuels, comme le chef etc.)",
         'size' : 40,
-        'explanation' : 'utilisé pour envoi mail absences',
+        'explanation' : 'utilisÃ© pour envoi mail absences',
         'category' : 'abs',
         }
       ),
     ('abs_notify_max_freq',
      { 'initvalue' : 7,
-       'title' : 'Fréquence maximale de notification',
-       'explanation' : 'en jours (pas plus de X envois de mail pour chaque étudiant/destinataire)',
+       'title' : 'FrÃ©quence maximale de notification',
+       'explanation' : 'en jours (pas plus de X envois de mail pour chaque Ã©tudiant/destinataire)',
        'size' : 4,
        'type' : 'int',
        'convert_numbers' : True,
@@ -295,8 +295,8 @@ PREFS = (
       ),
     ('abs_notify_abs_threshold',
      { 'initvalue' : 10,
-       'title' : 'Seuil de première notification',       
-       'explanation' : "nb minimum d'absences (en 1/2 journées) avant notification",
+       'title' : 'Seuil de premiÃ¨re notification',       
+       'explanation' : "nb minimum d'absences (en 1/2 journÃ©es) avant notification",
        'size' : 4,
        'type' : 'int',
        'convert_numbers' : True,
@@ -306,7 +306,7 @@ PREFS = (
     ('abs_notify_abs_increment',
      { 'initvalue' : 20, # les notification suivantes seront donc rares
        'title' : 'Seuil notifications suivantes',       
-       'explanation' : "nb minimum d'absences (en 1/2 journées supplémentaires)",
+       'explanation' : "nb minimum d'absences (en 1/2 journÃ©es supplÃ©mentaires)",
        'size' : 4,
        'type' : 'int',
        'convert_numbers' : True,
@@ -317,21 +317,21 @@ PREFS = (
      { 'initvalue' : """
 --- Ceci est un message de notification automatique issu de ScoDoc ---
 
-L'étudiant %(nomprenom)s  
+L'Ã©tudiant %(nomprenom)s  
 inscrit en %(inscription)s) 
 
-a cumulé %(nbabsjust)s absences justifiées 
-et %(nbabsnonjust)s absences NON justifiées.
+a cumulÃ© %(nbabsjust)s absences justifiÃ©es 
+et %(nbabsnonjust)s absences NON justifiÃ©es.
 
 Le compte a pu changer depuis cet envoi, voir la fiche sur %(url_ficheetud)s.
 
 
-Votre dévoué serveur ScoDoc.
+Votre dÃ©vouÃ© serveur ScoDoc.
 
-PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé toutes les %(abs_notify_abs_increment)s absences. Ces valeurs sont modifiables dans les préférences de ScoDoc.
+PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressÃ© toutes les %(abs_notify_abs_increment)s absences. Ces valeurs sont modifiables dans les prÃ©fÃ©rences de ScoDoc.
 """,
        'title' : """Message notification e-mail""",
-       'explanation' : """Balises remplacées, voir la documentation""",
+       'explanation' : """Balises remplacÃ©es, voir la documentation""",
        'input_type' : 'textarea',
        'rows' : 15,
        'cols' : 64,
@@ -350,15 +350,15 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
       ),
     ( 'portal_dept_name',
       { 'initvalue' : 'Dept',
-        'title' : 'Code du département sur le portail',
+        'title' : 'Code du dÃ©partement sur le portail',
         'category' : 'portal',
         'only_global' : True
         }
       ),
     ( 'notify_etud_changes_to',
       { 'initvalue' : '',
-        'title' : 'e-mail à qui notifier les changements d\'identité des étudiants',
-        'explanation' : 'utile pour mettre à jour manuellement d\'autres bases de données',
+        'title' : 'e-mail Ã  qui notifier les changements d\'identitÃ© des Ã©tudiants',
+        'explanation' : 'utile pour mettre Ã  jour manuellement d\'autres bases de donnÃ©es',
          'size' : 40,
         'category' : 'portal',
         'only_global' : True
@@ -366,8 +366,8 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
       ),
     ( 'always_require_ine',
       { 'initvalue' : 0,
-        'title' : 'Impose la présence du code INE',
-        'explanation' : "lors de toute création d'étudiant (manuelle ou non)",
+        'title' : 'Impose la prÃ©sence du code INE',
+        'explanation' : "lors de toute crÃ©ation d'Ã©tudiant (manuelle ou non)",
         'input_type' : 'boolcheckbox',
         'category' : 'portal',
         'only_global' : True
@@ -376,7 +376,7 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
     # pdf
     ('SCOLAR_FONT',
      { 'initvalue' : 'Helvetica',
-        'title' : 'Police de caractère principale',
+        'title' : 'Police de caractÃ¨re principale',
         'explanation' : 'pour les pdf',
          'size' : 25,
         'category' : 'pdf'
@@ -384,7 +384,7 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
       ),
     ('SCOLAR_FONT_SIZE',
      { 'initvalue' : 10,
-       'title' : 'Taille des caractères',
+       'title' : 'Taille des caractÃ¨res',
        'explanation' : 'pour les pdf',
        'size' : 4,
        'type' : 'int',
@@ -394,7 +394,7 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
       ),
     ('SCOLAR_FONT_SIZE_FOOT',
      { 'initvalue' : 6,
-       'title' : 'Taille des caractères pied de page',
+       'title' : 'Taille des caractÃ¨res pied de page',
        'explanation' : 'pour les pdf',
        'size' : 4,
        'type' : 'int',
@@ -419,7 +419,7 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
     # pvpdf
     ( 'DirectorName',
       { 'initvalue' : '',
-        'title' : 'Nom du directeur de l\'établissement',
+        'title' : 'Nom du directeur de l\'Ã©tablissement',
         'size' : 32,
         'explanation' : 'pour les PV de jury',
         'category' : 'pvpdf'
@@ -428,32 +428,32 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
     ('DirectorTitle',
       { 'initvalue' : """directeur de l'IUT""",
         'title' : 'Titre du "directeur"',
-        'explanation' : 'titre apparaissant à côté de la signature sur les PV de jury',
+        'explanation' : 'titre apparaissant Ã  cÃ´tÃ© de la signature sur les PV de jury',
         'size' : 64,
         'category' : 'pvpdf'
         }
       ),
     ('ChiefDeptName',
      { 'initvalue' : '',
-       'title' : 'Nom du chef de département',
+       'title' : 'Nom du chef de dÃ©partement',
        'size' : 32,
        'explanation' : 'pour les bulletins pdf',
        'category' : 'pvpdf'
      }
     ),
     ('INSTITUTION_NAME',
-     { 'initvalue' : "<b>Institut Universitaire de Technologie - Université Paris 13</b>",
+     { 'initvalue' : "<b>Institut Universitaire de Technologie - UniversitÃ© Paris 13</b>",
        'title' : 'Nom institution sur pied de pages PV',
-       'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
+       'explanation' : '(pdf, balises &lt;b&gt; interprÃ©tÃ©es)',
        'input_type' : 'textarea',
        'rows' : 4, 'cols' : 64,
        'category' : 'pvpdf'
         }
       ),
     ('INSTITUTION_ADDRESS',
-     { 'initvalue' : "Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste Clément - F 93430 Villetaneuse",
+     { 'initvalue' : "Web <b>www.iutv.univ-paris13.fr</b> - 99 avenue Jean-Baptiste ClÃ©ment - F 93430 Villetaneuse",
        'title' : 'Adresse institution sur pied de pages PV',
-       'explanation' : '(pdf, balises &lt;b&gt; interprétées)',
+       'explanation' : '(pdf, balises &lt;b&gt; interprÃ©tÃ©es)',
        'input_type' : 'textarea',
        'rows' : 4, 'cols' : 64,
        'category' : 'pvpdf'
@@ -469,16 +469,16 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé to
       ),
     ('PV_INTRO',
      { 'initvalue' : """<bullet>-</bullet>  
-Vu l'arrêté du 3 août 2005 relatif au diplôme universitaire de technologie et notamment son article 4 et 6;
+Vu l'arrÃªtÃ© du 3 aoÃ»t 2005 relatif au diplÃ´me universitaire de technologie et notamment son article 4 et 6;
 </para>
 <para><bullet>-</bullet>  
-vu l'arrêté n° %(Decnum)s du Président de l'%(UnivName)s;
+vu l'arrÃªtÃ© nÂ° %(Decnum)s du PrÃ©sident de l'%(UnivName)s;
 </para>
 <para><bullet>-</bullet> 
-vu la délibération de la commission %(Type)s en date du %(Date)s présidée par le Chef du département;
+vu la dÃ©libÃ©ration de la commission %(Type)s en date du %(Date)s prÃ©sidÃ©e par le Chef du dÃ©partement;
 """,
        'title' : """Paragraphe d'introduction sur le PV""",
-       'explanation' : """Balises remplacées: %(Univname)s = nom de l'université, %(DecNum)s = numéro de l'arrêté, %(Date)s = date de la commission, %(Type)s = type de commission (passage ou délivrance) """,
+       'explanation' : """Balises remplacÃ©es: %(Univname)s = nom de l'universitÃ©, %(DecNum)s = numÃ©ro de l'arrÃªtÃ©, %(Date)s = date de la commission, %(Type)s = type de commission (passage ou dÃ©livrance) """,
        'input_type' : 'textarea',
        'cols' : 80,
        'rows' : 10,
@@ -487,8 +487,8 @@ vu la délibération de la commission %(Type)s en date du %(Date)s présidée par le
      ),
     ('PV_LETTER_DIPLOMA_SIGNATURE',
      { 'initvalue' : """Le %(DirectorTitle)s, <br/>%(DirectorName)s""",
-       'title' :  """Signature des lettres individuelles de diplôme""",
-       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacés""",
+       'title' :  """Signature des lettres individuelles de diplÃ´me""",
+       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacÃ©s""",
        'input_type' : 'textarea',
        'rows' : 4,
        'cols' : 64,
@@ -497,10 +497,10 @@ vu la délibération de la commission %(Type)s en date du %(Date)s présidée par le
      ),
     ('PV_LETTER_PASSAGE_SIGNATURE',
      { 'initvalue' : """Pour le Directeur de l'IUT<br/>
-et par délégation<br/>
-Le Chef du département""",
-       'title' : """Signature des lettres individuelles de passage d'un semestre à l'autre""",
-       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacés""",
+et par dÃ©lÃ©gation<br/>
+Le Chef du dÃ©partement""",
+       'title' : """Signature des lettres individuelles de passage d'un semestre Ã  l'autre""",
+       'explanation' : """%(DirectorName)s et %(DirectorTitle)s remplacÃ©s""",
        'input_type' : 'textarea',
        'rows' : 4,
        'cols' : 64,
@@ -510,16 +510,16 @@ Le Chef du département""",
     ('pv_sig_image_height',
      { 'initvalue' : 11, 
          'size' : 10, 'title' : 'Hauteur de l\'image de la signature', 'type' : 'float',
-         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimensionnée à cette taille (en millimètres)',
+         'explanation' : 'Lorsqu\'on donne une image de signature, elle est redimensionnÃ©e Ã  cette taille (en millimÃ¨tres)',
          'category' : 'pvpdf'
          }),
     ('PV_LETTER_TEMPLATE',
-     { 'initvalue' : """<para spaceBefore="1mm"> </para>
+     { 'initvalue' : """<para spaceBefore="1mm">Â </para>
 <para spaceBefore="20mm" leftindent="%(pv_htab1)s">%(INSTITUTION_CITY)s, le %(date_jury)s
 </para>
 
 <para leftindent="%(pv_htab1)s" spaceBefore="10mm">
-à <b>%(nomprenom)s</b>
+Ã  <b>%(nomprenom)s</b>
 </para>
 <para leftindent="%(pv_htab1)s">%(domicile)s</para>
 <para leftindent="%(pv_htab1)s">%(codepostaldomicile)s %(villedomicile)s</para>
@@ -529,15 +529,15 @@ Le Chef du département""",
 </para>
 
 <para spaceBefore="10mm" fontSize="14" leftindent="0">
-Le jury de %(type_jury_abbrv)s du département %(DeptName)s
-s'est réuni le %(date_jury)s. 
+Le jury de %(type_jury_abbrv)s du dÃ©partement %(DeptName)s
+s'est rÃ©uni le %(date_jury)s. 
 </para>
-<para fontSize="14" leftindent="0">Les décisions vous concernant sont :
+<para fontSize="14" leftindent="0">Les dÃ©cisions vous concernant sont :
 </para>
 
 <para leftindent="%(pv_htab2)s" spaceBefore="5mm" fontSize="14">%(prev_decision_sem_txt)s</para>
 <para leftindent="%(pv_htab2)s" spaceBefore="5mm" fontSize="14">
-    <b>Décision %(decision_orig)s :</b> %(decision_sem_descr)s
+    <b>DÃ©cision %(decision_orig)s :</b> %(decision_sem_descr)s
 </para>
 
 <para leftindent="%(pv_htab2)s" spaceBefore="0mm" fontSize="14">
@@ -553,7 +553,7 @@ s'est réuni le %(date_jury)s.
 <para spaceBefore="10mm" fontSize="14">%(diplome_txt)s</para>
 """,
        'title' : """Lettre individuelle""",
-       'explanation' : """Balises remplacées et balisage XML, voir la documentation""",
+       'explanation' : """Balises remplacÃ©es et balisage XML, voir la documentation""",
        'input_type' : 'textarea',
        'rows' : 15,
        'cols' : 64,
@@ -562,7 +562,7 @@ s'est réuni le %(date_jury)s.
      ),
      ('PV_LETTER_WITH_HEADER',
      { 'initvalue' : 0,
-     'title' : 'Imprimer le logo en tête des lettres individuelles de décision',
+     'title' : 'Imprimer le logo en tÃªte des lettres individuelles de dÃ©cision',
      'input_type' : 'boolcheckbox',
      'labels' : ['non', 'oui'],
      'category' : 'pvpdf'
@@ -570,7 +570,7 @@ s'est réuni le %(date_jury)s.
     ),  
     ('PV_LETTER_WITH_FOOTER',
     { 'initvalue' : 0,
-      'title' : 'Imprimer le pied de page sur les lettres individuelles de décision',
+      'title' : 'Imprimer le pied de page sur les lettres individuelles de dÃ©cision',
       'input_type' : 'boolcheckbox',
       'labels' : ['non', 'oui'],
       'category' : 'pvpdf'
@@ -594,7 +594,7 @@ s'est réuni le %(date_jury)s.
       ),
     ('PV_FONTNAME',
      { 'initvalue' : 'Times-Roman',
-       'title' : 'Police de caractère pour les PV',
+       'title' : 'Police de caractÃ¨re pour les PV',
        'explanation' : 'pour les pdf',
        'size' : 25,
        'category' : 'pvpdf'
@@ -603,10 +603,10 @@ s'est réuni le %(date_jury)s.
     
     # bul
    ( 'bul_title', 
-      { 'initvalue' : 'Université Paris 13 - IUT de Villetaneuse - Département %(DeptName)s',
+      { 'initvalue' : 'UniversitÃ© Paris 13 - IUT de Villetaneuse - DÃ©partement %(DeptName)s',
         'size' : 70, 
         'title' : 'Titre des bulletins', 
-        'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département',
+        'explanation' : '<tt>%(DeptName)s</tt> est remplacÃ© par le nom du dÃ©partement',
         'category' : 'bul' }
       ),
     ( 'bul_class_name',
@@ -615,7 +615,7 @@ s'est réuni le %(date_jury)s.
         'labels' : sco_bulletins_generator.bulletin_class_descriptions(),
         'allowed_values' : sco_bulletins_generator.bulletin_class_names(),
         'title' : 'Format des bulletins', 
-        'explanation' : 'format de présentation des bulletins de note (web et pdf)',
+        'explanation' : 'format de prÃ©sentation des bulletins de note (web et pdf)',
         'category' : 'bul' }
       ),
     ( 'bul_show_abs', # ex "gestion_absence"
@@ -636,7 +636,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_decision', 
       { 'initvalue' : 1,
-        'title' : 'Faire figurer les décisions sur les bulletins',
+        'title' : 'Faire figurer les dÃ©cisions sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -652,7 +652,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_matieres', 
       { 'initvalue' : 0,
-        'title' : 'Afficher les matières sur les bulletins',
+        'title' : 'Afficher les matiÃ¨res sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -660,8 +660,8 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_all_evals', 
       { 'initvalue' : 0,
-        'title' : 'Afficher toutes les évaluations sur les bulletins',
-        'explanation' : 'y compris incomplètes ou futures',
+        'title' : 'Afficher toutes les Ã©valuations sur les bulletins',
+        'explanation' : 'y compris incomplÃ¨tes ou futures',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -717,7 +717,7 @@ s'est réuni le %(date_jury)s.
       ),
       ( 'bul_show_ue_cap_details', 
       { 'initvalue' : 0,
-        'title' : 'Afficher détail des notes des UE capitalisées sur les bulletins',
+        'title' : 'Afficher dÃ©tail des notes des UE capitalisÃ©es sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -725,7 +725,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_temporary_forced', 
       { 'initvalue' : 0,
-        'title' : 'Bannière "provisoire" sur les bulletins',
+        'title' : 'BanniÃ¨re "provisoire" sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -733,7 +733,7 @@ s'est réuni le %(date_jury)s.
       ),      
     ( 'bul_show_temporary', 
       { 'initvalue' : 1,
-        'title' : 'Bannière "provisoire" si pas de décision de jury',
+        'title' : 'BanniÃ¨re "provisoire" si pas de dÃ©cision de jury',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -741,7 +741,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_temporary_txt',
       { 'initvalue' : 'Provisoire',
-        'title' : 'Texte de la bannière "provisoire',
+        'title' : 'Texte de la banniÃ¨re "provisoire',
         'explanation' : '',
         'size' : 40,
         'category' : 'bul',
@@ -749,7 +749,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_uevalid', 
       { 'initvalue' : 1,
-        'title' : 'Faire figurer les UE validées sur les bulletins',
+        'title' : 'Faire figurer les UE validÃ©es sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -781,7 +781,7 @@ s'est réuni le %(date_jury)s.
       ),
     ( 'bul_show_sig_right', 
       { 'initvalue' : 0,
-        'title' : 'Faire figurer la signature de droite (nom du chef de département) sur les bulletins',
+        'title' : 'Faire figurer la signature de droite (nom du chef de dÃ©partement) sur les bulletins',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']
@@ -797,7 +797,7 @@ s'est réuni le %(date_jury)s.
 <b>%(InstituteName)s</b>
 </para>
 <para fontSize="16" align="center" spaceBefore="4mm">
-<b>RELEVÉ DE NOTES</b>
+<b>RELEVÃ‰ DE NOTES</b>
 </para>
 
 <para fontSize="15" spaceBefore="3mm">
@@ -807,39 +807,39 @@ s'est réuni le %(date_jury)s.
 <para fontSize="14" spaceBefore="3mm">
 Formation: %(titre_num)s</para>
 <para fontSize="14" spaceBefore="2mm">
-Année scolaire: %(anneescolaire)s
+AnnÃ©e scolaire: %(anneescolaire)s
 </para>""",
         'title' : 'Bulletins PDF: paragraphe de titre',
-        'explanation' : '(balises interprétées, voir documentation)',
+        'explanation' : '(balises interprÃ©tÃ©es, voir documentation)',
         'input_type' : 'textarea', 'rows' : 10, 'cols' : 64,
         'category' : 'bul' }
       ),
     ( 'bul_pdf_caption',
       { 'initvalue' : """<para spaceBefore="5mm" fontSize="14"><i>%(situation)s</i></para>""",
         'title' : 'Bulletins PDF: paragraphe sous table note',
-        'explanation' : '(visible seulement si "Faire figurer les décision" est coché)',
+        'explanation' : '(visible seulement si "Faire figurer les dÃ©cision" est cochÃ©)',
         'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
         'category' : 'bul' }
       ),
      ( 'bul_pdf_sig_left',
-      { 'initvalue' : """<para>La direction des études
+      { 'initvalue' : """<para>La direction des Ã©tudes
 <br/>
 %(responsable)s
 </para>
 """,
         'title' : 'Bulletins PDF: signature gauche',
-        'explanation' : '(balises interprétées, voir documentation)',
+        'explanation' : '(balises interprÃ©tÃ©es, voir documentation)',
         'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
         'category' : 'bul' }
       ),
     ( 'bul_pdf_sig_right',
-      { 'initvalue' : """<para>Le chef de département
+      { 'initvalue' : """<para>Le chef de dÃ©partement
 <br/>
 %(ChiefDeptName)s
 </para>
 """,
         'title' : 'Bulletins PDF: signature droite',
-        'explanation' : '(balises interprétées, voir documentation)',
+        'explanation' : '(balises interprÃ©tÃ©es, voir documentation)',
         'input_type' : 'textarea', 'rows' : 4, 'cols' : 64,
         'category' : 'bul' }
       ),
@@ -866,7 +866,7 @@ Année scolaire: %(anneescolaire)s
       { 'initvalue' : '',
         'title' : 'e-mail copie bulletins',
         'size' : 40,
-        'explanation' : 'adresse recevant une copie des bulletins envoyés aux étudiants',
+        'explanation' : 'adresse recevant une copie des bulletins envoyÃ©s aux Ã©tudiants',
         'category' : 'bul_mail'
         }
       ),
@@ -874,16 +874,16 @@ Année scolaire: %(anneescolaire)s
       { 'initvalue' : 'noreply@scodoc.example.com', 
         'title' : 'adresse mail origine',
         'size' : 40,
-        'explanation' : 'adresse expéditeur pour les envois par mails (bulletins)',
+        'explanation' : 'adresse expÃ©diteur pour les envois par mails (bulletins)',
         'category' : 'bul_mail',
         'only_global' : True
         }
       ),
     ( 'bul_intro_mail',
-      { 'initvalue' : """%(nomprenom)s,\n\nvous trouverez ci-joint votre relevé de notes au format PDF.\nIl s\'agit d\'un relevé indicatif. Seule la version papier signée par le responsable pédagogique de l\'établissement prend valeur officielle.\n\nPour toute question sur ce document, contactez votre enseignant ou le directeur des études (ne pas répondre à ce message).\n\nCordialement,\nla scolarité du département %(dept)s.\n\nPS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s""",
+      { 'initvalue' : """%(nomprenom)s,\n\nvous trouverez ci-joint votre relevÃ© de notes au format PDF.\nIl s\'agit d\'un relevÃ© indicatif. Seule la version papier signÃ©e par le responsable pÃ©dagogique de l\'Ã©tablissement prend valeur officielle.\n\nPour toute question sur ce document, contactez votre enseignant ou le directeur des Ã©tudes (ne pas rÃ©pondre Ã  ce message).\n\nCordialement,\nla scolaritÃ© du dÃ©partement %(dept)s.\n\nPS: si vous recevez ce message par erreur, merci de contacter %(webmaster)s""",
         'input_type' : 'textarea',
         'title' : "Message d'accompagnement",
-        'explanation' : '<tt>%(DeptName)s</tt> est remplacé par le nom du département, <tt>%(nomprenom)s</tt> par les noms et prénoms de l\'étudiant, <tt>%(dept)s</tt> par le nom du département, et <tt>%(webmaster)s</tt> par l\'adresse mail du Webmaster.',
+        'explanation' : '<tt>%(DeptName)s</tt> est remplacÃ© par le nom du dÃ©partement, <tt>%(nomprenom)s</tt> par les noms et prÃ©noms de l\'Ã©tudiant, <tt>%(dept)s</tt> par le nom du dÃ©partement, et <tt>%(webmaster)s</tt> par l\'adresse mail du Webmaster.',
         'rows' : 18,
         'cols' : 85,
         'category' : 'bul_mail' }
@@ -906,7 +906,7 @@ Année scolaire: %(anneescolaire)s
       ),
     ( 'bul_mail_allowed_for_all', 
       { 'initvalue' : 1,
-        'title' : 'Autoriser tous les utilisateurs à expédier des bulletins par mail',
+        'title' : 'Autoriser tous les utilisateurs Ã  expÃ©dier des bulletins par mail',
         'input_type' : 'boolcheckbox',
         'category' : 'bul_mail',
         'labels' : ['non', 'oui']
@@ -1071,7 +1071,7 @@ class sco_base_preferences:
                         modif = True
                         log('save pref sem=%s %s=%s' % (formsemestre_id, name, value))
             
-            # les preferences peuvent affecter les PDF cachés:
+            # les preferences peuvent affecter les PDF cachÃ©s:
             if modif:
                 self.context.Notes._inval_cache(pdfonly=True) #> modif preferences
         finally:
@@ -1105,9 +1105,9 @@ class sco_base_preferences:
     
     def edit(self, REQUEST):
         """HTML dialog: edit global preferences"""
-        H = [ self.context.sco_header(REQUEST, page_title="Préférences"),          
-              "<h2>Préférences globales pour %s</h2>" % self.context.ScoURL(),
-              """<p class="help">Ces paramètres s'appliquent par défaut à tous les semestres, sauf si ceux-ci définissent des valeurs spécifiques.</p>
+        H = [ self.context.sco_header(REQUEST, page_title="PrÃ©fÃ©rences"),          
+              "<h2>PrÃ©fÃ©rences globales pour %s</h2>" % self.context.ScoURL(),
+              """<p class="help">Ces paramÃ¨tres s'appliquent par dÃ©faut Ã  tous les semestres, sauf si ceux-ci dÃ©finissent des valeurs spÃ©cifiques.</p>
               <p class="msg">Attention: cliquez sur "Enregistrer les modifications" en bas de page pour appliquer vos changements !</p>
               """]
         form = _build_form(self, global_edit=True)
@@ -1122,7 +1122,7 @@ class sco_base_preferences:
             for pref in PREFS:
                 self.prefs[None][pref[0]] = tf[2][pref[0]]
             self.save()
-            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=Préférences modifiées' ) 
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=PrÃ©fÃ©rences modifiÃ©es' ) 
 
 _SCO_BASE_PREFERENCES = {} # { URL: sco_base_preferences instance }
 def get_base_preferences(context):
@@ -1143,7 +1143,7 @@ class sem_preferences:
         return self.base_prefs.get(self.formsemestre_id, name)
 
     def get(self, name, defaultvalue=None):
-        # utilisé seulement par TF
+        # utilisÃ© seulement par TF
         try:
             return self[name] # ignore supplied default value
         except:
@@ -1159,9 +1159,9 @@ class sem_preferences:
         if not self.formsemestre_id:
             raise ScoValueError('sem_preferences.edit doit etre appele sur un semestre !') # a bug !
         sem = self.context.Notes.get_formsemestre(self.formsemestre_id)
-        H = [ self.context.Notes.html_sem_header(REQUEST, 'Préférences du semestre', sem),
+        H = [ self.context.Notes.html_sem_header(REQUEST, 'PrÃ©fÃ©rences du semestre', sem),
               """
-<p class="help">Les paramètres définis ici ne s'appliqueront qu'à ce semestre.</p>
+<p class="help">Les paramÃ¨tres dÃ©finis ici ne s'appliqueront qu'Ã  ce semestre.</p>
 <p class="msg">Attention: cliquez sur "Enregistrer les modifications" en bas de page pour appliquer vos changements !</p>
 <script type="text/javascript">
 function sel_global(el, pref_name) {
@@ -1205,10 +1205,10 @@ function set_global_pref(el, pref_name) {
         if tf[0] == 0:
             return '\n'.join(H) + tf[1] + self.context.sco_footer(REQUEST)
         elif tf[0] == -1:
-            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=Annulé' ) # cancel
+            return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=AnnulÃ©' ) # cancel
         else:
             # log('tf[2]=%s' % tf[2]) # XXX
-            # Supprime pref locale du semestre (retour à la valeur globale)
+            # Supprime pref locale du semestre (retour Ã  la valeur globale)
             if tf[2]['suppress']:
                 # log('suppress %s' % tf[2]['suppress']) # XXX
                 self.base_prefs.delete(self.formsemestre_id, tf[2]['suppress'])
@@ -1235,7 +1235,7 @@ function set_global_pref(el, pref_name) {
             # done: change prefs and redirect to semestre status
             destination = tf[2]['destination']
             if destination == 'done' or destination == '':
-                return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/formsemestre_status?head_message=Préférences modifiées&formsemestre_id=' + self.formsemestre_id ) 
+                return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/formsemestre_status?head_message=PrÃ©fÃ©rences modifiÃ©es&formsemestre_id=' + self.formsemestre_id ) 
             elif destination == 'again':
                 return REQUEST.RESPONSE.redirect( REQUEST.URL0 + '?formsemestre_id=' + self.formsemestre_id )
             elif destination == 'global':
@@ -1260,7 +1260,7 @@ def _build_form(self, categories=[], global_edit=False):
                 if 'explanation' in descr:
                     del descr['explanation']
                 if not global_edit:
-                    descr['explanation'] = """ou <a href="" onClick="set_global_pref(this, '%s');">utiliser paramètre global</a>""" % pref_name
+                    descr['explanation'] = """ou <a href="" onClick="set_global_pref(this, '%s');">utiliser paramÃ¨tre global</a>""" % pref_name
                 #if descr.get('only_global',False):
                 #    # pas modifiable, donne juste la valeur courante
                 #    descr['readonly'] = True
@@ -1271,11 +1271,11 @@ def _build_form(self, categories=[], global_edit=False):
                     # montre la valeur et menus pour la rendre locale
                     descr['readonly'] = True
                     menu_global = """<select class="tf-selglobal" onchange="sel_global(this, '%s');">
-                        <option value=""><em>Valeur définie globalement</em></option>
-                        <option value="create">Spécifier valeur pour ce semestre seulement</option>
+                        <option value=""><em>Valeur dÃ©finie globalement</em></option>
+                        <option value="create">SpÃ©cifier valeur pour ce semestre seulement</option>
                     </select>
                     """ % pref_name
-#                         <option value="changeglobal">Changer paramètres globaux</option>
+#                         <option value="changeglobal">Changer paramÃ¨tres globaux</option>
                     descr['explanation'] = menu_global
 
                 cat_elems.append( (pref_name, descr) )

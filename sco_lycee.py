@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Rapports sur lycées d'origine des étudiants d'un  semestre.
+"""Rapports sur lycÃ©es d'origine des Ã©tudiants d'un  semestre.
   - statistiques decisions
   - suivi cohortes
 """
@@ -41,7 +41,7 @@ import sco_report
 from gen_tables import GenTable
 
 def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True, only_primo=False):
-    """Récupère liste d'etudiants avec etat et decision.
+    """RÃ©cupÃ¨re liste d'etudiants avec etat et decision.
     """
     sem = context.get_formsemestre(formsemestre_id)
     etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
@@ -49,19 +49,19 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
         primostr='primo-entrants du '
     else:
         primostr='du '
-    title = 'Lycées des étudiants %ssemestre '%primostr + sem['titreannee']
+    title = 'LycÃ©es des Ã©tudiants %ssemestre '%primostr + sem['titreannee']
     return _table_etuds_lycees(context, etuds, group_lycees, title, context.get_preferences(formsemestre_id))
 
 
 def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
-    """Table avec _tous_ les étudiants des semestres non verrouillés de _tous_ les départements.
+    """Table avec _tous_ les Ã©tudiants des semestres non verrouillÃ©s de _tous_ les dÃ©partements.
     """
     semdepts = scodoc_get_all_unlocked_sems(context)
     etuds = []
     for (sem, deptcontext) in semdepts:
         etuds += sco_report.tsp_etud_list(deptcontext, sem['formsemestre_id'])
     
-    tab, etuds_by_lycee = _table_etuds_lycees(context, etuds, False, 'Lycées de TOUS les étudiants',
+    tab, etuds_by_lycee = _table_etuds_lycees(context, etuds, False, 'LycÃ©es de TOUS les Ã©tudiants',
                                               context.get_preferences(), no_links=True)
     tab.base_url = REQUEST.URL0
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
@@ -75,7 +75,7 @@ def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
                                  'js/etud_info.js',
                                  'js/map_lycees.js'
                                  ], ),
-          """<h2 class="formsemestre">Lycées d'origine des %d étudiants (%d semestres)</h2>""" % (len(etuds),len(semdepts)),
+          """<h2 class="formsemestre">LycÃ©es d'origine des %d Ã©tudiants (%d semestres)</h2>""" % (len(etuds),len(semdepts)),
           t,
           """<div id="lyc_map_canvas"></div>          
           """,
@@ -86,7 +86,7 @@ def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
 
 
 def scodoc_get_all_unlocked_sems(context):
-    """Liste de tous les semestres non verrouillés de tous les départements"""
+    """Liste de tous les semestres non verrouillÃ©s de tous les dÃ©partements"""
     depts = context.list_depts()
     log('depts=%s' % depts)
     semdepts = []
@@ -106,7 +106,7 @@ def _table_etuds_lycees(context, etuds, group_lycees, title, preferences, no_lin
         L.sort( cmp=lambda x,y: cmp( (x['codepostallycee'],x['nomlycee']), (y['codepostallycee'],y['nomlycee']) ) )
         columns_ids = ('nbetuds', 'codelycee', 'codepostallycee', 'villelycee', 'nomlycee')
         bottom_titles =  { 'nbetuds' : len(etuds),
-                           'nomlycee' : '%d lycées' % len([x for x in etuds_by_lycee if etuds_by_lycee[x][0]['codelycee']]) } 
+                           'nomlycee' : '%d lycÃ©es' % len([x for x in etuds_by_lycee if etuds_by_lycee[x][0]['codelycee']]) } 
     else:
         L = etuds
         columns_ids = ('sexe', 'nom', 'prenom', 'codelycee', 'codepostallycee', 'villelycee', 'nomlycee')
@@ -119,17 +119,17 @@ def _table_etuds_lycees(context, etuds, group_lycees, title, preferences, no_lin
             
     tab = GenTable(columns_ids=columns_ids, rows=L,
                    titles={ 
-                       'nbetuds' : "Nb d'étudiants",
-                       'sexe' : '', 'nom' : 'Nom', 'prenom':'Prénom',
+                       'nbetuds' : "Nb d'Ã©tudiants",
+                       'sexe' : '', 'nom' : 'Nom', 'prenom':'PrÃ©nom',
                        'etudid' : 'etudid',
-                       'codelycee' : 'Code Lycée',
+                       'codelycee' : 'Code LycÃ©e',
                        'codepostallycee' : 'Code postal',
-                       'nomlycee' : 'Lycée',
+                       'nomlycee' : 'LycÃ©e',
                        'villelycee' : 'Commune'
                        },
-                   origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                   origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                    caption = title,
-                   page_title = "Carte lycées d'origine",
+                   page_title = "Carte lycÃ©es d'origine",
                    html_sortable=True,
                    html_class='gt_table table_leftalign table_listegroupe',
                    bottom_titles = bottom_titles,
@@ -140,7 +140,7 @@ def _table_etuds_lycees(context, etuds, group_lycees, title, preferences, no_lin
 def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
                               only_primo=False, no_grouping=False,
                               REQUEST=None):
-    """Table des lycées d'origine"""
+    """Table des lycÃ©es d'origine"""
     sem = context.get_formsemestre(formsemestre_id)
     tab, etuds_by_lycee = formsemestre_table_etuds_lycees(context, formsemestre_id, only_primo=only_primo, group_lycees=not no_grouping)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
@@ -160,7 +160,7 @@ def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
                                  'js/etud_info.js',
                                  'js/map_lycees.js'
                                  ], ),
-          """<h2 class="formsemestre">Lycées d'origine des étudiants</h2>""",
+          """<h2 class="formsemestre">LycÃ©es d'origine des Ã©tudiants</h2>""",
           '\n'.join(F),
           t,
           """<div id="lyc_map_canvas"></div>          
@@ -181,7 +181,7 @@ def js_coords_lycees(etuds_by_lycee):
             lyc = etuds_by_lycee[codelycee][0]            
             if not lyc.get('positionlycee', False):
                 continue
-            listeetuds = '<br/>%d étudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
+            listeetuds = '<br/>%d Ã©tudiants: ' % len(etuds_by_lycee[codelycee]) + ', '.join(
                 [ '<a class="discretelink" href="ficheEtud?etudid=%s" title="">%s</a>'
                   % (e['etudid'], qjs(e['nomprenom']))
                   for e in etuds_by_lycee[codelycee] ] )

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,10 +25,10 @@
 #
 ##############################################################################
 
-"""Rapports estimation coût de formation basé sur le programme pédagogique
+"""Rapports estimation coÃ»t de formation basÃ© sur le programme pÃ©dagogique
    et les nombres de groupes.
 
-   (coût théorique en heures équivalent TD)
+   (coÃ»t thÃ©orique en heures Ã©quivalent TD)
 """
 from notesdb import *
 from sco_utils import *
@@ -44,13 +44,13 @@ def formsemestre_table_estim_cost(context, formsemestre_id,
                                   coef_tp=1, coef_cours=1.5,
                                   REQUEST=None):
     """
-    Rapports estimation coût de formation basé sur le programme pédagogique
+    Rapports estimation coÃ»t de formation basÃ© sur le programme pÃ©dagogique
     et les nombres de groupes.
-    Coût théorique en heures équivalent TD.
-    Attention: ne prend en compte que les modules utilisés dans ce semestre.
-    Attention: prend en compte _tous_ les modules utilisés dans ce semestre, ce qui
-    peut conduire à une sur-estimation du coût s'il y a des modules optionnels
-    (dans ce cas, retoucher le tableau excel exporté).
+    CoÃ»t thÃ©orique en heures Ã©quivalent TD.
+    Attention: ne prend en compte que les modules utilisÃ©s dans ce semestre.
+    Attention: prend en compte _tous_ les modules utilisÃ©s dans ce semestre, ce qui
+    peut conduire Ã  une sur-estimation du coÃ»t s'il y a des modules optionnels
+    (dans ce cas, retoucher le tableau excel exportÃ©).
     """
     sem = context.get_formsemestre(formsemestre_id)
     sco_formsemestre_status.fill_formsemestre(context, sem, REQUEST=REQUEST)
@@ -108,16 +108,16 @@ def formsemestre_table_estim_cost(context, formsemestre_id,
                         []
                         ],
                     html_caption = """<div class="help">
-                    Estimation du coût de formation basé sur le programme pédagogique
+                    Estimation du coÃ»t de formation basÃ© sur le programme pÃ©dagogique
     et les nombres de groupes.<br/>
-    Coût théorique en heures équivalent TD.<br/>
-    Attention: ne prend en compte que les modules utilisés dans ce semestre.<br/>
-    Attention: prend en compte <em>tous les modules</em> utilisés dans ce semestre, ce qui
-    peut conduire à une sur-estimation du coût s'il y a des modules optionnels
-    (dans ce cas, retoucher le tableau excel exporté).
+    CoÃ»t thÃ©orique en heures Ã©quivalent TD.<br/>
+    Attention: ne prend en compte que les modules utilisÃ©s dans ce semestre.<br/>
+    Attention: prend en compte <em>tous les modules</em> utilisÃ©s dans ce semestre, ce qui
+    peut conduire Ã  une sur-estimation du coÃ»t s'il y a des modules optionnels
+    (dans ce cas, retoucher le tableau excel exportÃ©).
     </div>
                     """,
-                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     filename='EstimCout-S%s' % sem['semestre_id']
         )
     return tab
@@ -128,7 +128,7 @@ def formsemestre_estim_cost(context, formsemestre_id,
                             coef_tp=1, coef_cours=1.5,
                             format='html',
                             REQUEST=None):
-    """Page (formulaire) estimation coûts"""
+    """Page (formulaire) estimation coÃ»ts"""
 
     n_group_td = int(n_group_td)
     n_group_tp = int(n_group_tp)

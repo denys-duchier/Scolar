@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -26,7 +26,7 @@
 ##############################################################################
 
 """
-Rapport (table) avec dernier semestre fréquenté et débouché de chaque étudiant
+Rapport (table) avec dernier semestre frÃ©quentÃ© et dÃ©bouchÃ© de chaque Ã©tudiant
 """
 
 from odict import odict
@@ -38,7 +38,7 @@ from gen_tables import GenTable
 import sco_groups
 
 def report_debouche_date(context, start_year=None, format='html', REQUEST=None):
-    """Rapport (table) pour les débouchés des étudiants sortis à partir de la l'année indiquée.
+    """Rapport (table) pour les dÃ©bouchÃ©s des Ã©tudiants sortis Ã  partir de la l'annÃ©e indiquÃ©e.
     """
     if not start_year:
         return report_debouche_ask_date(context, REQUEST=REQUEST)
@@ -51,24 +51,24 @@ def report_debouche_date(context, start_year=None, format='html', REQUEST=None):
     tab = table_debouche_etudids(context, etudids, keep_numeric=keep_numeric)
 
     tab.filename = make_filename('debouche_scodoc_%s' % start_year)
-    tab.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
-    tab.caption = "Récapitulatif débouchés à partir du 1/1/%s." % start_year
+    tab.origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+    tab.caption = "RÃ©capitulatif dÃ©bouchÃ©s Ã  partir du 1/1/%s." % start_year
     tab.base_url = '%s?start_year=%s' % (REQUEST.URL0, start_year)
     return tab.make_page(
         context, 
-        title =  """<h2 class="formsemestre">Débouchés étudiants </h2>""",
+        title =  """<h2 class="formsemestre">DÃ©bouchÃ©s Ã©tudiants </h2>""",
         init_qtip = True,
         javascripts=['js/etud_info.js'],
         format=format, REQUEST=REQUEST, with_html_headers=True)
 
 def get_etudids_with_debouche(context, start_year):
     """Liste des etudids de tous les semestres terminant
-    à partir du 1er janvier de start_year
-    et ayant un 'debouche' renseigné.
+    Ã  partir du 1er janvier de start_year
+    et ayant un 'debouche' renseignÃ©.
     """
     start_date = str(start_year) + '-01-01'
-    # Recupere tous les etudid avec un debouché renseigné et une inscription dans un semestre
-    # posterieur à la date de depart:
+    # Recupere tous les etudid avec un debouchÃ© renseignÃ© et une inscription dans un semestre
+    # posterieur Ã  la date de depart:
     r = SimpleDictFetch(context,
                         """SELECT DISTINCT i.etudid
                         FROM notes_formsemestre_inscription i, admissions adm, notes_formsemestre s
@@ -115,10 +115,10 @@ def table_debouche_etudids(context, etudids, keep_numeric=True):
     L.sort(key=lambda x:x['sem_ident'])
 
     titles = {
-        'sexe' : '', 'nom' : 'Nom', 'prenom' : 'Prénom',
+        'sexe' : '', 'nom' : 'Nom', 'prenom' : 'PrÃ©nom',
         'semestre' : 'Dernier semestre', 'semestre_id' : 'S',
         'periode' : 'Dates',
-        'moy' : 'Moyenne', 'rang' :'Rang', 'effectif': 'Eff.', 'debouche' : 'Débouché'
+        'moy' : 'Moyenne', 'rang' :'Rang', 'effectif': 'Eff.', 'debouche' : 'DÃ©bouchÃ©'
         }
     tab = GenTable(
         columns_ids=('semestre', 'semestre_id', 'periode',
@@ -135,11 +135,11 @@ def table_debouche_etudids(context, etudids, keep_numeric=True):
 
 
 def report_debouche_ask_date(context, REQUEST=None):
-    """Formulaire demande date départ
+    """Formulaire demande date dÃ©part
     """
     return (context.sco_header(REQUEST)
             + """<form method="GET">
-            Date de départ de la recherche: <input type="text" name="start_year" value="" size=10/>
+            Date de dÃ©part de la recherche: <input type="text" name="start_year" value="" size=10/>
             </form>"""
             +  context.sco_footer(REQUEST))
 

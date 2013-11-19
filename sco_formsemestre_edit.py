@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -42,8 +42,8 @@ def _default_sem_title(F):
 
 
 def formsemestre_createwithmodules(context, REQUEST=None):
-    """Page création d'un semestre"""
-    H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
+    """Page crÃ©ation d'un semestre"""
+    H = [ context.sco_header(REQUEST, page_title='CrÃ©ation d\'un semestre',
                              init_jquery_ui=True,
                              javascripts=['libjs/AutoSuggest.js'],
                              cssstyles=['autosuggest_inquisitor.css'], 
@@ -68,15 +68,15 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
                                   bodyOnLoad="init_tf_form('')"
                                   ) ]
     if sem['etat'] != '1':
-        H.append("""<p>%s<b>Ce semestre est verrouillé.</b></p>""" %
-                 context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+        H.append("""<p>%s<b>Ce semestre est verrouillÃ©.</b></p>""" %
+                 context.icons.lock_img.tag(border='0',title='Semestre verrouillÃ©'))
     else:
         H.append(do_formsemestre_createwithmodules(context, REQUEST=REQUEST, edit=1 ))
         if not REQUEST.get('tf-submitted',False):
-            H.append("""<p class="help">Seuls les modules cochés font partie de ce semestre. Pour les retirer, les décocher et appuyer sur le bouton "modifier".
+            H.append("""<p class="help">Seuls les modules cochÃ©s font partie de ce semestre. Pour les retirer, les dÃ©cocher et appuyer sur le bouton "modifier".
 </p>
-<p class="help">Attention : s'il y a déjà des évaluations dans un module, il ne peut pas être supprimé !</p>
-<p class="help">Les modules ont toujours un responsable. Par défaut, c'est le directeur des études.</p>""")
+<p class="help">Attention : s'il y a dÃ©jÃ  des Ã©valuations dans un module, il ne peut pas Ãªtre supprimÃ© !</p>
+<p class="help">Les modules ont toujours un responsable. Par dÃ©faut, c'est le directeur des Ã©tudes.</p>""")
     
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
@@ -93,7 +93,7 @@ def can_edit_sem(context, REQUEST, formsemestre_id, sem=None):
 
 def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     "Form choix modules / responsables et creation formsemestre"
-    # Fonction accessible à tous, controle acces à la main:
+    # Fonction accessible Ã  tous, controle acces Ã  la main:
     if edit:
         formsemestre_id = REQUEST.form['formsemestre_id']
         sem = context.get_formsemestre(formsemestre_id)
@@ -101,10 +101,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     if not authuser.has_permission(ScoImplement,context):
         if not edit:
             # il faut ScoImplement pour creer un semestre
-            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opÃ©ration")
         else:
             if not sem['resp_can_edit'] or str(authuser) != sem['responsable_id']:
-                raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+                raise AccessDenied("vous n'avez pas le droit d'effectuer cette opÃ©ration")
     
     # Liste des enseignants avec forme pour affichage / saisie avec suggestion
     userlist = context.Users.get_userlist()
@@ -183,7 +183,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     modform = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('formation_id', { 'input_type' : 'hidden', 'default' : formation_id}),
-        ('date_debut', { 'title' : 'Date de début', # j/m/a
+        ('date_debut', { 'title' : 'Date de dÃ©but', # j/m/a
                          'input_type' : 'date', 
                          'explanation' : 'j/m/a',
                          'size' : 9, 'allow_null' : False }),
@@ -193,8 +193,8 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                        'size' : 9, 'allow_null' : False }),
         ('responsable_id', { 'input_type' : 'text_suggest',
                              'size' : 50,
-                             'title' : 'Directeur des études',
-                             'explanation' : 'taper le début du nom et choisir dans le menu',
+                             'title' : 'Directeur des Ã©tudes',
+                             'explanation' : 'taper le dÃ©but du nom et choisir dans le menu',
                              'allowed_values' : allowed_user_names,
                              'allow_null' : False,
                              'text_suggest_options' : { 
@@ -205,10 +205,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                                              'timeout':60000 }
                              }), 
         ('titre', { 'size' : 40, 'title' : 'Nom de ce semestre',
-                    'explanation' : """n'indiquez pas les dates, ni le semestre, ni la modalité dans le titre: ils seront automatiquement ajoutés <input type="button" value="remettre titre par défaut" onClick="document.tf.titre.value='%s';"/>""" % _default_sem_title(F)
+                    'explanation' : """n'indiquez pas les dates, ni le semestre, ni la modalitÃ© dans le titre: ils seront automatiquement ajoutÃ©s <input type="button" value="remettre titre par dÃ©faut" onClick="document.tf.titre.value='%s';"/>""" % _default_sem_title(F)
                     }),
         ('modalite', { 'input_type' : 'menu',
-                          'title' : 'Modalité',
+                          'title' : 'ModalitÃ©',
                           'allowed_values' : ('', 'FI', 'FC', 'FAP'),
                           'labels' : ('Inconnue', 'Formation Initiale', 'Formation Continue', 'Apprentissage') }),
         ('semestre_id', { 'input_type' : 'menu',
@@ -218,68 +218,68 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ]
     etapes = sco_portal_apogee.get_etapes_apogee_dept(context)
     if etapes:
-        # propose les etapes renvoyées par le portail
+        # propose les etapes renvoyÃ©es par le portail
         modform.append(
         ('etape_apo', {
             'input_type' : 'menu',
-            'title' : 'Etape Apogée',
+            'title' : 'Etape ApogÃ©e',
             'allowed_values' : [''] + [ e[0] for e in etapes ],
             'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
-            'explanation' : 'nécessaire pour inscrire les étudiants et exporter les notes en fin de semestre'
+            'explanation' : 'nÃ©cessaire pour inscrire les Ã©tudiants et exporter les notes en fin de semestre'
             }))
         modform.append(
         ('etape_apo2', {
             'input_type' : 'menu',
-            'title' : 'Etape Apogée (2)',
+            'title' : 'Etape ApogÃ©e (2)',
             'allowed_values' : [''] + [ e[0] for e in etapes ],
             'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
-            'explanation' : '(si deux étapes pour ce même semestre)'
+            'explanation' : '(si deux Ã©tapes pour ce mÃªme semestre)'
             }))
         modform.append(
         ('etape_apo3', {
             'input_type' : 'menu',
-            'title' : 'Etape Apogée (3)',
+            'title' : 'Etape ApogÃ©e (3)',
             'allowed_values' : [''] + [ e[0] for e in etapes ],
             'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
-            'explanation' : '(si trois étapes pour ce même semestre!)'
+            'explanation' : '(si trois Ã©tapes pour ce mÃªme semestre!)'
             }))
         modform.append(
         ('etape_apo4', {
             'input_type' : 'menu',
-            'title' : 'Etape Apogée (4)',
+            'title' : 'Etape ApogÃ©e (4)',
             'allowed_values' : [''] + [ e[0] for e in etapes ],
             'labels' :  ['(aucune)'] + [ '%s (%s)' % (e[1], e[0]) for e in etapes ],
-            'explanation' : '(si quatre étapes pour ce même semestre!)'
+            'explanation' : '(si quatre Ã©tapes pour ce mÃªme semestre!)'
             }))
     else:
         # fallback: code etape libre
         modform.append(
         ('etape_apo', { 'size' : 12,
-                        'title' : 'Code étape Apogée',
-                        'explanation' : 'facultatif, nécessaire pour synchroniser les listes et exporter les décisions' })
+                        'title' : 'Code Ã©tape ApogÃ©e',
+                        'explanation' : 'facultatif, nÃ©cessaire pour synchroniser les listes et exporter les dÃ©cisions' })
         )
         modform.append(
         ('etape_apo2', { 'size' : 12,
-                        'title' : 'Code étape Apogée (2)',
-                        'explanation' : '(si deux étapes pour ce même semestre)' })
+                        'title' : 'Code Ã©tape ApogÃ©e (2)',
+                        'explanation' : '(si deux Ã©tapes pour ce mÃªme semestre)' })
         )
         modform.append(
         ('etape_apo3', { 'size' : 12,
-                        'title' : 'Code étape Apogée (3)',
-                        'explanation' : '(si trois étapes pour ce même semestre!)' })
+                        'title' : 'Code Ã©tape ApogÃ©e (3)',
+                        'explanation' : '(si trois Ã©tapes pour ce mÃªme semestre!)' })
         )
         modform.append(
         ('etape_apo4', { 'size' : 12,
-                        'title' : 'Code étape Apogée (4)',
-                        'explanation' : '(si quatre étapes pour ce même semestre!)' })
+                        'title' : 'Code Ã©tape ApogÃ©e (4)',
+                        'explanation' : '(si quatre Ã©tapes pour ce mÃªme semestre!)' })
         )
     if edit:
         formtit = """
-        <p><a href="formsemestre_edit_uecoefs?formsemestre_id=%s">Modifier les coefficients des UE capitalisées</a></p>
-        <h3>Sélectionner les modules, leurs responsables et les étudiants à inscrire:</h3>
+        <p><a href="formsemestre_edit_uecoefs?formsemestre_id=%s">Modifier les coefficients des UE capitalisÃ©es</a></p>
+        <h3>SÃ©lectionner les modules, leurs responsables et les Ã©tudiants Ã  inscrire:</h3>
         """ % formsemestre_id
     else:
-        formtit = """<h3>Sélectionner les modules et leurs responsables</h3><p class="help">Si vous avez des parcours (options), ne sélectionnez que les modules du tronc commun.</p>"""
+        formtit = """<h3>SÃ©lectionner les modules et leurs responsables</h3><p class="help">Si vous avez des parcours (options), ne sÃ©lectionnez que les modules du tronc commun.</p>"""
 
     modform += [
         ('gestion_compensation_lst',  { 'input_type' : 'checkbox',
@@ -291,22 +291,22 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ('gestion_semestrielle_lst',  { 'input_type' : 'checkbox',
                                         'title' : '',
                                         'allowed_values' : ['X'],
-                                        'explanation' : 'formation semestrialisée (jurys avec semestres décalés)',
+                                        'explanation' : 'formation semestrialisÃ©e (jurys avec semestres dÃ©calÃ©s)',
                                         'labels' : [''] }) ]
     if authuser.has_permission(ScoImplement,context):
         modform += [ 
         ('resp_can_edit',  { 'input_type' : 'boolcheckbox',
                              'title' : 'Autorisations',
-                             'explanation' : 'Autoriser le directeur des études à modifier ce semestre' })]                             
+                             'explanation' : 'Autoriser le directeur des Ã©tudes Ã  modifier ce semestre' })]                             
     modform += [ 
         ('resp_can_change_ens',  { 
                     'input_type' : 'boolcheckbox',
                     'title' : '',
-                    'explanation' : 'Autoriser le directeur des études à modifier les enseignants' }),
+                    'explanation' : 'Autoriser le directeur des Ã©tudes Ã  modifier les enseignants' }),
         ('ens_can_edit_eval',  { 
                 'input_type' : 'boolcheckbox',
                 'title' : '',
-                'explanation' : 'Autoriser tous les enseignants associés à un module à y créer des évaluations' }),
+                'explanation' : 'Autoriser tous les enseignants associÃ©s Ã  un module Ã  y crÃ©er des Ã©valuations' }),
 
         ('bul_bgcolor', { 'size' : 8,
                           'title' : 'Couleur fond des bulletins',
@@ -315,7 +315,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         ('bul_publish_xml_lst', { 'input_type' : 'checkbox',
                                   'title' : 'Publication',
                                   'allowed_values' : ['X'],
-                                  'explanation' : 'publier le bulletin sur le portail étudiants',
+                                  'explanation' : 'publier le bulletin sur le portail Ã©tudiants',
                                   'labels' : [''] }),
 
         ('sep', { 'input_type' : 'separator',                  
@@ -371,10 +371,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
 #                          { 'input_type' : 'checkbox',
 #                            'allowed_values' : ['X'], 'labels' : [ '' ],
 #                            'title' : '' ,
-#                            'explanation' : 'inscrire tous les étudiants du semestre aux modules ajoutés'}) )
+#                            'explanation' : 'inscrire tous les Ã©tudiants du semestre aux modules ajoutÃ©s'}) )
         submitlabel = 'Modifier ce semestre de formation'
     else:
-        submitlabel = 'Créer ce semestre de formation'
+        submitlabel = 'CrÃ©er ce semestre de formation'
     #
     
     initvalues['gestion_compensation'] = initvalues.get('gestion_compensation','0')
@@ -411,7 +411,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
     if tf[0] == 1:
         # check dates
         if DateDMYtoISO(tf[2]['date_debut']) > DateDMYtoISO(tf[2]['date_fin']):
-            msg = '<ul class="tf-msg"><li class="tf-msg">Dates de début et fin incompatibles !</li></ul>'            
+            msg = '<ul class="tf-msg"><li class="tf-msg">Dates de dÃ©but et fin incompatibles !</li></ul>'            
     
     if tf[0] == 0 or msg:
         return '<p>Formation <a class="discretelink" href="ue_list?formation_id=%(formation_id)s"><em>%(titre)s</em> (%(acronyme)s), version %(version)d, code %(formation_code)s</a></p>' % F + msg + tf[1]
@@ -450,13 +450,13 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                             'responsable_id' :  tf[2][module_id]
                             }
                 mid = context.do_moduleimpl_create(modargs)
-            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % formsemestre_id )
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20crÃ©Ã©' % formsemestre_id )
         else:
             # modification du semestre:
-            # on doit creer les modules nouvellement selectionnés
-            # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnés.
+            # on doit creer les modules nouvellement selectionnÃ©s
+            # modifier ceux a modifier, et DETRUIRE ceux qui ne sont plus selectionnÃ©s.
             # Note: la destruction echouera s'il y a des objets dependants
-            #       (eg des evaluations définies)
+            #       (eg des evaluations dÃ©finies)
             # nouveaux modules
             checkedmods = tf[2]['tf-checked']
             context.do_formsemestre_edit(tf[2])
@@ -476,7 +476,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                             'responsable_id' :  tf[2][module_id] }
                 moduleimpl_id = context.do_moduleimpl_create(modargs)
                 mod = context.do_module_list( { 'module_id' : module_id } )[0]
-                msg += [ 'création de %s (%s)' % (mod['code'], mod['titre']) ] 
+                msg += [ 'crÃ©ation de %s (%s)' % (mod['code'], mod['titre']) ] 
                 # INSCRIPTIONS DES ETUDIANTS                
                 log('inscription module: %s = "%s"' % ('%s!group_id'%module_id,tf[2]['%s!group_id'%module_id]))
                 group_id = tf[2]['%s!group_id'%module_id]
@@ -485,7 +485,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     log('inscription module:module_id=%s,moduleimpl_id=%s: %s' % (module_id,moduleimpl_id,etudids) )
                     context.do_moduleimpl_inscrit_etuds(moduleimpl_id,formsemestre_id, etudids,
                                                     REQUEST=REQUEST)
-                    msg += [ 'inscription de %d étudiants au module %s' % (len(etudids),mod['code'])]
+                    msg += [ 'inscription de %d Ã©tudiants au module %s' % (len(etudids),mod['code'])]
                 else:
                     log('inscription module:module_id=%s,moduleimpl_id=%s: aucun etudiant inscrit' % (module_id,moduleimpl_id) )
             #
@@ -506,13 +506,13 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
             if msg:
                 msg_html = '<div class="ue_warning"><span>Attention !<ul><li>' + '</li><li>'.join(msg) + '</li></ul></span></div>'
                 if ok:
-                    msg_html += '<p>Modification effectuée</p>'
+                    msg_html += '<p>Modification effectuÃ©e</p>'
                 else:
-                    msg_html += '<p>Modification effectuée (<b>mais modules cités non supprimés</b>)</p>'
+                    msg_html += '<p>Modification effectuÃ©e (<b>mais modules citÃ©s non supprimÃ©s</b>)</p>'
                 msg_html += '<a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
                 return msg_html            
             else:
-                return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifié' %  formsemestre_id)
+                return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifiÃ©' %  formsemestre_id)
 
 
 def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del):
@@ -531,7 +531,7 @@ def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del)
         # Evaluations dans ce module ?
         evals = context.do_evaluation_list( { 'moduleimpl_id' : moduleimpl_id} )
         if evals:
-            msg += [ '<b>impossible de supprimer %s (%s) car il y a %d évaluations définies (<a href="moduleimpl_status?moduleimpl_id=%s" class="stdlink">supprimer les d\'abord</a>)</b>' % (mod['code'], mod['titre'], len(evals), moduleimpl_id) ]
+            msg += [ '<b>impossible de supprimer %s (%s) car il y a %d Ã©valuations dÃ©finies (<a href="moduleimpl_status?moduleimpl_id=%s" class="stdlink">supprimer les d\'abord</a>)</b>' % (mod['code'], mod['titre'], len(evals), moduleimpl_id) ]
             ok = False
         else:
             msg += [ 'suppression de %s (%s)'
@@ -564,12 +564,12 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
                                 javascripts=['libjs/AutoSuggest.js'],
                                 cssstyles=['autosuggest_inquisitor.css'],
                                 bodyOnLoad="init_tf_form('')"),
-        """<p class="help">Cette opération duplique un semestre: on reprend les mêmes modules et responsables. Aucun étudiant n'est inscrit.</p>"""
+        """<p class="help">Cette opÃ©ration duplique un semestre: on reprend les mÃªmes modules et responsables. Aucun Ã©tudiant n'est inscrit.</p>"""
     ]
 
     descr = [
         ('formsemestre_id', { 'input_type' : 'hidden' }), 
-        ('date_debut', { 'title' : 'Date de début',  # j/m/a
+        ('date_debut', { 'title' : 'Date de dÃ©but',  # j/m/a
                          'input_type' : 'date',
                          'explanation' : 'j/m/a',
                          'size' : 9, 'allow_null' : False }),
@@ -579,8 +579,8 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
                        'size' : 9, 'allow_null' : False }),
         ('responsable_id',  { 'input_type' : 'text_suggest',
                               'size' : 50,
-                              'title' : 'Directeur des études',
-                              'explanation' : 'taper le début du nom et choisir dans le menu',
+                              'title' : 'Directeur des Ã©tudes',
+                              'explanation' : 'taper le dÃ©but du nom et choisir dans le menu',
                               'allowed_values' : allowed_user_names,
                               'allow_null' : False,
                               'text_suggest_options' : { 
@@ -590,9 +590,9 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
                     'noresults' : 'Valeur invalide !',
                     'timeout':60000 } }), 
         ('clone_evaluations', 
-         { 'title' : "Copier aussi les évaluations",
+         { 'title' : "Copier aussi les Ã©valuations",
            'input_type' : 'boolcheckbox',
-           'explanation' : "copie toutes les évaluations, sans les dates (ni les notes!)"
+           'explanation' : "copie toutes les Ã©valuations, sans les dates (ni les notes!)"
            }),
         ]
     tf = TrivialFormulator( 
@@ -612,7 +612,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
             tf[2]['date_debut'], tf[2]['date_fin'],
             clone_evaluations=tf[2]['clone_evaluations'],
             REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20crÃ©Ã©' % new_formsemestre_id )    
 
 
 def do_formsemestre_clone(context, orig_formsemestre_id, 
@@ -632,7 +632,7 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
     args['responsable_id'] = responsable_id
     args['date_debut'] = date_debut
     args['date_fin'] = date_fin
-    args['etat'] = 1 # non verrouillé
+    args['etat'] = 1 # non verrouillÃ©
     formsemestre_id = context.do_formsemestre_create(args, REQUEST)
     log('created formsemestre %s' % formsemestre_id)
     # 2- create moduleimpls
@@ -708,36 +708,36 @@ def formsemestre_associate_new_version(context, formsemestre_id,
                           % (s['formsemestre_id'], checked, disabled, s['titremois']))
         
         return context.confirmDialog(
-            """<h2>Associer à une nouvelle version de formation non verrouillée ?</h2>
-                <p>Le programme pédagogique ("formation") va être dupliqué pour que vous puissiez le modifier sans affecter les autres semestres. Les autres paramètres (étudiants, notes...) du semestre seront inchangés.</p>
-                <p>Veillez à ne pas abuser de cette possibilité, car créer trop de versions de formations va vous compliquer la gestion (à vous de garder trace des différences et à ne pas vous tromper par la suite...).
+            """<h2>Associer Ã  une nouvelle version de formation non verrouillÃ©e ?</h2>
+                <p>Le programme pÃ©dagogique ("formation") va Ãªtre dupliquÃ© pour que vous puissiez le modifier sans affecter les autres semestres. Les autres paramÃ¨tres (Ã©tudiants, notes...) du semestre seront inchangÃ©s.</p>
+                <p>Veillez Ã  ne pas abuser de cette possibilitÃ©, car crÃ©er trop de versions de formations va vous compliquer la gestion (Ã  vous de garder trace des diffÃ©rences et Ã  ne pas vous tromper par la suite...).
                 </p>
-                <div class="othersemlist"><p>Si vous voulez associer aussi d'autres semestres à la nouvelle version, cochez-les:</p>""" + ''.join(of) + "</div>",
-                OK = 'Associer ces semestres à une nouvelle version',
+                <div class="othersemlist"><p>Si vous voulez associer aussi d'autres semestres Ã  la nouvelle version, cochez-les:</p>""" + ''.join(of) + "</div>",
+                OK = 'Associer ces semestres Ã  une nouvelle version',
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'formsemestre_id' : formsemestre_id})
     else:
         do_formsemestres_associate_new_version(context, [formsemestre_id] + other_formsemestre_ids, REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Formation%%20dupliquée' % formsemestre_id )
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Formation%%20dupliquÃ©e' % formsemestre_id )
 
 
 def do_formsemestres_associate_new_version(context, formsemestre_ids, REQUEST=None):
     """Cree une nouvelle version de la formation du semestre, et y rattache les semestres.
-    Tous les moduleimpl sont ré-associés à la nouvelle formation, ainsi que les decisions de jury 
-    si elles existent (codes d'UE validées).
-    Les semestre doivent tous appartenir à la meme version de la formation
+    Tous les moduleimpl sont rÃ©-associÃ©s Ã  la nouvelle formation, ainsi que les decisions de jury 
+    si elles existent (codes d'UE validÃ©es).
+    Les semestre doivent tous appartenir Ã  la meme version de la formation
     """
     log('do_formsemestres_associate_new_version %s' % formsemestre_ids)
     if not formsemestre_ids:
         return
-    # Check: tous de la même formation
+    # Check: tous de la mÃªme formation
     sem = context.get_formsemestre(formsemestre_ids[0])
     formation_id = sem['formation_id']
     for formsemestre_id in formsemestre_ids[1:]:
         sem = context.get_formsemestre(formsemestre_id)
         if formation_id != sem['formation_id']:
-            raise ScoValueError('les semestres ne sont pas tous de la même formation !')
+            raise ScoValueError('les semestres ne sont pas tous de la mÃªme formation !')
     
     cnx = context.GetDBConnexion()
     # New formation:
@@ -780,20 +780,20 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
     H = [ context.html_sem_header(REQUEST, 'Suppression du semestre', sem),
           """<div class="ue_warning"><span>Attention !</span>
 <p class="help">A n'utiliser qu'en cas d'erreur lors de la saisie d'une formation. Normalement,
-<b>un semestre ne doit jamais être supprimé</b> (on perd la mémoire des notes et de tous les événements liés à ce semestre !).</p>
+<b>un semestre ne doit jamais Ãªtre supprimÃ©</b> (on perd la mÃ©moire des notes et de tous les Ã©vÃ©nements liÃ©s Ã  ce semestre !).</p>
 
- <p class="help">Tous les modules de ce semestre seront supprimés. Ceci n'est possible que
+ <p class="help">Tous les modules de ce semestre seront supprimÃ©s. Ceci n'est possible que
  si :</p>
  <ol>
-  <li>aucune décision de jury n'a été entrée dans ce semestre;</li>
-  <li>et aucun étudiant de ce semestre ne le compense avec un autre semestre.</li>
+  <li>aucune dÃ©cision de jury n'a Ã©tÃ© entrÃ©e dans ce semestre;</li>
+  <li>et aucun Ã©tudiant de ce semestre ne le compense avec un autre semestre.</li>
   </ol></div>"""
           ]
 
     evals = context.do_evaluation_list_in_formsemestre(formsemestre_id)
     if evals:
-        H.append("""<p class="warning">Attention: il y a %d évaluations dans ce semestre (sa suppression entrainera l'effacement définif des notes) !</p>""" % len(evals) ) 
-        submit_label = 'Confirmer la suppression (du semestre et des %d évaluations !)' % len(evals)
+        H.append("""<p class="warning">Attention: il y a %d Ã©valuations dans ce semestre (sa suppression entrainera l'effacement dÃ©finif des notes) !</p>""" % len(evals) ) 
+        submit_label = 'Confirmer la suppression (du semestre et des %d Ã©valuations !)' % len(evals)
     else:
         submit_label = 'Confirmer la suppression du semestre'
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, 
@@ -804,7 +804,7 @@ def formsemestre_delete(context, formsemestre_id, REQUEST=None):
                             cancelbutton = 'Annuler' )
     if tf[0] == 0:
         if formsemestre_has_decisions_or_compensations(context, formsemestre_id):
-            H.append("""<p><b>Ce semestre ne peut pas être supprimé ! (il y a des décisions de jury ou des compensations par d'autres semestres)</b></p>"""  )
+            H.append("""<p><b>Ce semestre ne peut pas Ãªtre supprimÃ© ! (il y a des dÃ©cisions de jury ou des compensations par d'autres semestres)</b></p>"""  )
         else:
             H.append(tf[1])
         return '\n'.join(H) + context.sco_footer(REQUEST)
@@ -821,13 +821,13 @@ def formsemestre_delete2(context, formsemestre_id, dialog_confirmed=False, REQUE
     # Confirmation dialog
     if not dialog_confirmed:
         return context.confirmDialog(
-            """<h2>Vous voulez vraiment supprimer ce semestre ???</h2><p>(opération irréversible)</p>""",
+            """<h2>Vous voulez vraiment supprimer ce semestre ???</h2><p>(opÃ©ration irrÃ©versible)</p>""",
             dest_url="", REQUEST=REQUEST,
             cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
             parameters={'formsemestre_id' : formsemestre_id})
     # Bon, s'il le faut...
     do_formsemestre_delete(context, formsemestre_id, REQUEST)
-    return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimé' )
+    return REQUEST.RESPONSE.redirect( REQUEST.URL2+'?head_message=Semestre%20supprimÃ©' )
 
 def formsemestre_has_decisions_or_compensations(context, formsemestre_id):
     """True if decision de jury dans ce semestre
@@ -877,7 +877,7 @@ def do_formsemestre_delete(context, formsemestre_id, REQUEST):
     # --- Suppression des autorisations
     req = "DELETE FROM scolar_autorisation_inscription WHERE origin_formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
-    # --- Suppression des coefs d'UE capitalisées
+    # --- Suppression des coefs d'UE capitalisÃ©es
     req = "DELETE FROM notes_formsemestre_uecoef WHERE formsemestre_id=%(formsemestre_id)s"
     cursor.execute( req, { 'formsemestre_id' : formsemestre_id } )
     # --- Suppression des item du menu custom
@@ -922,8 +922,8 @@ def formsemestre_edit_options(context, formsemestre_id,
 
 def formsemestre_change_lock(context, formsemestre_id,
                       REQUEST=None, dialog_confirmed=False):
-    """change etat (verrouille si ouvert, déverrouille si fermé)
-    nota: etat (1 ouvert, 0 fermé)
+    """change etat (verrouille si ouvert, dÃ©verrouille si fermÃ©)
+    nota: etat (1 ouvert, 0 fermÃ©)
     """
     ok, err = context._check_access_diretud(formsemestre_id,REQUEST)
     if not ok:
@@ -933,16 +933,16 @@ def formsemestre_change_lock(context, formsemestre_id,
 
     if REQUEST and not dialog_confirmed:
         if etat:
-            msg = 'déverrouillage'
+            msg = 'dÃ©verrouillage'
         else:
             msg = 'verrouillage'
         return context.confirmDialog(
             '<h2>Confirmer le %s du semestre ?</h2>' % msg,
-            helpmsg = """Les notes d'un semestre verrouillé ne peuvent plus être modifiées.
-            Un semestre verrouillé peut cependant être déverrouillé facilement à tout moment
+            helpmsg = """Les notes d'un semestre verrouillÃ© ne peuvent plus Ãªtre modifiÃ©es.
+            Un semestre verrouillÃ© peut cependant Ãªtre dÃ©verrouillÃ© facilement Ã  tout moment
             (par son responsable ou un administrateur).
             <br/>
-            Le programme d'une formation qui a un semestre verrouillé ne peut plus être modifié.
+            Le programme d'une formation qui a un semestre verrouillÃ© ne peut plus Ãªtre modifiÃ©.
             """,
             dest_url="", REQUEST=REQUEST,
             cancel_url="formsemestre_status?formsemestre_id=%s"%formsemestre_id,
@@ -973,7 +973,7 @@ formsemestre_uecoef_list   = _formsemestre_uecoef_editor.list
 formsemestre_uecoef_delete = _formsemestre_uecoef_editor.delete
 
 def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
-    """Changement manuel des coefficients des UE capitalisées.
+    """Changement manuel des coefficients des UE capitalisÃ©es.
     """
     ok, err = context._check_access_diretud(formsemestre_id,REQUEST)
     if not ok:
@@ -983,20 +983,20 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
     
     footer = context.sco_footer(REQUEST)
     help = """<p class="help">
-    Seuls les modules ont un coefficient. Cependant, il est nécessaire d'affecter un coefficient aux UE capitalisée pour pouvoir les prendre en compte dans la moyenne générale.
+    Seuls les modules ont un coefficient. Cependant, il est nÃ©cessaire d'affecter un coefficient aux UE capitalisÃ©e pour pouvoir les prendre en compte dans la moyenne gÃ©nÃ©rale.
     </p>
     <p class="help">ScoDoc calcule normalement le coefficient d'une UE comme la somme des
     coefficients des modules qui la composent.
     </p>
-    <p class="help">Dans certains cas, on n'a pas les mêmes modules dans le semestre antérieur
-    (capitalisé) et dans le semestre courant, et le coefficient d'UE est alors variable.
+    <p class="help">Dans certains cas, on n'a pas les mÃªmes modules dans le semestre antÃ©rieur
+    (capitalisÃ©) et dans le semestre courant, et le coefficient d'UE est alors variable.
     Il est alors possible de forcer la valeur du coefficient d'UE.
     </p>
     <p class="help">
     Indiquez "auto" (ou laisser vide) pour que ScoDoc calcule automatiquement le coefficient,
-    ou bien entrez une valeur (nombre réel).
+    ou bien entrez une valeur (nombre rÃ©el).
     </p>
-    <p class="warning">Les coefficients indiqués ici ne s'appliquent que pour le traitement des UE capitalisées.
+    <p class="warning">Les coefficients indiquÃ©s ici ne s'appliquent que pour le traitement des UE capitalisÃ©es.
     </p>
     """
     H = [ context.html_sem_header(REQUEST,  'Coefficients des UE du semestre', sem),
@@ -1035,7 +1035,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
         return '<h4>annulation</h4>' # XXX
     else:
         # change values
-        # 1- supprime les coef qui ne sont plus forcés
+        # 1- supprime les coef qui ne sont plus forcÃ©s
         # 2- modifie ou cree les coefs
         ue_deleted = []
         ue_modified=[]
@@ -1044,7 +1044,7 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
             val = tf[2]['ue_' + ue['ue_id']]
             coefs = formsemestre_uecoef_list(cnx, args={'formsemestre_id' : formsemestre_id, 'ue_id' : ue['ue_id']})
             if val == '' or val == 'auto':
-                # supprime ce coef (il sera donc calculé automatiquement)
+                # supprime ce coef (il sera donc calculÃ© automatiquement)
                 if coefs:
                     ue_deleted.append(ue)
             else:
@@ -1077,14 +1077,14 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
                 formsemestre_uecoef_delete(cnx, coefs[0]['formsemestre_uecoef_id'])
 
         if ue_modified or ue_deleted:
-            z = [ """<h3>Modification effectuées</h3>""" ]
+            z = [ """<h3>Modification effectuÃ©es</h3>""" ]
             if ue_modified:
-                z.append("""<h4>Coefs modifiés dans les UE:<h4><ul>""")
+                z.append("""<h4>Coefs modifiÃ©s dans les UE:<h4><ul>""")
                 for ue in ue_modified:
                     z.append('<li>%(acronyme)s : %(coef)s</li>' % ue )
                 z.append('</ul>')
             if ue_deleted:
-                z.append("""<h4>Coefs supprimés dans les UE:<h4><ul>""")
+                z.append("""<h4>Coefs supprimÃ©s dans les UE:<h4><ul>""")
                 for ue in ue_deleted:
                     z.append('<li>%(acronyme)s</li>' % ue )
                 z.append('</ul>')

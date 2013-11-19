@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,7 +27,7 @@
 
 """Generation du bulletin note au format standard
 
-Nouvelle version juillet 2011: changement de la présentation de la table.
+Nouvelle version juillet 2011: changement de la prÃ©sentation de la table.
 
 
 
@@ -35,11 +35,11 @@ Nouvelle version juillet 2011: changement de la présentation de la table.
 Note sur le PDF:
 Les templates utilisent les XML markup tags de ReportLab
  (voir ReportLab user guide, page 70 et suivantes), dans lesquels les balises
-de la forme %(XXX)s sont remplacées par la valeur de XXX, pour XXX dans:
+de la forme %(XXX)s sont remplacÃ©es par la valeur de XXX, pour XXX dans:
 
 - preferences du semestre (ou globales) (voir sco_preferences.py)
 - champs de formsemestre: titre, date_debut, date_fin, responsable, anneesem
-- champs de l'etudiant s(etud, décoré par getEtudInfo)
+- champs de l'etudiant s(etud, dÃ©corÃ© par getEtudInfo)
 - demission ("DEMISSION" ou vide)
 - situation ("Inscrit le XXX")
 
@@ -56,13 +56,13 @@ import sco_bulletins_pdf
 import sco_groups
 import gen_tables
 
-# Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
+# Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stockÃ© en base de donnÃ©es (dans les prÃ©fÃ©rences)
 class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
-    description = 'standard ScoDoc (version 2011)'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'standard ScoDoc (version 2011)'  # la description doit Ãªtre courte: elle apparait dans le menu de paramÃ¨trage ScoDoc
     supported_formats = [ 'html', 'pdf' ]
 
     def bul_title_pdf(self):
-        """Génère la partie "titre" du bulletin de notes.
+        """GÃ©nÃ¨re la partie "titre" du bulletin de notes.
         Renvoie une liste d'objets platypus
         """
         objects = sco_bulletins_pdf.process_field(self.context, self.preferences['bul_pdf_title'], self.infos, self.FieldStyle)
@@ -70,7 +70,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         return objects
     
     def bul_table(self, format='html'):
-        """Génère la table centrale du bulletin de notes
+        """GÃ©nÃ¨re la table centrale du bulletin de notes
         Renvoie:
         - en HTML: une chaine
         - en PDF: une liste d'objets PLATYPUS (eg instance de Table).
@@ -91,8 +91,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         return T.gen(format=format)
     
     def bul_part_below(self, format='html'):
-        """Génère les informations placées sous la table de notes
-        (absences, appréciations, décisions de jury...)
+        """GÃ©nÃ¨re les informations placÃ©es sous la table de notes
+        (absences, apprÃ©ciations, dÃ©cisions de jury...)
         Renvoie:
         - en HTML: une chaine
         - en PDF: une liste d'objets platypus
@@ -106,15 +106,15 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             if nbabs:
                 H.append("""<p class="bul_abs">
                 <a href="../Absences/CalAbs?etudid=%(etudid)s" class="bull_link">
-                <b>Absences :</b> %(nbabs)s demi-journées, dont %(nbabsjust)s justifiées
+                <b>Absences :</b> %(nbabs)s demi-journÃ©es, dont %(nbabsjust)s justifiÃ©es
                 (pendant ce semestre).
                 </a></p>
                 """ % self.infos )
                 Op.append( Paragraph(
-                    SU("%(nbabs)s absences (1/2 journées), dont %(nbabsjust)s justifiées." % self.infos), self.CellStyle ) )
+                    SU("%(nbabs)s absences (1/2 journÃ©es), dont %(nbabsjust)s justifiÃ©es." % self.infos), self.CellStyle ) )
             else:
-                H.append("""<p class="bul_abs">Pas d'absences signalées.</p>""")
-                Op.append( Paragraph(SU("Pas d'absences signalées."), self.CellStyle) )
+                H.append("""<p class="bul_abs">Pas d'absences signalÃ©es.</p>""")
+                Op.append( Paragraph(SU("Pas d'absences signalÃ©es."), self.CellStyle) )
         
         # ---- APPRECIATIONS
         # le dir. des etud peut ajouter des appreciations,
@@ -130,12 +130,12 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
                      % (app['date'], app['comment'], mlink ) )
         if can_edit_app:
-            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une apprÃ©ciation</a></p>' % self.infos)
         H.append('</div>')
         # Appreciations sur PDF:
         if self.infos.get('appreciations_list', False):
             Op.append( Spacer(1, 3*mm) )
-            Op.append( Paragraph(SU('Appréciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
+            Op.append( Paragraph(SU('ApprÃ©ciation : ' + '\n'.join(self.infos['appreciations_txt'])), self.CellStyle) )
 
         # ----- DECISION JURY
         if self.preferences['bul_show_decision']:
@@ -154,7 +154,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             return '\n'.join(H)
 
     def bul_signatures_pdf(self):
-        """Génère les signatures placées en bas du bulletin PDF
+        """GÃ©nÃ¨re les signatures placÃ©es en bas du bulletin PDF
         Renvoie une liste d'objets platypus
         """
         show_left = self.preferences['bul_show_sig_left']
@@ -178,7 +178,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
 
     PDF_LINEWIDTH = 0.5
     PDF_LINECOLOR = Color(0,0,0)
-    PDF_MODSEPCOLOR = Color(170/255.,170/255.,170/255.) # lignes séparant les modules
+    PDF_MODSEPCOLOR = Color(170/255.,170/255.,170/255.) # lignes sÃ©parant les modules
     PDF_UE_CUR_BG = Color(210/255.,210/255.,210/255.) # fond UE courantes non prises en compte
     PDF_LIGHT_GRAY = Color(0.75,0.75,0.75)
 
@@ -197,27 +197,27 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
 
 
     def build_bulletin_table(self):
-        """Génère la table centrale du bulletin de notes
+        """GÃ©nÃ¨re la table centrale du bulletin de notes
         Renvoie: colkeys, P, pdf_style, colWidths
-        - colkeys: nom des colonnes de la table (clés)
+        - colkeys: nom des colonnes de la table (clÃ©s)
         - table (liste de dicts de chaines de caracteres)
         - style (commandes table Platypus)
         - largeurs de colonnes pour PDF
         """
         I = self.infos
         context = self.context
-        P = [] # elems pour générer table avec gen_table (liste de dicts)
+        P = [] # elems pour gÃ©nÃ©rer table avec gen_table (liste de dicts)
         formsemestre_id = I['formsemestre_id']
         sem = context.get_formsemestre(formsemestre_id)
         prefs = context.get_preferences(formsemestre_id)
 
-        # Colonnes à afficher:
+        # Colonnes Ã  afficher:
         with_col_abs = prefs['bul_show_abs_modules']
         with_col_minmax = prefs['bul_show_minmax'] or prefs['bul_show_minmax_mod']
         with_col_rang = prefs['bul_show_rangs']
         with_col_coef = prefs['bul_show_coef']
 
-        colkeys = ['titre', 'module' ] # noms des colonnes à afficher
+        colkeys = ['titre', 'module' ] # noms des colonnes Ã  afficher
         if with_col_rang:
             colkeys += ['rang']
         if with_col_minmax:
@@ -227,7 +227,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             colkeys += ['coef']
         if with_col_abs:
             colkeys += ['abs']
-        colidx = {}  # { nom_colonne : indice à partir de 0 } (pour styles platypus)
+        colidx = {}  # { nom_colonne : indice Ã  partir de 0 } (pour styles platypus)
         i = 0
         for k in colkeys:
             colidx[k] = i
@@ -256,17 +256,17 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
               '_pdf_style' : [],
               }
         P.append(t)
-        # 2eme ligne titres si nécessaire
+        # 2eme ligne titres si nÃ©cessaire
         if  with_col_minmax or with_col_abs:
             t = { 'min': 'mini', 'max' : 'maxi', 'abs' : '(J. / N.J.)',
                   '_css_row_class' : 'note_bold', '_pdf_row_markup' : ['b'], '_pdf_style' : [] }
             P.append(t)
         P[-1]['_pdf_style'].append(('LINEBELOW', (0,0), (-1,0), self.PDF_LINEWIDTH, self.PDF_LINECOLOR))
 
-        # Moyenne générale:
+        # Moyenne gÃ©nÃ©rale:
         nbabs = I['nbabs']
         nbabsjust = I['nbabsjust']
-        t = { 'titre' : 'Moyenne générale:',
+        t = { 'titre' : 'Moyenne gÃ©nÃ©rale:',
               'rang' : I['rang_nt'],
               'note' : I['moy_gen'],
               'min' : I['moy_min'],
@@ -298,7 +298,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             rowstyle = ''
             plusminus = minuslink # 
             if ue['ue_status']['is_capitalized']:
-                # UE capitalisée meilleure que UE courante:
+                # UE capitalisÃ©e meilleure que UE courante:
                 if prefs['bul_show_ue_cap_details']:
                     hidden = False
                     cssstyle = ''
@@ -320,7 +320,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                                        ('LINEABOVE', (0,0), (-1,0), 1, self.PDF_LINECOLOR) ]
                       }
                 P.append(t)
-                # Notes de l'UE capitalisée obtenues antérieurement:            
+                # Notes de l'UE capitalisÃ©e obtenues antÃ©rieurement:            
                 self._list_modules(ue['modules_capitalized'],
                                    matieres_modules=self.infos['matieres_modules_capitalized'],
                                    ue_type=ue_type, P=P, prefs=prefs,
@@ -363,7 +363,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         # Global pdf style commands:
         pdf_style = [
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('BOX', (0,0), (-1,-1), 0.4, blue), # ajoute cadre extérieur bleu:
+            ('BOX', (0,0), (-1,-1), 0.4, blue), # ajoute cadre extÃ©rieur bleu:
             ]
         #
         return colkeys, P, pdf_style, colWidths
@@ -371,7 +371,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
     
     def _list_modules(self, ue_modules, matieres_modules={}, ue_type=None, P=None, prefs=None,
                       rowstyle='', hidden=False):
-        """Liste dans la table les descriptions des modules et, si version != short, des évaluations.
+        """Liste dans la table les descriptions des modules et, si version != short, des Ã©valuations.
         """
         if ue_type == 'cur':  # UE courante non prise en compte (car capitalisee)
             pdf_style_bg = [('BACKGROUND', (0,0), (-1,0), self.PDF_UE_CUR_BG)]
@@ -387,8 +387,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         last_matiere_id = None
         for mod in ue_modules:
             if mod['mod_moy_txt'] == 'NI':
-                continue # saute les modules où on n'est pas inscrit
-            # Matière:
+                continue # saute les modules oÃ¹ on n'est pas inscrit
+            # MatiÃ¨re:
             matiere_id = mod['module']['matiere_id']
             if prefs['bul_show_matieres'] and matiere_id != last_matiere_id:
                 mat = matieres_modules[matiere_id]
@@ -424,7 +424,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
             if self.version != 'short':           
                 # --- notes de chaque eval:
                 nbeval = self._list_evals( mod['evaluations'], P, rowstyle, pdf_style_bg, hidden)
-                # evals futures ou incomplètes:
+                # evals futures ou incomplÃ¨tes:
                 nbeval += self._list_evals( mod['evaluations_incompletes'], P, rowstyle, pdf_style_bg, hidden, incomplete=True)
                 
                 if nbeval: # boite autour des evaluations (en pdf)

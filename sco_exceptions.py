@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -57,7 +57,7 @@ class ScoValueError(ScoException):
 
 class ScoLockedFormError(ScoException):
     def __init__(self, msg='', REQUEST=None):
-        msg = 'Cette formation est verrouillée (car il y a un semestre verrouillé qui s\'y réfère). ' + str(msg)
+        msg = 'Cette formation est verrouillÃ©e (car il y a un semestre verrouillÃ© qui s\'y rÃ©fÃ¨re). ' + str(msg)
         ScoException.__init__(self,msg)
 
 class ScoGenError(ScoException):

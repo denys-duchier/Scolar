@@ -4,7 +4,7 @@
 # ScoDoc: install third-party software necessary for our installation
 # starting for a minimal Debian (Wheezy, 7.0) install.
 #
-# E. Viennet, Jun 2008, Apr 2009, Sept 2011, Sept 2013
+# E. Viennet, Jun 2008, Apr 2009, Sept 2011, Sept 2013, Nov 2013
 #
 
 source config.sh
@@ -46,10 +46,10 @@ touch /etc/locale.gen
 fi
 
 
-for locname in en_US.ISO-8859-15 en_US.ISO-8859-1
+for locname in en_US.UTF-8 en_US.ISO-8859-15 en_US.ISO-8859-1
 do
   outname=$(echo ${locname//-/} | tr '[A-Z]' '[a-z]')
-  if [ $(locale -a | egrep ^${outname}$ | wc -l) -le 1 ]
+  if [ $(locale -a | egrep -i ^${outname}$ | wc -l) -lt 1 ]
   then
     echo adding $locname
     echo "$locname ${locname##*.}" >> /etc/locale.gen
@@ -59,14 +59,14 @@ done
 /usr/sbin/locale-gen --keep-existing 
 
 
-if [ "$LANG" != "en_US.iso88591" ]
+if [ "$LANG" != "en_US.UTF-8" ]
 then
    # ceci est necessaire a cause de postgresql 8.3 qui 
    # cree son cluster lors de l'install avec la locale par defaut !
    echo "Attention: changement de la locale par defaut"
    mv /etc/default/locale /etc/default/locale.orig
-   echo "LANG=\"en_US.iso88591\"" > /etc/default/locale
-   export LANG=en_US.iso88591
+   echo "LANG=\"en_US.UTF-8\"" > /etc/default/locale
+   export LANG=en_US.UTF-8
 fi
 echo 'Done.'
 

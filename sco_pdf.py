@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,11 +25,11 @@
 #
 ##############################################################################
 
-"""Generation de PDF: définitions diverses et gestion du verrou
+"""Generation de PDF: dÃ©finitions diverses et gestion du verrou
 
-    reportlab n'est pas réentrante: il ne faut qu'une seule opération PDF au même moment.
-    Tout accès à ReportLab doit donc être précédé d'un PDFLOCK.acquire()
-    et terminé par un PDFLOCK.release()
+    reportlab n'est pas rÃ©entrante: il ne faut qu'une seule opÃ©ration PDF au mÃªme moment.
+    Tout accÃ¨s Ã  ReportLab doit donc Ãªtre prÃ©cÃ©dÃ© d'un PDFLOCK.acquire()
+    et terminÃ© par un PDFLOCK.release()
 """
 import time, cStringIO
 from types import StringType
@@ -61,7 +61,7 @@ DEFAULT_PDF_FOOTER_TEMPLATE = CONFIG.DEFAULT_PDF_FOOTER_TEMPLATE
 
 def SU(s):
     "convert s from SCO default encoding to UTF8"
-    # Mis en service le 4/11/06, passage à ReportLab 2.0
+    # Mis en service le 4/11/06, passage Ã  ReportLab 2.0
     if not s:
         s = ''
     return unicode(s, SCO_ENCODING, 'replace').encode('utf8')
@@ -234,7 +234,7 @@ def pdf_basic_page( objects, title='', preferences=None ): # used by gen_table.m
         ScolarsPageTemplate(document,
                             title=title,
                             author='%s %s (E. Viennet)' % (SCONAME, SCOVERSION),
-                            footer_template="Edité par %(scodoc_name)s le %(day)s/%(month)s/%(year)s à %(hour)sh%(minute)s",
+                            footer_template="EditÃ© par %(scodoc_name)s le %(day)s/%(month)s/%(year)s Ã  %(hour)sh%(minute)s",
                             preferences=preferences
                             ))
     if title:
@@ -274,7 +274,7 @@ class PDFLock:
         try:
             self.Q.put(1, True, self.timeout )
         except Queue.Full:
-            raise ScoGenError(msg="Traitement PDF occupé: ré-essayez")
+            raise ScoGenError(msg="Traitement PDF occupÃ©: rÃ©-essayez")
         self.current_thread = thread.get_ident()
         self.nref = 1
         log('PDFLock: granted to %s' % self.current_thread)

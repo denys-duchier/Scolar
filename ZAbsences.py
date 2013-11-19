@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,7 +27,7 @@
 
 """ Gestion des absences (v4)
 
-C'est la partie la plus ancienne de ScoDoc, et elle est à revoir.
+C'est la partie la plus ancienne de ScoDoc, et elle est Ã  revoir.
 
 L'API de plus bas niveau est en gros:
 
@@ -125,7 +125,7 @@ class ddmmyyyy:
         # accept years YYYY or YY, uses 1970 as pivot
         if self.year < 1970:
             if self.year > 100:
-                raise ScoValueError('Année invalide: %s' % self.year)
+                raise ScoValueError('AnnÃ©e invalide: %s' % self.year)
             if self.year < 70:
                 self.year = self.year + 2000
             else:
@@ -384,7 +384,7 @@ class ZAbsences(ObjectManager,
         cnx.commit()
         invalidateAbsEtudDate(self, etudid, jour)
     
-    # Fonction inutile à supprimer (gestion moduleimpl_id incorrecte):
+    # Fonction inutile Ã  supprimer (gestion moduleimpl_id incorrecte):
     # def _AnnuleAbsencesPeriodNoJust(self, etudid, datedebut, datefin,
     #                                 moduleimpl_id=None, REQUEST=None):
     #     """Supprime les absences entre ces dates (incluses).
@@ -406,7 +406,7 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoAbsChange, 'AnnuleAbsencesDatesNoJust')
     def AnnuleAbsencesDatesNoJust(self, etudid, dates, moduleimpl_id=None, REQUEST=None):
-        """Supprime les absences aux dates indiquées
+        """Supprime les absences aux dates indiquÃ©es
         mais ne supprime pas les justificatifs.
         """
         #log('AnnuleAbsencesDatesNoJust: moduleimpl_id=%s' % moduleimpl_id)
@@ -580,9 +580,9 @@ class ZAbsences(ObjectManager,
     
     security.declareProtected(ScoView, 'ListeAbsJust')
     def ListeJustifs(self, etudid, datedebut, datefin=None, only_no_abs=False):
-        """Liste des justificatifs (sans absence relevée) à partir d'une date,
-        ou, si datefin spécifié, entre deux dates.
-        Si only_no_abs: seulement les justificatifs correspondant aux jours sans absences relevées.
+        """Liste des justificatifs (sans absence relevÃ©e) Ã  partir d'une date,
+        ou, si datefin spÃ©cifiÃ©, entre deux dates.
+        Si only_no_abs: seulement les justificatifs correspondant aux jours sans absences relevÃ©es.
         """
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
@@ -690,8 +690,8 @@ class ZAbsences(ObjectManager,
                                    dates='', etudids='',
                                    destination=None, REQUEST=None):
         """Enregistre absences aux dates indiquees (abslist et dates).
-        dates est une liste de dates ISO (séparées par des ',').
-        Efface les absences aux dates indiquées par dates,
+        dates est une liste de dates ISO (sÃ©parÃ©es par des ',').
+        Efface les absences aux dates indiquÃ©es par dates,
         ou bien ajoute celles de abslist.
         """
         if etudids:
@@ -707,12 +707,12 @@ class ZAbsences(ObjectManager,
         if dates:
             for etudid in etudids:
                 self.AnnuleAbsencesDatesNoJust(etudid, dates, moduleimpl_id, REQUEST) 
-            return "Absences effacées"
+            return "Absences effacÃ©es"
         
         # 2- Ajoute les absences
         if abslist:
             self._add_abslist(abslist, REQUEST, moduleimpl_id)
-            return "Absences ajoutées"
+            return "Absences ajoutÃ©es"
         
         return ''
 
@@ -757,7 +757,7 @@ class ZAbsences(ObjectManager,
         
     security.declareProtected(ScoView, 'is_work_saturday')
     def is_work_saturday(self):
-        "Vrai si le samedi est travaillé"
+        "Vrai si le samedi est travaillÃ©"
         return int(self.get_preference('work_saturday'))
     
     def day_names(self):
@@ -796,7 +796,7 @@ class ZAbsences(ObjectManager,
         """returns list of dates in [date_beg,date_end]
         workable = 1 => keeps only workable days"""
         if not date_beg:
-            raise ScoValueError("pas de date spécifiée !")
+            raise ScoValueError("pas de date spÃ©cifiÃ©e !")
         if not date_end:
             date_end = date_beg
         r = []
@@ -886,8 +886,8 @@ class ZAbsences(ObjectManager,
                 sel = 'selected' # aucun module specifie
 
             H.append("""
- Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
-    <option value="" %(sel)s>non spécifié</option>
+ Module concernÃ© par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+    <option value="" %(sel)s>non spÃ©cifiÃ©</option>
     %(menu_module)s
     </select>
     </p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
@@ -903,7 +903,7 @@ class ZAbsences(ObjectManager,
                                  nbweeks=4, # ne montre que les nbweeks dernieres semaines
                                  moduleimpl_id=None,
                                  REQUEST=None):
-        """Saisie des absences sur une journée sur un semestre (ou intervalle de dates) entier
+        """Saisie des absences sur une journÃ©e sur un semestre (ou intervalle de dates) entier
         """
         # log('SignaleAbsenceGrSemestre: moduleimpl_id=%s' % moduleimpl_id)
         if not moduleimpl_id:
@@ -921,7 +921,7 @@ class ZAbsences(ObjectManager,
         if jourfin > today: # ne propose jamais les semaines dans le futur
             jourfin = today
         if jourdebut > today:
-            raise ScoValueError('date de début dans le futur (%s) !' % jourdebut)
+            raise ScoValueError('date de dÃ©but dans le futur (%s) !' % jourdebut)
         #
         if not jourdebut.iswork() or jourdebut > jourfin:
             raise ValueError('date debut invalide (%s, ouvrable=%d)' % (str(jourdebut), jourdebut.iswork()) )
@@ -932,7 +932,7 @@ class ZAbsences(ObjectManager,
             dates.append(d)
             d = d.next(7) # avance d'une semaine
         #
-        msg = 'Montrer seulement les 4 dernières semaines'
+        msg = 'Montrer seulement les 4 derniÃ¨res semaines'
         nwl = 4
         if nbweeks:
             nbweeks = int(nbweeks)
@@ -1001,8 +1001,8 @@ class ZAbsences(ObjectManager,
             else:
                 sel = 'selected' # aucun module specifie
             H.append("""<p>
-    Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
-    <option value="" %(sel)s>non spécifié</option>
+    Module concernÃ© par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+    <option value="" %(sel)s>non spÃ©cifiÃ©</option>
     %(menu_module)s
     </select>
 </p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
@@ -1049,7 +1049,7 @@ class ZAbsences(ObjectManager,
         H.append('</tr>')
         #
         if not etuds:
-            H.append('<tr><td><span class="redboldtext">Aucun étudiant inscrit !</span></td></tr>')
+            H.append('<tr><td><span class="redboldtext">Aucun Ã©tudiant inscrit !</span></td></tr>')
         i=1        
         for etud in etuds:
             i += 1
@@ -1105,11 +1105,11 @@ class ZAbsences(ObjectManager,
             </form>
             </p>
             </td></tr></table>
-            <p class="help">Les cases cochées correspondent à des absences.
-            Les absences saisies ne sont pas justifiées (sauf si un justificatif a été entré
+            <p class="help">Les cases cochÃ©es correspondent Ã  des absences.
+            Les absences saisies ne sont pas justifiÃ©es (sauf si un justificatif a Ã©tÃ© entrÃ©
             par ailleurs).
-            </p><p class="help">Si vous "décochez" une case,  l'absence correspondante sera supprimée.
-            Attention, les modifications sont automatiquement entregistrées au fur et à mesure.
+            </p><p class="help">Si vous "dÃ©cochez" une case,  l'absence correspondante sera supprimÃ©e.
+            Attention, les modifications sont automatiquement entregistrÃ©es au fur et Ã  mesure.
             </p>
         """ % destination)
         return H
@@ -1119,11 +1119,11 @@ class ZAbsences(ObjectManager,
                        format='html',
                        absjust_only=0,
                        REQUEST=None):
-        """Tables des absences justifiees et non justifiees d'un étudiant sur l'année en cours
+        """Tables des absences justifiees et non justifiees d'un Ã©tudiant sur l'annÃ©e en cours
         """
         absjust = self.ListeAbsJust( etudid=etudid, datedebut=datedebut)
         absnonjust = self.ListeAbsNonJust(etudid=etudid, datedebut=datedebut)
-        # examens ces jours là ?
+        # examens ces jours lÃ  ?
         if with_evals:
             cnx = self.GetDBConnexion()
             cursor = cnx.cursor(cursor_factory=ScoDocCursor)
@@ -1150,7 +1150,7 @@ class ZAbsences(ObjectManager,
             if x:
                 return 'matin'
             else:
-                return 'après midi'
+                return 'aprÃ¨s midi'
 
         def descr_exams(a):
             if not a.has_key('evals'):
@@ -1180,7 +1180,7 @@ class ZAbsences(ObjectManager,
                 return  ', '.join(ex)
             return ''
 
-        # ajoute date formatée et évaluations
+        # ajoute date formatÃ©e et Ã©valuations
         for L in (absnonjust, absjust):
             for a in L:
                 if with_evals:
@@ -1257,8 +1257,8 @@ class ZAbsences(ObjectManager,
             columns_ids = ['etudid'] + columns_ids
         tab =GenTable( columns_ids=columns_ids, rows=T,  
                        preferences=self.get_preferences(formsemestre_id),
-                       titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'Justifiées',
-                               'nbabsnonjust' : 'Non justifiées', 'nbabs' : 'Total' },
+                       titles={'etatincursem': 'Etat', 'nomprenom':'Nom', 'nbabsjust':'JustifiÃ©es',
+                               'nbabsnonjust' : 'Non justifiÃ©es', 'nbabs' : 'Total' },
                        html_sortable=True,
                        html_class='gt_table table_leftalign',
                        html_header=self.sco_header(
@@ -1270,7 +1270,7 @@ class ZAbsences(ObjectManager,
                            ),
                        html_title=self.Notes.html_sem_header(REQUEST, '%s' % title, sem, 
                                                                 with_page_header=False) 
-                       +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
+                       +  '<p>PÃ©riode du %s au %s (nombre de <b>demi-journÃ©es</b>)<br/>' % (debut, fin),
                        
                        base_url = '%s?formsemestre_id=%s&group_id=%s&debut=%s&fin=%s' % (REQUEST.URL0, formsemestre_id, group_id,debut, fin),
                        filename='etat_abs__'+make_filename('%s de %s'%(group['group_name'], sem['titreannee'])),
@@ -1278,7 +1278,7 @@ class ZAbsences(ObjectManager,
                        html_next_section="""</table>
 <p class="help">
 Cliquez sur un nom pour afficher le calendrier des absences<br/>
-ou entrez une date pour visualiser les absents un jour donné&nbsp;:
+ou entrez une date pour visualiser les absents un jour donnÃ©&nbsp;:
 </p>
 <form action="EtatAbsencesDate" method="get" action="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
@@ -1291,7 +1291,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     
     security.declareProtected(ScoView, 'EtatAbsencesDate') # ported from dtml
     def EtatAbsencesDate(self, group_id, date=None, REQUEST=None): 
-        """Etat des absences pour un groupe à une date donnée
+        """Etat des absences pour un groupe Ã  une date donnÃ©e
         """
         group = sco_groups.get_group(self, group_id)
         formsemestre_id = group['formsemestre_id']
@@ -1308,7 +1308,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             H.append( '<h2>Etat des absences le %s</h2>' % date )
             H.append( """<table border="0" cellspacing="4" cellpadding="0">
              <tr><th>&nbsp;</th>
-            <th style="width: 10em;">Matin</th><th style="width: 10em;">Après-midi</th></tr>
+            <th style="width: 10em;">Matin</th><th style="width: 10em;">AprÃ¨s-midi</th></tr>
             """)
             for etud in etuds:
                 nbabsam = self.CountAbs(etudid=etud['etudid'],debut=dateiso,fin=dateiso,matin=1)
@@ -1351,7 +1351,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             
         return '\n'.join(H) + self.sco_footer(REQUEST)
     
-    # ----- Gestion des "billets d'absence": signalement par les etudiants eux mêmes (à travers le portail)
+    # ----- Gestion des "billets d'absence": signalement par les etudiants eux mÃªmes (Ã  travers le portail)
     security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsence')
     def AddBilletAbsence(self, begin, end, description, etudid=False, code_nip=None, code_ine=None, justified=True, REQUEST=None, xml_reply=True ):
         """Memorise un "billet"
@@ -1393,7 +1393,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     security.declareProtected(ScoAbsAddBillet, 'AddBilletAbsenceForm')
     def AddBilletAbsenceForm(self, etudid, REQUEST=None):
         """Formulaire ajout billet (pour tests seulement, le vrai formulaire accessible aux etudiants
-        étant sur le portail étudiant).
+        Ã©tant sur le portail Ã©tudiant).
         """
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         H = [ self.sco_header(REQUEST,page_title="Billet d'absence de %s" % etud['nomprenom'], 
@@ -1403,7 +1403,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             (('etudid',  { 'input_type' : 'hidden' }),
              ('begin', { 'input_type' : 'date' }),
              ('end', { 'input_type' : 'date' }),
-             ('justified', { 'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'Justifiée' }),
+             ('justified', { 'input_type' : 'boolcheckbox', 'default': 0, 'title' : 'JustifiÃ©e' }),
              ('description', { 'input_type' : 'textarea' } )))
         if  tf[0] == 0:
             return '\n'.join(H) + tf[1] + self.sco_footer(REQUEST)
@@ -1422,18 +1422,18 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             if b['abs_begin'].hour < 12:
                 m = ' matin'
             else:
-                m = ' après midi'
+                m = ' aprÃ¨s midi'
             b['abs_begin_str'] = b['abs_begin'].strftime('%d/%m/%Y') + m
             if b['abs_end'].hour < 12:
                 m = ' matin'
             else:
-                m = ' après midi'
+                m = ' aprÃ¨s midi'
             b['abs_end_str'] = b['abs_end'].strftime('%d/%m/%Y') + m
             if b['etat'] == 0:
                 if b['justified'] == 0:
-                    b['etat_str'] = 'à traiter'
+                    b['etat_str'] = 'Ã  traiter'
                 else:
-                    b['etat_str'] = 'à justifier'
+                    b['etat_str'] = 'Ã  justifier'
                 b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s' % b['billet_id']
                 if etud:
                     b['_etat_str_target'] += '&etudid=%s' % etud['etudid']
@@ -1449,7 +1449,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                     b['nomprenom'] = e[0]['nomprenom']
                 b['_nomprenom_target'] = 'ficheEtud?etudid=%s' % b['etudid']
         if etud and not title:
-            title = "Billets d'absence déclarés par %(nomprenom)s" % etud
+            title = "Billets d'absence dÃ©clarÃ©s par %(nomprenom)s" % etud
         else:
             title = title
         columns_ids = ['billet_id']
@@ -1457,7 +1457,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             columns_ids += [ 'nomprenom' ]
         columns_ids += ['abs_begin_str', 'abs_end_str', 'description', 'etat_str']
         
-        tab = GenTable( titles= { 'billet_id' : 'Numéro', 'abs_begin_str' : 'Début', 'abs_end_str' : 'Fin', 'description' : "Raison de l'absence", 'etat_str' : 'Etat'}, 
+        tab = GenTable( titles= { 'billet_id' : 'NumÃ©ro', 'abs_begin_str' : 'DÃ©but', 'abs_end_str' : 'Fin', 'description' : "Raison de l'absence", 'etat_str' : 'Etat'}, 
                         columns_ids=columns_ids,
                         page_title=title, html_title='<h2>%s</h2>' % title,
                         preferences=self.get_preferences(),
@@ -1489,18 +1489,18 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
 
     security.declareProtected(ScoView, 'listeBillets')
     def listeBillets(self, REQUEST=None):
-        """Page liste des billets non traités et formulaire recherche d'un billet"""
+        """Page liste des billets non traitÃ©s et formulaire recherche d'un billet"""
         cnx = self.GetDBConnexion()
         billets = billet_absence_list(cnx,  {'etat': 0 } )
         tab = self._tableBillets(billets)
         T = tab.html()
-        H = [ self.sco_header(REQUEST,page_title="Billet d'absence non traités"),
+        H = [ self.sco_header(REQUEST,page_title="Billet d'absence non traitÃ©s"),
               "<h2>Billets d'absence en attente de traitement (%d)</h2>" % len(billets),
               ]
 
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
-            (('billet_id', { 'input_type' : 'text', 'title' : 'Numéro du billet' }),),
+            (('billet_id', { 'input_type' : 'text', 'title' : 'NumÃ©ro du billet' }),),
             submitbutton=False
             )
         if  tf[0] == 0:
@@ -1526,19 +1526,19 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         
         billet_absence_delete(cnx, billet_id )
         
-        return REQUEST.RESPONSE.redirect( 'listeBillets?head_message=Billet%20supprimé' )
+        return REQUEST.RESPONSE.redirect( 'listeBillets?head_message=Billet%20supprimÃ©' )
 
     def _ProcessBilletAbsence(self, billet, estjust, description, REQUEST):
-        """Traite un billet: ajoute absence(s) et éventuellement justificatifs,
-        et change l'état du billet à 1.
-        NB: actuellement, les heures ne sont utilisées que pour déterminer si matin et/ou après midi.
+        """Traite un billet: ajoute absence(s) et Ã©ventuellement justificatifs,
+        et change l'Ã©tat du billet Ã  1.
+        NB: actuellement, les heures ne sont utilisÃ©es que pour dÃ©terminer si matin et/ou aprÃ¨s midi.
         """
         cnx = self.GetDBConnexion()
         if billet['etat'] != 0:
             log('billet=%s' % billet)
-            log('billet deja traité !')
+            log('billet deja traitÃ© !')
             return -1
-        n = 0 # nombre de demi-journées d'absence ajoutées
+        n = 0 # nombre de demi-journÃ©es d'absence ajoutÃ©es
         # 1-- ajout des absences (et justifs)
         datedebut = billet['abs_begin'].strftime('%d/%m/%Y')
         datefin = billet['abs_end'].strftime('%d/%m/%Y')
@@ -1582,8 +1582,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('billet_id',  { 'input_type' : 'hidden' }),
-             ('etudid',  { 'input_type' : 'hidden' }), # pour centrer l'UI sur l'étudiant
-             ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiées' }),
+             ('etudid',  { 'input_type' : 'hidden' }), # pour centrer l'UI sur l'Ã©tudiant
+             ('estjust', { 'input_type' : 'boolcheckbox', 'title' : 'Absences justifiÃ©es' }),
              ('description',  { 'input_type' : 'text', 'size' : 42, 'title' : 'Raison' })),
             initvalues = { 'description' : billet['description'],
                            'estjust' : billet['justified'],
@@ -1593,7 +1593,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             tab = self._tableBillets([billet], etud=etud)
             H.append(tab.html())
             if billet['justified'] == 1:
-                H.append("""<p>L'étudiant pense pouvoir justifier cette absence.<br/><em>Vérifiez le justificatif avant d'enregistrer.</em></p>""")
+                H.append("""<p>L'Ã©tudiant pense pouvoir justifier cette absence.<br/><em>VÃ©rifiez le justificatif avant d'enregistrer.</em></p>""")
             F = """<p><a class="stdlink" href="deleteBilletAbsence?billet_id=%s">Supprimer ce billet</a> (utiliser en cas d'erreur, par ex. billet en double)</p>""" % billet_id
             F += '<p><a class="stdlink" href="listeBillets">Liste de tous les billets en attente</a></p>' 
 
@@ -1603,17 +1603,17 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
         else:
             n = self._ProcessBilletAbsence(billet, tf[2]['estjust'], tf[2]['description'], REQUEST)
             if tf[2]['estjust']:
-                j = 'justifiées'
+                j = 'justifiÃ©es'
             else:
-                j = 'non justifiées'
+                j = 'non justifiÃ©es'
             H.append('<div class="head_message">')
             if n > 0:
-                H.append('%d absences (1/2 journées) %s ajoutées' % (n,j))
+                H.append('%d absences (1/2 journÃ©es) %s ajoutÃ©es' % (n,j))
             elif n == 0:
-                H.append("Aucun jour d'absence dans les dates indiquées !")
+                H.append("Aucun jour d'absence dans les dates indiquÃ©es !")
             elif n < 0:
-                H.append("Ce billet avait déjà été traité !")
-            H.append('</div><p><a class="stdlink" href="listeBillets">Autre billets en attente</a></p><h4>Billets déclarés par %s</h4>' % (etud['nomprenom']))
+                H.append("Ce billet avait dÃ©jÃ  Ã©tÃ© traitÃ© !")
+            H.append('</div><p><a class="stdlink" href="listeBillets">Autre billets en attente</a></p><h4>Billets dÃ©clarÃ©s par %s</h4>' % (etud['nomprenom']))
             billets = billet_absence_list(cnx,  {'etudid': etud['etudid'] } )
             tab = self._tableBillets(billets, etud=etud)
             H.append(tab.html())
@@ -1868,15 +1868,15 @@ def manage_addZAbsences(self, id= 'id_ZAbsences', title='The Title for ZAbsences
 #
 # Cache absences
 #
-# On cache simplement (à la demande) le nombre d'absences de chaque etudiant
-# dans un semestre donné.
+# On cache simplement (Ã  la demande) le nombre d'absences de chaque etudiant
+# dans un semestre donnÃ©.
 # Toute modification du semestre (invalidation) invalide le cache 
-#  (simple mécanisme de "listener" sur le cache de semestres)
-# Toute modification des absences d'un étudiant invalide les caches des semestres 
-# concernés à cette date (en général un seul semestre)
+#  (simple mÃ©canisme de "listener" sur le cache de semestres)
+# Toute modification des absences d'un Ã©tudiant invalide les caches des semestres 
+# concernÃ©s Ã  cette date (en gÃ©nÃ©ral un seul semestre)
 #
-# On ne cache pas la liste des absences car elle est rarement utilisée (calendrier, 
-#  absences à une date donnée).
+# On ne cache pas la liste des absences car elle est rarement utilisÃ©e (calendrier, 
+#  absences Ã  une date donnÃ©e).
 #
 # --------------------------------------------------------------------
 class CAbsSemEtud:
@@ -1914,7 +1914,7 @@ class CAbsSemEtud:
         self._loaded = False
         
 
-# Accès au cache des absences
+# AccÃ¨s au cache des absences
 ABS_CACHE_INST = {} # { DeptId : { formsemestre_id : { etudid :  CAbsEtudSem } } }
 
 def getAbsSemEtud(context, formsemestre_id, etudid):
@@ -1933,8 +1933,8 @@ def getAbsSemEtuds(context, formsemestre_id):
     return C[formsemestre_id]
 
 def invalidateAbsEtudDate(context, etudid, date):
-    """Doit etre appelé à chaque modification des absences pour cet étudiant et cette date.
-    Invalide cache absence et PDF bulletins si nécessaire.
+    """Doit etre appelÃ© Ã  chaque modification des absences pour cet Ã©tudiant et cette date.
+    Invalide cache absence et PDF bulletins si nÃ©cessaire.
     date: date au format ISO
     """
     # Semestres a cette date:
@@ -1947,7 +1947,7 @@ def invalidateAbsEtudDate(context, etudid, date):
         if sco_compute_moy.formsemestre_expressions_use_abscounts(context, sem['formsemestre_id']):
             pdfonly = False # seules certaines formules utilisent les absences
         else:
-            pdfonly = True # efface toujours le PDF car il affiche en général les absences
+            pdfonly = True # efface toujours le PDF car il affiche en gÃ©nÃ©ral les absences
         
         context.Notes._inval_cache(pdfonly=pdfonly, formsemestre_id=sem['formsemestre_id'])
         

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -26,9 +26,9 @@
 ##############################################################################
 
 """Site ScoDoc pour plusieurs departements: 
-      gestion de l'installation et des creation de départements.
+      gestion de l'installation et des creation de dÃ©partements.
 
-   Chaque departement est géré par un ZScolar sous ZScoDoc.
+   Chaque departement est gÃ©rÃ© par un ZScolar sous ZScoDoc.
 """
 
 import time, string, glob, re, inspect
@@ -119,11 +119,11 @@ class ZScoDoc(ObjectManager,
         if authuser.has_role('manager') or authuser.has_permission(ScoSuperAdmin,self):
             return ''
         else:
-            return """<h2>Vous n'avez pas le droit d'accéder à cette page</h2>"""
+            return """<h2>Vous n'avez pas le droit d'accÃ©der Ã  cette page</h2>"""
 
     
     def _check_users_folder(self, REQUEST=None):
-        """Vérifie UserFolder et le crée s'il le faut
+        """VÃ©rifie UserFolder et le crÃ©e s'il le faut
         """
         try:
             udb = self.UsersDB
@@ -133,9 +133,9 @@ class ZScoDoc(ObjectManager,
             if not e: # admin permissions:
                 self.create_users_cnx(REQUEST)
                 self.create_users_folder(REQUEST)
-                return '<div class="head_message">Création du connecteur utilisateurs réussie</div>'
+                return '<div class="head_message">CrÃ©ation du connecteur utilisateurs rÃ©ussie</div>'
             else:
-                return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
+                return """<div class="head_message">Installation non terminÃ©e: connectez vous avec les droits d'administrateur</div>"""
             
     security.declareProtected('View','create_users_folder')
     def create_users_folder(self, REQUEST=None):
@@ -190,10 +190,10 @@ class ZScoDoc(ObjectManager,
     def create_users_cnx(self, REQUEST=None):
         """Create Zope connector to UsersDB
 
-        Note: la connexion est fixée (SCOUSERS) (base crée par l'installeur) !
-        Les utilisateurs avancés pourront la changer ensuite.
+        Note: la connexion est fixÃ©e (SCOUSERS) (base crÃ©e par l'installeur) !
+        Les utilisateurs avancÃ©s pourront la changer ensuite.
         """
-        # ce connecteur zope - db est encore pour l'instant utilisé par exUserFolder.pgAuthSource
+        # ce connecteur zope - db est encore pour l'instant utilisÃ© par exUserFolder.pgAuthSource
         # (en lecture seule en principe)
         oid = 'UsersDB'
         log('create_users_cnx: in %s' % self.id)
@@ -212,7 +212,7 @@ class ZScoDoc(ObjectManager,
         if not REQUEST.AUTHENTICATED_USER.has_role('Manager'):
             log('user %s is not Manager' % REQUEST.AUTHENTICATED_USER)
             log('roles=%s' % REQUEST.AUTHENTICATED_USER.getRolesInContext(self))
-            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opÃ©ration")
         log("trying to change admin password")
         # 1-- check strong password
         if pwdFascistCheck(password) != None:
@@ -235,7 +235,7 @@ class ZScoDoc(ObjectManager,
         # note: controle sur le role et non pas sur une permission
         # (non definies au top level)
         if not REQUEST.AUTHENTICATED_USER.has_role('Manager'):
-            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opÃ©ration")
         H = [ self._html_begin % 
               { 'page_title' : 'ScoDoc: changement mot de passe',
                 'encoding' : SCO_ENCODING },
@@ -312,7 +312,7 @@ class ZScoDoc(ObjectManager,
         
         self.manage_delObjects(ids=[ DeptId ])
     
-        return '<p>Département ' + DeptId + """ supprimé du serveur web (la base de données n'est pas affectée)!</p><p><a href="%s">Continuer</a></p>""" % REQUEST.URL1
+        return '<p>DÃ©partement ' + DeptId + """ supprimÃ© du serveur web (la base de donnÃ©es n'est pas affectÃ©e)!</p><p><a href="%s">Continuer</a></p>""" % REQUEST.URL1
 
     _top_level_css = """
     <style type="text/css">
@@ -426,22 +426,22 @@ h4 {
             H.append('<div id="message">%s</div>' % message )
         
         if isAdmin and not message:
-            H.append('<div id="message">Attention: connecté comme administrateur</div>' )
+            H.append('<div id="message">Attention: connectÃ© comme administrateur</div>' )
             
         H.append("""
               <div class="maindiv">
-        <h2>ScoDoc: gestion scolarité</h2>
+        <h2>ScoDoc: gestion scolaritÃ©</h2>
         <p>
-        Ce site est <font color="red"><b>réservé au personnel autorisé</b></font>.
+        Ce site est <font color="red"><b>rÃ©servÃ© au personnel autorisÃ©</b></font>.
         </p>                 
         """)
         
         
         if not deptList:
-            H.append('<em>aucun département existant !</em>')
+            H.append('<em>aucun dÃ©partement existant !</em>')
             # si pas de dept et pas admin, propose lien pour loger admin
             if not isAdmin:
-                H.append("""<p><a href="/force_admin_authentication">Identifiez vous comme administrateur</a> (au début: nom 'admin', mot de passe 'scodoc')</p>""")
+                H.append("""<p><a href="/force_admin_authentication">Identifiez vous comme administrateur</a> (au dÃ©but: nom 'admin', mot de passe 'scodoc')</p>""")
         else:
              H.append('<ul class="main">')
              if isAdmin:
@@ -449,14 +449,14 @@ h4 {
              else:
                  dest_folder = ''
              for deptFolder in self.list_depts():
-                 H.append('<li><a class="stdlink" href="%s%s">Scolarité département %s</a>'
+                 H.append('<li><a class="stdlink" href="%s%s">ScolaritÃ© dÃ©partement %s</a>'
                           % (deptFolder.absolute_url(), dest_folder, deptFolder.id))
                  # check if roles are initialized in this depts, and do it if necessary
                  if deptFolder.Scolarite.roles_initialized == '0':
                      if isAdmin:
                          deptFolder.Scolarite._setup_initial_roles_and_permissions()
                      else:
-                         H.append(' (non initialisé, connectez vous comme admin)')
+                         H.append(' (non initialisÃ©, connectez vous comme admin)')
                  H.append('</li>')
              H.append('</ul>')
 
@@ -472,10 +472,10 @@ h4 {
             img = '' # icons folder not yet available
         H.append("""
 <div id="scodoc_attribution">
-<p><a href="%s">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
-E. Viennet (Université Paris 13).</p>
+<p><a href="%s">ScoDoc</a> est un logiciel libre de suivi de la scolaritÃ© des Ã©tudiants conÃ§u par 
+E. Viennet (UniversitÃ© Paris 13).</p>
 
-<p>Ce logiciel est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
+<p>Ce logiciel est conÃ§u pour un navigateur rÃ©cent et <em>ne s'affichera pas correctement avec un logiciel
 ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 </div>
@@ -498,11 +498,11 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         H = [ self.standard_html_header(self),
               """<div style="margin: 1em;">
 
-<h2>Scolarité du département %s</h2>
+<h2>ScolaritÃ© du dÃ©partement %s</h2>
 <p>
 
 Ce site est 
-<font color="#FF0000"><b>réservé au personnel du département</b></font>.
+<font color="#FF0000"><b>rÃ©servÃ© au personnel du dÃ©partement</b></font>.
 </p>
 
 
@@ -526,7 +526,7 @@ Ce site est
 
 <p>Pour quitter, <a href="acl_users/logout">logout</a>
 </p>
-<p>Ce site est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
+<p>Ce site est conÃ§u pour un navigateur rÃ©cent et <em>ne s'affichera pas correctement avec un logiciel
 ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</p>
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 
@@ -582,7 +582,7 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
         return """<p class="footer">
-Problème de connexion (identifiant, mot de passe): <em>contacter votre responsable ou chef de département</em>.<br/>
+ProblÃ¨me de connexion (identifiant, mot de passe): <em>contacter votre responsable ou chef de dÃ©partement</em>.<br/>
 Probl&egrave;mes et suggestions sur le logiciel: <a href="mailto:emmanuel.viennet@univ-paris13.fr">emmanuel.viennet@univ-paris13.fr</a>
 ou <a href="mailto:%s">%s</a>
 </p>
@@ -684,7 +684,7 @@ ou <a href="mailto:%s">%s</a>
                 # display error traceback (? may open a security risk via xss attack ?)
                 #log('exc B')
                 txt_html = self._report_request(REQUEST, format='html')
-                H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
+                H.append("""<h4>Zope Traceback (Ã  envoyer par mail Ã  <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
 <p><b>Informations:</b><br/>
 %(txt_html)s
@@ -782,11 +782,11 @@ subversion: %(svn_version)s
 <h3>Administration ScoDoc</h3>
 
 <p><a href="change_admin_user_form">changer le mot de passe super-administrateur</a></p>
-<p><a href="%s">retour à la page d'accueil</a></p>
+<p><a href="%s">retour Ã  la page d'accueil</a></p>
 
-<h4>Création d'un département</h4>
-<p class="help">Le département doit avoir été créé au préalable sur le serveur en utilisant le script
-<tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc).
+<h4>CrÃ©ation d'un dÃ©partement</h4>
+<p class="help">Le dÃ©partement doit avoir Ã©tÃ© crÃ©Ã© au prÃ©alable sur le serveur en utilisant le script
+<tt>create_dept.sh</tt> (Ã  lancer comme <tt>root</tt> dans le rÃ©pertoire <tt>config</tt> de ScoDoc).
 </p>""" % self.absolute_url()]
 
         deptList = [ x.id for x in self.list_depts() ] # definis dans Zope
@@ -796,20 +796,20 @@ subversion: %(svn_version)s
         
         if not addableDepts:
             # aucun departement defini: aide utilisateur
-            H.append("<p>Aucun département à ajouter !</p>")
+            H.append("<p>Aucun dÃ©partement Ã  ajouter !</p>")
         else:
             H.append("""<form action="create_dept"><select name="DeptId"/>""")
             for deptId in addableDepts:
                 H.append("""<option value="%s">%s</option>""" % (deptId,deptId))
             H.append("""</select>
-            <input type="submit" value="Créer département">
+            <input type="submit" value="CrÃ©er dÃ©partement">
             </form>""" )
             
         if deptList:
             H.append("""
-<h4>Suppression d'un département</h4>
-<p>Ceci permet de supprimer le site web associé à un département, mais n'affecte pas la base de données 
-(le site peut donc être recréé sans perte de données).
+<h4>Suppression d'un dÃ©partement</h4>
+<p>Ceci permet de supprimer le site web associÃ© Ã  un dÃ©partement, mais n'affecte pas la base de donnÃ©es 
+(le site peut donc Ãªtre recrÃ©Ã© sans perte de donnÃ©es).
 </p>
 <form action="delete_dept">
 <select name="DeptId">
@@ -818,14 +818,14 @@ subversion: %(svn_version)s
                 H.append('<option value="%s">%s</option>'
                          % (deptFolder.id, deptFolder.id) )
             H.append("""</select>
-<input type="submit" value="Supprimer département">
+<input type="submit" value="Supprimer dÃ©partement">
 
 </form>""")
 
-        # Autres opérations
-        H.append("""<h4>Autres opérations</h4>
+        # Autres opÃ©rations
+        H.append("""<h4>Autres opÃ©rations</h4>
 <ul>
-<li><a href="build_icons_folder">Reconstruire les icônes</a></li>
+<li><a href="build_icons_folder">Reconstruire les icÃ´nes</a></li>
 </ul>
 """)
 
@@ -842,7 +842,7 @@ subversion: %(svn_version)s
         return ids
     
     def _check_icons_folder(self,REQUEST=None): # not published
-        """Vérifie icons folder Zope et le crée s'il le faut
+        """VÃ©rifie icons folder Zope et le crÃ©e s'il le faut
         XXX deprecated: on utilisera maintenant les images statiques via sco_utils.icontag()
         """
         try:
@@ -854,9 +854,9 @@ subversion: %(svn_version)s
             e = self._check_admin_perm(REQUEST)
             if not e: # admin permissions:
                 self.build_icons_folder(REQUEST)
-                return '<div class="head_message">Création du dossier icons réussie</div>'
+                return '<div class="head_message">CrÃ©ation du dossier icons rÃ©ussie</div>'
             else:
-                return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
+                return """<div class="head_message">Installation non terminÃ©e: connectez vous avec les droits d'administrateur</div>"""
 
     security.declareProtected('View', 'build_icons_folder')
     def build_icons_folder(self,REQUEST=None): 
@@ -918,7 +918,7 @@ def manage_addZScoDoc(self, id= 'ScoDoc',
                       REQUEST=None):
    "Add a ZScoDoc instance to a folder."
    log('==============   creating a new ScoDoc instance =============')
-   zscodoc = ZScoDoc(id, title) # ne cree (presque rien), tout se passe lors du 1er accès
+   zscodoc = ZScoDoc(id, title) # ne cree (presque rien), tout se passe lors du 1er accÃ¨s
    self._setObject(id,zscodoc)
    if REQUEST is not None:
        REQUEST.RESPONSE.redirect('%s/manage_workspace' % REQUEST.URL1)

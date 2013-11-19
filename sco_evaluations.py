@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -74,7 +74,7 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
     NotesDB = context._notes_getall(evaluation_id) # { etudid : value }
     notes = [ x['value'] for x in NotesDB.values() ]
     if notes:
-        raise ScoValueError("Impossible de supprimer cette Èvaluation: il reste des notes")
+        raise ScoValueError("Impossible de supprimer cette √©valuation: il reste des notes")
 
     moduleimpl_id = the_evals[0]['moduleimpl_id']
     context._evaluation_check_write_access( REQUEST, moduleimpl_id=moduleimpl_id)
@@ -89,7 +89,7 @@ def do_evaluation_delete(context, REQUEST, evaluation_id):
     mod['moduleimpl_id'] = M['moduleimpl_id']
     mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
     sco_news.add(context, REQUEST, typ=sco_news.NEWS_NOTE, object=moduleimpl_id,
-                 text='Suppression d\'une Èvaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                 text='Suppression d\'une √©valuation dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url=mod['url'])
 
 
@@ -99,7 +99,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
     { nb_inscrits, nb_notes, nb_abs, nb_neutre, nb_att, moyenne, mediane,
     date_last_modif, gr_complets, gr_incomplets, evalcomplete }
     evalcomplete est vrai si l'eval est complete (tous les inscrits
-    ‡ ce module ont des notes)
+    √† ce module ont des notes)
     evalattente est vrai s'il ne manque que des notes en attente
     """
     #log('do_evaluation_etat: evaluation_id=%s  partition_id=%s' % (evaluation_id, partition_id))
@@ -144,8 +144,8 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
     # retire de insem ceux qui ne sont pas inscrits au module
     ins = [ i for i in insem if i['etudid'] in insmodset ]
     
-    # Nombre de notes valides d'Ètudiants inscrits au module
-    # (car il peut y avoir des notes d'Ètudiants dÈsinscrits depuis l'Èvaluation)
+    # Nombre de notes valides d'√©tudiants inscrits au module
+    # (car il peut y avoir des notes d'√©tudiants d√©sinscrits depuis l'√©valuation)
     nb_notes = len( insmodset.intersection(NotesDB) )
     nb_notes_total = len(NotesDB)
     
@@ -223,7 +223,7 @@ def do_evaluation_etat(context, evaluation_id, partition_id=None, select_first_p
 
 def do_evaluation_list_in_sem(context, formsemestre_id):
     """Liste des evaluations pour un semestre (dans tous les modules de ce semestre).
-    Donne pour chaque eval son Ètat (voir do_evaluation_etat)
+    Donne pour chaque eval son √©tat (voir do_evaluation_etat)
     { evaluation_id,nb_inscrits, nb_notes, nb_abs, nb_neutre, moy, median, last_modif ... }
     """
     req = "select evaluation_id from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
@@ -239,7 +239,7 @@ def do_evaluation_list_in_sem(context, formsemestre_id):
     return R 
 
 def formsemestre_evaluations_list(context, formsemestre_id):
-    """Liste (non triÈe) des evals pour ce semestre"""
+    """Liste (non tri√©e) des evals pour ce semestre"""
     req = "select E.* from notes_evaluation E, notes_moduleimpl MI where MI.formsemestre_id = %(formsemestre_id)s and MI.moduleimpl_id = E.moduleimpl_id"
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)    
@@ -336,7 +336,7 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
             fin = e['heure_fin'].strftime('%Hh%M')
         else:
             fin = '?'
-        description = '%s, de %s ‡ %s' % (mod['module']['titre'],  debut,  fin)
+        description = '%s, de %s √† %s' % (mod['module']['titre'],  debut,  fin)
         if etat['evalcomplete']:
             color = color_complete
         else:
@@ -368,10 +368,10 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
           '<div class="cal_evaluations">',
           CalHTML,
           '</div>',
-          '<p>soit %s Èvaluations planifiÈes;' % nb_evals,
-          """<ul><li>en <span style="background-color: %s">rouge</span> les Èvaluations passÈes auxquelles il manque des notes</li>
-          <li>en <span style="background-color: %s">vert</span> les Èvaluations dÈj‡ notÈes</li>
-          <li>en <span style="background-color: %s">bleu</span> les Èvaluations futures</li></ul></p>"""
+          '<p>soit %s √©valuations planifi√©es;' % nb_evals,
+          """<ul><li>en <span style="background-color: %s">rouge</span> les √©valuations pass√©es auxquelles il manque des notes</li>
+          <li>en <span style="background-color: %s">vert</span> les √©valuations d√©j√† not√©es</li>
+          <li>en <span style="background-color: %s">bleu</span> les √©valuations futures</li></ul></p>"""
           % (color_incomplete, color_complete, color_futur),
           context.sco_footer(REQUEST) ]
     return '\n'.join(H)

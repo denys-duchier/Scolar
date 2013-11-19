@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -37,10 +37,10 @@ from sco_utils import *
 from notes_log import log
 
 class NoteVector:
-    """Vecteur de notes (ou coefficients) utilisÈ pour les formules dÈfinies par l'utilisateur.
-    Les ÈlÈments sont accessibles soit par index v[i], soit par leur nom v['nom'] s'il en ont un.
-    Les ÈlÈments sont toujours numÈriques (float). Les valeurs non numÈriques ('NI', ...) sont
-    considÈrÈes comme nulles (0.0).
+    """Vecteur de notes (ou coefficients) utilis√© pour les formules d√©finies par l'utilisateur.
+    Les √©l√©ments sont accessibles soit par index v[i], soit par leur nom v['nom'] s'il en ont un.
+    Les √©l√©ments sont toujours num√©riques (float). Les valeurs non num√©riques ('NI', ...) sont
+    consid√©r√©es comme nulles (0.0).
     """
     def __init__(self, *args, **kwargs):
         if args:
@@ -136,7 +136,7 @@ def geometrical_mean(v, w=None):
         vw = [ pow(x,y) for (x,y) in zip(v,w) ]
         return pow(reduce(operator.mul, vw), 1./sum(w))
 
-# Les builtins autorisÈes dans les formules utilisateur:
+# Les builtins autoris√©es dans les formules utilisateur:
 formula_builtins = {
     'V' : NoteVector,
     'dot' : dot, 
@@ -158,7 +158,7 @@ formula_builtins = {
 # eval("max(4,5)", {'__builtins__': formula_builtins, {'x' : 1, 'v' : NoteVector(1,2) }, {})
 
 def eval_user_expression(context, expression, variables):
-    """Evalue l'expression (formule utilisateur) avec les variables (dict) donn√©es.
+    """Evalue l'expression (formule utilisateur) avec les variables (dict) donn√É¬©es.
     """
     variables['__builtins__'] = formula_builtins
     # log('Evaluating %s with %s' % (expression, variables))

@@ -6,7 +6,7 @@
 #  Utile pour migrer ScoDoc d'un serveur a un autre
 #  A executer en tant que root sur le nouveau serveur
 #
-# E. Viennet, Sept 2011
+# E. Viennet, Sept 2011, Nov 2013
 #
 
 

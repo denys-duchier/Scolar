@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,18 +25,18 @@
 #
 ##############################################################################
 
-"""Géneration de tables aux formats XHTML, PDF, Excel, XML et JSON.
+"""GÃ©neration de tables aux formats XHTML, PDF, Excel, XML et JSON.
 
-Les données sont fournies comme une liste de dictionnaires, chaque élément de
-cette liste décrivant une ligne du tableau.
+Les donnÃ©es sont fournies comme une liste de dictionnaires, chaque Ã©lÃ©ment de
+cette liste dÃ©crivant une ligne du tableau.
 
-Chaque colonne est identifiée par une clé du dictionnaire.
+Chaque colonne est identifiÃ©e par une clÃ© du dictionnaire.
 
 Voir exemple en fin de ce fichier.
 
-Les clés commençant par '_' sont réservées. Certaines altèrent le traitement, notamment
-pour spécifier les styles de mise en forme.
-Par exemple, la clé '_css_row_class' spécifie le style CSS de la ligne.
+Les clÃ©s commenÃ§ant par '_' sont rÃ©servÃ©es. Certaines altÃ¨rent le traitement, notamment
+pour spÃ©cifier les styles de mise en forme.
+Par exemple, la clÃ© '_css_row_class' spÃ©cifie le style CSS de la ligne.
 
 """
 

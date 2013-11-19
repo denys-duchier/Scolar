@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -32,12 +32,12 @@ TODO:
 * Groupes:
 
  - changement de groupe d'un seul etudiant:
-     formChangeGroupe: pour l'instant supprimé, pas vraiment utile ?
+     formChangeGroupe: pour l'instant supprimÃ©, pas vraiment utile ?
      doChangeGroupe
 
 Optimisation possible:
  revoir do_evaluation_listeetuds_groups() pour extraire aussi les groupes (de chaque etudiant)
- et eviter ainsi l'appel ulterieur à get_etud_groups() dans _make_table_notes
+ et eviter ainsi l'appel ulterieur Ã  get_etud_groups() dans _make_table_notes
 
 """
 
@@ -147,7 +147,7 @@ def get_sem_groups(context, formsemestre_id):
 
 def get_group_members(context, group_id, etat=None):  
     """Liste des etudiants d'un groupe.
-    Si etat, filtre selon l'état de l'inscription
+    Si etat, filtre selon l'Ã©tat de l'inscription
     """
     req = "SELECT i.*, a.*, gm.*, ins.etat FROM identite i, adresse a, group_membership gm, group_descr gd, partition p, notes_formsemestre_inscription ins WHERE i.etudid = gm.etudid and a.etudid = i.etudid and ins.etudid = i.etudid and ins.formsemestre_id = p.formsemestre_id and p.partition_id = gd.partition_id and gd.group_id = gm.group_id and gm.group_id=%(group_id)s"
     if etat is not None:
@@ -189,7 +189,7 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
                     t['date_dem'] = event['event_date']
                     break            
             if 'date_dem' in t:
-                t['etath'] = 'démission le %s' % t['date_dem']
+                t['etath'] = 'dÃ©mission le %s' % t['date_dem']
             else:
                 t['etath'] = '(dem.)'
             nbdem += 1
@@ -282,7 +282,7 @@ def formsemestre_partition_list(context, formsemestre_id, format='xml', REQUEST=
 def XMLgetGroupsInPartition(context, partition_id, REQUEST=None): # was XMLgetGroupesTD
     """
     Deprecated: use group_list
-    Liste des étudiants dans chaque groupe de cette partition.
+    Liste des Ã©tudiants dans chaque groupe de cette partition.
     <group partition_id="" partition_name="" group_id="" group_name="">
     <etud etuid="" sexe="" nom="" prenom="" origin=""/>
     </groupe>
@@ -341,7 +341,7 @@ def XMLgetGroupsInPartition(context, partition_id, REQUEST=None): # was XMLgetGr
     return repr(doc)
 
 def comp_origin(etud, cur_sem):
-    """breve description de l'origine de l'étudiant (sem. precedent)
+    """breve description de l'origine de l'Ã©tudiant (sem. precedent)
     (n'indique l'origine que si ce n'est pas le semestre precedent normal)
     """
     # cherche le semestre suivant le sem. courant dans la liste
@@ -363,14 +363,14 @@ def comp_origin(etud, cur_sem):
 
 
 def set_group(context, etudid, group_id):
-    """Inscrit l'étudiant au groupe.
+    """Inscrit l'Ã©tudiant au groupe.
     Return True if ok, False si deja inscrit.
     Warning: don't check if group_id exists (the caller should check).
     """
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     args = { 'etudid' : etudid, 'group_id' : group_id }
-    # déjà inscrit ?
+    # dÃ©jÃ  inscrit ?
     r = SimpleDictFetch(context, "SELECT * FROM group_membership gm WHERE etudid=%(etudid)s and group_id=%(group_id)s", args, cursor=cursor)
     if len(r):
         return False
@@ -418,14 +418,14 @@ def setGroups(context, partition_id,
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     log('***setGroups: partition_id=%s' % partition_id)
     log('groupsLists=%s' % groupsLists)
     log('groupsToCreate=%s' % groupsToCreate )
     log('groupsToDelete=%s' % groupsToDelete )
     sem = context.Notes.get_formsemestre(formsemestre_id)        
     if sem['etat'] != '1':
-        raise AccessDenied('Modification impossible: semestre verrouillé')
+        raise AccessDenied('Modification impossible: semestre verrouillÃ©')
 
     groupsToDelete = [ g for g in groupsToDelete.split(';') if g ]
 
@@ -439,7 +439,7 @@ def setGroups(context, partition_id,
         # Anciens membres du groupe:
         old_members = get_group_members(context, group_id)
         old_members_set = set( [ x['etudid'] for x in old_members ] )
-        # Place dans ce groupe les etudiants indiqués:
+        # Place dans ce groupe les etudiants indiquÃ©s:
         for etudid in fs[1:-1]:
             if etudid in old_members_set:
                 old_members_set.remove(etudid) # a nouveau dans ce groupe, pas besoin de l'enlever
@@ -455,11 +455,11 @@ def setGroups(context, partition_id,
               msg='formsemestre_id=%s,partition_name=%s, group_name=%s' %
               (formsemestre_id,partition['partition_name'],group['group_name']))
 
-    # Supprime les groupes indiqués comme supprimés:
+    # Supprime les groupes indiquÃ©s comme supprimÃ©s:
     for group_id in groupsToDelete:
         suppressGroup(context, group_id,  partition_id=partition_id, REQUEST=REQUEST)
 
-    # Crée les nouveaux groupes
+    # CrÃ©e les nouveaux groupes
     for line in groupsToCreate.split('\n'): # for each group_name (one per line)
         fs = line.split(';')
         group_name = fs[0].strip()        
@@ -468,12 +468,12 @@ def setGroups(context, partition_id,
         # ajax arguments are encoded in utf-8:
         group_name = unicode(group_name, 'utf-8').encode(SCO_ENCODING)
         group_id = createGroup(context, partition_id, group_name, REQUEST=REQUEST)
-        # Place dans ce groupe les etudiants indiqués:
+        # Place dans ce groupe les etudiants indiquÃ©s:
         for etudid in fs[1:-1]:
             change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST=REQUEST)
     
     REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
-    return 'Groupes enregistrés'
+    return 'Groupes enregistrÃ©s'
 
 
 def createGroup(context, partition_id, group_name='', default=False, REQUEST=None):
@@ -483,7 +483,7 @@ def createGroup(context, partition_id, group_name='', default=False, REQUEST=Non
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     #
     if group_name:
         group_name = group_name.strip()
@@ -513,14 +513,14 @@ def suppressGroup(context, group_id,  partition_id=None, REQUEST=None):
         partition_id = group['partition_id']
     partition = get_partition(context, partition_id)
     if not context.Notes.can_change_groups(REQUEST, partition['formsemestre_id']):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     log( 'suppressGroup: group_id=%s group_name=%s partition_name=%s' % (group_id, group['group_name'], partition['partition_name'] ) )
     group_delete(context, group )
 
 def partition_create(context, formsemestre_id, partition_name='', default=False, numero=None, REQUEST=None, redirect=1):
     """Create a new partition"""
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     if partition_name:
         partition_name = partition_name.strip()
     if default:
@@ -530,7 +530,7 @@ def partition_create(context, formsemestre_id, partition_name='', default=False,
     redirect = int(redirect)
     # checkGroupName(partition_name)
     if partition_name in [ p['partition_name'] for p in get_partitions_list(context, formsemestre_id) ]:
-        raise ScoValueError('Il existe déjà une partition %s dans ce semestre'%partition_name) 
+        raise ScoValueError('Il existe dÃ©jÃ  une partition %s dans ce semestre'%partition_name) 
     
     cnx = context.GetDBConnexion()
     partition_id = partitionEditor.create(cnx, {'formsemestre_id':formsemestre_id, 'partition_name':partition_name} )
@@ -607,7 +607,7 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
                                 len(get_group_members(context, group['group_id'])))
                    for group in get_partition_groups(context, p) ]
             H.append( ', '.join(lg) )
-            H.append('</td><td><a class="stdlink" href="affectGroups?partition_id=%s">répartir</a></td>' % p['partition_id'] )     
+            H.append('</td><td><a class="stdlink" href="affectGroups?partition_id=%s">rÃ©partir</a></td>' % p['partition_id'] )     
             H.append('<td><a class="stdlink" href="partition_rename?partition_id=%s">renommer</a></td>' % p['partition_id'] )
             # classement:
             H.append('<td><input type="checkbox" class="rkbox" id="%s" name="%s" value="%s" onchange="update_rk(this);"/>afficher rang sur bulletins</td>' % (p['partition_id'],p['partition_id'],p['bul_show_rank']))
@@ -621,7 +621,7 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     H.append('<input type="text" name="partition_name" size="12" onkeyup="checkname();"/>')
     H.append('<input type="submit" name="ok" disabled="1" value="Nouvelle partition"/>')
     H.append('</div></form>')
-    H.append("""<p class="help">Les partitions sont des découpages de l'ensemble des étudiants. Par exemple, les "groupes de TD" sont une partition. On peut créer autant de partitions que nécessaire. Dans chaque partition, un nombre de groupes quelconque peuvent être créés (suivre le lien "répartir").</p>""")
+    H.append("""<p class="help">Les partitions sont des dÃ©coupages de l'ensemble des Ã©tudiants. Par exemple, les "groupes de TD" sont une partition. On peut crÃ©er autant de partitions que nÃ©cessaire. Dans chaque partition, un nombre de groupes quelconque peuvent Ãªtre crÃ©Ã©s (suivre le lien "rÃ©partir").</p>""")
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
 def partition_set_bul_show_rank(context, partition_id, bul_show_rank, REQUEST=None):
@@ -629,7 +629,7 @@ def partition_set_bul_show_rank(context, partition_id, bul_show_rank, REQUEST=No
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     
     log('partition_set_bul_show_rank(%s)' % bul_show_rank)
     bul_show_rank = int(bul_show_rank)
@@ -648,7 +648,7 @@ def partition_delete(context, partition_id, REQUEST=None, force=False, redirect=
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
 
     if not partition['partition_name'] and not force:
         raise ValueError('cannot suppress this partition')
@@ -663,7 +663,7 @@ def partition_delete(context, partition_id, REQUEST=None, force=False, redirect=
             grnames = ''
         return context.confirmDialog(
                 """<h2>Supprimer la partition "%s" ?</h2>
-                <p>Les groupes %s de cette partition seront supprimés</p>
+                <p>Les groupes %s de cette partition seront supprimÃ©s</p>
                 """ % (partition['partition_name'], grnames),
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="editPartitionForm?formsemestre_id=%s" % formsemestre_id,
@@ -685,7 +685,7 @@ def partition_move(context, partition_id, after=0, REQUEST=None, redirect=1):
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     #
     redirect = int(redirect)
     after = int(after) # 0: deplace avant, 1 deplace apres
@@ -717,7 +717,7 @@ def partition_rename(context, partition_id, REQUEST=None):
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     H = [ '<h2>Renommer une partition</h2>' ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
                             ( ('partition_id', { 'default' : partition_id, 'input_type' : 'hidden' }),
@@ -749,10 +749,10 @@ def partition_set_name(context, partition_id, partition_name, REQUEST=None, redi
     r = SimpleDictFetch(context, 'SELECT p.* FROM partition p WHERE p.partition_name = %(partition_name)s AND formsemestre_id = %(formsemestre_id)s', 
                         {'partition_name' : partition_name, 'formsemestre_id' : formsemestre_id })
     if len(r) > 1 or (len(r)==1 and r[0]['partition_id'] != partition_id):
-        raise ScoValueError("Partition %s déjà existante dans ce semestre !" % partition_name)
+        raise ScoValueError("Partition %s dÃ©jÃ  existante dans ce semestre !" % partition_name)
 
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     redirect = int(redirect)
     cnx = context.GetDBConnexion()
     partitionEditor.edit(cnx, { 'partition_id' : partition_id, 'partition_name' : partition_name })
@@ -772,7 +772,7 @@ def group_set_name(context, group_id, group_name, REQUEST=None, redirect=1):
         raise ValueError("can't set a name to default group")
     formsemestre_id = group['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     redirect = int(redirect)
     cnx = context.GetDBConnexion()
     groupEditor.edit(cnx, { 'group_id' : group_id, 'group_name' : group_name })
@@ -786,7 +786,7 @@ def group_rename(context, group_id, REQUEST=None):
     group = get_group(context, group_id)
     formsemestre_id = group['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     H = [ '<h2>Renommer un groupe de %s</h2>' % group['partition_name'] ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form,
                             ( ('group_id', { 'default' : group_id, 'input_type' : 'hidden' }),
@@ -807,35 +807,35 @@ def group_rename(context, group_id, REQUEST=None):
 
 def groups_auto_repartition(context, partition_id=None, REQUEST=None):
     """Reparti les etudiants dans des groupes dans une partition, en respectant le niveau
-    et la mixité.
+    et la mixitÃ©.
     """
     partition = get_partition(context, partition_id)
     formsemestre_id = partition['formsemestre_id']
     if not context.Notes.can_change_groups(REQUEST, formsemestre_id):
-        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")    
+        raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")    
     sem = context.Notes.get_formsemestre(formsemestre_id)
     
     descr = [
         ('partition_id', { 'input_type' : 'hidden' }),
         ('groupNames', { 'size' : 40,
-                         'title' : 'Groupes à créer', 
+                         'title' : 'Groupes Ã  crÃ©er', 
                          'allow_null' : False,
-                         'explanation' : "noms des groupes à former, séparés par des virgules (les groupes existants seront effacés)"})
+                         'explanation' : "noms des groupes Ã  former, sÃ©parÃ©s par des virgules (les groupes existants seront effacÃ©s)"})
        ]
     
-    H = [ context.sco_header(REQUEST, page_title='Répartition des groupes' ),
-          '<h2>Répartition des groupes de %s</h2>' % partition['partition_name'],
+    H = [ context.sco_header(REQUEST, page_title='RÃ©partition des groupes' ),
+          '<h2>RÃ©partition des groupes de %s</h2>' % partition['partition_name'],
           '<p>Semestre %s</p>' % sem['titreannee'],
-          """<p class="help">Les groupes existants seront <b>effacés</b> et remplacés par
-          ceux créés ici. La répartition aléatoire tente d'uniformiser le niveau
-          des groupes (en utilisant la dernière moyenne générale disponible pour
-          chaque étudiant) et de maximiser la mixité de chaque groupe.</p>"""
+          """<p class="help">Les groupes existants seront <b>effacÃ©s</b> et remplacÃ©s par
+          ceux crÃ©Ã©s ici. La rÃ©partition alÃ©atoire tente d'uniformiser le niveau
+          des groupes (en utilisant la derniÃ¨re moyenne gÃ©nÃ©rale disponible pour
+          chaque Ã©tudiant) et de maximiser la mixitÃ© de chaque groupe.</p>"""
           ]
     
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             {},
                             cancelbutton = 'Annuler', method='GET',
-                            submitlabel = 'Créer et peupler les groupes',
+                            submitlabel = 'CrÃ©er et peupler les groupes',
                             name='tf' )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1] + context.sco_footer(REQUEST)
@@ -846,10 +846,10 @@ def groups_auto_repartition(context, partition_id=None, REQUEST=None):
         log('groups_auto_repartition( partition_id=%s partition_name=%s' % (partition_id, partition['partition_name']))
         groupNames = tf[2]['groupNames']
         group_names = [ x.strip() for x in groupNames.split(',') ]
-        # Détruit les groupes existant de cette partition
+        # DÃ©truit les groupes existant de cette partition
         for old_group in get_partition_groups(context, partition):
             group_delete(context, old_group)
-        # Crée les nouveaux groupes
+        # CrÃ©e les nouveaux groupes
         group_ids = []
         for group_name in group_names:
             # try:
@@ -888,7 +888,7 @@ def groups_auto_repartition(context, partition_id=None, REQUEST=None):
 
 
 def get_prev_moy(znotes, etudid, formsemestre_id):
-    """Donne la derniere moyenne generale calculee pour cette étudiant,
+    """Donne la derniere moyenne generale calculee pour cette Ã©tudiant,
     ou 0 si on n'en trouve pas (nouvel inscrit,...).
     """
     import sco_parcours_dut
@@ -907,11 +907,11 @@ def do_evaluation_listeetuds_groups(context, evaluation_id, groups=None,
                                     getallstudents=False,
                                     include_dems=False):
     """Donne la liste des etudids inscrits a cette evaluation dans les
-    groupes indiqués.
+    groupes indiquÃ©s.
     Si getallstudents==True, donne tous les etudiants inscrits a cette
     evaluation.
-    Si include_dems, compte aussi les etudiants démissionnaires
-    (sinon, par défaut, seulement les 'I')
+    Si include_dems, compte aussi les etudiants dÃ©missionnaires
+    (sinon, par dÃ©faut, seulement les 'I')
     """
     fromtables = [ 'notes_moduleimpl_inscription Im', 
                    'notes_formsemestre_inscription Isem', 
@@ -972,7 +972,7 @@ def listgroups(context, group_ids):
     return _sortgroups(groups)
 
 def _sortgroups(groups):
-    # Tri: place 'all' en tête, puis groupe par partition / nom de groupe
+    # Tri: place 'all' en tÃªte, puis groupe par partition / nom de groupe
     R = [ g for g in groups if g['partition_name'] is None ]
     o = [  g for g in groups if g['partition_name'] != None ]    
     o.sort( key=lambda x: (x['numero'], x['group_name']) )
@@ -991,7 +991,7 @@ def listgroups_abbrev(groups):
 # form_group_choice replaces formChoixGroupe
 def form_group_choice(context, formsemestre_id, 
                       allow_none=True, #  offre un choix vide dans chaque partition
-                      select_default=True, # Le groupe par defaut est mentionné (hidden).
+                      select_default=True, # Le groupe par defaut est mentionnÃ© (hidden).
                       display_sem_title=False
                       ):
     """Partie de formulaire pour le choix d'un ou plusieurs groupes.

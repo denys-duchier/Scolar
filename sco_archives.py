@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -32,13 +32,13 @@
     <INSTANCE_HOME>/var/scodoc/archives/<deptid>
  (where <INSTANCE_HOME> is usually /opt/scodoc/instance, and <depid> a departement id)
 
- Les PV de jurys et documents associés sont stockées dans un sous-repertoire de la forme
+ Les PV de jurys et documents associÃ©s sont stockÃ©es dans un sous-repertoire de la forme
     <archivedir>/<formsemestre_id>/<YYYY-MM-DD-HH-MM-SS>
 
- Les documents liés à l'étudiant sont dans
+ Les documents liÃ©s Ã  l'Ã©tudiant sont dans
     <archivedir>/docetuds/<etudid>/<YYYY-MM-DD-HH-MM-SS>
 
- Un répertoire d'archive contient des fichiers quelconques, et un fichier texte nommé _description.txt
+ Un rÃ©pertoire d'archive contient des fichiers quelconques, et un fichier texte nommÃ© _description.txt
  qui est une description (humaine, format libre) de l'archive.
 
 """
@@ -200,9 +200,9 @@ class BaseArchiver:
         return open(fname).read()
 
     def get_archived_file(self, context, REQUEST, oid, archive_name, filename):
-        """Recupere donnees du fichier indiqué et envoie au client
+        """Recupere donnees du fichier indiquÃ© et envoie au client
         """
-        # XXX très incomplet: devrait inférer et assigner un type MIME
+        # XXX trÃ¨s incomplet: devrait infÃ©rer et assigner un type MIME
         archive_id = self.get_id_from_name(context, oid, archive_name)
         data = self.get(archive_id, filename)
         ext = os.path.splitext(filename)[1].lower()
@@ -240,7 +240,7 @@ def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='',
     - tableau recap (xls), pv jury (xls et pdf), bulletins (xml et pdf), lettres individuelles (pdf)
     """
     archive_id = PVArchive.create_obj_archive(context, formsemestre_id, description)
-    date = PVArchive.get_archive_date(archive_id).strftime('%d/%m/%Y à %H:%M')
+    date = PVArchive.get_archive_date(archive_id).strftime('%d/%m/%Y Ã  %H:%M')
     # Tableau recap notes en XLS
     data, filename, format = make_formsemestre_recapcomplet(
         context, REQUEST, formsemestre_id, format='xls')
@@ -251,10 +251,10 @@ def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='',
         context, REQUEST, formsemestre_id, format='html', disable_etudlink=True)
     if data:
         data = '\n'.join([ 
-                context.sco_header(REQUEST, page_title='Moyennes archivées le %s' % date,
-                                   head_message='Moyennes archivées le %s' % date,
+                context.sco_header(REQUEST, page_title='Moyennes archivÃ©es le %s' % date,
+                                   head_message='Moyennes archivÃ©es le %s' % date,
                                    no_side_bar=True),
-                '<h2 class="fontorange">Valeurs archivées le %s</h2>' % date, 
+                '<h2 class="fontorange">Valeurs archivÃ©es le %s</h2>' % date, 
                 '<style type="text/css">table.notes_recapcomplet tr {  color: rgb(185,70,0); }</style>',
                 data,
                 context.sco_footer(REQUEST) ])
@@ -291,16 +291,16 @@ def formsemestre_archive(context, REQUEST, formsemestre_id):
     """Make and store new archive for this formsemestre.
     """
     sem = context.get_formsemestre(formsemestre_id)
-    H = [context.html_sem_header(REQUEST, 'Archiver les PV et résultats du semestre', sem),
-         """<p class="help">Cette page permet de générer et d'archiver tous
-les documents résultant de ce semestre: PV de jury, lettres individuelles, 
-tableaux récapitulatifs.</p><p class="help">Les documents archivés sont 
-enregistrés et non modifiables, on peut les retrouver ultérieurement.
-</p><p class="help">On peut archiver plusieurs versions des documents (avant et après le jury par exemple).
+    H = [context.html_sem_header(REQUEST, 'Archiver les PV et rÃ©sultats du semestre', sem),
+         """<p class="help">Cette page permet de gÃ©nÃ©rer et d'archiver tous
+les documents rÃ©sultant de ce semestre: PV de jury, lettres individuelles, 
+tableaux rÃ©capitulatifs.</p><p class="help">Les documents archivÃ©s sont 
+enregistrÃ©s et non modifiables, on peut les retrouver ultÃ©rieurement.
+</p><p class="help">On peut archiver plusieurs versions des documents (avant et aprÃ¨s le jury par exemple).
 </p>
          """
          ]
-    F = [ """<p><em>Note: les documents sont aussi affectés par les réglages sur la page "<a href="edit_preferences">Paramétrage</a>" (accessible à l'administrateur du département).</em>
+    F = [ """<p><em>Note: les documents sont aussi affectÃ©s par les rÃ©glages sur la page "<a href="edit_preferences">ParamÃ©trage</a>" (accessible Ã  l'administrateur du dÃ©partement).</em>
         </p>""",
         context.sco_footer(REQUEST) ]
     
@@ -311,22 +311,22 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
         ]
     descr += sco_pvjury.descrform_pvjury(sem)
     descr += [
-        ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannée de la signature pour les lettres individuelles'}),
+        ('signature',  {'input_type' : 'file', 'size' : 30, 'explanation' : 'optionnel: image scannÃ©e de la signature pour les lettres individuelles'}),
         ('bulVersion', {'input_type' : 'menu',
-                        'title' : 'Version des bulletins archivés',
-                        'labels' : ['Version courte', 'Version intermédiaire', 'Version complète'],
+                        'title' : 'Version des bulletins archivÃ©s',
+                        'labels' : ['Version courte', 'Version intermÃ©diaire', 'Version complÃ¨te'],
                         'allowed_values' : ['short', 'selectedevals', 'long'],
                         'default' : 'long',
                      }), 
         ]
     tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                             cancelbutton = 'Annuler', method='POST',
-                            submitlabel = 'Générer et archiver les documents', 
+                            submitlabel = 'GÃ©nÃ©rer et archiver les documents', 
                             name='tf' )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1] +  '\n'.join(F)
     elif tf[0] == -1:
-        msg = 'Opération%20annulée'
+        msg = 'OpÃ©ration%20annulÃ©e'
     else:
         # submit
         sf = tf[2]['signature']
@@ -336,7 +336,7 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
                                 signature=signature, 
                                 numeroArrete=tf[2]['numeroArrete'], showTitle=tf[2]['showTitle'],
                                 bulVersion=tf[2]['bulVersion'])
-        msg = 'Nouvelle%20archive%20créée'
+        msg = 'Nouvelle%20archive%20crÃ©Ã©e'
     
     # submitted or cancelled:
     return REQUEST.RESPONSE.redirect( "formsemestre_list_archives?formsemestre_id=%s&head_message=%s" %(formsemestre_id, msg))
@@ -353,9 +353,9 @@ def formsemestre_list_archives(context, REQUEST, formsemestre_id):
         L.append(a)
     
     sem = context.get_formsemestre(formsemestre_id)
-    H = [context.html_sem_header(REQUEST, 'Archive des PV et résultats ', sem)]
+    H = [context.html_sem_header(REQUEST, 'Archive des PV et rÃ©sultats ', sem)]
     if not L:
-        H.append('<p>aucune archive enregistrée</p>')
+        H.append('<p>aucune archive enregistrÃ©e</p>')
     else:
         H.append('<ul>')
         for a in L:
@@ -387,9 +387,9 @@ def formsemestre_delete_archive(context, REQUEST, formsemestre_id, archive_name,
     if not dialog_confirmed:
         return context.confirmDialog(
             """<h2>Confirmer la suppression de l'archive du %s ?</h2>
-               <p>La suppression sera définitive.</p>""" % PVArchive.get_archive_date(archive_id).strftime('%d/%m/%Y %H:%M'),
+               <p>La suppression sera dÃ©finitive.</p>""" % PVArchive.get_archive_date(archive_id).strftime('%d/%m/%Y %H:%M'),
             dest_url="", REQUEST=REQUEST, cancel_url=dest_url, 
             parameters={'formsemestre_id' : formsemestre_id, 'archive_name' : archive_name })
     
     PVArchive.delete_archive(archive_id)
-    return REQUEST.RESPONSE.redirect(dest_url+'&head_message=Archive%20supprimée')
+    return REQUEST.RESPONSE.redirect(dest_url+'&head_message=Archive%20supprimÃ©e')

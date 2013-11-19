@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 
 """Simple form generator/validator
@@ -176,7 +176,7 @@ class TF:
         #
         if not self.values.has_key('tf-checked'):
             if self.submitted():
-                # si rien n'est coché, tf-checked n'existe plus dans la reponse
+                # si rien n'est cochÃ©, tf-checked n'existe plus dans la reponse
                 self.values['tf-checked'] = []
             else:
                 self.values['tf-checked'] = self.initvalues.get( 'tf-checked', [] )
@@ -196,7 +196,7 @@ class TF:
             allow_null = descr.get('allow_null',True)
             if not allow_null:
                 if val == '' or val == None:
-                    msg.append("Le champ '%s' doit être renseigné"
+                    msg.append("Le champ '%s' doit Ãªtre renseignÃ©"
                                % descr.get('title', field))
                     ok = 0
             # type
@@ -209,7 +209,7 @@ class TF:
                         self.values[field] = val
                     except:
                         msg.append(
-                            "La valeur du champ '%s' doit être un nombre entier" % field )
+                            "La valeur du champ '%s' doit Ãªtre un nombre entier" % field )
                         ok = 0
                 elif typ == 'float' or typ == 'real':                
                     self.values[field] = self.values[field].replace(',','.')
@@ -217,7 +217,7 @@ class TF:
                         val = float(val.replace(',','.')) # allow ,
                         self.values[field] = val
                     except:
-                        msg.append("La valeur du champ '%s' doit être un nombre" % field )
+                        msg.append("La valeur du champ '%s' doit Ãªtre un nombre" % field )
                         ok = 0
                 if typ[:3] == 'int' or typ == 'float' or typ == 'real':
                     if descr.has_key('min_value') and val < descr['min_value']:

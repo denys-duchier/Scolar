@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Génération du bulletin en format JSON (beta, non completement testé)
+"""GÃ©nÃ©ration du bulletin en format JSON (beta, non completement testÃ©)
 
 """
 
@@ -66,7 +66,7 @@ def make_json_formsemestre_bulletinetud(
     return json.dumps(d, cls=ScoDocJSONEncoder, encoding=SCO_ENCODING)
 
 
-# (fonction séparée: n'utilise pas formsemestre_bulletinetud_dict()
+# (fonction sÃ©parÃ©e: n'utilise pas formsemestre_bulletinetud_dict()
 #   pour simplifier le code, mais attention a la maintenance !)
 #
 def formsemestre_bulletinetud_published_dict(
@@ -74,11 +74,11 @@ def formsemestre_bulletinetud_published_dict(
         force_publishing=False,
         xml_nodate=False,
         REQUEST=None,
-        xml_with_decisions=False, # inclue les decisions même si non publiées
+        xml_with_decisions=False, # inclue les decisions mÃªme si non publiÃ©es
         version='long'
         ):
     """Dictionnaire representant les informations _publiees_ du bulletin de notes
-    Utilisé pour JSON, devrait l'être aussi pour XML. (todo)
+    UtilisÃ© pour JSON, devrait l'Ãªtre aussi pour XML. (todo)
     """
     
     d = {}
@@ -189,7 +189,7 @@ def formsemestre_bulletinetud_published_dict(
                 numero=mod['numero'],
                 titre=quote_xml_attr(mod['titre']),
                 abbrev=quote_xml_attr(mod['abbrev']),
-                # ects=ects, ects des modules maintenant inutilisés
+                # ects=ects, ects des modules maintenant inutilisÃ©s
                 note = dict( value=mod_moy )
                 )
             m['note'].update(modstat)
@@ -218,7 +218,7 @@ def formsemestre_bulletinetud_published_dict(
                             description=quote_xml_attr(e['description']),
                             note = val
                             ))
-                # Evaluations incomplètes ou futures:
+                # Evaluations incomplÃ¨tes ou futures:
                 complete_eval_ids = Set( [ e['evaluation_id'] for e in evals ] )
                 if context.get_preference('bul_show_all_evals', formsemestre_id):
                     all_evals = context.do_evaluation_list(args={ 'moduleimpl_id' : modimpl['moduleimpl_id'] })

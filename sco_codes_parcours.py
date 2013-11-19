@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -32,18 +32,18 @@ from odict import odict
 
 from sco_utils import *
 
-# Codes proposés par ADIUT / Apogee
-ADM='ADM' # moyenne gen., barres UE, assiduité: sem. validé
+# Codes proposÃ©s par ADIUT / Apogee
+ADM='ADM' # moyenne gen., barres UE, assiduitÃ©: sem. validÃ©
 ADC='ADC' # admis par compensation (eg moy(S1, S2) > 10)
 ADJ='ADJ' # admis par le jury
 ATT='ATT' # 
-ATJ='ATJ' # pb assiduité: décision repoussée au semestre suivant
+ATJ='ATJ' # pb assiduitÃ©: dÃ©cision repoussÃ©e au semestre suivant
 ATB='ATB'
 AJ ='AJ'
 CMP='CMP' # utile pour UE seulement
 NAR='NAR'
-RAT='RAT' # en attente rattrapage, pas dans Apogée
-DEF = 'DEF' # défaillance (b'est pas un code jury dans scodoc mais un état, comme inscrit ou demission)
+RAT='RAT' # en attente rattrapage, pas dans ApogÃ©e
+DEF = 'DEF' # dÃ©faillance (b'est pas un code jury dans scodoc mais un Ã©tat, comme inscrit ou demission)
 
 # codes actions
 REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
@@ -60,19 +60,19 @@ BUG='BUG'
 ALL='ALL'
 
 CODES_EXPL = {
-    ADM : 'Validé',
-    ADC : 'Validé par compensation',
-    ADJ : 'Validé par le Jury',
-    ATT : 'Décision en attente d\'un autre semestre (faute d\'atteindre la moyenne)',
-    ATB : 'Décision en attente d\'un autre semestre (une UE n\'atteint pas la barre)',
-    ATJ : 'Décision en attente d\'un autre semestre (assiduité insuffisante)',
-    AJ  : 'Ajourné (échec)',
-    NAR : 'Echec, non autorisé à redoubler',
+    ADM : 'ValidÃ©',
+    ADC : 'ValidÃ© par compensation',
+    ADJ : 'ValidÃ© par le Jury',
+    ATT : 'DÃ©cision en attente d\'un autre semestre (faute d\'atteindre la moyenne)',
+    ATB : 'DÃ©cision en attente d\'un autre semestre (une UE n\'atteint pas la barre)',
+    ATJ : 'DÃ©cision en attente d\'un autre semestre (assiduitÃ© insuffisante)',
+    AJ  : 'AjournÃ© (Ã©chec)',
+    NAR : 'Echec, non autorisÃ© Ã  redoubler',
     RAT : "En attente d'un rattrapage",
-    DEF : "Défaillant"
+    DEF : "DÃ©faillant"
     }
 
-CODES_SEM_VALIDES = { ADM : True, ADC : True, ADJ : True } # semestre validé
+CODES_SEM_VALIDES = { ADM : True, ADC : True, ADJ : True } # semestre validÃ©
 CODES_SEM_ATTENTES = { ATT : True, ATB : True, ATJ : True } # semestre en attente
 
 CODES_SEM_REO = { 'NAR':1 } # reorientation
@@ -87,17 +87,17 @@ def code_semestre_attente(code):
 
 DEVENIR_EXPL = {
     NEXT      : 'Passage au semestre suivant',
-    REDOANNEE : 'Redoublement année',
+    REDOANNEE : 'Redoublement annÃ©e',
     REDOSEM   : 'Redoublement semestre',
-    RA_OR_NEXT: 'Passage, ou redoublement année',
-    RA_OR_RS  : 'Redoublement année, ou redoublement semestre', # slt si sems decales
+    RA_OR_NEXT: 'Passage, ou redoublement annÃ©e',
+    RA_OR_RS  : 'Redoublement annÃ©e, ou redoublement semestre', # slt si sems decales
     RS_OR_NEXT: 'Passage, ou redoublement semestre',
-    NEXT_OR_NEXT2 : "Passage en semestre suivant ou à celui d'après",
+    NEXT_OR_NEXT2 : "Passage en semestre suivant ou Ã  celui d'aprÃ¨s",
     NEXT2     : 'Passage au sur-suivant',
-    REO       : 'Réorientation'
+    REO       : 'RÃ©orientation'
 }
 
-# Devenirs autorises dans les cursus sans semestres décalés:
+# Devenirs autorises dans les cursus sans semestres dÃ©calÃ©s:
 DEVENIRS_STD = { NEXT:1, REDOANNEE:1, RA_OR_NEXT:1, REO:1 }
 
 # Devenirs autorises dans les cursus en un seul semestre, semestre_id==-1 (licences ?)
@@ -106,7 +106,7 @@ DEVENIRS_MONO = { REDOANNEE:1, REO:1 }
 # Devenirs supplementaires (en mode manuel) pour les cursus avec semestres decales
 DEVENIRS_DEC = { REDOSEM:1, RS_OR_NEXT:1 }
 
-# Devenirs en n+2 (sautant un semestre)  (si semestres décalés et s'il ne manque qu'un semestre avant le n+2)
+# Devenirs en n+2 (sautant un semestre)  (si semestres dÃ©calÃ©s et s'il ne manque qu'un semestre avant le n+2)
 DEVENIRS_NEXT2 = { NEXT_OR_NEXT2: 1, NEXT2 : 1 }
 
 NO_SEMESTRE_ID = -1 # code semestre si pas de semestres
@@ -134,7 +134,7 @@ class DUTRule:
 
 # Types de parcours
 class TypeParcours:
-    TYPE_PARCOURS = None # id, utilisé par notes_formation.type_parcours
+    TYPE_PARCOURS = None # id, utilisÃ© par notes_formation.type_parcours
     NAME = None # required
     NB_SEM = 1 # Nombre de semestres
     COMPENSATION_UE = True
@@ -145,12 +145,12 @@ class TypeParcours:
     NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
     SESSION_NAME = 'semestre'
-    UNUSED_CODES = set() # Ensemble des codes jury non autorisés dans ce parcours
+    UNUSED_CODES = set() # Ensemble des codes jury non autorisÃ©s dans ce parcours
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
     def get_barre_ue(self, ue_type, tolerance=True):
-        """Barre pour cette UE (la valeur peut dépendre du type d'UE).
-        Si tolerance, diminue de epsilon pour éviter les effets d'arrondis.
+        """Barre pour cette UE (la valeur peut dÃ©pendre du type d'UE).
+        Si tolerance, diminue de epsilon pour Ã©viter les effets d'arrondis.
         """
         if tolerance:
             t = NOTES_TOLERANCE
@@ -158,12 +158,12 @@ class TypeParcours:
             t = 0.
         return self.BARRE_UE.get(ue_type, self.BARRE_UE_DEFAULT) - t
 
-TYPES_PARCOURS = odict() # liste des parcours définis (instances de sous-classes de TypeParcours)
+TYPES_PARCOURS = odict() # liste des parcours dÃ©finis (instances de sous-classes de TypeParcours)
 def register_parcours(Parcours):
     TYPES_PARCOURS[Parcours.TYPE_PARCOURS] = Parcours
 
 class ParcoursDUT(TypeParcours):
-    """DUT selon l'arrêté d'août 2005"""
+    """DUT selon l'arrÃªtÃ© d'aoÃ»t 2005"""
     TYPE_PARCOURS = 100
     NAME = "DUT"
     NB_SEM = 4 
@@ -208,7 +208,7 @@ class ParcoursLP2semEvry(ParcoursLP):
     NAME = "LP2semEvry"
     NB_SEM = 2
     COMPENSATION_UE = True
-    BARRE_UE_DEFAULT = 10. # barre à 10 dans toutes les UE
+    BARRE_UE_DEFAULT = 10. # barre Ã  10 dans toutes les UE
 
 register_parcours(ParcoursLP2semEvry())
 
@@ -234,13 +234,13 @@ class ParcoursLegacy(TypeParcours):
 register_parcours(ParcoursLegacy())
 
 class ParcoursUCAC(TypeParcours):
-    """Règles de validation UCAC"""
-    SESSION_NAME = "année"
+    """RÃ¨gles de validation UCAC"""
+    SESSION_NAME = "annÃ©e"
     COMPENSATION_UE = False
     BARRE_MOY = 12.
     NOTES_BARRE_VALID_UE_TH = 12. # seuil pour valider UE
     NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
-    BARRE_UE_DEFAULT = NOTES_BARRE_VALID_UE_TH # il faut valider tt les UE pour valider l'année
+    BARRE_UE_DEFAULT = NOTES_BARRE_VALID_UE_TH # il faut valider tt les UE pour valider l'annÃ©e
     
 class ParcoursLicenceUCAC3(ParcoursUCAC):
     """Licence UCAC en 3 sessions d'un an"""
@@ -259,16 +259,16 @@ class ParcoursMasterUCAC2(ParcoursUCAC):
 register_parcours(ParcoursMasterUCAC2())
 
 class ParcoursMonoUCAC(ParcoursUCAC):
-    """Formation UCAC en 1 session de durée variable"""
+    """Formation UCAC en 1 session de durÃ©e variable"""
     TYPE_PARCOURS = 503
-    NAME = "Formation UCAC en 1 session de durée variable"
+    NAME = "Formation UCAC en 1 session de durÃ©e variable"
     NB_SEM = 1
     UNUSED_CODES = set( (ADC, ATT, ATB) )
     
 register_parcours(ParcoursMonoUCAC())
 
 class Parcours6Sem(TypeParcours):
-    """Parcours générique en 6 semestres"""
+    """Parcours gÃ©nÃ©rique en 6 semestres"""
     TYPE_PARCOURS = 600
     NAME = "Formation en 6 semestres"
     NB_SEM = 6
@@ -276,7 +276,7 @@ class Parcours6Sem(TypeParcours):
 
 register_parcours(Parcours6Sem())
 
-# # En cours d'implémentation:
+# # En cours d'implÃ©mentation:
 # class ParcoursLicenceLMD(TypeParcours):
 #     """Licence standard en 6 semestres dans le LMD"""
 #     TYPE_PARCOURS = 401
@@ -297,7 +297,7 @@ register_parcours(Parcours6Sem())
 
 
 
-# Ajouter ici vos parcours, le TYPE_PARCOURS devant être unique au monde
+# Ajouter ici vos parcours, le TYPE_PARCOURS devant Ãªtre unique au monde
 # (avisez sur la liste de diffusion)
 
 

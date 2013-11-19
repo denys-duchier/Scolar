@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 import pdb, os, sys, string
 import traceback
@@ -30,8 +30,8 @@ def unquote(s):
 
 # Ramene une connexion a la base de donnees scolarite
 # pour l'instance donnee par context
-# La connexion est unique (réutilisée) pour chaque thread
-# et est par défaut en autocommit
+# La connexion est unique (rÃ©utilisÃ©e) pour chaque thread
+# et est par dÃ©faut en autocommit
 _pools = {}
 def GetDBConnexion(context, autocommit=True):
     pool = _pools.get(context._db_cnx_string, None)
@@ -147,7 +147,7 @@ def DBSelectArgs(cnx, table, vals, what=['*'], sortkey=None,
         cl.append( 'T0.%s = T%d.%s' % (id_name, i, aux_id) )
         i = i + 1
     cond += ' and '.join(cl)
-    # Traitement des expressions régulières:
+    # Traitement des expressions rÃ©guliÃ¨res:
     #  n'autorise pas d'expressions
     if test == '~':
         for k in vals.keys():
@@ -342,13 +342,13 @@ class EditableTable:
         if self.sql_default_values is None: # not cached
             # We insert a new tuple, get the values and delete it
             # XXX non, car certaines tables ne peuvent creer de tuples
-            # a default, a cause des references ou contraintes d'intégrité.
+            # a default, a cause des references ou contraintes d'intÃ©gritÃ©.
             #oid = self.create(cnx, {})
             #vals = self.list(cnx, args= {self.id_name : oid})[0]
             #self.delete(cnx, oid)
             #self.sql_default_values = vals
             #
-            # Méthode spécifique à postgresql (>= 7.4)
+            # MÃ©thode spÃ©cifique Ã  postgresql (>= 7.4)
             cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             cursor.execute("SELECT column_name, data_type, column_default FROM information_schema.columns WHERE table_name = '%s'" % self.table_name)
             d = {}
@@ -365,7 +365,7 @@ class EditableTable:
                             v = v[1:-1] # strip quotes
                         elif v[:2] == "E'" and  v[-1] == "'":
                             v = v[2:-1] # postgresql string with escapes
-                        v = v.replace('\\012', '\n') # fix (je ne comprend pas bien pourquoi les valeurs sont ici quotées, ce n'est pas le cas dans les tables ordinaires)
+                        v = v.replace('\\012', '\n') # fix (je ne comprend pas bien pourquoi les valeurs sont ici quotÃ©es, ce n'est pas le cas dans les tables ordinaires)
                         v = v.replace("''", "'") # idem
                         log('-->  v="%s"'%v)
                     elif info['data_type'] == 'real':

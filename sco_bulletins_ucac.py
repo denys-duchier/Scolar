@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -28,7 +28,7 @@
 """Generation bulletins de notes 
 
 Format table "UCAC"
-On redéfini la table centrale du bulletin de note et hérite de tout le reste du bulletin standard.
+On redÃ©fini la table centrale du bulletin de note et hÃ©rite de tout le reste du bulletin standard.
 
 E. Viennet, juillet 2011
 """
@@ -42,24 +42,24 @@ import sco_bulletins_standard
 import gen_tables
 
 class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
-    description = 'style UCAC'  # la description doit être courte: elle apparait dans le menu de paramètrage ScoDoc
+    description = 'style UCAC'  # la description doit Ãªtre courte: elle apparait dans le menu de paramÃ¨trage ScoDoc
     supported_formats = [ 'html', 'pdf' ]
     
     PDF_LINEWIDTH = 1.25
     PDF_TITLEBGCOLOR = Color(170/255.,187/255.,204/255.) # couleur fond lignes titres UE    
     # Inherited constants:
     # PDF_LINECOLOR = Color(0.,0,0)
-    # PDF_MODSEPCOLOR = Color(170/255.,170/255.,170/255.) # lignes séparant les modules
+    # PDF_MODSEPCOLOR = Color(170/255.,170/255.,170/255.) # lignes sÃ©parant les modules
     # PDF_UE_CUR_BG = Color(210/255.,210/255.,210/255.) # fond UE courantes non prises en compte
     # PDF_LIGHT_GRAY = Color(0.75,0.75,0.75)
     
     def build_bulletin_table(self): # overload standard method
-        """Génère la table centrale du bulletin de notes UCAC
+        """GÃ©nÃ¨re la table centrale du bulletin de notes UCAC
 
-        La version n'est ici pas utilisée (on ne montre jamais les notes des évaluations).
+        La version n'est ici pas utilisÃ©e (on ne montre jamais les notes des Ã©valuations).
 
         Renvoie: colkeys, P, pdf_style, colWidths
-        - colkeys: nom des colonnes de la table (clés)
+        - colkeys: nom des colonnes de la table (clÃ©s)
         - table (liste de dicts de chaines de caracteres)
         - style (commandes table Platypus)
         - largeurs de colonnes pour PDF
@@ -70,9 +70,9 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
         sem = context.get_formsemestre(formsemestre_id)
         prefs = context.get_preferences(formsemestre_id)
         
-        P = [] # elems pour générer table avec gen_table (liste de dicts)
+        P = [] # elems pour gÃ©nÃ©rer table avec gen_table (liste de dicts)
         
-        # Noms des colonnes à afficher:
+        # Noms des colonnes Ã  afficher:
         colkeys = ['code_ue', 'titre_ue', 'module', 'note', 'moyenne_ue', 'coef', 'total']
         if prefs['bul_show_abs_modules']:
             colkeys.append('abs')
@@ -89,10 +89,10 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
             'abs' : 22*mm
             }
 
-        # 1ère ligne titres
+        # 1Ã¨re ligne titres
         P.append({
             'code_ue' : "Code UE",
-            'titre_ue' : "Unités d'enseignement",
+            'titre_ue' : "UnitÃ©s d'enseignement",
             'module' : "Modules",
             'note' : "Notes/20",
             'moyenne_ue' : "Moyenne UE/20",
@@ -104,12 +104,12 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
             '_pdf_style' : [ ('BACKGROUND', (0,0), (-1,0), Color(0.75,0.75,0.75) ) ],
             })
         
-        # Quantités spécifiques à l'UCAC, calculées ici au vol:
+        # QuantitÃ©s spÃ©cifiques Ã  l'UCAC, calculÃ©es ici au vol:
         sum_coef_ues = 0. # somme des coefs des UE
-        sum_pt_sem = 0. # somme des "points validés" (coef x moyenne UE)
+        sum_pt_sem = 0. # somme des "points validÃ©s" (coef x moyenne UE)
 
         def list_ue( ue, ue_descr, nb_modules=0):
-            # ligne décrivant UE
+            # ligne dÃ©crivant UE
             moy_txt = ue['cur_moy_ue_txt']
             #log("ue['ue_status']['cur_moy_ue'] = %s" % ue['ue_status']['cur_moy_ue'] )
             #log("ue['ue_status']['coef_ue'] = %s" % ue['ue_status']['coef_ue'] )
@@ -128,12 +128,12 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
                 'titre_ue' : '%s %s' % (ue['titre'], ue_descr or ''),
                 '_titre_ue_colspan' : 3,
                 'moyenne_ue' : moy_txt, # moyenne de l'UE
-                'coef' : coef_ue, # Attention: on affiche le coefficient de l'UE, et non le total des crédits
-                'total' : total_pt_ue, # points (et non crédits),
+                'coef' : coef_ue, # Attention: on affiche le coefficient de l'UE, et non le total des crÃ©dits
+                'total' : total_pt_ue, # points (et non crÃ©dits),
                 '_css_row_class' : 'bul_ucac_row_ue',
                 '_pdf_style' : [ ('BACKGROUND', (0,0), (-1,0), self.ue_color(ue_type=ue['type'])),]
                 }
-            if nb_modules > 0: # cases inutilisées par les lignes modules: span vertical
+            if nb_modules > 0: # cases inutilisÃ©es par les lignes modules: span vertical
                 t['_pdf_style'] += [
                     ('SPAN', (0,0), (0,nb_modules)),
                     ('SPAN', (1,0), (1,nb_modules)),
@@ -143,7 +143,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
             return total_pt_ue_v
 
         def list_modules(ue_modules, ue_type=None, rowstyle='', hidden=False):
-            "Ajoute les lignes décrivant les modules d'une UE"
+            "Ajoute les lignes dÃ©crivant les modules d'une UE"
             pdf_style = [
                 ('LINEABOVE', (0,2), (-1,3), 1, self.PDF_MODSEPCOLOR),
                 ]
@@ -152,7 +152,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
 
             for mod in ue_modules:
                 if mod['mod_moy_txt'] == 'NI':
-                    continue # saute les modules où on n'est pas inscrit
+                    continue # saute les modules oÃ¹ on n'est pas inscrit
                 P.append( { 'module' : mod['name'],
                             'note' : mod['mod_moy_txt'],
                             'abs' : mod['mod_abs_txt'],
@@ -166,7 +166,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
             ue_descr = ue['ue_descr_txt']
             coef_ue  = ue['coef_ue_txt']
             ue_type = None
-            # --- UE capitalisée:
+            # --- UE capitalisÃ©e:
             if ue['ue_status']['is_capitalized']:            
                 if context.get_preference('bul_show_ue_cap_details', formsemestre_id):
                     nb_modules=len(ue['modules_capitalized'])
@@ -179,7 +179,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
                 pt = list_ue( ue, ue_descr, nb_modules=nb_modules )
                 sum_pt_sem += pt
                 coef_ue = ''
-                # Notes des modules de l'UE capitalisée antérieurement:
+                # Notes des modules de l'UE capitalisÃ©e antÃ©rieurement:
                 list_modules(ue['modules_capitalized'],
                              hidden=hidden, rowstyle = ' bul_ucac_row_cap %s' % cssstyle)
 
@@ -209,9 +209,9 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
                              ]
             })
 
-        # Ligne décision jury (toujours présente, ignore le paramètre)
+        # Ligne dÃ©cision jury (toujours prÃ©sente, ignore le paramÃ¨tre)
         P.append({
-            'code_ue' : 'Décision',
+            'code_ue' : 'DÃ©cision',
             '_code_ue_colspan' : 4,
             'moyenne_ue' :  I.get('decision_jury', '') or '',
             '_moyenne_ue_colspan' : 3,
@@ -221,7 +221,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
                              ]
             })
 
-        # Ligne "Mention" (figure toujours: le paramètre 'bul_show_mention' est ignoré)
+        # Ligne "Mention" (figure toujours: le paramÃ¨tre 'bul_show_mention' est ignorÃ©)
         P.append({
             'code_ue' : 'Mention',
             '_code_ue_colspan' : 4,
@@ -240,7 +240,7 @@ class BulletinGeneratorUCAC(sco_bulletins_standard.BulletinGeneratorStandard):
             ('VALIGN',  (0,0), (-1,-1), 'MIDDLE'),
             ('ALIGN',  (0,0), (-1,-1), 'CENTER'),
             ('INNERGRID', (0,0), (-1,-1), self.PDF_LINEWIDTH, self.PDF_LINECOLOR), # grille interne
-            ('BOX', (0,0), (-1,-1), self.PDF_LINEWIDTH, self.PDF_LINECOLOR), # bordure extérieure
+            ('BOX', (0,0), (-1,-1), self.PDF_LINEWIDTH, self.PDF_LINECOLOR), # bordure extÃ©rieure
             ('BACKGROUND', (0,0), (-1,0),self.PDF_TITLEBGCOLOR ), # couleur fond ligne titre
             ]
 

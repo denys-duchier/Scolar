@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,9 +25,9 @@
 #
 ##############################################################################
 
-"""Extraction de données pour poursuites d'études
+"""Extraction de donnÃ©es pour poursuites d'Ã©tudes
 
-Recapitule tous les semestres validés dans une feuille excel.
+Recapitule tous les semestres validÃ©s dans une feuille excel.
 """
 
 from odict import odict
@@ -119,13 +119,13 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
                     preferences=context.get_preferences(formsemestre_id) )
     tab.filename = make_filename('poursuite ' + sem['titreannee'])
     
-    tab.origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
-    tab.caption = "Récapitulatif %s." % sem['titreannee']
-    tab.html_caption = "Récapitulatif %s." % sem['titreannee']
+    tab.origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + ''
+    tab.caption = "RÃ©capitulatif %s." % sem['titreannee']
+    tab.html_caption = "RÃ©capitulatif %s." % sem['titreannee']
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     return tab.make_page(
         context, 
-        title =  """<h2 class="formsemestre">Poursuite d'études</h2>""",
+        title =  """<h2 class="formsemestre">Poursuite d'Ã©tudes</h2>""",
         init_qtip = True,
         javascripts=['js/etud_info.js'],
         format=format, REQUEST=REQUEST, with_html_headers=True)

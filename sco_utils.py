@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -65,7 +65,7 @@ NOTES_NEUTRALISE=-1000. # notes non prises en comptes dans moyennes
 NOTES_SUPPRESS=-1001.   # note a supprimer
 NOTES_ATTENTE=-1002.    # note "en attente" (se calcule comme une note neutralisee)
 
-NOTES_BARRE_GEN_TH = 10. # barre sur moyenne générale
+NOTES_BARRE_GEN_TH = 10. # barre sur moyenne gÃ©nÃ©rale
 #NOTES_BARRE_UE_TH = 8.      # barre sur UE 
 #NOTES_BARRE_VALID_UE_TH=10. # seuil pour valider UE
 
@@ -77,13 +77,13 @@ NOTES_BARRE_GEN = NOTES_BARRE_GEN_TH-NOTES_TOLERANCE # barre sur moyenne general
 
 UE_STANDARD = 0
 UE_SPORT = 1
-UE_STAGE_LP = 2 # ue "projet tuteuré et stage" dans les Lic. Pro.
+UE_STAGE_LP = 2 # ue "projet tuteurÃ© et stage" dans les Lic. Pro.
 #UE_FONDAMENTALE = 3 # ue dite "fondamentale" dans certains parcours (eg UCAC)
 #UE_OPTIONNELLE  = 4 # ue dite "optionnelle" dans certains parcours (eg UCAC)
 
 UE_TYPE_NAME = { UE_STANDARD : 'Standard', 
                  UE_SPORT : 'Sport/Culture (points bonus)', 
-                 UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)",
+                 UE_STAGE_LP : "Projet tuteurÃ© et stage (Lic. Pro.)",
 #                 UE_FONDAMENTALE : '"Fondamentale" (eg UCAC)',
 #                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
                  }
@@ -95,9 +95,9 @@ UE_COLORS = { UE_STANDARD : UE_DEFAULT_COLOR,
               UE_STAGE_LP : (0.80, 0.90, 0.90)
               }
 
-# borne supérieure de chaque mention
+# borne supÃ©rieure de chaque mention
 NOTES_MENTIONS_TH = (NOTES_TOLERANCE, 7., 10., 12., 14., 16., 18., 20.+NOTES_TOLERANCE)
-NOTES_MENTIONS_LABS=('Nul', 'Faible', 'Insuffisant', 'Passable', 'Assez bien', 'Bien', 'Très bien', 'Excellent')
+NOTES_MENTIONS_LABS=('Nul', 'Faible', 'Insuffisant', 'Passable', 'Assez bien', 'Bien', 'TrÃ¨s bien', 'Excellent')
 
 EVALUATION_NORMALE = 0
 EVALUATION_RATTRAPAGE = 1
@@ -138,7 +138,7 @@ def fmt_abs(val):
 
 
 def get_mention(moy):
-    """Texte "mention" en fonction de la moyenne générale"""
+    """Texte "mention" en fonction de la moyenne gÃ©nÃ©rale"""
     try:
         moy = float(moy)
     except:
@@ -185,8 +185,8 @@ if CONFIG.CUSTOM_HTML_FOOTER_CNX:
 else:
     CUSTOM_HTML_FOOTER_CNX = ''
 
-SCO_ENCODING = 'iso-8859-1' # used by Excel, XML, PDF, ...
-# Attention: encodage lié au codage Zope et aussi à celui de postgresql
+SCO_ENCODING = 'utf-8' # used by Excel, XML, PDF, ...
+# Attention: encodage liÃ© au codage Zope et aussi Ã  celui de postgresql
 #            et aussi a celui des fichiers sources Python (comme celui-ci).
 
 #def to_utf8(s):
@@ -197,15 +197,15 @@ SCO_DEFAULT_SQL_USER='www-data' # should match Zope process UID
 SCO_DEFAULT_SQL_PORT='5432' # warning: 5433 for postgresql-8.1 on Debian if 7.4 also installed !
 SCO_DEFAULT_SQL_USERS_CNX='dbname=SCOUSERS port=%s' % SCO_DEFAULT_SQL_PORT
 
-# Valeurs utilisées pour affichage seulement, pas de requetes ni de mails envoyés:
+# Valeurs utilisÃ©es pour affichage seulement, pas de requetes ni de mails envoyÃ©s:
 SCO_WEBSITE  = 'https://trac.lipn.univ-paris13.fr/projects/scodoc/wiki'
 SCO_ANNONCES_WEBSITE = 'https://www-rt.iutv.univ-paris13.fr/mailman/listinfo/scodoc-annonces'
 SCO_DEVEL_LIST = 'scodoc-devel@rt.iutv.univ-paris13.fr'
 SCO_USERS_LIST = 'notes@rt.iutv.univ-paris13.fr'
 
-# Mails avec exceptions (erreurs) anormales envoyés à cette adresse:
-# mettre '' pour désactiver completement l'envois de mails d'erreurs.
-# (ces mails sont précieux pour corriger les erreurs, ne les désactiver que si 
+# Mails avec exceptions (erreurs) anormales envoyÃ©s Ã  cette adresse:
+# mettre '' pour dÃ©sactiver completement l'envois de mails d'erreurs.
+# (ces mails sont prÃ©cieux pour corriger les erreurs, ne les dÃ©sactiver que si 
 #  vous avez de bonnes raisons de le faire: vous pouvez me contacter avant)
 SCO_DEV_MAIL = 'emmanuel.viennet@gmail.com'
 
@@ -318,7 +318,7 @@ def dict_quote_xml_attr( d, fromhtml=False ):
         # passe d'un code HTML a un code XML
         return dict( [ (k,quote_xml_attr(unescape_html(v))) for (k,v) in d.items() ] )
     else:
-        # passe d'une chaine non quotée a du XML
+        # passe d'une chaine non quotÃ©e a du XML
         return  dict( [ (k,quote_xml_attr(v)) for (k,v) in d.items() ] )
 
 def simple_dictlist2xml(dictlist, doc=None, tagname=None, quote=False):
@@ -331,7 +331,7 @@ def simple_dictlist2xml(dictlist, doc=None, tagname=None, quote=False):
     Exemple:
      simple_dictlist2xml([ { 'id' : 1, 'ues' : [{'note':10},{}] } ], tagname='infos')
 
-    <?xml version="1.0" encoding="iso-8859-1"?>
+    <?xml version="1.0" encoding="utf-8"?>
     <infos id="1">
       <ues note="10" />
       <ues />
@@ -376,6 +376,7 @@ def stripquotes(s):
 
 def suppress_accents(s):
     "s is an ordinary string, encoding given by SCO_ENCODING"
+    log('s=%s'%str(s))    
     return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
 
 def make_filename(name):
@@ -384,7 +385,7 @@ def make_filename(name):
 
 def sendCSVFile(REQUEST,data,filename):
     """publication fichier.
-    (on ne doit rien avoir émis avant, car ici sont générés les entetes)
+    (on ne doit rien avoir Ã©mis avant, car ici sont gÃ©nÃ©rÃ©s les entetes)
     """
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     REQUEST.RESPONSE.setHeader('content-type', CSV_MIMETYPE)
@@ -449,7 +450,7 @@ def get_svn_version(path):
 
 def abbrev_prenom(prenom):
     "Donne l'abreviation d'un prenom"
-    # un peu lent, mais espère traiter tous les cas
+    # un peu lent, mais espÃ¨re traiter tous les cas
     # Jean -> J.
     # Charles -> Ch.
     # Jean-Christophe -> J.-C.
@@ -483,11 +484,11 @@ def abbrev_prenom(prenom):
 #
 def timedate_human_repr():
     "representation du temps courant pour utilisateur: a localiser"
-    return time.strftime('%d/%m/%Y à %Hh%M')
+    return time.strftime('%d/%m/%Y Ã  %Hh%M')
 
 def annee_scolaire_repr(year, month):
     """representation de l'annee scolaire : '2009 - 2010'
-    à partir d'une date.
+    Ã  partir d'une date.
     """
     if month > 7: # apres le 1er aout
         return '%s - %s' % (year, year + 1)
@@ -495,7 +496,7 @@ def annee_scolaire_repr(year, month):
         return '%s - %s' % (year - 1, year)
 
 def annee_scolaire_debut(year, month):
-    """Annee scolaire de debut (septembre): heuristique pour l'hémisphère nord..."""
+    """Annee scolaire de debut (septembre): heuristique pour l'hÃ©misphÃ¨re nord..."""
     if int(month) > 7:
         return int(year)
     else:
@@ -569,8 +570,8 @@ def icontag(name, file_format='png', **attrs):
     """tag HTML pour un icone.
     (dans les versions anterieures on utilisait Zope)
     Les icones sont des fichiers PNG dans .../static/icons
-    Si la taille (width et height) n'est pas spécifiée, lit l'image 
-    pour la mesurer (et cache le résultat).
+    Si la taille (width et height) n'est pas spÃ©cifiÃ©e, lit l'image 
+    pour la mesurer (et cache le rÃ©sultat).
     """
     if ('width' not in attrs) or ('height' not in attrs):
         if name not in ICONSIZES:

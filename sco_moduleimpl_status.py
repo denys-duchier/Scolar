@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -57,16 +57,16 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
     group_id = sco_groups.get_default_group(context, modimpl['formsemestre_id'])
 
     if context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False) and nbnotes != 0:
-        sup_label = "Supprimer évaluation impossible (il y a des notes)"
+        sup_label = "Supprimer Ã©valuation impossible (il y a des notes)"
     else:
-        sup_label = "Supprimer évaluation"
+        sup_label = "Supprimer Ã©valuation"
 
     menuEval = [
         { 'title' : 'Saisir notes',
           'url' : 'notes_eval_selectetuds?evaluation_id=' + evaluation_id,
           'enabled' : context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'])
           },
-        { 'title' : 'Modifier évaluation',
+        { 'title' : 'Modifier Ã©valuation',
           'url' : 'evaluation_edit?evaluation_id=' + evaluation_id,
           'enabled' : context.can_edit_notes(REQUEST.AUTHENTICATED_USER, E['moduleimpl_id'], allow_ens=False)
           },
@@ -87,7 +87,7 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           % (urllib.quote(E['jour'],safe=''), group_id),
           'enabled' : E['jour']
           },
-        { 'title' : 'Vérifier notes vs absents',
+        { 'title' : 'VÃ©rifier notes vs absents',
           'url' : 'evaluation_check_absences_html?evaluation_id=%s' %(evaluation_id),
           'enabled' : nbnotes > 0 and E['jour']
           },
@@ -144,22 +144,22 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     else:
         H.append("""</td><td>""")
     if sem['etat'] != '1':
-        H.append( icontag('lock32_img', title="verrouillé") )
+        H.append( icontag('lock32_img', title="verrouillÃ©") )
     H.append("""</td><td class="fichetitre2">Coef dans le semestre: %(coefficient)s</td><td></td></tr>""" % Mod)
     # 3ieme ligne: Formation
     H.append("""<tr><td class="fichetitre2">Formation: </td><td>%(titre)s</td></tr>""" % F )
     # Ligne: Inscrits
-    H.append("""<tr><td class="fichetitre2">Inscrits: </td><td> %d étudiants</td></tr>""" % len(ModInscrits) )
-    # Ligne: règle de calcul
+    H.append("""<tr><td class="fichetitre2">Inscrits: </td><td> %d Ã©tudiants</td></tr>""" % len(ModInscrits) )
+    # Ligne: rÃ¨gle de calcul
     has_expression = sco_compute_moy.moduleimpl_has_expression(context, M)
     if has_expression:
-        H.append('<tr><td class="fichetitre2" colspan="2">Règle de calcul: <span class="formula" title="mode de calcul de la moyenne du module">moyenne=<tt>%s</tt></span>' % M['computation_expr'])
+        H.append('<tr><td class="fichetitre2" colspan="2">RÃ¨gle de calcul: <span class="formula" title="mode de calcul de la moyenne du module">moyenne=<tt>%s</tt></span>' % M['computation_expr'])
         if context.can_change_ens(REQUEST, moduleimpl_id, raise_exc=False):
             H.append('<span class="fl"><a class="stdlink"  href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a></span>'  % moduleimpl_id)
         H.append('</td></tr>')
     else:
-        t0, t1 = '<em>règle de calcul standard</em>', ''
-        H.append('<tr><td colspan="2"><em title="mode de calcul de la moyenne du module">règle de calcul standard</em>')
+        t0, t1 = '<em>rÃ¨gle de calcul standard</em>', ''
+        H.append('<tr><td colspan="2"><em title="mode de calcul de la moyenne du module">rÃ¨gle de calcul standard</em>')
         if context.can_change_ens(REQUEST, moduleimpl_id, raise_exc=False):
             H.append(' (<a class="stdlink" href="edit_moduleimpl_expr?moduleimpl_id=%s">changer</a>)' % moduleimpl_id)
         H.append('</td></tr>')
@@ -171,7 +171,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         if nt.expr_diagnostics:
             H.append( sco_formsemestre_status.html_expr_diagnostic(context, nt.expr_diagnostics) )
     #
-    H.append("""<p><form name="f"><span style="font-size:120%%; font-weight: bold;">%d évaluations :</span>
+    H.append("""<p><form name="f"><span style="font-size:120%%; font-weight: bold;">%d Ã©valuations :</span>
 <span style="padding-left: 30px;">
 <input type="hidden" name="moduleimpl_id" value="%s"/>""" % (len(ModEvals), moduleimpl_id) )
     #
@@ -197,8 +197,8 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     
     # -------- Tableau des evaluations    
     top_table_links = ''
-    if sem['etat'] == '1': # non verrouillé
-        top_table_links = """<a class="stdlink" href="evaluation_create?moduleimpl_id=%(moduleimpl_id)s">Créer nouvelle évaluation</a>
+    if sem['etat'] == '1': # non verrouillÃ©
+        top_table_links = """<a class="stdlink" href="evaluation_create?moduleimpl_id=%(moduleimpl_id)s">CrÃ©er nouvelle Ã©valuation</a>
         <a class="stdlink" style="margin-left:2em;" href="module_evaluation_renumber?moduleimpl_id=%(moduleimpl_id)s&redirect=1">Trier par date</a>
         """ % M
     if ModEvals:
@@ -227,7 +227,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         if eval['evaluation_type'] == EVALUATION_RATTRAPAGE:
             H.append("""<span class="mievr_rattr">rattrapage</span>""")
         if etat['last_modif']:
-            H.append("""<span class="mievr_lastmodif">(dernière modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y à %Hh%M') )
+            H.append("""<span class="mievr_lastmodif">(derniÃ¨re modif le %s)</span>""" % etat['last_modif'].strftime('%d/%m/%Y Ã  %Hh%M') )
         H.append('<span class="evalindex_cont">')
         if has_expression:
              H.append("""<span class="evalindex" title="Indice dans les vecteurs (formules)">%02d</span>""" % eval_index)
@@ -246,14 +246,14 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                 
         eval_index -= 1
         H.append("""</td></tr>""")
-        H.append("""<tr class="%s"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">Durée</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne """ % tr_class)
+        H.append("""<tr class="%s"><th class="moduleimpl_evaluations" colspan="2">&nbsp;</th><th class="moduleimpl_evaluations">DurÃ©e</th><th class="moduleimpl_evaluations">Coef.</th><th class="moduleimpl_evaluations">Notes</th><th class="moduleimpl_evaluations">Abs</th><th class="moduleimpl_evaluations">N</th><th class="moduleimpl_evaluations">Moyenne """ % tr_class)
         
         if  etat['evalcomplete']:
              etat_txt = """(prise en compte)"""
-             etat_descr = "notes utilisées dans les moyennes"
+             etat_descr = "notes utilisÃ©es dans les moyennes"
         elif eval['publish_incomplete'] != '0':
-            etat_txt = """(prise en compte <b>immédiate</b>)"""
-            etat_descr = "il manque des notes, mais la prise en compte immédiate a été demandée"
+            etat_txt = """(prise en compte <b>immÃ©diate</b>)"""
+            etat_descr = "il manque des notes, mais la prise en compte immÃ©diate a Ã©tÃ© demandÃ©e"
         elif etat['nb_notes'] != 0:
             etat_txt = '(<b>non</b> prise en compte)'
             etat_descr = "il manque des notes"
@@ -284,7 +284,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                 H.append("""<a class="smallbutton" href="evaluation_listenotes?evaluation_id=%s">%s</a>""" % (eval['evaluation_id'], icontag('status_orange_img', title='il manque des notes')))
         #
         if eval['visibulletin']=='1':
-            H.append(icontag('status_visible_img', title='visible dans bulletins intermédiaires'))
+            H.append(icontag('status_visible_img', title='visible dans bulletins intermÃ©diaires'))
         else:
             H.append('&nbsp;')
         H.append( '</td><td class="mievr_menu">')
@@ -347,12 +347,12 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     if caneditevals or sem['etat'] != '1':
         H.append("""<tr><td colspan="7">""")
         if sem['etat'] != '1':
-            H.append("""%s semestre verrouillé""" % icontag('lock32_img'))
+            H.append("""%s semestre verrouillÃ©""" % icontag('lock32_img'))
         else:
             H.append(top_table_links)
             if authuser.has_permission(ScoEtudInscrit,context):
                 H.append("""
-<a class="stdlink" style="margin-left:2em;" href="moduleimpl_inscriptions_edit?moduleimpl_id=%s">Gérer les inscriptions à ce module</a>""" % M['moduleimpl_id'] )
+<a class="stdlink" style="margin-left:2em;" href="moduleimpl_inscriptions_edit?moduleimpl_id=%s">GÃ©rer les inscriptions Ã  ce module</a>""" % M['moduleimpl_id'] )
 
     H.append("""</td></tr>
 </table>
@@ -361,17 +361,17 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
 
 <!-- LEGENDE -->
 <hr>
-<h4>Légende</h4>
+<h4>LÃ©gende</h4>
 <ul>
-<li>%s : modifie description de l'évaluation (date, heure, coefficient, ...)</li>
+<li>%s : modifie description de l'Ã©valuation (date, heure, coefficient, ...)</li>
 <li>%s : saisie des notes</li>
-<li>%s : indique qu'il n'y a aucune note entrée (cliquer pour supprimer cette évaluation)</li>
-<li>%s : indique qu'il manque quelques notes dans cette évaluation</li>
-<li>%s : toutes les notes sont entrées (cliquer pour les afficher)</li>
-<li>%s : indique que cette évaluation sera mentionnée dans les bulletins au format "intermédiaire"
+<li>%s : indique qu'il n'y a aucune note entrÃ©e (cliquer pour supprimer cette Ã©valuation)</li>
+<li>%s : indique qu'il manque quelques notes dans cette Ã©valuation</li>
+<li>%s : toutes les notes sont entrÃ©es (cliquer pour les afficher)</li>
+<li>%s : indique que cette Ã©valuation sera mentionnÃ©e dans les bulletins au format "intermÃ©diaire"
 </ul>
 
-<p>Rappel : seules les notes des évaluations complètement saisies (affichées en vert) apparaissent dans les bulletins.
+<p>Rappel : seules les notes des Ã©valuations complÃ¨tement saisies (affichÃ©es en vert) apparaissent dans les bulletins.
 </p>
     """ % (icontag('edit_img'), 
            icontag('notes_img'),

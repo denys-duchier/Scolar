@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Liste des notes d'une évaluation
+"""Liste des notes d'une Ã©valuation
 """
 
 from notesdb import *
@@ -44,7 +44,7 @@ from sets import Set
 
 def do_evaluation_listenotes(context, REQUEST):
     """
-    Affichage des notes d'une évaluation
+    Affichage des notes d'une Ã©valuation
 
     args: evaluation_id 
     """        
@@ -61,7 +61,7 @@ def do_evaluation_listenotes(context, REQUEST):
     if not mode:
         raise ValueError('missing argument: evaluation or module')
     if not evals:
-        return '<p>Aucune évaluation !</p>'
+        return '<p>Aucune Ã©valuation !</p>'
 
     format = REQUEST.form.get('format', 'html')
     E = evals[0] # il y a au moins une evaluation
@@ -90,7 +90,7 @@ def do_evaluation_listenotes(context, REQUEST):
         descr += [
             ('s' ,
              {'input_type' : 'separator',
-              'title': '<b>Choix du ou des groupes d\'étudiants:</b>' }),
+              'title': '<b>Choix du ou des groupes d\'Ã©tudiants:</b>' }),
             ('group_ids',
              { 'input_type' : 'checkbox', 'title':'',
                'allowed_values' : grnams, 'labels' : grlabs,
@@ -122,7 +122,7 @@ def do_evaluation_listenotes(context, REQUEST):
                             method='GET',
                             cssclass='noprint',
                             name='tf',
-                            is_submitted = True # toujours "soumis" (démarre avec liste complète)
+                            is_submitted = True # toujours "soumis" (dÃ©marre avec liste complÃ¨te)
                             )
     if  tf[0] == 0:
         return '\n'.join(H) + '\n' + tf[1]
@@ -142,7 +142,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                       group_ids=[] ):
     """Generate table for evaluations marks"""
     if not evals:
-        return '<p>Aucune évaluation !</p>'
+        return '<p>Aucune Ã©valuation !</p>'
     E = evals[0]
     moduleimpl_id = E['moduleimpl_id']
     M = context.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id  } )[0]
@@ -177,7 +177,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
             columns_ids = ['nomprenom', 'group' ]        
     
     titles={ 'code' : 'Code', 'group' : 'Groupe', 
-             'nom' : 'Nom', 'prenom' : 'Prénom', 'nomprenom' : 'Nom',
+             'nom' : 'Nom', 'prenom' : 'PrÃ©nom', 'nomprenom' : 'Nom',
              'expl_key' : 'Rem.' }
 
     rows = []
@@ -222,7 +222,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                        '_css_row_class' : css_row_class or '',
                        } )
 
-    #    lignes en tête:
+    #    lignes en tÃªte:
     coefs = { 'nom' : '', 'prenom':'', 'nomprenom' : '', 'group' : '', 'code':'',
               '_css_row_class' : 'sorttop fontitalic' }
     note_max = { 'nom' : '', 'prenom':'', 'nomprenom' : '', 'group' : '', 'code':'',
@@ -231,7 +231,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
              #'_nomprenom_td_attrs' : 'colspan="2" ',
              'nomprenom' : 'Moyenne (sans les absents) :',
              'comment' : '' }
-    # Ajoute les notes de chaque évaluation:
+    # Ajoute les notes de chaque Ã©valuation:
     for e in evals:
         e['eval_state'] = sco_evaluations.do_evaluation_etat(context, e['evaluation_id'])
         notes, nb_abs, nb_att = _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K, 
@@ -250,7 +250,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                                     note_sur_20, keep_numeric)
         columns_ids.append('moymod')
     
-    # ajoute lignes en tête et moyennes    
+    # ajoute lignes en tÃªte et moyennes    
     if len(evals) > 0: 
         rows = [coefs, note_max] + rows
     rows.append(moys)
@@ -259,7 +259,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         rlinks = {}
         for e in evals:
             rlinks[e['evaluation_id']] = 'afficher'
-            rlinks['_'+e['evaluation_id']+'_help'] = 'afficher seulement les notes de cette évaluation'
+            rlinks['_'+e['evaluation_id']+'_help'] = 'afficher seulement les notes de cette Ã©valuation'
             rlinks['_'+e['evaluation_id']+'_target'] = 'evaluation_listenotes?evaluation_id=' + e['evaluation_id']
             rlinks['_'+e['evaluation_id']+'_td_attrs'] = ' class="tdlink" '
         rows.append(rlinks)
@@ -279,7 +279,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
 
     if len(evals) == 1:
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
-        hh = '%s, %s (%d étudiants)' % (E['description'], gr_title,len(etudids))
+        hh = '%s, %s (%d Ã©tudiants)' % (E['description'], gr_title,len(etudids))
         filename = make_filename('notes_%s_%s' % (evalname,gr_title_filename))
         caption = hh
         pdf_title = '%(description)s (%(jour)s)' % e
@@ -305,7 +305,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                     html_sortable=True,
                     base_url = base_url,
                     filename=filename,
-                    origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
+                    origin = 'GÃ©nÃ©rÃ© par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = caption,
                     html_next_section = html_next_section,
                     page_title = 'Notes de ' + sem['titremois'],
@@ -328,27 +328,27 @@ def _make_table_notes(context, REQUEST, html_form, evals,
         if all_complete:
             eval_info = '<span class="eval_info eval_complete">Evaluations prises en compte dans les moyennes</span>'
         else:
-            eval_info = '<span class="eval_info help">Les évaluations en vert et orange sont prises en compte dans les moyennes. Celles en rouge n\'ont pas toutes leurs notes.</span>'
+            eval_info = '<span class="eval_info help">Les Ã©valuations en vert et orange sont prises en compte dans les moyennes. Celles en rouge n\'ont pas toutes leurs notes.</span>'
         return   html_form + eval_info + t + '<p></p>'
     else:
         # Une seule evaluation: ajoute histogramme
         histo = histogram_notes(notes)
         # 2 colonnes: histo, comments
-        C = ['<table><tr><td><div><h4>Répartition des notes:</h4>' + histo + '</div></td>\n',
+        C = ['<table><tr><td><div><h4>RÃ©partition des notes:</h4>' + histo + '</div></td>\n',
              '<td style="padding-left: 50px; vertical-align: top;"><p>' ]
         commentkeys = K.items() # [ (comment, key), ... ]
         commentkeys.sort( lambda x,y: cmp(int(x[1]), int(y[1])) )
         for (comment,key) in commentkeys:
             C.append('<span class="colcomment">(%s)</span> <em>%s</em><br/>' % (key, comment))
         if commentkeys:
-            C.append('<span><a class=stdlink" href="evaluation_list_operations?evaluation_id=%s">Gérer les opérations</a></span><br/>' % E['evaluation_id'])
+            C.append('<span><a class=stdlink" href="evaluation_list_operations?evaluation_id=%s">GÃ©rer les opÃ©rations</a></span><br/>' % E['evaluation_id'])
         eval_info = 'xxx'
         if E['eval_state']['evalcomplete']:
             eval_info = '<span class="eval_info eval_complete">Evaluation prise en compte dans les moyennes</span>'
         elif E['eval_state']['evalattente']:
             eval_info = '<span class="eval_info eval_attente">Il y a des notes en attente (les autres sont prises en compte)</span>'
         else:
-            eval_info = '<span class="eval_info eval_incomplete">Notes incomplètes, évaluation non prise en compte dans les moyennes</span>'
+            eval_info = '<span class="eval_info eval_incomplete">Notes incomplÃ¨tes, Ã©valuation non prise en compte dans les moyennes</span>'
             
         return context.evaluation_create_form(evaluation_id=E['evaluation_id'], REQUEST=REQUEST, readonly=1) + eval_info + html_form + t + '\n'.join(C)
 
@@ -380,7 +380,7 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
                     valsur20 = 0
                 notes.append(valsur20) # toujours sur 20 pour l'histogramme
                 if note_sur_20:                            
-                    val = valsur20 # affichage notes / 20 demandé
+                    val = valsur20 # affichage notes / 20 demandÃ©
                 nb_notes = nb_notes + 1
                 sum_notes += val
             val_fmt = fmt_note(val, keep_numeric=keep_numeric)
@@ -410,7 +410,7 @@ def _add_eval_columns(context, e, rows, titles, coefs, note_max, moys, K,
         
         row.update( {evaluation_id : val_fmt,
                      '_'+evaluation_id+'_help' : explanation,
-                     # si plusieurs evals seront ecrasés et non affichés:
+                     # si plusieurs evals seront ecrasÃ©s et non affichÃ©s:
                      'comment' : explanation,
                      'expl_key' : expl_key,
                      '_expl_key_help' : explanation} )
@@ -476,7 +476,7 @@ def _add_moymod_column(context, formsemestre_id, e, rows, titles, coefs, note_ma
 # ---------------------------------------------------------------------------------
 
 
-# matin et/ou après-midi ?
+# matin et/ou aprÃ¨s-midi ?
 def _eval_demijournee(E):
     "1 si matin, 0 si apres midi, 2 si toute la journee"
     am, pm = False, False
@@ -494,12 +494,12 @@ def _eval_demijournee(E):
     return am, pm, demijournee
 
 def evaluation_check_absences(context, evaluation_id):
-    """Vérifie les absences au moment de cette évaluation.
-    Cas incohérents que l'on peut rencontrer pour chaque étudiant:
+    """VÃ©rifie les absences au moment de cette Ã©valuation.
+    Cas incohÃ©rents que l'on peut rencontrer pour chaque Ã©tudiant:
       note et absent  
-      ABS et pas noté absent
-      ABS et absent justifié
-      EXC et pas noté absent
+      ABS et pas notÃ© absent
+      ABS et absent justifiÃ©
+      EXC et pas notÃ© absent
       EXC et pas justifie
     Ramene 3 listes d'etudid
     """
@@ -513,7 +513,7 @@ def evaluation_check_absences(context, evaluation_id):
     
     am, pm, demijournee = _eval_demijournee(E)
     
-    # Liste les absences à ce moment:
+    # Liste les absences Ã  ce moment:
     A = context.Absences.ListeAbsJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
     As = Set( [ x['etudid'] for x in A ] ) # ensemble des etudiants absents
     NJ = context.Absences.ListeAbsNonJustJour(DateDMYtoISO(E['jour']), am=am, pm=pm)
@@ -523,11 +523,11 @@ def evaluation_check_absences(context, evaluation_id):
     
     # Les notes:
     NotesDB = context._notes_getall(evaluation_id)
-    ValButAbs = [] # une note mais noté absent
-    AbsNonSignalee = [] # note ABS mais pas noté absent
-    ExcNonSignalee = [] # note EXC mais pas noté absent
+    ValButAbs = [] # une note mais notÃ© absent
+    AbsNonSignalee = [] # note ABS mais pas notÃ© absent
+    ExcNonSignalee = [] # note EXC mais pas notÃ© absent
     ExcNonJust = [] #  note EXC mais absent non justifie
-    AbsButExc = [] # note ABS mais justifié
+    AbsButExc = [] # note ABS mais justifiÃ©
     for etudid in etudids:
         if NotesDB.has_key(etudid):
             val = NotesDB[etudid]['value']
@@ -538,10 +538,10 @@ def evaluation_check_absences(context, evaluation_id):
                 # absent mais pas signale comme tel
                 AbsNonSignalee.append(etudid)
             if val == NOTES_NEUTRALISE and not etudid in As:
-                # Neutralisé mais pas signale absent
+                # NeutralisÃ© mais pas signale absent
                 ExcNonSignalee.append(etudid)
             if val == NOTES_NEUTRALISE and etudid in NJs:
-                # EXC mais pas justifié
+                # EXC mais pas justifiÃ©
                 ExcNonJust.append(etudid)
             if val is None and etudid in Justs:
                 # ABS mais justificatif
@@ -559,9 +559,9 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
     ValButAbs, AbsNonSignalee, ExcNonSignalee, ExcNonJust, AbsButExc = evaluation_check_absences(context, evaluation_id)
 
     if with_header:
-        H = [ context.html_sem_header(REQUEST, "Vérification absences à l'évaluation"),
+        H = [ context.html_sem_header(REQUEST, "VÃ©rification absences Ã  l'Ã©valuation"),
               context.evaluation_create_form(evaluation_id=evaluation_id, REQUEST=REQUEST, readonly=1),
-              """<p class="help">Vérification de la cohérence entre les notes saisies et les absences signalées.</p>"""]
+              """<p class="help">VÃ©rification de la cohÃ©rence entre les notes saisies et les absences signalÃ©es.</p>"""]
     else:
         # pas de header, mais un titre
         H = [ """<h2 class="eval_check_absences">%s du %s """
@@ -585,19 +585,19 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
         H.append('</ul>')
 
     if ValButAbs or show_ok:
-        H.append("<h3>Etudiants ayant une note alors qu'ils sont signalés absents:</h3>")
+        H.append("<h3>Etudiants ayant une note alors qu'ils sont signalÃ©s absents:</h3>")
         etudlist(ValButAbs)
 
     if AbsNonSignalee or show_ok:
-        H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
+        H.append("""<h3>Etudiants avec note "ABS" alors qu'ils ne sont <em>pas</em> signalÃ©s absents:</h3>""")
         etudlist(AbsNonSignalee, linkabs=True)
 
     if ExcNonSignalee or show_ok:
-        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalés absents:</h3>""")
+        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils ne sont <em>pas</em> signalÃ©s absents:</h3>""")
         etudlist(ExcNonSignalee)
 
     if ExcNonJust or show_ok:
-        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifiés</em>:</h3>""")
+        H.append("""<h3>Etudiants avec note "EXC" alors qu'ils sont absents <em>non justifiÃ©s</em>:</h3>""")
         etudlist(ExcNonJust)
 
     if AbsButExc or show_ok:
@@ -612,10 +612,10 @@ def formsemestre_check_absences_html(context, formsemestre_id, REQUEST=None):
     """Affiche etat verification absences pour toutes les evaluations du semestre !
     """
     sem = context.get_formsemestre(formsemestre_id)
-    H = [ context.html_sem_header(REQUEST, 'Vérification absences aux évaluations de ce semestre', sem),
-          """<p class="help">Vérification de la cohérence entre les notes saisies et les absences signalées.
-          Sont listés tous les modules avec des évaluations.<br/>Aucune action n'est effectuée:
-          il vous appartient de corriger les erreurs détectées si vous le jugez nécessaire.
+    H = [ context.html_sem_header(REQUEST, 'VÃ©rification absences aux Ã©valuations de ce semestre', sem),
+          """<p class="help">VÃ©rification de la cohÃ©rence entre les notes saisies et les absences signalÃ©es.
+          Sont listÃ©s tous les modules avec des Ã©valuations.<br/>Aucune action n'est effectuÃ©e:
+          il vous appartient de corriger les erreurs dÃ©tectÃ©es si vous le jugez nÃ©cessaire.
           </p>"""]
     # Modules, dans l'ordre
     Mlist = context.do_moduleimpl_withmodule_list( args={ 'formsemestre_id' : formsemestre_id } )

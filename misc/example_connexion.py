@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 """Exemple connexion sur ScoDoc et utilisation de l'API
 """
@@ -53,23 +53,23 @@ else:
     js_data = response.read()
     data = json.loads(js_data)
     group_id = data[0]['group'][0]['group_id'] # premier groupe (normalement existe toujours)
-    # Liste les étudiants de ce groupe:
+    # Liste les Ã©tudiants de ce groupe:
     req = urllib2.Request(BASEURL+'/Notes/group_list?format=json&with_codes=1&group_id='+group_id) # format json
     response = urllib2.urlopen(req) 
     js_data = response.read()
     data = json.loads(js_data)
-    # Le code du premier étudiant:
+    # Le code du premier Ã©tudiant:
     if not data:
         print "pas d'etudiants dans ce semestre !"
     else:
         etudid = data[0]['etudid']
-        # Récupère bulletin de notes:
+        # RÃ©cupÃ¨re bulletin de notes:
         req = urllib2.Request(BASEURL+'/Notes/formsemestre_bulletinetud?formsemestre_id='+formsemestre_id+'&etudid=' + etudid + '&format=xml') # format XML ici !
         response = urllib2.urlopen(req)
         xml_bulletin = response.read()
         print '----- Bulletin de notes en XML:'
         print xml_bulletin
-        # Récupère la moyenne générale:
+        # RÃ©cupÃ¨re la moyenne gÃ©nÃ©rale:
         import xml.dom.minidom
         doc = xml.dom.minidom.parseString(xml_bulletin)
         moy = doc.getElementsByTagName('note')[0].getAttribute('value') # une chaine unicode

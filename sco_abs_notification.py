@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,11 +25,11 @@
 #
 ##############################################################################
 
-"""Système de notification par mail des excès d'absences
+"""SystÃ¨me de notification par mail des excÃ¨s d'absences
 (see ticket #147)
 
 
-Il suffit d'appeler abs_notify() après chaque ajout d'absence.
+Il suffit d'appeler abs_notify() aprÃ¨s chaque ajout d'absence.
 """
 
 from email.MIMEMultipart import MIMEMultipart
@@ -45,7 +45,7 @@ import sco_bulletins
 
 def abs_notify(context, etudid, date):
     """Check if notifications are requested and send them
-    Considère le nombre d'absence dans le semestre courant 
+    ConsidÃ¨re le nombre d'absence dans le semestre courant 
     (s'il n'y a pas de semestre courant, ne fait rien,
     car l'etudiant n'est pas inscrit au moment de l'absence!).
     """
@@ -117,8 +117,8 @@ def abs_notify_get_destinations(context, sem, prefs, etudid, date, nbabs, nbabsj
             if etud['email']:
                 destinations.append(etud['email'])        
     
-    # Notification (à chaque fois) des resp. de modules ayant des évaluations
-    # à cette date
+    # Notification (Ã  chaque fois) des resp. de modules ayant des Ã©valuations
+    # Ã  cette date
     # nb: on pourrait prevoir d'utiliser un autre format de message pour ce cas
     if sem and prefs['abs_notify_respeval']:
         mods = mod_with_evals_at_date(context, date, etudid)
@@ -133,7 +133,7 @@ def abs_notify_get_destinations(context, sem, prefs, etudid, date, nbabs, nbabsj
     return destinations
 
 def abs_notify_is_above_threshold(context, etudid, nbabs, nbabsjust, formsemestre_id):
-    """True si il faut notifier les absences (indépendemment du destinataire)
+    """True si il faut notifier les absences (indÃ©pendemment du destinataire)
     (nbabs > abs_notify_abs_threshold) 
     (nbabs - nbabs_last_notified) > abs_notify_abs_increment
     """
@@ -153,8 +153,8 @@ def abs_notify_is_above_threshold(context, etudid, nbabs, nbabsjust, formsemestr
 
 
 def etud_nbabs_last_notified(context, etudid, formsemestre_id=None):
-    """nbabs lors de la dernière notification envoyée pour cet étudiant dans ce semestre
-    ou sans semestre (ce dernier cas est nécessaire pour la transition au nouveau code)"""
+    """nbabs lors de la derniÃ¨re notification envoyÃ©e pour cet Ã©tudiant dans ce semestre
+    ou sans semestre (ce dernier cas est nÃ©cessaire pour la transition au nouveau code)"""
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select * from absences_notifications where etudid = %(etudid)s and (formsemestre_id = %(formsemestre_id)s or formsemestre_id is NULL) order by notification_date desc""",
@@ -203,7 +203,7 @@ def abs_notification_message(context, sem, prefs, etudid, nbabs, nbabsjust):
     return msg
 
 def retreive_current_formsemestre(context, etudid, cur_date):
-    """Get formsemestre dans lequel etudid est (ou était) inscrit a la date indiquée
+    """Get formsemestre dans lequel etudid est (ou Ã©tait) inscrit a la date indiquÃ©e
     date est une chaine au format ISO (yyyy-mm-dd)
     """
     req = """SELECT i.formsemestre_id FROM notes_formsemestre_inscription i, notes_formsemestre sem
@@ -218,7 +218,7 @@ def retreive_current_formsemestre(context, etudid, cur_date):
     return sem
 
 def mod_with_evals_at_date(context, date_abs, etudid):
-    """Liste des moduleimpls avec des evaluations a la date indiquée
+    """Liste des moduleimpls avec des evaluations a la date indiquÃ©e
     """
     req = """SELECT m.* FROM notes_moduleimpl m, notes_evaluation e, notes_moduleimpl_inscription i
     WHERE m.moduleimpl_id = e.moduleimpl_id AND e.moduleimpl_id = i.moduleimpl_id

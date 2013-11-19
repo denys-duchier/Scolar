@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Semestres: gestion parcours DUT (Arreté du 13 août 2005)
+"""Semestres: gestion parcours DUT (ArretÃ© du 13 aoÃ»t 2005)
 """
 import urllib, time, datetime
 
@@ -86,7 +86,7 @@ class SituationEtudParcours:
         self.semestre_non_terminal = (self.sem['semestre_id'] != self.parcours.NB_SEM) # True | False
         if self.sem['semestre_id'] == NO_SEMESTRE_ID:
             self.semestre_non_terminal = False
-        # Liste des semestres du parcours de cet étudiant:
+        # Liste des semestres du parcours de cet Ã©tudiant:
         self._comp_semestres()
         # Determine le semestre "precedent"
         self.prev_formsemestre_id = self._search_prev()
@@ -99,9 +99,9 @@ class SituationEtudParcours:
             self.can_compensate_with_prev = False
     
     def get_possible_choices(self, assiduite=True):
-        """Donne la liste des décisions possibles en jury (hors décisions manuelles)
+        """Donne la liste des dÃ©cisions possibles en jury (hors dÃ©cisions manuelles)
         (liste d'instances de DecisionSem)
-        assiduite = True si pas de probleme d'assiduité
+        assiduite = True si pas de probleme d'assiduitÃ©
         """
         choices = []
         if self.prev_decision:
@@ -114,7 +114,7 @@ class SituationEtudParcours:
                  self.can_compensate_with_prev, self.semestre_non_terminal)
         # log('get_possible_choices: state=%s' % str(state) )
         for rule in DUTRules:
-            # Saute codes non autorisés dans ce parcours (eg ATT en LP)
+            # Saute codes non autorisÃ©s dans ce parcours (eg ATT en LP)
             if rule.conclusion[0] in self.parcours.UNUSED_CODES:
                 continue
             # Saute regles REDOSEM si pas de semestres decales:
@@ -154,19 +154,19 @@ class SituationEtudParcours:
         if self.semestre_non_terminal and not self.all_other_validated(): 
             passage = 'Passe en S%s' % next_s
         else:
-            passage = 'Formation terminée'
+            passage = 'Formation terminÃ©e'
         if devenir == NEXT:
             return passage
         elif devenir == REO:
-            return 'Réorienté'
+            return 'RÃ©orientÃ©'
         elif devenir == REDOANNEE:
-            return 'Redouble année (recommence S%s)' % (s - 1)
+            return 'Redouble annÃ©e (recommence S%s)' % (s - 1)
         elif devenir == REDOSEM:
             return 'Redouble semestre (recommence en S%s)' % (s)
         elif devenir == RA_OR_NEXT:
-            return passage + ', ou redouble année (en S%s)' % (s-1)
+            return passage + ', ou redouble annÃ©e (en S%s)' % (s-1)
         elif devenir == RA_OR_RS:
-            return 'Redouble semestre S%s, ou redouble année (en S%s)' % (s, s-1)
+            return 'Redouble semestre S%s, ou redouble annÃ©e (en S%s)' % (s, s-1)
         elif devenir == RS_OR_NEXT:
             return passage + ', ou semestre S%s' % (s)
         elif devenir == NEXT_OR_NEXT2:
@@ -178,37 +178,37 @@ class SituationEtudParcours:
             return 'Code devenir inconnu !'
 
     def all_other_validated(self):
-        "True si tous les autres semestres de cette formation sont validés"
+        "True si tous les autres semestres de cette formation sont validÃ©s"
         return self._sems_validated( exclude_current=True )
         
     def parcours_validated(self):
-        "True si parcours validé (diplôme obtenu, donc)."
+        "True si parcours validÃ© (diplÃ´me obtenu, donc)."
         return self._sems_validated()
     
     def _sems_validated(self, exclude_current=False):
-        "True si semestres du parcours validés"
+        "True si semestres du parcours validÃ©s"
         if self.sem['semestre_id'] == NO_SEMESTRE_ID:
             # mono-semestre: juste celui ci
             decision = self.nt.get_etud_decision_sem(self.etudid)
             return decision and code_semestre_validant(decision['code'])
         else:
-            to_validate = Set(range(1, self.parcours.NB_SEM + 1)) # ensemble des indices à valider
+            to_validate = Set(range(1, self.parcours.NB_SEM + 1)) # ensemble des indices Ã  valider
             if exclude_current:
                 to_validate.remove(self.sem['semestre_id'])
             return self._sem_list_validated(to_validate)            
 
     def can_jump_to_next2(self):
-        """True si l'étudiant peut passer directement en Sn+2 (eg de S2 en S4).
-        Il faut donc que tous les semestres 1...n-1 soient validés et que n+1 soit en attente.
-        (et que le sem courant n soit validé, ce qui n'est pas testé ici)
+        """True si l'Ã©tudiant peut passer directement en Sn+2 (eg de S2 en S4).
+        Il faut donc que tous les semestres 1...n-1 soient validÃ©s et que n+1 soit en attente.
+        (et que le sem courant n soit validÃ©, ce qui n'est pas testÃ© ici)
         """
         n = self.sem['semestre_id']
         if self.sem['gestion_semestrielle'] != '1':
-            return False # pas de semestre décalés
+            return False # pas de semestre dÃ©calÃ©s
         if n == NO_SEMESTRE_ID or n > self.parcours.NB_SEM-2:
             return False # n+2 en dehors du parcours
         if self._sem_list_validated( Set(range(1,n)) ):
-            # antérieurs validé, teste suivant
+            # antÃ©rieurs validÃ©, teste suivant
             n1 = n + 1
             for sem in self.get_semestres():
                 if sem['semestre_id'] == n1 and sem['formation_code'] == self.formation['formation_code']:
@@ -219,14 +219,14 @@ class SituationEtudParcours:
         return False
 
     def _sem_list_validated(self, sem_idx_set):
-        """True si les semestres dont les indices sont donnés en argument (modifié)
-        sont validés. En sortie, sem_idx_set contient ceux qui n'ont pas été validés."""
+        """True si les semestres dont les indices sont donnÃ©s en argument (modifiÃ©)
+        sont validÃ©s. En sortie, sem_idx_set contient ceux qui n'ont pas Ã©tÃ© validÃ©s."""
         for sem in self.get_semestres():
             if sem['formation_code'] == self.formation['formation_code']:
                 nt = self.znotes._getNotesCache().get_NotesTable(self.znotes, sem['formsemestre_id']) #> get_etud_decision_sem
                 decision = nt.get_etud_decision_sem(self.etudid)
                 if decision and code_semestre_validant(decision['code']):
-                    # validé
+                    # validÃ©
                     sem_idx_set.discard(sem['semestre_id'])
         
         return not sem_idx_set
@@ -249,7 +249,7 @@ class SituationEtudParcours:
             # add formation_code to each sem:
             sem['formation_code'] = self.znotes.formation_list(
                 args={ 'formation_id' : sem['formation_id'] })[0]['formation_code']
-            # si sem peut servir à compenser le semestre courant, positionne
+            # si sem peut servir Ã  compenser le semestre courant, positionne
             #  can_compensate
             sem['can_compensate'] = check_compensation(self.etudid, self.sem, self.nt, sem, nt)
         
@@ -259,13 +259,13 @@ class SituationEtudParcours:
         self.sems = sems
     
     def get_semestres(self):
-        """Liste des semestres dans lesquels a été inscrit
-        l'étudiant (quelle que soit la formation), le plus ancien en tête"""
+        """Liste des semestres dans lesquels a Ã©tÃ© inscrit
+        l'Ã©tudiant (quelle que soit la formation), le plus ancien en tÃªte"""
         return self.sems
 
     def get_parcours_descr(self, filter_futur=False):
-        """Description brève du parcours: "S1, S2, ..."
-        Si filter_futur, ne mentionne pas les semestres qui sont après le semestre courant.
+        """Description brÃ¨ve du parcours: "S1, S2, ..."
+        Si filter_futur, ne mentionne pas les semestres qui sont aprÃ¨s le semestre courant.
         """
         cur_begin_date = self.sem['dateord']
         p = []
@@ -296,7 +296,7 @@ class SituationEtudParcours:
             self.ues_status[ue_id] = self.nt.get_etud_ue_status(self.etudid, ue_id)
 
     def could_be_compensated(self):
-        "true si ce semestre pourrait etre compensé par un autre (barres UE > 8)"
+        "true si ce semestre pourrait etre compensÃ© par un autre (barres UE > 8)"
         return (self.nb_ues_under == 0)
         
     def _search_prev(self):
@@ -318,10 +318,10 @@ class SituationEtudParcours:
             log('*** SituationEtudParcours: search_prev: cur not found (formsemestre_id=%s, etudid=%s)'
                 % (formsemestre_id,etudid) )            
             return None # pas de semestre courant !!!
-        # Cherche semestre antérieur de même formation (code) et semestre_id precedent
+        # Cherche semestre antÃ©rieur de mÃªme formation (code) et semestre_id precedent
         # 
-        #i = icur - 1 # part du courant, remonte vers le passé
-        i = len(self.sems) - 1 # par du dernier, remonte vers le passé
+        #i = icur - 1 # part du courant, remonte vers le passÃ©
+        i = len(self.sems) - 1 # par du dernier, remonte vers le passÃ©
         prev = None
         while i >= 0:
             if self.sems[i]['formation_code'] == self.formation['formation_code'] \
@@ -330,7 +330,7 @@ class SituationEtudParcours:
                 break
             i -= 1
         if not prev:
-            return None # pas de precedent trouvé
+            return None # pas de precedent trouvÃ©
         self.prev = prev
         # Verifications basiques:
         # ?
@@ -343,7 +343,7 @@ class SituationEtudParcours:
     
     def get_next_semestre_ids(self, devenir):
         """Liste des numeros de semestres autorises avec ce devenir
-        Ne vérifie pas que le devenir est possible (doit être fait avant),
+        Ne vÃ©rifie pas que le devenir est possible (doit Ãªtre fait avant),
         juste que le rang du semestre est dans le parcours [1..NB_SEM]
         """
         s = self.sem['semestre_id']
@@ -360,7 +360,7 @@ class SituationEtudParcours:
         elif devenir == RS_OR_NEXT:
             ids = [s, self._get_next_semestre_id()]
         elif devenir == NEXT_OR_NEXT2:            
-            ids = [self._get_next_semestre_id(), s+2] # cohérent avec explique_devenir()
+            ids = [self._get_next_semestre_id(), s+2] # cohÃ©rent avec explique_devenir()
         elif devenir == NEXT2:
             ids = [s+2]         
         else:
@@ -373,8 +373,8 @@ class SituationEtudParcours:
         return r
 
     def _get_next_semestre_id(self):
-        """Indice du semestre suivant non validé.
-        S'il n'y en a pas, ramène NB_SEM+1
+        """Indice du semestre suivant non validÃ©.
+        S'il n'y en a pas, ramÃ¨ne NB_SEM+1
         """
         s = self.sem['semestre_id']
         if s >= self.parcours.NB_SEM:
@@ -382,7 +382,7 @@ class SituationEtudParcours:
         validated = True
         while validated and (s < self.parcours.NB_SEM):
             s = s + 1
-            # semestre s validé ?
+            # semestre s validÃ© ?
             validated = False
             for sem in self.sems:
                 if sem['formation_code'] == self.formation['formation_code'] \
@@ -476,7 +476,7 @@ class SituationEtudParcours:
             raise
         self.znotes._inval_cache(formsemestre_id=self.formsemestre_id) #> modif decisions jury et autorisations inscription
         if decision.formsemestre_id_utilise_pour_compenser:
-            # inval aussi le semestre utilisé pour compenser:
+            # inval aussi le semestre utilisÃ© pour compenser:
             self.znotes._inval_cache(formsemestre_id=decision.formsemestre_id_utilise_pour_compenser) #> modif decision jury
         for formsemestre_id in to_invalidate:
             self.znotes._inval_cache(formsemestre_id=formsemestre_id) #> modif decision jury
@@ -484,7 +484,7 @@ class SituationEtudParcours:
 
 def check_compensation( etudid, sem, nt, semc, ntc ):
     """Verifie si le semestre sem peut se compenser en utilisant semc
-    - semc non utilisé par un autre semestre
+    - semc non utilisÃ© par un autre semestre
     - decision du jury prise  ADM ou ADJ ou ATT ou ADC
     - barres UE (moy ue > 8) dans sem et semc
     - moyenne des moy_gen > 10
@@ -582,7 +582,7 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
     to_invalidate = []
 
     # enleve compensations si necessaire
-    # recupere les semestres auparavant utilisés pour invalider les caches
+    # recupere les semestres auparavant utilisÃ©s pour invalider les caches
     # correspondants:
     cursor.execute("""select formsemestre_id from scolar_formsemestre_validation
     where compense_formsemestre_id=%(formsemestre_id)s and etudid = %(etudid)s""",
@@ -611,10 +611,10 @@ def formsemestre_update_validation_sem(cnx, formsemestre_id, etudid, code, assid
 
 
 def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, assiduite, REQUEST=None):
-    """Enregistre codes UE, selon état semestre.
-    Les codes UE sont toujours calculés ici, et non passés en paramètres
-    car ils ne dépendent que de la note d'UE et de la validation ou non du semestre.
-    Les UE des semestres NON ASSIDUS ne sont jamais validées (code AJ).
+    """Enregistre codes UE, selon Ã©tat semestre.
+    Les codes UE sont toujours calculÃ©s ici, et non passÃ©s en paramÃ¨tres
+    car ils ne dÃ©pendent que de la note d'UE et de la validation ou non du semestre.
+    Les UE des semestres NON ASSIDUS ne sont jamais validÃ©es (code AJ).
     """
     valid_semestre = CODES_SEM_VALIDES.get(code_etat_sem, False)
     cnx = znotes.GetDBConnexion(autocommit=False)
@@ -663,7 +663,7 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
         args['code'] = code
         if code == 'ADM':
             if moy_ue is None:
-                # stocke la moyenne d'UE capitalisée:
+                # stocke la moyenne d'UE capitalisÃ©e:
                 moy_ue = nt.get_etud_ue_status(etudid, ue_id)['moy']
             args['moy_ue'] = moy_ue
         log('formsemestre_validate_ue: %s' % args)
@@ -673,7 +673,7 @@ def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, m
         raise
 
 def etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id):
-    """Vrai si l'étudiant est inscrit a au moins un module de cette UE dans ce semestre"""
+    """Vrai si l'Ã©tudiant est inscrit a au moins un module de cette UE dans ce semestre"""
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     cursor.execute("""select mi.* from notes_moduleimpl mi, notes_modules mo, notes_ue ue, notes_moduleimpl_inscription i
     where i.etudid = %(etudid)s and i.moduleimpl_id=mi.moduleimpl_id
@@ -696,8 +696,8 @@ _scolar_autorisation_inscription_editor = EditableTable(
 scolar_autorisation_inscription_list =_scolar_autorisation_inscription_editor.list
 
 def formsemestre_get_autorisation_inscription(znotes, etudid, origin_formsemestre_id):
-    """Liste des autorisations d'inscription pour cet étudiant
-    émanant du semestre indiqué.
+    """Liste des autorisations d'inscription pour cet Ã©tudiant
+    Ã©manant du semestre indiquÃ©.
     """
     cnx = znotes.GetDBConnexion()
     #sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
@@ -707,9 +707,9 @@ def formsemestre_get_autorisation_inscription(znotes, etudid, origin_formsemestr
         {'origin_formsemestre_id' : origin_formsemestre_id, 'etudid' : etudid } )
 
 def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
-    """Liste des UE capitalisées (ADM) correspondant au semestre sem.
-    Recherche dans les semestres de la même formation (code) avec le même
-    semestre_id et une date de début antérieure à celle du semestre mentionné.
+    """Liste des UE capitalisÃ©es (ADM) correspondant au semestre sem.
+    Recherche dans les semestres de la mÃªme formation (code) avec le mÃªme
+    semestre_id et une date de dÃ©but antÃ©rieure Ã  celle du semestre mentionnÃ©.
     Resultat: [ { 'formsemestre_id' :
                   'ue_id' :
                   'ue_code' : 

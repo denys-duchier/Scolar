@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Menu "custom" (défini par l'utilisateur) dans les semestres
+"""Menu "custom" (dÃ©fini par l'utilisateur) dans les semestres
 """
 
 
@@ -66,8 +66,8 @@ def formsemestre_custommenu_edit(context, formsemestre_id, REQUEST=None):
     sem = context.get_formsemestre(formsemestre_id)
     H = [ 
         context.html_sem_header(REQUEST,  'Modification du menu du semestre ', sem),
-        """<p class="help">Ce menu, spécifique à chaque semestre, peut être utilisé pour placer des liens vers vos applications préférées.</p>
-          <p class="help">Procédez en plusieurs fois si vous voulez ajouter plusieurs items.</p>"""]
+        """<p class="help">Ce menu, spÃ©cifique Ã  chaque semestre, peut Ãªtre utilisÃ© pour placer des liens vers vos applications prÃ©fÃ©rÃ©es.</p>
+          <p class="help">ProcÃ©dez en plusieurs fois si vous voulez ajouter plusieurs items.</p>"""]
     descr = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('sep', { 'input_type' : 'separator',

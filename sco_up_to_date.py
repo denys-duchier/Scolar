@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,14 +27,14 @@
 
 
 """ Verification version logiciel vs version "stable" sur serveur
-    N'effectue pas la mise ‡ jour automatiquement, mais permet un affichage d'avertissement.
+    N'effectue pas la mise √† jour automatiquement, mais permet un affichage d'avertissement.
 """
 
 from sco_utils import *
 
 # Appel renvoyant la subversion "stable"
-# La notion de "stable" est juste l‡ pour Èviter d'afficher trop frequemment
-# des avertissements de mise ‡ jour: on veut pouvoir inciter ‡ mettre ‡ jour lors de
+# La notion de "stable" est juste l√† pour √©viter d'afficher trop frequemment
+# des avertissements de mise √† jour: on veut pouvoir inciter √† mettre √† jour lors de
 # correctifs majeurs.
 
 GET_VER_URL = 'http://notes.iutv.univ-paris13.fr/scodoc-installmgr/last_stable_version'
@@ -91,7 +91,7 @@ def is_up_to_date(context):
     #
     if cur_ver_num < last_stable_ver_num:
         _UP_TO_DATE = False
-        _UP_TO_DATE_MSG = 'Version %s disponible (version %s installÈe)' % (last_stable_ver, cur_ver_num)
+        _UP_TO_DATE_MSG = 'Version %s disponible (version %s install√©e)' % (last_stable_ver, cur_ver_num)
         log('Warning: ScoDoc installation is not up-to-date, should upgrade\n%s' % _UP_TO_DATE_MSG)
     else:
         _UP_TO_DATE = True
@@ -107,7 +107,7 @@ def html_up_to_date_box(context):
     if status:
         return ''
     return """<div class="update_warning">
-    <span>Attention: cette installation de ScoDoc n'est pas ‡ jour.</span>
+    <span>Attention: cette installation de ScoDoc n'est pas √† jour.</span>
     <div class="update_warning_sub">Contactez votre administrateur. %s</div>
     </div>""" % msg
 

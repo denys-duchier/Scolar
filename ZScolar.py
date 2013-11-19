@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Site Scolarite pour département IUT
+"""Site Scolarite pour dÃ©partement IUT
 """
 
 import sys
@@ -37,6 +37,7 @@ except: from StringIO import StringIO
 from zipfile import ZipFile
 import thread
 import psycopg2
+import testencoding
 
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
@@ -57,7 +58,6 @@ from Acquisition import Implicit
 from notes_log import log
 log.set_log_directory( INSTANCE_HOME + '/log' )
 log("restarting...")
-
 
 # where we exist on the file system
 file_path = Globals.package_home(globals())
@@ -93,6 +93,8 @@ import sco_groups_edit
 import sco_up_to_date
 from sco_formsemestre_status import makeMenu
 from VERSION import SCOVERSION, SCONEWS
+
+log('ScoDoc: using encoding %s' % SCO_ENCODING)
 
 # import essai_cas
 
@@ -147,7 +149,7 @@ class ZScolar(ObjectManager,
         #id = 'DB'
         #da = ZopeDA.Connection(
         #    id, 'DB connector', db_cnx_string, False,
-        #    check=1, tilevel=2, encoding='iso8859-15')
+        #    check=1, tilevel=2, encoding='utf-8')
         #self._setObject(id, da)
         # --- add Scousers instance
         id = 'Users'
@@ -212,20 +214,23 @@ class ZScolar(ObjectManager,
     def DeptId(self):
         """Returns Id for this department
         (retreived as the name of the parent folder)
-        (c'est normalement l'id donne à create_dept.sh)
-        NB: la preference DeptName est au depart la même chose de cet id
-        mais elle peut être modifiée (préférences).
+        (c'est normalement l'id donne Ã  create_dept.sh)
+        NB: la preference DeptName est au depart la mÃªme chose de cet id
+        mais elle peut Ãªtre modifiÃ©e (prÃ©fÃ©rences).
         """
         return self.aq_parent.id
 
     def DeptUsersRoles(self): # not published
-        # Donne les rôles utilisés dans ce departement.
+        # Donne les rÃ´les utilisÃ©s dans ce departement.
         DeptId = self.DeptId()
         DeptRoles=[]
         for role_type in ('Ens', 'Secr', 'Admin'):
             role_name = role_type + DeptId
             DeptRoles.append( role_name )
         return DeptRoles
+
+    security.declareProtected(ScoView, 'testencoding')
+    testencoding = testencoding.testencoding
 
     security.declareProtected(ScoView, 'essaiform')
     def essaiform(self,REQUEST=None):
@@ -341,7 +346,7 @@ class ZScolar(ObjectManager,
     #        self.initialize()
     #    cnx = self._pg_pool.getconn(key=(thread.get_ident(),autocommit))
     #    cnx.autocommit = autocommit
-    #    # self.DB().encoding = 'LATIN1' # necessaire car anciennes installs en iso8859-15
+    #    # self.DB().encoding = 'LATIN1' # necessaire car anciennes installs en utf-8
     #    return cnx
 
 
@@ -367,17 +372,17 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'about')
     def about(self, REQUEST):
         "version info"
-        H = [ """<h2>Système de gestion scolarité</h2>
+        H = [ """<h2>SystÃ¨me de gestion scolaritÃ©</h2>
         <p>&copy; Emmanuel Viennet 1997-2013</p>
         <p>Version %s (subversion %s)</p>
         """ % (SCOVERSION, get_svn_version(file_path)) ]
-        H.append('<p>Logiciel libre écrit en <a href="http://www.python.org">Python</a>.</p><p>Utilise <a href="http://www.reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
-        H.append( "<h2>Dernières évolutions</h2>" + SCONEWS )
+        H.append('<p>Logiciel libre Ã©crit en <a href="http://www.python.org">Python</a>.</p><p>Utilise <a href="http://www.reportlab.org/">ReportLab</a> pour gÃ©nÃ©rer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
+        H.append( "<h2>DerniÃ¨res Ã©volutions</h2>" + SCONEWS )
         H.append( '<div class="about-logo">' + self.icons.borgne_img.tag() + ' <em>Au pays des aveugles...</em></div>' )
         d = ''
         # debug
         #import locale
-        #g='gonÇalves'
+        #g='gonÃ‡alves'
         # 
         #d = "<p>locale=%s, g=%s -> %s</p>"% (locale.getlocale(), g, g.lower() )
         return self.sco_header(REQUEST)+ '\n'.join(H) + d + self.sco_footer(REQUEST)
@@ -510,7 +515,7 @@ class ZScolar(ObjectManager,
         H.append('</form>')
         
         if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant') + '\n'.join(H) + self.sco_footer(REQUEST)
+            return self.sco_header(REQUEST, page_title='Choix d\'un Ã©tudiant') + '\n'.join(H) + self.sco_footer(REQUEST)
         else:
             return '\n'.join(H)
     
@@ -529,15 +534,15 @@ class ZScolar(ObjectManager,
         ops = self.listScoLog(etudid)
         
         tab = GenTable( titles={ 'date' : 'Date', 'authenticated_user' : 'Utilisateur',
-                                 'remote_addr' : 'IP', 'method' : 'Opération',
+                                 'remote_addr' : 'IP', 'method' : 'OpÃ©ration',
                                  'msg' : 'Message'},
                         columns_ids=('date', 'authenticated_user', 'remote_addr', 'method', 'msg'),
                         rows=ops,
                         html_sortable=True,
                         html_class='gt_table table_leftalign',
                         base_url = '%s?etudid=%s' % (REQUEST.URL0, etudid),
-                        page_title='Opérations sur %(nomprenom)s' % etud,
-                        html_title="<h2>Opérations effectuées sur l'étudiant %(nomprenom)s</h2>" % etud,
+                        page_title='OpÃ©rations sur %(nomprenom)s' % etud,
+                        html_title="<h2>OpÃ©rations effectuÃ©es sur l'Ã©tudiant %(nomprenom)s</h2>" % etud,
                         filename='log_'+make_filename(etud['nomprenom']),
                         html_next_section='<ul><li><a href="ficheEtud?etudid=%(etudid)s">fiche de %(nomprenom)s</a></li></ul>' % etud,
                         preferences=self.get_preferences() )
@@ -562,7 +567,7 @@ class ZScolar(ObjectManager,
     # ----------  PAGE ACCUEIL (listes) --------------
     security.declareProtected(ScoView, 'index_html')
     def index_html(self,REQUEST=None, showcodes=0, showlocked=0):
-        "Page accueil département (liste des semestres)"
+        "Page accueil dÃ©partement (liste des semestres)"
         showlocked=int(showlocked)
         H = []
 
@@ -570,7 +575,7 @@ class ZScolar(ObjectManager,
         rssicon = self.icons.rssicon_img.tag(title='Flux RSS', border='0') 
         H.append( sco_news.scolar_news_summary_html(self, rssicon=rssicon) )
 
-        # Avertissement de mise à jour:
+        # Avertissement de mise Ã  jour:
         H.append(sco_up_to_date.html_up_to_date_box(self))
 
         # Liste de toutes les sessions:
@@ -578,13 +583,13 @@ class ZScolar(ObjectManager,
         now = time.strftime( '%Y-%m-%d' )
 
         cursems = []   # semestres "courants"
-        othersems = [] # autres (verrouillés)
+        othersems = [] # autres (verrouillÃ©s)
         # icon image:
         groupicon = self.icons.groupicon_img.tag(title="Inscrits",
                                                border='0') 
         emptygroupicon = self.icons.emptygroupicon_img.tag(title="Pas d'inscrits",
                                                            border='0')
-        lockicon = self.icons.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = self.icons.lock32_img.tag(title="verrouillÃ©", border='0')
         # selection sur l'etat du semestre
         for sem in sems:
             if sem['etat'] == '1':
@@ -611,10 +616,10 @@ class ZScolar(ObjectManager,
 
         # s'il n'y a pas d'utilisateurs dans la base, affiche message
         if not self.Users.get_userlist():
-            H.append("""<h2>Aucun utilisateur défini !</h2><p>Pour définir des utilisateurs
+            H.append("""<h2>Aucun utilisateur dÃ©fini !</h2><p>Pour dÃ©finir des utilisateurs
             <a href="Users">passez par la page Utilisateurs</a>.
             <br/>
-            Définissez au moins un utilisateur avec le rôle AdminXXX (le responsable du département XXX).
+            DÃ©finissez au moins un utilisateur avec le rÃ´le AdminXXX (le responsable du dÃ©partement XXX).
             </p>
             """)
         
@@ -629,28 +634,28 @@ class ZScolar(ObjectManager,
             <p>Pour ajouter une session, aller dans <a href="Notes">Programmes</a>,
             choisissez une formation, puis suivez le lien "<em>UE, modules, semestres</em>".
             </p><p>
-            Là, en bas de page, suivez le lien
+            LÃ , en bas de page, suivez le lien
             "<em>Mettre en place un nouveau semestre de formation...</em>"
             </p>""")
         
         if othersems and showlocked:
             H.append("""<hr/>
-            <h2>Sessions terminées (non modifiables)</h2>
+            <h2>Sessions terminÃ©es (non modifiables)</h2>
             """)            
             H.append(self._sem_table(othersems))
             H.append('</table>')
         if not showlocked:
-            H.append('<hr/><p><a href="%s?showlocked=1">Montrer les sessions verrouillées</a></p>' % REQUEST.URL0)
+            H.append('<hr/><p><a href="%s?showlocked=1">Montrer les sessions verrouillÃ©es</a></p>' % REQUEST.URL0)
         #
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudInscrit,self):
             H.append("""<hr>
-            <h3>Gestion des étudiants</h3>
+            <h3>Gestion des Ã©tudiants</h3>
             <ul>
-            <li><a class="stdlink" href="etudident_create_form">créer <em>un</em> nouvel étudiant</a></li>
-            <li><a class="stdlink" href="form_students_import_excel">importer de nouveaux étudiants</a> (ne pas utiliser sauf cas particulier, utilisez plutôt le lien dans
+            <li><a class="stdlink" href="etudident_create_form">crÃ©er <em>un</em> nouvel Ã©tudiant</a></li>
+            <li><a class="stdlink" href="form_students_import_excel">importer de nouveaux Ã©tudiants</a> (ne pas utiliser sauf cas particulier, utilisez plutÃ´t le lien dans
             le tableau de bord semestre si vous souhaitez inscrire les
-            étudiants importés à un semestre)</li>
+            Ã©tudiants importÃ©s Ã  un semestre)</li>
             </ul>
             """)
         #
@@ -667,9 +672,9 @@ class ZScolar(ObjectManager,
         """
         # " (this quote fix a font lock bug)
         H = ['<table class="listesems">']
-        # différentes modalités ?
+        # diffÃ©rentes modalitÃ©s ?
         modalites = list(Set([s['modalite'] for s in sems]))
-        # tri selon un ordre fixé:
+        # tri selon un ordre fixÃ©:
         modalites.sort( lambda x,y: cmp(MODALITY_ORDER[x],MODALITY_ORDER[y]))
         sems_by_mod = DictDefault(defaultvalue=[])
         for modalite in modalites:
@@ -684,7 +689,7 @@ class ZScolar(ObjectManager,
         for modalite in modalites:
             if len(modalites) > 1:
                 H.append('<tr><th colspan="4">%s</th></tr>' % MODALITY_NAMES[modalite])
-            # tri dans chaque modalité par indice de semestre et date debut
+            # tri dans chaque modalitÃ© par indice de semestre et date debut
             sems_by_mod[modalite].sort(
                 lambda x,y: cmp(y['sortkey'],x['sortkey']))            
             if sems_by_mod[modalite]:
@@ -707,7 +712,7 @@ class ZScolar(ObjectManager,
                                                 'Nouvelles de ' + self.get_preference('DeptName'),
                                                  self.ScoURL() )
         
-    # genere liste html pour accès aux groupes de ce semestre
+    # genere liste html pour accÃ¨s aux groupes de ce semestre
     def make_listes_sem(self, sem, REQUEST=None, with_absences=True):
         context = self
         authuser = REQUEST.AUTHENTICATED_USER
@@ -749,7 +754,7 @@ class ZScolar(ObjectManager,
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
             FA.append('</select>')
-            FA.append('<a href="Absences/EtatAbsencesGr?group_id=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
+            FA.append('<a href="Absences/EtatAbsencesGr?group_id=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">Ã©tat</a>' % sem )
             FA.append('</form></td>')
             FormAbs = '\n'.join(FA)
         else:
@@ -759,7 +764,7 @@ class ZScolar(ObjectManager,
         # Genere liste pour chaque partition (categorie de groupes)
         for partition in sco_groups.get_partitions_list(context, sem['formsemestre_id']):
             if not partition['partition_name']:
-                H.append('<h4>Tous les étudiants</h4>' % partition)
+                H.append('<h4>Tous les Ã©tudiants</h4>' % partition)
             else:
                 H.append('<h4>Groupes de %(partition_name)s</h4>' % partition)
             groups = sco_groups.get_partition_groups(context, partition)
@@ -779,7 +784,7 @@ class ZScolar(ObjectManager,
                         (<a href="%(url)s/group_list?&group_id=%(group_id)s&format=xls">format tableur</a>)
                         <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
                         </td>""" % group )
-                    H.append('<td>(%d étudiants)</td>' % n_members )
+                    H.append('<td>(%d Ã©tudiants)</td>' % n_members )
 
                     if with_absences:
                         H.append( FormAbs % group )
@@ -789,7 +794,7 @@ class ZScolar(ObjectManager,
             else:
                 H.append('<p class="help indent">Aucun groupe dans cette partition')
                 if self.Notes.can_change_groups(REQUEST, formsemestre_id):
-                    H.append(' (<a href="affectGroups?partition_id=%s" class="stdlink">créer</a>)' % partition['partition_id'])
+                    H.append(' (<a href="affectGroups?partition_id=%s" class="stdlink">crÃ©er</a>)' % partition['partition_id'])
                 H.append('</p>')
         if self.Notes.can_change_groups(REQUEST, formsemestre_id):
             H.append('<h4><a href="editPartitionForm?formsemestre_id=%s">Ajouter une partition</a></h4>' % formsemestre_id)
@@ -804,7 +809,7 @@ class ZScolar(ObjectManager,
                    etat=None,
                    format='html',
                    with_paiement=0, # si vrai, ajoute colonne infos paiement droits inscription (lent car interrogation portail)
-                   with_archives=0, # ajoute colonne avec noms fichiers archivés
+                   with_archives=0, # ajoute colonne avec noms fichiers archivÃ©s
                    with_annotations=0
                    ):
         """liste etudiants inscrits dans ce semestre
@@ -841,7 +846,7 @@ class ZScolar(ObjectManager,
         #
         columns_ids=['nom_disp', 'prenom' ] # colonnes a inclure
         titles = { 'nom_disp' : 'Nom',
-                   'prenom' : 'Prénom',
+                   'prenom' : 'PrÃ©nom',
                    'email' : 'Mail',
                    'etat':'Etat',
                    'etudid':'etudid',
@@ -858,7 +863,7 @@ class ZScolar(ObjectManager,
                     columns_ids.append( partition['partition_id'] )
                     titles[partition['partition_id']] = partition['partition_name']
         
-        if format != 'html': # ne mentionne l'état que en Excel (style en html)
+        if format != 'html': # ne mentionne l'Ã©tat que en Excel (style en html)
             columns_ids.append('etat')
         columns_ids.append('email')
         if with_codes:
@@ -894,7 +899,7 @@ class ZScolar(ObjectManager,
             s = ''
         
         tab = GenTable( rows=members, columns_ids=columns_ids, titles=titles,
-                        caption='soit %d étudiants inscrits et %d démissionaire%s.' 
+                        caption='soit %d Ã©tudiants inscrits et %d dÃ©missionaire%s.' 
                         % (len(members)-nbdem,nbdem,s),
                         base_url=base_url,
                         pdf_link=False, # pas d'export pdf
@@ -909,11 +914,11 @@ class ZScolar(ObjectManager,
             
             if len(members):
                 if group['group_name'] != None:
-                    htitle = 'Groupe %s (%d étudiants)' % (group['group_name'],len(members))
+                    htitle = 'Groupe %s (%d Ã©tudiants)' % (group['group_name'],len(members))
                 else:
-                    htitle = 'Les %d étudiants inscrits' % len(members)
+                    htitle = 'Les %d Ã©tudiants inscrits' % len(members)
             else:
-                htitle = 'Aucun étudiant'
+                htitle = 'Aucun Ã©tudiant'
             H = [ self.Notes.html_sem_header(
                 REQUEST,
                 htitle, sem,
@@ -923,13 +928,13 @@ class ZScolar(ObjectManager,
                 tab.html(),
                   """<form name="wpf">
                   <input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer paiement inscription</input>
-                  <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer fichiers archivés</input>
+                  <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer fichiers archivÃ©s</input>
                   <input type="checkbox" name="with_annotations" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">lister annotations</input>                  
                   </form>
                   """ % (with_paiement_checked, base_url_np,
                          with_archives_checked, base_url_np,
                          with_annotations_checked, base_url_np),
-                  """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
+                  """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'Ã©margement</a></li>"""
                   % base_url,
                   """<li><a class="stdlink" href="trombino?group_id=%s&etat=I">Photos</a></li>"""
                   % (group_id,),
@@ -938,11 +943,11 @@ class ZScolar(ObjectManager,
             
             # Lien pour verif codes INE/NIP
             if authuser.has_permission(ScoEtudInscrit,self):                
-                H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a></li>'
+                H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">VÃ©rifier codes ApogÃ©e</a></li>'
                          % (group_id,etat or ''))
-            # Lien pour ajout fichiers étudiants
+            # Lien pour ajout fichiers Ã©tudiants
             if authuser.has_permission(ScoEtudAddAnnotations,self):
-                H.append("""<li><a class="stdlink" href="etudarchive_import_files_form?group_id=%s">Télécharger des fichiers associés aux étudiants (e.g. dossiers d'admission)</a></li>"""
+                H.append("""<li><a class="stdlink" href="etudarchive_import_files_form?group_id=%s">TÃ©lÃ©charger des fichiers associÃ©s aux Ã©tudiants (e.g. dossiers d'admission)</a></li>"""
                          % (group_id))
             H.append('</ul>')
             
@@ -978,7 +983,7 @@ class ZScolar(ObjectManager,
             titles = keys[:]
             keys += [ p['partition_id'] for p in other_partitions ]
             titles += [ p['partition_name'] for p in other_partitions ]
-            # remplis infos lycee si on a que le code lycée
+            # remplis infos lycee si on a que le code lycÃ©e
             # et ajoute infos inscription
             for m in members:
                 etud = self.getEtudInfo(m['etudid'], filled=True)[0]
@@ -999,7 +1004,7 @@ class ZScolar(ObjectManager,
             filename = title + '.xls'
             return sco_excel.sendExcelFile(REQUEST, xls, filename)
 
-        # format XML supprimé (était inutile, à vérifier)
+        # format XML supprimÃ© (Ã©tait inutile, Ã  vÃ©rifier)
         else:
             raise ValueError('unsupported format')
 
@@ -1011,7 +1016,7 @@ class ZScolar(ObjectManager,
     
     security.declareProtected(ScoView,'getEtudInfoGroupe')
     def getEtudInfoGroupe(self, group_id, etat=None):
-        """liste triée d'infos (dict) sur les etudiants du groupe indiqué.
+        """liste triÃ©e d'infos (dict) sur les etudiants du groupe indiquÃ©.
         Attention: lent, car plusieurs requetes SQL par etudiant !
         """
         members = sco_groups.get_group_members(self, group_id, etat=etat)
@@ -1060,8 +1065,8 @@ class ZScolar(ObjectManager,
                     REQUEST=None ):
         """Page recherche d'un etudiant
         expnom est un regexp sur le nom
-        dest_url est la page sur laquelle on sera redirigé après choix
-        parameters spécifie des arguments additionnels a passer à l'URL (en plus de etudid)
+        dest_url est la page sur laquelle on sera redirigÃ© aprÃ¨s choix
+        parameters spÃ©cifie des arguments additionnels a passer Ã  l'URL (en plus de etudid)
         """
         q = []
         if parameters:
@@ -1087,8 +1092,8 @@ class ZScolar(ObjectManager,
             return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
 
         if len(etuds) > 0:
-            # Choix dans la liste des résultats:
-            H.append("""<h2>%d résultats pour "%s": choisissez un étudiant:</h2>""" % (len(etuds),expnom))
+            # Choix dans la liste des rÃ©sultats:
+            H.append("""<h2>%d rÃ©sultats pour "%s": choisissez un Ã©tudiant:</h2>""" % (len(etuds),expnom))
             H.append(self.formChercheEtud(dest_url=dest_url,
                                           parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
 
@@ -1113,12 +1118,12 @@ class ZScolar(ObjectManager,
                                               parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
 
         else:
-            H.append('<h2 style="color: red;">Aucun résultat pour "%s".</h2>' % expnom )
+            H.append('<h2 style="color: red;">Aucun rÃ©sultat pour "%s".</h2>' % expnom )
             add_headers = True
             no_side_bar = False
-        H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'étudiant</p>""")
+        H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'Ã©tudiant</p>""")
         if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', 
+            return self.sco_header(REQUEST, page_title='Choix d\'un Ã©tudiant', 
                                    init_qtip = True,
                                    javascripts=['js/etud_info.js'],
                                    no_side_bar=no_side_bar
@@ -1190,10 +1195,10 @@ class ZScolar(ObjectManager,
                 if etud['sems']:
                     if etud['sems'][0]['dateord'] > time.strftime('%Y-%m-%d',time.localtime()):
                         etud['inscription'] = 'futur'
-                        etud['situation'] = 'futur élève'
+                        etud['situation'] = 'futur Ã©lÃ¨ve'
                     else:
                         etud['inscription'] = 'ancien'
-                        etud['situation'] = 'ancien élève'
+                        etud['situation'] = 'ancien Ã©lÃ¨ve'
                 else:
                     etud['inscription'] = 'non inscrit'
                     etud['situation'] = etud['inscription']
@@ -1204,7 +1209,7 @@ class ZScolar(ObjectManager,
             
             # nettoyage champs souvents vides
             if etud['nomlycee']:
-                etud['ilycee'] = 'Lycée ' + format_lycee(etud['nomlycee'])
+                etud['ilycee'] = 'LycÃ©e ' + format_lycee(etud['nomlycee'])
                 if etud['villelycee']:
                     etud['ilycee'] += ' (%s)' % etud['villelycee']
                 etud['ilycee'] += '<br/>'
@@ -1223,7 +1228,7 @@ class ZScolar(ObjectManager,
             else:
                 etud['rap'] = "Pas d'informations sur les conditions d'admission."
             if etud['telephone']:
-                etud['telephonestr'] = '<b>Tél.:</b> ' + format_telephone(etud['telephone'])
+                etud['telephonestr'] = '<b>TÃ©l.:</b> ' + format_telephone(etud['telephone'])
             else:
                 etud['telephonestr'] = ''
             if etud['telephonemobile']:
@@ -1240,7 +1245,7 @@ class ZScolar(ObjectManager,
         cnx = self.GetDBConnexion()
         etuds = scolars.etudident_list(cnx, args)
         if not etuds:
-            # etudiant non trouvé: message d'erreur
+            # etudiant non trouvÃ©: message d'erreur
             d = {
                 'etudid' : etudid,
                 'nom' : '?', 'nom_usuel' : '', 'prenom' : '?', 'sexe' : '?', 'email' : '?',
@@ -1288,7 +1293,7 @@ class ZScolar(ObjectManager,
 
     def isPrimoEtud(self, etud, sem):
         """Determine si un (filled) etud a ete inscrit avant ce semestre.
-        Regarde la liste des semestres dans lesquels l'étudiant est inscrit
+        Regarde la liste des semestres dans lesquels l'Ã©tudiant est inscrit
         """
         now = sem['dateord']
         for s in etud['sems']: # le + recent d'abord
@@ -1342,7 +1347,7 @@ class ZScolar(ObjectManager,
                     date_ins = events[0]['event_date']
                 situation += ' le ' + str(date_ins)
             else:
-                situation = 'démission de %s' % sem['titremois']
+                situation = 'dÃ©mission de %s' % sem['titremois']
                 # Cherche la date de demission dans scolar_events:
                 events = scolars.scolar_events_list(
                     cnx,
@@ -1383,7 +1388,7 @@ class ZScolar(ObjectManager,
         anno = annos[0]
         authuser = REQUEST.AUTHENTICATED_USER
         # note: les anciennes installations n'ont pas le role ScoEtudSupprAnnotations
-        # c'est pourquoi on teste aussi ScoEtudInscrit (normalement détenue par le chef)
+        # c'est pourquoi on teste aussi ScoEtudInscrit (normalement dÃ©tenue par le chef)
         return (str(authuser) == anno['zope_authenticated_user']) \
                 or authuser.has_permission(ScoEtudSupprAnnotations,self) \
                 or authuser.has_permission(ScoEtudInscrit,self)
@@ -1393,7 +1398,7 @@ class ZScolar(ObjectManager,
         """Suppression annotation.
         """
         if not self.canSuppressAnnotation(annotation_id, REQUEST):
-            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
 
         cnx = self.GetDBConnexion()
         annos = scolars.etud_annotations_list(cnx, args={ 'id' : annotation_id })
@@ -1404,7 +1409,7 @@ class ZScolar(ObjectManager,
         logdb(REQUEST,cnx,method='SuppressAnnotation', etudid=etudid )
         scolars.etud_annotations_delete(cnx, annotation_id)
         
-        REQUEST.RESPONSE.redirect('ficheEtud?etudid=%s&head_message=Annotation%%20supprimée'%(etudid))
+        REQUEST.RESPONSE.redirect('ficheEtud?etudid=%s&head_message=Annotation%%20supprimÃ©e'%(etudid))
     
     security.declareProtected(ScoEtudChangeAdr, 'formChangeCoordonnees')
     def formChangeCoordonnees(self,etudid,REQUEST):
@@ -1416,7 +1421,7 @@ class ZScolar(ObjectManager,
             adr = adrs[0]
         else:
             adr = {} # no data for this student
-        H = [ '<h2><font color="#FF0000">Changement des coordonnées de </font> %(nomprenom)s</h2><p>' % etud ]
+        H = [ '<h2><font color="#FF0000">Changement des coordonnÃ©es de </font> %(nomprenom)s</h2><p>' % etud ]
         header = self.sco_header(
             REQUEST, page_title='Changement adresse de %(nomprenom)s' % etud )
         
@@ -1425,12 +1430,12 @@ class ZScolar(ObjectManager,
             ( ('adresse_id', {'input_type' : 'hidden' }),
               ('etudid',  { 'input_type' : 'hidden' }),
               ('email',  { 'size' : 40, 'title' : 'e-mail' }),
-              ('domicile'    ,  { 'size' : 65, 'explanation' : 'numéro, rue', 'title' : 'Adresse' }),
+              ('domicile'    ,  { 'size' : 65, 'explanation' : 'numÃ©ro, rue', 'title' : 'Adresse' }),
               ('codepostaldomicile', { 'size' : 6, 'title' : 'Code postal' }),
               ('villedomicile', { 'size' : 20, 'title' : 'Ville' }),
               ('paysdomicile', { 'size' : 20, 'title' : 'Pays' }),    
               ('',     { 'input_type' : 'separator', 'default' : '&nbsp;' } ),
-              ('telephone', { 'size' : 13, 'title' : 'Téléphone'  }),    
+              ('telephone', { 'size' : 13, 'title' : 'TÃ©lÃ©phone'  }),    
               ('telephonemobile', { 'size' : 13, 'title' : 'Mobile' }),
               ),
             initvalues = adr,
@@ -1452,7 +1457,7 @@ class ZScolar(ObjectManager,
     def formChangeGroup(self, formsemestre_id, etudid, REQUEST):
         "changement groupe etudiant dans semestre"
         if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
-            raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+            raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
         cnx = self.GetDBConnexion()
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
@@ -1476,7 +1481,7 @@ class ZScolar(ObjectManager,
         H.append("""<input type="hidden" name="etudid" value="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
 <p>
-(attention, vérifier que les groupes sont compatibles, selon votre organisation)
+(attention, vÃ©rifier que les groupes sont compatibles, selon votre organisation)
 </p>
 <script type="text/javascript">
 function tweakmenu( gname ) {
@@ -1492,16 +1497,16 @@ function tweakmenu( gname ) {
    newopt.appendChild(textopt);
    menutd.appendChild(newopt);
    var msg = document.getElementById("groupemsg");
-   msg.appendChild( document.createTextNode("groupe " + gr + " créé; ") );
+   msg.appendChild( document.createTextNode("groupe " + gr + " crÃ©Ã©; ") );
    document.cg.newgroupname.value = "";
 }
 </script>
 
-<p>Créer un nouveau groupe:
+<p>CrÃ©er un nouveau groupe:
 <input type="text" id="newgroupname" size="8"/>
-<input type="button" onClick="tweakmenu( 'groupetd' );" value="créer groupe de %s"/>
-<input type="button" onClick="tweakmenu( 'groupeanglais' );" value="créer groupe de %s"/>
-<input type="button" onClick="tweakmenu( 'groupetp' );" value="créer groupe de %s"/>
+<input type="button" onClick="tweakmenu( 'groupetd' );" value="crÃ©er groupe de %s"/>
+<input type="button" onClick="tweakmenu( 'groupeanglais' );" value="crÃ©er groupe de %s"/>
+<input type="button" onClick="tweakmenu( 'groupetp' );" value="crÃ©er groupe de %s"/>
 </p>
 <p id="groupemsg" style="font-style: italic;"></p>
 
@@ -1518,16 +1523,16 @@ function tweakmenu( gname ) {
     # def _xxx_doChangeGroup(self, etudid, partition_id, group_id, REQUEST=None,
     #                    redirect=True):
     #     """Change le groupe de l'etudiant dans cette partition. 
-    #     Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
+    #     Si la valeur de group_id est '' (vide) ou 'None', le met Ã  NULL (aucun groupe).
     #     """
-    #     # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
+    #     # inutilise, non testÃ© (serait utilisable par formChangeGroupe si on l'implemente)
     #     partition = sco_groups.get_partition(self, partition_id)
     #     formsemestre_id=partition['formsemestre_id']
     #     if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
-    #         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
+    #         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
     #     sem = self.Notes.get_formsemestre(partition['formsemestre_id'])        
     #     if sem['etat'] != '1':
-    #         raise ScoValueError('Modification impossible: semestre verrouillé')
+    #         raise ScoValueError('Modification impossible: semestre verrouillÃ©')
         
     #     log('doChangeGroup(etudid=%s,partition_id=%s,group_id=%s)'%(etudid,formsemestre_id, group_id))
     #     sco_groups.change_etud_group_in_partition(self, etudid, group_id, partition, REQUEST=REQUEST)        
@@ -1613,7 +1618,7 @@ function tweakmenu( gname ) {
              
     security.declareProtected(ScoEtudChangeAdr, 'formChangePhoto')
     def formChangePhoto(self, etudid=None, REQUEST=None):
-        """Formulaire changement photo étudiant
+        """Formulaire changement photo Ã©tudiant
         """
         etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
         if sco_photos.etud_photo_is_local(self,etud):
@@ -1625,8 +1630,8 @@ function tweakmenu( gname ) {
              <p>Photo actuelle (%(photoloc)s):             
              """ % etud,
              sco_photos.etud_photo_html(self, etud, title='photo actuelle', REQUEST=REQUEST),
-             """</p><p>Le fichier ne doit pas dépasser 500Ko (recadrer l'image, format "portrait" de préférence).</p>
-             <p>L'image sera automagiquement réduite pour obtenir une hauteur de 90 pixels.</p>
+             """</p><p>Le fichier ne doit pas dÃ©passer 500Ko (recadrer l'image, format "portrait" de prÃ©fÃ©rence).</p>
+             <p>L'image sera automagiquement rÃ©duite pour obtenir une hauteur de 90 pixels.</p>
              """ ]
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
@@ -1650,7 +1655,7 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoEtudChangeAdr, 'formSuppressPhoto')
     def formSuppressPhoto(self, etudid=None, REQUEST=None, dialog_confirmed=False):
-        """Formulaire suppression photo étudiant
+        """Formulaire suppression photo Ã©tudiant
         """
         etud = self.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
         if not dialog_confirmed:
@@ -1666,24 +1671,24 @@ function tweakmenu( gname ) {
     #
     security.declareProtected(ScoEtudInscrit, "formDem")
     def formDem(self, etudid, formsemestre_id, REQUEST):
-        "Formulaire Démission Etudiant"
+        "Formulaire DÃ©mission Etudiant"
         return self._formDem_of_Def(
             etudid, formsemestre_id, REQUEST=REQUEST,
-            operation_name='Démission',
+            operation_name='DÃ©mission',
             operation_method='doDemEtudiant')
 
     security.declareProtected(ScoEtudInscrit, "formDef")
     def formDef(self, etudid, formsemestre_id, REQUEST):
-        "Formulaire Défaillance Etudiant"
+        "Formulaire DÃ©faillance Etudiant"
         return self._formDem_of_Def(
             etudid, formsemestre_id, REQUEST=REQUEST,
-            operation_name='Défaillance',
+            operation_name='DÃ©faillance',
             operation_method='doDefEtudiant')
 
     def _formDem_of_Def(self, etudid, formsemestre_id, REQUEST=None,
                         operation_name='',
                         operation_method=''):
-        "Formulaire démission ou défaillance Etudiant"
+        "Formulaire dÃ©mission ou dÃ©faillance Etudiant"
         cnx = self.GetDBConnexion()    
         etud = self.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
@@ -1713,7 +1718,7 @@ function tweakmenu( gname ) {
     
     security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
     def doDemEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
-        "Déclare la démission d'un etudiant dans le semestre"
+        "DÃ©clare la dÃ©mission d'un etudiant dans le semestre"
         return self._doDem_or_Def_Etudiant(
             etudid, formsemestre_id,
             event_date=event_date,
@@ -1724,7 +1729,7 @@ function tweakmenu( gname ) {
 
     security.declareProtected(ScoEtudInscrit, "doDemEtudiant")
     def doDefEtudiant(self,etudid,formsemestre_id,event_date=None,REQUEST=None):
-        "Déclare la défaillance d'un etudiant dans le semestre"
+        "DÃ©clare la dÃ©faillance d'un etudiant dans le semestre"
         return self._doDem_or_Def_Etudiant(
             etudid, formsemestre_id,
             event_date=event_date,
@@ -1740,7 +1745,7 @@ function tweakmenu( gname ) {
             operation_method='demEtudiant',
             event_type='DEMISSION',
             REQUEST=None):
-        "Démission ou défaillance d'un étudiant"
+        "DÃ©mission ou dÃ©faillance d'un Ã©tudiant"
         # marque 'D' ou 'DEF' dans l'inscription au semestre et ajoute
         # un "evenement" scolarite
         cnx = self.GetDBConnexion()
@@ -1767,11 +1772,11 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit, "doCancelDem")
     def doCancelDem(self,etudid,formsemestre_id,dialog_confirmed=False, args=None,
                     REQUEST=None):
-        "Annule une démission"
+        "Annule une dÃ©mission"
         return self._doCancelDem_or_Def(
             etudid, formsemestre_id, dialog_confirmed=dialog_confirmed,
             args=args,
-            operation_name='démission',
+            operation_name='dÃ©mission',
             etat_current='D',
             etat_new='I',
             operation_method = 'cancelDem',
@@ -1781,11 +1786,11 @@ function tweakmenu( gname ) {
     security.declareProtected(ScoEtudInscrit, "doCancelDef")
     def doCancelDef(self,etudid,formsemestre_id,dialog_confirmed=False, args=None,
                     REQUEST=None):
-        "Annule la défaillance de l'étudiant"
+        "Annule la dÃ©faillance de l'Ã©tudiant"
         return self._doCancelDem_or_Def(
             etudid, formsemestre_id, dialog_confirmed=dialog_confirmed,
             args=args,
-            operation_name='défaillance',
+            operation_name='dÃ©faillance',
             etat_current='DEF',
             etat_new='I',
             operation_method = 'cancelDef',
@@ -1796,13 +1801,13 @@ function tweakmenu( gname ) {
             self, etudid, formsemestre_id,
             dialog_confirmed=False,
             args=None,
-            operation_name='', # "démission" ou "défaillance"
+            operation_name='', # "dÃ©mission" ou "dÃ©faillance"
             etat_current='D',
             etat_new='I',
             operation_method = 'cancelDem',
             event_type='DEMISSION',
             REQUEST=None):
-        "Annule une demission ou une défaillance"
+        "Annule une demission ou une dÃ©faillance"
         # check lock
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
         if sem['etat'] != '1':
@@ -1862,13 +1867,13 @@ function tweakmenu( gname ) {
         if not edit:
             # creation nouvel etudiant
             initvalues = {}
-            submitlabel = 'Ajouter cet étudiant'
-            H.append("""<h2>Création d'un étudiant</h2>
-            <p>En général, il est <b>recommandé</b> d'importer les étudiants depuis Apogée.
-            N'utilisez ce formulaire que <b>pour les cas particuliers</b> ou si votre établissement
+            submitlabel = 'Ajouter cet Ã©tudiant'
+            H.append("""<h2>CrÃ©ation d'un Ã©tudiant</h2>
+            <p>En gÃ©nÃ©ral, il est <b>recommandÃ©</b> d'importer les Ã©tudiants depuis ApogÃ©e.
+            N'utilisez ce formulaire que <b>pour les cas particuliers</b> ou si votre Ã©tablissement
             n'utilise pas d'autre logiciel de gestion des inscriptions.</p>
-            <p><em>L'étudiant créé ne sera pas inscrit.
-            Pensez à l'inscrire dans un semestre !</em></p>
+            <p><em>L'Ã©tudiant crÃ©Ã© ne sera pas inscrit.
+            Pensez Ã  l'inscrire dans un semestre !</em></p>
             """)
         else:
             # edition donnees d'un etudiant existant
@@ -1876,11 +1881,11 @@ function tweakmenu( gname ) {
             if not etudid:
                 raise ValueError('missing etudid parameter')
             descr.append( ('etudid', { 'default' : etudid, 'input_type' : 'hidden' }) )
-            H.append('<h2>Modification d\'un étudiant (<a href="ficheEtud?etudid=%s">fiche</a>)</h2>' % etudid)
+            H.append('<h2>Modification d\'un Ã©tudiant (<a href="ficheEtud?etudid=%s">fiche</a>)</h2>' % etudid)
             initvalues = scolars.etudident_list(cnx, {'etudid' : etudid})
             assert len(initvalues) == 1
             initvalues = initvalues[0]
-            submitlabel = 'Modifier les données'
+            submitlabel = 'Modifier les donnÃ©es'
 
         # recuperation infos Apogee
         nom = REQUEST.form.get('nom',None)
@@ -1917,16 +1922,16 @@ function tweakmenu( gname ) {
                     
                 formatted_infos.append( '</ul></li>' )                
             formatted_infos.append( '</ol>' )
-            m = "%d étudiants trouvés" % nanswers
+            m = "%d Ã©tudiants trouvÃ©s" % nanswers
             if len(infos) != nanswers:
-                m += " (%d montrés)" % len(infos)
+                m += " (%d montrÃ©s)" % len(infos)
             A = """<div class="infoapogee">
-            <h5>Informations Apogée</h5>
+            <h5>Informations ApogÃ©e</h5>
             <p>%s</p>
             %s
             </div>""" % (m, '\n'.join(formatted_infos))
         else:
-            A = """<div class="infoapogee"><p>Pas d'informations d'Apogée</p></div>"""
+            A = """<div class="infoapogee"><p>Pas d'informations d'ApogÃ©e</p></div>"""
 
         require_ine = self.get_preference('always_require_ine')
         
@@ -1935,67 +1940,67 @@ function tweakmenu( gname ) {
 
             ('nom',       { 'size' : 25, 'title' : 'Nom', 'allow_null':False }),
             ('nom_usuel', { 'size' : 25, 'title' : 'Nom usuel', 'allow_null':True }),
-            ('prenom',    { 'size' : 25, 'title' : 'Prénom', 'allow_null':CONFIG.ALLOW_NULL_PRENOM }),
+            ('prenom',    { 'size' : 25, 'title' : 'PrÃ©nom', 'allow_null':CONFIG.ALLOW_NULL_PRENOM }),
             ('sexe',      { 'input_type' : 'menu', 'labels' : ['H','F'],
                             'allowed_values' : ['MR','MME'], 'title' : 'Genre' }),
             ('date_naissance', {  'title' : 'Date de naissance', 'input_type' : 'date', 'explanation' : 'j/m/a' }),
             ('lieu_naissance', {  'title' : 'Lieu de naissance', 'size' : 32 }),
-            ('nationalite', { 'size' : 25, 'title' : 'Nationalité' }),
+            ('nationalite', { 'size' : 25, 'title' : 'NationalitÃ©' }),
             ('statut',  { 'size' : 25, 'title' : 'Statut', 
-                          'explanation' : '("salarie", ...) inutilisé par ScoDoc' }),
+                          'explanation' : '("salarie", ...) inutilisÃ© par ScoDoc' }),
 
-            ('annee', { 'size' : 5, 'title' : 'Année admission IUT',
+            ('annee', { 'size' : 5, 'title' : 'AnnÃ©e admission IUT',
                         'type' : 'int', 'allow_null' : False,
-                        'explanation' : 'année 1ere inscription (obligatoire)'}),
+                        'explanation' : 'annÃ©e 1ere inscription (obligatoire)'}),
             #
-            ('sep', { 'input_type' : 'separator', 'title' : 'Scolarité antérieure:' }),
-            ('bac', { 'size' : 5, 'explanation' : 'série du bac (S, STI, STT, ...)' }),
-            ('specialite', { 'size' : 25, 'title' : 'Spécialité', 
-                             'explanation' : 'spécialité bac: SVT M, GENIE ELECTRONIQUE, ...' }),
-            ('annee_bac', { 'size' : 5, 'title' : 'Année bac', 'type' : 'int',
-                            'explanation' : 'année obtention du bac' }),
-            ('math', { 'size' : 3, 'type' : 'float', 'title' : 'Note de mathématiques',
+            ('sep', { 'input_type' : 'separator', 'title' : 'ScolaritÃ© antÃ©rieure:' }),
+            ('bac', { 'size' : 5, 'explanation' : 'sÃ©rie du bac (S, STI, STT, ...)' }),
+            ('specialite', { 'size' : 25, 'title' : 'SpÃ©cialitÃ©', 
+                             'explanation' : 'spÃ©cialitÃ© bac: SVT M, GENIE ELECTRONIQUE, ...' }),
+            ('annee_bac', { 'size' : 5, 'title' : 'AnnÃ©e bac', 'type' : 'int',
+                            'explanation' : 'annÃ©e obtention du bac' }),
+            ('math', { 'size' : 3, 'type' : 'float', 'title' : 'Note de mathÃ©matiques',
                        'explanation' : 'note sur 20 en terminale' }),
             ('physique', { 'size' : 3, 'type' : 'float', 'title' : 'Note de physique',
                        'explanation' : 'note sur 20 en terminale' }),
             ('anglais', { 'size' : 3, 'type' : 'float', 'title' : 'Note d\'anglais',
                        'explanation' : 'note sur 20 en terminale' }),
-            ('francais', { 'size' : 3, 'type' : 'float', 'title' : 'Note de français',
+            ('francais', { 'size' : 3, 'type' : 'float', 'title' : 'Note de franÃ§ais',
                        'explanation' : 'note sur 20 obtenue au bac' }),
             ('rang', { 'size' : 1, 'type' : 'int', 'title' : 'Position IUT Villetaneuse',
-                       'explanation' : 'rang de notre département dans les voeux du candidat' }),
-            ('qualite', { 'size' : 3, 'type' : 'float', 'title' : 'Qualité',
-                       'explanation' : 'Note de qualité attribuée au dossier' }),
+                       'explanation' : 'rang de notre dÃ©partement dans les voeux du candidat' }),
+            ('qualite', { 'size' : 3, 'type' : 'float', 'title' : 'QualitÃ©',
+                       'explanation' : 'Note de qualitÃ© attribuÃ©e au dossier' }),
 
             ('decision', { 'input_type' : 'menu',
-                           'title' : 'Décision', 
+                           'title' : 'DÃ©cision', 
                            'allowed_values' :
                            ['ADMIS','ATTENTE 1','ATTENTE 2', 'ATTENTE 3', 'REFUS', '?' ] }),
             ('score', { 'size' : 3, 'type' : 'float', 'title' : 'Score',
-                       'explanation' : 'score calculé lors de l\'admission' }),
+                       'explanation' : 'score calculÃ© lors de l\'admission' }),
             ('rapporteur', { 'size' : 50, 'title' : 'Enseignant rapporteur' }),
             ('commentaire', {'input_type' : 'textarea', 'rows' : 4, 'cols' : 50,
                              'title' : 'Note du rapporteur' }),
-            ('nomlycee', { 'size' : 20, 'title' : 'Lycée d\'origine' }),
-            ('villelycee', { 'size' : 15, 'title' : 'Commune du lycée' }),
-            ('codepostallycee', { 'size' : 15, 'title' : 'Code Postal lycée' }),
-            ('codelycee', { 'size' : 15, 'title' : 'Code Lycée',
-                            'explanation' : "Code national établissement du lycée ou établissement d'origine" }),
-            ('sep', { 'input_type' : 'separator', 'title' : 'Codes Apogée: (optionnels)' }),
-            ('code_nip', { 'size' : 25, 'title' : 'Numéro NIP', 'allow_null':True,
-                           'explanation' : 'numéro identité étudiant (Apogée)'}),
-            ('code_ine', { 'size' : 25, 'title' : 'Numéro INE', 
+            ('nomlycee', { 'size' : 20, 'title' : 'LycÃ©e d\'origine' }),
+            ('villelycee', { 'size' : 15, 'title' : 'Commune du lycÃ©e' }),
+            ('codepostallycee', { 'size' : 15, 'title' : 'Code Postal lycÃ©e' }),
+            ('codelycee', { 'size' : 15, 'title' : 'Code LycÃ©e',
+                            'explanation' : "Code national Ã©tablissement du lycÃ©e ou Ã©tablissement d'origine" }),
+            ('sep', { 'input_type' : 'separator', 'title' : 'Codes ApogÃ©e: (optionnels)' }),
+            ('code_nip', { 'size' : 25, 'title' : 'NumÃ©ro NIP', 'allow_null':True,
+                           'explanation' : 'numÃ©ro identitÃ© Ã©tudiant (ApogÃ©e)'}),
+            ('code_ine', { 'size' : 25, 'title' : 'NumÃ©ro INE', 
                            'allow_null': not require_ine,
-                           'explanation' : 'numéro INE'}),
+                           'explanation' : 'numÃ©ro INE'}),
             ( 'dont_check_homonyms',
                { 'title' : "Autoriser les homonymes",
                  'input_type' : 'boolcheckbox',
-                 'explanation' : "ne vérifie pas les noms et prénoms proches"
+                 'explanation' : "ne vÃ©rifie pas les noms et prÃ©noms proches"
                  }
                ),
             ('debouche', {'input_type' : 'textarea', 'rows' : 4, 'cols' : 50,
                           'title' : 'Devenir:',
-                          'explanation' : "infos sur ce qu'est devenu l'étudiant après son passage chez nous"
+                          'explanation' : "infos sur ce qu'est devenu l'Ã©tudiant aprÃ¨s son passage chez nous"
                           }),
             ]
         initvalues['dont_check_homonyms'] = False
@@ -2016,15 +2021,15 @@ function tweakmenu( gname ) {
                 etudid = None
             ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=tf[2]['nom'], prenom=tf[2]['prenom'], etudid=etudid)
             if not ok:                    
-                return '\n'.join(H) + tf_error_message('Nom ou prénom invalide') + tf[1] + '<p>' + A + F
+                return '\n'.join(H) + tf_error_message('Nom ou prÃ©nom invalide') + tf[1] + '<p>' + A + F
             #log('NbHomonyms=%s' % NbHomonyms)
             if not tf[2]['dont_check_homonyms'] and NbHomonyms > 0:
-                return '\n'.join(H) + tf_error_message("""Attention: il y a déjà un étudiant portant des noms et prénoms proches. Vous pouvez forcer la présence d'un homonyme en cochant "autoriser les homonymes" en bas du formulaire.""") + tf[1] + '<p>' + A + F
+                return '\n'.join(H) + tf_error_message("""Attention: il y a dÃ©jÃ  un Ã©tudiant portant des noms et prÃ©noms proches. Vous pouvez forcer la prÃ©sence d'un homonyme en cochant "autoriser les homonymes" en bas du formulaire.""") + tf[1] + '<p>' + A + F
             
             if not edit:
                 # creation d'un etudiant
                 etudid = scolars.etudident_create(cnx, tf[2], context=self, REQUEST=REQUEST)
-                # crée une adresse vide (chaque etudiant doit etre dans la table "adresse" !)
+                # crÃ©e une adresse vide (chaque etudiant doit etre dans la table "adresse" !)
                 adresse_id = scolars.adresse_create(
                     cnx, {'etudid' : etudid, 'typeadresse' : 'domicile',
                           'description' : '(creation individuelle)'})
@@ -2042,7 +2047,7 @@ function tweakmenu( gname ) {
                 self.fillEtudsInfo([etud])
                 etud['url']='ficheEtud?etudid=%(etudid)s' % etud
                 sco_news.add(self, REQUEST, typ=NEWS_INSCR, # pas d'object pour ne montrer qu'un etudiant
-                             text='Nouvel étudiant <a href="%(url)s">%(nomprenom)s</a>' % etud,
+                             text='Nouvel Ã©tudiant <a href="%(url)s">%(nomprenom)s</a>' % etud,
                              url=etud['url'])  
             else:
                 # modif d'un etudiant
@@ -2069,17 +2074,17 @@ function tweakmenu( gname ) {
         self.fillEtudsInfo([etud])
         if not dialog_confirmed:
             return self.confirmDialog(
-                """<h2>Confirmer la suppression de l'étudiant <b>%(nomprenom)s</b> ?</h2>
+                """<h2>Confirmer la suppression de l'Ã©tudiant <b>%(nomprenom)s</b> ?</h2>
                 </p>
-                <p>Prennez le temps de vérifier que vous devez vraiment supprimer cet étudiant !</p>
-                <p>Cette opération <font color="red"><b>irreversible</b></font> efface toute trace de l'étudiant: inscriptions, <b>notes</b>, absences... dans <b>tous les semestres</b> qu'il a fréquenté.</p>
-                <p>Peut être voulez vous seulement de désinscrire d'un semestre ? (dans ce cas passez par sa fiche, menu associé au semestre)</p>
+                <p>Prennez le temps de vÃ©rifier que vous devez vraiment supprimer cet Ã©tudiant !</p>
+                <p>Cette opÃ©ration <font color="red"><b>irreversible</b></font> efface toute trace de l'Ã©tudiant: inscriptions, <b>notes</b>, absences... dans <b>tous les semestres</b> qu'il a frÃ©quentÃ©.</p>
+                <p>Peut Ãªtre voulez vous seulement de dÃ©sinscrire d'un semestre ? (dans ce cas passez par sa fiche, menu associÃ© au semestre)</p>
 
-                <p><a href="ficheEtud?etudid=%(etudid)s">Vérifier la fiche de %(nomprenom)s</a>
+                <p><a href="ficheEtud?etudid=%(etudid)s">VÃ©rifier la fiche de %(nomprenom)s</a>
                 </p>""" % etud,
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="ficheEtud?etudid=%s"%etudid,
-                OK = "Supprimer définitivement cet étudiant",
+                OK = "Supprimer dÃ©finitivement cet Ã©tudiant",
                 parameters={'etudid' : etudid})
         log('etudident_delete: etudid=%(etudid)s nomprenom=%(nomprenom)s' % etud)
         # delete in all tables !
@@ -2104,7 +2109,7 @@ function tweakmenu( gname ) {
             cursor.execute( "delete from %s where etudid=%%(etudid)s" % table,
                             etud )            
         cnx.commit()
-        # Inval semestres où il était inscrit:
+        # Inval semestres oÃ¹ il Ã©tait inscrit:
         to_inval = [s['formsemestre_id'] for s in etud['sems']]
         if to_inval:
             self.Notes._inval_cache(formsemestre_id_list=to_inval)  #> 
@@ -2116,7 +2121,7 @@ function tweakmenu( gname ) {
                            fix=False,
                            fixmail = False):
         """Verification des codes Apogee et mail de tout un groupe.
-        Si fix == True, change les codes avec Apogée.
+        Si fix == True, change les codes avec ApogÃ©e.
         """
         etat = etat or None
         members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
@@ -2125,15 +2130,15 @@ function tweakmenu( gname ) {
         cnx = self.GetDBConnexion()
         H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % group['group_name'], sem),
               '<table class="sortable" id="listegroupe">',
-              '<tr><th>Nom</th><th>Nom usuel</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
-        nerrs = 0 # nombre d'anomalies détectées
+              '<tr><th>Nom</th><th>Nom usuel</th><th>PrÃ©nom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>ApogÃ©e</th></tr>' ]
+        nerrs = 0 # nombre d'anomalies dÃ©tectÃ©es
         nfix = 0 # nb codes changes
         nmailmissing = 0 # nb etuds sans mail
         for t in members:
             nom, nom_usuel, prenom, etudid, email, code_nip = t['nom'], t['nom_usuel'], t['prenom'], t['etudid'], t['email'], t['code_nip']
             infos = sco_portal_apogee.get_infos_apogee(self, nom, prenom)
             if not infos:
-                info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identité</a>)' % etudid
+                info_apogee = '<b>Pas d\'information</b> (<a href="etudident_edit_form?etudid=%s">Modifier identitÃ©</a>)' % etudid
                 nerrs += 1
             else:
                 if len(infos) == 1:
@@ -2145,7 +2150,7 @@ function tweakmenu( gname ) {
                                 cnx,
                                 args={'etudid':etudid,'code_nip':nip_apogee},
                                 context=self)
-                            info_apogee = '<span style="color:green">copié %s</span>' % nip_apogee
+                            info_apogee = '<span style="color:green">copiÃ© %s</span>' % nip_apogee
                             nfix += 1
                         else:
                             info_apogee = '<span style="color:red">%s</span>' % nip_apogee
@@ -2170,7 +2175,7 @@ function tweakmenu( gname ) {
                         # creation adresse
                         args={'etudid': etudid,'email':mail_apogee}
                         scolars.adresse_create(cnx, args=args)
-                    mailstat = '<span style="color:green">copié</span>'
+                    mailstat = '<span style="color:green">copiÃ©</span>'
                 else:
                     mailstat = 'inconnu'
                     nmailmissing += 1
@@ -2179,9 +2184,9 @@ function tweakmenu( gname ) {
         H.append('</table>')
         H.append('<ul>')
         if nfix:
-            H.append('<li><b>%d</b> codes modifiés</li>' % nfix )
-        H.append('<li>Codes NIP: <b>%d</b> anomalies détectées</li>' % nerrs )
-        H.append('<li>Adresse mail: <b>%d</b> étudiants sans adresse</li>' % nmailmissing )
+            H.append('<li><b>%d</b> codes modifiÃ©s</li>' % nfix )
+        H.append('<li>Codes NIP: <b>%d</b> anomalies dÃ©tectÃ©es</li>' % nerrs )
+        H.append('<li>Adresse mail: <b>%d</b> Ã©tudiants sans adresse</li>' % nmailmissing )
         H.append('</ul>')
         H.append("""
         <form method="get" action="%s">
@@ -2189,7 +2194,7 @@ function tweakmenu( gname ) {
         <input type="hidden" name="group_id" value="%s"/>
         <input type="hidden" name="etat" value="%s"/>
         <input type="hidden" name="fix" value="1"/>
-        <input type="submit" value="Mettre à jour les codes NIP depuis Apogée"/>
+        <input type="submit" value="Mettre Ã  jour les codes NIP depuis ApogÃ©e"/>
         </form>
         <p><a href="Notes/formsemestre_status?formsemestre_id=%s"> Retour au semestre</a>
         """ % (REQUEST.URL0,formsemestre_id,strnone(group_id),strnone(etat),formsemestre_id ))
@@ -2216,35 +2221,35 @@ function tweakmenu( gname ) {
         if sem and sem['etat'] != '1':
             raise ScoValueError('Modification impossible: semestre verrouille')
         H = [self.sco_header(REQUEST, page_title='Import etudiants'),
-             """<h2 class="formsemestre">Téléchargement d\'une nouvelle liste d\'etudiants</h2>
+             """<h2 class="formsemestre">TÃ©lÃ©chargement d\'une nouvelle liste d\'etudiants</h2>
              <div style="color: red">
-             <p>A utiliser pour importer de <b>nouveaux</b> étudiants (typiquement au
+             <p>A utiliser pour importer de <b>nouveaux</b> Ã©tudiants (typiquement au
              <b>premier semestre</b>).</p>
-             <p>Si les étudiants à inscrire sont déjà dans un autre
-             semestre, utiliser le menu "<em>Inscriptions (passage des étudiants)
-             depuis d'autres semestres</em> à partir du semestre destination.
+             <p>Si les Ã©tudiants Ã  inscrire sont dÃ©jÃ  dans un autre
+             semestre, utiliser le menu "<em>Inscriptions (passage des Ã©tudiants)
+             depuis d'autres semestres</em> Ã  partir du semestre destination.
              </p>
-             <p>Si vous avez un portail Apogée, il est en général préférable d'importer les
-             étudiants depuis Apogée, via le menu "<em>Synchroniser avec étape Apogée</em>".
+             <p>Si vous avez un portail ApogÃ©e, il est en gÃ©nÃ©ral prÃ©fÃ©rable d'importer les
+             Ã©tudiants depuis ApogÃ©e, via le menu "<em>Synchroniser avec Ã©tape ApogÃ©e</em>".
              </p>
              </div>
              <p>
-             L'opération se déroule en deux étapes. Dans un premier temps,
-             vous téléchargez une feuille Excel type. Vous devez remplir
-             cette feuille, une ligne décrivant chaque étudiant. Ensuite,
+             L'opÃ©ration se dÃ©roule en deux Ã©tapes. Dans un premier temps,
+             vous tÃ©lÃ©chargez une feuille Excel type. Vous devez remplir
+             cette feuille, une ligne dÃ©crivant chaque Ã©tudiant. Ensuite,
              vous indiquez le nom de votre fichier dans la case "Fichier Excel"
-             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
+             ci-dessous, et cliquez sur "TÃ©lÃ©charger" pour envoyer au serveur
              votre liste.
              </p>
              """] # '
         if sem:
-            H.append("""<p style="color: red">Les étudiants importés seront inscrits dans
+            H.append("""<p style="color: red">Les Ã©tudiants importÃ©s seront inscrits dans
             le semestre <b>%s</b></p>""" % sem['titremois'])
         else:
             H.append("""
-             <p>Pour inscrire directement les étudiants dans un semestre de
+             <p>Pour inscrire directement les Ã©tudiants dans un semestre de
              formation, il suffit d'indiquer le code de ce semestre
-             (qui doit avoir été créé au préalable). <a class="stdlink" href="%s?showcodes=1">Cliquez ici pour afficher les codes</a>
+             (qui doit avoir Ã©tÃ© crÃ©Ã© au prÃ©alable). <a class="stdlink" href="%s?showcodes=1">Cliquez ici pour afficher les codes</a>
              </p>
              """  % (self.ScoURL()))
 
@@ -2255,7 +2260,7 @@ function tweakmenu( gname ) {
             """)
         else:
             H.append("""<a class="stdlink" href="import_generate_excel_sample">""")
-        H.append("""Obtenir la feuille excel à remplir</a></li>
+        H.append("""Obtenir la feuille excel Ã  remplir</a></li>
         <li>""")
         
         F = self.sco_footer(REQUEST)
@@ -2264,27 +2269,27 @@ function tweakmenu( gname ) {
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
                           'size' : 40 }),
              ( 'check_homonyms',
-               { 'title' : "Vérifier les homonymes",
+               { 'title' : "VÃ©rifier les homonymes",
                  'input_type' : 'boolcheckbox',
-                 'explanation' : "arrète l'importation si plus de 10% d'homonymes"
+                 'explanation' : "arrÃ¨te l'importation si plus de 10% d'homonymes"
                  }
                ),
              ( 'require_ine',
                { 'title' : "Importer INE",
                  'input_type' : 'boolcheckbox',
-                 'explanation' : "n'importe QUE les étudiants avec nouveau code INE"
+                 'explanation' : "n'importe QUE les Ã©tudiants avec nouveau code INE"
                  }
                ),
              ('formsemestre_id', {'input_type' : 'hidden' }), 
              ), 
             initvalues = { 'check_homonyms' : True, 'require_ine' : False },
-            submitlabel = 'Télécharger')
-        S = ["""<hr/><p>Le fichier Excel décrivant les étudiants doit comporter les colonnes suivantes.
-<p>Les colonnes peuvent être placées dans n'importe quel ordre, mais
-le <b>titre</b> exact (tel que ci-dessous) doit être sur la première ligne.
+            submitlabel = 'TÃ©lÃ©charger')
+        S = ["""<hr/><p>Le fichier Excel dÃ©crivant les Ã©tudiants doit comporter les colonnes suivantes.
+<p>Les colonnes peuvent Ãªtre placÃ©es dans n'importe quel ordre, mais
+le <b>titre</b> exact (tel que ci-dessous) doit Ãªtre sur la premiÃ¨re ligne.
 </p>
 <p>
-Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
+Les champs avec un astÃ©risque (*) doivent Ãªtre prÃ©sents (nulls non autorisÃ©s).
 </p>
 
 
@@ -2320,36 +2325,36 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre, exclude_cols=['photo_filename'])
         return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
 
-    # --- Données admission
+    # --- DonnÃ©es admission
     security.declareProtected(ScoEtudInscrit, "form_students_import_infos_admissions")
     def form_students_import_infos_admissions(self, REQUEST, formsemestre_id=None):
         "formulaire import xls"
         sem = self.Notes.get_formsemestre(formsemestre_id)
 
-        H = [self.sco_header(REQUEST, page_title='Import données admissions'),
-             """<h2 class="formsemestre">Téléchargement des informations sur l'admission des 'etudiants</h2>
+        H = [self.sco_header(REQUEST, page_title='Import donnÃ©es admissions'),
+             """<h2 class="formsemestre">TÃ©lÃ©chargement des informations sur l'admission des 'etudiants</h2>
              <div style="color: red">
-             <p>A utiliser pour renseigner les informations sur l'origine des étudiants (lycées, bac, etc). Ces informations sont facultatives mais souvent utiles pour mieux connaitre les étudiants et aussi pour effectuer des statistiques (résultats suivant le type de bac...). Les données sont affichées sur les fiches individuelles des étudiants.</p>
+             <p>A utiliser pour renseigner les informations sur l'origine des Ã©tudiants (lycÃ©es, bac, etc). Ces informations sont facultatives mais souvent utiles pour mieux connaitre les Ã©tudiants et aussi pour effectuer des statistiques (rÃ©sultats suivant le type de bac...). Les donnÃ©es sont affichÃ©es sur les fiches individuelles des Ã©tudiants.</p>
              </div>
-             <h3>Import à l'aide d'une feuille Excel:</h3>
+             <h3>Import Ã  l'aide d'une feuille Excel:</h3>
              <p>
-             L'opération se déroule en trois étapes. <ol><li>Dans un premier temps,
-             vous téléchargez une feuille Excel type.</li>
+             L'opÃ©ration se dÃ©roule en trois Ã©tapes. <ol><li>Dans un premier temps,
+             vous tÃ©lÃ©chargez une feuille Excel type.</li>
              <li> Vous devez remplir
-             cette feuille, une ligne décrivant chaque étudiant.
+             cette feuille, une ligne dÃ©crivant chaque Ã©tudiant.
              Ne modifiez pas les titres des colonnes !
              </li>
              <li>Ensuite,
              vous indiquez le nom de votre fichier dans la case "Fichier Excel"
-             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
-             votre liste. <em>Seules les données admission seront modifiées (et pas l'identité de l'étudiant).</em>
+             ci-dessous, et cliquez sur "TÃ©lÃ©charger" pour envoyer au serveur
+             votre liste. <em>Seules les donnÃ©es admission seront modifiÃ©es (et pas l'identitÃ© de l'Ã©tudiant).</em>
              </li></ol></p>
              """] # '
 
         H.append("""<ul><li>
         <a class="stdlink" href="import_generate_admission_sample?formsemestre_id=%s">
         """ % formsemestre_id)
-        H.append("""Obtenir la feuille excel à remplir</a></li></ul>""")
+        H.append("""Obtenir la feuille excel Ã  remplir</a></li></ul>""")
         
         F = self.sco_footer(REQUEST)
         tf = TrivialFormulator(
@@ -2357,7 +2362,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
             (('csvfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
                           'size' : 40 }),
              ('formsemestre_id', {'input_type' : 'hidden' }), 
-             ), submitlabel = 'Télécharger')
+             ), submitlabel = 'TÃ©lÃ©charger')
         
         if  tf[0] == 0:            
             return '\n'.join(H) + tf[1] + F
@@ -2370,7 +2375,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
 
     security.declareProtected(ScoEtudInscrit,"import_generate_admission_sample")
     def import_generate_admission_sample(self, REQUEST, formsemestre_id):
-        "une feuille excel pour importation données admissions"
+        "une feuille excel pour importation donnÃ©es admissions"
         group = sco_groups.get_group(self, sco_groups.get_default_group(self, formsemestre_id))
         format = ImportScolars.sco_import_format()
         data = ImportScolars.sco_import_generate_excel_sample(
@@ -2387,8 +2392,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
         diag = ImportScolars.scolars_import_admission(csvfile, self.Notes, REQUEST,
                                                       formsemestre_id=formsemestre_id )
         if REQUEST:
-            H = [self.sco_header(REQUEST, page_title='Import données admissions')]
-            H.append('<p>Import terminé !</p>')
+            H = [self.sco_header(REQUEST, page_title='Import donnÃ©es admissions')]
+            H.append('<p>Import terminÃ© !</p>')
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>'
                      % 'formsemestre_status?formsemestre_id=%s' % formsemestre_id)
             if diag:
@@ -2399,14 +2404,14 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés).
     def formsemestre_import_etud_admission(self, formsemestre_id, import_email=False, REQUEST=None):
         """Transitoire: reimporte donnees admissions pour anciens semestres Villetaneuse"""
         no_nip, unknowns, changed_mails = sco_synchro_etuds.formsemestre_import_etud_admission(self.Notes, formsemestre_id, import_identite=True, import_email=import_email)
-        H = [ self.Notes.html_sem_header( REQUEST, 'Reimport données admission' ),
-              '<h3>Opération effectuée</h3>' ]
+        H = [ self.Notes.html_sem_header( REQUEST, 'Reimport donnÃ©es admission' ),
+              '<h3>OpÃ©ration effectuÃ©e</h3>' ]
         if no_nip:
-            H.append('<p>Attention: étudiants sans NIP: ' + str(no_nip) + '</p>')
+            H.append('<p>Attention: Ã©tudiants sans NIP: ' + str(no_nip) + '</p>')
         if unknowns:
-            H.append('<p>Attention: étudiants inconnus du portail: codes NIP=' + str(unknowns) + '</p>')
+            H.append('<p>Attention: Ã©tudiants inconnus du portail: codes NIP=' + str(unknowns) + '</p>')
         if changed_mails:
-            H.append('<h3>Adresses mails modifiées:</h3>')
+            H.append('<h3>Adresses mails modifiÃ©es:</h3>')
             for (info, new_mail) in changed_mails:
                 H.append('%s: <tt>%s</tt> devient <tt>%s</tt><br/>' % (info['nom'], info['email'], new_mail))
         return '\n'.join(H) + self.sco_footer(REQUEST)
@@ -2491,12 +2496,12 @@ def manage_addZScolarForm(context, DeptId, REQUEST=None):
         raise ScoValueError("Invalid department id: %s" % DeptId)
 
     H = [ context.standard_html_header(context),
-          "<h2>Ajout d'un département ScoDoc</h2>",
-          """<p>Cette page doit être utilisée pour ajouter un nouveau 
-          département au site.</p>
+          "<h2>Ajout d'un dÃ©partement ScoDoc</h2>",
+          """<p>Cette page doit Ãªtre utilisÃ©e pour ajouter un nouveau 
+          dÃ©partement au site.</p>
 
-          <p>Avant d'ajouter le département, il faut <b>impérativement</b> 
-          avoir préparé la base de données en lançant le script 
+          <p>Avant d'ajouter le dÃ©partement, il faut <b>impÃ©rativement</b> 
+          avoir prÃ©parÃ© la base de donnÃ©es en lanÃ§ant le script 
           <tt>create_dept.sh nom_du_site</tt> en tant que
           <em>root</em> sur le serveur.
           </p>"""
@@ -2514,7 +2519,7 @@ def manage_addZScolarForm(context, DeptId, REQUEST=None):
              ]
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, descr,
-                           submitlabel='Créer le site ScoDoc')
+                           submitlabel='CrÃ©er le site ScoDoc')
     if  tf[0] == 0:            
         return '\n'.join(H) + tf[1] + context.standard_html_footer(context)
     elif tf[0] == -1:
@@ -2527,20 +2532,20 @@ def manage_addZScolarForm(context, DeptId, REQUEST=None):
             db_name = 'SCO' + DeptId.upper()
             db_user = SCO_DEFAULT_SQL_USER
             db_cnx_string = 'user=%s dbname=%s port=%s' % (db_user, db_name, SCO_DEFAULT_SQL_PORT)
-        # vérifie que la bd existe et possede le meme nom de dept.
+        # vÃ©rifie que la bd existe et possede le meme nom de dept.
         try:
             cnx = psycopg2.connect(db_cnx_string)        
             cursor = cnx.cursor(cursor_factory=ScoDocCursor)
             cursor.execute( "select * from sco_prefs where name='DeptName'" )
         except:
             return _simple_error_page(context,
-                                      "Echec de la connexion à la BD (%s)" % db_cnx_string, DeptId)
+                                      "Echec de la connexion Ã  la BD (%s)" % db_cnx_string, DeptId)
         r = cursor.dictfetchall()
         if not r:
-            return _simple_error_page(context, "Pas de departement défini dans la BD", DeptId)
+            return _simple_error_page(context, "Pas de departement dÃ©fini dans la BD", DeptId)
         if r[0]['value'] != DeptId:
             return _simple_error_page(context, "La BD ne correspond pas: nom departement='%s'"%r[0]['value'], DeptId)
-        # ok, crée instance ScoDoc:
+        # ok, crÃ©e instance ScoDoc:
         manage_addZScolar(context, id='Scolarite',
                           title='ScoDoc for %s' % DeptId,
                           db_cnx_string=db_cnx_string)
@@ -2554,7 +2559,7 @@ def _simple_error_page(context, msg, DeptId=None):
           '<h2>Erreur !</h2>',
           '<p>', msg, '</p>' ]
     if DeptId:
-        H.append('<p><a href="delete_dept?DeptId=%s&force=1">Supprimer le dossier %s</a>(très recommandé !)</p>'
+        H.append('<p><a href="delete_dept?DeptId=%s&force=1">Supprimer le dossier %s</a>(trÃ¨s recommandÃ© !)</p>'
                  % (DeptId,DeptId) )
     H.append(context.standard_html_footer(context))
     return '\n'.join(H)

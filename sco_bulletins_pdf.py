@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,29 +25,29 @@
 #
 ##############################################################################
 
-"""Génération des bulletins de notes en format PDF
+"""GÃ©nÃ©ration des bulletins de notes en format PDF
 
-On peut installer plusieurs classes générant des bulletins de formats différents.
-La préférence (par semestre) 'bul_pdf_class_name' conserve le nom de la classe Python
-utilisée pour générer les bulletins en PDF. Elle doit être une sous-classe de PDFBulletinGenerator
-et définir les méthodes fabriquant les éléments PDF:
+On peut installer plusieurs classes gÃ©nÃ©rant des bulletins de formats diffÃ©rents.
+La prÃ©fÃ©rence (par semestre) 'bul_pdf_class_name' conserve le nom de la classe Python
+utilisÃ©e pour gÃ©nÃ©rer les bulletins en PDF. Elle doit Ãªtre une sous-classe de PDFBulletinGenerator
+et dÃ©finir les mÃ©thodes fabriquant les Ã©lÃ©ments PDF:
  gen_part_title
  gen_table
  gen_part_below
  gen_signatures
 
-Les éléments PDF sont des objets PLATYPUS de la bibliothèque Reportlab.
+Les Ã©lÃ©ments PDF sont des objets PLATYPUS de la bibliothÃ¨que Reportlab.
 Voir la documentation (Reportlab's User Guide), chapitre 5 et suivants.
 
-Pour définir un nouveau type de bulletin:
- - créer un fichier source sco_bulletins_pdf_xxxx.py où xxxx est le nom (court) de votre type;
+Pour dÃ©finir un nouveau type de bulletin:
+ - crÃ©er un fichier source sco_bulletins_pdf_xxxx.py oÃ¹ xxxx est le nom (court) de votre type;
  - dans ce fichier, sous-classer PDFBulletinGenerator ou PDFBulletinGeneratorDefault
     (s'inspirer de sco_bulletins_pdf_default);
  - en fin du fichier sco_bulletins_pdf.py, ajouter la ligne
     import sco_bulletins_pdf_xxxx
- - votre type sera alors (après redémarrage de ScoDoc) proposé dans le formulaire de paramètrage ScoDoc.
+ - votre type sera alors (aprÃ¨s redÃ©marrage de ScoDoc) proposÃ© dans le formulaire de paramÃ¨trage ScoDoc.
 
-Chaque semestre peut si nécessaire utiliser un type de bulletin différent.
+Chaque semestre peut si nÃ©cessaire utiliser un type de bulletin diffÃ©rent.
 
 """
 import htmlutils, time
@@ -66,7 +66,7 @@ def pdfassemblebulletins( formsemestre_id,
     "generate PDF document from a list of PLATYPUS objects"
     if not objects:
         return ''
-    # Paramètres de mise en page
+    # ParamÃ¨tres de mise en page
     margins = (context.get_preference('left_margin', formsemestre_id),
                context.get_preference('top_margin', formsemestre_id),
                context.get_preference('right_margin', formsemestre_id),
@@ -120,7 +120,7 @@ def process_field(context, field, cdict, style, suppress_empty_pars=False, forma
     text = re.sub(r'<\s*logo(.*?)name\s*=\s*"(\w*?)"(.*?)/?>', 
                   r'<img\1src="%s/logo_\2.jpg"\3/>' % image_dir, text)
     # nota: le match sur \w*? donne le nom du logo et interdit les .. et autres 
-    # tentatives d'acceder à d'autres fichiers !
+    # tentatives d'acceder Ã  d'autres fichiers !
     
     #log('field: %s' % (text))
     return makeParas(text, style, suppress_empty=suppress_empty_pars)

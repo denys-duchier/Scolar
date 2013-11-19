@@ -1,6 +1,6 @@
 #!/opt/zope213/bin/python
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 """Essais de changements intensifs des notes
    (pour faire des tests en parallele)

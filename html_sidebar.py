@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -29,7 +29,7 @@ from sco_utils import *
 from ZAbsences import getAbsSemEtud
 
 """
-Génération de la "sidebar" (marge gauche des pages HTML)
+GÃ©nÃ©ration de la "sidebar" (marge gauche des pages HTML)
 """
 
 
@@ -42,7 +42,7 @@ def sidebar_common(context, REQUEST=None):
         }
     H = [
         '<a class="scodoc_title" href="about">ScoDoc</a>',
-        '<div id="authuser"><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a><br/><a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">déconnexion</a></div>' % params,
+        '<div id="authuser"><a id="authuserlink" href="%(ScoURL)s/Users/userinfo">%(authuser)s</a><br/><a id="deconnectlink" href="%(ScoURL)s/acl_users/logout">dÃ©connexion</a></div>' % params,
         
         context.sidebar_dept(REQUEST),
         """<h2 class="insidebar">Scolarit&eacute;</h2>
@@ -60,7 +60,7 @@ def sidebar_common(context, REQUEST=None):
                   % params )
 
     if authuser.has_permission(ScoChangePreferences, context):
-        H.append( """<a href="%(ScoURL)s/edit_preferences" class="sidebar">Paramétrage</a> <br/>"""
+        H.append( """<a href="%(ScoURL)s/edit_preferences" class="sidebar">ParamÃ©trage</a> <br/>"""
                   % params )
 
     return ''.join(H)
@@ -76,13 +76,13 @@ def sidebar(context, REQUEST=None):
     H = [ '<div class="sidebar">',
           sidebar_common(context, REQUEST) ]
     
-    H.append("""Chercher étudiant:<br/>
+    H.append("""Chercher Ã©tudiant:<br/>
 <form action="%(ScoURL)s/chercheEtud">
 <div><input type="text" size="12" name="expnom"></input></div>
 </form>
 <div class="etud-insidebar">
 """ % params )
-    # ---- s'il y a un etudiant selectionné:
+    # ---- s'il y a un etudiant selectionnÃ©:
     if REQUEST.form.has_key('etudid'):
         etudid = REQUEST.form['etudid']
         etud = context.getEtudInfo(filled=1, etudid=etudid)[0]
@@ -117,7 +117,7 @@ def sidebar(context, REQUEST=None):
 </ul>
 """ % params )
     else:
-        pass # H.append("(pas d'étudiant en cours)")
+        pass # H.append("(pas d'Ã©tudiant en cours)")
     # ---------
     H.append('</div><br/>&nbsp;') # /etud-insidebar
     # Logo
@@ -134,7 +134,7 @@ def sidebar(context, REQUEST=None):
 
 
 def sidebar_dept(context, REQUEST=None):
-    """Partie supérieure de la marge de gauche
+    """Partie supÃ©rieure de la marge de gauche
     """
     infos = {
         'BASE0' : REQUEST.BASE0,
@@ -143,7 +143,7 @@ def sidebar_dept(context, REQUEST=None):
         'DeptName' : context.get_preference('DeptName'),
         'ScoURL' : context.ScoURL() }
     
-    H = [ """<h2 class="insidebar">Dépt. %(DeptName)s</h2>
+    H = [ """<h2 class="insidebar">DÃ©pt. %(DeptName)s</h2>
  <a href="%(BASE0)s" class="sidebar">Accueil</a> <br/> """ % infos ]
     if infos['DeptIntranetURL']:
         H.append('<a href="%(DeptIntranetURL)s" class="sidebar">%(DeptIntranetTitle)s</a> <br/>'

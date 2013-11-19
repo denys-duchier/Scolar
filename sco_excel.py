@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -52,7 +52,7 @@ COLOR_CODES = { 'black' : 0,
 
 def sendExcelFile(REQUEST,data,filename):
     """publication fichier.
-    (on ne doit rien avoir Èmis avant, car ici sont gÈnÈrÈs les entetes)
+    (on ne doit rien avoir √©mis avant, car ici sont g√©n√©r√©s les entetes)
     """
     filename = unescape_html(suppress_accents(filename)).replace('&','').replace(' ','_')
     REQUEST.RESPONSE.setHeader('content-type', XLS_MIMETYPE)
@@ -107,7 +107,7 @@ def xldate_as_datetime(xldate, datemode=0):
 
 # Sous-classes pour ajouter methode savetostr()
 # (generation de fichiers en memoire)
-# XXX ne marche pas car accËs a methodes privees (__xxx)
+# XXX ne marche pas car acc√®s a methodes privees (__xxx)
 # -> on utilise version modifiee par nous meme de pyExcelerator
 #
 # class XlsDocWithSave(CompoundDoc.XlsDoc):
@@ -187,9 +187,8 @@ class ScoExcelSheet:
 
     def gen_workbook(self):
         """Generates and returns a workbook from stored data"""
-        UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
         wb = Workbook()
-        ws0 = wb.add_sheet(self.sheet_name)
+        ws0 = wb.add_sheet(self.sheet_name.decode(SCO_ENCODING))
         li = 0
         for l in self.cells:
             co = 0
@@ -197,8 +196,9 @@ class ScoExcelSheet:
                 # safety net: allow only str, int and float
                 if type(c) == LongType:
                     c = int(c) # assume all ScoDoc longs fits in int !
-                elif type(c) not in (StringType, IntType, FloatType):
-                    it = str(c)
+                elif type(c) not in (IntType, FloatType):
+                    c = str(c).decode(SCO_ENCODING)
+                
                 ws0.write(li, co, c, self.get_cell_style(li,co))
                 co += 1
             li += 1
@@ -211,16 +211,15 @@ def Excel_SimpleTable( titles=[], lines=[[]],
     """Export simple type 'CSV': 1ere ligne en gras, le reste tel quel
     """
     # XXX devrait maintenant utiliser ScoExcelSheet
-    UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
     wb = Workbook()
-    ws0 = wb.add_sheet(SheetName)
+    ws0 = wb.add_sheet(SheetName.decode(SCO_ENCODING))
     if not titlesStyles:
         style = Excel_MakeStyle( bold=True )
         titlesStyles = [style]*len(titles)
     # ligne de titres
     col = 0
     for it in titles:
-        ws0.write(0, col, it, titlesStyles[col])
+        ws0.write(0, col, it.decode(SCO_ENCODING), titlesStyles[col])
         col += 1
     # suite
     style = Excel_MakeStyle()
@@ -233,7 +232,7 @@ def Excel_SimpleTable( titles=[], lines=[[]],
                 it = int(it) # assume all ScoDoc longs fits in int !
             elif type(it) not in (StringType, IntType, FloatType):
                 it = str(it)
-            ws0.write(li, col, it, style)
+            ws0.write(li, col, it.decode(SCO_ENCODING), style)
             col += 1
         li += 1
     #
@@ -247,10 +246,9 @@ def Excel_feuille_saisie( E, description, lines ):
     lines: liste de tuples
                (etudid, nom, prenom, etat, groupe, val, explanation)
     """
-    UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING
     SheetName = 'Saisie notes'
     wb = Workbook()
-    ws0 = wb.add_sheet(SheetName)
+    ws0 = wb.add_sheet(SheetName.decode(SCO_ENCODING))
     # ajuste largeurs colonnes (unite inconnue, empirique)
     ws0.col(0).width = 3000 # codes
     ws0.col(1).width = 6000 # noms
@@ -318,31 +316,31 @@ def Excel_feuille_saisie( E, description, lines ):
     
     # ligne de titres
     li = 0
-    ws0.write(li,0, "Feuille saisie note (‡ enregistrer au format excel)",
+    ws0.write(li,0, u"Feuille saisie note (√† enregistrer au format excel)",
               style_titres)
     li += 1
-    ws0.write(li,0, "Saisir les notes dans la colonne E (cases jaunes)", style_expl)
+    ws0.write(li,0, u"Saisir les notes dans la colonne E (cases jaunes)", style_expl)
     li += 1
-    ws0.write(li,0, "Ne pas modifier les cases en mauve !",style_expl)
+    ws0.write(li,0, u"Ne pas modifier les cases en mauve !",style_expl)
     li += 1
     # description evaluation    
     ws0.write(li,0, unescape_html(description), style_titres)
     li += 1
-    ws0.write(li,0, 'Evaluation du %s (coef. %g)' % (E['jour'],E['coefficient']),
+    ws0.write(li,0, u'Evaluation du %s (coef. %g)' % (E['jour'],E['coefficient']),
               style )
     li += 1
     # code et titres colonnes
-    ws0.write(li,0, '!%s' % E['evaluation_id'], style_ro )
-    ws0.write(li,1, 'Nom', style_titres )
-    ws0.write(li,2, 'PrÈnom', style_titres )
-    ws0.write(li,3, 'Groupe', style_titres )
-    ws0.write(li,4, 'Note sur %g'%E['note_max'], style_titres )
-    ws0.write(li,5, 'Remarque', style_titres )
+    ws0.write(li,0, u'!%s' % E['evaluation_id'], style_ro )
+    ws0.write(li,1, u'Nom', style_titres )
+    ws0.write(li,2, u'Pr√©nom', style_titres )
+    ws0.write(li,3, u'Groupe', style_titres )
+    ws0.write(li,4, u'Note sur %g'%E['note_max'], style_titres )
+    ws0.write(li,5, u'Remarque', style_titres )
     # etudiants
     for line in lines:
         li += 1
         st = style_nom
-        ws0.write(li,0, '!'+line[0], style_ro ) # code
+        ws0.write(li,0, ('!'+line[0]).decode(SCO_ENCODING), style_ro ) # code
         if line[3] != 'I':
             st = style_dem
             if line[3] == 'D': # demissionnaire
@@ -351,28 +349,28 @@ def Excel_feuille_saisie( E, description, lines ):
                 s = line[3] # etat autre
         else:
             s = line[4] # groupes TD/TP/...
-        ws0.write(li,1, line[1], st )
-        ws0.write(li,2, line[2], st )
-        ws0.write(li,3, s, st )
+        ws0.write(li,1, line[1].decode(SCO_ENCODING), st )
+        ws0.write(li,2, line[2].decode(SCO_ENCODING), st )
+        ws0.write(li,3, s.decode(SCO_ENCODING), st )
         try:
             val = float(line[5])
         except:
-            val = line[5]
+            val = line[5].decode(SCO_ENCODING)
         ws0.write(li,4, val, style_notes ) # note
-        ws0.write(li,5, line[6], st ) # comment
+        ws0.write(li,5, line[6].decode(SCO_ENCODING), st ) # comment
     # explication en bas
     li+=2
-    ws0.write(li, 1, "Code notes", style_titres )
-    ws0.write(li+1, 1, "ABS", style_expl )
-    ws0.write(li+1, 2, "absent (0)", style_expl )
-    ws0.write(li+2, 1, "EXC", style_expl )
-    ws0.write(li+2, 2, "pas prise en compte", style_expl )
-    ws0.write(li+3, 1, "ATT", style_expl )
-    ws0.write(li+3, 2, "en attente", style_expl )
-    ws0.write(li+4, 1, "SUPR", style_expl )
-    ws0.write(li+4, 2, "pour supprimer note dÈj‡ entrÈe", style_expl )
-    ws0.write(li+5, 1, "", style_expl )
-    ws0.write(li+5, 2, "cellule vide -> note non modifiÈe", style_expl )
+    ws0.write(li, 1, u"Code notes", style_titres )
+    ws0.write(li+1, 1, u"ABS", style_expl )
+    ws0.write(li+1, 2, u"absent (0)", style_expl )
+    ws0.write(li+2, 1, u"EXC", style_expl )
+    ws0.write(li+2, 2, u"pas prise en compte", style_expl )
+    ws0.write(li+3, 1, u"ATT", style_expl )
+    ws0.write(li+3, 2, u"en attente", style_expl )
+    ws0.write(li+4, 1, u"SUPR", style_expl )
+    ws0.write(li+4, 2, u"pour supprimer note d√©j√† entr√©e", style_expl )
+    ws0.write(li+5, 1, u"", style_expl )
+    ws0.write(li+5, 2, u"cellule vide -> note non modifi√©e", style_expl )
     return wb.savetostr()
 
 
@@ -385,17 +383,17 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
         raise ScoValueError("Fichier illisible: assurez-vous qu'il s'agit bien d'un document Excel !")
     
     diag = [] # liste de chaines pour former message d'erreur
-    # n'utilise que la premiËre feuille
+    # n'utilise que la premi√®re feuille
     if len(P) < 1:
-        diag.append('Aucune feuille trouvÈe dans le classeur !')
+        diag.append('Aucune feuille trouv√©e dans le classeur !')
         return diag, None
     if len(P) > 1:
-        diag.append('Attention: n\'utilise que la premiËre feuille du classeur !')
+        diag.append('Attention: n\'utilise que la premi√®re feuille du classeur !')
     # fill matrix 
     sheet_name, values = P[0]
     sheet_name = sheet_name.encode(SCO_ENCODING, 'backslashreplace')
     if not values:
-        diag.append('Aucune valeur trouvÈe dans le classeur !')
+        diag.append('Aucune valeur trouv√©e dans le classeur !')
         return diag, None
     indexes = values.keys()
     # search numbers of rows and cols
@@ -427,11 +425,10 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
                              with_paiement=False, # indique si etudiant a paye inscription
                              server_name=None ):
     "generation feuille appel"
-    UnicodeUtils.DEFAULT_ENCODING = SCO_ENCODING 
     formsemestre_id = sem['formsemestre_id']
     SheetName = 'Liste ' + groupname
     wb = Workbook()
-    ws0 = wb.add_sheet(SheetName)
+    ws0 = wb.add_sheet(SheetName.decode(SCO_ENCODING))
     
     font1 = Font()
     font1.name = 'Arial'
@@ -504,33 +501,36 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
 
     # ligne 1
     li = 0
-    ws0.write(li,1, "%s %s (%s - %s)"
-              % (context.get_preference('DeptName',formsemestre_id), 
-                 notesdb.unquote(sem['titre_num']),
-                 sem['date_debut'],sem['date_fin']), style2)
+    ws0.write(
+        li,1,
+        ("%s %s (%s - %s)"
+         % (context.get_preference('DeptName',formsemestre_id), 
+            notesdb.unquote(sem['titre_num']),
+            sem['date_debut'],sem['date_fin'])).decode(SCO_ENCODING),
+        style2)
     # ligne 2
     li += 1
-    ws0.write(li,1, "Discipline :", style2)
+    ws0.write(li,1, u"Discipline :", style2)
     # ligne 3
     li += 1
-    ws0.write(li,1, "Enseignant :", style2)
-    ws0.write(li,5, "Groupe %s" % groupname, style3)
+    ws0.write(li,1, u"Enseignant :", style2)
+    ws0.write(li,5, ("Groupe %s" % groupname).decode(SCO_ENCODING), style3)
     # Avertissement pour ne pas confondre avec listes notes
-    ws0.write(li+1,2, "Ne pas utiliser cette feuille pour saisir les notes !", style1i)
+    ws0.write(li+1,2, u"Ne pas utiliser cette feuille pour saisir les notes !", style1i)
     #
     li += 2
     li += 1
-    ws0.write(li,1, "Nom", style3)
+    ws0.write(li,1, u"Nom", style3)
     co = 2
     for partition in partitions:
         if partition['partition_name']:
-            ws0.write(li,co, partition['partition_name'], style3)
+            ws0.write(li,co, partition['partition_name'].decode(SCO_ENCODING), style3)
             co += 1
     if with_codes:
         coc=co
-        ws0.write(li,coc, "etudid", style3)
-        ws0.write(li,coc+1, "code_nip", style3)
-        ws0.write(li,coc+2, "code_ine", style3)
+        ws0.write(li,coc, u"etudid", style3)
+        ws0.write(li,coc+1, u"code_nip", style3)
+        ws0.write(li,coc+2, u"code_ine", style3)
         co += 3
     
     for i in range(NbWeeks):
@@ -550,26 +550,26 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
             elif not paie:
                 nomprenom += ' (non paiement)'
                 style_nom = style2t3bold
-        ws0.write(li, 1, nomprenom, style_nom) 
+        ws0.write(li, 1, nomprenom.decode(SCO_ENCODING), style_nom) 
         co = 2
         for partition in partitions:
             if partition['partition_name']:
-                ws0.write(li,co, t.get(partition['partition_id'], ''), style2t3)
+                ws0.write(li,co, t.get(partition['partition_id'], '').decode(SCO_ENCODING), style2t3)
                 co += 1
         if with_codes:
-            ws0.write(li,coc, t['etudid'], style2t3)
-            ws0.write(li,coc+1, t['code_nip'], style2t3)
-            ws0.write(li,coc+2, t['code_ine'], style2t3)
-        ws0.write(li, co, t['etath'], style2b) # etat
+            ws0.write(li,coc, t['etudid'].decode(SCO_ENCODING), style2t3)
+            ws0.write(li,coc+1, t['code_nip'].decode(SCO_ENCODING), style2t3)
+            ws0.write(li,coc+2, t['code_ine'].decode(SCO_ENCODING), style2t3)
+        ws0.write(li, co, t['etath'].decode(SCO_ENCODING), style2b) # etat
         for i in range(1,NbWeeks):
-            ws0.write(li, co+i, '',  style2b) # cellules vides
+            ws0.write(li, co+i, u'',  style2b) # cellules vides
         ws0.row(li).height = 850 # sans effet ?
     #
     li += 2
-    dt = time.strftime( '%d/%m/%Y ‡ %Hh%M' )
+    dt = time.strftime( '%d/%m/%Y √† %Hh%M' )
     if server_name:
         dt += ' sur ' + server_name
-    ws0.write(li, 1, 'Liste ÈditÈe le ' + dt, style1i)
+    ws0.write(li, 1, ('Liste √©dit√©e le ' + dt).decode(SCO_ENCODING), style1i)
     #
     ws0.col(0).width = 850
     ws0.col(1).width = 9000

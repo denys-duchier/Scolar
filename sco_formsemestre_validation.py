@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -93,7 +93,7 @@ def formsemestre_validation_etud_form(
     # Navigation suivant/precedent
     if etud_index_prev != None:
         etud_p = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
-        Footer.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. prÈcÈdent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud_p['nomprenom']) )
+        Footer.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. pr√©c√©dent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud_p['nomprenom']) )
     if etud_index_next != None:
         etud_n = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
         Footer.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud_n['nomprenom']) )
@@ -113,11 +113,11 @@ def formsemestre_validation_etud_form(
 
     etud_etat = nt.get_etud_etat(etudid)
     if etud_etat == 'D':
-        H.append('<div class="ue_warning"><span>Etudiant dÈmissionnaire</span></div>')
+        H.append('<div class="ue_warning"><span>Etudiant d√©missionnaire</span></div>')
     if etud_etat == 'DEF':
-        H.append('<div class="ue_warning"><span>Etudiant dÈfaillant</span></div>')
+        H.append('<div class="ue_warning"><span>Etudiant d√©faillant</span></div>')
     if etud_etat != 'I':
-        H.append(tf_error_message("""Impossible de statuer sur cet Ètudiant: il est dÈmissionnaire ou dÈfaillant (voir <a href="%s/ficheEtud?etudid=%s">sa fiche</a>)""" % (context.ScoURL(), etudid)))
+        H.append(tf_error_message("""Impossible de statuer sur cet √©tudiant: il est d√©missionnaire ou d√©faillant (voir <a href="%s/ficheEtud?etudid=%s">sa fiche</a>)""" % (context.ScoURL(), etudid)))
         return '\n'.join(H+Footer)
     
     H.append( formsemestre_recap_parcours_table(context, Se, etudid, with_links=(check and not readonly)) )
@@ -135,35 +135,35 @@ def formsemestre_validation_etud_form(
 
     # Bloque si note en attente
     if nt.etud_has_notes_attente(etudid):
-        H.append(tf_error_message("""Impossible de statuer sur cet Ètudiant: il a des notes en attente dans des Èvaluations de ce semestre (voir <a href="formsemestre_status?formsemestre_id=%s">tableau de bord</a>)""" % formsemestre_id))
+        H.append(tf_error_message("""Impossible de statuer sur cet √©tudiant: il a des notes en attente dans des √©valuations de ce semestre (voir <a href="formsemestre_status?formsemestre_id=%s">tableau de bord</a>)""" % formsemestre_id))
         return '\n'.join(H+Footer)
     
-    # Infos si pas de semestre prÈcÈdent
+    # Infos si pas de semestre pr√©c√©dent
     if not Se.prev:
         if Se.sem['semestre_id'] == 1:
-            H.append('<p>Premier semestre (pas de prÈcÈdent)</p>')
+            H.append('<p>Premier semestre (pas de pr√©c√©dent)</p>')
         else:
-            H.append('<p>Pas de semestre prÈcÈdent !</p>')
+            H.append('<p>Pas de semestre pr√©c√©dent !</p>')
     else:
         if not Se.prev_decision:
-            H.append(tf_error_message("""Le jury n\'a pas statuÈ sur le semestre prÈcÈdent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
+            H.append(tf_error_message("""Le jury n\'a pas statu√© sur le semestre pr√©c√©dent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
             if decision_jury:
-                H.append('<a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer dÈcision existante</a>'% (etudid, formsemestre_id))
+                H.append('<a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer d√©cision existante</a>'% (etudid, formsemestre_id))
             H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
 
-    # Infos sur decisions dÈj‡ saisies
+    # Infos sur decisions d√©j√† saisies
     if decision_jury:
         if decision_jury['assidu']:
             ass = 'assidu'
         else:
             ass = 'non assidu'
-        H.append('<p>DÈcision existante du %(event_date)s: %(code)s' % decision_jury )
+        H.append('<p>D√©cision existante du %(event_date)s: %(code)s' % decision_jury )
         H.append(' (%s)' % ass )
         auts = sco_parcours_dut.formsemestre_get_autorisation_inscription(
             context, etudid, formsemestre_id)
         if auts:
-            H.append( '. AutorisÈ%s ‡ s\'inscrire en ' % etud['ne'] )
+            H.append( '. Autoris√©%s √† s\'inscrire en ' % etud['ne'] )
             alist = []
             for aut in auts:
                 alist.append (str(aut['semestre_id']))
@@ -172,14 +172,14 @@ def formsemestre_validation_etud_form(
 
     # Cas particulier pour ATJ: corriger precedent avant de continuer
     if Se.prev_decision and Se.prev_decision['code'] == 'ATJ':
-        H.append("""<div class="sfv_warning"><p>La dÈcision du semestre prÈcÈdent est en
-        <b>attente</b> ‡ cause d\'un <b>problËme d\'assiduitÈ<b>.</p>
-        <p>Vous devez la corriger avant de continuer ce jury. Soit vous considÈrez que le
-        problËme d'assiduitÈ n'est pas rÈglÈ et choisissez de ne pas valider le semestre
-        prÈcÈdent (Èchec), soit vous entrez une dÈcision sans prendre en compte
-        l'assiduitÈ.</p>
+        H.append("""<div class="sfv_warning"><p>La d√©cision du semestre pr√©c√©dent est en
+        <b>attente</b> √† cause d\'un <b>probl√®me d\'assiduit√©<b>.</p>
+        <p>Vous devez la corriger avant de continuer ce jury. Soit vous consid√©rez que le
+        probl√®me d'assiduit√© n'est pas r√©gl√© et choisissez de ne pas valider le semestre
+        pr√©c√©dent (√©chec), soit vous entrez une d√©cision sans prendre en compte
+        l'assiduit√©.</p>
         <form method="get" action="formsemestre_validation_etud_form">
-        <input type="submit" value="Statuer sur le semestre prÈcÈdent"/>
+        <input type="submit" value="Statuer sur le semestre pr√©c√©dent"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
         <input type="hidden" name="etudid" value="%s"/>
         <input type="hidden" name="desturl" value="formsemestre_validation_etud_form?etudid=%s&formsemestre_id=%s"/>
@@ -192,23 +192,23 @@ def formsemestre_validation_etud_form(
         return '\n'.join(H)
 
     # Explication sur barres actuelles
-    H.append('<p class="sfv_explication">L\'Ètudiant ')
+    H.append('<p class="sfv_explication">L\'√©tudiant ')
     if Se.barre_moy_ok:
-        H.append('a la moyenne gÈnÈrale, ')
+        H.append('a la moyenne g√©n√©rale, ')
     else:
-        H.append('<b>n\'a pas</b> la moyenne gÈnÈrale, ')
+        H.append('<b>n\'a pas</b> la moyenne g√©n√©rale, ')
     if Se.barres_ue_ok:
         H.append('les UEs sont au dessus des barres')
     else:
         H.append('<b>%d UE sous la barre</b>' % (Se.nb_ues_under))
     if (not Se.barre_moy_ok) and Se.can_compensate_with_prev:
-        H.append(', et ce semestre peut se <b>compenser</b> avec le prÈcÈdent')
+        H.append(', et ce semestre peut se <b>compenser</b> avec le pr√©c√©dent')
     H.append('.</p>')
         
-    # DÈcisions possibles
+    # D√©cisions possibles
     rows_assidu = decisions_possible_rows(Se, True, subtitle='Etudiant assidu:', trclass='sfv_ass')
     rows_non_assidu = decisions_possible_rows(Se, False,
-                                              subtitle='Si problËme d\'assiduitÈ:', trclass='sfv_pbass')
+                                              subtitle='Si probl√®me d\'assiduit√©:', trclass='sfv_pbass')
     # s'il y a des decisions recommandees issues des regles:
     if rows_assidu or rows_non_assidu: 
         H.append("""<form method="get" action="formsemestre_validation_etud" id="formvalid" class="sfv_decisions">
@@ -220,7 +220,7 @@ def formsemestre_validation_etud_form(
         if sortcol:
             H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
 
-        H.append('<h3 class="sfv">DÈcisions <em>recommandÈes</em> :</h3>')
+        H.append('<h3 class="sfv">D√©cisions <em>recommand√©es</em> :</h3>')
         H.append('<table>')
         H.append(rows_assidu)        
         if rows_non_assidu:
@@ -233,13 +233,13 @@ def formsemestre_validation_etud_form(
 
     H.append( form_decision_manuelle(context, Se, formsemestre_id, etudid) )
 
-    H.append( """<div class="link_defaillance">Ou <a class="stdlink" href="formDef?etudid=%s&formsemestre_id=%s">dÈclarer l'Ètudiant comme dÈfaillant dans ce semestre</a></div>""" % (etudid, formsemestre_id) )
+    H.append( """<div class="link_defaillance">Ou <a class="stdlink" href="formDef?etudid=%s&formsemestre_id=%s">d√©clarer l'√©tudiant comme d√©faillant dans ce semestre</a></div>""" % (etudid, formsemestre_id) )
 
     H.append('<p style="font-size: 50%;">Formation ' )
     if Se.sem['gestion_semestrielle'] == '1':
-        H.append('avec semestres dÈcalÈs</p>' )
+        H.append('avec semestres d√©cal√©s</p>' )
     else:
-        H.append('sans semestres dÈcalÈs</p>' )
+        H.append('sans semestres d√©cal√©s</p>' )
     
     return ''.join(H+Footer)
 
@@ -283,7 +283,7 @@ def formsemestre_validation_etud_manu(
     Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
     if code_etat in Se.parcours.UNUSED_CODES:
         raise ScoValueError('code decision invalide dans ce parcours')
-    # Si code ADC, extrait le semestre utilisÈ:
+    # Si code ADC, extrait le semestre utilis√©:
     if code_etat[:3] == 'ADC':
         formsemestre_id_utilise_pour_compenser = code_etat.split('_')[1]
         if not formsemestre_id_utilise_pour_compenser:
@@ -310,7 +310,7 @@ def _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol
     if desturl:
         desturl += '&desturl=' + desturl
     REQUEST.RESPONSE.redirect(adr)
-    # Si le precedent a ÈtÈ modifiÈ, demande relecture du parcours.
+    # Si le precedent a √©t√© modifi√©, demande relecture du parcours.
     # sinon  renvoie au listing general,
 #     if choice.new_code_prev:
 #         REQUEST.RESPONSE.redirect( 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1&desturl=%s' % (formsemestre_id, etudid, desturl) )
@@ -347,7 +347,7 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
         H.append('<th>Code %s</th>' % TitlePrev )
     H.append('<th>Code %s</th><th>Devenir</th></tr>' % TitleCur )
     for ch in choices:
-        H.append("""<tr class="%s"><td title="rËgle %s"><input type="radio" name="codechoice" value="%s" onClick="document.getElementById('subut').disabled=false;">"""
+        H.append("""<tr class="%s"><td title="r√®gle %s"><input type="radio" name="codechoice" value="%s" onClick="document.getElementById('subut').disabled=false;">"""
                  % (trclass, ch.rule_id, ch.codechoice) )
         H.append('%s </input></td>' % ch.explication)
         if Se.prev:
@@ -366,8 +366,8 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
                                        show_details=False):
     """Tableau HTML recap parcours
     Si with_links, ajoute liens pour modifier decisions (colonne de droite)   
-    sem_info = { formsemestre_id : txt } permet d'ajouter des informations associÈes ‡ chaque semestre
-    with_all_columns: si faux, pas de colonne "assiduitÈ".
+    sem_info = { formsemestre_id : txt } permet d'ajouter des informations associ√©es √† chaque semestre
+    with_all_columns: si faux, pas de colonne "assiduit√©".
     """
     H = []
     linktmpl  = '<span onclick="toggle_vis(this);" class="toggle_sem">%s</span>'
@@ -441,7 +441,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td class="ue_acro"><span>%s</span></td>' % ue['acronyme'])
         if len(ues) < Se.nb_max_ue:
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
-        # indique le semestre compensÈ par celui ci:
+        # indique le semestre compens√© par celui ci:
         if decision_sem and decision_sem['compense_formsemestre_id']:
             csem = context.do_formsemestre_list(
                 {'formsemestre_id' : decision_sem['compense_formsemestre_id']})[0]
@@ -456,11 +456,11 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
                  % (bgcolor) )
         if is_prev:
-            default_sem_info = '<span class="fontred">[sem. prÈcÈdent]</span>'
+            default_sem_info = '<span class="fontred">[sem. pr√©c√©dent]</span>'
         else:
             default_sem_info = ''
         if sem['etat'] != '1': # locked
-            lockicon = context.icons.lock32_img.tag(title="verrouillÈ", border='0')
+            lockicon = context.icons.lock32_img.tag(title="verrouill√©", border='0')
             default_sem_info += lockicon
         H.append('<td class="datefin">%s</td><td class="sem_info">%s</td>'
                  % (sem['mois_fin'], 
@@ -501,7 +501,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
 
 
 def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sortcol=None):
-    """Formulaire pour saisie dÈcision manuelle
+    """Formulaire pour saisie d√©cision manuelle
     """
     H = [ """
     <script type="text/javascript">
@@ -528,7 +528,7 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
     if sortcol:
         H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
 
-    H.append('<h3 class="sfv">DÈcisions manuelles : <em>(vÈrifiez bien votre choix !)</em></h3><table>')
+    H.append('<h3 class="sfv">D√©cisions manuelles : <em>(v√©rifiez bien votre choix !)</em></h3><table>')
 
     # Choix code semestre:
     codes = sco_codes_parcours.CODES_EXPL.keys()
@@ -541,11 +541,11 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
         if cod != 'ADC':
             H.append('<option value="%s">%s (code %s)</option>' % (cod, sco_codes_parcours.CODES_EXPL[cod], cod) )
         elif Se.sem['gestion_compensation'] == '1':
-            # traitement spÈcial pour ADC (compensation)
+            # traitement sp√©cial pour ADC (compensation)
             # ne propose que les semestres avec lesquels on peut compenser
             # le code transmis est ADC_formsemestre_id
             # on propose aussi une compensation sans utiliser de semestre, pour les cas ou le semestre
-            # prÈcÈdent n'est pas gÈrÈ dans ScoDoc (code ADC_)
+            # pr√©c√©dent n'est pas g√©r√© dans ScoDoc (code ADC_)
             #log(str(Se.sems))
             for sem in Se.sems:
                 if sem['can_compensate']:
@@ -557,7 +557,7 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
 
     # Choix code semestre precedent:
     if Se.prev:
-        H.append('<tr><td>Code semestre prÈcÈdent: </td><td><select name="new_code_prev"><option value="">Choisir une dÈcision...</option>')
+        H.append('<tr><td>Code semestre pr√©c√©dent: </td><td><select name="new_code_prev"><option value="">Choisir une d√©cision...</option>')
         for cod in codes:
             if cod == 'ADC': # ne propose pas ce choix
                 continue
@@ -579,7 +579,7 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
         # semestres decales ?
         if Se.sem['gestion_semestrielle'] == '1':
             allowed_codes = allowed_codes.union(sco_codes_parcours.DEVENIRS_DEC)
-        # n'autorise les codes NEXT2 que si semestres dÈcalÈs et s'il ne manque qu'un semestre avant le n+2
+        # n'autorise les codes NEXT2 que si semestres d√©cal√©s et s'il ne manque qu'un semestre avant le n+2
         if Se.can_jump_to_next2():
             allowed_codes = allowed_codes.union(sco_codes_parcours.DEVENIRS_NEXT2)
     
@@ -592,8 +592,8 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
     H.append('<tr><td><input type="checkbox" name="assidu" checked="checked">assidu</input></td></tr>')
     
     H.append("""</table>
-    <input type="submit" name="formvalidmanu_submit" value="Valider dÈcision manuelle"/>
-    <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer dÈcision existante</a></span>
+    <input type="submit" name="formvalidmanu_submit" value="Valider d√©cision manuelle"/>
+    <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer d√©cision existante</a></span>
     </form>
     """ % (etudid, formsemestre_id))
     return '\n'.join(H)
@@ -602,21 +602,21 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
 def  formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     "Formulaire saisie automatisee des decisions d'un semestre"
     sem= context.get_formsemestre(formsemestre_id)
-    H = [ context.html_sem_header(REQUEST, 'Saisie automatique des dÈcisions du semestre', sem),
+    H = [ context.html_sem_header(REQUEST, 'Saisie automatique des d√©cisions du semestre', sem),
           """
     <ul>
-    <li>Seuls les Ètudiants qui obtiennent le semestre seront affectÈs (code ADM, moyenne gÈnÈrale et
-    toutes les barres, semestre prÈcÈdent validÈ);</li>
-    <li>le semestre prÈcÈdent, s'il y en a un, doit avoir ÈtÈ validÈ;</li>
-    <li>les dÈcisions du semestre prÈcÈdent ne seront pas modifiÈes;</li>
-    <li>l'assiduitÈ n'est <b>pas</b> prise en compte;</li>
-    <li>les Ètudiants avec des notes en attente sont ignorÈs.</li>
+    <li>Seuls les √©tudiants qui obtiennent le semestre seront affect√©s (code ADM, moyenne g√©n√©rale et
+    toutes les barres, semestre pr√©c√©dent valid√©);</li>
+    <li>le semestre pr√©c√©dent, s'il y en a un, doit avoir √©t√© valid√©;</li>
+    <li>les d√©cisions du semestre pr√©c√©dent ne seront pas modifi√©es;</li>
+    <li>l'assiduit√© n'est <b>pas</b> prise en compte;</li>
+    <li>les √©tudiants avec des notes en attente sont ignor√©s.</li>
     </ul>
-    <p>Il est donc vivement conseillÈ de relire soigneusement les dÈcisions ‡ l'issue
-    de cette procÈdure !</p>
+    <p>Il est donc vivement conseill√© de relire soigneusement les d√©cisions √† l'issue
+    de cette proc√©dure !</p>
     <form action="do_formsemestre_validation_auto">
     <input type="hidden" name="formsemestre_id" value="%s"/>
-    <input type="submit" value="Calculer automatiquement ces dÈcisions"/>
+    <input type="submit" value="Calculer automatiquement ces d√©cisions"/>
     <p><em>Le calcul prend quelques minutes, soyez patients !</em></p>
     </form>
     """  % formsemestre_id,
@@ -631,7 +631,7 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, 
     etudids = nt.get_etudids()
     nb_valid = 0
-    conflicts = [] # liste des etudiants avec decision differente dÈj‡ saisie
+    conflicts = [] # liste des etudiants avec decision differente d√©j√† saisie
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
         Se = sco_parcours_dut.SituationEtudParcours(context, etud, formsemestre_id)
@@ -665,12 +665,12 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
                 nb_valid += 1
     log('do_formsemestre_validation_auto: %d validations, %d conflicts' % (nb_valid, len(conflicts)))
     H = [ context.sco_header(REQUEST, page_title='Saisie automatique') ]
-    H.append("""<h2>Saisie automatique des dÈcisions du semestre %s</h2>
-    <p>OpÈration effectuÈe.</p>
-    <p>%d Ètudiants validÈs (sur %s)</p>""" % (sem['titreannee'], nb_valid, len(etudids)))
+    H.append("""<h2>Saisie automatique des d√©cisions du semestre %s</h2>
+    <p>Op√©ration effectu√©e.</p>
+    <p>%d √©tudiants valid√©s (sur %s)</p>""" % (sem['titreannee'], nb_valid, len(etudids)))
     if conflicts:
-        H.append("""<p><b>Attention:</b> %d Ètudiants non modifiÈs car dÈcisions diffÈrentes
-        dÈja saisies :<ul>""" % len(conflicts))
+        H.append("""<p><b>Attention:</b> %d √©tudiants non modifi√©s car d√©cisions diff√©rentes
+        d√©ja saisies :<ul>""" % len(conflicts))
         for etud in conflicts:
             H.append('<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1">%s</li>'
                      % (formsemestre_id, etud['etudid'], etud['nomprenom']) )
@@ -683,22 +683,22 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
 
 def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
     """
-    Suite ‡ un bug (fix svn 502, 26 juin 2008), les UE sans notes ont parfois ÈtÈ validÈes
+    Suite √† un bug (fix svn 502, 26 juin 2008), les UE sans notes ont parfois √©t√© valid√©es
     avec un code ADM (au lieu de AJ ou ADC, suivant le code semestre).
 
-    Cette fonction vÈrifie les codes d'UE et les modifie si nÈcessaire.
+    Cette fonction v√©rifie les codes d'UE et les modifie si n√©cessaire.
 
-    Si semestre validÈ: decision UE == CMP ou ADM
-    Sinon: si moy UE > barre et assiduitÈ au semestre: ADM, sinon AJ
+    Si semestre valid√©: decision UE == CMP ou ADM
+    Sinon: si moy UE > barre et assiduit√© au semestre: ADM, sinon AJ
 
 
-    N'affecte que le semestre indiquÈ, pas les prÈcÈdents.
+    N'affecte que le semestre indiqu√©, pas les pr√©c√©dents.
     """
     from sco_codes_parcours import *
     sem= context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, get_etud_decision_sem, get_ues, get_etud_decision_ues, get_etud_ue_status
     etudids = nt.get_etudids()
-    modifs = [] # liste d'Ètudiants modifiÈs
+    modifs = [] # liste d'√©tudiants modifi√©s
     cnx = context.GetDBConnexion(autocommit=False)
     for etudid in etudids:
         etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
@@ -729,14 +729,14 @@ def formsemestre_fix_validation_ues(context, formsemestre_id, REQUEST=None):
                     code_ue = AJ
 
             if code_ue != existing_code:
-                msg = ('%s: %s: code %s changÈ en %s' %
+                msg = ('%s: %s: code %s chang√© en %s' %
                        (etud['nomprenom'],ue_id, existing_code, code_ue) )
                 modifs.append(msg)
                 log(msg)
                 sco_parcours_dut.do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
     cnx.commit()
     #
-    H = [context.sco_header(REQUEST, page_title='RÈparation des codes UE'),
+    H = [context.sco_header(REQUEST, page_title='R√©paration des codes UE'),
          sco_formsemestre_status.formsemestre_status_head(context, REQUEST=REQUEST,
                                                           formsemestre_id=formsemestre_id )
          ]
@@ -770,11 +770,11 @@ def formsemestre_validation_suppress_etud(context, formsemestre_id, etudid):
         raise
     
     sem = context.get_formsemestre(formsemestre_id)
-    _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])  #> suppr. decision jury (peut affecter de plusieurs semestres utilisant UE capitalisÈe)
+    _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])  #> suppr. decision jury (peut affecter de plusieurs semestres utilisant UE capitalis√©e)
 
 def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=None):
-    """Form. saisie UE validÈe hors ScoDoc 
-    (pour Ètudiants arrivant avec un UE antÈrieurement validÈe).
+    """Form. saisie UE valid√©e hors ScoDoc 
+    (pour √©tudiants arrivant avec un UE ant√©rieurement valid√©e).
     """
     etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
     sem = context.get_formsemestre(formsemestre_id)
@@ -785,19 +785,19 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
                              javascripts=[ 'js/validate_previous_ue.js'
                                            ]),
           '<table style="width: 100%"><tr><td>',
-          '''<h2 class="formsemestre">%s: validation d'une UE antÈrieure</h2>''' % etud['nomprenom'],
+          '''<h2 class="formsemestre">%s: validation d'une UE ant√©rieure</h2>''' % etud['nomprenom'],
           ('</td><td style="text-align: right;"><a href="%s/ficheEtud?etudid=%s">%s</a></td></tr></table>'
            % (context.ScoURL(), etudid,    
               sco_photos.etud_photo_html(context, etud, title='fiche de %s'%etud['nom'], REQUEST=REQUEST))),
-          '''<p class="help">Utiliser cette page pour enregistrer une UE validÈe antÈrieurement, 
-    <em>dans un semestre hors ScoDoc</em>. Les UE validÈes dans ScoDoc sont dÈj‡
-    automatiquement prises en compte. Cette page n'est utile que pour les Ètudiants ayant 
-    suivi un dÈbut de cursus dans un autre Ètablissement, ou dans un semestre gÈrÈ sans 
+          '''<p class="help">Utiliser cette page pour enregistrer une UE valid√©e ant√©rieurement, 
+    <em>dans un semestre hors ScoDoc</em>. Les UE valid√©es dans ScoDoc sont d√©j√†
+    automatiquement prises en compte. Cette page n'est utile que pour les √©tudiants ayant 
+    suivi un d√©but de cursus dans un autre √©tablissement, ou dans un semestre g√©r√© sans 
     ScoDoc.</p>''',
           '<p>On ne peut prendre en compte ici que les UE du cursus <b>%(titre)s</b></p>' % Fo,
           ]
     
-    # Toutes les UE de cette formation sont prÈsentÈes (mÍme celles des autres semestres)
+    # Toutes les UE de cette formation sont pr√©sent√©es (m√™me celles des autres semestres)
     ues = context.do_ue_list({ 'formation_id' : Fo['formation_id'] })
     ue_names = ['Choisir...'] + [ '%(acronyme)s %(titre)s' % ue for ue in ues ]
     ue_ids = [''] + [ ue['ue_id'] for ue in ues ]
@@ -805,7 +805,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
             ('etudid', { 'input_type' : 'hidden' }),
             ('formsemestre_id', { 'input_type' : 'hidden' }),
             ('ue_id', { 'input_type' : 'menu',
-                        'title' : 'UnitÈ d\'Enseignement (UE)',
+                        'title' : 'Unit√© d\'Enseignement (UE)',
                         'allow_null' : False,
                         'allowed_values': ue_ids,
                         'labels' : ue_names }),
@@ -863,7 +863,7 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
     cnx.commit()
 
 def _invalidate_etud_formation_caches(context, etudid, formation_id):
-    "Invalide tous les semestres de cette formation o˘ l'etudiant est inscrit..."
+    "Invalide tous les semestres de cette formation o√π l'etudiant est inscrit..."
     r = SimpleDictFetch(context, """SELECT sem.* 
         FROM notes_formsemestre sem, notes_formsemestre_inscription i
         WHERE sem.formation_id = %(formation_id)s
@@ -892,7 +892,7 @@ def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
             sem = context.get_formsemestre(valid['formsemestre_id'])
             valid['s'] = ', du semestre %s' % sem['titreannee']
         else:
-            valid['s'] = " enregistrÈe d'un parcours antÈrieur (hors ScoDoc)"
+            valid['s'] = " enregistr√©e d'un parcours ant√©rieur (hors ScoDoc)"
         if valid['semestre_id']:
             valid['s'] += ' (<b>S%d</b>)' % valid['semestre_id']
         valid['ds'] = formsemestre_id
@@ -914,10 +914,10 @@ def etud_ue_suppress_validation(context, etudid, formsemestre_id, ue_id, REQUEST
     return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s" % (etudid, formsemestre_id))
 
 def check_formation_ues(context, formation_id):
-    """Verifie que les UE d'une formation sont chacune utilisÈe dans un seul semestre_id
-    Si ce n'est pas le cas, c'est probablement (mais pas forcÈment) une erreur de
-    dÈfinition du programme: cette fonction retourne un bout de HTML
-    ‡ afficher pour prÈvenir l'utilisateur, ou '' si tout est ok.
+    """Verifie que les UE d'une formation sont chacune utilis√©e dans un seul semestre_id
+    Si ce n'est pas le cas, c'est probablement (mais pas forc√©ment) une erreur de
+    d√©finition du programme: cette fonction retourne un bout de HTML
+    √† afficher pour pr√©venir l'utilisateur, ou '' si tout est ok.
     """
     ues = context.do_ue_list({ 'formation_id' : formation_id })
     ue_multiples = {} # { ue_id : [ liste des formsemestre ] }
@@ -938,12 +938,12 @@ def check_formation_ues(context, formation_id):
         return '', {}
     # Genere message HTML:
     H = [ """<div class="ue_warning"><span>Attention:</span> les UE suivantes de cette formation 
-        sont utilisÈes dans des
-        semestres de rangs diffÈrents (eg S1 et S3). <br/>Cela peut engendrer des problËmes pour 
-        la capitalisation des UE. Il serait prÈfÈrable d'essayer de rectifier cette situation: 
-        soit modifier le programme de la formation (dÈfinir des UE dans chaque semestre), 
-        soit veiller ‡ saisir le bon indice de semestre dans le menu lors de la validation d'une
-        UE extÈrieure.
+        sont utilis√©es dans des
+        semestres de rangs diff√©rents (eg S1 et S3). <br/>Cela peut engendrer des probl√®mes pour 
+        la capitalisation des UE. Il serait pr√©f√©rable d'essayer de rectifier cette situation: 
+        soit modifier le programme de la formation (d√©finir des UE dans chaque semestre), 
+        soit veiller √† saisir le bon indice de semestre dans le menu lors de la validation d'une
+        UE ext√©rieure.
         <ul>
         """ ]
     for ue in ues:

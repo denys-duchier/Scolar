@@ -1,4 +1,5 @@
-# -*- coding: iso8859-15 -*-
+# -*- mode: python -*-
+# -*- coding: utf-8 -*-
 
 """Suppression des accents d'une chaine
 
@@ -51,7 +52,12 @@ def _fill_reptable():
         (u"Y",  [0x00DD,0x0176,0x0178]),
         (u"y",  [0x00FD,0x00FF,0x0177]),
         (u"Z",  [0x0179,0x017B,0x017D]),
-        (u"z",  [0x017A,0x017C,0x017E])
+        (u"z",  [0x017A,0x017C,0x017E]),
+        (u"2",  [0x00B2]), # deux exposant
+        (u" ",  [0x00A0]), # &nbsp
+        (u"",  [0xB0]), # degre
+        (u"",  [0xA9]), # copyright
+        (u"1/2",  [0xBD]), # 1/2
         ]
     global _reptable
     for repchar,codes in _corresp :
@@ -62,9 +68,9 @@ _fill_reptable()
 def suppression_diacritics(s) :
     """Suppression des accents et autres marques.
 
-    @param s: le texte à nettoyer.
+    @param s: le texte Ã  nettoyer.
     @type s: str ou unicode
-    @return: le texte nettoyé de ses marques diacritiques.
+    @return: le texte nettoyÃ© de ses marques diacritiques.
     @rtype: unicode
     """
     if isinstance(s,str) :

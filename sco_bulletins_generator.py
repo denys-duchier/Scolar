@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Génération des bulletins de note: super-classe pour les générateurs (HTML et PDF)
+"""GÃ©nÃ©ration des bulletins de note: super-classe pour les gÃ©nÃ©rateurs (HTML et PDF)
 
 class BulletinGenerator:
  description
@@ -37,8 +37,8 @@ class BulletinGenerator:
 
  .__init__ et .generate(format) methodes appelees par le client (sco_bulletin)
 
-La préférence 'bul_class_name' donne le nom de la classe generateur.
-La préférence 'bul_pdf_class_name' est obsolete (inutilisée).
+La prÃ©fÃ©rence 'bul_class_name' donne le nom de la classe generateur.
+La prÃ©fÃ©rence 'bul_pdf_class_name' est obsolete (inutilisÃ©e).
 
 
 """
@@ -48,7 +48,7 @@ from notes_log import log
 from sco_pdf import *
 from odict import odict
 
-BULLETIN_CLASSES = odict() # liste des types des classes de générateurs de bulletins PDF
+BULLETIN_CLASSES = odict() # liste des types des classes de gÃ©nÃ©rateurs de bulletins PDF
 def register_bulletin_class( klass ):
     log("registering bulletin class '%s'" % klass.__name__)
     BULLETIN_CLASSES[klass.__name__] = klass
@@ -66,13 +66,13 @@ def bulletin_get_class(class_name):
     return BULLETIN_CLASSES[class_name]
 
 def bulletin_get_class_name_displayed(context, formsemestre_id):
-    """Le nom du générateur utilisé, en clair"""
+    """Le nom du gÃ©nÃ©rateur utilisÃ©, en clair"""
     bul_class_name =  context.get_preference('bul_class_name', formsemestre_id)
     try:
         gen_class = bulletin_get_class(bul_class_name)
         return gen_class.description
     except:
-        return "invalide ! (voir paramètres)"
+        return "invalide ! (voir paramÃ¨tres)"
 
 
 
@@ -88,7 +88,7 @@ class BulletinGenerator:
             raise ValueError('invalid version code !')
         self.context = context
         self.infos = infos
-        self.authuser = authuser # nécessaire pour version HTML qui contient liens dépendant de l'utilisateur
+        self.authuser = authuser # nÃ©cessaire pour version HTML qui contient liens dÃ©pendant de l'utilisateur
         self.version = version
         self.filigranne = filigranne
         self.server_name = server_name
@@ -148,8 +148,8 @@ class BulletinGenerator:
         
     def generate_pdf(self, stand_alone=True):
         """Build PDF bulletin from distinct parts
-        Si stand_alone, génère un doc PDF complet et renvoie une string
-        Sinon, renvoie juste une liste d'objets PLATYPUS pour intégration
+        Si stand_alone, gÃ©nÃ¨re un doc PDF complet et renvoie une string
+        Sinon, renvoie juste une liste d'objets PLATYPUS pour intÃ©gration
         dans un autre document.
         """
         formsemestre_id = self.infos['formsemestre_id']
@@ -159,7 +159,7 @@ class BulletinGenerator:
         objects += self.bul_part_below(format='pdf') # infos sous la table           
         objects += self.bul_signatures_pdf() # signatures
 
-        # Réduit sur une page
+        # RÃ©duit sur une page
         objects = [KeepInFrame(0,0,objects,mode='shrink')]    
         #
         if not stand_alone:
@@ -193,13 +193,13 @@ class BulletinGenerator:
             # put each table cell in a Paragraph
             Pt = [ [Paragraph(SU(x), self.CellStyle) for x in line ] for line in P ]
         except:
-            # enquête sur exception intermittente...
+            # enquÃªte sur exception intermittente...
             log('*** bug in PDF buildTableObject:')
             log('P=%s' % P )
             # compris: reportlab is not thread safe !
             #   see http://two.pairlist.net/pipermail/reportlab-users/2006-June/005037.html
-            # (donc maintenant protégé dans ScoDoc par un Lock global)
-            self.diagnostic = 'erreur lors de la génération du PDF<br/>'
+            # (donc maintenant protÃ©gÃ© dans ScoDoc par un Lock global)
+            self.diagnostic = 'erreur lors de la gÃ©nÃ©ration du PDF<br/>'
             self.diagnostic += '<pre>' + traceback.format_exc() + '</pre>'
             return []
         return Table( Pt, colWidths=colWidths, style=pdfTableStyle )
@@ -212,8 +212,8 @@ def make_formsemestre_bulletinetud(context, infos,
                                    REQUEST=None):
     """Bulletin de notes
 
-    Appelle une fonction générant le bulletin au format spécifié à partir des informations infos,
-    selon les préférences du semestre.
+    Appelle une fonction gÃ©nÃ©rant le bulletin au format spÃ©cifiÃ© Ã  partir des informations infos,
+    selon les prÃ©fÃ©rences du semestre.
 
     """
     if not version in ('short','long','selectedevals'):
@@ -224,7 +224,7 @@ def make_formsemestre_bulletinetud(context, infos,
     try:
         gen_class = bulletin_get_class(bul_class_name)
     except:
-        raise ValueError('Type de bulletin PDF invalide (paramètre: %s)' % bul_pdf_class_name)
+        raise ValueError('Type de bulletin PDF invalide (paramÃ¨tre: %s)' % bul_pdf_class_name)
     
     try:
         PDFLOCK.acquire()
@@ -263,9 +263,9 @@ def make_formsemestre_bulletinetud(context, infos,
 # Classes de bulletins:
 import sco_bulletins_standard
 import sco_bulletins_legacy
-# import sco_bulletins_example # format exemple (à désactiver en production)
+# import sco_bulletins_example # format exemple (Ã  dÃ©sactiver en production)
 
 # ... ajouter ici vos modules ...
-import sco_bulletins_ucac # format expérimental UCAC Cameroun
+import sco_bulletins_ucac # format expÃ©rimental UCAC Cameroun
 
 

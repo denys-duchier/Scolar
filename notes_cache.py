@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -35,7 +35,7 @@ from notes_log import log
 
 class CacheFunc:
     """gestion rudimentaire de cache pour une fonction
-    func doit etre sans effet de bord, et sans arguments nommés
+    func doit etre sans effet de bord, et sans arguments nommÃ©s
     """
     def __init__(self, func):
         log('new CacheFunc for %s' % str(func))

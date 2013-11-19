@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -26,7 +26,7 @@
 ##############################################################################
 
 """Pages HTML gestion absences 
-   (la plupart portées du DTML)
+   (la plupart portÃ©es du DTML)
 """
 
 from stripogram import html2text, html2safehtml
@@ -76,7 +76,7 @@ def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id=None, demijourne
     H = [ context.sco_header(REQUEST,page_title="Signalement d'une absence pour %(nomprenom)s" % etud ),
           """<h2>Signalement d'absences</h2>""" ]
     if dates:
-        H.append("""<p>Ajout de %d absences <b>%sjustifiées</b> du %s au %s %s</p>"""
+        H.append("""<p>Ajout de %d absences <b>%sjustifiÃ©es</b> du %s au %s %s</p>"""
                  % (nbadded, J, datedebut, datefin, M ) )
     else:
         H.append("""<p class="warning">Aucune date ouvrable entre le %s et le %s !</p>"""
@@ -145,7 +145,7 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 <p>
 <input type="submit" value="Envoyer"/> 
 <em>
- <p>Seuls les modules du semestre en cours apparaissent.</p><p> Evitez de saisir une absence pour un module qui n'est pas en place à cette date.</p>
+ <p>Seuls les modules du semestre en cours apparaissent.</p><p> Evitez de saisir une absence pour un module qui n'est pas en place Ã  cette date.</p>
 <p>Toutes les dates sont au format jour/mois/annee</p>
 </em>
 
@@ -240,7 +240,7 @@ Raison: <input type="text" name="description" size="42"/> (optionnel)
 
 
 def doAnnuleAbsence(context, datedebut, datefin, demijournee, REQUEST=None): # etudid implied
-    """Annulation des absences pour une demi journée
+    """Annulation des absences pour une demi journÃ©e
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     etudid = etud['etudid']
@@ -260,7 +260,7 @@ def doAnnuleAbsence(context, datedebut, datefin, demijournee, REQUEST=None): # e
     H = [ context.sco_header(REQUEST,page_title="Annulation d'une absence pour %(nomprenom)s" % etud ),
           """<h2>Annulation d'absences pour %(nomprenom)s</h2>"""%etud ]
     if dates:
-        H.append("<p>Annulation sur %d demi-journées du %s au %s"
+        H.append("<p>Annulation sur %d demi-journÃ©es du %s au %s"
                  % (nbadded, datedebut, datefin) )
     else:
         H.append("""<p class="warning">Aucune date ouvrable entre le %s et le %s !</p>"""
@@ -291,9 +291,9 @@ def AnnuleAbsenceEtud(context, REQUEST=None): # etudid implied
           """<a href="%s/ficheEtud?etudid=%s">""" % (context.ScoURL(), etud['etudid']),
           context.etud_photo_html(etudid=etudid, title='fiche de '+etud['nomprenom'], REQUEST=REQUEST),
           """</a></td></tr></table>""",
-          """<p>A n'utiliser que suite à une erreur de saisie ou lorsqu'il s'avère
-      que l'étudiant était en fait présent. </p><p>
-	<font color="#FF0000">Si plusieurs modules sont affectés, les absences seront toutes effacées. </font></p>
+          """<p>A n'utiliser que suite Ã  une erreur de saisie ou lorsqu'il s'avÃ¨re
+      que l'Ã©tudiant Ã©tait en fait prÃ©sent. </p><p>
+	<font color="#FF0000">Si plusieurs modules sont affectÃ©s, les absences seront toutes effacÃ©es. </font></p>
           """ % etud,
           """<table frame="border" border="1"><tr><td>
 <form action="doAnnuleAbsence" method="get"> 
@@ -360,7 +360,7 @@ def doAnnuleJustif(context, datedebut0, datefin0, demijournee, REQUEST=None): # 
     dates = context.DateRangeISO(datedebut0, datefin0)
     nbadded = 0
     for jour in dates:
-        # Attention: supprime matin et après midi
+        # Attention: supprime matin et aprÃ¨s midi
 	if demijournee=='2':
             context._AnnuleJustif(etudid, jour, False, REQUEST=REQUEST)
             context._AnnuleJustif(etudid, jour, True, REQUEST=REQUEST)
@@ -374,7 +374,7 @@ def doAnnuleJustif(context, datedebut0, datefin0, demijournee, REQUEST=None): # 
           """<h2>Annulation de justifications pour %(nomprenom)s</h2>"""%etud ]
     
     if dates:
-        H.append("<p>Annulation sur %d demi-journées du %s au %s"
+        H.append("<p>Annulation sur %d demi-journÃ©es du %s au %s"
                  % (nbadded, datedebut0, datefin0) )
     else:
         H.append("""<p class="warning">Aucune date ouvrable entre le %s et le %s !</p>"""
@@ -399,7 +399,7 @@ def EtatAbsences(context, REQUEST=None):
           formChoixSemestreGroupe(context),
           """<input type="submit" name="" value=" OK " width=100>
 
-<table><tr><td>Date de début (j/m/a) : </td><td>
+<table><tr><td>Date de dÃ©but (j/m/a) : </td><td>
 
 <input type="text" name="debut" size="10" value="01/09/%s" class="datepicker"/>
 
@@ -415,9 +415,9 @@ def EtatAbsences(context, REQUEST=None):
 
 def formChoixSemestreGroupe(context, all=False):
     """partie de formulaire pour le choix d'un semestre et d'un groupe.
-    Si all, donne tous les semestres (même ceux verrouillés).
+    Si all, donne tous les semestres (mÃªme ceux verrouillÃ©s).
     """
-    # XXX assez primitif, à ameliorer
+    # XXX assez primitif, Ã  ameliorer
     if all:
         sems = context.Notes.do_formsemestre_list()
     else:
@@ -466,10 +466,10 @@ def CalAbs(context, REQUEST=None): # etud implied
                              page_title="Calendrier des absences de %(nomprenom)s"%etud, 
                              cssstyles=['calabs.css']),
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
-          """<font color="#EE0000">A : absence NON justifiée</font><br>
-             <font color="#F8B7B0">a : absence justifiée</font><br>
+          """<font color="#EE0000">A : absence NON justifiÃ©e</font><br>
+             <font color="#F8B7B0">a : absence justifiÃ©e</font><br>
 	     <font color="#8EA2C6">X : justification sans absence</font><br>
-             %d absences sur l'année, dont %d justifiées (soit %d non justifiées)
+             %d absences sur l'annÃ©e, dont %d justifiÃ©es (soit %d non justifiÃ©es)
            """  % (nbabs, nbabsjust, nbabs-nbabsjust),
            """</td>
 <td><a href="%s/ficheEtud?etudid=%s">%s</a></td>
@@ -480,8 +480,8 @@ def CalAbs(context, REQUEST=None): # etud implied
 
           """<form method="GET" action="CalAbs" name="f">""",
           """<input type="hidden" name="etudid" value="%s"/>""" % etudid,
-          """Année scolaire %s-%s""" % (AnneeScolaire, AnneeScolaire+1),
-          """&nbsp;&nbsp;Changer année: <select name="sco_year" onchange="document.f.submit()">"""
+          """AnnÃ©e scolaire %s-%s""" % (AnneeScolaire, AnneeScolaire+1),
+          """&nbsp;&nbsp;Changer annÃ©e: <select name="sco_year" onchange="document.f.submit()">"""
           ]
     for y in range(AnneeScolaire, AnneeScolaire-10, -1):
         H.append("""<option value="%s" """ % y )
@@ -496,10 +496,10 @@ def CalAbs(context, REQUEST=None): # etud implied
 def ListeAbsEtud(context, etudid,
                  with_evals=True, # indique les evaluations aux dates d'absences
                  format='html',
-                 absjust_only=0, # si vrai, renvoie table absences justifiées
+                 absjust_only=0, # si vrai, renvoie table absences justifiÃ©es
                  REQUEST=None):
-    """Liste des absences d'un étudiant sur l'année en cours
-    En format 'html': page avec deux tableaux (non justifiées et justifiées).
+    """Liste des absences d'un Ã©tudiant sur l'annÃ©e en cours
+    En format 'html': page avec deux tableaux (non justifiÃ©es et justifiÃ©es).
     En format xls ou pdf: l'un ou l'autre des table, suivant absjust_only.
     En format 'text': texte avec liste d'absences (pour mails).
     """
@@ -521,13 +521,13 @@ def ListeAbsEtud(context, etudid,
                         html_class='gt_table table_leftalign',
                         base_url = base_url_nj,
                         filename='abs_'+make_filename(etud['nomprenom']),
-                        caption='Absences non justifiées de %(nomprenom)s' % etud,
+                        caption='Absences non justifiÃ©es de %(nomprenom)s' % etud,
                         preferences=context.get_preferences())
     tab_absjust = GenTable( titles=titles, columns_ids=columns_ids, rows = absjust,
                         html_class='gt_table table_leftalign',
                         base_url = base_url_j,
                         filename='absjust_'+make_filename(etud['nomprenom']),
-                        caption='Absences justifiées de %(nomprenom)s' % etud,
+                        caption='Absences justifiÃ©es de %(nomprenom)s' % etud,
                         preferences=context.get_preferences())
 
     # Formats non HTML et demande d'une seule table:
@@ -541,34 +541,34 @@ def ListeAbsEtud(context, etudid,
         # Mise en forme HTML:
         H = []
         H.append( context.sco_header(REQUEST,page_title='Absences de %s' % etud['nomprenom']) )
-        H.append( """<h2>Absences de %s (à partir du %s)</h2>"""
+        H.append( """<h2>Absences de %s (Ã  partir du %s)</h2>"""
                   % (etud['nomprenom'], DateISOtoDMY(datedebut)))
 
         if len(absnonjust):
-            H.append('<h3>%d absences non justifiées:</h3>' % len(absnonjust))
+            H.append('<h3>%d absences non justifiÃ©es:</h3>' % len(absnonjust))
             H.append( tab_absnonjust.html() )
         else:
-            H.append( """<h3>Pas d'absences non justifiées</h3>""")
+            H.append( """<h3>Pas d'absences non justifiÃ©es</h3>""")
 
         if len(absjust):
-            H.append( """<h3>%d absences justifiées:</h3>""" % len(absjust),)
+            H.append( """<h3>%d absences justifiÃ©es:</h3>""" % len(absjust),)
             H.append( tab_absjust.html() )
         else:
-            H.append( """<h3>Pas d'absences justifiées</h3>""")
+            H.append( """<h3>Pas d'absences justifiÃ©es</h3>""")
         return '\n'.join(H) + context.sco_footer(REQUEST)
     
     elif format == 'text':
         T = []
         if not len(absnonjust) and not len(absjust):
-            T.append("""--- Pas d'absences enregistrées depuis le %s""" % DateISOtoDMY(datedebut))
+            T.append("""--- Pas d'absences enregistrÃ©es depuis le %s""" % DateISOtoDMY(datedebut))
         else:
-            T.append("""--- Absences enregistrées à partir du %s:""" % DateISOtoDMY(datedebut))
+            T.append("""--- Absences enregistrÃ©es Ã  partir du %s:""" % DateISOtoDMY(datedebut))
             T.append('\n')
         if len(absnonjust):
-            T.append('* %d absences non justifiées:' % len(absnonjust))
+            T.append('* %d absences non justifiÃ©es:' % len(absnonjust))
             T.append( tab_absnonjust.text() )
         if len(absjust):
-            T.append('* %d absences justifiées:' % len(absjust))
+            T.append('* %d absences justifiÃ©es:' % len(absjust))
             T.append( tab_absjust.text() )
         return '\n'.join(T)
     else:
@@ -584,12 +584,12 @@ def absences_index_html(context, REQUEST=None):
                              cssstyles=['calabs.css'], javascripts=['js/calabs.js']),
           """<h2>Gestion des Absences</h2>""" ]
     if not sems:
-        H.append("""<p class="warning">Aucun semestre défini (ou aucun groupe d'étudiant)</p>""")
+        H.append("""<p class="warning">Aucun semestre dÃ©fini (ou aucun groupe d'Ã©tudiant)</p>""")
     else:
-        H.append("""<ul><li><a href="EtatAbsences">Afficher l'état des absences (pour tout un groupe)</a></li>""")
+        H.append("""<ul><li><a href="EtatAbsences">Afficher l'Ã©tat des absences (pour tout un groupe)</a></li>""")
         if context.get_preference('handle_billets_abs'):
             H.append("""<li><a href="listeBillets">Traitement des billets d'absence en attente</a></li>""")
-        H.append("""<p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'étudiant concerné:</p>""")
+        H.append("""<p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'Ã©tudiant concernÃ©:</p>""")
         H.append(context.formChercheEtud(REQUEST))
         if authuser.has_permission(ScoAbsChange,context):
             H.extend(("""<hr/>
@@ -602,7 +602,7 @@ def absences_index_html(context, REQUEST=None):
                       formChoixSemestreGroupe(context),
                       '</p>',
                       context.CalSelectWeek(REQUEST=REQUEST),
-                      """<p class="help">Sélectionner le groupe d'étudiants, puis cliquez sur une semaine pour
+                      """<p class="help">SÃ©lectionner le groupe d'Ã©tudiants, puis cliquez sur une semaine pour
 saisir les absences de toute cette semaine.</p>
                       </form>""")
                      )

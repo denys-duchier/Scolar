@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Génération des bulletins de notes
+"""GÃ©nÃ©ration des bulletins de notes
 
 """
 from email.MIMEMultipart import MIMEMultipart
@@ -85,11 +85,11 @@ def make_context_dict(context, sem, etud):
 
 def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='long', REQUEST=None):
     """Collecte informations pour bulletin de notes
-    Retourne un dictionnaire (avec valeur par défaut chaine vide).
-    Le contenu du dictionnaire dépend des options (rangs, ...) 
+    Retourne un dictionnaire (avec valeur par dÃ©faut chaine vide).
+    Le contenu du dictionnaire dÃ©pend des options (rangs, ...) 
     et de la version choisie (short, long, selectedevals).
 
-    Cette fonction est utilisée pour les bulletins HTML et PDF, mais pas ceux en XML.
+    Cette fonction est utilisÃ©e pour les bulletins HTML et PDF, mais pas ceux en XML.
     """
     if not version in ('short','long','selectedevals'):
         raise ValueError('invalid version code !')
@@ -143,11 +143,11 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I['filigranne'] = ''    
     I['demission'] = ''
     if I['etud_etat'] == 'D':
-        I['demission'] = '(Démission)'
-        I['filigranne'] = 'Démission'
+        I['demission'] = '(DÃ©mission)'
+        I['filigranne'] = 'DÃ©mission'
     elif I['etud_etat'] == 'DEF':
-        I['demission'] = '(Défaillant)'
-        I['filigranne'] = 'Défaillant'
+        I['demission'] = '(DÃ©faillant)'
+        I['filigranne'] = 'DÃ©faillant'
     elif (prefs['bul_show_temporary'] and not I['decision_sem']) or prefs['bul_show_temporary_forced']:
         I['filigranne'] = prefs['bul_temporary_txt']
     
@@ -224,10 +224,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         # auparavant on filtrait les modules sans notes
         #   si ue_status['cur_moy_ue'] != 'NA' alors u['modules'] = [] (pas de moyenne => pas de modules)
         
-        u['modules_capitalized'] = [] # modules de l'UE capitalisée (liste vide si pas capitalisée)
+        u['modules_capitalized'] = [] # modules de l'UE capitalisÃ©e (liste vide si pas capitalisÃ©e)
         if ue_status['is_capitalized']:
             sem_origin = context.get_formsemestre(ue_status['formsemestre_id'])
-            u['ue_descr_txt'] =  'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date'])
+            u['ue_descr_txt'] =  'CapitalisÃ©e le %s' % DateISOtoDMY(ue_status['event_date'])
             u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
             # log('cap details   %s' % ue_status['moy'])
             if ue_status['moy'] != 'NA' and ue_status['formsemestre_id']:
@@ -249,7 +249,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         if ue_status['is_capitalized'] or modules:
             I['ues'].append(u) # ne montre pas les UE si non inscrit
 
-        # Accès par matieres
+        # AccÃ¨s par matieres
         I['matieres_modules'].update(_sort_mod_by_matiere(modules, nt, etudid))
 
     #
@@ -275,9 +275,9 @@ def _sort_mod_by_matiere(modlist, nt, etudid):
     return matmod
 
 def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, version):
-    """Infos sur les modules (et évaluations) dans une UE
+    """Infos sur les modules (et Ã©valuations) dans une UE
     (ajoute les informations aux modimpls)
-    Result: liste de modules de l'UE avec les infos dans chacun (seulement ceux où l'étudiant est inscrit).
+    Result: liste de modules de l'UE avec les infos dans chacun (seulement ceux oÃ¹ l'Ã©tudiant est inscrit).
     """
     bul_show_mod_rangs = context.get_preference('bul_show_mod_rangs', formsemestre_id)
     bul_show_abs_modules = context.get_preference('bul_show_abs_modules', formsemestre_id)
@@ -355,7 +355,7 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                     e['coef_txt'] = 'rat.'
                 if e['etat']['evalattente']:
                     mod_attente = True # une eval en attente dans ce module
-            # Evaluations incomplètes ou futures:
+            # Evaluations incomplÃ¨tes ou futures:
             mod['evaluations_incompletes'] = []
             if context.get_preference('bul_show_all_evals', formsemestre_id):
                 complete_eval_ids = Set( [ e['evaluation_id'] for e in evals ] )
@@ -416,27 +416,27 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
                                    show_date_inscr=True,
                                    show_mention=False
                                   ):
-    """Dict décrivant la situation de l'étudiant dans ce semestre.
-    Si format == 'html', peut inclure du balisage html (actuellement inutilisé)
+    """Dict dÃ©crivant la situation de l'Ã©tudiant dans ce semestre.
+    Si format == 'html', peut inclure du balisage html (actuellement inutilisÃ©)
 
-    situation : chaine résumant en français la situation de l'étudiant.
-                Par ex. "Inscrit le 31/12/1999. Décision jury: Validé. ..."
+    situation : chaine rÃ©sumant en franÃ§ais la situation de l'Ã©tudiant.
+                Par ex. "Inscrit le 31/12/1999. DÃ©cision jury: ValidÃ©. ..."
     
     date_inscription : (vide si show_date_inscr est faux)
     date_demission   : (vide si pas demission ou si show_date_inscr est faux)
     descr_inscription : "Inscrit" ou "Pas inscrit[e]"
-    descr_demission   : "Démission le 01/02/2000" ou vide si pas de démission
-    descr_defaillance  : "Défaillant" ou vide si non défaillant.
-    decision_jury     :  "Validé", "Ajourné", ... (code semestre)
-    descr_decision_jury : "Décision jury: Validé" (une phrase)
-    decisions_ue        : noms (acronymes) des UE validées, séparées par des virgules.
+    descr_demission   : "DÃ©mission le 01/02/2000" ou vide si pas de dÃ©mission
+    descr_defaillance  : "DÃ©faillant" ou vide si non dÃ©faillant.
+    decision_jury     :  "ValidÃ©", "AjournÃ©", ... (code semestre)
+    descr_decision_jury : "DÃ©cision jury: ValidÃ©" (une phrase)
+    decisions_ue        : noms (acronymes) des UE validÃ©es, sÃ©parÃ©es par des virgules.
     descr_decisions_ue  : ' UE acquises: UE1, UE2', ou vide si pas de dec. ou si pas show_uevalid
     descr_mention : 'Mention Bien', ou vide si pas de mention ou si pas show_mention
     """
     cnx = context.GetDBConnexion()
     infos = DictDefault(defaultvalue='')
     
-    # --- Situation et décisions jury
+    # --- Situation et dÃ©cisions jury
 
     # demission/inscription ?
     events = scolars.scolar_events_list(
@@ -451,14 +451,14 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
             if date_inscr:
                 # plusieurs inscriptions ???
                 #date_inscr += ', ' +   event['event_date'] + ' (!)'
-                # il y a eu une erreur qui a laissé un event 'inscription'
+                # il y a eu une erreur qui a laissÃ© un event 'inscription'
                 # on l'efface:
                 log('etud_descr_situation_semestre: removing duplicate INSCRIPTION event !')
                 scolars.scolar_events_delete( cnx, event['event_id'] )
             else:
                 date_inscr = event['event_date']
         elif event_type == 'DEMISSION':
-            # assert date_dem == None, 'plusieurs démissions !'
+            # assert date_dem == None, 'plusieurs dÃ©missions !'
             if date_dem: # cela ne peut pas arriver sauf bug (signale a Evry 2013?)
                 log('etud_descr_situation_semestre: removing duplicate DEMISSION event !')
                 scolars.scolar_events_delete( cnx, event['event_id'] )
@@ -484,15 +484,15 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     infos['situation'] = infos['descr_inscription']
     
     if date_dem:
-        infos['descr_demission'] = 'Démission le %s.' % date_dem
+        infos['descr_demission'] = 'DÃ©mission le %s.' % date_dem
         infos['date_demission'] = date_dem
-        infos['descr_decision_jury'] = 'Démission'
+        infos['descr_decision_jury'] = 'DÃ©mission'
         infos['situation'] += ' ' + infos['descr_demission']
         return infos, None # ne donne pas les dec. de jury pour les demissionnaires
     if date_def:
-        infos['descr_defaillance'] = 'Défaillant%s' % ne
+        infos['descr_defaillance'] = 'DÃ©faillant%s' % ne
         infos['date_defaillance'] = date_def
-        infos['descr_decision_jury'] = 'Défaillant%s' % ne
+        infos['descr_decision_jury'] = 'DÃ©faillant%s' % ne
         infos['situation'] += ' ' + infos['descr_defaillance']
     
     dpv = sco_pvjury.dict_pvjury(context, formsemestre_id, etudids=[etudid])
@@ -505,7 +505,7 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
     dec = ''
     if pv['decision_sem_descr']:
         infos['decision_jury'] = pv['decision_sem_descr']
-        infos['descr_decision_jury'] = 'Décision jury: ' + pv['decision_sem_descr'] + '. ' 
+        infos['descr_decision_jury'] = 'DÃ©cision jury: ' + pv['decision_sem_descr'] + '. ' 
         dec = infos['descr_decision_jury']
     else:
         infos['descr_decision_jury'] = ''
@@ -524,11 +524,11 @@ def etud_descr_situation_semestre(context, etudid, formsemestre_id, ne='',
         dec += 'Mention ' + pv['mention'] + '. '
     
     infos['situation'] += ' ' + dec
-    if not pv['validation_parcours']: # parcours non terminé
+    if not pv['validation_parcours']: # parcours non terminÃ©
         if pv['autorisations_descr']:
-            infos['situation'] += " Autorisé à s'inscrire en %s." % pv['autorisations_descr']
+            infos['situation'] += " AutorisÃ© Ã  s'inscrire en %s." % pv['autorisations_descr']
     else:
-        infos['situation'] += " Diplôme obtenu."
+        infos['situation'] += " DiplÃ´me obtenu."
     return infos, dpv
 
 
@@ -601,10 +601,10 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
                                  xml_with_decisions=False, # force decisions dans XML
                                  force_publishing=False # force publication meme si semestre non publie sur "portail"
                                  ):
-    """Génère le bulletin au format demandé.
+    """GÃ©nÃ¨re le bulletin au format demandÃ©.
     Retourne: (bul, filigranne)
-    où bul est au format demandé (html, pdf, pdfmail, pdfpart, xml)
-    et filigranne est un message à placer en "filigranne" (eg "Provisoire").
+    oÃ¹ bul est au format demandÃ© (html, pdf, pdfmail, pdfpart, xml)
+    et filigranne est un message Ã  placer en "filigranne" (eg "Provisoire").
     """
     if format == 'xml':        
         bul = repr(sco_bulletins_xml.make_xml_formsemestre_bulletinetud(
@@ -639,7 +639,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
         # format pdfmail: envoie le pdf par mail a l'etud, et affiche le html
         # check permission
         if not can_send_bulletin_by_mail(context, formsemestre_id, REQUEST):
-            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opération !")
+            raise AccessDenied("Vous n'avez pas le droit d'effectuer cette opÃ©ration !")
         
         if nohtml:
             htm = '' # speed up if html version not needed
@@ -656,7 +656,7 @@ def do_formsemestre_bulletinetud(context, formsemestre_id, etudid,
         #
         mail_bulletin(context, formsemestre_id, I, pdfdata, filename)
         
-        return ('<div class="head_message">Message mail envoyé à %s</div>'
+        return ('<div class="head_message">Message mail envoyÃ© Ã  %s</div>'
                 % (etud['emaillink'])) + htm, I['filigranne']
     
     else:
@@ -683,7 +683,7 @@ def mail_bulletin(context, formsemestre_id, I, pdfdata, filename):
                                                    etud['etudid'], with_evals=False, format='text')
     
     msg = MIMEMultipart()
-    subj = Header( 'Relevé de notes de %s' % etud['nomprenom'],  SCO_ENCODING )
+    subj = Header( 'RelevÃ© de notes de %s' % etud['nomprenom'],  SCO_ENCODING )
     recipients = [ etud['email'] ] 
     msg['Subject'] = subj
     msg['From'] = context.get_preference('email_from_addr',formsemestre_id)
@@ -727,7 +727,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           %(titremois)s</a></span> 
           <br/>""" % sem,
           """<table><tr>""",
-          """<td>établi le %s (notes sur 20)</td>""" % time.strftime('%d/%m/%Y à %Hh%M'),
+          """<td>Ã©tabli le %s (notes sur 20)</td>""" % time.strftime('%d/%m/%Y Ã  %Hh%M'),
           """<td><span class="rightjust">
              <input type="hidden" name="formsemestre_id" value="%s"></input>""" % formsemestre_id,
           """<input type="hidden" name="etudid" value="%s"></input>""" % etudid,
@@ -735,8 +735,8 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           """<select name="version" onchange="document.f.submit()" class="noprint">""",
           ]
     for (v,e) in ( ('short', 'Version courte'),
-                   ('selectedevals', 'Version intermédiaire'),
-                   ('long', 'Version complète')):
+                   ('selectedevals', 'Version intermÃ©diaire'),
+                   ('long', 'Version complÃ¨te')):
         if v == version:
             selected = ' selected'
         else:
@@ -748,30 +748,30 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     qurl = urllib.quote_plus( url + '?' + REQUEST.QUERY_STRING )
     
     menuBul = [
-        { 'title' : 'Réglages bulletins',
+        { 'title' : 'RÃ©glages bulletins',
           'url' : 'formsemestre_edit_options?formsemestre_id=%s&target_url=%s' % (formsemestre_id, qurl),
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           },
         { 'title' : 'Version papier (pdf, format "%s")' % sco_bulletins_generator.bulletin_get_class_name_displayed(context, formsemestre_id),
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s' % (formsemestre_id,etudid,version),
           },
-        { 'title' : "Envoi par mail à l'étudiant",
+        { 'title' : "Envoi par mail Ã  l'Ã©tudiant",
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdfmail&version=%s' % (formsemestre_id,etudid,version),
           'enabled' : etud['email'] and can_send_bulletin_by_mail(context, formsemestre_id, REQUEST) # possible slt si on a un mail...
           },
         { 'title' : 'Version XML',
           'url' : url + '?formsemestre_id=%s&etudid=%s&format=xml&version=%s' % (formsemestre_id,etudid,version),
           },
-        { 'title' : 'Ajouter une appréciation',
+        { 'title' : 'Ajouter une apprÃ©ciation',
           'url' : 'appreciation_add_form?etudid=%s&formsemestre_id=%s' % (etudid, formsemestre_id),
           'enabled' : ((authuser == sem['responsable_id'])
                        or (authuser.has_permission(ScoEtudInscrit,context)))
           },
-        { 'title' : "Enregistrer une validation d'UE antérieure",
+        { 'title' : "Enregistrer une validation d'UE antÃ©rieure",
           'url' : 'formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s' % (etudid, formsemestre_id),
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           },
-        { 'title' : 'Entrer décisions jury',
+        { 'title' : 'Entrer dÃ©cisions jury',
           'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s'%(formsemestre_id,etudid),
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
         },
@@ -782,7 +782,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
         ]
     
     H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
-    H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul) )
+    H.append( sco_formsemestre_status.makeMenu( 'Autres opÃ©rations', menuBul) )
     H.append("""</div></td>""")
     H.append('<td> <a href="%s">%s</a></td>'%(url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s'% (formsemestre_id,etudid,version),ICON_PDF))
     H.append("""</tr></table>""")
@@ -809,14 +809,14 @@ def formsemestre_bulletins_choice(context, REQUEST, formsemestre_id,
       <select name="version" class="noprint">""" % (REQUEST.URL0,formsemestre_id),
          ]
     for (v,e) in ( ('short', 'Version courte'),
-                   ('selectedevals', 'Version intermédiaire'),
-                   ('long', 'Version complète')):
+                   ('selectedevals', 'Version intermÃ©diaire'),
+                   ('long', 'Version complÃ¨te')):
         H.append('<option value="%s">%s</option>' % (v, e))
-    H.append("""</select>&nbsp;&nbsp;<input type="submit" value="Générer"/></form><p class="help">""" + explanation + '</p>',)
+    H.append("""</select>&nbsp;&nbsp;<input type="submit" value="GÃ©nÃ©rer"/></form><p class="help">""" + explanation + '</p>',)
 
     return '\n'.join(H) + context.sco_footer(REQUEST)
 
-expl_bull = """Versions des bulletins:<ul><li><bf>courte</bf>: moyennes des modules</li><li><bf>intermédiaire</bf>: moyennes des modules et notes des évaluations sélectionnées</li><li><bf>complète</bf>: toutes les notes</li><ul>"""
+expl_bull = """Versions des bulletins:<ul><li><bf>courte</bf>: moyennes des modules</li><li><bf>intermÃ©diaire</bf>: moyennes des modules et notes des Ã©valuations sÃ©lectionnÃ©es</li><li><bf>complÃ¨te</bf>: toutes les notes</li><ul>"""
 
 def formsemestre_bulletins_pdf_choice(context, REQUEST, formsemestre_id, version=None):
     """Choix version puis envois classeur bulletins pdf"""
@@ -824,7 +824,7 @@ def formsemestre_bulletins_pdf_choice(context, REQUEST, formsemestre_id, version
         return context.formsemestre_bulletins_pdf(formsemestre_id, REQUEST, version=version)
     return formsemestre_bulletins_choice(
         context, REQUEST, formsemestre_id, 
-        title='Choisir la version des bulletins à générer',
+        title='Choisir la version des bulletins Ã  gÃ©nÃ©rer',
         explanation = expl_bull)
 
 def formsemestre_bulletins_mailetuds_choice(context, REQUEST, formsemestre_id, version=None, dialog_confirmed=False):
@@ -833,5 +833,5 @@ def formsemestre_bulletins_mailetuds_choice(context, REQUEST, formsemestre_id, v
         return context.formsemestre_bulletins_mailetuds(formsemestre_id, REQUEST, version=version, dialog_confirmed=dialog_confirmed)
     return formsemestre_bulletins_choice(
         context, REQUEST, formsemestre_id, 
-        title='Choisir la version des bulletins à envoyer par mail',
-        explanation = 'Chaque étudiant ayant une adresse mail connue de ScoDoc recevra une copie PDF de son bulletin de notes, dans la version choisie.</p><p>' + expl_bull)
+        title='Choisir la version des bulletins Ã  envoyer par mail',
+        explanation = 'Chaque Ã©tudiant ayant une adresse mail connue de ScoDoc recevra une copie PDF de son bulletin de notes, dans la version choisie.</p><p>' + expl_bull)

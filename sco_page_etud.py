@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -27,7 +27,7 @@
 
 """ScoDoc ficheEtud
 
-   Fiche description d'un étudiant et de son parcours
+   Fiche description d'un Ã©tudiant et de son parcours
 
 """
 
@@ -46,11 +46,11 @@ import sco_archives_etud
 
 def _menuScolarite(context, authuser, sem, etudid):
     """HTML pour menu "scolarite" pour un etudiant dans un semestre.
-    Le contenu du menu depend des droits de l'utilisateur et de l'état de l'étudiant.
+    Le contenu du menu depend des droits de l'utilisateur et de l'Ã©tat de l'Ã©tudiant.
     """
     locked = (sem['etat'] != '1')
     if locked: 
-        lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = context.icons.lock32_img.tag(title="verrouillÃ©", border='0')
         return lockicon # no menu
     if not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context):
         return '' # no menu
@@ -59,18 +59,18 @@ def _menuScolarite(context, authuser, sem, etudid):
              'formsemestre_id' : ins['formsemestre_id'] }
 
     if ins['etat'] != 'D':
-        dem_title = 'Démission'
+        dem_title = 'DÃ©mission'
         dem_url = 'formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
     else:
-        dem_title = 'Annuler la démission'
+        dem_title = 'Annuler la dÃ©mission'
         dem_url = 'doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
 
-    # Note: seul un etudiant inscrit (I) peut devenir défaillant.
+    # Note: seul un etudiant inscrit (I) peut devenir dÃ©faillant.
     if ins['etat'] != 'DEF':
-        def_title = 'Déclarer défaillance'
+        def_title = 'DÃ©clarer dÃ©faillance'
         def_url = 'formDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
     elif ins['etat'] == 'DEF':
-        def_title = 'Annuler la défaillance'
+        def_title = 'Annuler la dÃ©faillance'
         def_url = 'doCancelDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
     def_enabled = (ins['etat'] != 'D') and authuser.has_permission(ScoEtudInscrit,context) and not locked
     items = [
@@ -90,22 +90,22 @@ def _menuScolarite(context, authuser, sem, etudid):
           'url' : def_url,
           'enabled' : def_enabled
         },
-        { 'title' : "Inscrire à un module optionnel (ou au sport)",
+        { 'title' : "Inscrire Ã  un module optionnel (ou au sport)",
           'url' : "Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
-        { 'title' : "Désinscrire (en cas d'erreur)",
+        { 'title' : "DÃ©sinscrire (en cas d'erreur)",
           'url' : "Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
 
-        { 'title' : "Inscrire à un autre semestre",
+        { 'title' : "Inscrire Ã  un autre semestre",
           'url' : "Notes/formsemestre_inscription_with_modules_form?etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context)
         },        
         ]
 
-    return makeMenu( "Scolarité", items, cssclass="direction_etud", elem='span' )
+    return makeMenu( "ScolaritÃ©", items, cssclass="direction_etud", elem='span' )
 
 def ficheEtud(context, etudid=None, REQUEST=None):
     "fiche d'informations sur un etudiant"
@@ -124,7 +124,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     info['authuser'] = authuser
     info['info_naissance'] = info['date_naissance']
     if info['lieu_naissance']:
-        info['info_naissance'] += ' à ' + info['lieu_naissance']
+        info['info_naissance'] += ' Ã  ' + info['lieu_naissance']
     info['etudfoto'] = sco_photos.etud_photo_html(context, etud, REQUEST=REQUEST)
     if ((not info['domicile']) and (not info['codepostaldomicile'])
         and (not info['villedomicile'])):
@@ -149,7 +149,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     # Groupes:
     sco_groups.etud_add_group_infos(context, info, info['cursem'])
 
-    # Parcours de l'étudiant
+    # Parcours de l'Ã©tudiant
     if info['sems']:
         info['last_formsemestre_id'] = info['sems'][0]['formsemestre_id']
     else:
@@ -166,7 +166,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
             else:
                 gr_name = 'tous'
             grlink = '<a class="discretelink" href="group_list?group_id=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
-        # infos ajoutées au semestre dans le parcours (groupe, menu)
+        # infos ajoutÃ©es au semestre dans le parcours (groupe, menu)
         menu =  _menuScolarite(context, authuser, sem, etudid)
         if menu:
             sem_info[sem['formsemestre_id']] = '<table><tr><td>'+grlink + '</td><td>' + menu + '</td></tr></table>'
@@ -210,7 +210,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 <div class="ficheadmission">
 <div class="fichetitre">Informations admission</div>
 <table>
-<tr><th>Bac</th><th>Année</th><th>Math</th><th>Physique</th><th>Anglais</th><th>Français</th></tr>
+<tr><th>Bac</th><th>AnnÃ©e</th><th>Math</th><th>Physique</th><th>Anglais</th><th>FranÃ§ais</th></tr>
 <tr>
 <td>%(bac)s (%(specialite)s)</td>
 <td>%(annee_bac)s </td>
@@ -232,10 +232,10 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         adm_tmpl = '' # pas de boite "info admission"
     info['adm_data'] = adm_tmpl % info
 
-    # Fichiers archivés:
-    info['fichiers_archive_htm'] = '<div class="ficheadmission"><div class="fichetitre">Fichiers associés</div>' + sco_archives_etud.etud_list_archives_html(context, REQUEST, etudid) + '</div>'
+    # Fichiers archivÃ©s:
+    info['fichiers_archive_htm'] = '<div class="ficheadmission"><div class="fichetitre">Fichiers associÃ©s</div>' + sco_archives_etud.etud_list_archives_html(context, REQUEST, etudid) + '</div>'
     
-    # Devenir de l'étudiant:
+    # Devenir de l'Ã©tudiant:
     has_debouche =  info['debouche']
     if has_debouche:
         info['debouche_html'] = """<div class="fichedebouche"><span class="debouche_tit">Devenir:</span><span>%s</span></div>""" % info['debouche']
@@ -248,7 +248,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         info['tit_anno'] = ''
     # Inscriptions
     if info['sems']:
-        rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
+        rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">rÃ©capitulatif parcours</a>)""" % info
     else:
         rcl = ''
     info['inscriptions_mkup'] = """<div class="ficheinscriptions" id="ficheinscriptions">
@@ -276,7 +276,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 <table>
 <tr><td class="fichetitre2">Situation :</td><td>%(situation)s</td></tr>
 %(groupes_row)s
-<tr><td class="fichetitre2">Né%(ne)s le :</td><td>%(info_naissance)s</td></tr>
+<tr><td class="fichetitre2">NÃ©%(ne)s le :</td><td>%(info_naissance)s</td></tr>
 </table>
 
 
@@ -308,7 +308,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
 <b>Ajouter une annotation sur %(nomprenom)s: </b>
 <table><tr>
 <tr><td><textarea name="comment" rows="4" cols="50" value=""></textarea>
-<br/><font size=-1><i>Balises HTML autorisées: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrétariat.</i></font>
+<br/><font size=-1><i>Balises HTML autorisÃ©es: b, a, i, br, p. Ces annotations sont lisibles par tous les enseignants et le secrÃ©tariat.</i></font>
 </td></tr>
 <tr><td>Auteur : <input type="text" name="author" width=12 value="%(authuser)s">&nbsp;
 <input type="submit" value="Ajouter annotation"></td></tr>
@@ -322,7 +322,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         """                           
     header = context.sco_header(
                 REQUEST,
-                page_title='Fiche étudiant %(prenom)s %(nom)s'%info,
+                page_title='Fiche Ã©tudiant %(prenom)s %(nom)s'%info,
                 javascripts=['jQuery/jquery.js', 'js/recap_parcours.js'])
     return header + tmpl % info + context.sco_footer(REQUEST)
 
@@ -341,17 +341,17 @@ def menus_etud(context, REQUEST=None):
         { 'title' : etud['nomprenom'],
           'url' : 'ficheEtud?etudid=%(etudid)s' % etud,
           'enabled' : True,
-          'helpmsg' : 'Fiche étudiant'
+          'helpmsg' : 'Fiche Ã©tudiant'
           },
         { 'title' : 'Changer la photo',
           'url' : 'formChangePhoto?etudid=%(etudid)s' % etud,
           'enabled' : authuser.has_permission(ScoEtudChangeAdr,context),
           },
-        { 'title' : 'Changer les données identité/admission',
+        { 'title' : 'Changer les donnÃ©es identitÃ©/admission',
           'url' : 'etudident_edit_form?etudid=%(etudid)s' % etud,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context),
           },
-        { 'title' : 'Supprimer cet étudiant...',
+        { 'title' : 'Supprimer cet Ã©tudiant...',
           'url' : 'etudident_delete?etudid=%(etudid)s' % etud,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context),
           },

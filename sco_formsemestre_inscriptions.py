@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-"""Opérations d'inscriptions aux semestres et modules
+"""OpÃ©rations d'inscriptions aux semestres et modules
 """
 
 
@@ -72,11 +72,11 @@ def do_formsemestre_inscription_with_modules(
 
 def formsemestre_inscription_with_modules_etud(context, formsemestre_id, etudid=None, group_ids=None,
                                                REQUEST=None):
-    """Form. inscription d'un étudiant au semestre.
-    Si etudid n'est pas specifié, form. choix etudiant.
+    """Form. inscription d'un Ã©tudiant au semestre.
+    Si etudid n'est pas specifiÃ©, form. choix etudiant.
     """
     if not etudid:
-        return context.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre",
+        return context.formChercheEtud( title="Choix de l'Ã©tudiant Ã  inscrire dans ce semestre",
                                      add_headers=True,
                                      dest_url='formsemestre_inscription_with_modules_etud',
                                      parameters={ 'formsemestre_id' : formsemestre_id },
@@ -90,7 +90,7 @@ def formsemestre_inscription_with_modules_form(context,etudid,REQUEST):
     etud = context.getEtudInfo(etudid=etudid,filled=1)[0]        
     H = [ context.sco_header(REQUEST)
           + "<h2>Inscription de %s</h2>" % etud['nomprenom']
-          + "<p>L'étudiant sera inscrit à <em>tous</em> les modules de la session choisie (sauf Sport &amp; Culture).</p>" 
+          + "<p>L'Ã©tudiant sera inscrit Ã  <em>tous</em> les modules de la session choisie (sauf Sport &amp; Culture).</p>" 
           ]
     F = context.sco_footer(REQUEST)
     sems = context.do_formsemestre_list( args={ 'etat' : '1' } )
@@ -99,7 +99,7 @@ def formsemestre_inscription_with_modules_form(context,etudid,REQUEST):
     if sems:
         H.append('<ul>')
         for sem in sems:
-            # Ne propose que les semestres ou etudid n'est pas déjà inscrit
+            # Ne propose que les semestres ou etudid n'est pas dÃ©jÃ  inscrit
             inscrit = False
             for i in insem:
                 if i['formsemestre_id'] == sem['formsemestre_id']:
@@ -110,7 +110,7 @@ def formsemestre_inscription_with_modules_form(context,etudid,REQUEST):
         H.append('</ul>')
     else:
         H.append('<p>aucune session de formation !</p>')
-    H.append('<a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche de %s</a>'
+    H.append('<a class="stdlink" href="%s/ficheEtud?etudid=%s">retour Ã  la fiche de %s</a>'
              % (context.ScoURL(), etudid, etud['nomprenom']) )
     return '\n'.join(H) + F
 
@@ -129,33 +129,33 @@ def formsemestre_inscription_with_modules(
     etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
     H = [ context.html_sem_header(REQUEST, 'Inscription de %s dans ce semestre' % etud['nomprenom'], sem) ]
     F = context.sco_footer(REQUEST)
-    # Check 1: déjà inscrit ici ?
+    # Check 1: dÃ©jÃ  inscrit ici ?
     ins = context.Notes.do_formsemestre_inscription_list({'etudid':etudid})
     already = False
     for i in ins:
         if i['formsemestre_id'] == formsemestre_id:
             already = True
     if already:
-        H.append('<p class="warning">%s est déjà inscrit dans le semestre %s</p>' % (etud['nomprenom'], sem['titremois']))
-        H.append("""<ul><li><a href="ficheEtud?etudid=%s">retour à la fiche de %s</a></li>
+        H.append('<p class="warning">%s est dÃ©jÃ  inscrit dans le semestre %s</p>' % (etud['nomprenom'], sem['titremois']))
+        H.append("""<ul><li><a href="ficheEtud?etudid=%s">retour Ã  la fiche de %s</a></li>
         <li><a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord de %s</a></li></ul>"""
                  % (etudid, etud['nomprenom'], formsemestre_id, sem['titremois']) )
         return '\n'.join(H) + F
-    # Check 2: déjà inscrit dans un semestre recouvrant les même dates ?
-    # Informe et propose dé-inscriptions
+    # Check 2: dÃ©jÃ  inscrit dans un semestre recouvrant les mÃªme dates ?
+    # Informe et propose dÃ©-inscriptions
     others = est_inscrit_ailleurs(context, etudid, formsemestre_id)
     if others and not multiple_ok:
         l = []
         for s in others:
             l.append('<a class="discretelink" href="formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titremois)s</a>'%s)
         
-        H.append('<p class="warning">Attention: %s est déjà inscrit sur la même période dans: %s.</p>'
+        H.append('<p class="warning">Attention: %s est dÃ©jÃ  inscrit sur la mÃªme pÃ©riode dans: %s.</p>'
                  % (etud['nomprenom'], ', '.join(l)))
         H.append('<ul>')
         for s in others:
-            H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&etudid=%s">déinscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
+            H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&etudid=%s">dÃ©inscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
         H.append('</ul>')
-        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, sco_groups.make_query_groups(group_ids)))
+        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand mÃªme l'inscription</a></p>""" % (etudid, formsemestre_id, sco_groups.make_query_groups(group_ids)))
         return '\n'.join(H) + F
     #
     if group_ids is not None:
@@ -176,7 +176,7 @@ def formsemestre_inscription_with_modules(
         #
         H.append("""
         <input type="submit" value="Inscrire"/>
-        <p>Note: l'étudiant sera inscrit dans les groupes sélectionnés</p>
+        <p>Note: l'Ã©tudiant sera inscrit dans les groupes sÃ©lectionnÃ©s</p>
         </form>            
         """ )
         return '\n'.join(H) + F
@@ -240,12 +240,12 @@ def formsemestre_inscription_option(context, etudid, formsemestre_id, REQUEST=No
         ue_status = nt.get_etud_ue_status(etudid, ue_id)
         if ue_status['is_capitalized']:
             sem_origin = context.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
-            ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s">(capitalisée le %s)' % (sem_origin['formsemestre_id'], 
+            ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s">(capitalisÃ©e le %s)' % (sem_origin['formsemestre_id'], 
 etudid, sem_origin['titreannee'], DateISOtoDMY(ue_status['event_date']))
         descr.append( 
             ('sec_%s' % ue_id, 
              { 'input_type' : 'separator', 
-               'title' : """<b>%s :</b>  <a href="#" onclick="chkbx_select('%s', true);">inscrire</a>|<a href="#" onclick="chkbx_select('%s', false);">désinscrire</a> à tous les modules""" % (ue_descr, ue_id, ue_id) }))
+               'title' : """<b>%s :</b>  <a href="#" onclick="chkbx_select('%s', true);">inscrire</a>|<a href="#" onclick="chkbx_select('%s', false);">dÃ©sinscrire</a> Ã  tous les modules""" % (ue_descr, ue_id, ue_id) }))
         descr.append(
             ('moduleimpls_%s' % ue_id,
              { 'input_type' : 'checkbox', 'title':'',
@@ -271,8 +271,8 @@ function chkbx_select(field_id, state) {
                             name='tf' )
     if  tf[0] == 0:
         H.append("""<p>Voici la liste des modules du semestre choisi.</p><p>
-    Les modules cochés sont ceux dans lesquels l'étudiant est inscrit. Vous pouvez l'inscrire ou le désincrire d'un ou plusieurs modules.</p>
-    <p>Attention: cette méthode ne devrait être utilisée que pour les modules <b>optionnels</b> (ou les activités culturelles et sportives) et pour désinscrire les étudiants dispensés (UE validées).</p>
+    Les modules cochÃ©s sont ceux dans lesquels l'Ã©tudiant est inscrit. Vous pouvez l'inscrire ou le dÃ©sincrire d'un ou plusieurs modules.</p>
+    <p>Attention: cette mÃ©thode ne devrait Ãªtre utilisÃ©e que pour les modules <b>optionnels</b> (ou les activitÃ©s culturelles et sportives) et pour dÃ©sinscrire les Ã©tudiants dispensÃ©s (UE validÃ©es).</p>
     """)
         return '\n'.join(H) + '\n' + tf[1] + F
     elif tf[0] == -1:
@@ -309,13 +309,13 @@ function chkbx_select(field_id, state) {
             modsdict[mod['moduleimpl_id']] = mod
         #
         if (not a_inscrire) and (not a_desinscrire):
-            H.append("""<h3>Aucune modification à effectuer</h3>
-            <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche étudiant</a></p>""" % (context.ScoURL(), etudid))
+            H.append("""<h3>Aucune modification Ã  effectuer</h3>
+            <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour Ã  la fiche Ã©tudiant</a></p>""" % (context.ScoURL(), etudid))
             return '\n'.join(H) + F
 
         H.append("<h3>Confirmer les modifications:</h3>")
         if a_desinscrire:
-            H.append("<p>%s va être <b>désinscrit%s</b> des modules:<ul><li>"
+            H.append("<p>%s va Ãªtre <b>dÃ©sinscrit%s</b> des modules:<ul><li>"
                      %(etud['nomprenom'],etud['ne']))
             H.append( '</li><li>'.join([
                 '%s (%s)' %
@@ -324,7 +324,7 @@ function chkbx_select(field_id, state) {
                 for x in a_desinscrire ]) + '</p>' )
             H.append( '</li></ul>' )
         if a_inscrire:
-            H.append("<p>%s va être <b>inscrit%s</b> aux modules:<ul><li>"
+            H.append("<p>%s va Ãªtre <b>inscrit%s</b> aux modules:<ul><li>"
                      %(etud['nomprenom'],etud['ne']))
             H.append( '</li><li>'.join([
                 '%s (%s)' %
@@ -386,18 +386,18 @@ def do_moduleimpl_incription_options(
 
     if REQUEST:
         H = [ context.sco_header(REQUEST),
-              """<h3>Modifications effectuées</h3>
+              """<h3>Modifications effectuÃ©es</h3>
               <p><a class="stdlink" href="%s/ficheEtud?etudid=%s">
-              Retour à la fiche étudiant</a></p>
+              Retour Ã  la fiche Ã©tudiant</a></p>
               """ % (context.ScoURL(), etudid),
               context.sco_footer(REQUEST)]
         return '\n'.join(H)
 
 
 def est_inscrit_ailleurs(context, etudid, formsemestre_id):
-    """Vrai si l'étudiant est inscrit dans un semestre en même
-    temps que celui indiqué (par formsemestre_id).
-    Retourne la liste des semestres concernés (ou liste vide).
+    """Vrai si l'Ã©tudiant est inscrit dans un semestre en mÃªme
+    temps que celui indiquÃ© (par formsemestre_id).
+    Retourne la liste des semestres concernÃ©s (ou liste vide).
     """
     etud = context.getEtudInfo(etudid=etudid,filled=1)[0]
     sem = context.get_formsemestre(formsemestre_id)
@@ -413,7 +413,7 @@ def est_inscrit_ailleurs(context, etudid, formsemestre_id):
     return r
 
 def list_inscrits_ailleurs(context, formsemestre_id):
-    """Liste des etudiants inscrits ailleurs en même temps que formsemestre_id.
+    """Liste des etudiants inscrits ailleurs en mÃªme temps que formsemestre_id.
     Pour chacun, donne la liste des semestres.
     { etudid : [ liste de sems ] }
     """
@@ -425,13 +425,13 @@ def list_inscrits_ailleurs(context, formsemestre_id):
     return d
 
 def formsemestre_inscrits_ailleurs(context,formsemestre_id, REQUEST=None):
-    """Page listant les étudiants inscrits dans un autre semestre
-    dont les dates recouvrent le semestre indiqué.
+    """Page listant les Ã©tudiants inscrits dans un autre semestre
+    dont les dates recouvrent le semestre indiquÃ©.
     """
     sem = context.get_formsemestre(formsemestre_id)
-    H = [ context.html_sem_header(REQUEST, 'Inscriptions multiples parmi les étudiants du semestre ', sem) ]
+    H = [ context.html_sem_header(REQUEST, 'Inscriptions multiples parmi les Ã©tudiants du semestre ', sem) ]
     insd = list_inscrits_ailleurs(context, formsemestre_id)
-    # liste ordonnée par nom
+    # liste ordonnÃ©e par nom
     etudlist = [ context.getEtudInfo(etudid=etudid,filled=1)[0] for etudid in insd.keys() if insd[etudid] ]
     etudlist.sort(key=lambda x:x['nom'])
     if etudlist:
@@ -444,8 +444,8 @@ def formsemestre_inscrits_ailleurs(context,formsemestre_id, REQUEST=None):
             H.append( ', '.join(l))
             H.append('</li>')
         H.append('</ul>')
-        H.append('<p>Total: %d étudiants concernés.</p>' % len(etudlist))
-        H.append("""<p class="help">Ces étudiants sont inscrits dans le semestre sélectionné et aussi dans d'autres semestres qui se déroulent en même temps ! <br/>Sauf exception, cette situation est anormale et doit être réglée en désinscrivant l'étudiant de l'un des semestres (via sa fiche individuelle).</p>""")
+        H.append('<p>Total: %d Ã©tudiants concernÃ©s.</p>' % len(etudlist))
+        H.append("""<p class="help">Ces Ã©tudiants sont inscrits dans le semestre sÃ©lectionnÃ© et aussi dans d'autres semestres qui se dÃ©roulent en mÃªme temps ! <br/>Sauf exception, cette situation est anormale et doit Ãªtre rÃ©glÃ©e en dÃ©sinscrivant l'Ã©tudiant de l'un des semestres (via sa fiche individuelle).</p>""")
     else:
-        H.append("""<p>Aucun étudiant en inscription multiple (c'est normal) !</p>""")
+        H.append("""<p>Aucun Ã©tudiant en inscription multiple (c'est normal) !</p>""")
     return '\n'.join(H) + context.sco_footer(REQUEST)

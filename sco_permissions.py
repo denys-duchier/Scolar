@@ -1,12 +1,12 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 """Definitions of Zope permissions used by ScoDoc"""
 
 # prefix all permissions by "Sco" to group them in Zope management tab
 
 # Attention: si on change ces valeurs, il faut verifier les codes
-# DTML qui utilisent directement les chaines de caractères...
+# DTML qui utilisent directement les chaines de caractÃ¨res...
 
 ScoChangeFormation = "Sco Change Formation"
 ScoEditAllNotes = "Sco Modifier toutes notes"
@@ -33,9 +33,9 @@ ScoUsersView  = 'Sco Users View'
 ScoChangePreferences = 'Sco Change Preferences'
 
 ScoSuperAdmin = 'Sco Super Admin'
-# ScoSuperAdmin est utilisé pour:
+# ScoSuperAdmin est utilisÃ© pour:
 #   - ZScoDoc: add/delete departments
-#   - tous rôles lors creation utilisateurs
+#   - tous rÃ´les lors creation utilisateurs
 #
 
 

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -72,8 +72,8 @@ def pwdFascistCheck( cleartxt ):
         return m
 
 # ---------------
-# cache global: chaque instance,  repérée par son URL, a un cache
-# qui est recréé à la demande
+# cache global: chaque instance,  repÃ©rÃ©e par son URL, a un cache
+# qui est recrÃ©Ã© Ã  la demande
 # On cache ici la liste des utilisateurs, pour une duree limitee
 # (une minute).
 
@@ -175,7 +175,7 @@ class ZScoUsers(ObjectManager,
         else:
             olds_checked = ''
         H.append("""<p><form name="f" action="%s">
-        <input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Tous les départements</input>
+        <input type="checkbox" name="all" value="1" onchange="document.f.submit();" %s>Tous les dÃ©partements</input>
         <input type="checkbox" name="with_olds" value="1" onchange="document.f.submit();" %s>Avec anciens utilisateurs</input>
         </form></p>""" % (REQUEST.URL0,checked, olds_checked))
 
@@ -243,7 +243,7 @@ class ZScoUsers(ObjectManager,
         self.get_userlist_cache().inval_cache() #>
 
     def _all_roles(self):
-        "ensemble de tous les roles attribués ou attribuables"
+        "ensemble de tous les roles attribuÃ©s ou attribuables"
         roles = Set(self.DeptUsersRoles())
         cnx = self.GetUsersDBConnexion()
         L = self._userEditor.list( cnx, {} )
@@ -291,13 +291,13 @@ class ZScoUsers(ObjectManager,
             else:
                 n = user_name
             prenom_abbrv = abbrev_prenom(p)
-            # nomprenom est le nom capitalisé suivi de l'initiale du prénom
+            # nomprenom est le nom capitalisÃ© suivi de l'initiale du prÃ©nom
             info['nomprenom'] = (n + ' ' + prenom_abbrv).strip()
-            # prenomnom est l'initiale du prénom suivie du nom
+            # prenomnom est l'initiale du prÃ©nom suivie du nom
             info['prenomnom'] = (prenom_abbrv + ' ' + n).strip()
             # nomcomplet est le prenom et le nom complets
             info['nomcomplet'] = scolars.format_prenom(p) + ' ' + scolars.format_nom(n)
-            # nomplogin est le nom en majuscules suivi du prénom et du login
+            # nomplogin est le nom en majuscules suivi du prÃ©nom et du login
             # e.g. Dupont Pierre (dupont)
             info['nomplogin'] = '%s %s (%s)' % (n.upper(), p, info['user_name'])
             # nomnoacc est le nom en minuscules sans accents
@@ -372,11 +372,11 @@ class ZScoUsers(ObjectManager,
             raise AccessDenied("vous n'avez pas la permission de changer ce mot de passe")
         # check password
         if password != password2:
-            H.append( """<p>Les deux mots de passes saisis sont différents !</p>
+            H.append( """<p>Les deux mots de passes saisis sont diffÃ©rents !</p>
             <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>""" % user_name )
         else:
             if not self._is_valid_passwd(password):
-                H.append( """<p><b>ce mot de passe n\'est pas assez compliqué !</b><br/>(oui, il faut un mot de passe vraiment compliqué !)</p>
+                H.append( """<p><b>ce mot de passe n\'est pas assez compliquÃ© !</b><br/>(oui, il faut un mot de passe vraiment compliquÃ© !)</p>
                 <p><a href="form_change_password?user_name=%s" class="stdlink">Recommencer</a></p>
                 """ % user_name )
             else:
@@ -391,15 +391,15 @@ class ZScoUsers(ObjectManager,
                 # 
                 # ici page simplifiee car on peut ne plus avoir
                 # le droit d'acceder aux feuilles de style
-                H.append("<h2>Changement effectué !</h2><p>Ne notez pas ce mot de passe, mais mémorisez le !</p><p>Rappel: il est <b>interdit</b> de communiquer son mot de passe à un tiers, même si c'est un collègue de confiance !</p><p><b>Si vous n'êtes pas administrateur, le système va vous redemander votre login et nouveau mot de passe au prochain accès.</b></p>")
-                return """<?xml version="1.0" encoding="iso-8859-15"?>
+                H.append("<h2>Changement effectuÃ© !</h2><p>Ne notez pas ce mot de passe, mais mÃ©morisez le !</p><p>Rappel: il est <b>interdit</b> de communiquer son mot de passe Ã  un tiers, mÃªme si c'est un collÃ¨gue de confiance !</p><p><b>Si vous n'Ãªtes pas administrateur, le systÃ¨me va vous redemander votre login et nouveau mot de passe au prochain accÃ¨s.</b></p>")
+                return """<?xml version="1.0" encoding="%s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
-<title>Mot de passe changé</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
-<body><h1>Mot de passe changé !</h1>
-""" + '\n'.join(H) + '<a href="%s"  class="stdlink">Continuer</a></body></html>' % self.ScoURL()
+<title>Mot de passe changÃ©</title>
+<meta http-equiv="Content-Type" content="text/html; charset=%s" />
+<body><h1>Mot de passe changÃ© !</h1>
+""" % (SCO_ENCODING, SCO_ENCODING) + '\n'.join(H) + '<a href="%s"  class="stdlink">Continuer</a></body></html>' % self.ScoURL()
         return self.sco_header(REQUEST) + '\n'.join(H) + F
     
     security.declareProtected(ScoView, 'form_change_password')
@@ -424,7 +424,7 @@ class ZScoUsers(ObjectManager,
         <input type="hidden" value="%(user_name)s" name="user_name">
         <input type="submit" value="Changer">
         </p>
-        <p>Vous pouvez aussi: <a class="stdlink" href="reset_password_form?user_name=%(user_name)s">renvoyer un mot de passe aléatoire temporaire par mail à l'utilisateur</a>
+        <p>Vous pouvez aussi: <a class="stdlink" href="reset_password_form?user_name=%(user_name)s">renvoyer un mot de passe alÃ©atoire temporaire par mail Ã  l'utilisateur</a>
 """ % {'user_name' : user_name, 'url' : REQUEST.URL0} )
         return '\n'.join(H) + F
 
@@ -445,35 +445,35 @@ class ZScoUsers(ObjectManager,
             H.append('%(status_txt)s' % info[0])
         H.append('</h2>')
         if not info:
-            H.append("<p>L' utilisateur '%s' n'est pas défini dans ce module.</p>" % user_name )
+            H.append("<p>L' utilisateur '%s' n'est pas dÃ©fini dans ce module.</p>" % user_name )
             if authuser.has_permission(ScoEditAllNotes,self):
                 H.append("<p>(il peut modifier toutes les notes)</p>")
             if authuser.has_permission(ScoEditAllEvals,self):
-                H.append("<p>(il peut modifier toutes les évaluations)</p>")                
+                H.append("<p>(il peut modifier toutes les Ã©valuations)</p>")                
             if authuser.has_permission(ScoImplement,self):
                 H.append("<p>(il peut creer des formations)</p>")
         else:
             H.append("""<p>
             <b>Login :</b> %(user_name)s<br/>
             <b>Nom :</b> %(nom)s<br/>
-            <b>Prénom :</b> %(prenom)s<br/>
+            <b>PrÃ©nom :</b> %(prenom)s<br/>
             <b>Mail :</b> %(email)s<br/>
             <b>Roles :</b> %(roles)s<br/>
             <b>Dept :</b> %(dept)s<br/>
-            <b>Dernière modif mot de passe:</b> %(date_modif_passwd)s<br/>
+            <b>DerniÃ¨re modif mot de passe:</b> %(date_modif_passwd)s<br/>
             <b>Date d'expiration:</b> %(date_expiration)s
             <p><ul>
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoUsersAdmin,self):
                 H.append("""
-             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier/déactiver ce compte</a></li>
-             <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(à n'utiliser qu'en cas d'erreur !)</em></li>
+             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier/dÃ©activer ce compte</a></li>
+             <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(Ã  n'utiliser qu'en cas d'erreur !)</em></li>
              """ % info[0])
                 
             H.append('</ul>')
             
             if str(authuser) == user_name:
-                H.append('<p><b>Se déconnecter: <a class="stdlink" href="acl_users/logout">logout</a></b></p>')
+                H.append('<p><b>Se dÃ©connecter: <a class="stdlink" href="acl_users/logout">logout</a></b></p>')
             # Liste des permissions
             H.append('<div class="permissions"><p>Permission de cet utilisateur:</p><ul>')
             permissions = self.ac_inherited_permissions(1)
@@ -521,13 +521,13 @@ class ZScoUsers(ObjectManager,
                  raise ValueError('missing argument: user_name')
              H.append("<h1>Modification d'un utilisateur</h1>")
          else:
-             H.append("<h1>Création d'un utilisateur</h1>")
+             H.append("<h1>CrÃ©ation d'un utilisateur</h1>")
 
          if authuser.has_permission(ScoSuperAdmin,self):
-             H.append("<p>Vous êtes super administrateur !</p>")
+             H.append("<p>Vous Ãªtes super administrateur !</p>")
          
          # Noms de roles pouvant etre attribues aux utilisateurs via ce dialogue
-         # si pas SuperAdmin, restreint aux rôles EnsX, SecrX, DeptX
+         # si pas SuperAdmin, restreint aux rÃ´les EnsX, SecrX, DeptX
          # 
          if authuser.has_permission(ScoSuperAdmin,self):
              log('create_user_form called by %s (super admin)' %(auth_name, ))
@@ -538,7 +538,7 @@ class ZScoUsers(ObjectManager,
          #         
          if not edit:
              initvalues = {}
-             submitlabel = 'Créer utilisateur'
+             submitlabel = 'CrÃ©er utilisateur'
              orig_roles = Set()
          else:
              submitlabel = 'Modifier utilisateur'
@@ -561,7 +561,7 @@ class ZScoUsers(ObjectManager,
              ('edit', {'input_type' : 'hidden', 'default' : edit }),
              ('nom', { 'title' : 'Nom',
                        'size' : 20, 'allow_null' : False }),
-             ('prenom', { 'title' : 'Prénom',
+             ('prenom', { 'title' : 'PrÃ©nom',
                        'size' : 20, 'allow_null' : False }),
              ('status', { 'title' : 'Statut',
                           'input_type' : 'radio',
@@ -572,7 +572,7 @@ class ZScoUsers(ObjectManager,
              descr += [
                  ('user_name', { 'title' : 'Pseudo (login)',
                                  'size' : 20, 'allow_null' : False,
-                                 'explanation' : 'nom utilisé pour la connexion. Doit être unique parmi tous les utilisateurs.'}),
+                                 'explanation' : 'nom utilisÃ© pour la connexion. Doit Ãªtre unique parmi tous les utilisateurs.'}),
                  ('passwd', { 'title' : 'Mot de passe',
                               'input_type' : 'password',
                               'size' : 14, 'allow_null' : False }),
@@ -587,33 +587,33 @@ class ZScoUsers(ObjectManager,
          descr += [
              ('email', { 'title' : 'e-mail',
                          'input_type' : 'text',
-                         'explanation' : "vivement recommandé: utilisé pour contacter l'utilisateur",
+                         'explanation' : "vivement recommandÃ©: utilisÃ© pour contacter l'utilisateur",
                          'size' : 20, 'allow_null' : True }),
              ]
          
          if not auth_dept:
              # si auth n'a pas de departement (admin global)
              # propose de choisir le dept du nouvel utilisateur
-             # sinon, il sera créé dans le même département que auth
+             # sinon, il sera crÃ©Ã© dans le mÃªme dÃ©partement que auth
              descr.append(('dept',
-                          { 'title' : 'Département',
+                          { 'title' : 'DÃ©partement',
                             'input_type' : 'text',
                             'size' : 12,
                             'allow_null' : True,
-                            'explanation' : """département d\'appartenance de l\'utilisateur (s'il s'agit d'un administrateur, laisser vide si vous voulez qu'il puisse créer des utilisateurs dans d'autres départements)"""
+                            'explanation' : """dÃ©partement d\'appartenance de l\'utilisateur (s'il s'agit d'un administrateur, laisser vide si vous voulez qu'il puisse crÃ©er des utilisateurs dans d'autres dÃ©partements)"""
                             }))
              can_choose_dept = True
          else:
              can_choose_dept = False
              descr.append(('d', {'input_type' : 'separator',
-                                'title' : 'L\'utilisateur  sera crée dans le département %s' % auth_dept}))
+                                'title' : 'L\'utilisateur  sera crÃ©e dans le dÃ©partement %s' % auth_dept}))
          
          descr += [
              ('date_expiration', { 'title' : "Date d'expiration",  # j/m/a
                          'input_type' : 'date',
                          'explanation' : 'j/m/a, laisser vide si pas de limite',
                          'size' : 9, 'allow_null' : True }),
-             ('roles', {'title' : 'Rôles', 'input_type' : 'checkbox', 'vertical' : True,
+             ('roles', {'title' : 'RÃ´les', 'input_type' : 'checkbox', 'vertical' : True,
                         'allowed_values' : displayed_roles, 
                         'disabled_items' : disabled_roles,
                         }),
@@ -654,7 +654,7 @@ class ZScoUsers(ObjectManager,
              if edit and not users: # safety net, le user_name ne devrait pas changer
                  err = "identifiant %s inexistant" % user_name
              if not edit and users:
-                 err = "identifiant %s déjà utilisé" % user_name
+                 err = "identifiant %s dÃ©jÃ  utilisÃ©" % user_name
              if err:
                  H.append(tf_error_message("""Erreur: %s""" % err))
                  return '\n'.join(H) + '\n' + tf[1] + F
@@ -665,7 +665,7 @@ class ZScoUsers(ObjectManager,
                      nom=vals['nom'], prenom=vals['prenom'],
                      email=vals['email'], roles=vals['roles'] )
                  if not ok:
-                     H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opération en cochant "<em>Ignorer les avertissements</em>" en bas de page)""" % msg))
+                     H.append(tf_error_message("""Attention: %s (vous pouvez forcer l'opÃ©ration en cochant "<em>Ignorer les avertissements</em>" en bas de page)""" % msg))
 
                      return '\n'.join(H) + '\n' + tf[1] + F
              
@@ -691,7 +691,7 @@ class ZScoUsers(ObjectManager,
                  #log('sco_users: previous_values=%s' % initvalues)                 
                  #log('sco_users: new_values=%s' % vals)
                  self._user_edit(user_name, vals)
-                 return REQUEST.RESPONSE.redirect( REQUEST.URL1 + "?head_message=Utilisateur %s modifié" % user_name )
+                 return REQUEST.RESPONSE.redirect( REQUEST.URL1 + "?head_message=Utilisateur %s modifiÃ©" % user_name )
              else: # creation utilisateur
                  vals['roles'] = ','.join(vals['roles'])
                  # check passwords
@@ -709,25 +709,25 @@ class ZScoUsers(ObjectManager,
 
     def _check_modif_user(self, edit, user_name='', nom='', prenom='',
                           email='', roles=[]):
-        """Vérifie que et utilisateur peut etre crée (edit=0) ou modifié (edit=1)
+        """VÃ©rifie que et utilisateur peut etre crÃ©e (edit=0) ou modifiÃ© (edit=1)
         Cherche homonymes.
         returns (ok, msg)
           - ok : si vrai, peut continuer avec ces parametres
-              (si ok est faux, l'utilisateur peut quand même forcer la creation)
+              (si ok est faux, l'utilisateur peut quand mÃªme forcer la creation)
           - msg: message warning a presenter l'utilisateur
         """
         if not user_name or not nom or not prenom:
             return False, 'champ requis vide'
         if not email:
-            return False, "vous devriez indiquer le mail de l'utilisateur créé !"
+            return False, "vous devriez indiquer le mail de l'utilisateur crÃ©Ã© !"
         # ce login existe ?
         users = self._user_list( args={'user_name':user_name} )  
         if edit and not users: # safety net, le user_name ne devrait pas changer
             return False, "identifiant %s inexistant" % user_name
         if not edit and users:
-            return False, "identifiant %s déjà utilisé" % user_name
+            return False, "identifiant %s dÃ©jÃ  utilisÃ©" % user_name
 
-        # Des noms/prénoms semblables existent ?            
+        # Des noms/prÃ©noms semblables existent ?            
         cnx = self.GetUsersDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         cursor.execute('select * from sco_users where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s;', { 'nom' : nom.lower().strip(), 'prenom' : prenom.lower().strip() } )
@@ -740,8 +740,8 @@ class ZScoUsers(ObjectManager,
             return False, "des utilisateurs proches existent: " + ', '.join([  '%s %s (pseudo=%s)' % (x['prenom'], x['nom'], x['user_name']) for x in res ])
         # Roles ?
         if not roles and not (edit and users[0]['status'] == 'old'):
-            # nb: si utilisateur desactivé (old), pas de role attribué
-            return False, "aucun rôle sélectionné, êtes vous sûr ?"
+            # nb: si utilisateur desactivÃ© (old), pas de role attribuÃ©
+            return False, "aucun rÃ´le sÃ©lectionnÃ©, Ãªtes vous sÃ»r ?"
         # ok
         return True, ''
 
@@ -750,36 +750,36 @@ class ZScoUsers(ObjectManager,
         """Import utilisateurs depuis feuille Excel"""
         head = self.sco_header(REQUEST, page_title='Import utilisateurs')
         H = [head,
-             """<h2>Téléchargement d'une nouvelle liste d'utilisateurs</h2>
-             <p style="color: red">A utiliser pour importer de <b>nouveaux</b> utilisateurs (enseignants ou secrétaires)
+             """<h2>TÃ©lÃ©chargement d'une nouvelle liste d'utilisateurs</h2>
+             <p style="color: red">A utiliser pour importer de <b>nouveaux</b> utilisateurs (enseignants ou secrÃ©taires)
              </p>
              <p>
-             L'opération se déroule en deux étapes. Dans un premier temps,
-             vous téléchargez une feuille Excel type. Vous devez remplir
-             cette feuille, une ligne décrivant chaque utilisateur. Ensuite,
+             L'opÃ©ration se dÃ©roule en deux Ã©tapes. Dans un premier temps,
+             vous tÃ©lÃ©chargez une feuille Excel type. Vous devez remplir
+             cette feuille, une ligne dÃ©crivant chaque utilisateur. Ensuite,
              vous indiquez le nom de votre fichier dans la case "Fichier Excel"
-             ci-dessous, et cliquez sur "Télécharger" pour envoyer au serveur
+             ci-dessous, et cliquez sur "TÃ©lÃ©charger" pour envoyer au serveur
              votre liste.
              </p>
              """]
         help = """<p class="help">
-        Lors de la creation des utilisateurs, les opérations suivantes sont effectuées:
+        Lors de la creation des utilisateurs, les opÃ©rations suivantes sont effectuÃ©es:
         </p>
         <ol class="help">
-        <li>vérification des données;</li>
-        <li>génération d'un mot de passe alétoire pour chaque utilisateur;</li>
-        <li>création de chaque utilisateur;</li>
-        <li>envoi à chaque utilisateur de son <b>mot de passe initial par mail</b>.</li>
+        <li>vÃ©rification des donnÃ©es;</li>
+        <li>gÃ©nÃ©ration d'un mot de passe alÃ©toire pour chaque utilisateur;</li>
+        <li>crÃ©ation de chaque utilisateur;</li>
+        <li>envoi Ã  chaque utilisateur de son <b>mot de passe initial par mail</b>.</li>
         </ol>"""
         H.append("""<ol><li><a class="stdlink" href="import_users_generate_excel_sample">
-        Obtenir la feuille excel à remplir</a></li><li>""")
+        Obtenir la feuille excel Ã  remplir</a></li><li>""")
         F = self.sco_footer(REQUEST)
         tf = TrivialFormulator(
             REQUEST.URL0, REQUEST.form, 
             (('xlsfile', {'title' : 'Fichier Excel:', 'input_type' : 'file',
                           'size' : 40 }),
              ('formsemestre_id', {'input_type' : 'hidden' }), 
-             ), submitlabel = 'Télécharger')
+             ), submitlabel = 'TÃ©lÃ©charger')
         if  tf[0] == 0:            
             return '\n'.join(H) + tf[1] + '</li></ol>' + help + F
         elif tf[0] == -1:
@@ -790,7 +790,7 @@ class ZScoUsers(ObjectManager,
                                                       REQUEST=REQUEST, context=self)
             H = [head]
             H.append('<p>Import excel: %s</p>'% diag)
-            H.append('<p>OK, import terminé !</p>')
+            H.append('<p>OK, import terminÃ© !</p>')
             H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % REQUEST.URL1)
             return '\n'.join(H) + help + F
     
@@ -833,9 +833,9 @@ class ZScoUsers(ObjectManager,
         if not dialog_confirmed:
             return self.confirmDialog(
                 """<h2>Confirmer la suppression de l\'utilisateur %s ?</h2>
-                <p class="warning">En général, il est déconseillé de supprimer un utilisateur, son
-                identité étant référencé dans les modules de formation. N'utilisez
-                cette fonction qu'en cas d'erreur (création de doublons, etc).
+                <p class="warning">En gÃ©nÃ©ral, il est dÃ©conseillÃ© de supprimer un utilisateur, son
+                identitÃ© Ã©tant rÃ©fÃ©rencÃ© dans les modules de formation. N'utilisez
+                cette fonction qu'en cas d'erreur (crÃ©ation de doublons, etc).
                 </p>
                 """% user_name,
                 dest_url="", REQUEST=REQUEST,
@@ -890,12 +890,12 @@ class ZScoUsers(ObjectManager,
             else:
                 u['date_expiration_iso'] = ''
         
-        title = 'Utilisateurs définis dans ScoDoc'
+        title = 'Utilisateurs dÃ©finis dans ScoDoc'
         tab = GenTable(
             rows = r,
             columns_ids = ('user_name', 'nom', 'prenom', 'email', 'dept', 'roles', 'date_expiration_iso', 'date_modif_passwd', 'passwd_temp', 'status_txt' ),
-            titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'Prénom', 'email' : 'Mail',
-                      'dept' : 'Dept.', 'roles' : 'Rôles',
+            titles = {'user_name':'Login', 'nom':'Nom', 'prenom':'PrÃ©nom', 'email' : 'Mail',
+                      'dept' : 'Dept.', 'roles' : 'RÃ´les',
                       'date_expiration_iso' : 'Expiration',
                       'date_modif_passwd' : 'Modif. mot de passe' , 'passwd_temp' : 'Temp.', 'status_txt' : 'Etat' },
             caption = title, page_title = 'title',
@@ -986,8 +986,8 @@ class ZScoUsers(ObjectManager,
         """Form to reset a password"""
         if not dialog_confirmed:
             return self.confirmDialog(
-                """<h2>Ré-initialiser le mot de passe de %s ?</h2>
-<p>Le mot de passe de %s va être choisi au hasard et lui être envoyé par mail.
+                """<h2>RÃ©-initialiser le mot de passe de %s ?</h2>
+<p>Le mot de passe de %s va Ãªtre choisi au hasard et lui Ãªtre envoyÃ© par mail.
 Il devra ensuite se connecter et le changer.
 </p>
                 """ % (user_name, user_name),
@@ -1014,7 +1014,7 @@ Il devra ensuite se connecter et le changer.
         # Check that user has valid mail
         info = self.user_info(user_name=user_name)
         if not is_valid_mail(info['email']):
-            raise Exception("pas de mail valide associé à l'utilisateur")
+            raise Exception("pas de mail valide associÃ© Ã  l'utilisateur")
         # Generate random password
         password = sco_import_users.generate_password()
         self.do_change_password(user_name, password)

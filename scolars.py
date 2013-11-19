@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -50,13 +50,13 @@ from email import Encoders
 abbrvmonthsnames = [ 'Jan ', 'Fev ', 'Mars', 'Avr ', 'Mai ', 'Juin', 'Jul ',
                      'Aout', 'Sept', 'Oct ', 'Nov ', 'Dec ' ]
 
-monthsnames = [ 'janvier', 'fÈvrier', 'mars', 'avril', 'mai', 'juin',
+monthsnames = [ 'janvier', 'f√©vrier', 'mars', 'avril', 'mai', 'juin',
                 'juillet', 'aout', 'septembre', 'octobre', 'novembre',
-                'dÈcembre' ]                
+                'd√©cembre' ]                
 
 def format_etud_ident(etud):
-    """Format identite de l'Ètudiant (modifiÈ en place)
-    nom, prÈnom et formes associees
+    """Format identite de l'√©tudiant (modifi√© en place)
+    nom, pr√©nom et formes associees
     """
     etud['nom'] = format_nom(etud['nom'])
     if 'nom_usuel' in etud:
@@ -65,7 +65,7 @@ def format_etud_ident(etud):
         etud['nom_usuel'] = ''
     etud['prenom'] = format_prenom(etud['prenom'])
     etud['sexe'] = format_sexe(etud['sexe'])
-    # Nom ‡ afficher:
+    # Nom √† afficher:
     if etud['nom_usuel']:
         etud['nom_disp'] = etud['nom_usuel']
         if etud['nom']:
@@ -96,7 +96,7 @@ def format_nomprenom(etud):
 
 def format_prenom(s):
     "formatte prenom etudiant pour affichage"
-    locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
+    # XXX locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
     if not s:
         return ''
     frags = s.split()
@@ -135,7 +135,7 @@ def normalize_sexe(sexe):
 def format_lycee(nomlycee):
     nomlycee = nomlycee.strip()
     s = nomlycee.lower()
-    if s[:5] == 'lycee' or s[:5] == 'lycÈe':
+    if s[:5] == 'lycee' or s[:5] == 'lyc√©e':
         return nomlycee[5:]
     else:
         return nomlycee
@@ -248,9 +248,9 @@ def _check_duplicate_code(cnx, args, code_name, context, REQUEST=None):
         if len(etuds) and (not etudid or (len(etuds) > 1 or etuds[0]['etudid'] != etudid)):
             listh = [] # liste des doubles
             for e in etuds:
-                listh.append( """Autre Ètudiant: <a href="ficheEtud?etudid=%(etudid)s">%(nom)s %(prenom)s</a>""" % e )
+                listh.append( """Autre √©tudiant: <a href="ficheEtud?etudid=%(etudid)s">%(nom)s %(prenom)s</a>""" % e )
             if etudid:
-                OK = 'retour ‡ la fiche Ètudiant'
+                OK = 'retour √† la fiche √©tudiant'
                 dest_url='ficheEtud'
                 parameters = { 'etudid' : etudid }
             else:
@@ -265,16 +265,16 @@ def _check_duplicate_code(cnx, args, code_name, context, REQUEST=None):
                     parameters = {}
             if context:
                 err_page = context.confirmDialog(
-                    message="""<h3>Code Ètudiant (%s) dupliquÈ !</h3>""" % code_name,
-                    helpmsg="""Le %s %s est dÈj‡ utilisÈ: un seul Ètudiant peut avoir ce code. VÈrifier votre valeur ou supprimer l'autre Ètudiant avec cette valeur.<p><ul><li>""" % (code_name, args[code_name])+ '</li><li>'.join(listh) + '</li></ul><p>',
+                    message="""<h3>Code √©tudiant (%s) dupliqu√© !</h3>""" % code_name,
+                    helpmsg="""Le %s %s est d√©j√† utilis√©: un seul √©tudiant peut avoir ce code. V√©rifier votre valeur ou supprimer l'autre √©tudiant avec cette valeur.<p><ul><li>""" % (code_name, args[code_name])+ '</li><li>'.join(listh) + '</li></ul><p>',
                     OK=OK, dest_url=dest_url, parameters=parameters,
                     REQUEST=REQUEST )
             else:
-                err_page = """<h3>Code Ètudiant (%s) dupliquÈ !</h3>""" % code_name
+                err_page = """<h3>Code √©tudiant (%s) dupliqu√© !</h3>""" % code_name
             raise ScoGenError(err_page)
 
 def identite_edit(cnx, args, context=None, REQUEST=None):
-    """Modifie l'identite d'un Ètudiant.
+    """Modifie l'identite d'un √©tudiant.
     Si context et notification et difference, envoie message notification.
     """
     _check_duplicate_code(cnx, args, 'code_nip', context, REQUEST)
@@ -309,7 +309,7 @@ def identite_create( cnx, args, context=None, REQUEST=None ):
         etudid = args['etudid']
         r = identite_list(cnx, {'etudid' : etudid})
         if r:
-            raise ScoValueError('Code identifiant (etudid) dÈj‡ utilisÈ ! (%s)' % etudid)
+            raise ScoValueError('Code identifiant (etudid) d√©j√† utilis√© ! (%s)' % etudid)
     return _identiteEditor.create(cnx, args)
 
 
@@ -321,10 +321,10 @@ def notify_etud_change(context, email_addr, etud, before, after, subject):
         'Code NIP:' + etud['code_nip'],
         'Genre: ' + etud['sexe'],
         'Nom: ' + etud['nom'],
-        'PrÈnom: ' + etud['prenom'],
+        'Pr√©nom: ' + etud['prenom'],
         'Etudid: ' + etud['etudid'],
         '\n',
-        'Changements effectuÈs:'
+        'Changements effectu√©s:'
         ]
     n = 0
     for key in after.keys():
@@ -364,7 +364,7 @@ adresse_delete = _adresseEditor.delete
 adresse_list   = _adresseEditor.list
 
 def adresse_edit(cnx, args, context=None):
-    """Modifie l'adresse d'un Ètudiant.
+    """Modifie l'adresse d'un √©tudiant.
     Si context et notification et difference, envoie message notification.
     """
     notify_to = None
@@ -549,7 +549,7 @@ appreciations_list   = _appreciationsEditor.list
 appreciations_edit   = _appreciationsEditor.edit
 
 
-# -------- Noms des LycÈes ‡ partir du code
+# -------- Noms des Lyc√©es √† partir du code
 def read_etablissements():
     filename = SCO_SRCDIR + '/' + CONFIG.ETABL_FILENAME
     log('reading %s' % filename)
@@ -576,17 +576,17 @@ def get_lycee_infos(codelycee):
     return E.get(codelycee, None)
 
 def format_lycee_from_code(codelycee):
-    "Description lycee ‡ partir du code"
+    "Description lycee √† partir du code"
     E = get_etablissements()
     if codelycee in E:
         e = E[codelycee]
         nomlycee = e['name']
         return '%s (%s)' % (nomlycee, e['commune'])
     else:
-        return '%s (Ètablissement inconnu)' % codelycee
+        return '%s (√©tablissement inconnu)' % codelycee
 
 def etud_add_lycee_infos(etud):
-    """Si codelycee est renseignÈ, ajout les champs au dict"""
+    """Si codelycee est renseign√©, ajout les champs au dict"""
     if etud['codelycee']:
         il = get_lycee_infos(etud['codelycee'])
         if il:

@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -70,7 +70,7 @@ def do_evaluation_selectetuds(context, REQUEST ):
         ('note_method', {'input_type' : 'radio', 'default' : 'form', 'allow_null' : False, 
                          'allowed_values' : [ 'xls', 'form' ],
                          'labels' : ['fichier tableur', 'formulaire web'],
-                         'title' : 'Méthode de saisie :' }) ]
+                         'title' : 'MÃ©thode de saisie :' }) ]
     if no_groups:
         submitbuttonattributes = []
         descr += [ 
@@ -78,16 +78,16 @@ def do_evaluation_selectetuds(context, REQUEST ):
     else:
         descr += [ 
             ('group_ids', { 'input_type' : 'checkbox',
-                          'title':'Choix groupe(s) d\'étudiants :',
+                          'title':'Choix groupe(s) d\'Ã©tudiants :',
                           'allowed_values' : grnams, 'labels' : grlabs,
                           'attributes' : ['onchange="gr_change(this);"']
                           }) ]
         if not(REQUEST.form.has_key('group_ids') and REQUEST.form['group_ids']):
             submitbuttonattributes = [ 'disabled="1"' ]
         else:
-            submitbuttonattributes = [] # groupe(s) preselectionnés
+            submitbuttonattributes = [] # groupe(s) preselectionnÃ©s
         H.append(
-          # JS pour desactiver le bouton OK si aucun groupe selectionné
+          # JS pour desactiver le bouton OK si aucun groupe selectionnÃ©
           """<script type="text/javascript">
           function gr_change(e) {
           var boxes = document.getElementsByName("group_ids:list");
@@ -112,7 +112,7 @@ def do_evaluation_selectetuds(context, REQUEST ):
                             submitlabel = 'OK', formid='gr' )
     if  tf[0] == 0:
         H.append( """<div class="saisienote_etape1">
-        <span class="titredivsaisienote">Etape 1 : choix du groupe et de la méthode</span>
+        <span class="titredivsaisienote">Etape 1 : choix du groupe et de la mÃ©thode</span>
         """)
         return '\n'.join(H) + '\n' + tf[1] + "\n</div>"
     elif tf[0] == -1:
@@ -155,15 +155,15 @@ def do_evaluation_formnotes(context, REQUEST ):
     try:
         evaluation_id = REQUEST.form['evaluation_id']
     except:        
-        raise ScoValueError("Formulaire incomplet ! Vous avez sans doute attendu trop longtemps, veuillez vous reconnecter. Si le problème persiste, contacter l'administrateur. Merci.")
+        raise ScoValueError("Formulaire incomplet ! Vous avez sans doute attendu trop longtemps, veuillez vous reconnecter. Si le problÃ¨me persiste, contacter l'administrateur. Merci.")
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     jour_iso = DateDMYtoISO(E['jour'])
     # Check access
     # (admin, respformation, and responsable_id)
     if not context.can_edit_notes( authuser, E['moduleimpl_id'] ):
         return '<h2>Modification des notes impossible pour %s</h2>' % authusername\
-               + """<p>(vérifiez que le semestre n'est pas verrouillé et que vous
-               avez l'autorisation d'effectuer cette opération)</p>
+               + """<p>(vÃ©rifiez que le semestre n'est pas verrouillÃ© et que vous
+               avez l'autorisation d'effectuer cette opÃ©ration)</p>
                <p><a href="moduleimpl_status?moduleimpl_id=%s">Continuer</a></p>
                """ % E['moduleimpl_id']
            #
@@ -171,10 +171,10 @@ def do_evaluation_formnotes(context, REQUEST ):
     note_method = REQUEST.form['note_method']
     okbefore = int(REQUEST.form.get('okbefore',0)) # etait ok a l'etape precedente
     changed = int(REQUEST.form.get('changed',0)) # a ete modifie depuis verif 
-    #reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presenté comme "pret a soumettre"
+    #reviewed = int(REQUEST.form.get('reviewed',0)) # a ete presentÃ© comme "pret a soumettre"
     initvalues = {}
     CSV = [] # une liste de liste de chaines: lignes du fichier CSV
-    CSV.append( ['Fichier de notes (à enregistrer au format CSV XXX)'])
+    CSV.append( ['Fichier de notes (Ã  enregistrer au format CSV XXX)'])
     # Construit liste des etudiants        
     group_ids = REQUEST.form.get('group_ids', [] )
     groups = sco_groups.listgroups(context, group_ids)
@@ -190,7 +190,7 @@ def do_evaluation_formnotes(context, REQUEST ):
     etudids = sco_groups.do_evaluation_listeetuds_groups(
         context, evaluation_id, groups, getallstudents=getallstudents, include_dems=True)
     if not etudids:
-        return '<p>Aucun groupe sélectionné !</p>'
+        return '<p>Aucun groupe sÃ©lectionnÃ© !</p>'
     # Notes existantes
     NotesDB = context._notes_getall(evaluation_id)
     #
@@ -201,28 +201,28 @@ def do_evaluation_formnotes(context, REQUEST ):
     if E['description']:
         evaltitre = '%s du %s' % (E['description'],E['jour'])
     else:
-        evaltitre = 'évaluation du %s' % E['jour']
+        evaltitre = 'Ã©valuation du %s' % E['jour']
     description = '%s: %s en %s (%s) resp. %s' % (sem['titreannee'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
 
     head = """
-    <h4>Codes spéciaux:</h4>
+    <h4>Codes spÃ©ciaux:</h4>
     <ul>
-    <li>ABS: absent (compte comme un zéro)</li>
-    <li>EXC: excusé (note neutralisée)</li>
+    <li>ABS: absent (compte comme un zÃ©ro)</li>
+    <li>EXC: excusÃ© (note neutralisÃ©e)</li>
     <li>SUPR: pour supprimer une note existante</li>
-    <li>ATT: note en attente (permet de publier une évaluation avec des notes manquantes)</li>
+    <li>ATT: note en attente (permet de publier une Ã©valuation avec des notes manquantes)</li>
     </ul>
     <h3>%s</h3>
     """ % description
         
     CSV.append ( [ description ] )
-    head += '<p>Etudiants des groupes %s (%d étudiants)</p>'%(gr_title,len(etudids))
+    head += '<p>Etudiants des groupes %s (%d Ã©tudiants)</p>'%(gr_title,len(etudids))
 
     head += '<em>%s</em> du %s (coef. %g, <span class="boldredmsg">notes sur %g</span>)' % (E['description'],E['jour'],E['coefficient'],E['note_max'])
     CSV.append ( [ '', 'date', 'coef.' ] )
     CSV.append ( [ '', '%s' % E['jour'], '%g' % E['coefficient'] ] )
     CSV.append( ['!%s' % evaluation_id ] )
-    CSV.append( [ '', 'Nom', 'Prénom', 'Etat', 'Groupe',
+    CSV.append( [ '', 'Nom', 'PrÃ©nom', 'Etat', 'Groupe',
                   'Note sur %d'% E['note_max'], 'Remarque' ] )    
 
     # JS code to monitor changes
@@ -231,7 +231,7 @@ def do_evaluation_formnotes(context, REQUEST ):
     var cpar = document.getElementById('changepar');
     // cpar.innerHTML += '*';
     document.getElementById('tf').changed.value="1";
-    document.getElementById('tf').tf_submit.value = "Vérifier ces notes";
+    document.getElementById('tf').tf_submit.value = "VÃ©rifier ces notes";
     return true;
     }        
     </script>
@@ -266,13 +266,13 @@ def do_evaluation_formnotes(context, REQUEST ):
         else:
             explanation = ''
             val = ''
-        # Information sur absence (ne tient pas compte de la demi-journée)
+        # Information sur absence (ne tient pas compte de la demi-journÃ©e)
         nbabs = context.Absences.CountAbs(etudid, jour_iso, jour_iso)
         nbabsjust = context.Absences.CountAbsJust(etudid, jour_iso, jour_iso)
         absinfo = ''
         if nbabs:
             if nbabsjust:
-                absinfo = 'absent justifié ce jour !  '
+                absinfo = 'absent justifiÃ© ce jour !  '
             else:
                 absinfo = 'absent ce jour !  '
         explanation = absinfo + explanation
@@ -285,7 +285,7 @@ def do_evaluation_formnotes(context, REQUEST ):
             label = '<span class="etuddem">' + label + '</span>'
             if not val:
                 val = 'DEM'
-                explanation = 'Démission'
+                explanation = 'DÃ©mission'
         initvalues['note_'+etudid] = val                
         descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label,
                                          'explanation':explanation,
@@ -309,7 +309,7 @@ def do_evaluation_formnotes(context, REQUEST ):
     if REQUEST.form.has_key('changed'): # reset
         del REQUEST.form['changed']
     tf =  TF( REQUEST.URL0, REQUEST.form, descr, initvalues=initvalues,
-              cancelbutton='Annuler', submitlabel='Vérifier ces notes',
+              cancelbutton='Annuler', submitlabel='VÃ©rifier ces notes',
               top_buttons = True
               )
     junk = tf.getform()  # check and init
@@ -331,7 +331,7 @@ def do_evaluation_formnotes(context, REQUEST ):
         existing_decisions = []
         if oknow:
             nbchanged, nbsuppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, do_it=False )
-            msg_chg = ' (%d modifiées, %d supprimées)' % (nbchanged, nbsuppress)
+            msg_chg = ' (%d modifiÃ©es, %d supprimÃ©es)' % (nbchanged, nbsuppress)
         else:
             msg_chg = ''
         # Affiche infos et messages d'erreur
@@ -341,15 +341,15 @@ def do_evaluation_formnotes(context, REQUEST ):
         if len(L):
              H.append( '<li class="tf-msg-notice">%d notes valides%s</li>' % (len(L), msg_chg) )
         if withoutnotes:
-            H.append( '<li class="tf-msg-notice">%d étudiants sans notes !</li>' % len(withoutnotes) )
+            H.append( '<li class="tf-msg-notice">%d Ã©tudiants sans notes !</li>' % len(withoutnotes) )
         if absents:
-            H.append( '<li class="tf-msg-notice">%d étudiants absents !</li>' % len(absents) )
+            H.append( '<li class="tf-msg-notice">%d Ã©tudiants absents !</li>' % len(absents) )
         if tosuppress:
-            H.append( '<li class="tf-msg-notice">%d notes à supprimer !</li>' % len(tosuppress) )
+            H.append( '<li class="tf-msg-notice">%d notes Ã  supprimer !</li>' % len(tosuppress) )
         if existing_decisions:
-            H.append( """<li class="tf-msg">Attention: il y a déjà des <b>décisions de jury</b> enregistrées pour %d étudiants. Après changement des notes, vérifiez la situation !</li>""" % len(existing_decisions))
+            H.append( """<li class="tf-msg">Attention: il y a dÃ©jÃ  des <b>dÃ©cisions de jury</b> enregistrÃ©es pour %d Ã©tudiants. AprÃ¨s changement des notes, vÃ©rifiez la situation !</li>""" % len(existing_decisions))
         H.append( '</ul>' )
-        H.append("""<p class="redboldtext">Les notes ne sont pas enregistrées; n'oubliez pas d'appuyer sur le bouton en bas du formulaire.</p>""")
+        H.append("""<p class="redboldtext">Les notes ne sont pas enregistrÃ©es; n'oubliez pas d'appuyer sur le bouton en bas du formulaire.</p>""")
         
         tf.formdescription.append(
             ('okbefore', { 'input_type':'hidden', 'default' : oknow } ) )
@@ -372,33 +372,33 @@ def do_evaluation_formnotes(context, REQUEST ):
             if etat['nb_att']:
                 msg += ' (%d notes en attente)' % etat['nb_att']
             if etat['evalcomplete'] or etat['evalattente']:
-                msg += """</p><p class="greenboldtext">Cette évaluation est prise en compte sur les bulletins et dans les calculs de moyennes"""
+                msg += """</p><p class="greenboldtext">Cette Ã©valuation est prise en compte sur les bulletins et dans les calculs de moyennes"""
                 if etat['nb_att']:
                     msg += ' (mais il y a des notes en attente !).'
                 else:
                     msg += '.'
             else:
-                msg += """</p><p class="fontred">Cette évaluation n'est pas encore prise en compte sur les bulletins et dans les calculs de moyennes car il manque des notes."""
+                msg += """</p><p class="fontred">Cette Ã©valuation n'est pas encore prise en compte sur les bulletins et dans les calculs de moyennes car il manque des notes."""
             if existing_decisions:
-                existing_msg = """<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification de notes.</p>"""
+                existing_msg = """<p class="warning">Important: il y avait dÃ©jÃ  des dÃ©cisions de jury enregistrÃ©es, qui sont potentiellement Ã  revoir suite Ã  cette modification de notes.</p>"""
             else:
                 existing_msg = ''
             #
             return """<h3>%s</h3>
-            <p>%s notes modifiées (%d supprimées)<br/></p>
+            <p>%s notes modifiÃ©es (%d supprimÃ©es)<br/></p>
             <p>%s</p>
             %s
             <p>
             <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">Aller au tableau de bord module</a>
             &nbsp;&nbsp;
-            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%s">Charger d'autres notes dans cette évaluation</a>
+            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%s">Charger d'autres notes dans cette Ã©valuation</a>
             </p>
             """ % (description,nbchanged,nbsuppress,msg,existing_msg,E['moduleimpl_id'],evaluation_id)
         else:
             if oknow:
                 tf.submitlabel = 'Enregistrer ces notes'
             else:        
-                tf.submitlabel = 'Vérifier ces notes'
+                tf.submitlabel = 'VÃ©rifier ces notes'
             return head + '\n'.join(H) + tf.getform()
 
 
@@ -436,7 +436,7 @@ def _XXX_do_evaluation_upload_csv(context, REQUEST): # XXX UNUSED
         raise NoteProcessError('Format de fichier invalide ! (pas de ligne evaluation_id)')
     eval_id = lines[i].split(CSV_FIELDSEP)[0].strip()[1:]
     if eval_id != evaluation_id:
-        raise NoteProcessError("Fichier invalide: le code d\'évaluation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
+        raise NoteProcessError("Fichier invalide: le code d\'Ã©valuation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
     # 2- get notes -> list (etudid, value)
     notes = []
     ni = i+1
@@ -457,7 +457,7 @@ def _XXX_do_evaluation_upload_csv(context, REQUEST): # XXX UNUSED
         return '<p class="boldredmsg">Le fichier contient %d notes invalides</p>' % len(invalids)
     else:
         nb_changed, nb_suppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, comment )
-        return '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
+        return '<p>%d notes changÃ©es (%d sans notes, %d absents, %d note supprimÃ©es)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress) + '<p>' + str(notes)
 
 
 def do_evaluation_upload_xls(context, REQUEST):
@@ -497,10 +497,10 @@ def do_evaluation_upload_xls(context, REQUEST):
 
         eval_id = lines[i][0].strip()[1:]
         if eval_id != evaluation_id:
-            diag.append("Erreur: fichier invalide: le code d\'évaluation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
+            diag.append("Erreur: fichier invalide: le code d\'Ã©valuation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
             raise FormatError()
         # --- get notes -> list (etudid, value)
-        # ignore toutes les lignes ne commençant pas par !
+        # ignore toutes les lignes ne commenÃ§ant pas par !
         notes = []
         ni = i+1
         try:
@@ -541,9 +541,9 @@ def do_evaluation_upload_xls(context, REQUEST):
                          text='Chargement notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                          url = mod['url'])
 
-            msg = '<p>%d notes changées (%d sans notes, %d absents, %d note supprimées)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress)
+            msg = '<p>%d notes changÃ©es (%d sans notes, %d absents, %d note supprimÃ©es)</p>'%(nb_changed,len(withoutnotes),len(absents),nb_suppress)
             if existing_decisions:
-                msg += '''<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification !</p>'''
+                msg += '''<p class="warning">Important: il y avait dÃ©jÃ  des dÃ©cisions de jury enregistrÃ©es, qui sont potentiellement Ã  revoir suite Ã  cette modification !</p>'''
             # msg += '<p>' + str(notes) # debug
             return 1, msg
 
@@ -552,7 +552,7 @@ def do_evaluation_upload_xls(context, REQUEST):
             msg = '<ul class="tf-msg"><li class="tf_msg">' + '</li><li class="tf_msg">'.join(diag) + '</li></ul>'
         else:
             msg = '<ul class="tf-msg"><li class="tf_msg">Une erreur est survenue</li></ul>'
-        return 0, msg + '<p>(pas de notes modifiées)</p>'
+        return 0, msg + '<p>(pas de notes modifiÃ©es)</p>'
 
 
 def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialog_confirmed=False):
@@ -589,10 +589,10 @@ def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialo
     # Confirm action
     if not dialog_confirmed:
         return context.confirmDialog(
-            """<h2>Mettre toutes les notes manquantes de l'évaluation
-            à la valeur %s ? (<em>%d étudiants concernés</em>)</h2>
-            <p>(seuls les étudiants pour lesquels aucune note (ni valeur, ni ABS, ni EXC)
-            n'a été rentrée seront affectés)</p>
+            """<h2>Mettre toutes les notes manquantes de l'Ã©valuation
+            Ã  la valeur %s ? (<em>%d Ã©tudiants concernÃ©s</em>)</h2>
+            <p>(seuls les Ã©tudiants pour lesquels aucune note (ni valeur, ni ABS, ni EXC)
+            n'a Ã©tÃ© rentrÃ©e seront affectÃ©s)</p>
             """ % (value, len(L)),
             dest_url="", REQUEST=REQUEST,
             cancel_url="notes_eval_selectetuds?evaluation_id=%s" % evaluation_id,
@@ -610,7 +610,7 @@ def do_evaluation_set_missing(context, evaluation_id, value, REQUEST=None, dialo
                  text='Initialisation notes dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url = mod['url'])
     return context.sco_header(REQUEST)\
-               + """<h2>%d notes changées</h2>
+               + """<h2>%d notes changÃ©es</h2>
                <p><a href="moduleimpl_status?moduleimpl_id=%s">
                Revenir au tableau de bord du module</a>
                </p>
@@ -623,7 +623,7 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
     authuser = REQUEST.AUTHENTICATED_USER
     E = context.do_evaluation_list( {'evaluation_id' : evaluation_id})[0]
     if not context.can_edit_notes( authuser, E['moduleimpl_id'], allow_ens=False ):
-        # NB: les chargés de TD n'ont pas le droit.
+        # NB: les chargÃ©s de TD n'ont pas le droit.
         raise AccessDenied('Modification des notes impossible pour %s'%authuser)
 
     # recupere les etuds ayant une note
@@ -635,7 +635,7 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
             context, authuser, evaluation_id, notes, do_it=False)
         msg = '<p>Confirmer la suppression des %d notes ?</p>' % nb_suppress
         if existing_decisions:
-            msg += '''<p class="warning">Important: il y a déjà des décisions de jury enregistrées, qui seront potentiellement à revoir suite à cette modification !</p>'''
+            msg += '''<p class="warning">Important: il y a dÃ©jÃ  des dÃ©cisions de jury enregistrÃ©es, qui seront potentiellement Ã  revoir suite Ã  cette modification !</p>'''
         return context.confirmDialog(
             msg, dest_url="", REQUEST=REQUEST, OK='Supprimer les notes',
             cancel_url="moduleimpl_status?moduleimpl_id=%s"%E['moduleimpl_id'],
@@ -645,9 +645,9 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
     nb_changed, nb_suppress, existing_decisions = _notes_add(
         context, authuser, evaluation_id, notes, comment='suppress all' )
     assert nb_changed == nb_suppress       
-    H = [ '<p>%s notes supprimées</p>' % nb_suppress ]
+    H = [ '<p>%s notes supprimÃ©es</p>' % nb_suppress ]
     if existing_decisions:
-        H.append( '''<p class="warning">Important: il y avait déjà des décisions de jury enregistrées, qui sont potentiellement à revoir suite à cette modification !</p>''')
+        H.append( '''<p class="warning">Important: il y avait dÃ©jÃ  des dÃ©cisions de jury enregistrÃ©es, qui sont potentiellement Ã  revoir suite Ã  cette modification !</p>''')
     H += [ '<p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">continuer</a>'
            % E['moduleimpl_id'] ]
     # news
@@ -657,7 +657,7 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
     cnx = context.GetDBConnexion()
     mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
     sco_news.add(context, REQUEST, typ=NEWS_NOTE, object=M['moduleimpl_id'],
-                 text='Suppression des notes d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                 text='Suppression des notes d\'une Ã©valuation dans <a href="%(url)s">%(titre)s</a>' % mod,
                  url= mod['url'])
 
     return context.sco_header(REQUEST) + '\n'.join(H) + context.sco_footer(REQUEST)
@@ -673,7 +673,7 @@ def _check_notes( notes, evaluation ):
     invalids = [] # etudid avec notes invalides
     withoutnotes = [] # etudid sans notes (champs vides)
     absents = [] # etudid absents
-    tosuppress = [] # etudids avec ancienne note à supprimer
+    tosuppress = [] # etudids avec ancienne note Ã  supprimer
     existingjury = [] # etudids avec decision de jury (sem et/ou UE) a revoir eventuellement
     for (etudid, note) in notes:
         note = str(note)        
@@ -827,13 +827,13 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
         ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
         ('notefile',  { 'input_type' : 'file', 'title' : 'Fichier de note (.xls)', 'size' : 44 }),
         ('comment', { 'size' : 44, 'title' : 'Commentaire',
-                      'explanation':'(note: la colonne remarque du fichier excel est ignorée)' }),
+                      'explanation':'(note: la colonne remarque du fichier excel est ignorÃ©e)' }),
         ),
                             formid=formid,
-                            submitlabel = 'Télécharger')
+                            submitlabel = 'TÃ©lÃ©charger')
     if nf[0] == 0:
-        H.append('''<p>Le fichier doit être un fichier tableur obtenu via
-        le formulaire ci-dessus, puis complété et enregistré au format Excel.
+        H.append('''<p>Le fichier doit Ãªtre un fichier tableur obtenu via
+        le formulaire ci-dessus, puis complÃ©tÃ© et enregistrÃ© au format Excel.
         </p>''')
         H.append(nf[1])
     elif nf[0] == -1:
@@ -842,32 +842,32 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
         updiag = do_evaluation_upload_xls(context, REQUEST)
         if updiag[0]:
             H.append(updiag[1])
-            H.append('''<p>Notes chargées.&nbsp;&nbsp;&nbsp;
+            H.append('''<p>Notes chargÃ©es.&nbsp;&nbsp;&nbsp;
             <a class="stdlink" href="moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">
             Revenir au tableau de bord du module</a>
             &nbsp;&nbsp;&nbsp;
-            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%(evaluation_id)s">Charger d'autres notes dans cette évaluation</a>
+            <a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%(evaluation_id)s">Charger d'autres notes dans cette Ã©valuation</a>
             </p>''' % theeval)
         else:
-            H.append('''<p class="redboldtext">Notes non chargées !</p>'''            
+            H.append('''<p class="redboldtext">Notes non chargÃ©es !</p>'''            
                      + updiag[1] )
             H.append('''
             <p><a class="stdlink" href="notes_eval_selectetuds?evaluation_id=%(evaluation_id)s">
             Reprendre</a>
             </p>''' % theeval)
     #
-    H.append('''</div><h3>Autres opérations</h3><ul>''')
+    H.append('''</div><h3>Autres opÃ©rations</h3><ul>''')
     if context.can_edit_notes(REQUEST.AUTHENTICATED_USER,theeval['moduleimpl_id'],allow_ens=False):
         H.append('''
         <li>
         <form action="do_evaluation_set_missing" method="GET">
-        Mettre toutes les notes manquantes à <input type="text" size="5" name="value"/>
+        Mettre toutes les notes manquantes Ã  <input type="text" size="5" name="value"/>
         <input type="submit" value="OK"/> 
         <input type="hidden" name="evaluation_id" value="%s"/> 
-        <em>ABS indique "absent" (zéro), EXC "excusé" (neutralisées), ATT "attente"</em>
+        <em>ABS indique "absent" (zÃ©ro), EXC "excusÃ©" (neutralisÃ©es), ATT "attente"</em>
         </form>
         </li>        
-        <li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=%s">Effacer toutes les notes de cette évaluation</a> (ceci permet ensuite de supprimer l'évaluation si besoin)
+        <li><a class="stdlink" href="evaluation_suppress_alln?evaluation_id=%s">Effacer toutes les notes de cette Ã©valuation</a> (ceci permet ensuite de supprimer l'Ã©valuation si besoin)
         </li>''' % (evaluation_id, evaluation_id)) #'
     H.append('''<li><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s">Revenir au module</a>
     </li>
@@ -875,19 +875,19 @@ def notes_eval_selectetuds(context, evaluation_id, REQUEST=None):
     
     H.append("""<h3>Explications</h3>
 <ol>
-<li>Cadre bleu (étape 1): 
-<ol><li>choisir la méthode de saisie (formulaire web ou feuille Excel);
+<li>Cadre bleu (Ã©tape 1): 
+<ol><li>choisir la mÃ©thode de saisie (formulaire web ou feuille Excel);
     <li>choisir le ou les groupes;</li>
 </ol>
 </li>
-<li>Cadre vert (étape 2): à n'utiliser que si l'on est passé par une feuille Excel. Indiquer le fichier Excel <em>téléchargé à l'étape 1</em> et dans lequel on a saisi des notes. Remarques:
+<li>Cadre vert (Ã©tape 2): Ã  n'utiliser que si l'on est passÃ© par une feuille Excel. Indiquer le fichier Excel <em>tÃ©lÃ©chargÃ© Ã  l'Ã©tape 1</em> et dans lequel on a saisi des notes. Remarques:
 <ul>
-<li>le fichier Excel ne doit pas forcément être complet: on peut ne saisir que quelques notes et répéter l'opération (en téléchargeant un nouveau fichier) plus tard;</li>
-<li>seules les valeurs des notes modifiées sont prises en compte;</li>
+<li>le fichier Excel ne doit pas forcÃ©ment Ãªtre complet: on peut ne saisir que quelques notes et rÃ©pÃ©ter l'opÃ©ration (en tÃ©lÃ©chargeant un nouveau fichier) plus tard;</li>
+<li>seules les valeurs des notes modifiÃ©es sont prises en compte;</li>
 <li>seules les notes sont extraites du fichier Excel;</li>
-<li>on peut optionnellement ajouter un commentaire (type "copies corrigées par Dupont", ou "Modif. suite à contestation") dans la case "Commentaire".
+<li>on peut optionnellement ajouter un commentaire (type "copies corrigÃ©es par Dupont", ou "Modif. suite Ã  contestation") dans la case "Commentaire".
 </li>
-<li>le fichier Excel <em>doit impérativement être celui chargé à l'étape 1 pour cette évaluation</em>. Il n'est pas possible d'utiliser une liste d'appel ou autre document Excel téléchargé d'une autre page.</li>
+<li>le fichier Excel <em>doit impÃ©rativement Ãªtre celui chargÃ© Ã  l'Ã©tape 1 pour cette Ã©valuation</em>. Il n'est pas possible d'utiliser une liste d'appel ou autre document Excel tÃ©lÃ©chargÃ© d'une autre page.</li>
 </ul>
 </li>
 </ol>

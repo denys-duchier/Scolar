@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -25,7 +25,7 @@
 #
 ##############################################################################
 
-""" Importation des etudiants à partir de fichiers CSV
+""" Importation des etudiants Ã  partir de fichiers CSV
 """
 
 import os, sys, time, pdb
@@ -43,7 +43,7 @@ from sco_formsemestre_inscriptions import do_formsemestre_inscription_with_modul
 # format description (relative to Product directory))
 FORMAT_FILE = "misc/format_import_etudiants.txt"
 
-# Champs modifiables via "Import données admission"
+# Champs modifiables via "Import donnÃ©es admission"
 ADMISSION_MODIFIABLE_FIELDS = (
     'code_nip', 'code_ine',
     'date_naissance', 'lieu_naissance',
@@ -95,7 +95,7 @@ def sco_import_generate_excel_sample( format,
         if (not with_codesemestre) and name == 'codesemestre':
             continue # pas de colonne codesemestre
         if only_tables is not None and l[2].lower() not in only_tables:
-            continue # table non demandée
+            continue # table non demandÃ©e
         if name in exclude_cols:
             continue # colonne exclue
         if int(l[3]):
@@ -111,7 +111,7 @@ def sco_import_generate_excel_sample( format,
         log('sco_import_generate_excel_sample: group_id=%s  %d members' % (group_id, len(members)))
         titles = [ 'etudid' ] + titles
         titlesStyles = [ style ] + titlesStyles
-        # rempli table avec données actuelles 
+        # rempli table avec donnÃ©es actuelles 
         lines = []
         for i in members:
             etud = context.getEtudInfo(etudid=i['etudid'], filled=True)[0]
@@ -146,7 +146,7 @@ def students_import_excel(context, csvfile, REQUEST=None, formsemestre_id=None,
         for d in diag:
             H.append('<li>%s</li>' % d )
         H.append('</ul>')
-        H.append('<p>Import terminé !</p>')
+        H.append('<p>Import terminÃ© !</p>')
         H.append('<p><a class="stdlink" href="%s">Continuer</a></p>' % dest)
         return '\n'.join(H) + context.sco_footer(REQUEST)
 
@@ -156,7 +156,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                                require_ine=False,
                                exclude_cols=[]):
     """Importe etudiants depuis fichier Excel
-    et les inscrit dans le semestre indiqué (et à TOUS ses modules)
+    et les inscrit dans le semestre indiquÃ© (et Ã  TOUS ses modules)
     """
     log('scolars_import_excel_file: formsemestre_id=%s'%formsemestre_id)
     cnx = context.GetDBConnexion(autocommit=False)
@@ -197,7 +197,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                 del missing[f]
             else:
                 unknown.append(f)
-        raise ScoValueError('Nombre de colonnes incorrect (devrait être %d, et non %d) <br/> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
+        raise ScoValueError('Nombre de colonnes incorrect (devrait Ãªtre %d, et non %d) <br/> (colonnes manquantes: %s, colonnes invalides: %s)' %(len(titles),len(fs),missing.keys(),unknown ) )
     titleslist = []
     for t in fs:
         if not titles.has_key(t):
@@ -232,7 +232,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                     val = None
                 else:
                     if typ == 'real':
-                        val = val.replace(',','.') # si virgule a la française
+                        val = val.replace(',','.') # si virgule a la franÃ§aise
                         try:
                             val = float(val)
                         except:
@@ -242,7 +242,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                     elif typ == 'integer':
                         try:
                             # on doit accepter des valeurs comme "2006.0"
-                            val = val.replace(',','.') # si virgule a la française
+                            val = val.replace(',','.') # si virgule a la franÃ§aise
                             val = float(val)
                             if val % 1.0 > 1e-4:
                                 raise ValueError()
@@ -276,11 +276,11 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                 
             if not skip:
                 if values['code_ine'] and not is_new_ine:
-                    raise ScoValueError("Code INE dupliqué (%s)" % values['code_ine'])
+                    raise ScoValueError("Code INE dupliquÃ© (%s)" % values['code_ine'])
                 # Check nom/prenom
                 ok, NbHomonyms = scolars.check_nom_prenom(cnx, nom=values['nom'], prenom=values['prenom'])
                 if not ok:
-                    raise ScoValueError("nom ou prénom invalide sur la ligne %d" % (linenum))
+                    raise ScoValueError("nom ou prÃ©nom invalide sur la ligne %d" % (linenum))
                 if NbHomonyms:
                     NbImportedHomonyms += 1
                 # Insert in DB tables
@@ -293,7 +293,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
         log('scolars_import_excel_file: detected %d homonyms' % NbImportedHomonyms)
         if check_homonyms and NbImportedHomonyms > len(created_etudids) / 10:
             log('scolars_import_excel_file: too many homonyms')
-            raise ScoValueError("Il y a trop d'homonymes (%d étudiants)" % NbImportedHomonyms)
+            raise ScoValueError("Il y a trop d'homonymes (%d Ã©tudiants)" % NbImportedHomonyms)
     except:
         cnx.rollback()
         log('scolars_import_excel_file: aborting transaction !')
@@ -313,10 +313,10 @@ def scolars_import_excel_file( datafile, context, REQUEST,
         log('scolars_import_excel_file: re-raising exception')
         raise
     
-    diag.append('Import et inscription de %s étudiants' % len(created_etudids))
+    diag.append('Import et inscription de %s Ã©tudiants' % len(created_etudids))
 
     sco_news.add(context, REQUEST, typ=NEWS_INSCR,
-                 text='Inscription de %d étudiants' # peuvent avoir ete inscrits a des semestres differents
+                 text='Inscription de %d Ã©tudiants' # peuvent avoir ete inscrits a des semestres differents
                  % len(created_etudids))
     
     log('scolars_import_excel_file: completing transaction')
@@ -330,8 +330,8 @@ def scolars_import_excel_file( datafile, context, REQUEST,
 def _import_one_student(context, cnx, REQUEST, formsemestre_id, values, 
                         GroupIdInferers, annee_courante, created_etudids, linenum):
     """
-    Import d'un étudiant et inscription dans le semestre.
-    Return: id du semestre dans lequel il a été inscrit.
+    Import d'un Ã©tudiant et inscription dans le semestre.
+    Return: id du semestre dans lequel il a Ã©tÃ© inscrit.
     """
     log( 'scolars_import_excel_file: formsemestre_id=%s values=%s' % (formsemestre_id, str(values)) ) 
     # Identite
@@ -380,7 +380,7 @@ def _is_new_ine(cnx, code_ine):
 
 def scolars_import_admission( datafile, context, REQUEST,
                               formsemestre_id=None):
-    """Importe données admission depuis fichier Excel
+    """Importe donnÃ©es admission depuis fichier Excel
     """
     log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
     cnx = context.GetDBConnexion()

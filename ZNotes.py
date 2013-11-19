@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -88,8 +88,8 @@ from notes_table import *
 import VERSION
 
 #
-# Cache global: chaque instance, repérée par sa connexion db, a un cache
-# qui est recréé à la demande
+# Cache global: chaque instance, repÃ©rÃ©e par sa connexion db, a un cache
+# qui est recrÃ©Ã© Ã  la demande
 #
 CACHE_formsemestre_inscription = {}
 CACHE_evaluations = {}
@@ -291,7 +291,7 @@ class ZNotes(ObjectManager,
     def index_html(self, REQUEST=None):
         "Page accueil formations"
         sco_groups.checkLastIcon(self, REQUEST)
-        lockicon = self.icons.lock32_img.tag(title="Comporte des semestres verrouillés", border='0')
+        lockicon = self.icons.lock32_img.tag(title="Comporte des semestres verrouillÃ©s", border='0')
         suppricon= self.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer')
         editicon = self.icons.edit_img.tag(border='0', alt='modifier', title='Modifier titres et code')
 
@@ -311,14 +311,14 @@ class ZNotes(ObjectManager,
             if locked:
                 H.append(lockicon)
             
-            H.append("""<a class="stdlink" href="ue_list?formation_id=%(formation_id)s">éditer le programme</a>""" % F )
-            H.append(""" <a class="stdlink" href="ue_list?formation_id=%(formation_id)s#sems">créer semestre</a>""" % F )
+            H.append("""<a class="stdlink" href="ue_list?formation_id=%(formation_id)s">Ã©diter le programme</a>""" % F )
+            H.append(""" <a class="stdlink" href="ue_list?formation_id=%(formation_id)s#sems">crÃ©er semestre</a>""" % F )
             H.append('</li>')
         H.append('</ul>')
         if editable:
-            H.append("""<p><a class="stdlink" href="formation_create">Créer une formation</a></p>
+            H.append("""<p><a class="stdlink" href="formation_create">CrÃ©er une formation</a></p>
  	 <p><a class="stdlink" href="formation_import_xml_form">Importer une formation (xml)</a></p>
-         <p class="help">Une "formation" définie un programme pédagogique structuré en UE, matières et modules. Chaque semestre (session) fait référence à une formation. La modification d'une formation affecte tous les semestres qui s'y réfèrent.</p>
+         <p class="help">Une "formation" dÃ©finie un programme pÃ©dagogique structurÃ© en UE, matiÃ¨res et modules. Chaque semestre (session) fait rÃ©fÃ©rence Ã  une formation. La modification d'une formation affecte tous les semestres qui s'y rÃ©fÃ¨rent.</p>
             """)
 
         H.append(self.sco_footer(REQUEST))
@@ -358,7 +358,7 @@ class ZNotes(ObjectManager,
         r = self._formationEditor.create(cnx, args)
         
         sco_news.add(self, REQUEST, typ=NEWS_FORM,
-                     text='Création de la formation %(titre)s (%(acronyme)s)' % args )
+                     text='CrÃ©ation de la formation %(titre)s (%(acronyme)s)' % args )
         return r
     
     security.declareProtected(ScoChangeFormation, 'do_formation_delete')
@@ -399,7 +399,7 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formation_export')
     def formation_export(self, formation_id, export_ids=False, format=None, REQUEST=None):
-        "Export de la formation au format indiqué (xml ou json)"
+        "Export de la formation au format indiquÃ© (xml ou json)"
         return sco_formations.formation_export(self, formation_id, export_ids=export_ids,
                                                format=format, REQUEST=REQUEST)
     
@@ -416,8 +416,8 @@ class ZNotes(ObjectManager,
         H = [ self.sco_header(page_title='Import d\'une formation',
                               REQUEST=REQUEST),
               """<h2>Import d'une formation</h2>
-        <p>Création d'une formation (avec UE, matières, modules)
-        à partir un fichier XML (réservé aux utilisateurs avertis)</p>
+        <p>CrÃ©ation d'une formation (avec UE, matiÃ¨res, modules)
+        Ã  partir un fichier XML (rÃ©servÃ© aux utilisateurs avertis)</p>
         """]
         footer = self.sco_footer(REQUEST)
         tf = TrivialFormulator(REQUEST.URL0, REQUEST.form,
@@ -434,7 +434,7 @@ class ZNotes(ObjectManager,
         else:
             formation_id, junk, junk = self.formation_import_xml(tf[2]['xmlfile'],REQUEST)
             
-            return '\n'.join(H) + """<p>Import effectué !</p>
+            return '\n'.join(H) + """<p>Import effectuÃ© !</p>
             <p><a class="stdlink" href="ue_list?formation_id=%s">Voir la formation</a></p>""" % formation_id + footer
 
     security.declareProtected(ScoChangeFormation, 'formation_create_new_version')
@@ -471,7 +471,7 @@ class ZNotes(ObjectManager,
         ues = self.do_ue_list({'formation_id' : args['formation_id'],
                                'acronyme' : args['acronyme'] })
         if ues:
-            raise ScoValueError('Acronyme d\'UE "%s" déjà utilisé !' % args['acronyme'])
+            raise ScoValueError('Acronyme d\'UE "%s" dÃ©jÃ  utilisÃ© !' % args['acronyme'])
         # create
         r = self._ueEditor.create(cnx, args)
         
@@ -492,12 +492,12 @@ class ZNotes(ObjectManager,
         ue = ue[0]
         if self.ue_is_locked(ue['ue_id']):
             raise ScoLockedFormError()      
-        # Il y a-t-il des etudiants ayant validé cette UE ?
+        # Il y a-t-il des etudiants ayant validÃ© cette UE ?
         # si oui, propose de supprimer les validations
         validations = sco_parcours_dut.scolar_formsemestre_validation_list ( cnx, args={'ue_id' : ue_id} )
         if validations and not delete_validations and not force:
             return self.confirmDialog(
-                '<p>%d étudiants ont validé l\'UE %s (%s)</p><p>Si vous supprimez cette UE, ces validations vont être supprimées !</p>' % (len(validations), ue['acronyme'], ue['titre']),
+                '<p>%d Ã©tudiants ont validÃ© l\'UE %s (%s)</p><p>Si vous supprimez cette UE, ces validations vont Ãªtre supprimÃ©es !</p>' % (len(validations), ue['acronyme'], ue['titre']),
                 dest_url="", REQUEST=REQUEST,
                 target_variable='delete_validations',
                 cancel_url="ue_list?formation_id=%s"%ue['formation_id'],
@@ -516,7 +516,7 @@ class ZNotes(ObjectManager,
         SimpleQuery(self, "DELETE FROM scolar_events WHERE ue_id=%(ue_id)s", { 'ue_id' : ue_id } )
         cnx = self.GetDBConnexion()
         self._ueEditor.delete(cnx, ue_id)
-        self._inval_cache() #> UE delete + supr. validations associées etudiants (cas compliqué, mais rarement utilisé: acceptable de tout invalider ?)
+        self._inval_cache() #> UE delete + supr. validations associÃ©es etudiants (cas compliquÃ©, mais rarement utilisÃ©: acceptable de tout invalider ?)
         # news
         F = self.formation_list(args={ 'formation_id' :ue['formation_id']})[0]
         sco_news.add(self, REQUEST, typ=NEWS_FORM, object=ue['formation_id'],
@@ -655,8 +655,8 @@ class ZNotes(ObjectManager,
         mods = self.do_moduleimpl_list({'module_id' : oid })
         if mods:
             err_page = self.confirmDialog(
-                message="""<h3>Destruction du module impossible car il est utilisé dans des semestres existants !</h3>""",
-                helpmsg="""Il faut d'abord supprimer le semestre. Mais il est peut être préférable de laisser ce programme intact et d'en créer une nouvelle version pour la modifier.""",
+                message="""<h3>Destruction du module impossible car il est utilisÃ© dans des semestres existants !</h3>""",
+                helpmsg="""Il faut d'abord supprimer le semestre. Mais il est peut Ãªtre prÃ©fÃ©rable de laisser ce programme intact et d'en crÃ©er une nouvelle version pour la modifier.""",
                 dest_url='ue_list',
                 parameters = { 'formation_id' : mod['formation_id'] },
                 REQUEST=REQUEST )
@@ -682,7 +682,7 @@ class ZNotes(ObjectManager,
         # check
         mod = self.do_module_list({'module_id' : val['module_id']})[0]
         if self.module_is_locked(mod['module_id']):
-            # formation verrouillée: empeche de modifier certains champs:
+            # formation verrouillÃ©e: empeche de modifier certains champs:
             protected_fields = ('coefficient', 'ue_id', 'matiere_id', 'semestre_id')
             for f in protected_fields:
                 if f in val:
@@ -835,7 +835,7 @@ class ZNotes(ObjectManager,
         args['formsemestre_id'] = formsemestre_id
         args['url'] = 'Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s'%args
         sco_news.add(self, REQUEST, typ=NEWS_SEM,
-                     text='Création du semestre <a href="%(url)s">%(titre)s</a>' % args,
+                     text='CrÃ©ation du semestre <a href="%(url)s">%(titre)s</a>' % args,
                      url=args['url'])
         return formsemestre_id
 
@@ -977,14 +977,14 @@ class ZNotes(ObjectManager,
         """
         authuser = REQUEST.AUTHENTICATED_USER
         sem = self.get_formsemestre(formsemestre_id)
-        header = self.sco_header(page_title='Accès interdit',
+        header = self.sco_header(page_title='AccÃ¨s interdit',
                                  REQUEST=REQUEST)
         footer = self.sco_footer(REQUEST)
         if ((sem['responsable_id'] != str(authuser))
             and not authuser.has_permission(required_permission,self)):
             return False, '\n'.join( [
                 header,
-                '<h2>Opération non autorisée pour %s</h2>' % authuser,
+                '<h2>OpÃ©ration non autorisÃ©e pour %s</h2>' % authuser,
                 '<p>Responsable de ce semestre : <b>%s</b></p>'
                 % sem['responsable_id'],
                 footer ])
@@ -994,7 +994,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView,'formsemestre_custommenu_edit')
     def formsemestre_custommenu_edit(self, REQUEST, formsemestre_id):
         "Dialogue modif menu"
-        # accessible à tous !
+        # accessible Ã  tous !
         return sco_formsemestre_custommenu.formsemestre_custommenu_edit(
             self, formsemestre_id, REQUEST=REQUEST)
 
@@ -1015,9 +1015,9 @@ class ZNotes(ObjectManager,
         else:
             return h
     
-    # --- Gestion des "Implémentations de Modules"
+    # --- Gestion des "ImplÃ©mentations de Modules"
     # Un "moduleimpl" correspond a la mise en oeuvre d'un module
-    # dans une formation spécifique, à une date spécifique.
+    # dans une formation spÃ©cifique, Ã  une date spÃ©cifique.
     _moduleimplEditor = EditableTable(
         'notes_moduleimpl',
         'moduleimpl_id',
@@ -1158,10 +1158,10 @@ class ZNotes(ObjectManager,
                       moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
         F = """<p class="help">Les enseignants d'un module ont le droit de
-        saisir et modifier toutes les notes des évaluations de ce module.
+        saisir et modifier toutes les notes des Ã©valuations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de département)
+        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de dÃ©partement)
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         
@@ -1195,7 +1195,7 @@ class ZNotes(ObjectManager,
             else:
                 # et qu'il n'est pas deja:
                 if ens_id in [ x['ens_id'] for x in M['ens'] ] or  ens_id == M['responsable_id']:
-                    H.append('<p class="help">Enseignant %s déjà dans la liste !</p>' % ens_id)
+                    H.append('<p class="help">Enseignant %s dÃ©jÃ  dans la liste !</p>' % ens_id)
                 else:                    
                     self.do_ens_create( { 'moduleimpl_id' : moduleimpl_id,
                                           'ens_id' : ens_id } )
@@ -1219,7 +1219,7 @@ class ZNotes(ObjectManager,
                     bodyOnLoad="init_tf_form('')"
                     )
             ]
-        help = """<p class="help">Taper le début du nom de l'enseignant.</p>"""
+        help = """<p class="help">Taper le dÃ©but du nom de l'enseignant.</p>"""
         # Liste des enseignants avec forme pour affichage / saisie avec suggestion
         userlist = self.Users.get_userlist()
         login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
@@ -1260,24 +1260,24 @@ class ZNotes(ObjectManager,
                                        'responsable_id' : responsable_id },
                                      formsemestre_id=sem['formsemestre_id']
                                      )
-            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifiÃ©')
 
-    _expr_help = """<p class="help">Expérimental: formule de calcul de la moyenne %(target)s</p>
-        <p class="help">Dans la formule, les variables suivantes sont définies:</p>
+    _expr_help = """<p class="help">ExpÃ©rimental: formule de calcul de la moyenne %(target)s</p>
+        <p class="help">Dans la formule, les variables suivantes sont dÃ©finies:</p>
         <ul class="help">
-        <li><tt>moy</tt> la moyenne, calculée selon la règle standard (moyenne pondérée)</li>
-        <li><tt>moy_is_valid</tt> vrai si la moyenne est valide (numérique)</li>
+        <li><tt>moy</tt> la moyenne, calculÃ©e selon la rÃ¨gle standard (moyenne pondÃ©rÃ©e)</li>
+        <li><tt>moy_is_valid</tt> vrai si la moyenne est valide (numÃ©rique)</li>
         <li><tt>moy_val</tt> la valeur de la moyenne (nombre, valant 0 si invalide)</li>
         <li><tt>notes</tt> vecteur des notes (/20) aux %(objs)s</li>
-        <li><tt>coefs</tt> vecteur des coefficients des %(objs)s, les coefs des %(objs)s sans notes (ATT, EXC) étant mis à zéro</li>
-        <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a été annulé</li>
-        <li>Nombre d'absences: <tt>nb_abs</tt>, <tt>nb_abs_just</tt>, <tt>nb_abs_nojust</tt> (en demi-journées)</li>
+        <li><tt>coefs</tt> vecteur des coefficients des %(objs)s, les coefs des %(objs)s sans notes (ATT, EXC) Ã©tant mis Ã  zÃ©ro</li>
+        <li><tt>cmask</tt> vecteur de 0/1, 0 si le coef correspondant a Ã©tÃ© annulÃ©</li>
+        <li>Nombre d'absences: <tt>nb_abs</tt>, <tt>nb_abs_just</tt>, <tt>nb_abs_nojust</tt> (en demi-journÃ©es)</li>
         </ul>
-        <p class="help">Les éléments des vecteurs sont ordonnés dans l'ordre des %(objs)s%(ordre)s.</p>
+        <p class="help">Les Ã©lÃ©ments des vecteurs sont ordonnÃ©s dans l'ordre des %(objs)s%(ordre)s.</p>
         <p class="help">Les fonctions suivantes sont utilisables: <tt>abs, cmp, dot, len, map, max, min, pow, reduce, round, sum, ifelse</tt></p>
-        <p class="help">La notation <tt>V(1,2,3)</tt> représente un vecteur <tt>(1,2,3)</tt></p>
-        <p class="help">Vous pouvez désactiver la formule (et revenir au mode de calcul "classique") 
-        en supprimant le texte ou en faisant précéder la première ligne par <tt>#</tt></p>
+        <p class="help">La notation <tt>V(1,2,3)</tt> reprÃ©sente un vecteur <tt>(1,2,3)</tt></p>
+        <p class="help">Vous pouvez dÃ©sactiver la formule (et revenir au mode de calcul "classique") 
+        en supprimant le texte ou en faisant prÃ©cÃ©der la premiÃ¨re ligne par <tt>#</tt></p>
     """
 
     security.declareProtected(ScoView, 'edit_moduleimpl_expr')
@@ -1289,18 +1289,18 @@ class ZNotes(ObjectManager,
         H = [ 
             self.html_sem_header(
                 REQUEST, 
-                'Modification règle de calcul du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
+                'Modification rÃ¨gle de calcul du <a href="moduleimpl_status?moduleimpl_id=%s">module %s</a>' 
                 % (moduleimpl_id, M['module']['titre']), 
                 sem
                 ),
-            self._expr_help % {'target':'du module', 'objs' : 'évaluations', 'ordre' : ' (le premier élément est la plus ancienne évaluation)'}
+            self._expr_help % {'target':'du module', 'objs' : 'Ã©valuations', 'ordre' : ' (le premier Ã©lÃ©ment est la plus ancienne Ã©valuation)'}
             ]
         initvalues = M
         form = [
             ('moduleimpl_id', { 'input_type' : 'hidden' }),
             ('computation_expr', { 'title' : 'Formule de calcul',
                                    'input_type' : 'textarea', 'rows' : 4, 'cols' : 60,
-                                   'explanation' : 'formule de calcul (expérimental)' }),
+                                   'explanation' : 'formule de calcul (expÃ©rimental)' }),
             ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
                                 submitlabel = 'Modifier formule de calcul',
@@ -1315,7 +1315,7 @@ class ZNotes(ObjectManager,
                                        'computation_expr' : tf[2]['computation_expr'] },
                                      formsemestre_id=sem['formsemestre_id'])
             self._inval_cache(formsemestre_id=sem['formsemestre_id']) #> modif regle calcul
-            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=rÃ¨gle%20de%20calcul%20modifiÃ©e')
     
     
     security.declareProtected(ScoView, 'view_module_abs')
@@ -1352,7 +1352,7 @@ class ZNotes(ObjectManager,
                 ),
             ]
         if not T:
-            return '\n'.join(H) + '<p>Aucune absence signalée</p>' + self.sco_footer(REQUEST)
+            return '\n'.join(H) + '<p>Aucune absence signalÃ©e</p>' + self.sco_footer(REQUEST)
         
         tab = GenTable( titles={ 'nomprenom' : 'Nom',
                                  'just' : 'Just.',
@@ -1377,14 +1377,14 @@ class ZNotes(ObjectManager,
         # Check access
         sem = sco_formsemestre_edit.can_edit_sem(self, REQUEST, formsemestre_id)
         if not sem:
-            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
+            raise AccessDenied("vous n'avez pas le droit d'effectuer cette opÃ©ration")
         cnx = self.GetDBConnexion()
         # 
         ue = self.do_ue_list( {'ue_id' : ue_id})[0]
         H = [ 
             self.html_sem_header(
                 REQUEST, 
-                "Modification règle de calcul de l'UE %s (%s)" % (ue['acronyme'], ue['titre']), 
+                "Modification rÃ¨gle de calcul de l'UE %s (%s)" % (ue['acronyme'], ue['titre']), 
                 sem
                 ),
             self._expr_help % {'target':"de l'UE", 'objs' : 'modules', 'ordre' : ''}
@@ -1399,7 +1399,7 @@ class ZNotes(ObjectManager,
             ('formsemestre_id', { 'input_type' : 'hidden' }),
             ('computation_expr', { 'title' : 'Formule de calcul',
                                    'input_type' : 'textarea', 'rows' : 4, 'cols' : 60,
-                                   'explanation' : 'formule de calcul (expérimental)' }),
+                                   'explanation' : 'formule de calcul (expÃ©rimental)' }),
             ]
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, form,
                                 submitlabel = 'Modifier formule de calcul',
@@ -1417,11 +1417,11 @@ class ZNotes(ObjectManager,
                 sco_compute_moy.formsemestre_ue_computation_expr_create(cnx, tf[2])
             
             self._inval_cache(formsemestre_id=formsemestre_id) #> modif regle calcul
-            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id+'&head_message=règle%20de%20calcul%20modifiée')
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id+'&head_message=rÃ¨gle%20de%20calcul%20modifiÃ©e')
 
     security.declareProtected(ScoView, 'formsemestre_enseignants_list')
     def formsemestre_enseignants_list(self, REQUEST, formsemestre_id, format='html'):
-        """Liste les enseignants intervenants dans le semestre (resp. modules et chargés de TD)
+        """Liste les enseignants intervenants dans le semestre (resp. modules et chargÃ©s de TD)
         et indique les absences saisies par chacun.
         """
         sem = self.get_formsemestre(formsemestre_id)
@@ -1440,7 +1440,7 @@ class ZNotes(ObjectManager,
                     sem_ens[ensd['ens_id']] = { 'mods' : [mod] }
                 else:
                     sem_ens[ensd['ens_id']]['mods'].append(mod)
-        # compte les absences ajoutées par chacun dans tout le semestre
+        # compte les absences ajoutÃ©es par chacun dans tout le semestre
         cnx = self.GetDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
         for ens in sem_ens:
@@ -1471,7 +1471,7 @@ class ZNotes(ObjectManager,
                       html_title=self.html_sem_header(REQUEST, 'Enseignants du semestre',
                                                       sem, with_page_header=False), 
                       base_url= '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id),
-                      caption="Tous les enseignants (responsables ou associés aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opérations d'ajout effectuées sur ce semestre, sans tenir compte des annulations ou double saisies.",
+                      caption="Tous les enseignants (responsables ou associÃ©s aux modules de ce semestre) apparaissent. Le nombre de saisies d'absences est le nombre d'opÃ©rations d'ajout effectuÃ©es sur ce semestre, sans tenir compte des annulations ou double saisies.",
                       preferences=self.get_preferences(formsemestre_id)
                       )
         return T.make_page(self, page_title=title, title=title, REQUEST=REQUEST, format=format)
@@ -1589,7 +1589,7 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'do_formsemestre_inscription_listinscrits')
     def do_formsemestre_inscription_listinscrits(self, formsemestre_id):
-        """Liste les inscrits (état I) à ce semestre et cache le résultat"""
+        """Liste les inscrits (Ã©tat I) Ã  ce semestre et cache le rÃ©sultat"""
         cache = self.get_formsemestre_inscription_cache()
         r = cache.get(formsemestre_id)
         if r != None:
@@ -1630,9 +1630,9 @@ class ZNotes(ObjectManager,
             etud = self.getEtudInfo(etudid=etudid,filled=1)[0]
             return self.confirmDialog(
                 """<h2>Confirmer la demande de desinscription ?</h2>
-                <p>%s sera désinscrit de tous les modules du semestre %s (%s - %s).</p>
-                <p>Cette opération ne doit être utilisée que pour corriger une <b>erreur</b> !
-                Un étudiant réellement inscrit doit le rester, le faire éventuellement <b>démissionner<b>.
+                <p>%s sera dÃ©sinscrit de tous les modules du semestre %s (%s - %s).</p>
+                <p>Cette opÃ©ration ne doit Ãªtre utilisÃ©e que pour corriger une <b>erreur</b> !
+                Un Ã©tudiant rÃ©ellement inscrit doit le rester, le faire Ã©ventuellement <b>dÃ©missionner<b>.
                 </p>
                 """ % (etud['nomprenom'],sem['titre_num'],sem['date_debut'],sem['date_fin']),
                 dest_url="", REQUEST=REQUEST,
@@ -1641,11 +1641,11 @@ class ZNotes(ObjectManager,
 
         self.do_formsemestre_desinscription(etudid, formsemestre_id, REQUEST=REQUEST)
         
-        return self.sco_header(REQUEST) + '<p>Etudiant désinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour à la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
+        return self.sco_header(REQUEST) + '<p>Etudiant dÃ©sinscrit !</p><p><a class="stdlink" href="%s/ficheEtud?etudid=%s">retour Ã  la fiche</a>'%(self.ScoURL(),etudid) + self.sco_footer(REQUEST)
 
 
     def do_formsemestre_desinscription(self, etudid, formsemestre_id, REQUEST=None):
-        "Deinscription d'un étudiant"
+        "Deinscription d'un Ã©tudiant"
         sem = self.get_formsemestre(formsemestre_id)
         # -- check lock
         if sem['etat'] != '1':
@@ -1825,8 +1825,8 @@ class ZNotes(ObjectManager,
         )
 
     def _evaluation_check_write_access(self, REQUEST, moduleimpl_id=None):
-        """Vérifie que l'on a le droit de modifier, créer ou détruire une
-        évaluation dans ce module.
+        """VÃ©rifie que l'on a le droit de modifier, crÃ©er ou dÃ©truire une
+        Ã©valuation dans ce module.
         Sinon, lance une exception.
         (nb: n'implique pas le droit de saisir ou modifier des notes)
         """
@@ -1843,7 +1843,7 @@ class ZNotes(ObjectManager,
                 for ens in M['ens']:
                     if ens['ens_id'] == uid:
                         return # ok
-            raise AccessDenied('Modification évaluation impossible pour %s'%(uid,))
+            raise AccessDenied('Modification Ã©valuation impossible pour %s'%(uid,))
     
     security.declareProtected(ScoEnsView,'do_evaluation_create')
     def do_evaluation_create(self, REQUEST, args):
@@ -1895,7 +1895,7 @@ class ZNotes(ObjectManager,
         mod['moduleimpl_id'] = M['moduleimpl_id']
         mod['url'] = "Notes/moduleimpl_status?moduleimpl_id=%(moduleimpl_id)s"%mod
         sco_news.add(self, REQUEST, typ=NEWS_NOTE, object=moduleimpl_id,
-                     text='Création d\'une évaluation dans <a href="%(url)s">%(titre)s</a>' % mod,
+                     text='CrÃ©ation d\'une Ã©valuation dans <a href="%(url)s">%(titre)s</a>' % mod,
                      url=mod['url'])
 
         return r
@@ -1916,12 +1916,12 @@ class ZNotes(ObjectManager,
             y,m,d = [ int(x) for x in DateDMYtoISO(jour).split('-') ]
             jour = datetime.date(y,m,d)
             if (jour > date_fin) or (jour < date_debut):
-                raise ScoValueError("La date de l'évaluation (%s/%s/%s) n'est pas dans le semestre !" % (d,m,y))
+                raise ScoValueError("La date de l'Ã©valuation (%s/%s/%s) n'est pas dans le semestre !" % (d,m,y))
         heure_debut = args.get('heure_debut', None)
         heure_fin = args.get('heure_fin', None)
         d = TimeDuration(heure_debut, heure_fin)
         if d and ((d < 0) or (d > 60*12)):
-            raise ScoValueError("Heures de l'évaluation incohérentes !")            
+            raise ScoValueError("Heures de l'Ã©valuation incohÃ©rentes !")            
 
     security.declareProtected(ScoEnsView, 'evaluation_delete')
     def evaluation_delete(self, REQUEST, evaluation_id):
@@ -1932,12 +1932,12 @@ class ZNotes(ObjectManager,
         E = El[0]
         M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : E['moduleimpl_id'] } )[0]
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
-        tit = "Suppression de l'évaluation %(description)s (%(jour)s)" % E
+        tit = "Suppression de l'Ã©valuation %(description)s (%(jour)s)" % E
         etat = sco_evaluations.do_evaluation_etat(self, evaluation_id)
         H = [ self.html_sem_header( REQUEST, tit, with_h2=False ),
               """<h2 class="formsemestre">Module <tt>%(code)s</tt> %(titre)s</h2>""" % Mod,
               """<h3>%s</h3>""" % tit,
-              """<p class="help">Opération <span class="redboldtext">irréversible</span>. Si vous supprimez l'évaluation, vous ne pourrez pas retrouver les notes associées.</p>"""
+              """<p class="help">OpÃ©ration <span class="redboldtext">irrÃ©versible</span>. Si vous supprimez l'Ã©valuation, vous ne pourrez pas retrouver les notes associÃ©es.</p>"""
               ]
         warning = False
         if etat['nb_notes_total']:
@@ -1945,10 +1945,10 @@ class ZNotes(ObjectManager,
             nb_desinscrits = etat['nb_notes_total'] - etat['nb_notes']
             H.append("""<div class="ue_warning"><span>Il y a %s notes""" % etat['nb_notes_total'])
             if nb_desinscrits:
-                H.append(""" (dont %s d'étudiants qui ne sont plus inscrits)""" % nb_desinscrits)
-            H.append(""" dans l'évaluation</span>""")
+                H.append(""" (dont %s d'Ã©tudiants qui ne sont plus inscrits)""" % nb_desinscrits)
+            H.append(""" dans l'Ã©valuation</span>""")
             if etat['nb_notes'] == 0:
-                H.append("""<p>Vous pouvez quand même supprimer l'évaluation, les notes des étudiants désincrits seront effacées.</p>""")
+                H.append("""<p>Vous pouvez quand mÃªme supprimer l'Ã©valuation, les notes des Ã©tudiants dÃ©sincrits seront effacÃ©es.</p>""")
         
         if etat['nb_notes']:
             H.append("""<p>Suppression impossible (effacer les notes d'abord)</p><p><a class="stdlink" href="moduleimpl_status?moduleimpl_id=%s">retour au tableau de bord du module</a></p></div>""" % E['moduleimpl_id'])
@@ -1968,7 +1968,7 @@ class ZNotes(ObjectManager,
             return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id'] )
         else:
             sco_evaluations.do_evaluation_delete(self, REQUEST, E['evaluation_id'])
-            return '\n'.join(H) + """<p>OK, évaluation supprimée.</p>
+            return '\n'.join(H) + """<p>OK, Ã©valuation supprimÃ©e.</p>
             <p><a class="stdlink" href="%s">Continuer</a></p>""" % (self.ScoURL()+'/Notes/moduleimpl_status?moduleimpl_id='+E['moduleimpl_id']) + self.sco_footer(REQUEST)
         
 
@@ -1990,9 +1990,9 @@ class ZNotes(ObjectManager,
             else:
                 e['duree'] = ''
             if heure_debut and (not heure_fin or heure_fin == heure_debut):
-                e['descrheure'] = ' à ' + heure_debut
+                e['descrheure'] = ' Ã  ' + heure_debut
             elif heure_debut and heure_fin:
-                e['descrheure'] = ' de %s à %s' % (heure_debut, heure_fin)
+                e['descrheure'] = ' de %s Ã  %s' % (heure_debut, heure_fin)
             else:
                 e['descrheure'] = ''
         
@@ -2059,7 +2059,7 @@ class ZNotes(ObjectManager,
                                                      moduleimpl_id=moduleimpl_id )
             except AccessDenied, detail:
                 return self.sco_header(REQUEST)\
-                       + '<h2>Opération non autorisée</h2><p>' + str(detail) + '</p>'\
+                       + '<h2>OpÃ©ration non autorisÃ©e</h2><p>' + str(detail) + '</p>'\
                        + '<p><a href="%s">Revenir</a></p>' % (str(REQUEST.HTTP_REFERER), ) \
                        + self.sco_footer(REQUEST)
         if readonly:
@@ -2070,8 +2070,8 @@ class ZNotes(ObjectManager,
                 raise ValueError, 'missing moduleimpl_id parameter'
             initvalues = { 'note_max' : 20,
                            'jour' : time.strftime('%d/%m/%Y', time.localtime()) }
-            submitlabel = 'Créer cette évaluation'
-            action = 'Création d\'une é'
+            submitlabel = 'CrÃ©er cette Ã©valuation'
+            action = 'CrÃ©ation d\'une Ã©'
             link=''
         else:
             # edition donnees existantes
@@ -2080,35 +2080,35 @@ class ZNotes(ObjectManager,
                 raise ValueError, 'missing evaluation_id parameter'
             initvalues = the_eval
             moduleimpl_id = initvalues['moduleimpl_id']
-            submitlabel = 'Modifier les données'
+            submitlabel = 'Modifier les donnÃ©es'
             if readonly:
                 action = 'E'
                 link=' &nbsp;<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
             else:
-                action = 'Modification d\'une é'
+                action = 'Modification d\'une Ã©'
                 link =''
         #    
         Mod = self.do_module_list( args={ 'module_id' : M['module_id'] } )[0]
         sem = self.get_formsemestre(M['formsemestre_id'])        
         #
         help = """<div class="help"><p class="help">
-        Le coefficient d'une évaluation n'est utilisé que pour pondérer les évaluations au sein d'un module.
-        Il est fixé librement par l'enseignant pour refléter l'importance de ses différentes notes
-        (examens, projets, travaux pratiques...). Ce coefficient est utilisé pour calculer la note
-        moyenne de chaque étudiant dans ce module.
+        Le coefficient d'une Ã©valuation n'est utilisÃ© que pour pondÃ©rer les Ã©valuations au sein d'un module.
+        Il est fixÃ© librement par l'enseignant pour reflÃ©ter l'importance de ses diffÃ©rentes notes
+        (examens, projets, travaux pratiques...). Ce coefficient est utilisÃ© pour calculer la note
+        moyenne de chaque Ã©tudiant dans ce module.
         </p><p class="help">
-        Ne pas confondre ce coefficient avec le coefficient du module, qui est lui fixé par le programme
-        pédagogique (le PPN pour les DUT) et pondère les moyennes de chaque module pour obtenir
-        les moyennes d'UE et la moyenne générale.
+        Ne pas confondre ce coefficient avec le coefficient du module, qui est lui fixÃ© par le programme
+        pÃ©dagogique (le PPN pour les DUT) et pondÃ¨re les moyennes de chaque module pour obtenir
+        les moyennes d'UE et la moyenne gÃ©nÃ©rale.
         </p><p class="help">
-        L'option <em>Visible sur bulletins</em> indique que la note sera reportée sur les bulletins
-        en version dite "intermédiaire" (dans cette version, on peut ne faire apparaitre que certaines
-        notes, en sus des moyennes de modules. Attention, cette option n'empêche pas la publication sur
-        les bulletins en version "longue" (la note est donc visible par les étudiants sur le portail).
+        L'option <em>Visible sur bulletins</em> indique que la note sera reportÃ©e sur les bulletins
+        en version dite "intermÃ©diaire" (dans cette version, on peut ne faire apparaitre que certaines
+        notes, en sus des moyennes de modules. Attention, cette option n'empÃªche pas la publication sur
+        les bulletins en version "longue" (la note est donc visible par les Ã©tudiants sur le portail).
         </p><p class="help">
-        La modalité "rattrapage" permet de définir une évaluation dont les notes remplaceront les moyennes du modules
-        si elles sont meilleures que celles calculées. Dans ce cas, le coefficient est ignoré, et toutes les notes n'ont
-        pas besoin d'être rentrées.
+        La modalitÃ© "rattrapage" permet de dÃ©finir une Ã©valuation dont les notes remplaceront les moyennes du modules
+        si elles sont meilleures que celles calculÃ©es. Dans ce cas, le coefficient est ignorÃ©, et toutes les notes n'ont
+        pas besoin d'Ãªtre rentrÃ©es.
         </p>
         """
         mod_descr = '<a href="moduleimpl_status?moduleimpl_id=%s">%s %s</a>%s' % (moduleimpl_id, Mod['code'], Mod['titre'], link)
@@ -2117,18 +2117,18 @@ class ZNotes(ObjectManager,
         else:
             E = initvalues
             H = [ '<h3>Evaluation "%s"</h3><p><b>Module : %s</b></p>' % (E['description'], mod_descr) ]
-            # version affichage seule (générée ici pour etre plus jolie que le Formulator)
+            # version affichage seule (gÃ©nÃ©rÃ©e ici pour etre plus jolie que le Formulator)
             jour = E['jour']
             if not jour:
                 jour = '<em>pas de date</em>'
-            H.append( '<p>Réalisée le <b>%s</b> de %s à %s '
+            H.append( '<p>RÃ©alisÃ©e le <b>%s</b> de %s Ã  %s '
                       % (jour,E['heure_debut'],E['heure_fin']) )
             if E['jour']:
                 group_id = sco_groups.get_default_group(self, formsemestre_id)
                 H.append('<span class="noprint"><a href="%s/Absences/EtatAbsencesDate?group_id=%s&date=%s">(absences ce jour)</a></span>' % (self.ScoURL(),group_id,urllib.quote(E['jour'],safe='') ))
             H.append( '</p><p>Coefficient dans le module: <b>%s</b> ' % E['coefficient'] )
             if self.can_edit_notes(REQUEST.AUTHENTICATED_USER, moduleimpl_id, allow_ens=False):
-                H.append('<a href="evaluation_edit?evaluation_id=%s">(modifier l\'évaluation)</a>' % evaluation_id)
+                H.append('<a href="evaluation_edit?evaluation_id=%s">(modifier l\'Ã©valuation)</a>' % evaluation_id)
             H.append('</p>')
             return '<div class="eval_description">' + '\n'.join(H) + '</div>'
 
@@ -2146,25 +2146,25 @@ class ZNotes(ObjectManager,
             ('evaluation_id', { 'default' : evaluation_id, 'input_type' : 'hidden' }),
             ('formsemestre_id', { 'default' : formsemestre_id, 'input_type' : 'hidden' }),
             ('moduleimpl_id', { 'default' : moduleimpl_id, 'input_type' : 'hidden' }),
-            #('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
-            ('jour', { 'input_type' : 'date', 'title' : 'Date', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrôle' }),
-            ('heure_debut'   , { 'title' : 'Heure de début', 'explanation' : 'heure du début de l\'épreuve',
+            #('jour', { 'title' : 'Date (j/m/a)', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrÃ´le' }),
+            ('jour', { 'input_type' : 'date', 'title' : 'Date', 'size' : 12, 'explanation' : 'date de l\'examen, devoir ou contrÃ´le' }),
+            ('heure_debut'   , { 'title' : 'Heure de dÃ©but', 'explanation' : 'heure du dÃ©but de l\'Ã©preuve',
                                  'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
-            ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'épreuve',
+            ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'Ã©preuve',
                                'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
             ('coefficient'    , { 'size' : 10, 'type' : 'float', 'explanation' : 'coef. dans le module (choisi librement par l\'enseignant)', 'allow_null':False }),
-        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 à', 'explanation' : 'barème', 'allow_null':False, 'max_value' : NOTES_MAX, 'min_value' : 1 }),
+        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 Ã ', 'explanation' : 'barÃ¨me', 'allow_null':False, 'max_value' : NOTES_MAX, 'min_value' : 1 }),
 
-            ('description' , { 'size' : 36, 'type' : 'text', 'explanation' : 'type d\'évaluation, apparait sur le bulletins longs. Exemples: "contrôle court", "examen de TP", "examen final".' }),    
+            ('description' , { 'size' : 36, 'type' : 'text', 'explanation' : 'type d\'Ã©valuation, apparait sur le bulletins longs. Exemples: "contrÃ´le court", "examen de TP", "examen final".' }),    
             ('visibulletinlist', { 'input_type' : 'checkbox',
                                    'allowed_values' : ['X'], 'labels' : [ '' ],
                                    'title' : 'Visible sur bulletins' ,
-                                   'explanation' : '(pour les bulletins en version intermédiaire)'}),
+                                   'explanation' : '(pour les bulletins en version intermÃ©diaire)'}),
             ('publish_incomplete', { 'input_type' : 'boolcheckbox',
-                                     'title' : 'Prise en compte immédiate' ,
-                                     'explanation' : 'notes utilisées même si incomplètes'}),
+                                     'title' : 'Prise en compte immÃ©diate' ,
+                                     'explanation' : 'notes utilisÃ©es mÃªme si incomplÃ¨tes'}),
             ('evaluation_type', { 'input_type' : 'menu',
-                                  'title' : 'Modalité',
+                                  'title' : 'ModalitÃ©',
                                   'allowed_values' : (EVALUATION_NORMALE, EVALUATION_RATTRAPAGE),
                                   'type' : 'int',
                                   'labels' : ('Normale', 'Rattrapage') }),
@@ -2194,7 +2194,7 @@ class ZNotes(ObjectManager,
     
     def _displayNote(self, val):
         "convert note from DB to viewable string"
-        # Utilisé seulement pour I/O vers formulaires (sans perte de precision)
+        # UtilisÃ© seulement pour I/O vers formulaires (sans perte de precision)
         # Utiliser fmt_note pour les affichages
         if val is None:
             val = 'ABS'
@@ -2208,7 +2208,7 @@ class ZNotes(ObjectManager,
         
     security.declareProtected(ScoView, 'evaluation_listenotes')
     def evaluation_listenotes(self, REQUEST=None ):
-        """Affichage des notes d'une évaluation"""
+        """Affichage des notes d'une Ã©valuation"""
         if REQUEST.form.get('format','html')=='html':
             H = self.sco_header(REQUEST, cssstyles=['verticalhisto.css']) 
             F = self.sco_footer(REQUEST)
@@ -2255,11 +2255,11 @@ class ZNotes(ObjectManager,
         M = self.do_moduleimpl_list(args={ 'moduleimpl_id' : moduleimpl_id})[0]
         sem = self.get_formsemestre(M['formsemestre_id'])
         if sem['etat'] != '1':
-            return False # semestre verrouillé
+            return False # semestre verrouillÃ©
         if ((not authuser.has_permission(ScoEditAllNotes,self))
             and uid != M['responsable_id']
             and uid != sem['responsable_id']):
-            # enseignant (chargé de TD) ?
+            # enseignant (chargÃ© de TD) ?
             if allow_ens:
                 for ens in M['ens']:
                     if ens['ens_id'] == uid:
@@ -2305,7 +2305,7 @@ class ZNotes(ObjectManager,
 
     def _notes_getall(self, evaluation_id, table='notes_notes', filter_suppressed=True):
         """get tt les notes pour une evaluation: { etudid : { 'value' : value, 'date' : date ... }}
-        Attention: inclue aussi les notes des étudiants qui ne sont plus inscrits au module.
+        Attention: inclue aussi les notes des Ã©tudiants qui ne sont plus inscrits au module.
         """
         #log('_notes_getall( e=%s fs=%s )' % (evaluation_id, filter_suppressed))
         do_cache = filter_suppressed and table=='notes_notes' # pas de cache pour (rares) appels via undo_notes
@@ -2407,7 +2407,7 @@ class ZNotes(ObjectManager,
         # Confirmation dialog
         if not dialog_confirmed:
             return self.confirmDialog(
-                "<h2>Envoyer les %d bulletins par e-mail aux étudiants ?" % len(etudids),
+                "<h2>Envoyer les %d bulletins par e-mail aux Ã©tudiants ?" % len(etudids),
                 dest_url="", REQUEST=REQUEST,
                 cancel_url="formsemestre_status?formsemestre_id=%s" % formsemestre_id,
                 parameters={'version':version, 'formsemestre_id' : formsemestre_id})
@@ -2419,7 +2419,7 @@ class ZNotes(ObjectManager,
                 version=version, 
                 format = 'pdfmail', nohtml=True, REQUEST=REQUEST )
         #
-        return self.sco_header(REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(etudids),formsemestre_id) + self.sco_footer(REQUEST)
+        return self.sco_header(REQUEST) + '<p>%d bulletins envoyÃ©s par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(etudids),formsemestre_id) + self.sco_footer(REQUEST)
 
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
     def appreciation_add_form(self, etudid=None, formsemestre_id=None,
@@ -2461,7 +2461,7 @@ class ZNotes(ObjectManager,
             a='Edition'
         else:
             a='Ajout'
-        H = [self.sco_header(REQUEST) + '<h2>%s d\'une appréciation sur %s</h2>' % (a,etud['nomprenom']) ]
+        H = [self.sco_header(REQUEST) + '<h2>%s d\'une apprÃ©ciation sur %s</h2>' % (a,etud['nomprenom']) ]
         F = self.sco_footer(REQUEST)
         descr = [
             ('edit', {'input_type' : 'hidden', 'default' : edit }),
@@ -2479,7 +2479,7 @@ class ZNotes(ObjectManager,
         tf = TrivialFormulator( REQUEST.URL0, REQUEST.form, descr,
                                 initvalues=initvalues,
                                 cancelbutton = 'Annuler',
-                                submitlabel = 'Ajouter appréciation' )
+                                submitlabel = 'Ajouter apprÃ©ciation' )
         if  tf[0] == 0:
             return '\n'.join(H) + '\n' + tf[1] + F
         elif tf[0] == -1:
@@ -2508,7 +2508,7 @@ class ZNotes(ObjectManager,
         "Vrai si utilisateur peut changer les groupes dans ce semestre"
         sem = self.get_formsemestre(formsemestre_id)
         if sem['etat'] != '1':
-            return False # semestre verrouillé
+            return False # semestre verrouillÃ©
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoEtudChangeGroups, self):
             return True # admin, chef dept
@@ -2523,7 +2523,7 @@ class ZNotes(ObjectManager,
         "Vrai si utilisateur peut saisir decision de jury dans ce semestre"
         sem = self.get_formsemestre(formsemestre_id)
         if sem['etat'] != '1':
-            return False # semestre verrouillé
+            return False # semestre verrouillÃ©
 
         authuser = REQUEST.AUTHENTICATED_USER
         if authuser.has_permission(ScoImplement, self):
@@ -2538,7 +2538,7 @@ class ZNotes(ObjectManager,
     def formsemestre_validation_etud_form(self, formsemestre_id, etudid=None, etud_index=None,
                                           check=0,
                                           desturl='', sortcol=None, REQUEST=None):
-        "Formulaire choix jury pour un étudiant"
+        "Formulaire choix jury pour un Ã©tudiant"
         readonly = not self.can_validate_sem(REQUEST, formsemestre_id)
         return sco_formsemestre_validation.formsemestre_validation_etud_form(
             self, formsemestre_id, etudid=etudid, etud_index=etud_index,
@@ -2550,10 +2550,10 @@ class ZNotes(ObjectManager,
     def formsemestre_validation_etud(self, formsemestre_id, etudid=None,
                                      codechoice=None,
                                      desturl='', sortcol=None, REQUEST=None):
-        "Enregistre choix jury pour un étudiant"
+        "Enregistre choix jury pour un Ã©tudiant"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_validation_etud(
@@ -2565,10 +2565,10 @@ class ZNotes(ObjectManager,
                                           code_etat='', new_code_prev='', devenir='',
                                           assidu=False,
                                           desturl='', sortcol=None, REQUEST=None):
-        "Enregistre choix jury pour un étudiant"
+        "Enregistre choix jury pour un Ã©tudiant"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_validation_etud_manu(
@@ -2578,10 +2578,10 @@ class ZNotes(ObjectManager,
 
     security.declareProtected(ScoView, 'formsemestre_validate_previous_ue')
     def formsemestre_validate_previous_ue(self, formsemestre_id, etudid=None, REQUEST=None):
-        "Form. saisie UE validée hors ScoDoc "
+        "Form. saisie UE validÃ©e hors ScoDoc "
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         return sco_formsemestre_validation.formsemestre_validate_previous_ue(self, formsemestre_id, etudid, REQUEST=REQUEST)
     
@@ -2593,7 +2593,7 @@ class ZNotes(ObjectManager,
         """Suppress a validation (ue_id, etudid) and redirect to formsemestre"""
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         return sco_formsemestre_validation.etud_ue_suppress_validation(self, etudid, formsemestre_id, ue_id, REQUEST=REQUEST)
     
@@ -2602,7 +2602,7 @@ class ZNotes(ObjectManager,
         "Formulaire saisie automatisee des decisions d'un semestre"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_validation_auto(self, formsemestre_id, REQUEST)
@@ -2612,7 +2612,7 @@ class ZNotes(ObjectManager,
         "Formulaire saisie automatisee des decisions d'un semestre"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.do_formsemestre_validation_auto(self, formsemestre_id, REQUEST)
@@ -2622,7 +2622,7 @@ class ZNotes(ObjectManager,
         "Verif/reparation codes UE"
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         
         return sco_formsemestre_validation.formsemestre_fix_validation_ues(self,formsemestre_id, REQUEST)
@@ -2632,7 +2632,7 @@ class ZNotes(ObjectManager,
         """
         if not self.can_validate_sem(REQUEST, formsemestre_id):
             return self.confirmDialog(
-                message='<p>Opération non autorisée pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
+                message='<p>OpÃ©ration non autorisÃ©e pour %s</h2>' % REQUEST.AUTHENTICATED_USER,
                 dest_url=self.ScoURL(), REQUEST=REQUEST)
         if not dialog_confirmed:
             sem = self.get_formsemestre(formsemestre_id)
@@ -2640,12 +2640,12 @@ class ZNotes(ObjectManager,
             nt = self._getNotesCache().get_NotesTable(self, formsemestre_id) #> get_etud_decision_sem
             decision_jury = nt.get_etud_decision_sem(etudid)
             if decision_jury:
-                existing = '<p>Décision existante: %(code)s du %(event_date)s</p>' % decision_jury
+                existing = '<p>DÃ©cision existante: %(code)s du %(event_date)s</p>' % decision_jury
             else:
                 existing = ''
             return self.confirmDialog(
-                """<h2>Confirmer la suppression des décisions du semestre %s (%s - %s) pour %s ?</h2>%s
-                <p>Cette opération est irréversible.
+                """<h2>Confirmer la suppression des dÃ©cisions du semestre %s (%s - %s) pour %s ?</h2>%s
+                <p>Cette opÃ©ration est irrÃ©versible.
                 </p>
                 """ % (sem['titre_num'],sem['date_debut'],sem['date_fin'], etud['nomprenom'],existing),
                 OK = "Supprimer", 
@@ -2654,7 +2654,7 @@ class ZNotes(ObjectManager,
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
         
         sco_formsemestre_validation.formsemestre_validation_suppress_etud(self, formsemestre_id, etudid)
-        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&head_message=Décision%%20supprimée' % (formsemestre_id,etudid))
+        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&head_message=DÃ©cision%%20supprimÃ©e' % (formsemestre_id,etudid))
     
     # ------------- PV de JURY et archives
     security.declareProtected(ScoView, 'formsemestre_pvjury')
@@ -2778,8 +2778,8 @@ class ZNotes(ObjectManager,
         "debug"
         log("check_formsemestre_integrity: formsemestre_id=%s" % (formsemestre_id))
         # verifie que tous les moduleimpl d'un formsemestre
-        # se réfèrent à un module dont l'UE appartient a la même formation
-        # Ancien bug: les ue_id étaient mal copiés lors des création de versions
+        # se rÃ©fÃ¨rent Ã  un module dont l'UE appartient a la mÃªme formation
+        # Ancien bug: les ue_id Ã©taient mal copiÃ©s lors des crÃ©ation de versions
         # de formations
         diag = []
         sem = self.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id })[0]

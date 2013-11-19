@@ -1,5 +1,5 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ##############################################################################
 #
@@ -49,12 +49,12 @@ BONUS_TWO_ARGS = len(inspect.getargspec(CONFIG.compute_bonus)[0]) == 2
 
 
 def comp_ranks(T):
-    """Calcul rangs à partir d'une liste ordonnée de tuples [ (valeur, ..., etudid) ] 
-    (valeur est une note numérique), en tenant compte des ex-aequos
-    Le resultat est: { etudid : rang } où rang est une chaine decrivant le rang
+    """Calcul rangs Ã  partir d'une liste ordonnÃ©e de tuples [ (valeur, ..., etudid) ] 
+    (valeur est une note numÃ©rique), en tenant compte des ex-aequos
+    Le resultat est: { etudid : rang } oÃ¹ rang est une chaine decrivant le rang
     """
     rangs = {} # { etudid : rang } (rang est une chaine)
-    nb_ex = 0 # nb d'ex-aequo consécutifs en cours
+    nb_ex = 0 # nb d'ex-aequo consÃ©cutifs en cours
     for i in range(len(T)):
         # test ex-aequo
         if i < len(T)-1:
@@ -78,22 +78,22 @@ def comp_ranks(T):
     return rangs
 
 class NotesTable:
-    """Une NotesTable représente un tableau de notes pour un semestre de formation.
+    """Une NotesTable reprÃ©sente un tableau de notes pour un semestre de formation.
     Les colonnes sont des modules.
-    Les lignes des étudiants.
-    On peut calculer les moyennes par étudiant (pondérées par les coefs)
+    Les lignes des Ã©tudiants.
+    On peut calculer les moyennes par Ã©tudiant (pondÃ©rÃ©es par les coefs)
     ou les moyennes par module.
 
     Attributs publics (en lecture):
-    - inscrlist: étudiants inscrits à ce semestre, par ordre alphabétique (avec demissions)
+    - inscrlist: Ã©tudiants inscrits Ã  ce semestre, par ordre alphabÃ©tique (avec demissions)
     - identdict: { etudid : ident }
     - sem : le formsemestre
     get_table_moyennes_triees: [ (moy_gen, moy_ue1, moy_ue2, ... moy_ues, moy_mod1, ..., moy_modn, etudid) ] 
-    (où toutes les valeurs sont formatées (fmt_note), incluant les UE de sport
+    (oÃ¹ toutes les valeurs sont formatÃ©es (fmt_note), incluant les UE de sport
 
     - bonus[etudid] : valeur du bonus "sport".
 
-    Attributs privés:
+    Attributs privÃ©s:
     - _modmoys : { moduleimpl_id : { etudid: note_moyenne_dans_ce_module } }
     - _ues : liste des UE de ce semestre (hors capitalisees)
     - _matmoys : { matiere_id : { etudid: note moyenne dans cette matiere } }
@@ -159,16 +159,16 @@ class NotesTable:
         self.formation = context.formation_list( args={ 'formation_id' : self.sem['formation_id'] } )[0]
         self.parcours = sco_codes_parcours.get_parcours_from_code(self.formation['type_parcours'])
         
-        # Decisions jury et UE capitalisées
+        # Decisions jury et UE capitalisÃ©es
         self.comp_decisions_jury()
         self.comp_ue_capitalisees()
 
-        # Liste des moyennes de tous, en chaines de car., triées
+        # Liste des moyennes de tous, en chaines de car., triÃ©es
         self._ues = uedict.values()
         self._ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
         T = []
         self.comp_ue_coefs(cnx)
-        self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)
+        self.moy_gen = {} # etudid : moy gen (avec UE capitalisÃ©es)
         self.moy_ue = {} # ue_id : { etudid : moy ue } (valeur numerique)
         valid_moy = [] # liste des valeurs valides de moyenne generale (pour min/max)
         for ue in self._ues:
@@ -206,7 +206,7 @@ class NotesTable:
             #
             t.append(etudid)
             T.append(tuple(t))
-        # tri par moyennes décroissantes,
+        # tri par moyennes dÃ©croissantes,
         # en laissant les demissionnaires a la fin, par ordre alphabetique
         def cmprows(x,y):
             try:
@@ -268,7 +268,7 @@ class NotesTable:
     
     def get_etudids(self, sorted=False):
         if sorted:
-            # Tri par moy. generale décroissante
+            # Tri par moy. generale dÃ©croissante
             return [ x[-1] for x in self.T ]
         else:
             # Tri par ordre alphabetique de NOM
@@ -290,7 +290,7 @@ class NotesTable:
         return ' '.join([ scolars.format_sexe(etud['sexe']), scolars.format_prenom(etud['prenom']), scolars.format_nom(etud['nom_usuel'] or etud['nom'])])
 
     def get_displayed_etud_code(self, etudid):
-        'code à afficher sur les listings "anonymes"'
+        'code Ã  afficher sur les listings "anonymes"'
         return self.identdict[etudid]['code_nip'] or self.identdict[etudid]['etudid'] 
     
     def get_etud_etat(self, etudid):
@@ -312,8 +312,8 @@ class NotesTable:
             return ' <font color="red">(%s)</font> ' % etat
         
     def get_ues(self, filter_sport=False, filter_empty=False, etudid=None):
-        """liste des ue, ordonnée par numero.
-        Si filter_empty, retire les UE où l'etudiant n'a pas de notes.
+        """liste des ue, ordonnÃ©e par numero.
+        Si filter_empty, retire les UE oÃ¹ l'etudiant n'a pas de notes.
         Si filter_sport, retire les UE de type SPORT
         """
         if not filter_sport and not filter_empty:
@@ -349,7 +349,7 @@ class NotesTable:
         return ues
     
     def get_modimpls(self, ue_id=None):
-        "liste des modules pour une UE (ou toutes si ue_id==None), triés par matières."
+        "liste des modules pour une UE (ou toutes si ue_id==None), triÃ©s par matiÃ¨res."
         if ue_id is None:
             r = self._modimpls
         else:
@@ -369,7 +369,7 @@ class NotesTable:
         return [ e for e in self._valid_evals.values() if e['moduleimpl_id'] == moduleimpl_id ]
     def get_mod_stats(self, moduleimpl_id):
         """moyenne generale, min, max pour un module
-        Ne prend en compte que les evaluations où toutes les notes sont entrées
+        Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es
         Cache le resultat.
         """
         if moduleimpl_id in self.moduleimpl_stats:
@@ -380,7 +380,7 @@ class NotesTable:
         moys = self._modmoys[moduleimpl_id]
         vals = []
         for etudid in self.get_etudids():
-            # saute les demissionnaires et les défaillants:
+            # saute les demissionnaires et les dÃ©faillants:
             if self.inscrdict[etudid]['etat'] != 'I':
                 continue
             val = moys.get(etudid, None) # None si non inscrit
@@ -417,7 +417,7 @@ class NotesTable:
         T = self.get_table_moyennes_triees()
         for t in T:
             etudid = t[-1]
-            # saute les demissionnaires et les défaillants:
+            # saute les demissionnaires et les dÃ©faillants:
             if self.inscrdict[etudid]['etat'] != 'I':
                 if self.inscrdict[etudid]['etat'] == 'D':
                     nb_dem += 1
@@ -456,7 +456,7 @@ class NotesTable:
         return self._modmoys[moduleimpl_id].get(etudid, 'NI')
 
     def get_etud_mat_moy(self, matiere_id, etudid):
-        """moyenne d'un étudiant dans une matière (ou NA si pas de notes)"""
+        """moyenne d'un Ã©tudiant dans une matiÃ¨re (ou NA si pas de notes)"""
         matmoy = self._matmoys.get(matiere_id, None)
         if not matmoy:
             return 'NM' # non inscrit
@@ -466,7 +466,7 @@ class NotesTable:
         
     def comp_etud_moy_ue(self, etudid, ue_id=None, cnx=None):
         """Calcule moyenne gen. pour un etudiant dans une UE 
-        Ne prend en compte que les evaluations où toutes les notes sont entrées
+        Ne prend en compte que les evaluations oÃ¹ toutes les notes sont entrÃ©es
         Return a dict(moy, nb_notes, nb_missing, sum_coefs)
         Si pas de notes, moy == 'NA' et sum_coefs==0                
         """
@@ -482,7 +482,7 @@ class NotesTable:
 
         notes = NoteVector()
         coefs = NoteVector()
-        coefs_mask = NoteVector() # 0/1, 0 si coef a ete annulé
+        coefs_mask = NoteVector() # 0/1, 0 si coef a ete annulÃ©
 
         matiere_id_last = None
         matiere_sum_notes = matiere_sum_coefs = 0.
@@ -552,10 +552,10 @@ class NotesTable:
     def comp_etud_moy_gen(self, etudid, cnx):
         """Calcule moyenne gen. pour un etudiant
         Return a dict:
-         moy  : moyenne générale
+         moy  : moyenne gÃ©nÃ©rale
          nb_notes, nb_missing, sum_coefs
          moy_ues : { ue_id : ue_status }
-        où ue_status = {
+        oÃ¹ ue_status = {
              'moy' : , 'coef_ue' : , # avec capitalisation eventuelle
              'cur_moy_ue' : , 'cur_coef_ue' # dans ce sem., sans capitalisation
              'is_capitalized' : True|False,
@@ -564,15 +564,15 @@ class NotesTable:
              }
         Si pas de notes, moy == 'NA' et sum_coefs==0
 
-        Prend toujours en compte les UE capitalisées.
+        Prend toujours en compte les UE capitalisÃ©es.
         """
         # log('comp_etud_moy_gen(etudid=%s)' % etudid)
         moy_ues = {}
-        notes_bonus_gen = [] # liste des notes de sport et culture (s'appliquant à la MG)
+        notes_bonus_gen = [] # liste des notes de sport et culture (s'appliquant Ã  la MG)
         coefs_bonus_gen = []
         nb_notes = 0   # nb de notes d'UE (non capitalisees)
         sum_notes = 0. # somme des notes d'UE
-        sum_coefs = 0. # somme des coefs d'UE (eux même somme des coefs de modules avec notes)
+        sum_coefs = 0. # somme des coefs d'UE (eux mÃªme somme des coefs de modules avec notes)
         nb_missing = 0 # nombre d'UE sans notes
         
         for ue in self.get_ues():
@@ -582,11 +582,11 @@ class NotesTable:
             mu['ue'] = ue # infos supplementaires pouvant servir au calcul du bonus sport
             moy_ues[ue['ue_id']] = mu
             
-            # - Faut-il prendre une UE capitalisée ?
+            # - Faut-il prendre une UE capitalisÃ©e ?
             max_moy_ue = mu['moy']
             coef_ue = mu['sum_coefs']
-            mu['is_capitalized']  = False # l'UE prise en compte est une UE capitalisée
-            mu['was_capitalized'] = False # il y a precedemment une UE capitalisée (pas forcement meilleure)
+            mu['is_capitalized']  = False # l'UE prise en compte est une UE capitalisÃ©e
+            mu['was_capitalized'] = False # il y a precedemment une UE capitalisÃ©e (pas forcement meilleure)
             event_date = None
             for ue_cap in self.ue_capitalisees[etudid]:
                 if ue_cap['ue_code'] == ue['ue_code']:
@@ -594,7 +594,7 @@ class NotesTable:
                     mu['was_capitalized'] = True
                     event_date = event_date or ue_cap['event_date']
                     if (coef_ue <= 0) or (moy_ue_cap > max_moy_ue):
-                        # meilleure UE capitalisée
+                        # meilleure UE capitalisÃ©e
                         event_date = ue_cap['event_date']
                         max_moy_ue = moy_ue_cap
                         mu['is_capitalized'] = True
@@ -663,14 +663,14 @@ class NotesTable:
     
     def get_etud_moy_gen(self, etudid):
         """Moyenne generale de cet etudiant dans ce semestre.
-        Prend en compte les UE capitalisées.
+        Prend en compte les UE capitalisÃ©es.
         """
         return self.moy_gen[etudid]
 
     def etud_count_ues_under_threshold(self, etudid):
         """Nombre d'UE < barre
-        Prend en compte les éventuelles UE capitalisées.
-        (les UE sans notes ne sont pas comptées comme sous la barre)
+        Prend en compte les Ã©ventuelles UE capitalisÃ©es.
+        (les UE sans notes ne sont pas comptÃ©es comme sous la barre)
         """
         n = 0
         for ue in self._ues:
@@ -680,8 +680,8 @@ class NotesTable:
         return n
 
     def etud_has_all_ue_over_threshold(self, etudid):
-        """True si moyenne d'UE toutes > à 8 (sauf celles sans notes)
-        Prend en compte les éventuelles UE capitalisées.
+        """True si moyenne d'UE toutes > Ã  8 (sauf celles sans notes)
+        Prend en compte les Ã©ventuelles UE capitalisÃ©es.
         """
         return self.etud_count_ues_under_threshold(etudid) == 0
         
@@ -729,8 +729,8 @@ class NotesTable:
         Calcule l'attribut:
         decisions_jury = { etudid : { 'code' : None|'ATT'|..., 'assidu' : 0|1 }}
         decision_jury_ues={ etudid : { ue_id : { 'code' : Note|ADM|CMP, 'event_date' }}}
-        Si la decision n'a pas été prise, la clé etudid n'est pas présente.
-        Si l'étudiant est défaillant, met un code DEF sur toutes les UE
+        Si la decision n'a pas Ã©tÃ© prise, la clÃ© etudid n'est pas prÃ©sente.
+        Si l'Ã©tudiant est dÃ©faillant, met un code DEF sur toutes les UE
         """
         cnx = self.context.GetDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
@@ -758,7 +758,7 @@ class NotesTable:
     def get_etud_decision_sem(self, etudid):
         """Decision du jury prise pour cet etudiant, ou None s'il n'y en pas eu.
         { 'code' : None|'ATT'|..., 'assidu' : 0|1, 'event_date' : , compense_formsemestre_id }
-        Si état défaillant, force le code a DEF
+        Si Ã©tat dÃ©faillant, force le code a DEF
         """
         if self.get_etud_etat(etudid) == 'DEF':
             return { 'code' : 'DEF', 'assidu' : 0,
@@ -769,7 +769,7 @@ class NotesTable:
     def get_etud_decision_ues(self, etudid):
         """Decisions du jury pour les UE de cet etudiant, ou None s'il n'y en pas eu.
         { ue_id : { 'code' : ADM|CMP|AJ, 'event_date' : }
-        Ne renvoie aucune decision d'UE pour les défaillants
+        Ne renvoie aucune decision d'UE pour les dÃ©faillants
         """
         if self.get_etud_etat(etudid) == 'DEF':
             return {}
@@ -778,7 +778,7 @@ class NotesTable:
 
     # Capitalisation des UEs
     def comp_ue_capitalisees(self):
-        """Cherche pour chaque etudiant ses UE capitalisées dans ce semestre.
+        """Cherche pour chaque etudiant ses UE capitalisÃ©es dans ce semestre.
         Calcule l'attribut:
         ue_capitalisees = { etudid :
                              [{ 'moy':, 'event_date' : ,'formsemestre_id' : }, ...] }
@@ -788,7 +788,7 @@ class NotesTable:
         for etudid in self.get_etudids():
             capital = formsemestre_get_etud_capitalisation(self.context, self.sem, etudid)
             for ue_cap in capital:
-                # Si la moyenne d'UE n'avait pas été stockée (anciennes versions de ScoDoc)
+                # Si la moyenne d'UE n'avait pas Ã©tÃ© stockÃ©e (anciennes versions de ScoDoc)
                 # il faut la calculer ici et l'enregistrer
                 if ue_cap['moy_ue'] is None:
                     log('comp_ue_capitalisees: recomputing UE moy (etudid=%s, ue_id=%s formsemestre_id=%s)' % (etudid, ue_cap['ue_id'], ue_cap['formsemestre_id']))
@@ -807,12 +807,12 @@ class NotesTable:
             cnx.commit()
     
     def comp_ue_coefs(self, cnx):
-        """Les coefficients sont attribués aux modules, pas aux UE.
-        Cependant, pour insérer une UE capitalisée dans un autre semestre,
+        """Les coefficients sont attribuÃ©s aux modules, pas aux UE.
+        Cependant, pour insÃ©rer une UE capitalisÃ©e dans un autre semestre,
         il faut lui attribuer un coefficient.
-        Le coef. d'une UE est ici calculé comme la somme des coefs des
+        Le coef. d'une UE est ici calculÃ© comme la somme des coefs des
         modules qui la composent dans le programme,
-        sauf si un coefficient a été explicitement déclaré dans
+        sauf si un coefficient a Ã©tÃ© explicitement dÃ©clarÃ© dans
         la table notes_formsemestre_uecoef.
         
         Calcule l'attribut: ue_coefs = { ue_id : coef }
@@ -836,7 +836,7 @@ class NotesTable:
 
     def etud_has_notes_attente(self, etudid):
         """Vrai si cet etudiant a au moins une note en attente dans ce semestre.
-        (ne compte que les notes en attente dans des évaluation avec coef. non nul).
+        (ne compte que les notes en attente dans des Ã©valuation avec coef. non nul).
         """
         cnx = self.context.GetDBConnexion()
         cursor = cnx.cursor(cursor_factory=ScoDocCursor)
@@ -920,9 +920,9 @@ class CacheNotesTable:
                 self.pdfcache = {}
                 self._call_all_listeners()
             else:
-                # formsemestre_id modifié:
+                # formsemestre_id modifiÃ©:
                 # on doit virer formsemestre_id et tous les semestres
-                # susceptibles d'utiliser des UE capitalisées de ce semestre.
+                # susceptibles d'utiliser des UE capitalisÃ©es de ce semestre.
                 to_trash = [formsemestre_id] + list_formsemestre_utilisateurs_uecap(context, formsemestre_id)
                 if not pdfonly:
                     for formsemestre_id in to_trash:
@@ -982,8 +982,8 @@ class CacheNotesTable:
             self._call_listeners(formsemestre_id)
 
 #
-# Cache global: chaque instance, repérée par sa connexion a la DB, a un cache
-# qui est recréé à la demande (voir ZNotes._getNotesCache() )
+# Cache global: chaque instance, repÃ©rÃ©e par sa connexion a la DB, a un cache
+# qui est recrÃ©Ã© Ã  la demande (voir ZNotes._getNotesCache() )
 #
 NOTES_CACHE_INST = {} # { db_cnx_string : CacheNotesTable instance }
 

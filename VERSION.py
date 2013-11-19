@@ -1,31 +1,31 @@
 # -*- mode: python -*-
-# -*- coding: iso8859-15 -*-
+# -*- coding: utf-8 -*-
 
 SCOVERSION = "7.0a2"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
-<h4>Année 2013</h4>
+<h4>AnnÃ©e 2013</h4>
 <ul>
 <li>Modernisation de certains de composants logiciels</li>
-<li>Saisie des absences par matières</li>
+<li>Saisie des absences par matiÃ¨res</li>
 </ul>
-<h4>Année 2012</h4>
+<h4>AnnÃ©e 2012</h4>
 <ul>
-<li>Table lycées d'origine avec carte google</li>
-<li>Amélioration des PV de jury (logos, ...)</li>
-<li>Accélération du code de calcul des semestres</li>
+<li>Table lycÃ©es d'origine avec carte google</li>
+<li>AmÃ©lioration des PV de jury (logos, ...)</li>
+<li>AccÃ©lÃ©ration du code de calcul des semestres</li>
 <li>Changement documentation en ligne (nouveau site web)</li>
 </ul>
 
 
-<h4>Année 2011</h4>
+<h4>AnnÃ©e 2011</h4>
 <ul>
-<li>Amélioration de la présentation des bulletins de notes, et possibilité de définir de nouveaux formats</li>
-<li>Possibilité de modifier les moyennes d'UE via un "bonus" (sport/culture)</li>
-<li>Ajout parcours spécifique pour UCAC (Cameroun)</li>
-<li>Possibilité d'indiquer des mentions sur les PV</li>
+<li>AmÃ©lioration de la prÃ©sentation des bulletins de notes, et possibilitÃ© de dÃ©finir de nouveaux formats</li>
+<li>PossibilitÃ© de modifier les moyennes d'UE via un "bonus" (sport/culture)</li>
+<li>Ajout parcours spÃ©cifique pour UCAC (Cameroun)</li>
+<li>PossibilitÃ© d'indiquer des mentions sur les PV</li>
 <li>Evaluations de "rattrapage"</li>
 <li>Support pour installation en Linux Debian "Squeeze"</li>
 <li>Corrections diverses</li>
@@ -34,70 +34,70 @@ SCONEWS = """
 
 <h4>Novembre 2010</h4>
 <ul>
-<li>Possibilité d'indiquer des évaluations avec publication immédiate des notes (même si incomplètes)</li>
+<li>PossibilitÃ© d'indiquer des Ã©valuations avec publication immÃ©diate des notes (mÃªme si incomplÃ¨tes)</li>
 </ul>
 
 <h4>Octobre 2010</h4>
 <ul>
 <li>Nouvelle API JSON</li>
-<li>Possibilité d'associer 2 étapes Apogée au même semestre</li>
-<li>Table "poursuite études"</li>
-<li>Possibilité d'envoyer un mail auto aux étudiants absentéistes<li>
+<li>PossibilitÃ© d'associer 2 Ã©tapes ApogÃ©e au mÃªme semestre</li>
+<li>Table "poursuite Ã©tudes"</li>
+<li>PossibilitÃ© d'envoyer un mail auto aux Ã©tudiants absentÃ©istes<li>
 </ul>
 
-<h4>Août 2010</h4>
+<h4>AoÃ»t 2010</h4>
 <ul>
-<li>Définitions de parcours (DUT, LP, ...) avec prise en compte des spécificités (par ex., certaines barres d'UE différentes en LP)</li>
+<li>DÃ©finitions de parcours (DUT, LP, ...) avec prise en compte des spÃ©cificitÃ©s (par ex., certaines barres d'UE diffÃ©rentes en LP)</li>
 </ul>
 
 <h4>Avril - Juin 2010</h4>
 <ul>
 <li>Formules utilisateur pour le calcul des moyennes d'UE</li>
-<li>Nouveau système de notification des absences par mail</li>
+<li>Nouveau systÃ¨me de notification des absences par mail</li>
 <li>Affichage optionnel des valeurs mini et maxi des moyennes sur les bulletins</li>
-<li>Nouveau code de décision jury semestre: "RAT" : en attente de rattrapage</li>
+<li>Nouveau code de dÃ©cision jury semestre: "RAT" : en attente de rattrapage</li>
 </ul>
 
 <h4>Janvier 2010</h4>
 <ul>
-<li>Suivez l'actualité du développement sur Twitter: <a href="https://twitter.com/ScoDoc">@ScoDoc</a></li>
+<li>Suivez l'actualitÃ© du dÃ©veloppement sur Twitter: <a href="https://twitter.com/ScoDoc">@ScoDoc</a></li>
 <li>Nouveau menu "Groupes" pour faciliter la prise en main</li>
-<li>Possibilité de définir des règles ad hoc de calcul des moyennes de modules (formules)</li>
-<li>Possibilité d'inclure des images (logos) dans les bulletins PDF</li>
+<li>PossibilitÃ© de dÃ©finir des rÃ¨gles ad hoc de calcul des moyennes de modules (formules)</li>
+<li>PossibilitÃ© d'inclure des images (logos) dans les bulletins PDF</li>
 <li>Bandeau "provisoire" sur les bulletins en cours de semestre</li>
 <li>Possibilite de valider (capitaliser) une UE passee hors ScoDoc</li>
-<li>Amelioration de l'édition des programmes (formations)</li>
-<li>Nombreuses améliorations mineures</li>
+<li>Amelioration de l'Ã©dition des programmes (formations)</li>
+<li>Nombreuses amÃ©liorations mineures</li>
 </ul>
 
 <h4>Novembre 2009</h4>
 <ul>
 <li>Gestion des partitions et groupes en nombres quelconques</li>
 <li>Nouvelle gestion des photos</li>
-<lI>Imports d'étudiants excel incrémentaux</li>
-<li>Optimisations et petites améliorations</li>
+<lI>Imports d'Ã©tudiants excel incrÃ©mentaux</li>
+<li>Optimisations et petites amÃ©liorations</li>
 </ul>
 
 <h4>Septembre 2009</h4>
 <ul>
-<li>Traitement de "billets d'absences" (saisis par les étudiants sur le portail)</li>
+<li>Traitement de "billets d'absences" (saisis par les Ã©tudiants sur le portail)</li>
 </ul>
 
 <h4>Juin 2009</h4>
 <ul>
-<li>Nouveau système plus flexibles de gestion des préférences (ou "paramètres")</li>
-<li>Possiblité d'associer une nouvelle version de programme à un semestre</li>
-<li>Corrections et améliorations diverses</h4>
+<li>Nouveau systÃ¨me plus flexibles de gestion des prÃ©fÃ©rences (ou "paramÃ¨tres")</li>
+<li>PossiblitÃ© d'associer une nouvelle version de programme Ã  un semestre</li>
+<li>Corrections et amÃ©liorations diverses</h4>
 </ul>
 
 <h4>Juillet 2008: version 6.0</h4>
 <ul>
-<li>Installeur automatisé pour Linux</li>
-<li>Amélioration ergonomie (barre menu pages semestres)</li>
-<li>Refonte fiche étudiant (parcours)</li>
+<li>Installeur automatisÃ© pour Linux</li>
+<li>AmÃ©lioration ergonomie (barre menu pages semestres)</li>
+<li>Refonte fiche Ã©tudiant (parcours)</li>
 <li>Archivage des documents (PV)</li>
-<li>Nouvel affichage des notes des évaluations</li>
-<li>Nombreuses corrections et améliorations</li>
+<li>Nouvel affichage des notes des Ã©valuations</li>
+<li>Nombreuses corrections et amÃ©liorations</li>
 </ul>
 
 <h4>Juin 2008</h4>
@@ -105,7 +105,7 @@ SCONEWS = """
 <li>Rangs sur les bulletins</li>
 </ul>
 
-<h4>Février 2008</h4>
+<h4>FÃ©vrier 2008</h4>
 <ul>
 <li>Statistiques et suivis de cohortes (chiffres et graphes)</li>
 <li>Nombreuses petites corrections suites aux jurys de janvier</li>
@@ -113,141 +113,141 @@ SCONEWS = """
 
 <h4>Janvier 2008</h4>
 <ul>
-<li>Personnalisation des régles de calculs notes d'option (sport, culture)</li>
+<li>Personnalisation des rÃ©gles de calculs notes d'option (sport, culture)</li>
 <li>Edition de PV de jury individuel</li>
 </ul>
 
 <h4>Novembre 2007</h4>
 <ul>
-<li>Vérification des absences aux évaluations</li>
+<li>VÃ©rification des absences aux Ã©valuations</li>
 <li>Import des photos depuis portail, trombinoscopes en PDF</li>
 </ul>
 
 <h4>Septembre 2007</h4>
 <ul>
-<li>Importation des etudiants depuis étapes Apogée</li>
-<li>Inscription de groupes à des modules (options ou parcours)</li>
-<li>Listes de étapes Apogée (importées du portail)</li>
+<li>Importation des etudiants depuis Ã©tapes ApogÃ©e</li>
+<li>Inscription de groupes Ã  des modules (options ou parcours)</li>
+<li>Listes de Ã©tapes ApogÃ©e (importÃ©es du portail)</li>
 </ul>
 
 <h4>Juillet 2007</h4>
 <ul>
 <li>Import utilisateurs depuis Excel</li>
-<li>Nouvelle gestion des passage d'un semestre à l'autre</li>
+<li>Nouvelle gestion des passage d'un semestre Ã  l'autre</li>
 </ul>
 
 <h4>Juin 2007: version 5.0</h4>
 <ul>
-<li>Suivi des parcours et règles de décision des jurys DUT</li>
+<li>Suivi des parcours et rÃ¨gles de dÃ©cision des jurys DUT</li>
 <li>Capitalisation des UEs</li>
-<li>Edition des PV de jurys et courriers aux étudiants</li>
-<li>Feuilles (excel) pour préparation jurys</li>
-<li>Nombreuses petites améliorations</li>
+<li>Edition des PV de jurys et courriers aux Ã©tudiants</li>
+<li>Feuilles (excel) pour prÃ©paration jurys</li>
+<li>Nombreuses petites amÃ©liorations</li>
 </ul>
 
 <h4>Avril 2007</h4>
 <ul>
-<li>Paramètres de mise en page des bulletins en PDF</li>
+<li>ParamÃ¨tres de mise en page des bulletins en PDF</li>
 </ul>
 
-<h4>Février 2007</h4>
+<h4>FÃ©vrier 2007</h4>
 
 <ul>
-<li>Possibilité de ne <em>pas</em> publier les bulletins sur le portail</li>
-<li>Gestion des notes "en attente" (publication d'évaluations sans correction de toutes les copies)</li>
-<li>Amélioration formulaire saisie absences, saisie absences par semestre.</li>
+<li>PossibilitÃ© de ne <em>pas</em> publier les bulletins sur le portail</li>
+<li>Gestion des notes "en attente" (publication d'Ã©valuations sans correction de toutes les copies)</li>
+<li>AmÃ©lioration formulaire saisie absences, saisie absences par semestre.</li>
 </ul>
 
 <h4>Janvier 2007</h4>
 <ul>
-<li>Possibilité d'initialiser les notes manquantes d'une évaluation</li>
-<li>Recupération des codes NIP depuis Apogée</li>
-<li>Gestion des compensations inter-semestre DUT (en cours de développement)</li>
+<li>PossibilitÃ© d'initialiser les notes manquantes d'une Ã©valuation</li>
+<li>RecupÃ©ration des codes NIP depuis ApogÃ©e</li>
+<li>Gestion des compensations inter-semestre DUT (en cours de dÃ©veloppement)</li>
 <li>Export trombinoscope en archive zip</li>
 </ul>
 
 <h4>Octobre 2006</h4>
 <ul>
-<li>Réorganisation des pages d'accueil</li>
-<li>Ajout des "nouvelles" (dernières opérations), avec flux RSS</li>
+<li>RÃ©organisation des pages d'accueil</li>
+<li>Ajout des "nouvelles" (derniÃ¨res opÃ©rations), avec flux RSS</li>
 <li>Import/Export XML des formations, duplication d'une formation (versions)</li>
-<li>Bulletins toujours sur une seule feuille (passage à ReportLab 2.0)</li>
+<li>Bulletins toujours sur une seule feuille (passage Ã  ReportLab 2.0)</li>
 <li>Suppression d'un utilisateur</il>
 </ul>
 <h4>Septembre 2006</h4>
 <ul>
 <li>Page pour suppression des groupes.</li>
-<li>Amélioration gestion des utilisateurs</li>
+<li>AmÃ©lioration gestion des utilisateurs</li>
 <li>"Verrouillage" des semestres</li>
-<li>Liste d'enseignants (chargés de TD) associés à un module (et pouvant saisir des notes)</li>
+<li>Liste d'enseignants (chargÃ©s de TD) associÃ©s Ã  un module (et pouvant saisir des notes)</li>
 <li>Noms de types de groupes (TD, TP, ...) modifiables</li>
-<li>Tableau rudimentaire donnant la répartition des bacs dans un semestre</li>
-<li>Amélioration mise en page des listes au format excel</li>
-<li>Annulation des démissions</li>
+<li>Tableau rudimentaire donnant la rÃ©partition des bacs dans un semestre</li>
+<li>AmÃ©lioration mise en page des listes au format excel</li>
+<li>Annulation des dÃ©missions</li>
 </ul>
 
 <h4>Juillet 2006</h4>
 <ul>
-<li>Dialogue permettant au directeur des études de modifier
+<li>Dialogue permettant au directeur des Ã©tudes de modifier
 les options d'un semestre</li>
-<li>Option pour ne pas afficher les UE validées sur les bulletins</li>
+<li>Option pour ne pas afficher les UE validÃ©es sur les bulletins</li>
 </ul>
 
 <h4>30 juin 2006</h4>
 <ul>
-<li>Option pour ne pas afficher les décisions sur les bulletins</li>
-<li>Génération feuilles pour préparation jury</li>
+<li>Option pour ne pas afficher les dÃ©cisions sur les bulletins</li>
+<li>GÃ©nÃ©ration feuilles pour prÃ©paration jury</li>
 <li>Gestion des modules optionnels</li>
-<li>Prise en compte note "activités culturelles ou sportives"</li>
-<li>Amélioration tableau de bord semestre</li>
-<li>Import listes étudiants depuis Excel (avec code Apogée)</li>
+<li>Prise en compte note "activitÃ©s culturelles ou sportives"</li>
+<li>AmÃ©lioration tableau de bord semestre</li>
+<li>Import listes Ã©tudiants depuis Excel (avec code ApogÃ©e)</li>
 </ul>
 
 <h4>12 juin 2006</h4>
 <ul>
 <li>Formulaire dynamique d'affectation aux groupes</li>
-<li>Tri des tableaux (listes, récapitulatif)</li>
+<li>Tri des tableaux (listes, rÃ©capitulatif)</li>
 <li>Export XML des infos sur un etudiant et des groupes</li>
 </ul>
 
 <h4>12 mai 2006</h4>
 <ul>
-<li>Possibilité de suppression d'un semestre</li>
+<li>PossibilitÃ© de suppression d'un semestre</li>
 <li>Export XML du tableau recapitulatif des notes du semestre</li>
-<li>Possibilité de supression d'une formation complète</li>
+<li>PossibilitÃ© de supression d'une formation complÃ¨te</li>
 </ul>
 
 <h4>24 avril 2006</h4>
 <ul>
-<li>Export bulletins en XML (expérimental)</li>
+<li>Export bulletins en XML (expÃ©rimental)</li>
 <li>Flag "gestion_absence" sur les semestres de formation</li>
 </ul>
 
 <h4>4 mars 2006</h4>
 <ul>
 <li>Formulaire d'inscription au semestre suivant.</li>
-<li>Format "nombre" dans les feuilles excel exportées.</li>
+<li>Format "nombre" dans les feuilles excel exportÃ©es.</li>
 </ul>
 
-<h4>23 février 2006</h4>
+<h4>23 fÃ©vrier 2006</h4>
 <ul>
-<li>Décisions jury sur bulletins.</li>
+<li>DÃ©cisions jury sur bulletins.</li>
 </ul>
 
 <h4>17 janvier 2006</h4>
 <ul>
-<li>Ajout et édition d'appréciations sur les bulletins.</li>
+<li>Ajout et Ã©dition d'apprÃ©ciations sur les bulletins.</li>
 </ul>
 <h4>12 janvier 2006</h4>
 <ul>
-<li>Envoi des bulletins en PDF par mail aux étudiants.</li>
+<li>Envoi des bulletins en PDF par mail aux Ã©tudiants.</li>
 </ul>
 
 <h4>6 janvier 2006</h4>
 <ul>
 <li>Affichage des ex-aequos.</li>
-<li>Classeurs bulletins PDF en différentes versions.</li>
-<li>Corrigé gestion des notes des démissionnaires.</li>
+<li>Classeurs bulletins PDF en diffÃ©rentes versions.</li>
+<li>CorrigÃ© gestion des notes des dÃ©missionnaires.</li>
 </ul>
 
 <h4>1er janvier 2006</h4>
@@ -256,37 +256,37 @@ les options d'un semestre</li>
 <li>Lecture des feuilles de notes Excel.</li>
 </ul>
 
-<h4>31 décembre 2005</h4>
+<h4>31 dÃ©cembre 2005</h4>
 <ul>
-<li>Listes générées au format Excel au lieu de CSV.</li>
-<li>Bug fix (création/saisie evals).</li>
+<li>Listes gÃ©nÃ©rÃ©es au format Excel au lieu de CSV.</li>
+<li>Bug fix (crÃ©ation/saisie evals).</li>
 </ul>
 
-<h4>29 décembre 2005</h4>
+<h4>29 dÃ©cembre 2005</h4>
 <ul>
 <li>Affichage des moyennes de chaque groupe dans tableau de bord module.
 </ul>
 
-<h4>26 décembre 2005</h4>
+<h4>26 dÃ©cembre 2005</h4>
 <ul>
-<li>Révision inscription/édition <em>individuelle</em> d'étudiants.</li>
-<li>Amélioration fiche étudiant (cosmétique, liste formations, actions).</li>
-<li>Listings notes d'évaluations anonymes (utilité douteuse ?).</li>
-<li>Amélioration formulaire saisie notes ('enter' -> champ suivant).</li>
+<li>RÃ©vision inscription/Ã©dition <em>individuelle</em> d'Ã©tudiants.</li>
+<li>AmÃ©lioration fiche Ã©tudiant (cosmÃ©tique, liste formations, actions).</li>
+<li>Listings notes d'Ã©valuations anonymes (utilitÃ© douteuse ?).</li>
+<li>AmÃ©lioration formulaire saisie notes ('enter' -> champ suivant).</li>
 </ul>
 
-<h4>24 décembre 2005</h4>
+<h4>24 dÃ©cembre 2005</h4>
 <ul>
-<li>Génération de bulletins PDF
+<li>GÃ©nÃ©ration de bulletins PDF
 </li>
-<li>Suppression de notes (permet donc de supprimer une évaluation)
+<li>Suppression de notes (permet donc de supprimer une Ã©valuation)
 </li>
 <li>Bulletins en versions courtes (seulement moyennes de chaque module), longues
-(toutes les notes) et intermédiaire (moyenne de chaque module plus notes dans les évaluations sélectionnées).
+(toutes les notes) et intermÃ©diaire (moyenne de chaque module plus notes dans les Ã©valuations sÃ©lectionnÃ©es).
 </li>
-<li>Notes moyennes sous les barres en rouge dans le tableau récapitulatif (seuil=10 sur la moyenne générale, et 8 sur chaque UE).
+<li>Notes moyennes sous les barres en rouge dans le tableau rÃ©capitulatif (seuil=10 sur la moyenne gÃ©nÃ©rale, et 8 sur chaque UE).
 </li>
-<li>Colonne "groupe de TD" dans le tableau récapitulatif des notes.
+<li>Colonne "groupe de TD" dans le tableau rÃ©capitulatif des notes.
 </ul>
 """
 
