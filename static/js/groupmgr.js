@@ -97,7 +97,7 @@ CGroupBox.prototype = {
       return;
     }
     if ( group_id in MyUpdater.groups ) {
-      alert("Le groupe " + group_id + " existe dÈj‡ !");
+      alert("Le groupe " + group_id + " existe d√©j√† !");
       return;
     }
     MyUpdater.groups[group_id] = 1;
@@ -249,7 +249,7 @@ function createGroup() {
   for (var group_id in groupBoxes) { 
     if (group_id != 'extend') {
       if (groupBoxes[group_id].group_name == group_name) {
-	alert("Nom de groupe dÈja existant !");
+	alert("Nom de groupe d√©ja existant !");
 	return false;
       }
     }
@@ -334,7 +334,7 @@ function processResponse(target, value) {
     // $(target).innerHTML = value;  // maintenant inutile car reload global
     // groups_unsaved = false;
     // updatesavedinfo();
-    location.reload(); // necessaire pour reinitialiser les id des groupes crÈÈs
+    location.reload(); // necessaire pour reinitialiser les id des groupes cr√©√©s
   }
 }
 
@@ -418,7 +418,7 @@ function updateginfo() {
       group_names.push(groupBoxes[group_id].group_name);
     }
   }
-  g.innerHTML = '<b>Groupes dÈfinis: ' + group_names.join(', ') + '<br/>'
+  g.innerHTML = '<b>Groupes d√©finis: ' + group_names.join(', ') + '<br/>'
     + "Nombre d'etudiants: " + NbEtuds + '</b>';
 
   updatesavedinfo();
@@ -428,7 +428,7 @@ function updateginfo() {
 function updatesavedinfo() {
   var g = document.getElementById('savedinfo');
   if (groups_unsaved) {
-    g.innerHTML = 'modifications non enregistrÈes';
+    g.innerHTML = 'modifications non enregistr√©es';
     g.style.visibility='visible';
   } else {
     g.innerHTML = '';
