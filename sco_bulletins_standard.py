@@ -243,8 +243,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                       'coef' : 1.5*cm, 'abs' : 2.0*cm }
         # HTML specific
         linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>&nbsp;'
-        minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
-        pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
+        minuslink = linktmpl % icontag('minus_img', border="0", alt="-")
+        pluslink  = linktmpl % icontag('plus_img', border="0", alt="+")
 
         # 1er ligne titres
         t = { 'min': 'Promotion', 'max' : '', 'rang' : 'Rang',

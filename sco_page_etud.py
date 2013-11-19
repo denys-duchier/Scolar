@@ -50,7 +50,7 @@ def _menuScolarite(context, authuser, sem, etudid):
     """
     locked = (sem['etat'] != '1')
     if locked: 
-        lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+        lockicon = icontag('lock32_img', title="verrouillé", border='0')
         return lockicon # no menu
     if not authuser.has_permission(ScoEtudInscrit,context) and not authuser.has_permission(ScoEtudChangeGroups,context):
         return '' # no menu
@@ -198,7 +198,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         if not context.canSuppressAnnotation(a['id'], REQUEST):
             a['dellink'] = ''
         else:
-            a['dellink'] = '<td bgcolor="%s" class="annodel"><a href="doSuppressAnnotation?etudid=%s&annotation_id=%s">%s</a></td>' % (a['bgcolor'], etudid, a['id'], context.icons.delete_img.tag(border="0", alt="suppress", title="Supprimer cette annotation"))
+            a['dellink'] = '<td bgcolor="%s" class="annodel"><a href="doSuppressAnnotation?etudid=%s&annotation_id=%s">%s</a></td>' % (a['bgcolor'], etudid, a['id'], icontag('delete_img', border="0", alt="suppress", title="Supprimer cette annotation"))
         alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) :<br/>%(comment)s</td>%(dellink)s</tr>' % a )
     info['liste_annotations'] = '\n'.join(alist)
     # fiche admission

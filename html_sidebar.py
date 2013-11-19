@@ -76,10 +76,10 @@ def sidebar(context, REQUEST=None):
     H = [ '<div class="sidebar">',
           sidebar_common(context, REQUEST) ]
     
-    H.append("""Chercher étudiant:<br/>
+    H.append("""<div class="box-chercheetud">Chercher étudiant:<br/>
 <form action="%(ScoURL)s/chercheEtud">
 <div><input type="text" size="12" name="expnom"></input></div>
-</form>
+</form></div>
 <div class="etud-insidebar">
 """ % params )
     # ---- s'il y a un etudiant selectionné:
@@ -121,7 +121,7 @@ def sidebar(context, REQUEST=None):
     # ---------
     H.append('</div><br/>&nbsp;') # /etud-insidebar
     # Logo
-    scologo_img = context.icons.scologo_img.tag()
+    scologo_img = icontag('scologo_img')
     H.append('<div class="logo-insidebar">%s<br/>' % scologo_img)
     H.append("""<a href="%(ScoURL)s/about" class="sidebar">A propos</a><br/>
 <a href="%(SCO_WEBSITE)s" class="sidebar">Aide</a><br/>

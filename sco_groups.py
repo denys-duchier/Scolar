@@ -541,20 +541,9 @@ def partition_create(context, formsemestre_id, partition_name='', default=False,
     else:
         return partition_id 
 
-def checkLastIcon(context, REQUEST):
-    """Check that most recent icon is installed.
-    If not, rebuild icons in Zope.
-    XXX now unnecessary (was for Zope icons), we now use icontag() from sco_utils.py
-    """
-    try: 
-        a = context.icons.delete_small_img
-    except:
-        context.do_build_icons_folder(REQUEST)
 
 def getArrowIconsTags(context, REQUEST):
     """returns html tags for arrows"""
-    # check that we have new icons:
-    checkLastIcon(context,REQUEST)
     #
     arrow_up   = icontag('arrow_up', title='remonter')
     arrow_down = icontag('arrow_down', title='descendre')
@@ -568,7 +557,7 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
     canedit = context.Notes.can_change_groups(REQUEST, formsemestre_id)
     partitions = get_partitions_list(context, formsemestre_id)
     arrow_up, arrow_down, arrow_none = getArrowIconsTags(context, REQUEST)
-    suppricon= context.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer')
+    suppricon= icontag('delete_small_img', border='0', alt='supprimer', title='Supprimer')
     #
     H = [ context.sco_header(REQUEST, page_title="Partitions...",
                              init_jquery_ui=True,

@@ -290,11 +290,10 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'index_html')
     def index_html(self, REQUEST=None):
         "Page accueil formations"
-        sco_groups.checkLastIcon(self, REQUEST)
-        lockicon = self.icons.lock32_img.tag(title="Comporte des semestres verrouillés", border='0')
-        suppricon= self.icons.delete_small_img.tag(border='0', alt='supprimer', title='Supprimer')
-        editicon = self.icons.edit_img.tag(border='0', alt='modifier', title='Modifier titres et code')
-
+        lockicon = icontag('lock32_img', title="Comporte des semestres verrouillés", border='0')
+        suppricon= icontag('delete_small_img', border='0', alt='supprimer', title='Supprimer')
+        editicon = icontag('edit_img', border='0', alt='modifier', title='Modifier titres et code')
+        
         editable = REQUEST.AUTHENTICATED_USER.has_permission(ScoChangeFormation,self)
 
         H = [ self.sco_header(REQUEST, page_title="Programmes formations"),

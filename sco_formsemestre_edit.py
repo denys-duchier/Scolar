@@ -69,7 +69,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
                                   ) ]
     if sem['etat'] != '1':
         H.append("""<p>%s<b>Ce semestre est verrouillé.</b></p>""" %
-                 context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+                 icontag('lock_img', border='0', title='Semestre verrouillé'))
     else:
         H.append(do_formsemestre_createwithmodules(context, REQUEST=REQUEST, edit=1 ))
         if not REQUEST.get('tf-submitted',False):

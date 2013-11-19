@@ -371,8 +371,8 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
     """
     H = []
     linktmpl  = '<span onclick="toggle_vis(this);" class="toggle_sem">%s</span>'
-    minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
-    pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
+    minuslink = linktmpl % icontag('minus_img', border="0", alt="-")
+    pluslink  = linktmpl % icontag('plus_img', border="0", alt="+")
     if show_details:
         sd = ' recap_show_details'
         plusminus = minuslink
@@ -460,7 +460,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         else:
             default_sem_info = ''
         if sem['etat'] != '1': # locked
-            lockicon = context.icons.lock32_img.tag(title="verrouillé", border='0')
+            lockicon = icontag('lock32_img', title="verrouillé", border='0')
             default_sem_info += lockicon
         H.append('<td class="datefin">%s</td><td class="sem_info">%s</td>'
                  % (sem['mois_fin'], 

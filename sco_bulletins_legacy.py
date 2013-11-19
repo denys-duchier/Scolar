@@ -88,8 +88,8 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
             bgcolor = 'background-color: rgb(255,255,240)'
         
         linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>'
-        minuslink = linktmpl % context.icons.minus_img.tag(border="0", alt="-")
-        pluslink  = linktmpl % context.icons.plus_img.tag(border="0", alt="+")
+        minuslink = linktmpl % icontag('minus_img', border="0", alt="-")
+        pluslink  = linktmpl % icontag('plus_img', border="0", alt="+")
 
         H = [ '<table class="notes_bulletin" style="background-color: %s;">' % bgcolor  ]
 

@@ -6,7 +6,9 @@ html,body {
   margin:0;
   padding:0;
   width: 100%;
-  background-color: rgb(238,238,255);
+  background-color: rgb(242,242,238);
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12pt;
 }
 
 a:link { color:  #008080 }
@@ -116,6 +118,7 @@ div.sidebar {
   width: 130px;
   border: black 1px;
   /* debug background-color: rgb(245,245,245); */
+   border-right: 1px solid rgb(210,210,210);
 }
 @media print {
 div.sidebar {
@@ -123,11 +126,11 @@ div.sidebar {
 }
 }
 a.sidebar:link { 
-  color:#358;
+  color: rgb(4,16,159);
   text-decoration:none;
 } 
 a.sidebar:visited { 
-   color: #358; 
+   color: rgb(4,16,159);
    text-decoration: none;
 }
 a.sidebar:hover {
@@ -163,6 +166,9 @@ ul.insidebar {
   list-style: circle;
 }
 
+div.box-chercheetud {
+  margin-top: 12px;
+}
 
 .etud-insidebar {
    font-size: small;
@@ -185,7 +191,7 @@ ul.insidebar {
 }
 
 div.logo-insidebar {
-   padding-left: 1em;
+   padding-left: 0;
 }
 
 div.etud_info_div {
@@ -240,6 +246,7 @@ table.listesems tr.firstsem td {
 }
 
 h2.listesems { 
+  padding-top: 10px;
   padding-bottom: 0px;
   margin-bottom: 0px;
 }
@@ -247,19 +254,20 @@ h2.listesems {
 /* ----- Liste des news ----- */
 
 div.news {
+   font-family :  "Helvetica Neue",Helvetica,Arial,sans-serif;
+   font-size: 10pt;
    margin-top: 1em;
    margin-bottom: 0px;
    margin-right: 16px;
    margin-left: 16px;
    padding:  0.5em;
-   background-color: #ffff93;
+   background-color: rgb(255,235,170);
    -moz-border-radius: 8px;
    -khtml-border-radius: 8px;
    border-radius: 8px;
 }
 
 span.newstitle {
-   font-family : arial, verdana, sans-serif ;
    font-weight: bold;
 }
 
@@ -271,10 +279,11 @@ ul.newslist {
 
 span.newsdate {
   padding-right: 2em;
+  font-family : monospace;
 }
 
 span.newstext {
-    font-style: italic; 
+    font-style: normal; 
 }
 
 /* --- infos sur premiere page Sco --- */

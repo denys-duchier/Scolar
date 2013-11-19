@@ -370,7 +370,7 @@ def fill_formsemestre(context, sem, REQUEST=None):
     sem['notes_url'] = notes_url
     formsemestre_id = sem['formsemestre_id']
     if sem['etat'] != '1':
-        sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (notes_url, sem['formsemestre_id'], context.icons.lock_img.tag(border='0',title='Semestre verrouillé'))
+        sem['locklink'] = """<a href="%s/formsemestre_change_lock?formsemestre_id=%s">%s</a>""" % (notes_url, sem['formsemestre_id'], icontag('lock_img', border='0', title='Semestre verrouillé'))
     else:
         sem['locklink'] = ''
     F = context.Notes.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]

@@ -421,7 +421,7 @@ h4 {
               """</head><body>""",
               CUSTOM_HTML_HEADER_CNX,
               self._check_users_folder(REQUEST=REQUEST), # ensure setup is done
-              self._check_icons_folder(REQUEST=REQUEST) ]
+        ]
         if message:
             H.append('<div id="message">%s</div>' % message )
         
@@ -467,9 +467,9 @@ h4 {
             H.append('<p><a href="%s/force_admin_authentication">Se connecter comme administrateur</a></p>' % REQUEST.BASE0)
 
         try:
-            img = self.icons.firefox_fr.tag(border='0')
+            img = icontag('firefox_fr', border='0')
         except:
-            img = '' # icons folder not yet available
+            img = '' # logo not available (?)
         H.append("""
 <div id="scodoc_attribution">
 <p><a href="%s">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
@@ -531,7 +531,7 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
 <a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 
 </div>
-""" % (deptfoldername, self.icons.firefox_fr.tag(border='0')),
+""" % (deptfoldername, icontag('firefox_fr', border='0')),
               self.standard_html_footer(self)]
         return '\n'.join(H)
 
@@ -822,14 +822,6 @@ subversion: %(svn_version)s
 
 </form>""")
 
-        # Autres opérations
-        H.append("""<h4>Autres opérations</h4>
-<ul>
-<li><a href="build_icons_folder">Reconstruire les icônes</a></li>
-</ul>
-""")
-
-
         H.append("""</body></html>""")
         return '\n'.join(H)
 
@@ -841,60 +833,6 @@ subversion: %(svn_version)s
         ids = [ os.path.split(os.path.splitext(f)[0])[1] for f in filenames ]
         return ids
     
-    def _check_icons_folder(self,REQUEST=None): # not published
-        """Vérifie icons folder Zope et le crée s'il le faut
-        XXX deprecated: on utilisera maintenant les images statiques via sco_utils.icontag()
-        """
-        try:
-            icons = self.icons
-            plus = self.icons.plus_img # upgrade jul 2008
-            arrow_up = self.icons.arrow_up # nov 2009
-            return '<!-- icons ok -->'
-        except:
-            e = self._check_admin_perm(REQUEST)
-            if not e: # admin permissions:
-                self.build_icons_folder(REQUEST)
-                return '<div class="head_message">Création du dossier icons réussie</div>'
-            else:
-                return """<div class="head_message">Installation non terminée: connectez vous avec les droits d'administrateur</div>"""
-
-    security.declareProtected('View', 'build_icons_folder')
-    def build_icons_folder(self,REQUEST=None): 
-        """Build folder with Zope images
-        """
-        e = self._check_admin_perm(REQUEST)
-        if e:
-            return e
-        return self.do_build_icons_folder(REQUEST=REQUEST)
-    
-    security.declareProtected('View', 'do_build_icons_folder')
-    def do_build_icons_folder(self,REQUEST=None): # not published
-        # Build folder with Zope images
-        id = 'icons'
-        try:
-            o = self[id]
-            exists = True
-        except:
-            exists = False
-        # If folder exists, destroy it !
-        if exists:
-            log('build_image_folder: destroying existing folder !')
-            self.manage_delObjects(ids=[ id ])
-        # Create Zope folder
-        log('build_image_folder: building new %s folder' % id )
-        self.manage_addProduct['OFSP'].manage_addFolder(id, title='ScoDoc icons')
-        folder = self[id]
-        # Create Zope images instances for each file in .../static/icons/*
-        path = self.file_path + '/static/icons/'
-        add_method = folder.manage_addProduct['OFSP'].manage_addImage
-        for filename in os.listdir(path):
-            if filename != '.svn':
-                iid = os.path.splitext(filename)[0]
-                log('adding image %s as %s' % (filename,iid))
-                add_method( iid, open(path+'/'+filename) )
-        
-        return 'ok'
-
     security.declareProtected('View', 'http_expiration_date')
     def http_expiration_date(self):
         "http expiration date for cachable elements (css, ...)"

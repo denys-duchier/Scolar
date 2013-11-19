@@ -1,14 +1,14 @@
 # -*- mode: python -*-
 # -*- coding: utf-8 -*-
 
-SCOVERSION = "7.0a2"
+SCOVERSION = "7.0a3"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
 <h4>Année 2013</h4>
 <ul>
-<li>Modernisation de certains de composants logiciels</li>
+<li>Modernisation de nombreux composants logiciels (ScoDoc 7)</li>
 <li>Saisie des absences par matières</li>
 </ul>
 <h4>Année 2012</h4>
