@@ -2152,7 +2152,7 @@ class ZNotes(ObjectManager,
             ('heure_fin'   , { 'title' : 'Heure de fin', 'explanation' : 'heure de fin de l\'épreuve',
                                'input_type' : 'menu', 'allowed_values' : heures, 'labels' : heures }),
             ('coefficient'    , { 'size' : 10, 'type' : 'float', 'explanation' : 'coef. dans le module (choisi librement par l\'enseignant)', 'allow_null':False }),
-        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 à', 'explanation' : 'barème', 'allow_null':False, 'max_value' : NOTES_MAX, 'min_value' : 1 }),
+        ('note_max'    , { 'size' : 3, 'type' : 'float', 'title' : 'Notes de 0 à', 'explanation' : 'barème', 'allow_null':False, 'max_value' : NOTES_MAX, 'min_value' : NOTES_PRECISION }),
 
             ('description' , { 'size' : 36, 'type' : 'text', 'explanation' : 'type d\'évaluation, apparait sur le bulletins longs. Exemples: "contrôle court", "examen de TP", "examen final".' }),    
             ('visibulletinlist', { 'input_type' : 'checkbox',

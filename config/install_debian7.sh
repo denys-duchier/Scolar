@@ -245,6 +245,8 @@ echo "Installation terminee."
 echo
 echo "Vous pouvez maintenant creer la base d'utilisateurs avec ./create_user_db.sh"
 echo "puis creer un departement avec  ./create_dept.sh"
+echo "Ou bien restaurer vos donnees a partir d'une ancienne installation a l'aide du script restore_scodoc_data.sh"
+echo "(voir https://trac.lipn.univ-paris13.fr/projects/scodoc/wiki/MigrationVersScoDocSept)"
 echo
 
 
