@@ -16,7 +16,7 @@ INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid)
 	FROM  notes_moduleimpl F, notes_formsemestre_inscription I 
 	WHERE I.formsemestre_id=F.formsemestre_id and F.formsemestre_id='SEM1157';
 
--- pour les etudianst demissionnaires oubliés !
+-- pour les etudianst demissionnaires oubliÃ©s !
 INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid) 
   SELECT F.moduleimpl_id, I.etudid 
   FROM  notes_moduleimpl F, notes_formsemestre_inscription I
@@ -61,7 +61,7 @@ INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid)
 
 
 
---- reinscription des GEA aux modules ajoutés en route
+--- reinscription des GEA aux modules ajoutÃ©s en route
 INSERT INTO notes_moduleimpl_inscription (moduleimpl_id, etudid) 
   SELECT 'GEAMIP1862', I.etudid FROM  notes_formsemestre_inscription I
   WHERE I.formsemestre_id='GEASEM32';

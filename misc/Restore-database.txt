@@ -1,6 +1,6 @@
 
 Notes sur la restauration de la base SQL complete
-(dans le cas d'une réinstallation sur une autre machine, par exemple)
+(dans le cas d'une rÃ©installation sur une autre machine, par exemple)
 
 
 1) Sur la machine origine, faire un dump complet:
@@ -27,7 +27,7 @@ Le copier sur la machine destination.
     dropdb SCOGEII
     ...
 
- Pour les feignants, voici un script (à lancer comme utilisateur postgres):
+ Pour les feignants, voici un script (Ã  lancer comme utilisateur postgres):
 for f in $(psql -l --no-align --field-separator . | grep SCO | cut -f 1 -d.); do
   echo dropping $f
   dropdb $f
@@ -40,14 +40,14 @@ done
    /opt/scodoc/instance/Products/ScoDoc/config/depts
   de la machine origine vers la nouvelle
 
- 1.4) Recopier les photos: copier le répertoire complet (avec ses sous-répertoires)
+ 1.4) Recopier les photos: copier le rÃ©pertoire complet (avec ses sous-rÃ©pertoires)
    /opt/scodoc/instance/Products/ScoDoc/static/photos
    
 
 Puis redemarrer ScoDoc:
   en tant que root: /etc/init.d/scodoc start
 
-NB: si la version des sources a changée, lancer imperativement le script de mise a jour 
+NB: si la version des sources a changÃ©e, lancer imperativement le script de mise a jour 
      avant de redemarrer scodoc, afin qu'il change si besoin la base de donnees:
 (en tant que root):
 cd /opt/scodoc/instance/Products/ScoDoc/config
@@ -55,7 +55,7 @@ cd /opt/scodoc/instance/Products/ScoDoc/config
 
 
 ----
-Cas d'une seule base à copier: (eg un seul département, mais faire
+Cas d'une seule base Ã  copier: (eg un seul dÃ©partement, mais faire
 attention aux utilisateurs definis dans la base SCOUSERS):
 
 En tant qu'utilisateur "postgres":

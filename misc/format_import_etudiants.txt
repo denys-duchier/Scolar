@@ -17,7 +17,7 @@ photo_filename; text; identite; 1; nom fichier image
 #
 # Informations pour inscription:
 codesemestre; text;     INS;        0;  code semestre inscription
-groupes;     text;     INS;        1;  groupe (séparés par des point-virgules, doivent exister avant)
+groupes;     text;     INS;        1;  groupe (sÃ©parÃ©s par des point-virgules, doivent exister avant)
 # 
 bac;          text;     admissions; 1;  type de bac (S, STI, ...)
 specialite;   text;     admissions; 1;  specialite du bac (SVT, ...)

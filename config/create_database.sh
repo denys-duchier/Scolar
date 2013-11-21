@@ -12,5 +12,5 @@ echo 'Creating postgresql database'
 
 # ---
 echo 'Creating postgresql database ' $db_name
-createdb -E LATIN1  -p $POSTGRES_PORT -O $POSTGRES_USER $db_name
+createdb -E UTF-8  -p $POSTGRES_PORT -O $POSTGRES_USER $db_name
 

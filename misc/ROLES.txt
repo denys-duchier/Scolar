@@ -1,7 +1,7 @@
 
 
 PERMISSION       : PERSONNE  typique :    ACTIONS
-ScoAdministrate  :  Chef Dept        : creation/modif Formations, UE, Matières, Modules
+ScoAdministrate  :  Chef Dept        : creation/modif Formations, UE, MatiÃ¨res, Modules
 ScoImplement     :  Chef Dept        : "implementation" d'une formation (creation d'un
                                         semestre ou session)
                                          -> creation/modif des formsemestre et moduleimpls

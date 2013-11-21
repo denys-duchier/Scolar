@@ -1,10 +1,11 @@
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Import direct des notes
 
 (utilise pour JCD Nov 2006)
 
-Les evaluations doivent avoir été créées au préalable.
+Les evaluations doivent avoir Ã©tÃ© crÃ©Ã©es au prÃ©alable.
 
 On part d'un fichier CSV avec:
 EVALUATION_ID   ETUDID    NOTE_VALUE

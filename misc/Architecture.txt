@@ -1,16 +1,16 @@
 
-                    Notes sur l'architecture générale du logiciel
+                    Notes sur l'architecture gÃ©nÃ©rale du logiciel
                    ============================
 
 Hierarchie Zope:
 
-Cette hiérarche est crée par ZScoDoc. Normalement, il n'y a jamais besoin d'utiliser la ZMI de Zope.
+Cette hiÃ©rarche est crÃ©e par ZScoDoc. Normalement, il n'y a jamais besoin d'utiliser la ZMI de Zope.
 
 ScoDoc (ZScoDoc instance)
-   icons/ (folder, (re)créé par build_icons_folder)
+   icons/ (folder, (re)crÃ©Ã© par build_icons_folder)
    UsersDB   (cnx db utilisateurs)
    acl_users (exUserFolder)
-   Dept1/  (folder)   <== pour le département d'id Dept1
+   Dept1/  (folder)   <== pour le dÃ©partement d'id Dept1
 	Fotos/ (folder)
         Scolarite (ZScolar instance)
             DB (cnx db notes)
@@ -22,30 +22,30 @@ ScoDoc (ZScoDoc instance)
         ...
 
 
-Bases de données
+Bases de donnÃ©es
 ===========
 
-En ScoDoc 6, les BD crées par défaut appartiennent à www-data qui peut donc y accéder sans mot de passe.
-Ce comportement peut être changé: il suffit de suivre et adapter les étapes du script create_dept.sh
-le fichier depts/DEPT.cfg doit contenir la chaine de connexion pour la BD de ce département. 
+En ScoDoc 6, les BD crÃ©es par dÃ©faut appartiennent Ã  www-data qui peut donc y accÃ©der sans mot de passe.
+Ce comportement peut Ãªtre changÃ©: il suffit de suivre et adapter les Ã©tapes du script create_dept.sh
+le fichier depts/DEPT.cfg doit contenir la chaine de connexion pour la BD de ce dÃ©partement. 
 
-La base SCOUSERS est partagée par tous les départements.
+La base SCOUSERS est partagÃ©e par tous les dÃ©partements.
 
 Fonctionnement de l'installeur
 ===================
 
-Le scrit d'install install_debian4.sh configure les logiciels nécessaires.
-Vous pouvez l'adapter à votre situation.
+Le scrit d'install install_debian4.sh configure les logiciels nÃ©cessaires.
+Vous pouvez l'adapter Ã  votre situation.
 
 L'image Zope standard (Data.fs) contient juste une instance vide de ScoDoc.
-(pour repartir d'une autre image Zope, ajouter une instance de ScoDoc à la racine, puis y accéder
-au moins une fois en tant qu'admin (view): c'est en effet lors de la première visite que sont créés les 
+(pour repartir d'une autre image Zope, ajouter une instance de ScoDoc Ã  la racine, puis y accÃ©der
+au moins une fois en tant qu'admin (view): c'est en effet lors de la premiÃ¨re visite que sont crÃ©Ã©s les 
 sous-objets).
 
-Les méthodes de l'objet ScoDoc (ZScoDoc.py) se chargent d'ajouter les objets nécessaires suivant 
-les départements créés.
+Les mÃ©thodes de l'objet ScoDoc (ZScoDoc.py) se chargent d'ajouter les objets nÃ©cessaires suivant 
+les dÃ©partements crÃ©Ã©s.
 
-Lors de la création d'un département dans Zope, on crée 3 rôles (EnsXXX, SecrXXX, AdminXXX) 
-et on ajuste les permissions. Ces permissions peuvent être modifiées (via la ZMI) ensuite.
+Lors de la crÃ©ation d'un dÃ©partement dans Zope, on crÃ©e 3 rÃ´les (EnsXXX, SecrXXX, AdminXXX) 
+et on ajuste les permissions. Ces permissions peuvent Ãªtre modifiÃ©es (via la ZMI) ensuite.
 
 

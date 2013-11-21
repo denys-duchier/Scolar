@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 """Affiche nombre d'inscriptions aux semestres pour chaque etudiant
 
    et supprime les etudiants jamais inscrits ayant un homonyme exact
@@ -11,7 +11,7 @@ import csv
 
 DBCNXSTRING = 'host=localhost user=scogea dbname=SCOXXXX password=XXXXX'
 
-SCO_ENCODING = 'iso8859-15'
+SCO_ENCODING = 'utf-8'
 
 cnx = psycopg.connect( DBCNXSTRING )
 
@@ -34,7 +34,7 @@ for e in R:
             nhomonoins += 1            
             print e['etudid'], e['nom'], e['prenom'], nbins
             # etudiant non inscrit ayant un homonyme exact:
-            #  il doit etre supprimé !!!            
+            #  il doit etre supprimÃ© !!!            
             #cursor.execute("delete from admissions where etudid=%(etudid)s", e)
             #cursor.execute("delete from identite where etudid=%(etudid)s", e)
 

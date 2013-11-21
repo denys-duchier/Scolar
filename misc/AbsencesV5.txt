@@ -2,27 +2,27 @@
 Idee pour nouveau gestionnaire d'absences "V5"
 
 Buts:
- - granularité: minute, affiche en unité paramétrable
- - justifications: idem (intervalles, précision minute)
- - mémoriser les plages déjà saisies.
- - mémoriser les types de justificatifs (categorie, description)
+ - granularitÃ©: minute, affiche en unitÃ© paramÃ©trable
+ - justifications: idem (intervalles, prÃ©cision minute)
+ - mÃ©moriser les plages dÃ©jÃ  saisies.
+ - mÃ©moriser les types de justificatifs (categorie, description)
      categorie in (sante, famille, transport, dispense, autre)
 
 Conventions: (heures en heure locale)
- - journée: de 00:00 à 23:59
- - demi-journéee: 
-     matin: de 01:00 à 12:59
-     apres midi: de 13:00 à 00:59
+ - journÃ©e: de 00:00 Ã  23:59
+ - demi-journÃ©ee: 
+     matin: de 01:00 Ã  12:59
+     apres midi: de 13:00 Ã  00:59
 
  Stockage des heures en TU
 
 
-Unité de compte:
+UnitÃ© de compte:
  - jours, demi-journee
- - heures : n'a de sens que par référence à un emploi du temps
+ - heures : n'a de sens que par rÃ©fÃ©rence Ã  un emploi du temps
 
 Affichages (web, bulletins, ...):
- - paramétrage global: unité de compte (jour, demi, heures)
+ - paramÃ©trage global: unitÃ© de compte (jour, demi, heures)
  
 
 
@@ -40,44 +40,44 @@ Objets:
 Nouvelle API:
 * Accesseurs:
  setAbsEvent(etudid, datetime_start, datetime_end)
-   Ajoute une absence, qui peut couvrir une période quelconque (15
+   Ajoute une absence, qui peut couvrir une pÃ©riode quelconque (15
    minutes ou plusieurs jours).
 
  delAbsEvent(absid)
     Supprime cette absence
 
  cancelAbs(etudid, datetime_start, datetime_end)
-   Supprime absences sur la période.
+   Supprime absences sur la pÃ©riode.
 
  setPresenceEvent(etudid, datetime_start, datetime_end)
-   Indique que l'étudiant était présent à cette période.
+   Indique que l'Ã©tudiant Ã©tait prÃ©sent Ã  cette pÃ©riode.
  delPresenceEvent(presid)
    Supprime cet evenement
  cancelPresence(etudid, datetime_start, datetime_end)
-   Supprime présence sur la période.
+   Supprime prÃ©sence sur la pÃ©riode.
 
  setJustif(etudid, datetime_start, datetime_end, categorie, description )
  delJustif(justid)
  cancelJustifs(etudid, datetime_start, datetime_end)
-   Justificatif d'absence pour cette période.
+   Justificatif d'absence pour cette pÃ©riode.
 
 * Comptages:
  countAbsHalfDays(etudid, datetime_start, datetime_end [,justif=None])
-   Nombre de demi-journées d'absences sur la période.
+   Nombre de demi-journÃ©es d'absences sur la pÃ©riode.
    Si justif == None, toutes les absences
-   Si justif True, seulement les absences justifiées
-   Si justif False, seulement les absences non justifiées.
+   Si justif True, seulement les absences justifiÃ©es
+   Si justif False, seulement les absences non justifiÃ©es.
 
  countAbsHours(etudid, datetime_start, datetime_end [,justif=None])
-   Nombre d'heures d'absences sur la période.
+   Nombre d'heures d'absences sur la pÃ©riode.
 
  listAbsHalfDays(etudid, datetime_start, datetime_end [,justif=None])
-   Liste d'absences groupées par demi-journées (s'il existe une
-   absence sur la demi-journée, même de courte durée, elle est considérée).
+   Liste d'absences groupÃ©es par demi-journÃ©es (s'il existe une
+   absence sur la demi-journÃ©e, mÃªme de courte durÃ©e, elle est considÃ©rÃ©e).
    Fonction utile pour afficher le calendrier.
 
  getAbsEventPeriod(etudid, datetime_start, datetime_end [,justif=None])
-   Liste des absences sur une période (evenement saisis, non fusionnés)
+   Liste des absences sur une pÃ©riode (evenement saisis, non fusionnÃ©s)
  getJustifPeriod(etudid, datetime_start, datetime_end)
  getPresencePeriod(etudid, datetime_start, datetime_end)
 
@@ -90,49 +90,49 @@ Interface Utilisateur:
  Etudiant / Ajouter absence : debut, fin, justification
                               (afficher si justif, presence, ou absence)
  Etudiant / Justifier       : debut, fin, categorie, description
-                              (afficher si absent ou present à ce moment)
+                              (afficher si absent ou present Ã  ce moment)
  Etudiant / Supprimer absence : afficher liste des absences (events)
  Etudiant / Annuler absence : afficher calendrier, saisir debut, fin
 
- Etudiant / Noter présence  : debut, fin
- Etudiant / Annuler présence:  afficher calendrier, saisir debut, fin
+ Etudiant / Noter prÃ©sence  : debut, fin
+ Etudiant / Annuler prÃ©sence:  afficher calendrier, saisir debut, fin
  Etudiant / Supprimer justificatif : affiche liste des justificatifs
  
- Etudiant / calendrier : indiquer présences (vert), absences (rouge, rose), justifs (bleu)
+ Etudiant / calendrier : indiquer prÃ©sences (vert), absences (rouge, rose), justifs (bleu)
 
  Etudiant / liste : liste textuelles des abs, pres, just.
 
-Affichages / étudiant:
- paramètre global = unité d'affichage: jours, 1/2 journées, heures
+Affichages / Ã©tudiant:
+ paramÃ¨tre global = unitÃ© d'affichage: jours, 1/2 journÃ©es, heures
  Calcul nb de jours: countAbsDays
 
 Liste absences date 
-+ réduire à heure contrôle
++ rÃ©duire Ã  heure contrÃ´le
 
 
 countAbsDays:
  select abs d'etuid entre debut et fin
- merger celles qui sont sur le même jour
+ merger celles qui sont sur le mÃªme jour
 countAbsHalfDays:
- merger par demi-journées
+ merger par demi-journÃ©es
   utiliser heure pivot (matin si fin < 12h30, pm si debut > 12h00)
 
 
 Saisie des absences / groupes:
  Semestre / groupe / jour semaine => formulaire actuel AM, PM
-   -> heures des plages AM et PM (paramètre global)
-   -> saisie simultannée des présences
-   sur chaque case: défaut rien
+   -> heures des plages AM et PM (paramÃ¨tre global)
+   -> saisie simultannÃ©e des prÃ©sences
+   sur chaque case: dÃ©faut rien
                     click => abs/pres/rien (cycle)
-   tête colonne: présents (ensuite: rien)
+   tÃªte colonne: prÃ©sents (ensuite: rien)
 
- [futur] Semestre / Module / séance (emplois du temps) / groupe 
-   => saisie d'une plage précise
+ [futur] Semestre / Module / sÃ©ance (emplois du temps) / groupe 
+   => saisie d'une plage prÃ©cise
 
-Vérification saisie des présences:
+VÃ©rification saisie des prÃ©sences:
   pour un semestre: calendrier
-   vert saisie pour tous les etuds (présence ou absence sur cette
-        demi-journée)
+   vert saisie pour tous les etuds (prÃ©sence ou absence sur cette
+        demi-journÃ©e)
    gris aucune saisie
    rose saisie partielle (indiquer dans une bulle les groupes non saisis)
  

@@ -78,7 +78,7 @@ where nue.formation_id = nf.formation_id
   and sem.date_debut < '2007-01-22 '
   and sem.semestre_id = 2;
 
-* Toutes les UE avec le même code formation que celui de formation_id:
+* Toutes les UE avec le mÃªme code formation que celui de formation_id:
 
 select nue.* from notes_ue nue, notes_formations nf, notes_formations nf2
 where nue.formation_id = nf.formation_id and nf.formation_code = nf2.formation_code and nf2.formation_id='FORM1703';

@@ -57,7 +57,7 @@ CREATE TABLE identite (
     photo_filename text,
     code_nip text UNIQUE, -- code NIP Apogee (may be null)
     code_ine text UNIQUE,  -- code INE Apogee    
-    nom_usuel text -- optionnel (si present, affiché à la place du nom)
+    nom_usuel text -- optionnel (si present, affichÃ© Ã  la place du nom)
 )  WITH OIDS;
 
 CREATE TABLE adresse (
@@ -134,7 +134,7 @@ CREATE TABLE billet_absence (
     description text, -- "raison" de l'absence
     etat integer default 0, -- 0 new, 1 processed    
     entry_date timestamp with time zone DEFAULT now(),
-    justified integer default 0 -- 1 si l'absence pourrait etre justifiée
+    justified integer default 0 -- 1 si l'absence pourrait etre justifiÃ©e
 ) WITH OIDS;
 
 
@@ -339,10 +339,10 @@ CREATE TABLE notes_formsemestre (
 	bul_hide_xml integer default 0, --  ne publie pas le bulletin XML
 	gestion_semestrielle integer default 0, -- semestres decales (pour gestion jurys)
 	bul_bgcolor text default 'white', -- couleur fond bulletins HTML
-	etape_apo text, -- code etape Apogée
-	etape_apo2 text,-- code etape Apogée secondaire (si deux etapes pour meme semestre)
-	etape_apo3 text,-- code etape Apogée secondaire (si trois etapes pour meme semestre)
-	etape_apo4 text,-- code etape Apogée secondaire (si quatre etapes pour meme semestre)
+	etape_apo text, -- code etape ApogÃ©e
+	etape_apo2 text,-- code etape ApogÃ©e secondaire (si deux etapes pour meme semestre)
+	etape_apo3 text,-- code etape ApogÃ©e secondaire (si trois etapes pour meme semestre)
+	etape_apo4 text,-- code etape ApogÃ©e secondaire (si quatre etapes pour meme semestre)
 	modalite text,   -- FI, FC, APP, ''
 	resp_can_edit integer default 0, -- autorise resp. a modifier semestre
 	resp_can_change_ens integer default 1, -- autorise resp. a modifier slt les enseignants
@@ -387,7 +387,7 @@ CREATE TABLE notes_moduleimpl (
 	UNIQUE(module_id,formsemestre_id) -- ajoute
 ) WITH OIDS;
 
--- Enseignants (chargés de TD ou TP) d'un moduleimpl
+-- Enseignants (chargÃ©s de TD ou TP) d'un moduleimpl
 CREATE TABLE notes_modules_enseignants (
 	modules_enseignants_id text default notes_newid('ENS') PRIMARY KEY,
 	moduleimpl_id text REFERENCES notes_moduleimpl(moduleimpl_id),
@@ -488,8 +488,8 @@ CREATE TABLE notes_notes_log (
 --                          (ou plutot, validation du semestre)
 --       AUT_RED     en fin semestre, autorise a redoubler ce semestre
 --       EXCLUS      exclus (== non autorise a redoubler)
---       VALID_SEM   obtention semestre après jury terminal
---       VALID_UE    obtention UE après jury terminal
+--       VALID_SEM   obtention semestre aprÃ¨s jury terminal
+--       VALID_UE    obtention UE aprÃ¨s jury terminal
 --       ECHEC_SEM   echec a ce semestre
 --       UTIL_COMPENSATION utilise formsemestre_id pour compenser et valider
 --                         comp_formsemestre_id
@@ -525,7 +525,7 @@ CREATE TABLE scolar_formsemestre_validation (
 	event_date timestamp default now(),
 	compense_formsemestre_id text, -- null sauf si compense un semestre
 	moy_ue real, -- moyenne UE capitalisee (/20, NULL si non calculee)
-	semestre_id int, -- (normalement NULL) indice du semestre, utile seulement pour UE "antérieures" et si la formation définit des UE utilisées dans plusieurs semestres (cas R&T IUTV v2)
+	semestre_id int, -- (normalement NULL) indice du semestre, utile seulement pour UE "antÃ©rieures" et si la formation dÃ©finit des UE utilisÃ©es dans plusieurs semestres (cas R&T IUTV v2)
 	UNIQUE(etudid,formsemestre_id,ue_id) -- une seule decision
 ) WITH OIDS;
 

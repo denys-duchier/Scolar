@@ -12,10 +12,10 @@
 
 . group_list(group_id, with_codes=False, all_groups=False, etat=None)
    (was listegroupe)
-  Liste des étudiants d'un groupe.
+  Liste des Ã©tudiants d'un groupe.
 
 . etud_info(etudid)
-   Infos sur un étudiant (was XMLgetEtudInfos)
+   Infos sur un Ã©tudiant (was XMLgetEtudInfos)
 
 
 
@@ -41,9 +41,9 @@ XML_pvjurypassagedut?formsemestre_id=X
   
   <etudiant nom="" prenom="" sexe="" etudid="" photo_url="" />
   
-  <note value="13.13" />    <!-- Moyenne générale -->
+  <note value="13.13" />    <!-- Moyenne gÃ©nÃ©rale -->
   
-  <rang value="3" ninscrits="64" /> <!-- 3ième sur 64 étudiants -->
+  <rang value="3" ninscrits="64" /> <!-- 3iÃ¨me sur 64 Ã©tudiants -->
   
   <note_max value="20" />  <!-- les notes de ce bulletin sont sur 20 -->
   
@@ -69,8 +69,8 @@ XML_pvjurypassagedut?formsemestre_id=X
      <date_capitalisation value="">
   </ue_capitalisee>
 
-  <!-- Informations sur l'assiduité (compte en 1/2 journées)
-       (n absences dont njust justifiées) -->
+  <!-- Informations sur l'assiduitÃ© (compte en 1/2 journÃ©es)
+       (n absences dont njust justifiÃ©es) -->
   <absences nbabs="" nbabsjust="" />  
 
   <!-- Situation etudiant -->
@@ -85,7 +85,7 @@ XML_pvjurypassagedut?formsemestre_id=X
 
 </bulletinetud>
 
-Si bulletin non publié, on a:
+Si bulletin non publiÃ©, on a:
 <bulletinetud etudid="" formsemestre_id="" date="" publie="0">
   
   <etudiant nom="" prenom="" sexe="" etudid="" photo_url="" />

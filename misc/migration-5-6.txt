@@ -10,9 +10,9 @@ psql -d postgres -f dumpall.txt
 
 puis eventuellement creer les fichiers de conf des departements.
 
- *Attention* :  les bases appartiennent maintenant toutes à www-data.
+ *Attention* :  les bases appartiennent maintenant toutes Ã  www-data.
 
-On doit donc éditer dumpall.txt avant re-création:
+On doit donc Ã©diter dumpall.txt avant re-crÃ©ation:
  - supprimer tous  les CREATE ROLE et ALTER ROLE
   et mettre a la place:
  - modifier les CREATE DATABASE: mettre OWNER = www-data
@@ -28,7 +28,7 @@ done
 
 
 
-Etapes à suivre
+Etapes Ã  suivre
 ------------
 aptitude update && aptitude dist-upgrade
 aptitude install postgresql-client-8.1
@@ -37,7 +37,7 @@ aptitude install postgresql-client-8.1
 su postgres
 /usr/lib/postgresql/8.1/bin/pg_dumpall > scodoc-psql74.dumpall.txt
 editer le dump: pour cela:
- arrêter le 7.4: /etc/init.d/postgresql-7.4 stop
+ arrÃªter le 7.4: /etc/init.d/postgresql-7.4 stop
  installer et lancer le serveur 8.1
 
  su postgres
