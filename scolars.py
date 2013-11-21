@@ -121,7 +121,7 @@ def format_sexe(sexe):
     if sexe == 'mr':
         return 'M.'
     else:
-        return sexe.capitalize()
+        return 'Mme'
 
 def normalize_sexe(sexe):
     "returns 'MR' ou 'MME'"

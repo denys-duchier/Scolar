@@ -540,7 +540,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        nomprenom = t['nom'] + ' ' + t['prenom'].lower().capitalize()
+        nomprenom = t['sexe'] + ' '+ t['nom'] + ' ' + t['prenom'].lower().capitalize()
         style_nom = style2t3
         if with_paiement:
             paie = t.get('paiementinscription', None)

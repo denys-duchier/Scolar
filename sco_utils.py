@@ -376,7 +376,6 @@ def stripquotes(s):
 
 def suppress_accents(s):
     "s is an ordinary string, encoding given by SCO_ENCODING"
-    log('s=%s'%str(s))    
     return str(suppression_diacritics(unicode(s, SCO_ENCODING)))
 
 def make_filename(name):

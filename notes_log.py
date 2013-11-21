@@ -19,11 +19,16 @@ ALARM_DESTINATION = 'emmanuel.viennet@univ-paris13.fr' # XXX a mettre en prefere
 class _logguer:
     def __init__(self):
         self.file = None
+        self.directory = None
         self.set_log_directory( DEFAULT_LOG_DIR )
         
     def set_log_directory(self, directory):
+        if self.directory != directory and self.file:
+            # changing directory when a log is already open: close it
+            self.file.close()
+            self.file = None
         self.directory = directory
-
+    
     def _open(self):
         if LOG_FILENAME:
             path = os.path.join( self.directory, LOG_FILENAME )

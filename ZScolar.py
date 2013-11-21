@@ -37,7 +37,6 @@ except: from StringIO import StringIO
 from zipfile import ZipFile
 import thread
 import psycopg2
-import testencoding
 
 # Zope modules:
 from OFS.SimpleItem import Item # Basic zope object
@@ -228,9 +227,6 @@ class ZScolar(ObjectManager,
             role_name = role_type + DeptId
             DeptRoles.append( role_name )
         return DeptRoles
-
-    security.declareProtected(ScoView, 'testencoding')
-    testencoding = testencoding.testencoding
 
     security.declareProtected(ScoView, 'essaiform')
     def essaiform(self,REQUEST=None):
