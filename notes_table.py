@@ -919,6 +919,7 @@ class CacheNotesTable:
                     self.cache = {}
                 self.pdfcache = {}
                 self._call_all_listeners()
+                context.get_evaluations_cache().inval_cache()
             else:
                 # formsemestre_id modifié:
                 # on doit virer formsemestre_id et tous les semestres
@@ -930,6 +931,7 @@ class CacheNotesTable:
                             log('delete %s from cache (id=%s)' % (formsemestre_id, id(self)))
                             del self.cache[formsemestre_id]
                             self._call_listeners(formsemestre_id)
+                    context.get_evaluations_cache().inval_cache()
                 
                 for formsemestre_id in to_trash:
                     for (cached_formsemestre_id, cached_version) in self.pdfcache.keys():

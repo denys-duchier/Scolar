@@ -2070,9 +2070,9 @@ function tweakmenu( gname ) {
             return self.confirmDialog(
                 """<h2>Confirmer la suppression de l'étudiant <b>%(nomprenom)s</b> ?</h2>
                 </p>
-                <p>Prennez le temps de vérifier que vous devez vraiment supprimer cet étudiant !</p>
-                <p>Cette opération <font color="red"><b>irreversible</b></font> efface toute trace de l'étudiant: inscriptions, <b>notes</b>, absences... dans <b>tous les semestres</b> qu'il a fréquenté.</p>
-                <p>Peut être voulez vous seulement de désinscrire d'un semestre ? (dans ce cas passez par sa fiche, menu associé au semestre)</p>
+                <p style="top-margin: 2ex; bottom-margin: 2ex;">Prenez le temps de vérifier que vous devez vraiment supprimer cet étudiant !</p>
+                <p>Cette opération <font color="red"><b>irréversible</b></font> efface toute trace de l'étudiant: inscriptions, <b>notes</b>, absences... dans <b>tous les semestres</b> qu'il a fréquenté.</p>
+                <p>Dans la plupart des cas, vous avez seulement besoin de le <ul>désinscrire</ul> d'un semestre ? (dans ce cas passez par sa fiche, menu associé au semestre)</p>
 
                 <p><a href="ficheEtud?etudid=%(etudid)s">Vérifier la fiche de %(nomprenom)s</a>
                 </p>""" % etud,
