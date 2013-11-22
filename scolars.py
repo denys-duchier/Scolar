@@ -118,7 +118,7 @@ def format_nom(s):
 
 def format_sexe(sexe):
     sexe = sexe.lower()
-    if sexe == 'mr':
+    if sexe == 'mr' or sexe == 'm.':
         return 'M.'
     else:
         return 'Mme'
