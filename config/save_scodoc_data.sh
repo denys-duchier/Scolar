@@ -16,13 +16,13 @@ then
   exit 1
 fi
 DEST=$1
-if [ ! -e $DEST ]
+if [ ! -e "$DEST" ]
 then
-  echo Creating directory $DEST
-  mkdir $DEST
+  echo Creating directory "$DEST"
+  mkdir "$DEST"
 else
-  echo "Error: Directory $DEST exists "
-  echo "remove it or specify another destination"
+  echo "Error: Directory " "$DEST"  " exists"
+  echo "remove it or specify another destination !"
   exit 2
 fi
 
@@ -37,40 +37,41 @@ echo "Stopping ScoDoc..."
 
 # Dump all postgres databases
 echo "Dumping SQL database..."
-chown postgres $DEST
-su -c "pg_dumpall > $DEST/scodoc.dump.txt" postgres
+chown postgres "$DEST"
+su -c "pg_dumpall > \"$DEST\"/scodoc.dump.txt" postgres
 if [ ! $? -eq 0 ] 
 then
   echo "Error dumping postgresql database\nPlease check that SQL server is running\nAborting."
   exit 1
 fi
-chown root $DEST
+chown root "$DEST"
 
 # Depts db config
 echo "Copying depts configs..."
-cp -rp "$SCODOC_DIR/config/depts" $DEST
+cp -rp "$SCODOC_DIR/config/depts" "$DEST"
 
 # Zope DB and ScoDoc archives:
 echo "Copying var/ ..." 
-cp -rp "$INSTANCE_DIR/var" $DEST
+cp -rp "$INSTANCE_DIR/var" "$DEST"
 
 # Photos des etudiants
 echo "Copying photos..."
-cp -rp "$SCODOC_DIR/static/photos" $DEST
+cp -rp "$SCODOC_DIR/static/photos" "$DEST"
 
 echo "Copying logos..."
-cp -rp "$SCODOC_DIR/logos" $DEST
+cp -rp "$SCODOC_DIR/logos" "$DEST"
 
 echo "Copying configuration file..."
-cp -p "$SCODOC_DIR/config/scodoc_config.py" $DEST
+cp -p "$SCODOC_DIR/config/scodoc_config.py" "$DEST"
 
 echo "Copying server logs..."
-cp -rp "$INSTANCE_DIR/log" $DEST
+cp -rp "$INSTANCE_DIR/log" "$DEST"
 
 
 # --- Archive all files in a tarball to ease transfer
 echo
 echo "Archiving backup files in a $DEST.tgz..."
-(cd $DEST/..; tar cfz $DEST.tgz $(basename $DEST))
+base=$(basename "$DEST")
+(cd "$DEST"/..; tar cfz "$DEST".tgz "$base")
 
-echo "Done (you can copy $DEST.tgz to destination machine)."
+echo "Done (you can copy " "$DEST"".tgz to destination machine)."
