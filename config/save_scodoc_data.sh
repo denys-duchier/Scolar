@@ -16,6 +16,10 @@ then
   exit 1
 fi
 DEST=$1
+# remove trailing slashs if needed:
+shopt -s extglob
+DEST="${DEST%%+(/)}"
+
 if [ ! -e "$DEST" ]
 then
   echo Creating directory "$DEST"

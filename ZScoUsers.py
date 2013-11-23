@@ -949,16 +949,14 @@ class ZScoUsers(ObjectManager,
             if not with_olds:
                 cache.set(dept, l)
             return l
-
+    
     security.declareProtected(ScoView, 'get_userlist_xml')
     def get_userlist_xml(self, dept=None, start='', limit=25, REQUEST=None):
         """Returns XML list of users with name (nomplogin) starting with start.
         Used for forms auto-completion."""
-        # log('get_userlist_xml: start="%s" (%s)' % (start, repr(start)) )
         userlist = self.get_userlist(dept=dept)
-        
         start = suppression_diacritics(unicode(start, 'utf-8'))
-        start = str(start).lower()        
+        start = str(start).lower()
         
         userlist = [ user for user in userlist if user['nomnoacc'].startswith(start) ]
         if REQUEST:
@@ -969,7 +967,7 @@ class ZScoUsers(ObjectManager,
             doc._push()
             doc.rs(user['nomplogin'], id=user['user_id'], info='')
             doc._pop()
-        return doc
+        return repr(doc)
 
     security.declareProtected(ScoView, 'get_user_name_from_nomplogin')
     def get_user_name_from_nomplogin(self, nomplogin):
