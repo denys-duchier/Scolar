@@ -41,9 +41,17 @@ then
   exit 1
 fi
 
-# Source directory
 SRC=$1
-if [ ${SRC##*.} = 'tgz' ]
+
+if [ "${SRC:0:1}" != "/" ]
+then
+  echo "Usage: $0 directory_or_archive"
+  echo "Erreur: utiliser un chemin absolu (commencant par /)"
+  exit 1
+fi
+
+# Source directory
+if [ "${SRC##*.}" = 'tgz' ]
 then
   echo "Opening tgz archive..."
   tmp=$(mktemp -d)
@@ -90,6 +98,13 @@ $COPY "$SRC/scodoc_config.py" "$SCODOC_DIR/config/"
 
 rm -rf "$INSTANCE_DIR/log"
 $COPY "$SRC/log" "$INSTANCE_DIR/"
+
+# Fix file ownership and access rights
+chown -R www-data.root "$INSTANCE_DIR/log" 
+chown -R www-data.root "$INSTANCE_DIR/var" 
+chmod 775 "$INSTANCE_DIR./log" "$INSTANCE_DIR./var" 
+chown -R  www-data.root "$SCODOC_DIR"
+chmod -R 775 "$SCODOC_DIR"
 
 # Remove tmp directory
 if [ $IS_TMP = "1" ]

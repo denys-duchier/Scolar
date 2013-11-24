@@ -73,6 +73,7 @@ echo 'Done.'
 
 # ------------ AJOUT DES PAQUETS NECESSAIRES
 apt-get update
+apt-get -y dist-upgrade
 apt-get -y install subversion curl cracklib-runtime firehol
 apt-get -y install apache2 ssl-cert 
 apt-get -y install postgresql-9.1 postgresql-client-9.1
@@ -104,6 +105,9 @@ apt-get -y remove python-pydot
 
 # UNUSED BY ScoDoc 7:
 # SOFTS="$SCODOC_DIR/config/softs"
+
+# ------------ Upgrade from svn
+(cd "${SCODOC_DIR}"; svn update)
 
 # ------------
 SVNVERSION=$(cd ..; svnversion)
