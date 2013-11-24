@@ -1062,6 +1062,8 @@ class ZScolar(ObjectManager,
         dest_url est la page sur laquelle on sera redirigé après choix
         parameters spécifie des arguments additionnels a passer à l'URL (en plus de etudid)
         """
+        if type(expnom) == ListType:
+            expnom = expnom[0]
         q = []
         if parameters:
             for param in parameters.keys():
