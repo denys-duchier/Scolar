@@ -1147,7 +1147,6 @@ class ZScolar(ObjectManager,
         cnx = self.GetDBConnexion()
         #open('/tmp/t','w').write( str(etuds) )
         for etud in etuds:
-            scolars.format_etud_ident(etud)
             etudid = etud['etudid']
             adrs = scolars.adresse_list(cnx, {'etudid':etudid})
             if not adrs:
@@ -1159,7 +1158,8 @@ class ZScolar(ObjectManager,
                 if len(adrs) > 1:
                     log('fillEtudsInfo: etudid=%s a %d adresses'%(etudid,len(adrs)))
             etud.update(adr)
-            
+            scolars.format_etud_ident(etud)
+                        
             # Semestres dans lesquel il est inscrit
             ins = self.Notes.do_formsemestre_inscription_list({'etudid':etudid})
             etud['ins'] = ins

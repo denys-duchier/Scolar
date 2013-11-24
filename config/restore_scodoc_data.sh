@@ -112,6 +112,10 @@ then
   cd /
   rm -rf $tmp
 fi
+
+# Mise a jour BD ScoDoc
+./upgrade.sh
+
 #
 echo
 echo "Ok. Run \"/etc/init.d/scodoc start\" to start ScoDoc."
