@@ -226,7 +226,7 @@ class NotesTable:
                     # rang alphabetique par nom
                     return rangalpha[x[-1]] - rangalpha[y[-1]]
                 else:
-                    return cmp(type(vx),type(vy))
+                    return cmp(type(vy),type(vx))
                     # fallback *** should not occur ***
                     #txt = '\nkey missing in cmprows !!!\nx=%s\ny=%s\n' % (str(x),str(y)) 
                     #txt += '\nrangalpha=%s' % str(rangalpha) + '\n\nT=%s' % str(T)
