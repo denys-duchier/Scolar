@@ -54,7 +54,10 @@ class AdvancedCookieCacheItem(UserCacheItem):
 		self.password=password
 		self.lastAccessed=time()
 
-SessionExpiredException='User Session Expired'
+class SessionExpiredException(Exception):
+    'User Session Expired'
+
+
 class UserCache:
 	def __init__(self, sessionLength):
 		self.sessionLength=sessionLength
