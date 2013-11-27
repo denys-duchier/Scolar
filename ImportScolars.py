@@ -91,10 +91,10 @@ def sco_import_generate_excel_sample( format,
     titles = []
     titlesStyles = []
     for l in format:
-        name = l[0].lower()
+        name = strlower(l[0])
         if (not with_codesemestre) and name == 'codesemestre':
             continue # pas de colonne codesemestre
-        if only_tables is not None and l[2].lower() not in only_tables:
+        if only_tables is not None and strlower(l[2]) not in only_tables:
             continue # table non demandée
         if name in exclude_cols:
             continue # colonne exclue
@@ -117,7 +117,7 @@ def sco_import_generate_excel_sample( format,
             etud = context.getEtudInfo(etudid=i['etudid'], filled=True)[0]
             l = []
             for field in titles:
-                key = field.lower().split()[0]
+                key = strlower(field).split()[0]
                 l.append(etud.get(key, ''))
             lines.append(l)
     else:
@@ -176,14 +176,14 @@ def scolars_import_excel_file( datafile, context, REQUEST,
     titles = {}
     fmt = sco_import_format()
     for l in fmt:
-        tit = l[0].lower().split()[0] # titles in lowercase, and take 1st word
+        tit = strlower(l[0]).split()[0] # titles in lowercase, and take 1st word
         if ((not formsemestre_id) or (tit != 'codesemestre')) and tit not in exclude_cols:
             titles[tit] = l[1:] # title : (Type, Table, AllowNulls, Description)
 
     #log("titles=%s" % titles)
     # remove quotes, downcase and keep only 1st word
     try:
-        fs = [ stripquotes(s).lower().split()[0] for s in data[0] ]
+        fs = [ strlower(stripquotes(s)).split()[0] for s in data[0] ]
     except:
         raise ScoValueError("Titres de colonnes invalides (ou vides ?)")
     #log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
@@ -252,18 +252,18 @@ def scolars_import_excel_file( datafile, context, REQUEST,
                                 "valeur nombre entier invalide (%s) sur ligne %d, colonne %s"
                                 % (val, linenum, titleslist[i]))
                 # xxx Ad-hoc checks (should be in format description)
-                if  titleslist[i].lower() == 'sexe':
+                if  strlower(titleslist[i]) == 'sexe':
                     try:
                         val = scolars.normalize_sexe(val)
                     except:
                         raise ScoValueError("valeur invalide pour 'SEXE' (doit etre 'M' ou 'MME' ou 'H' ou 'F', pas '%s') ligne %d, colonne %s" % (val, linenum, titleslist[i]))
                 # Excel date conversion:
-                if titleslist[i].lower() == 'date_naissance':
+                if strlower(titleslist[i]) == 'date_naissance':
                     if val:
                         if re.match('^[0-9]*\.?[0-9]*$', str(val)):
                             val = sco_excel.xldate_as_datetime(float(val))                        
                 # INE
-                if titleslist[i].lower() == 'code_ine' and always_require_ine and  not val:
+                if strlower(titleslist[i]) == 'code_ine' and always_require_ine and  not val:
                     raise ScoValueError('Code INE manquant sur ligne %d, colonne %s' % (linenum, titleslist[i]))
 
                 # --
@@ -410,7 +410,7 @@ def scolars_import_admission( datafile, context, REQUEST,
             if tit in modifiable_fields:
                 val = line[i]
                 # Excel date conversion:
-                if val and tit.lower() == 'date_naissance':
+                if val and strlower(tit) == 'date_naissance':
                     if re.match('^[0-9]*\.?[0-9]*$', str(val)):
                         val = sco_excel.xldate_as_datetime(float(val)) 
                 args[tit] = val

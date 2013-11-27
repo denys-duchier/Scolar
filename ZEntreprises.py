@@ -61,7 +61,8 @@ def _format_nom(nom):
     "formatte nom (filtre en entree db) d'une entreprise"
     if not nom:
         return nom
-    return nom[0].upper() + nom[1:]
+    nom = nom.decode(SCO_ENCODING)
+    return (nom[0].upper() + nom[1:]).encode(SCO_ENCODING)
 
 
 class EntreprisesEditor(EditableTable):
@@ -423,7 +424,7 @@ class ZEntreprises(ObjectManager,
         elif len(r) > 1:
             e = [ '<ul class="entreprise_etud_list">' ]
             for x in r:
-                e.append( '<li>%s %s (code %s)</li>' % (x[1].upper(),x[2] or '',x[0].strip()) )
+                e.append( '<li>%s %s (code %s)</li>' % (strupper(x[1]), x[2] or '', x[0].strip()) )
             e.append('</ul>')
             return 0, 'Les étudiants suivants correspondent: préciser le nom complet ou le code\n' + '\n'.join(e) 
         else: # une seule reponse !
@@ -562,11 +563,11 @@ class ZEntreprises(ObjectManager,
                 for c in Cl:
                     H.append("""<li><a href="entreprise_correspondant_edit?entreprise_corresp_id=%s">""" % c['entreprise_corresp_id'])
                     if c['nom']:
-                        nom = c['nom'].lower().capitalize()
+                        nom = c['nom'].decode(SCO_ENCODING).lower().capitalize().encode(SCO_ENCODING)
                     else:
                         nom = ''
                     if c['prenom']:
-                        prenom = c['prenom'].lower().capitalize()
+                        prenom = c['prenom'].decode(SCO_ENCODING).lower().capitalize().encode(SCO_ENCODING)
                     else:
                         prenom = ''
                     H.append("""%s %s</a>&nbsp;(%s)</li>""" % (nom,prenom,c['fonction']))

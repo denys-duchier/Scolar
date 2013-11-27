@@ -277,12 +277,13 @@ class NotesTable:
     def get_sexnom(self,etudid):
         "M. DUPONT"
         etud =  self.identdict[etudid]
-        return etud['sexe'] + ' ' + (etud['nom_usuel'] or etud['nom']).upper()
+        return etud['sexe'] + ' ' + strupper(etud['nom_usuel'] or etud['nom'])
     
     def get_nom_short(self, etudid):
         "formatte nom d'un etud (pour table recap)"
         etud =  self.identdict[etudid]
-        return (etud['nom_usuel'] or etud['nom']).upper() + ' ' + etud['prenom'][:2].capitalize() + '.'
+        # Attention aux caracteres multibytes pour decouper les 2 premiers:
+        return strupper(etud['nom_usuel'] or etud['nom']) + ' ' + etud['prenom'].decode(SCO_ENCODING).capitalize()[:2].encode(SCO_ENCODING) + '.'
     
     def get_nom_long(self, etudid):
         "formatte nom d'un etud:  M. Pierre DUPONT"

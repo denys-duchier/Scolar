@@ -109,7 +109,6 @@ chmod -R 775 "$SCODOC_DIR"
 # Remove tmp directory
 if [ $IS_TMP = "1" ]
 then
-  cd /
   rm -rf $tmp
 fi
 

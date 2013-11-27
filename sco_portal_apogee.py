@@ -286,7 +286,7 @@ def check_paiement_etuds(context, etuds):
         else:
             infos = get_etud_apogee(context, etud['code_nip'])
             if infos and infos.has_key('paiementinscription'):
-                etud['paiementinscription'] = (infos['paiementinscription'].lower() == 'true')
+                etud['paiementinscription'] = (strlower(infos['paiementinscription']) == 'true')
                 if etud['paiementinscription']:
                     etud['paiementinscription_str'] = 'ok'
                 else:

@@ -202,7 +202,7 @@ def do_evaluation_formnotes(context, REQUEST ):
         evaltitre = '%s du %s' % (E['description'],E['jour'])
     else:
         evaltitre = 'évaluation du %s' % E['jour']
-    description = '%s: %s en %s (%s) resp. %s' % (sem['titreannee'], evaltitre, Mod['abbrev'], Mod['code'], M['responsable_id'].capitalize())
+    description = '%s: %s en %s (%s) resp. %s' % (sem['titreannee'], evaltitre, Mod['abbrev'], Mod['code'], strcapitalize(M['responsable_id']))
 
     head = """
     <h4>Codes spéciaux:</h4>
@@ -254,8 +254,8 @@ def do_evaluation_formnotes(context, REQUEST ):
         # infos inscription
         inscr = context.do_formsemestre_inscription_list(
             {'etudid':etudid, 'formsemestre_id' : M['formsemestre_id']})[0]
-        nom = ident['nom'].upper()
-        label = '%s %s' % (nom, ident['prenom'].lower().capitalize())
+        nom = strupper(ident['nom'])
+        label = '%s %s' % (nom, strcapitalize(strlower(ident['prenom'])))
         if NotesDB.has_key(etudid):
             val = context._displayNote(NotesDB[etudid]['value'])
             comment = NotesDB[etudid]['comment']
@@ -294,7 +294,7 @@ def do_evaluation_formnotes(context, REQUEST ):
                                          } ) )
         groups = sco_groups.get_etud_groups(context, ident['etudid'], sem)
         grc = sco_groups.listgroups_abbrev(groups)
-        CSV.append( [ '%s' % etudid, ident['nom'].upper(), ident['prenom'].lower().capitalize(),
+        CSV.append( [ '%s' % etudid, strupper(ident['nom']), strcapitalize(strlower(ident['prenom'])),
                       inscr['etat'],
                       grc, val, explanation ] )
     if note_method == 'csv':

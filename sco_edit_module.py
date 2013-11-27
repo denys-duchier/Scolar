@@ -89,7 +89,7 @@ def module_create(context, matiere_id=None, REQUEST=None):
         ('matiere_id', { 'default' : M['matiere_id'], 'input_type' : 'hidden' }),
         
         ('semestre_id', { 'input_type' : 'menu',  'type' : 'int',
-                          'title' : parcours.SESSION_NAME.capitalize(), 
+                          'title' : strcapitalize(parcours.SESSION_NAME), 
                           'explanation' : '%s de début du module dans la formation standard' % parcours.SESSION_NAME,
                           'labels' : [ str(x) for x in semestres_indices ], 'allowed_values' : semestres_indices }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4...) pour ordre d\'affichage',

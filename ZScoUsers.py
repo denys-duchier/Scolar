@@ -287,7 +287,7 @@ class ZScoUsers(ObjectManager,
             else:
                 p = ''
             if info['nom']:
-                n = info['nom'].lower().capitalize()
+                n = strcapitalize(strlower(info['nom']))
             else:
                 n = user_name
             prenom_abbrv = abbrev_prenom(p)
@@ -299,9 +299,9 @@ class ZScoUsers(ObjectManager,
             info['nomcomplet'] = scolars.format_prenom(p) + ' ' + scolars.format_nom(n)
             # nomplogin est le nom en majuscules suivi du prénom et du login
             # e.g. Dupont Pierre (dupont)
-            info['nomplogin'] = '%s %s (%s)' % (n.upper(), p, info['user_name'])
+            info['nomplogin'] = '%s %s (%s)' % (strupper(n), p, info['user_name'])
             # nomnoacc est le nom en minuscules sans accents
-            info['nomnoacc'] = suppress_accents(info['nom'].lower())
+            info['nomnoacc'] = suppress_accents(strlower(info['nom']))
             return info
 
     def _can_handle_passwd(self, authuser, user_name, allow_admindepts=False):
@@ -956,7 +956,7 @@ class ZScoUsers(ObjectManager,
         Used for forms auto-completion."""
         userlist = self.get_userlist(dept=dept)
         start = suppression_diacritics(unicode(start, 'utf-8'))
-        start = str(start).lower()
+        start = strlower(str(start))
         
         userlist = [ user for user in userlist if user['nomnoacc'].startswith(start) ]
         if REQUEST:

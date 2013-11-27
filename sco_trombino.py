@@ -466,7 +466,7 @@ def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
         fn = fn.replace('\\','/') # not sure if this is necessary ?
         fn = fn.strip()
         if lowercase:
-            fn = fn.lower()
+            fn = strlower(fn)
         fn = fn.split('/')[-1] # use only last component, not directories
         return fn
 

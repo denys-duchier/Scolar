@@ -205,7 +205,7 @@ class BaseArchiver:
         # XXX très incomplet: devrait inférer et assigner un type MIME
         archive_id = self.get_id_from_name(context, oid, archive_name)
         data = self.get(archive_id, filename)
-        ext = os.path.splitext(filename)[1].lower()
+        ext = os.path.splitext(strlower(filename))[1]
         if ext == '.html' or ext == '.htm':
             return data
         elif ext == '.xml':

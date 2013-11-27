@@ -69,7 +69,7 @@ def import_excel_file(datafile, REQUEST=None, context=None):
     if not data: # probably a bug
         raise FormatError('import_excel_file: empty file !')
     # 1-  --- check title line
-    fs = [ stripquotes(s).lower() for s in data[0] ]
+    fs = [ strlower(stripquotes(s)) for s in data[0] ]
     log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))
     # check cols
     cols = {}.fromkeys(TITLES)

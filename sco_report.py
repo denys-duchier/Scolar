@@ -201,7 +201,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
     Tableau comptage avec choix des categories
     """
     sem = context.get_formsemestre(formsemestre_id)
-    category_name = category.capitalize()
+    category_name = strcapitalize(category)
     title = "Comptages " + category_name
     etuds = formsemestre_etuds_stats(context, sem, only_primo=only_primo)
     tab = formsemestre_report(context, formsemestre_id, etuds, REQUEST=REQUEST,

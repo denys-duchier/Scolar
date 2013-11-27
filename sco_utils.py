@@ -447,16 +447,29 @@ def get_svn_version(path):
     else:
         return 'non disponible'
 
+
+# Simple string manipulmations
+# on utf-8 encoded python strings
+# (yes, we should only use unicode strings, but... we use only strings)
+def strupper(s):
+    return s.decode(SCO_ENCODING).upper().encode(SCO_ENCODING)
+
+def strlower(s):
+    return s.decode(SCO_ENCODING).lower().encode(SCO_ENCODING)
+
+def strcapitalize(s):
+    return s.decode(SCO_ENCODING).capitalize().encode(SCO_ENCODING)
+
 def abbrev_prenom(prenom):
     "Donne l'abreviation d'un prenom"
     # un peu lent, mais espère traiter tous les cas
     # Jean -> J.
     # Charles -> Ch.
     # Jean-Christophe -> J.-C.
-    # Marie Odile -> M. O.
-    prenom = prenom.replace('.', ' ').strip()
+    # Marie Odile -> M. O.    
+    prenom = prenom.decode(SCO_ENCODING).replace('.', ' ').strip()
     if not prenom:
-        return prenom
+        return ''
     d = prenom[:3].upper()
     if d == 'CHA':
         abrv = 'Ch.' # 'Charles' donne 'Ch.'
@@ -478,7 +491,7 @@ def abbrev_prenom(prenom):
             if i < n:
                 abrv += sep + prenom[i].upper() + '.'
         i += 1
-    return abrv
+    return abrv.encode(SCO_ENCODING)
 
 #
 def timedate_human_repr():

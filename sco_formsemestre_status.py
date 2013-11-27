@@ -450,7 +450,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
     titles['jour'] = 'Evaluation'
     titles['description'] = ''
     titles['coefficient'] = 'Coef. éval.'
-    title = '%s %s' % (parcours.SESSION_NAME.capitalize(), sem['titremois'])
+    title = '%s %s' % (strcapitalize(parcours.SESSION_NAME), sem['titremois'])
     
     return GenTable(
         columns_ids=columns_ids, rows=R, titles=titles,

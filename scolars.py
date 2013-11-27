@@ -87,7 +87,7 @@ def format_etud_ident(etud):
 
 def force_uppercase(s):
     if s:
-        s = s.upper()
+        s = strupper(s)
     return s
 
 def format_nomprenom(etud):
@@ -96,28 +96,22 @@ def format_nomprenom(etud):
 
 def format_prenom(s):
     "formatte prenom etudiant pour affichage"
-    # XXX locale.setlocale(locale.LC_ALL, ('en_US', 'ISO8859-15') )
     if not s:
         return ''
     frags = s.split()
     r = []
     for frag in frags:
         fs = frag.split('-')
-        r.append( '-'.join( [ x.lower().capitalize() for x in fs ] ) )
+        r.append( '-'.join( [ x.decode(SCO_ENCODING).lower().capitalize().encode(SCO_ENCODING) for x in fs ] ) )
     return ' '.join(r)
-
-
-#    s = ' '.join( [ x.lower().capitalize() for x in frags ] )
-#    frags = s.split('-')
-#    return '-'.join( [ x.lower().capitalize() for x in frags ] )
 
 def format_nom(s):
     if not s:
         return ''
-    return s.upper()
+    return strupper(s)
 
 def format_sexe(sexe):
-    sexe = sexe.lower()
+    sexe = strlower(sexe)
     if sexe == 'mr' or sexe == 'm.':
         return 'M.'
     else:
@@ -125,7 +119,7 @@ def format_sexe(sexe):
 
 def normalize_sexe(sexe):
     "returns 'MR' ou 'MME'"
-    sexe = sexe.upper().strip()
+    sexe = strupper(sexe).strip()
     if sexe in ('M.', 'M', 'MR', 'H'):
         return 'MR'
     elif sexe in ('MLLE', 'MLLE.', 'MELLE', 'MME', 'F'):
@@ -134,7 +128,7 @@ def normalize_sexe(sexe):
     
 def format_lycee(nomlycee):
     nomlycee = nomlycee.strip()
-    s = nomlycee.lower()
+    s = strlower(nomlycee)
     if s[:5] == 'lycee' or s[:5] == 'lycée':
         return nomlycee[5:]
     else:
@@ -162,7 +156,7 @@ def format_telephone(n):
 
 def format_pays(s):
     "laisse le pays seulement si != FRANCE"
-    if s.upper() != 'FRANCE':
+    if strupper(s) != 'FRANCE':
         return s
     else:
         return ''
@@ -226,8 +220,9 @@ def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     """
     if not nom or (not prenom and not CONFIG.ALLOW_NULL_PRENOM):
         return False, 0
+    nom = nom.decode(SCO_ENCODING).lower().strip().encode(SCO_ENCODING)
     if prenom:
-        prenom = prenom.lower().strip()
+        prenom = prenom.decode(SCO_ENCODING).lower().strip().encode(SCO_ENCODING)        
     # Don't allow some special cars (eg used in sql regexps)
     if FORBIDDEN_CHARS_EXP.search(nom) or FORBIDDEN_CHARS_EXP.search(prenom):
         return False, 0
@@ -236,7 +231,7 @@ def check_nom_prenom(cnx, nom='', prenom='', etudid=None):
     req = 'select etudid from identite where lower(nom) ~ %(nom)s and lower(prenom) ~ %(prenom)s'
     if etudid:
         req += '  and etudid <> %(etudid)s'
-    cursor.execute(req, { 'nom' : nom.lower().strip(), 'prenom' : prenom, 'etudid' : etudid } )
+    cursor.execute(req, { 'nom' : nom, 'prenom' : prenom, 'etudid' : etudid } )
     res = cursor.dictfetchall()
     return True, len(res)
 
@@ -607,9 +602,9 @@ o = open('etablissements2.csv', 'w')
 o.write( f.readline() )
 for l in f:
     fs = l.split(';')
-    nom = ' '.join( [ x.capitalize() for x in fs[1].split() ] )
-    adr = ' '.join( [ x.capitalize() for x in fs[2].split() ] )
-    ville=' '.join( [ x.capitalize() for x in fs[4].split() ] )
+    nom = ' '.join( [ strcapitalize(x) for x in fs[1].split() ] )
+    adr = ' '.join( [ strcapitalize(x) for x in fs[2].split() ] )
+    ville=' '.join( [ strcapitalize(x) for x in fs[4].split() ] )
     o.write( '%s;%s;%s;%s;%s\n' % (fs[0], nom, adr, fs[3], ville))
 
 o.close()

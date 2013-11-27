@@ -34,7 +34,7 @@ from pyExcelerator import *
 from notes_log import log
 from scolog import logdb
 from sco_exceptions import *
-from sco_utils import SCO_ENCODING, XLS_MIMETYPE, unescape_html, suppress_accents
+from sco_utils import *
 import notesdb
 
 import time, datetime
@@ -230,9 +230,9 @@ def Excel_SimpleTable( titles=[], lines=[[]],
             # safety net: allow only str, int and float
             if type(it) == LongType:
                 it = int(it) # assume all ScoDoc longs fits in int !
-            elif type(it) not in (StringType, IntType, FloatType):
-                it = str(it)
-            ws0.write(li, col, it.decode(SCO_ENCODING), style)
+            elif type(it) not in (IntType, FloatType):
+                it = str(it).decode(SCO_ENCODING)
+            ws0.write(li, col, it, style)
             col += 1
         li += 1
     #
@@ -540,7 +540,7 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
         n += 1
         li += 1
         ws0.write(li, 0, n, style1b)
-        nomprenom = t['sexe'] + ' ' + t['nom'] + ' ' + t['prenom'].lower().capitalize()
+        nomprenom = t['sexe'] + ' ' + t['nom'] + ' ' + strcapitalize(strlower(t['prenom']))
         style_nom = style2t3
         if with_paiement:
             paie = t.get('paiementinscription', None)

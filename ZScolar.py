@@ -1133,7 +1133,7 @@ class ZScolar(ObjectManager,
         et ramene liste de mappings utilisables en DTML.        
         """
         cnx = self.GetDBConnexion()
-        expnom = expnom.upper() # les noms dans la BD sont en uppercase
+        expnom = strupper(expnom) # les noms dans la BD sont en uppercase
         etuds = scolars.etudident_list(cnx, args={'nom':expnom}, test='~' )        
         self.fillEtudsInfo(etuds)
         return etuds
@@ -1702,7 +1702,7 @@ function tweakmenu( gname ) {
         H = [ '<h2><font color="#FF0000">%(operation_name)s de</font> %(nomprenom)s (semestre %(semtitre)s)</h2><p>' % etud ]
         H.append("""<form action="%s" method="GET">
         <b>Date de la %s (J/M/AAAA):&nbsp;</b>
-        """ % (operation_method, operation_name.lower()))
+        """ % (operation_method, strlower(operation_name)))
         H.append("""
 <input type="text" name="event_date" width=20 value="%(nowdmy)s">
 <input type="hidden" name="etudid" value="%(etudid)s">

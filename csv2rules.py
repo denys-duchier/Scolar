@@ -56,9 +56,9 @@ from sco_codes_parcours import *
 def _fmt(s):
     if not s:
         return None
-    if s.lower() in ('ok', 'oui', 'o', 'y', 'yes'):
+    if strlower(s) in ('ok', 'oui', 'o', 'y', 'yes'):
         return True
-    if s.lower() in ('no', 'non'):
+    if strlower(s) in ('no', 'non'):
         return False
     if s == '*':
         return ALL
