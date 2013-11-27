@@ -148,6 +148,7 @@ def get_sem_groups(context, formsemestre_id):
 def get_group_members(context, group_id, etat=None):  
     """Liste des etudiants d'un groupe.
     Si etat, filtre selon l'état de l'inscription
+    Trié par nom_usuel (ou nom) puis prénom
     """
     req = "SELECT i.*, a.*, gm.*, ins.etat FROM identite i, adresse a, group_membership gm, group_descr gd, partition p, notes_formsemestre_inscription ins WHERE i.etudid = gm.etudid and a.etudid = i.etudid and ins.etudid = i.etudid and ins.formsemestre_id = p.formsemestre_id and p.partition_id = gd.partition_id and gd.group_id = gm.group_id and gm.group_id=%(group_id)s"
     if etat is not None:
@@ -158,7 +159,7 @@ def get_group_members(context, group_id, etat=None):
     for etud in r:
         scolars.format_etud_ident(etud)
     
-    r.sort(key=operator.itemgetter('nom_disp')) # tri selon nom_usuel ou nom
+    r.sort(key=operator.itemgetter('nom_disp', 'prenom')) # tri selon nom_usuel ou nom
         
     if CONFIG.ALLOW_NULL_PRENOM:
         for x in r:
