@@ -2438,7 +2438,7 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés
                       target_variable='dialog_confirmed',
                       parameters={},
                       add_headers = True, # complete page
-                      REQUEST=None,
+                      REQUEST=None, # required
                       helpmsg=None):
         # dialog de confirmation simple
         parameters[target_variable] = 1

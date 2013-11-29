@@ -622,7 +622,6 @@ ou <a href="mailto:%s">%s</a>
                                error_traceback=None, error_tb=None, **kv): 
         "Recuperation des exceptions Zope"
         sco_dev_mail = SCO_DEV_MAIL
-        
         # neat (or should I say dirty ?) hack to get REQUEST
         # in fact, our caller (probably SimpleItem.py) has the REQUEST variable
         # that we'd like to use for our logs, but does not pass it as an argument.
@@ -631,7 +630,7 @@ ou <a href="mailto:%s">%s</a>
             REQUEST = frame.f_back.f_locals['REQUEST']
         except:
             REQUEST = {}
-        
+        log('REQUEST=%s' % str(dir(REQUEST)))
         # Authentication uses exceptions, pass them up
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         if error_type == 'LoginRequired':
@@ -655,16 +654,13 @@ ou <a href="mailto:%s">%s</a>
             H.append(self.standard_html_footer(self))
             return '\n'.join(H)
         else: # Other exceptions, try carefully to build an error page...
-            #log('exc A')
+              #log('exc A')
             H = []
             try:
                 H.append( self.standard_html_header(self) )
             except:
                 pass
-            if error_message:
-                H.append( str(error_message) )
-            else:
-                H.append("""<table border="0" width="100%%"><tr valign="top">
+            H.append("""<table border="0" width="100%%"><tr valign="top">
 <td width="10%%" align="center"></td>
 <td width="90%%"><h2>Erreur !</h2>
   <p>Une erreur est survenue</p>
@@ -683,8 +679,8 @@ ou <a href="mailto:%s">%s</a>
 </table>        """ % vars() )
                 # display error traceback (? may open a security risk via xss attack ?)
                 #log('exc B')
-                txt_html = self._report_request(REQUEST, format='html')
-                H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
+            txt_html = self._report_request(REQUEST, format='html')
+            H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
 <p><b>Informations:</b><br/>
 %(txt_html)s
@@ -693,11 +689,11 @@ ou <a href="mailto:%s">%s</a>
 
 <p>Merci de votre patience !</p>
 """ % vars() )
-                try:
-                    H.append( self.standard_html_footer(self) )
-                except:
-                    log('no footer found for error page')
-                    pass
+            try:
+                H.append( self.standard_html_footer(self) )
+            except:
+                log('no footer found for error page')
+                pass
         # --- Mail:
         error_traceback_txt = scodoc_html2txt(error_tb)
         txt = """
@@ -720,16 +716,21 @@ ErrorType: %(error_type)s
         QUERY_STRING = REQUEST.get('QUERY_STRING', '')
         if QUERY_STRING:
             QUERY_STRING = '?' + QUERY_STRING
+        METHOD = REQUEST.get('REQUEST_METHOD', '')
+
         REFERER = 'na' # REQUEST.get('HTTP_REFERER', '')
         form = REQUEST.get('form', '')
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         HTTP_USER_AGENT = 'na' # REQUEST.get('HTTP_USER_AGENT', '')
         svn_version = get_svn_version(self.file_path)
-
+        SCOVERSION = VERSION.SCOVERSION
+        
         txt = """
+Version: %(SCOVERSION)s
 User:    %(AUTHENTICATED_USER)s
 Date:    %(dt)s
 URL:     %(URL)s%(QUERY_STRING)s
+Method:  %(METHOD)s
 
 REFERER: %(REFERER)s
 Form: %(form)s

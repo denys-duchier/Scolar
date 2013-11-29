@@ -261,14 +261,17 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
                 H.append('</ol>')
             if not a_inscrire and not a_desinscrire:
                 H.append("""<h3>Il n'y a rien à modifier !</h3>""")
-            H.append( context.confirmDialog( dest_url="formsemestre_inscr_passage",
-                                             add_headers=False,
-                                             cancel_url="formsemestre_inscr_passage?formsemestre_id="+formsemestre_id,
-                                             OK = "Effectuer l'opération",
-                                             parameters = {'formsemestre_id' : formsemestre_id,
-                                                           'etuds' : ','.join(etuds),
-                                                           'submitted' : 1, 
-                                                           }) )
+            H.append( context.confirmDialog(
+                dest_url="formsemestre_inscr_passage",
+                add_headers=False,
+                cancel_url="formsemestre_inscr_passage?formsemestre_id="+formsemestre_id,
+                OK = "Effectuer l'opération",
+                parameters = { 'formsemestre_id' : formsemestre_id,
+                               'etuds' : ','.join(etuds),
+                               'submitted' : 1, 
+                               },
+                REQUEST=REQUEST
+                ) )
         else:
             # OK, do it
             do_inscrit(context, sem, a_inscrire, REQUEST)

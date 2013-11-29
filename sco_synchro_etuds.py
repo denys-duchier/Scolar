@@ -168,6 +168,7 @@ def formsemestre_synchro_etuds(
                 add_headers=False,
                 cancel_url="formsemestre_synchro_etuds?formsemestre_id="+formsemestre_id,
                 OK = "Effectuer l'opération",
+                REQUEST=REQUEST,
                 parameters = {'formsemestre_id' : formsemestre_id,
                               'etuds' : ','.join(etuds),
                               'inscrits_without_key' : ','.join(inscrits_without_key),

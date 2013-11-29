@@ -989,7 +989,8 @@ class ZScoUsers(ObjectManager,
 Il devra ensuite se connecter et le changer.
 </p>
                 """ % (user_name, user_name),
-                parameters={'user_name':user_name}
+                parameters={'user_name':user_name},
+                REQUEST=REQUEST
                 )
         self.reset_password(user_name=user_name, REQUEST=REQUEST)
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '?head_message=mot%20de%20passe%20de%20' + user_name + '%20reinitialise' )
