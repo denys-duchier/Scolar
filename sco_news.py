@@ -73,12 +73,15 @@ def add(context, REQUEST, typ, object=None, text='', url=None ):
     """Ajoute une nouvelle
     """
     cnx = context.GetDBConnexion()
-    args = { 'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
-             'type' : typ,
-             'object' : object,
-             'text' : text,
-             'url' : url
-             }
+    args = {
+        'authenticated_user' : str(REQUEST.AUTHENTICATED_USER),
+        'user_info' : context.Users.user_info(user_name=str(REQUEST.AUTHENTICATED_USER), REQUEST=REQUEST),
+        'type' : typ,
+        'object' : object,
+        'text' : text,
+        'url' : url,
+        }
+    
     log('news: %s' % args)
     _send_news_by_mail(context, args)
     return scolar_news_create(cnx,args,has_uniq_values=False)
@@ -217,6 +220,7 @@ def _send_news_by_mail(context, n):
     txt = n['text']
     if infos:
         txt += '\n\nSemestre <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(descr_sem)s</a>)' % infos
+        txt += '\n\nEffectué par: %(nomcomplet)s\n' % n['user_info']
         
     txt = '\n' + txt + """\n
 --- Ceci est un message de notification automatique issu de ScoDoc

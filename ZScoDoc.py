@@ -630,7 +630,7 @@ ou <a href="mailto:%s">%s</a>
             REQUEST = frame.f_back.f_locals['REQUEST']
         except:
             REQUEST = {}
-        log('REQUEST=%s' % str(dir(REQUEST)))
+        
         # Authentication uses exceptions, pass them up
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         if error_type == 'LoginRequired':
