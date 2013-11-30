@@ -44,7 +44,7 @@ class InvalidEtudId(NoteProcessError):
 class AccessDenied(ScoException):
     pass
 
-class FormatError(ScoException):
+class InvalidNoteValue(ScoException):
     pass
 
 # Exception qui stoque dest_url, utilisee dans Zope standard_error_message
@@ -54,6 +54,9 @@ class ScoValueError(ScoException):
         self.dest_url = dest_url
         if REQUEST and dest_url:
             REQUEST.set('dest_url', dest_url)
+
+class FormatError(ScoValueError):
+    pass
 
 class ScoLockedFormError(ScoException):
     def __init__(self, msg='', REQUEST=None):

@@ -67,7 +67,7 @@ def import_excel_file(datafile, REQUEST=None, context=None):
         raise ScoValueError("Ficher excel vide ou invalide")
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
-        raise FormatError('import_excel_file: empty file !')
+        raise ScoException('import_excel_file: empty file !')
     # 1-  --- check title line
     fs = [ strlower(stripquotes(s)) for s in data[0] ]
     log("excel: fs='%s'\ndata=%s" % (str(fs), str(data)))

@@ -1213,15 +1213,22 @@ class ZScolar(ObjectManager,
                     etud['ilycee'] = format_lycee_from_code(etud['codelycee'])
                 else:
                     etud['ilycee'] = ''
+            rap = ''
             if etud['rapporteur'] or etud['commentaire']:
-                etud['rap'] = 'Note du rapporteur'
+                rap = 'Note du rapporteur'
                 if etud['rapporteur']:
-                    etud['rap'] += ' (%s)' % etud['rapporteur']
-                etud['rap'] += ' :'
+                    rap += ' (%s) :' % etud['rapporteur']
                 if etud['commentaire']:
-                    etud['rap'] += '<em>%s</em>' % etud['commentaire']
-            else:
-                etud['rap'] = "Pas d'informations sur les conditions d'admission."
+                    rap += '<em>%s</em>' % etud['commentaire']
+        
+            if (etud['type_admission'] and etud['type_admission'] != TYPE_ADMISSION_DEFAULT):
+                rap = ('<span class="etud_type_admission">%s</span> ' % etud['type_admission']) + rap
+
+            etud['rap'] = rap
+
+            #if etud['boursier_prec']:
+            #    pass            
+
             if etud['telephone']:
                 etud['telephonestr'] = '<b>Tél.:</b> ' + format_telephone(etud['telephone'])
             else:
@@ -1962,10 +1969,23 @@ function tweakmenu( gname ) {
                        'explanation' : 'note sur 20 en terminale' }),
             ('francais', { 'size' : 3, 'type' : 'float', 'title' : 'Note de français',
                        'explanation' : 'note sur 20 obtenue au bac' }),
-            ('rang', { 'size' : 1, 'type' : 'int', 'title' : 'Position IUT Villetaneuse',
-                       'explanation' : 'rang de notre département dans les voeux du candidat' }),
+
+            ('type_admission', {
+                    'input_type' : 'menu',
+                    'title' : "Voie d'admission", 
+                    'allowed_values' : TYPES_ADMISSION}
+                    ),
+            ('boursier_prec', {
+                    'input_type' : 'boolcheckbox', 'labels' : ['non','oui'],
+                    'title' : 'Boursier ?',
+                    'explanation' : 'dans le cycle précédent (lycée)'
+                    }
+                    ),
+            
+            ('rang', { 'size' : 1, 'type' : 'int', 'title' : 'Position établissement',
+                       'explanation' : 'rang de notre établissement dans les voeux du candidat (inconnu avec APB)' }),
             ('qualite', { 'size' : 3, 'type' : 'float', 'title' : 'Qualité',
-                       'explanation' : 'Note de qualité attribuée au dossier' }),
+                       'explanation' : "Note de qualité attribuée au dossier (par le jury d'adm.)" }),
 
             ('decision', { 'input_type' : 'menu',
                            'title' : 'Décision', 

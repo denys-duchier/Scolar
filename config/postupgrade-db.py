@@ -372,6 +372,14 @@ for dept in get_depts():
     check_field(cnx, 'identite', 'nom_usuel',
                 ['alter table identite add column nom_usuel text DEFAULT NULL',
                  ])
+    # add type_admission
+    check_field(cnx, 'admissions', 'type_admission',
+                ['alter table admissions add column type_admission text DEFAULT NULL',
+                 ])
+    check_field(cnx, 'admissions', 'boursier_prec',
+                ['alter table admissions add column boursier_prec integer default NULL',
+                 ])
+    
     # Add here actions to performs after upgrades:
     
     cnx.commit()

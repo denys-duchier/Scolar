@@ -116,7 +116,7 @@ def _trombino_html(context, group, members, REQUEST=None):
         else:
             ng = 'Tous les étudiants'
     else:
-        ng = "Aucun étudiant inscrit dans ce semestre !"
+        ng = "Aucun étudiant inscrit dans ce groupe !"
     H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]
     if members:
         H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td>' )

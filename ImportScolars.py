@@ -49,6 +49,8 @@ ADMISSION_MODIFIABLE_FIELDS = (
     'date_naissance', 'lieu_naissance',
     'bac', 'specialite', 'annee_bac',
     'math', 'physique', 'anglais', 'francais',
+    'type_admission',
+    'boursier_prec',
     'qualite', 'rapporteur', 'score', 'commentaire',
     'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
     # Adresse:
@@ -66,13 +68,24 @@ def sco_import_format( with_codesemestre=True ):
         l = l.strip()
         if l and l[0] != '#':
             fs = l.split(';')
+            fs[0] = fs[0].strip().lower().split()[0] # titre attribut: normalize, 1er mot seulement
             if len(fs) != 5:
-                raise FormatError('file %s has invalid format (expected %d fields, got %d) (%s)'
+                # Bug: invalid format file (fatal)
+                raise ScoException('file %s has invalid format (expected %d fields, got %d) (%s)'
                                   % (FORMAT_FILE,5,len(fs),l))
-            if with_codesemestre or fs[0].strip().lower() != 'codesemestre':
+            if with_codesemestre or fs[0] != 'codesemestre':
                 r.append( tuple( [x.strip() for x in fs]) )
     return r
 
+def sco_import_format_dict( with_codesemestre=True ):
+    """ Attribut: { 'type': , 'table', 'allow_nulls' , 'description' }
+    """
+    fmt = sco_import_format( with_codesemestre=with_codesemestre )
+    R = {}
+    for l in fmt:
+        R[l[0]] = { 'type' : l[1], 'table' : l[2], 'allow_nulls' : l[3], 'description' : l[4] }
+    return R
+        
 def sco_import_generate_excel_sample( format,
                                       with_codesemestre=True,
                                       only_tables=None,
@@ -168,7 +181,7 @@ def scolars_import_excel_file( datafile, context, REQUEST,
         raise ScoValueError("Ficher excel vide ou invalide")
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
-        raise FormatError('scolars_import_excel_file: empty file !')
+        raise ScoException('scolars_import_excel_file: empty file !')
 
     formsemestre_to_invalidate = Set()
     
@@ -383,6 +396,7 @@ def scolars_import_admission( datafile, context, REQUEST,
     """Importe données admission depuis fichier Excel
     """
     log('scolars_import_admission: formsemestre_id=%s'%formsemestre_id)
+    Fmt = sco_import_format_dict()
     cnx = context.GetDBConnexion()
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     annee_courante = time.localtime()[0]
@@ -391,7 +405,7 @@ def scolars_import_admission( datafile, context, REQUEST,
         raise ScoValueError("Ficher excel vide ou invalide")
     diag, data = sco_excel.Excel_to_list(exceldata)
     if not data: # probably a bug
-        raise FormatError('scolars_import_admission: empty file !')
+        raise ScoException('scolars_import_admission: empty file !')
     #
     titles = data[0]
     try:
@@ -399,8 +413,10 @@ def scolars_import_admission( datafile, context, REQUEST,
     except:
         raise FormatError('scolars_import_admission: pas de colonne "etudid"')
     modifiable_fields = Set( ADMISSION_MODIFIABLE_FIELDS )
-    
+
+    nline = 0
     for line in data[1:]:        
+        nline += 1
         args = scolars.admission_list(cnx, args={'etudid':line[ietudid]})
         if not args:
             raise ScoValueError('etudiant inconnu: etudid=%s' % line[ietudid])
@@ -409,10 +425,22 @@ def scolars_import_admission( datafile, context, REQUEST,
         for tit in titles:
             if tit in modifiable_fields:
                 val = line[i]
-                # Excel date conversion:
-                if val and strlower(tit) == 'date_naissance':
-                    if re.match('^[0-9]*\.?[0-9]*$', str(val)):
-                        val = sco_excel.xldate_as_datetime(float(val)) 
+                # Verification / conversion du type selon le format
+                if val != None and val != '':
+                    typ = Fmt[tit]['type']
+                    try:
+                        if typ == 'integer':
+                            val = int(float(val)) # accept "10.0"
+                        elif type == 'real':
+                            val = float(val)
+                        else:
+                            # Excel date conversion  (cas particulier non traité dans le format):
+                            if val and strlower(tit) == 'date_naissance':
+                                if re.match('^[0-9]*\.?[0-9]*$', str(val)):
+                                    val = sco_excel.xldate_as_datetime(float(val))
+                    except ValueError:
+                        raise FormatError('scolars_import_admission: valeur invalide, ligne %d colonne %s: "%s" (%s attendu)' % (nline, tit, val, typ), dest_url='form_students_import_infos_admissions?formsemestre_id=%s'%formsemestre_id)
+                    
                 args[tit] = val
             i += 1
         scolars.etudident_edit(cnx, args )

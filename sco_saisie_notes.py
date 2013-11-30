@@ -478,7 +478,7 @@ def do_evaluation_upload_xls(context, REQUEST):
     diag, lines = sco_excel.Excel_to_list( data )
     try:
         if not lines:
-            raise FormatError()
+            raise InvalidNoteValue()
         # -- search eval code
         n = len(lines)
         i = 0
@@ -486,19 +486,19 @@ def do_evaluation_upload_xls(context, REQUEST):
         while i < n:
             if not lines[i]:
                 diag.append('Erreur: format invalide (ligne vide ?)')
-                raise FormatError()
+                raise InvalidNoteValue()
             f0 = lines[i][0].strip()
             if f0 and f0[0] == '!':
                 break
             i = i + 1
         if i == n:
             diag.append('Erreur: format invalide ! (pas de ligne evaluation_id)')
-            raise FormatError()
+            raise InvalidNoteValue()
 
         eval_id = lines[i][0].strip()[1:]
         if eval_id != evaluation_id:
             diag.append("Erreur: fichier invalide: le code d\'évaluation de correspond pas ! ('%s' != '%s')"%(eval_id,evaluation_id))
-            raise FormatError()
+            raise InvalidNoteValue()
         # --- get notes -> list (etudid, value)
         # ignore toutes les lignes ne commençant pas par !
         notes = []
@@ -518,7 +518,7 @@ def do_evaluation_upload_xls(context, REQUEST):
                 ni += 1
         except:
             diag.append('Erreur: feuille invalide ! (erreur ligne %d)<br/>"%s"' % (ni, str(lines[ni])))
-            raise FormatError()
+            raise InvalidNoteValue()
         # -- check values
         L, invalids, withoutnotes, absents, tosuppress = _check_notes(notes,E)
         if len(invalids):
@@ -527,7 +527,7 @@ def do_evaluation_upload_xls(context, REQUEST):
                 etudsnames = [ context.getEtudInfo(etudid=etudid,filled=True)[0]['nomprenom'] 
                                for etudid in invalids ]
                 diag.append('Notes invalides pour: ' + ', '.join(etudsnames) )
-            raise FormatError()
+            raise InvalidNoteValue()
         else:
             nb_changed, nb_suppress, existing_decisions = _notes_add(context, authuser, evaluation_id, L, comment )
             # news
@@ -547,7 +547,7 @@ def do_evaluation_upload_xls(context, REQUEST):
             # msg += '<p>' + str(notes) # debug
             return 1, msg
 
-    except FormatError:
+    except InvalidNoteValue:
         if diag:
             msg = '<ul class="tf-msg"><li class="tf_msg">' + '</li><li class="tf_msg">'.join(diag) + '</li></ul>'
         else:

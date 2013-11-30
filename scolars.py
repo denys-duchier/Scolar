@@ -401,12 +401,17 @@ _admissionEditor = EditableTable(
       'decision', 'score', 'commentaire',
       'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
       'debouche',
+      'type_admission',
+      'boursier_prec'
       ),
     input_formators = { 'annee' : pivot_year,
                         'bac' : force_uppercase,
                         'specialite' : force_uppercase,
                         'annee_bac' : pivot_year,
                         },
+    output_formators = {
+        'type_admission' : lambda x: x or TYPE_ADMISSION_DEFAULT,
+        },
     convert_null_outputs_to_empty=True )
 
 admission_create = _admissionEditor.create

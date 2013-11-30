@@ -26,6 +26,8 @@ math;         real;     admissions; 1;  note de math en terminale
 physique;     real;     admissions; 1;  note de physique en terminale
 anglais;      real;     admissions; 1;  note de anglais en terminale
 francais;     real;     admissions; 1;  note de francais au bac
+type_admission; text; admissions; 1; voie d'admission (APB, APB-PC, CEF, ...) 
+boursier_prec; integer; admissions; 1; 0/1  etait boursier dans le cycle precedent (lycee) ?
 qualite;      real;     admissions; 1;  note de qualite du dossier
 rapporteur;   text;     admissions; 1;  identite du rapporteur (enseignant IUT)
 decision;     text;     admissions; 1;  decision (admis, attente, ...)

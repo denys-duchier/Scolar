@@ -267,6 +267,12 @@ MODALITY_ORDER = DictDefault(
     kv_dict={ 'FI':10, 'FAP' : 20, 'FC' : 30 }, defaultvalue = 100 )
 
 
+# Admissions des étudiants
+# Différents types de voies d'admission:
+# (stocké en texte libre dans la base, mais saisie par menus pour harmoniser)
+TYPE_ADMISSION_DEFAULT='Inconnue'
+TYPES_ADMISSION=(TYPE_ADMISSION_DEFAULT, 'APB', 'APB-PC', 'CEF', 'Direct')
+
 """ Simple python utilities
 """
 

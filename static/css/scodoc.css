@@ -403,6 +403,11 @@ div.fichetitre {
    font-weight: bold;
 }
 
+span.etud_type_admission {
+   color: rgb(0,0,128);
+   font-style: normal;
+}
+
 td.fichetitre2 {
    font-weight: bold;
    vertical-align: top;

@@ -218,7 +218,8 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
         else:
             # clés présentées à l'utilisateur:
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
-                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut' ]
+                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut',
+                    'type_admission', 'boursier_prec' ]
         keys.sort()
         F = [ """<form name="f" method="get" action="%s"><p>
               Colonnes: <select name="result" onchange="document.f.submit()">""" % REQUEST.URL0]
