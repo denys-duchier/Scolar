@@ -87,6 +87,8 @@ import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
+import sco_parcours_dut
+import sco_report
 import sco_archives_etud
 import sco_groups_edit
 import sco_up_to_date
@@ -887,6 +889,7 @@ class ZScolar(ObjectManager,
             # et groupes:
             for partition_id in etud['partitions']:
                 etud[partition_id] = etud['partitions'][partition_id]['group_name']
+            
         if nbdem > 1:
             s = 's'
         else:
@@ -974,7 +977,8 @@ class ZScolar(ObjectManager,
                       'bac', 'specialite', 'annee_bac',
                       'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
                       'type_admission', 'boursier_prec',
-                      'debouche'
+                      'debouche',
+                      'parcours', 'codeparcours'
                     ]
             titles = keys[:]
             keys += [ p['partition_id'] for p in other_partitions ]
@@ -984,7 +988,11 @@ class ZScolar(ObjectManager,
             for m in members:
                 etud = self.getEtudInfo(m['etudid'], filled=True)[0]
                 m.update(etud)
-                scolars.etud_add_lycee_infos(etud)                
+                scolars.etud_add_lycee_infos(etud)
+                # et ajoute le parcours
+                Se = sco_parcours_dut.SituationEtudParcours(self.Notes, etud, formsemestre_id)
+                m['parcours'] = Se.get_parcours_descr() 
+                m['codeparcours'] = sco_report.get_codeparcoursetud(self.Notes, etud)
             
             def dicttakestr(d, keys):
                 r = []

@@ -680,7 +680,7 @@ def _codesem(sem, short=True, prefix=''):
             prefix = '' # indique titre au lieu de Sn
     return '%s%s%s' % (prefix, idx, d)
 
-def _codeparcoursetud(context, etud):
+def get_codeparcoursetud(context, etud):
     """calcule un code de parcours pour un etudiant
     exemples:
        1234A pour un etudiant ayant effectué S1, S2, S3, S4 puis diplome
@@ -746,7 +746,7 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
     etuds = tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
     codes_etuds = DictDefault(defaultvalue=[])
     for etud in etuds:
-        etud['codeparcours'] = _codeparcoursetud(context, etud)
+        etud['codeparcours'] = get_codeparcoursetud(context, etud)
         codes_etuds[etud['codeparcours']].append(etud)
         etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
         etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']

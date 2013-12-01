@@ -98,7 +98,7 @@ CREATE TABLE admissions (
     codepostallycee text,
     codelycee text,
     debouche text, -- situation APRES etre passe par chez nous (texte libre)
-    type_admission text, -- 'APB', 'APC-PC', 'CEF', '?' (autre)
+    type_admission text, -- 'APB', 'APC-PC', 'CEF', 'Direct', '?' (autre)
     boursier_prec integer default NULL, -- etait boursier dans le cycle precedent (lycee) ?
 ) WITH OIDS;
 
