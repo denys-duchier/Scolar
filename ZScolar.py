@@ -972,7 +972,9 @@ class ZScolar(ObjectManager,
                       'telephone', 'telephonemobile', 'fax',
                       'date_naissance', 'lieu_naissance',
                       'bac', 'specialite', 'annee_bac',
-                      'nomlycee', 'villelycee', 'codepostallycee', 'codelycee'
+                      'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
+                      'type_admission', 'boursier_prec',
+                      'debouche'
                     ]
             titles = keys[:]
             keys += [ p['partition_id'] for p in other_partitions ]
