@@ -1,13 +1,13 @@
 <dtml-var standard_html_header>
 <P>
 <CENTER>
-<p>Vous êtes déconnecté de ScoDoc.
+<p>Vous Ãªtes dÃ©connectÃ© de ScoDoc.
 </p>
 
-<p><a href="<dtml-var "BASE0">">revenir à l'accueil</a></p>
+<p><a href="<dtml-var "BASE0">">revenir Ã  l'accueil</a></p>
 
 <br/>
-<p><em style="color: red;">(Attention: si vous êtes administrateur, vous ne pouvez vous déconnecter complètement qu'en relançant votre navigateur)
+<p><em style="color: red;">(Attention: si vous Ãªtes administrateur, vous ne pouvez vous dÃ©connecter complÃ¨tement qu'en relanÃ§ant votre navigateur)
 </em></p>
 </CENTER>
 

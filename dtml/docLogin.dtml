@@ -10,7 +10,7 @@
 <dtml-if destination>
 <FORM ACTION="&dtml-destination;" METHOD="POST">
 <dtml-else>
-<FORM ACTION="&dtml-URL;<dtml-if QUERY_STRING>?<dtml-var QUERY_STRING></dtml-if>" METHOD="POST">
+<FORM ACTION="&dtml-URL;" METHOD="POST">
 </dtml-if>
 
 <dtml-var "query_string_to_form_inputs(QUERY_STRING)"> <dtml-comment> Added by Emmanuel for ScoDoc</dtml-comment>
@@ -19,7 +19,7 @@
 <TABLE>
 <TR>
   <TD ALIGN="LEFT" VALIGN="TOP">
-  <STRONG><dtml-babel src="'en'">Name</dtml-babel></STRONG>
+  <STRONG><dtml-babel src="'en'">Nom</dtml-babel></STRONG>
   </TD>
   <TD ALIGN="LEFT" VALIGN="TOP">
   <INPUT TYPE="TEXT" NAME="__ac_name" SIZE="20">
@@ -28,7 +28,7 @@
 
 <TR>
   <TD ALIGN="LEFT" VALIGN="TOP">
-  <STRONG><dtml-babel src="'en'">Password</dtml-babel></STRONG>
+  <STRONG><dtml-babel src="'en'">Mot de passe</dtml-babel></STRONG>
   </TD>
   <TD ALIGN="LEFT" VALIGN="TOP">
   <INPUT TYPE="PASSWORD" NAME="__ac_password" SIZE="20">
