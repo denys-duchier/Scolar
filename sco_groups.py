@@ -192,8 +192,12 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
             if 'date_dem' in t:
                 t['etath'] = 'démission le %s' % t['date_dem']
             else:
-                t['etath'] = '(dem.)'
+                t['etath'] = '(dem.)'                
             nbdem += 1
+        elif t['etat'] == 'DEF':
+            t['etath'] = 'Défaillant'
+        else:
+            t['etath'] = t['etat']
     # Add membership for all partitions, 'partition_id' : group
     for etud in members: # long: comment eviter ces boucles ?  
         etud_add_group_infos(context, etud, sem)
