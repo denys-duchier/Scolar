@@ -846,12 +846,30 @@ subversion: %(svn_version)s
         Warning: This function is inefficient and its result should be cached.
         """
         depts = self.list_depts()
+        depts_etud = [] # liste des depts où l'etud est defini
         for dept in depts:
-            etud = dept.Scolarite.getEtudInfo(REQUEST=REQUEST)
-            if etud:
-                return dept.id
-        return '' # not found
-
+            etuds = dept.Scolarite.getEtudInfo(REQUEST=REQUEST)
+            if etuds:
+                depts_etud.append( (dept, etuds) )                
+        if not depts_etud:
+            return '' # not found
+        elif len(depts_etud) == 1:            
+            return depts_etud[0][0].id
+        # inscriptions dans plusieurs departements: cherche la plus recente
+        last_dept = None
+        last_date = None
+        for (dept, etuds) in depts_etud:
+            dept.Scolarite.fillEtudsInfo(etuds)
+            etud = etuds[0]
+            if etud['sems']:
+                if (not last_date) or (etud['sems'][0]['date_fin_iso'] > last_date):
+                    last_date = etud['sems'][0]['date_fin_iso']
+                    last_dept = dept
+        if not last_dept: 
+            # est present dans plusieurs semestres mais inscrit dans aucun
+            return  depts_etud[0][0]
+        return last_dept.id
+        
 def manage_addZScoDoc(self, id= 'ScoDoc',
                       title='Site ScoDoc',
                       REQUEST=None):
