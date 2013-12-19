@@ -16,7 +16,7 @@ fi
 mkdir $TMP
 
 # Files to copy:
-FILES=/etc/debian_version /etc/apt /etc/apache2
+FILES="/etc/debian_version /etc/apt /etc/apache2"
 
 
 echo "ScoDoc diagnostic: informations about your system will be sent to $DEST_ADDRESS"
@@ -48,6 +48,13 @@ dpkg -l > $TMP/dpkg.lst
 (cd /opt/scodoc/instance/Products/ScoDoc; svnversion >  $TMP/svn.version)
 ls -laR /opt/scodoc/instance/Products/ScoDoc > $TMP/ls-laR
 
+# Gather some information about databases:
+(su postgres -c "psql -l") > "${TMP}/psql-l.out"
+for dept in depts/*.cfg
+do
+  cnx=$(cat $dept)
+  (su postgres -c "echo '\dt' | psql -d $cnx") > "${TMP}/psql-$(basename ${dept%%.*}).out"
+done
 
 # copy files:
 for f in $FILES 
