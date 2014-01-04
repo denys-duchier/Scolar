@@ -443,13 +443,14 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
     R.append(sums)
     columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
     if with_evals:
-        columns_ids += [ 'jour', 'description', 'coefficient' ]
+        columns_ids += [ 'jour', 'description', 'coefficient', 'publish_incomplete' ]
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
     titles['jour'] = 'Evaluation'
     titles['description'] = ''
     titles['coefficient'] = 'Coef. éval.'
+    titles['publish_incomplete'] = 'Publiée'
     title = '%s %s' % (strcapitalize(parcours.SESSION_NAME), sem['titremois'])
     
     return GenTable(
