@@ -635,6 +635,8 @@ ou <a href="mailto:%s">%s</a>
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
         if error_type == 'LoginRequired':
             #    raise 'LoginRequired', ''  # copied from exuserFolder (beurk, old style exception...)        
+            #            if REQUEST:
+            #    REQUEST.response.setStatus( 401, "Unauthorized") # ??????
             log('LoginRequired from %s' % HTTP_X_FORWARDED_FOR)
             self.login_page = error_value
             return error_value
