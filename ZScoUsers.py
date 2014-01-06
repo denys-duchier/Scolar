@@ -483,13 +483,17 @@ class ZScoUsers(ObjectManager,
             except:
                 # expired from cache ? retry...
                 thisuser = self.acl_users.getUser(user_name)
-            for p in scoperms:
-                permname, value = p[:2]
-                if thisuser.has_permission(permname,self):
-                    b = 'oui'
-                else:
-                    b = 'non'
-                H.append('<li>%s : %s</li>' % (permname,b)) 
+            if not thisuser:
+                # Cas de figure incompris ? (bug IUT Amiens janvier 2014: login avec accent ?)
+                H.append("<li><em>impossible de retrouver les permissions de l'utilisateur (contacter l'administrateur)</em></li>") 
+            else:
+                for p in scoperms:
+                    permname, value = p[:2]
+                    if thisuser.has_permission(permname,self):
+                        b = 'oui'
+                    else:
+                        b = 'non'
+                    H.append('<li>%s : %s</li>' % (permname,b)) 
             H.append('</ul></div>')
         if authuser.has_permission(ScoUsersAdmin,self):
             H.append('<p><a class="stdlink" href="%s/Users">Liste de tous les utilisateurs</a></p>' % self.ScoURL())
