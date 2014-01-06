@@ -22,7 +22,7 @@ fi
 echo "Creation d'un utilisateur d'urgence pour ScoDoc"
 echo "(utile en cas de perte de votre mot de passe admin)"
 
-mdir=$SCODOC_DIR/../../../$ZOPE_VERSION/lib/python/Zope2/Startup/misc/
+mdir=/opt/zope213/lib/python2.7/site-packages/Zope2-2.13.21-py2.7.egg/Zope2/utilities
 
 python $mdir/zpasswd.py $SCODOC_DIR/../../access
 
