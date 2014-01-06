@@ -217,7 +217,7 @@ def bonus_iutam(notes_sport, coefs, infos=None):
     note_sport = notes_sport[0]
     if note_sport < 10.:
         return 0
-    prc = min( (int(2*n-20.)+2)*0.25, 5 )
+    prc = min( (int(2*note_sport-20.)+2)*0.25, 5 )
     bonus = infos['moy'] * prc/100
     return bonus
 
