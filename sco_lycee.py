@@ -44,7 +44,7 @@ def formsemestre_table_etuds_lycees(context, formsemestre_id, group_lycees=True,
     """Récupère liste d'etudiants avec etat et decision.
     """
     sem = context.get_formsemestre(formsemestre_id)
-    etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
+    etuds = sco_report.tsp_etud_list(context, formsemestre_id, only_primo=only_primo)[0]
     if only_primo:
         primostr='primo-entrants du '
     else:
@@ -59,7 +59,7 @@ def scodoc_table_etuds_lycees(context, format='html', REQUEST=None):
     semdepts = scodoc_get_all_unlocked_sems(context)
     etuds = []
     for (sem, deptcontext) in semdepts:
-        etuds += sco_report.tsp_etud_list(deptcontext, sem['formsemestre_id'])
+        etuds += sco_report.tsp_etud_list(deptcontext, sem['formsemestre_id'])[0]
     
     tab, etuds_by_lycee = _table_etuds_lycees(context, etuds, False, 'Lycées de TOUS les étudiants',
                                               context.get_preferences(), no_links=True)
