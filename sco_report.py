@@ -881,7 +881,7 @@ def graph_parcours(context, formsemestre_id, format='svg', only_primo=False,
                                                                 bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut)
     #log('graph_parcours: %s etuds (only_primo=%s)' % (len(etuds), only_primo))
     if not etuds:
-        return ''
+        return '', bacs, bacspecialites, sexes, statuts
     edges = DictDefault(defaultvalue=Set()) # {(formsemestre_id_origin, formsemestre_id_dest) : etud_set}
     sems = {}
     effectifs = DictDefault(defaultvalue=Set()) # formsemestre_id : etud_set
