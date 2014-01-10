@@ -42,6 +42,7 @@ from sco_bulletins import etud_descr_situation_semestre
 import sco_parcours_dut
 from sco_formsemestre_validation import formsemestre_recap_parcours_table
 import sco_archives_etud
+import sco_report
 
 
 def _menuScolarite(context, authuser, sem, etudid):
@@ -370,11 +371,15 @@ def etud_info_html(context, etudid, REQUEST=None, debug=False):
     """
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
+    # experimental: may be too slow to be here
+    etud['codeparcours'] = sco_report.get_codeparcoursetud(context.Notes, etud, prefix='S', separator=', ')
     
     etud['photo_html'] = photo_html
     H = """<div class="etud_info_div">
     <div class="eid_left">
      <span class="eid_nom">%(nomprenom)s</span>
+     <div class="edi_info">Bac: %(bac)s</div>
+     <div class="eid_info">%(codeparcours)s</div>
     </div>
     <span class="eid_right">
     %(photo_html)s

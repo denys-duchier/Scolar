@@ -137,7 +137,10 @@ def evaluation_formnotes(context, REQUEST ):
     isFile = REQUEST.form.get('note_method','html') in ('csv','xls')
     H = []
     if not isFile:
-        H += [ context.sco_header(REQUEST),
+        H += [ context.sco_header(REQUEST, 
+                                  page_title='Saisie notes', 
+                                  init_qtip = True,
+                                  javascripts=['js/etud_info.js']),
                "<h2>Saisie des notes</h2>" ]
     
     H += [do_evaluation_formnotes(context, REQUEST)]
@@ -279,15 +282,17 @@ def do_evaluation_formnotes(context, REQUEST ):
         #
         el.append( (nom, label, etudid, val, explanation, ident, inscr) )
     el.sort() # sort by name
-    for (nom, label,etudid, val, explanation, ident, inscr) in el:
+    for (nom, label, etudid, val, explanation, ident, inscr) in el:
 
         if inscr['etat'] == 'D':
             label = '<span class="etuddem">' + label + '</span>'
             if not val:
                 val = 'DEM'
                 explanation = 'Démission'
-        initvalues['note_'+etudid] = val                
-        descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label,
+        initvalues['note_'+etudid] = val
+
+        label_link = '<a class="etudinfo" id="%s">%s</a>' % (etudid, label)
+        descr.append( ('note_'+etudid, { 'size' : 4, 'title' : label_link,
                                          'explanation':explanation,
                                          'return_focus_next' : True,
                                          'attributes' : ['onchange="form_change();"'],

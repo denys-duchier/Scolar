@@ -320,8 +320,14 @@ class GenTable:
                         target=row.get('_%s_target'%cid, '#')
                     else:
                         target=row.get('_%s_target'%cid, '')
+                    cell_id = row.get('_%s_id'%cid, None)
+                    if cell_id:
+                        idstr = ' id="%s"' % cell_id
+                    else:
+                        idstr = '' 
+                    cell_link_class = row.get('_%s_link_class', 'discretelink')
                     if help or target:
-                        content = '<a class="discretelink" href="%s" title="%s">%s</a>' % (target,help, content)
+                        content = '<a class="%s" href="%s" title="%s"%s>%s</a>' % (cell_link_class, target,help, idstr, content)
                     if self.html_with_td_classes:
                         c = ' class="%s"' % cid
                     else:

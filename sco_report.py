@@ -689,7 +689,7 @@ def _codesem(sem, short=True, prefix=''):
             prefix = '' # indique titre au lieu de Sn
     return '%s%s%s' % (prefix, idx, d)
 
-def get_codeparcoursetud(context, etud):
+def get_codeparcoursetud(context, etud, prefix='', separator=''):
     """calcule un code de parcours pour un etudiant
     exemples:
        1234A pour un etudiant ayant effectué S1, S2, S3, S4 puis diplome
@@ -703,7 +703,7 @@ def get_codeparcoursetud(context, etud):
     while i >= 0:
         s = sems[i] # 'sems' est a l'envers, du plus recent au plus ancien        
         nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_etat, get_etud_decision_sem
-        p.append( _codesem(s) )
+        p.append( _codesem(s, prefix=prefix) )
         # code etat sur dernier semestre seulement
         if i == 0:
             # Démission
@@ -716,7 +716,7 @@ def get_codeparcoursetud(context, etud):
                 if dec and s['semestre_id'] == nt.parcours.NB_SEM and code_semestre_validant(dec['code']):
                     p.append(':A')
         i -= 1
-    return ''.join(p)
+    return separator.join(p)
 
 def tsp_etud_list(context, formsemestre_id, only_primo=False,  
                   bac='', # selection sur type de bac

@@ -882,7 +882,7 @@ class ZScolar(ObjectManager,
             etud['_nom_disp_target'] = 'ficheEtud?etudid=' + etud['etudid']
             etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
 
-            etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
+            etud['_nom_disp_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
             
             if etud['etat'] == 'D':                
                 etud['_css_row_class'] = 'etuddem'
