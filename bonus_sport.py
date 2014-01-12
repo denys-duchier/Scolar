@@ -221,6 +221,26 @@ def bonus_iutam(notes_sport, coefs, infos=None):
     bonus = infos['moy'] * prc/100
     return bonus
 
+def bonus_saint_etienne(notes_sport, coefs, infos=None):
+    """IUT de Saint-Etienne (jan 2014)
+    Nous avons différents types de bonification
+    bonfication Sport / Associations
+    coopératives de département / Bureau Des Étudiants 
+    / engagement citoyen / Langues optionnelles
+    Nous ajoutons sur le bulletin une bonification qui varie entre 0,1 et 0,3 ou 0,35 pour chaque item
+    la bonification totale ne doit pas excéder les 0,6 point.
+    Sur le bulletin nous ne mettons pas une note sur 20 mais directement les bonifications.
+
+
+    Dans ScoDoc: on a déclarer une UE "sport&culture" dans laquelle on aura des modules
+    pour chaque activité (Sport, Associations, ...)
+    avec à chaque fois une note (ScoDoc l'affichera comme une note sur 20, mais en fait ce sera la
+    valeur de la bonification: entrer 0,1/20 signifiera un bonus de 0,1 point la moyenne générale)
+    """
+    bonus = min(0.6,sum([x for x in notes_sport]))  # plafonnement à 0.6 points
+    
+    return bonus
+    
 def bonus_demo(notes_sport, coefs, infos=None):
     """Fausse fonction "bonus" pour afficher les informations disponibles
     et aider les développeurs.
