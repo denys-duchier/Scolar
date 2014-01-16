@@ -201,7 +201,9 @@ def make_xml_formsemestre_bulletinetud(
                                heure_fin=TimetoISO8601(e['heure_fin'], null_is_empty=True),
                                coefficient=e['coefficient'],
                                evaluation_type=e['evaluation_type'],
-                               description=quote_xml_attr(e['description']))
+                               description=quote_xml_attr(e['description']),
+                               note_max_origin=e['note_max'] # notes envoyées sur 20, ceci juste pour garder trace
+                            )
                         val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                         val = fmt_note(val, note_max=e['note_max'] )
                         doc.note( value=val )
@@ -219,7 +221,9 @@ def make_xml_formsemestre_bulletinetud(
                                            heure_fin=TimetoISO8601(e['heure_fin'], null_is_empty=True),
                                            coefficient=e['coefficient'],
                                            description=quote_xml_attr(e['description']),
-                                           incomplete='1')
+                                           incomplete='1',
+                                           note_max_origin=e['note_max'] # notes envoyées sur 20, ceci juste pour garder trace          
+                                )
                             doc._pop()
             doc._pop()
         doc._pop()
