@@ -469,6 +469,15 @@ a.stdlink:hover {
   text-decoration: underline;
 }
 
+span.spanlink {
+  color: rgb(0, 0, 255);
+  text-decoration: underline;
+}
+
+span.spanlink:hover {
+  color: red;
+}
+
 /* markup non semantique pour les cas simples */
 
 .fontred { color: red; }

@@ -1156,6 +1156,7 @@ class sem_preferences:
     # The dialog
     def edit(self, categories=[], REQUEST=None):
         """Dialog to edit semestre preferences in given categories"""
+        # log('XXX edit')  
         if not self.formsemestre_id:
             raise ScoValueError('sem_preferences.edit doit etre appele sur un semestre !') # a bug !
         sem = self.context.Notes.get_formsemestre(self.formsemestre_id)
@@ -1165,28 +1166,30 @@ class sem_preferences:
 <p class="msg">Attention: cliquez sur "Enregistrer les modifications" en bas de page pour appliquer vos changements !</p>
 <script type="text/javascript">
 function sel_global(el, pref_name) {
+     var tf = document.getElementById("tf");
      if (el.value == 'create') {
-        document.getElementById('tf').create_local.value = pref_name;
-        document.getElementById('tf').destination.value = 'again';
-        document.tf.submit();
+        tf.create_local.value = pref_name;
+        tf.destination.value = 'again';
+        tf.submit();
      } else if (el.value == 'changeglobal') {
-        document.getElementById('tf').destination.value = 'global';
-        document.tf.submit();
+        tf.destination.value = 'global';
+        tf.submit();
      }
 }
 function set_global_pref(el, pref_name) {
-     document.getElementById('tf').suppress.value = pref_name;
-     document.getElementById('tf').destination.value = 'again';
-     var f = document.getElementById('tf')[pref_name];
+     var tf = document.getElementById("tf");
+     tf.suppress.value = pref_name;
+     tf.destination.value = 'again';
+     var f = tf[pref_name];
      if (f) {
        f.disabled = true;
      } else {
-       f = document.getElementById('tf')[pref_name+':list'];
+       f =tf[pref_name+':list'];
        if (f) {
          f.disabled = true;
        }
      }
-     document.tf.submit();
+    tf.submit();
 }
 </script>
 """
@@ -1260,7 +1263,7 @@ def _build_form(self, categories=[], global_edit=False):
                 if 'explanation' in descr:
                     del descr['explanation']
                 if not global_edit:
-                    descr['explanation'] = """ou <a href="" onClick="set_global_pref(this, '%s');">utiliser paramètre global</a>""" % pref_name
+                    descr['explanation'] = """ou <span class="spanlink" onclick="set_global_pref(this, '%s');">utiliser paramètre global</span>""" % pref_name
                 #if descr.get('only_global',False):
                 #    # pas modifiable, donne juste la valeur courante
                 #    descr['readonly'] = True
@@ -1271,7 +1274,7 @@ def _build_form(self, categories=[], global_edit=False):
                     # montre la valeur et menus pour la rendre locale
                     descr['readonly'] = True
                     menu_global = """<select class="tf-selglobal" onchange="sel_global(this, '%s');">
-                        <option value=""><em>Valeur définie globalement</em></option>
+                        <option value="">Valeur définie globalement</option>
                         <option value="create">Spécifier valeur pour ce semestre seulement</option>
                     </select>
                     """ % pref_name

@@ -512,9 +512,9 @@ class TF:
         R.append("""<script type="text/javascript">
 	// controle par la checkbox
 	function tf_enable_elem(checkbox) {
-	  oid = checkbox.value;
+	  var oid = checkbox.value;
 	  if (oid) {
-	     elem = document.getElementById(oid)
+	     var elem = document.getElementById(oid);
 	     if (elem) {
 	         if (checkbox.checked) {
 	             elem.disabled = false;

@@ -144,7 +144,7 @@ def sco_header(context, REQUEST=None,
         H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>\n"""
                   % js )
 
-    H.append( """<style>
+    H.append( """<style type="text/css">
 .gtrcontent {
    margin-left: %(margin_left)s;
    height: 100%%;

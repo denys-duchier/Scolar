@@ -603,6 +603,8 @@ def icontag(name, file_format='png', **attrs):
         attrs['height'] = height
     if 'border' not in attrs:
         attrs['border'] = 0
+    if 'alt' not in attrs:
+        attrs['alt'] = 'logo %s' % name
     s = ' '.join([ '%s="%s"' % (k, attrs[k]) for k in attrs ])
     return '<img %s src="/ScoDoc/static/icons/%s.%s" />' % (s, name, file_format)
 
