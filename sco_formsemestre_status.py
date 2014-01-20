@@ -425,6 +425,9 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
               'Responsable' : context.Users.user_info(M['responsable_id'],REQUEST)['nomprenom'],
               'Coef.' : M['module']['coefficient'],
               # 'ECTS' : M['module']['ects'],
+              # Lien sur titre -> module
+              '_Module_target' : 'moduleimpl_status?moduleimpl_id=' + M['moduleimpl_id'],
+              '_Code_target' : 'moduleimpl_status?moduleimpl_id=' + M['moduleimpl_id'],
               }
         R.append(l)
         if M['module']['coefficient']:
@@ -435,6 +438,23 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
             # Ajoute lignes pour evaluations
             evals = context.do_evaluation_list( { 'moduleimpl_id' : M['moduleimpl_id'] } )
             evals.reverse() # ordre chronologique
+            # Ajoute etat:
+            for e in evals:
+                e.update( sco_evaluations.do_evaluation_etat(context, e['evaluation_id']) )
+                # Cosmetic: conversions pour affichage
+                if e['evalcomplete']:
+                    e['evalcomplete_str'] = 'Oui'
+                    e['_evalcomplete_str_td_attrs'] = 'style="color: green;"'
+                else:
+                    e['evalcomplete_str'] = 'Non'
+                    e['_evalcomplete_str_td_attrs'] = 'style="color: red;"'
+                    
+                if int(e['publish_incomplete']):
+                    e['publish_incomplete_str'] = 'Oui'
+                    e['_publish_incomplete_str_td_attrs'] ='style="color: green;"'
+                else:
+                    e['publish_incomplete_str'] = 'Non'
+                    e['_publish_incomplete_str_td_attrs'] ='style="color: red;"'
             R += evals
     
     sums = { '_css_row_class' : 'moyenne sortbottom',
@@ -443,14 +463,16 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
     R.append(sums)
     columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
     if with_evals:
-        columns_ids += [ 'jour', 'description', 'coefficient', 'publish_incomplete' ]
+        columns_ids += [ 'jour', 'description', 'coefficient', 'evalcomplete_str', 
+                         'publish_incomplete_str' ]
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
     titles['jour'] = 'Evaluation'
     titles['description'] = ''
     titles['coefficient'] = 'Coef. éval.'
-    titles['publish_incomplete'] = 'Publiée'
+    titles['evalcomplete_str'] = 'Complète'
+    titles['publish_incomplete_str'] = 'Toujours Utilisée'
     title = '%s %s' % (strcapitalize(parcours.SESSION_NAME), sem['titremois'])
     
     return GenTable(
