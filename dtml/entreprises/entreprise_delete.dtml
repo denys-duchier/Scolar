@@ -5,13 +5,13 @@
 
 <h2>Suppression de l'entreprise <dtml-var "F['nom']"> </h2>
 
-<p class="entreprise_warning">Attention: supression définitive de l'entreprise, de ses correspondants et contacts.
+<p class="entreprise_warning">Attention: supression dÃ©finitive de l'entreprise, de ses correspondants et contacts.
 </p>
 
 <dtml-call "REQUEST.set( 'Cl', do_entreprise_correspondant_list( args={ 'entreprise_id' : entreprise_id }))">
 
 <dtml-if "len(Cl)">
-<h3>Correspondants dans l'entreprise <dtml-var "F['nom']"> (seront <em>supprimés</em>):</h3>
+<h3>Correspondants dans l'entreprise <dtml-var "F['nom']"> (seront <em>supprimÃ©s</em>):</h3>
 <ul>
 <dtml-in Cl>
  <dtml-let c="_['sequence-item']">
@@ -26,7 +26,7 @@
 
 <dtml-call "REQUEST.set( 'Cts', do_entreprise_contact_list( args={ 'entreprise_id' : entreprise_id }))">
 <dtml-if "len(Cts)">
-<h3>Contacts avec l'entreprise <dtml-var "F['nom']"> (seront <em>supprimés</em>):</h3>
+<h3>Contacts avec l'entreprise <dtml-var "F['nom']"> (seront <em>supprimÃ©s</em>):</h3>
 <ul>
 <dtml-in Cts>
  <dtml-let c="_['sequence-item']">

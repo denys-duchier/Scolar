@@ -6,7 +6,7 @@
 
 <table class="corr_list">
 
-<tr><th>Nom</th><th>Entreprise</th><th>Fonction</th><th>Téléphone</th><th>Mail</th><th>Note</th></tr>
+<tr><th>Nom</th><th>Entreprise</th><th>Fonction</th><th>TÃ©lÃ©phone</th><th>Mail</th><th>Note</th></tr>
 
 <dtml-in "do_entreprise_correspondant_list( args={ 'entreprise_id' : entreprise_id })">
  <dtml-let F="_['sequence-item']">

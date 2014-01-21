@@ -18,12 +18,12 @@
     ('entreprise_id', { 'input_type' : 'hidden', 'default' : entreprise_id }),
 
     ('type_contact', { 'input_type' : 'menu', 'title' : 'Objet',
-                       'allowed_values' : ('Prospection', 'Stage étudiant', 
+                       'allowed_values' : ('Prospection', 'Stage Ã©tudiant', 
                                            'Contrat Apprentissage DUT GTR1', 
                                            'Contrat Apprentissage DUT GTR2',
                                            'Contrat Apprentissage Licence SQRT',
                                            'Projet', 'Autre' ),
-                       'default' : 'Stage étudiant'
+                       'default' : 'Stage Ã©tudiant'
                      }),
 
     ('date', { 'size' : 12, 'title' : 'Date du contact (j/m/a)', 'allow_null' : False, 
@@ -34,7 +34,7 @@
                          'labels' : [ x[0] for x in correspondants ],
                          'allowed_values' : [ x[1] for x in correspondants ] }),
 
-    ('etudiant', { 'size' : 16, 'title' : 'Etudiant concerné', 'allow_null' : True,
+    ('etudiant', { 'size' : 16, 'title' : 'Etudiant concernÃ©', 'allow_null' : True,
                     'explanation' : 'nom (si pas ambigu) ou code' }),
     ('enseignant', { 'size' : 16, 'title' : 'Enseignant (tuteur)', 'allow_null' : True }),
     ('description',     { 'input_type' : 'textarea', 'rows' : 3, 'cols': 40, 'title' : 'Description' }),

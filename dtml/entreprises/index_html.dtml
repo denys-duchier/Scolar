@@ -18,7 +18,7 @@ function entsub(event,ourform) {
 
 <dtml-comment>
 <p class="entreprise_warning">
-Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:viennet@lipn.univ-paris13.fr">Emmanuel</a>
+Attention: version test prÃ©liminaire. Signaler les problÃ¨mes Ã  <a href="mailto:viennet@lipn.univ-paris13.fr">Emmanuel</a>
 </p>
 </dtml-comment>
 
@@ -51,7 +51,7 @@ Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:v
 <table><tr>
  <th>nom</th><td><input type="text" name="nom" size="12" value="<dtml-if nom><dtml-var nom></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
  <th>ville</th><td><input type="text" name="ville" size="12" value="<dtml-if ville><dtml-var ville></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
- <th>étudiant</th><td><input type="text" name="etud_nom" size="12" value="<dtml-if etud_nom><dtml-var etud_nom></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
+ <th>Ã©tudiant</th><td><input type="text" name="etud_nom" size="12" value="<dtml-if etud_nom><dtml-var etud_nom></dtml-if>" onkeypress="return entsub(event,this.form)"></input></td>
  
  <td><input type="submit" value="rechercher"></input></td>
  <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
@@ -70,7 +70,7 @@ Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:v
 <dtml-if sequence-start>
 <table class="entreprise_list_title">
 <tr class="entreprise_list_title"><td class="entreprise_list_title">Entreprises</td>
-<td class="entreprise_list_title_res">Résultats <b><dtml-var start></b> - <b><dtml-try><dtml-var "_['next-sequence-start-number']"><dtml-except><dtml-var "len(Elist)"></dtml-try></b> sur <b><dtml-var "len(Elist)"> </b>
+<td class="entreprise_list_title_res">RÃ©sultats <b><dtml-var start></b> - <b><dtml-try><dtml-var "_['next-sequence-start-number']"><dtml-except><dtml-var "len(Elist)"></dtml-try></b> sur <b><dtml-var "len(Elist)"> </b>
 </td>
 </tr>
 </table>
@@ -117,7 +117,7 @@ Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:v
      <dtml-if sequence-start>
         <dtml-if previous-sequence>
         <a href="<dtml-var URL><dtml-var sequence-query>start=<dtml-var previous-sequence-start-number>">
-           page précédente</a>&nbsp;&nbsp;&nbsp;&nbsp;
+           page prÃ©cÃ©dente</a>&nbsp;&nbsp;&nbsp;&nbsp;
          </dtml-if previous-sequence>
      </dtml-if sequence-start>
      <dtml-if sequence-end>
@@ -127,7 +127,7 @@ Attention: version test préliminaire. Signaler les problèmes à <a href="mailto:v
          </dtml-if next-sequence>
      </dtml-if sequence-end>
     </dtml-in Elist>
-   &nbsp; Résultats par page :
+   &nbsp; RÃ©sultats par page :
         <select name="entreprise_page_size" onchange="this.form.submit()">
         <dtml-in "((5,5),(10,10),(15,15),(20,20),(30,30),(50,50),(1000,'Tous'))"  prefix="label">
             <option value="<dtml-var "label_key">" <dtml-if "label_key == entreprise_page_size">selected</dtml-if>><dtml-var label_item></option>
