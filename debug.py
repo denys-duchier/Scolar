@@ -44,4 +44,30 @@ def go(app, n=0):
     return context
 
 
-
+class DummyResponse:
+    """Emulation vide de Reponse http Zope"""
+    def __init__(self):
+        self.header = {}
+        self.redirected = ''
+    def setHeader(self, name, value):
+        self.header[name] = value
+    def redirect(self, url):
+        self.redirected = url
+    
+class DummyRequest:
+    """Emulation vide de Request Zope"""
+    def __init__(self):
+        self.RESPONSE = DummyResponse()
+        self.AUTHENTICATED_USER = 'admin'
+        self.form = {}
+        self.URL = 'http://scodoc/'
+        self.URL1 = self.URL
+        self.URL0 = self.URL
+        self.BASE0 = 'localhost'
+        self.REMOTE_ADDR = '127.0.0.1'
+        self.HTTP_REFERER = ''
+        self.REQUEST_METHOD = 'get'
+        self.QUERY_STRING = ''
+        
+        
+REQUEST = DummyRequest()
