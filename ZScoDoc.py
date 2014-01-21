@@ -44,19 +44,7 @@ from email.MIMEBase import MIMEBase
 from email.Header import Header
 from email import Encoders
 
-# Zope modules:
-from OFS.SimpleItem import Item # Basic zope object
-from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
-                                # 'manage_propertiesForm' method
-from OFS.ObjectManager import ObjectManager
-from AccessControl.Role import RoleManager # provide the 'Ownership' tab with
-                                # the 'manage_owner' method
-from AccessControl import ClassSecurityInfo
-import Globals
-from Globals import DTMLFile # can use DTML files
-from Globals import Persistent
-from Globals import INSTANCE_HOME
-from Acquisition import Implicit
+from sco_zope import *
 
 # 
 try:

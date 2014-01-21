@@ -46,20 +46,7 @@ L'API de plus bas niveau est en gros:
 
 import urllib
 
-from OFS.SimpleItem import Item # Basic zope object
-from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
-                                # 'manage_propertiesForm' method
-from OFS.ObjectManager import ObjectManager
-from AccessControl.Role import RoleManager # provide the 'Ownership' tab with
-                                # the 'manage_owner' method
-from AccessControl import ClassSecurityInfo
-import Globals
-from Globals import DTMLFile # can use DTML files
-from Globals import Persistent
-from Acquisition import Implicit
-
-# where we exist on the file system
-file_path = Globals.package_home(globals())
+from sco_zope import *
 
 # ---------------
 

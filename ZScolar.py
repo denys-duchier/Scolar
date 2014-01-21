@@ -38,19 +38,7 @@ from zipfile import ZipFile
 import thread
 import psycopg2
 
-# Zope modules:
-from OFS.SimpleItem import Item # Basic zope object
-from OFS.PropertyManager import PropertyManager # provide the 'Properties' tab with the
-                                # 'manage_propertiesForm' method
-from OFS.ObjectManager import ObjectManager
-from AccessControl.Role import RoleManager # provide the 'Ownership' tab with
-                                # the 'manage_owner' method
-from AccessControl import ClassSecurityInfo
-import Globals
-from Globals import DTMLFile # can use DTML files
-from Globals import Persistent
-from Globals import INSTANCE_HOME
-from Acquisition import Implicit
+from sco_zope import *
 
 
 # ---------------
@@ -58,8 +46,6 @@ from notes_log import log
 log.set_log_directory( INSTANCE_HOME + '/log' )
 log("restarting...")
 
-# where we exist on the file system
-file_path = Globals.package_home(globals())
 log( 'ZScolar home=%s' % file_path )
 
 from sco_utils import *
