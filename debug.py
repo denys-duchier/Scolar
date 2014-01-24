@@ -11,14 +11,18 @@ Puis
 
 from debug import *
 context = go(app)
- 
+
 Exemple:
 sems = context.Notes.formsemestre_list()
 formsemestre_id = sems[0]['formsemestre_id']
 
-# Affiche tous le semestres:
+# Affiche tous les semestres:
 for sem in sems:
     print sem['formsemestre_id'], sem['titre_num']
+
+# Recupere la table de notes:
+nt = context.Notes._getNotesCache().get_NotesTable(context.Notes, formsemestre_id)
+
 
 """
 from notesdb import *
