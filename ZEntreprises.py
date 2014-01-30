@@ -396,7 +396,7 @@ class ZEntreprises(ObjectManager,
         retourne (1, ETUDID).
         Sinon, retourne (0, 'message explicatif')
         """
-        etudiant = etudiant.strip()
+        etudiant = etudiant.strip().translate(None, "'()") # suppress parens and quote from name
         if not etudiant:
             return 1, None
         cnx = self.GetDBConnexion()
