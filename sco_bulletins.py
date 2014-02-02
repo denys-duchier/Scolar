@@ -713,7 +713,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST,
                              javascripts=['jQuery/jquery.js',
                                           'js/bulletin.js',
-                                          'libjs/d3.v2.min.js',
+                                          'libjs/d3.v3.min.js',
                                           'js/radar_bulletin.js'
                                           ],
                              cssstyles=['radar_bulletin.css']
