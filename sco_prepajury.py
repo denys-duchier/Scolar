@@ -136,7 +136,7 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
     L.append( ['Feuille préparation Jury %s' % unescape_html(sem['titreannee']) ] )
     L.append( [] ) # empty line 
     
-    titles = ['', 'etudid', 'Civ.', 'Nom', 'Prénom', 'Naissance', 'Parcours', 'Groupe' ]
+    titles = ['', 'etudid', 'Civ.', 'Nom', 'Prénom', 'Naissance', 'Bac', 'Spe', 'Parcours', 'Groupe' ]
     if prev_moy: # si qq chose dans precedent
         titles += [ prev_ue_acro[x][1] for x in ue_prev_codes] + ['Moy %s'% sp, 'Décision %s' % sp]
     titles += [ue_acro[x][1] for x in ue_codes] + ['Moy %s' % sn]
@@ -174,7 +174,8 @@ def feuille_preparation_jury(context, formsemestre_id, REQUEST):
         etud = nt.identdict[etudid]
         l = [ str(i), etudid, 
               format_sexe(etud['sexe']), format_nom(etud['nom']), format_prenom(etud['prenom']),
-              nt.identdict[etudid]['date_naissance'],
+              etud['date_naissance'],
+              etud['bac'], etud['specialite'],
               parcours[etudid], groupestd[etudid] ]
         co = len(l)
         if prev_moy:
