@@ -594,6 +594,11 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
            'input_type' : 'boolcheckbox',
            'explanation' : "copie toutes les évaluations, sans les dates (ni les notes!)"
            }),
+        ('clone_partitions', 
+         { 'title' : "Copier aussi les partitions",
+           'input_type' : 'boolcheckbox',
+           'explanation' : "copie toutes les partitions (sans les étudiants!)"
+           }),
         ]
     tf = TrivialFormulator( 
         REQUEST.URL0, REQUEST.form, descr,
@@ -611,6 +616,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
             context.Users.get_user_name_from_nomplogin(tf[2]['responsable_id']),
             tf[2]['date_debut'], tf[2]['date_fin'],
             clone_evaluations=tf[2]['clone_evaluations'],
+            clone_partitions=tf[2]['clone_partitions'],
             REQUEST=REQUEST)
         return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
 
@@ -619,8 +625,9 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
                           responsable_id, 
                           date_debut, date_fin,  # 'dd/mm/yyyy'
                           clone_evaluations=False,
+                          clone_partitions=False,
                           REQUEST=None):
-    """Clone a semestre: make copy, same modules, same options, same resps.
+    """Clone a semestre: make copy, same modules, same options, same resps, same partitions.
     New dates, responsable_id    
     """
     log('cloning %s' % orig_formsemestre_id)
@@ -680,6 +687,32 @@ def do_formsemestre_clone(context, orig_formsemestre_id,
         args = obj.copy()
         args['formsemestre_id'] = formsemestre_id
         c = sco_compute_moy.formsemestre_ue_computation_expr_create(cnx, args)
+
+    # 5- Copy partitions
+    if clone_partitions:
+        listgroups = []
+        listnamegroups = []
+        # Création des partitions:
+        for part in sco_groups.get_partitions_list(context, orig_formsemestre_id):
+            if part['partition_name']  != None:
+                partname = part['partition_name']
+                orig_partition_id = part['partition_id']
+                new_partition_id = sco_groups.partition_create(context, formsemestre_id, 
+                                                               partition_name = partname, REQUEST=REQUEST, 
+                                                               redirect=0)
+                for g in sco_groups.get_partition_groups(context, part):
+                    if g['group_name'] != None:
+                        listnamegroups.append(g['group_name'])
+                listgroups.append([new_partition_id, listnamegroups])
+                listnamegroups=[]
+        
+        # Création des groupes dans les nouvelles partitions:
+        for newpart in sco_groups.get_partitions_list(context, formsemestre_id):
+            for g in listgroups:
+                if newpart['partition_id']==g[0]:
+                    part_id = g[0]
+                    for group_name in g[1]:
+                        group_id = sco_groups.createGroup(context, part_id, group_name=group_name, REQUEST=REQUEST)
     
     return formsemestre_id
 
