@@ -275,13 +275,19 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },        
         ]
     # 1 item / partition:
+    submenu = []
+    enabled = context.can_change_groups(REQUEST, formsemestre_id)
     for partition in sco_groups.get_partitions_list(context, formsemestre_id, with_default=False):
-        menuGroupes.append(
-            { 'title' : 'Modifier les groupes de %s' % partition['partition_name'],
+        submenu.append(
+            { 'title' : '%s' % partition['partition_name'],
               'url' : 'affectGroups?partition_id=%s'% partition['partition_id'],
-              'enabled' : context.can_change_groups(REQUEST, formsemestre_id)
+              'enabled' : enabled,
               })
-
+    menuGroupes.append( 
+        { 'title' : 'Modifier les groupes',
+          'submenu' : submenu,
+          'enabled' : enabled
+          })
 
     menuNotes = [
         { 'title' : 'Tableau des moyennes (et liens bulletins)',
