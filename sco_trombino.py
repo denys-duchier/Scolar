@@ -86,8 +86,7 @@ def trombino(context, REQUEST, group_id,
         return _trombino_html_header(context, REQUEST) + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
 
 def _trombino_html_header(context, REQUEST):
-    return context.sco_header(REQUEST, javascripts=[ 'jQuery/jquery.js', 
-                                                     'js/trombino.js' ])
+    return context.sco_header(REQUEST, javascripts=[ 'js/trombino.js' ])
 
 def _trombino_html(context, group, members, REQUEST=None):
     "HTML snippet for trombino (with title and menu)"
@@ -119,7 +118,7 @@ def _trombino_html(context, group, members, REQUEST=None):
         ng = "Aucun étudiant inscrit dans ce groupe !"
     H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]
     if members:
-        H.append( '<td>' + makeMenu( 'Photos', menuTrombi ) + '</td>' )
+        H.append( '<td>' + makeMenu( 'Photos', menuTrombi, alone=True ) + '</td>' )
     H.append('</tr></table>')
     H.append('<div><table width="100%">')
     i = 0

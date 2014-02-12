@@ -86,7 +86,7 @@ def formsemestre_validation_etud_form(
         raise ScoValueError('validation: semestre verrouille')
     
     H = [ context.sco_header(REQUEST, page_title='Parcours %(nomprenom)s' % etud,
-                             javascripts=['jQuery/jquery.js', 'js/recap_parcours.js']
+                             javascripts=[ 'js/recap_parcours.js']
                              ) ]
 
     Footer = ['<p>']

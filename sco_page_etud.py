@@ -106,7 +106,7 @@ def _menuScolarite(context, authuser, sem, etudid):
         },        
         ]
 
-    return makeMenu( "Scolarité", items, cssclass="direction_etud", elem='span' )
+    return makeMenu( "Scolarité", items, css_class="direction_etud", alone=True )
 
 def ficheEtud(context, etudid=None, REQUEST=None):
     "fiche d'informations sur un etudiant"
@@ -324,7 +324,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
     header = context.sco_header(
                 REQUEST,
                 page_title='Fiche étudiant %(prenom)s %(nom)s'%info,
-                javascripts=['jQuery/jquery.js', 'js/recap_parcours.js'])
+                javascripts=['js/recap_parcours.js'])
     return header + tmpl % info + context.sco_footer(REQUEST)
 
 
@@ -362,7 +362,7 @@ def menus_etud(context, REQUEST=None):
           },
         ]
        
-    return makeMenu( 'Etudiant', menuEtud, base_url=context.absolute_url() + '/')
+    return makeMenu( 'Etudiant', menuEtud, base_url=context.absolute_url() + '/', alone=True)
 
 
 def etud_info_html(context, etudid, REQUEST=None, debug=False):

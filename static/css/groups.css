@@ -4,16 +4,27 @@
 
 .simpleDropPanel { 
     float: left;
-    border-width: 1px;
+    border-width: 2px;
     border-style: solid;
     width: 18em;
-    margin: 1em;
+    margin: 5px;
+    padding: 3px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    background-color: rgb(212, 248, 252);
+}
+
+.activatedPanel {
+    border-color: red;
 }
 
 #_none_ { /* boite des sans groupes */
-    border-width: 5px;
-    border-style: solid;
-    border-color: #707070;
+    background-color: rgb(190, 190, 190);
+}
+
+#_none_ div.groupTitle0 {
+    background-color: rgb(190, 190, 190);
 }
 
 .groupTitle {
@@ -21,16 +32,26 @@
 }
 
 div.groupTitle {
-    background-color: #A0E0FF;
+    background-color: rgb(212, 248, 252);
     padding-left: 2px;
 }
 
 div.groupTitle0 {
-    background-color: #A0E0FF; 
+    background-color:rgb(212, 248, 252); 
+}
+
+
+
+#groups {
+    overflow:hidden;
+    background-color: rgb(255, 248, 220);
+    margin-right: 4px;
+    border-width: 2px;
+    border: 2px solid rgb(150, 220, 220);
 }
 
 #groups .barrenav ul li a.custommenu {
-    background-color: #A0E0FF; 
+    /* background-color: rgb(212, 248, 252);  */
     font-size: 12pt;
     height: 18px;
     padding-left: 3px;

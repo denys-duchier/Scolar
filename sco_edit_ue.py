@@ -64,8 +64,7 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         raise ScoValueError("Formation %s inexistante ! (si vous avez suivi un lien valide, merci de signaler le problème)" % formation_id)
     Fo = Fol[0]
     H = [ context.sco_header(REQUEST, page_title=title,
-                             javascripts=[ 'jQuery/jquery.js', 
-                                           'js/edit_ue.js' ]
+                             javascripts=[ 'js/edit_ue.js' ]
                              ),
           "<h2>" + title,
           ' (formation %(acronyme)s, version %(version)s)</h2>' % Fo,

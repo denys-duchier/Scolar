@@ -704,6 +704,8 @@ h2.formsemestre, .gtrcontent h2 {
 .formsemestre_page_title table.semtitle td.infos table {
     padding-top: 10px;
 }
+
+/*
 .formsemestre_menubar {
     border-top: 3px solid #67A7E3;
     background-color: #D6E9F8;
@@ -713,6 +715,51 @@ h2.formsemestre, .gtrcontent h2 {
 .formsemestre_menubar .barrenav ul li a.menu {
     font-size: 12px;
 }
+*/
+/* Barre menu semestre */
+#sco_menu {
+  overflow : hidden;
+  background: rgb(214, 233, 248);
+  border-top-color: rgb(103, 167, 227);
+  border-top-style: solid;
+  border-top-width: 3px;
+  margin-top: 5px;
+  margin-right: 3px;
+  margin-left: -1px;
+}
+
+#sco_menu > li {
+  float : left;
+  width : auto; /* 120px !important; */
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+}
+
+#sco_menu > li li {
+    text-transform: none;
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#sco_menu > li > a {
+    font-weight: bold !important;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+#sco_menu ul .ui-menu {
+  width : 200px;
+}
+
+.sco_dropdown_menu {
+}
+.sco_dropdown_menu > li {
+  width : auto; /* 120px !important; */
+  font-size: 12px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 
 .formsemestre_page_title  .infos span {
     padding-right: 25px;
@@ -1965,3 +2012,5 @@ div.update_warning_sub {
     font-size: 80%;
     padding-left: 8ex;
 }
+
+

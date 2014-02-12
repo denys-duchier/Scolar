@@ -78,7 +78,7 @@ import sco_report
 import sco_archives_etud
 import sco_groups_edit
 import sco_up_to_date
-from sco_formsemestre_status import makeMenu
+
 from VERSION import SCOVERSION, SCONEWS
 
 log('ScoDoc: using encoding %s' % SCO_ENCODING)

@@ -44,29 +44,58 @@ import sco_compute_moy
 import sco_codes_parcours
 import sco_bulletins
 
-def makeMenu( title, items, cssclass='custommenu', elem='span', base_url='' ):
+def makeMenu( title, items, css_class='', base_url='', alone=False ):
     """HTML snippet to render a simple drop down menu.
     items is a list of dicts:
     { 'title' :
       'url' :
       'enabled' : # True by default
       'helpmsg' :
+      'submenu' : [ list of sub-items ]
     }
     """
-    H = [ """<%s class="barrenav"><ul class="nav">
-    <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu %s">%s</a><ul>""" % (elem, cssclass, title)
-          ]
-    for item in items:
-        if item.get('enabled', True):
-            if base_url:
-                item['urlq'] = urllib.quote(item['url'])
+    def gen_menu_items(items):
+        H.append('<ul>')
+        for item in items:
+            if not item.get('enabled', True):
+                cls = ' class="ui-state-disabled"'
             else:
-                item['urlq'] = item['url']
-            H.append('<li><a href="' + base_url + '%(urlq)s">%(title)s</a></li>' % item)
-        else:
-            H.append('<li><span class="disabled_menu_item">%(title)s</span></li>' % item)
-    H.append('</ul></li></ul></%s>' % elem)
+                cls = ''
+            if base_url and 'url' in item:
+                item['urlq'] = base_url + urllib.quote(item['url'])
+            else:
+                item['urlq'] = item.get('url', '#')
+            submenu = item.get('submenu', None)
+            H.append('<li ' + cls + '><a href="%(urlq)s">%(title)s</a>' % item)
+            if submenu:
+                gen_menu_items(submenu)
+            H.append('</li>')
+        H.append('</ul>')
+    
+    H = []
+    if alone:
+        H.append('<ul class="sco_dropdown_menu %s">' % css_class )
+    H.append( """<li><a href="#">%s</a>""" % title )
+    gen_menu_items(items)
+    H.append('</li>')
+    if alone:
+        H.append('</ul>')
     return ''.join(H)
+    
+# H = [ """<span class="barrenav"><ul class="nav">
+# <li onmouseover="MenuDisplay(this)" onmouseout="MenuHide(this)"><a href="#" class="menu %s">%s</a><ul>""" % (cssclass, title)
+#       ]
+# for item in items:
+#     if item.get('enabled', True):
+#         if base_url:
+#             item['urlq'] = urllib.quote(item['url'])
+#         else:
+#             item['urlq'] = item['url']
+#         H.append('<li><a href="' + base_url + '%(urlq)s">%(title)s</a></li>' % item)
+#     else:
+#         H.append('<li><span class="disabled_menu_item">%(title)s</span></li>' % item)
+# H.append('</ul></li></ul></%s>' % elem)
+# return ''.join(H)
 
 
 def defMenuStats(context,formsemestre_id):
@@ -99,10 +128,20 @@ def defMenuStats(context,formsemestre_id):
           'url' : 'report_debouche_date',
           'enabled' : True,
           },
-         { 'title' : "Estimation du coût de la formation",
+        { 'title' : "Estimation du coût de la formation",
           'url' : 'formsemestre_estim_cost?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
-          },         
+          },
+        # { 'title' : 'experimental sub',
+        #   'submenu' : [
+        #         { 'title' : 'sous 1', 
+        #           'url' : '#' },
+        #         { 'title' : 'sous 2', 
+        #           'url' : '#' },
+        #         { 'title' : 'sous 3', 
+        #           'url' : '#' },
+        #  ]
+        #},
         ]
 
 
@@ -292,14 +331,17 @@ def formsemestre_status_menubar(context, sem, REQUEST):
     menuStats = defMenuStats(context,formsemestre_id)
     base_url=context.absolute_url() + '/' # context must be Notes
     H = [
-        '<div class="formsemestre_menubar"><table><tr>', 
-        '<td>', makeMenu( 'Semestre', menuSemestre, base_url=base_url ), '</td>',
-        '<td>', makeMenu( 'Inscriptions', menuInscriptions, base_url=base_url ), '</td>',
-        '<td>', makeMenu( 'Groupes', menuGroupes, base_url=base_url ), '</td>',
-        '<td>',  makeMenu( 'Notes', menuNotes, base_url=base_url ), '</td>',
-        '<td>', makeMenu( 'Jury', menuJury, base_url=base_url ), '</td>',
-        '<td>', makeMenu( 'Statistiques', menuStats, base_url=base_url ), '</td>',
-        '<td>', formsemestre_custommenu_html(context, formsemestre_id, base_url=base_url), '</td></tr></table></div>',
+        # <table><tr><td>', 
+        '<ul id="sco_menu">',
+        makeMenu( 'Semestre', menuSemestre, base_url=base_url ),
+        makeMenu( 'Inscriptions', menuInscriptions, base_url=base_url ), 
+        makeMenu( 'Groupes', menuGroupes, base_url=base_url ),
+        makeMenu( 'Notes', menuNotes, base_url=base_url ),
+        makeMenu( 'Jury', menuJury, base_url=base_url ),
+        makeMenu( 'Statistiques', menuStats, base_url=base_url ), 
+        formsemestre_custommenu_html(context, formsemestre_id, base_url=base_url), 
+        '</ul>',
+        #'</td></tr></table>'
           ]
     return '\n'.join(H)
 

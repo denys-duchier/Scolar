@@ -50,7 +50,6 @@ from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 
 import sco_formsemestre_edit, sco_formsemestre_status
 import sco_edit_ue, sco_edit_formation, sco_edit_matiere, sco_edit_module
-from sco_formsemestre_status import makeMenu
 import sco_formsemestre_inscriptions
 import sco_formsemestre_custommenu
 import sco_moduleimpl_status

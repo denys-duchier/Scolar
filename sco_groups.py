@@ -478,7 +478,7 @@ def setGroups(context, partition_id,
             change_etud_group_in_partition(context, etudid, group_id, partition, REQUEST=REQUEST)
     
     REQUEST.RESPONSE.setHeader('content-type', XML_MIMETYPE)
-    return 'Groupes enregistrés'
+    return '<?xml version="1.0" encoding="utf-8"?><response>Groupes enregistrés</response>'
 
 
 def createGroup(context, partition_id, group_name='', default=False, REQUEST=None):

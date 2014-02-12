@@ -711,7 +711,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     authuser = REQUEST.AUTHENTICATED_USER
     uid = str(authuser)
     H = [ context.sco_header(page_title='Bulletin de %(nomprenom)s' % etud, REQUEST=REQUEST,
-                             javascripts=['jQuery/jquery.js',
+                             javascripts=[
                                           'js/bulletin.js',
                                           'libjs/d3.v3.min.js',
                                           'js/radar_bulletin.js'
@@ -782,7 +782,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
         ]
     
     H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
-    H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul) )
+    H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul, alone=True) )
     H.append("""</div></td>""")
     H.append('<td> <a href="%s">%s</a></td>'%(url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s'% (formsemestre_id,etudid,version),ICON_PDF))
     H.append("""</tr></table>""")

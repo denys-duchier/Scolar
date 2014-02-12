@@ -47,14 +47,12 @@ def affectGroups(context, partition_id, REQUEST=None):
     
     sem = context.Notes.get_formsemestre(formsemestre_id)
     
-    H = [ context.sco_header(REQUEST, page_title='Affectation aux groupes',
-                             javascripts=[ 'Rico/src/prototype.js',
-                                           'Rico/src/min.rico.js', 
-                                           'Rico/src/ricoAjaxEngine.js',
-                                           'js/groupmgr.js' ],
-                             cssstyles=['groups.css'],
-                             bodyOnLoad='javascript:bodyOnLoad()' ),
-          """<h2 class="formsemestre">Affectation aux groupes de %s</h2><form id="sp">""" % partition['partition_name']]    
+    H = [ context.sco_header(
+        REQUEST, page_title='Affectation aux groupes',
+        javascripts=['js/groupmgr.js'],
+        cssstyles=['groups.css']
+        ),
+        """<h2 class="formsemestre">Affectation aux groupes de %s</h2><form id="sp">""" % partition['partition_name']]    
     
     H += [
         """</select></form>""",
@@ -81,13 +79,11 @@ Editer groupes de
     H += [ """</select>
 </form>
 
-<div style="background-color: salmon;">
 <div id="groups">
-</div>
 </div>
 
 <div style="clear: left; margin-top: 15px;">
-<p class="help">Cette page ne fonctionne pas forcément avec tous les navigateurs (certaines versions d'Internet Explorer et de Safari posent problème). Utilisez de préférence Firefox.</p>
+<p class="help"></p>
 </div>
 
 </div>

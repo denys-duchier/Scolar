@@ -93,7 +93,7 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           },
         ]
 
-    return makeMenu( 'actions', menuEval )
+    return makeMenu( 'actions', menuEval, alone=True )
 
 
 def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=None):

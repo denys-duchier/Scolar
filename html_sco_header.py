@@ -41,8 +41,8 @@ def sco_header(context, REQUEST=None,
                javascripts=[],     # additionals JS filenames to load
                scripts=[],         # script to put in page header
                bodyOnLoad='',      # JS
-               init_jquery=False,  # load and init jQuery
-               init_jquery_ui=False,# include all stuff for jquery-ui and initialize scripts
+               init_jquery=True,  # load and init jQuery
+               init_jquery_ui=True,# include all stuff for jquery-ui and initialize scripts
                init_qtip=False,    # include qTip 
                init_google_maps=False,# Google maps
                titrebandeau='',    # titre dans bandeau superieur
@@ -139,6 +139,7 @@ def sco_header(context, REQUEST=None,
         # H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui/js/jquery-ui-i18n.js"></script>')
     if init_google_maps:
         H.append('<script type="text/javascript" src="/ScoDoc/static/libjs/jquery.ui.map.full.min.js"></script>')
+
     # JS additionels
     for js in javascripts:
         H.append( """<script language="javascript" type="text/javascript" src="/ScoDoc/static/%s"></script>\n"""
@@ -162,9 +163,36 @@ def sco_header(context, REQUEST=None,
                       dateFormat: 'dd/mm/yy',   
                       duration : 'fast',                   
                   });
-                $('.datepicker').datepicker('option', $.extend({showMonthAfterYear: false},
-				$.datepicker.regional['fr']));
+        $('.datepicker').datepicker('option', $.extend({showMonthAfterYear: false},
+         $.datepicker.regional['fr']));
 
+         /* Barre menu */
+        var sco_menu_position = {my: "left top", at: "left bottom"};
+       $("#sco_menu").menu({
+        position: sco_menu_position,
+        blur: function() {
+            $(this).menu("option", "position", sco_menu_position);
+        },
+        focus: function(e, ui) {
+            if ($("#sco_menu").get(0) !== $(ui).get(0).item.parent().get(0)) {
+                $(this).menu("option", "position", {my: "left top", at: "right top"});
+            }
+        }
+        }).mouseleave(function(x, y) {
+        $( "#sco_menu" ).menu('collapseAll');
+        });
+
+        $("#sco_menu > li > a > span").switchClass("ui-icon-carat-1-e", "ui-icon-carat-1-s");
+
+        /* Les menus isoles dropdown */
+        $(".sco_dropdown_menu").menu({
+        position: sco_menu_position
+        }).mouseleave(function(x, y) {
+        $( ".sco_dropdown_menu" ).menu('collapseAll');
+        }
+        );
+        $(".sco_dropdown_menu > li > a > span").switchClass("ui-icon-carat-1-e", "ui-icon-carat-1-s");
+        
 	    });
         </script>""" )
     # Scripts de la page:
