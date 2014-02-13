@@ -685,6 +685,10 @@ class ZScoUsers(ObjectManager,
                  return REQUEST.RESPONSE.redirect( REQUEST.URL1 + "?head_message=Utilisateur %s modifié" % user_name )
              else: # creation utilisateur
                  vals['roles'] = ','.join(vals['roles'])
+                 # check identifiant
+                 if not re.match(r'^[a-zA-Z0-9@\\\-_\\\.]+$', vals['user_name']):
+                     msg = tf_error_message("identifiant invalide (pas d'accents ni de caractères spéciaux)")
+                     return '\n'.join(H) + msg + '\n' + tf[1] + F
                  # check passwords
                  if vals['passwd'] != vals['passwd2']:
                      msg = tf_error_message("""Les deux mots de passes ne correspondent pas !""")
