@@ -65,3 +65,18 @@ $().ready(function(){
 
     show_current_tab();
 });
+
+function change_list_options() {
+    var url = groups_view_url();
+    var selected_options = $("#group_list_options").val();
+    var options = [ "with_paiement", "with_archives", "with_annotations", "with_codes" ];
+    for (var i=0; i<options.length; i++) {
+        var option = options[i];
+        delete url.param()[option];
+        if ($.inArray( option, selected_options ) >= 0) {
+            url.param()[option] = 1;
+        }
+    }
+    var query_string = $.param(url.param(), traditional=true );
+    window.location = url.attr('base') + url.attr('path') + '?' + query_string;
+}

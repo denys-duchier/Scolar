@@ -130,7 +130,7 @@ def menu_groups_choice(context, groups_infos):
     H = [ """<form id="group_selector" method="get">
     <input type="hidden" name="formsemestre_id" id="formsemestre_id" value="%s"/>
     <input type="hidden" name="default_group_id" id="default_group_id" value="%s"/>
-    Groupes: <select name="group_ids" class="multiselect" multiple="multiple">
+    Groupes: <select name="group_ids" id="group_ids_sel" class="multiselect" multiple="multiple">
     """ % (groups_infos.formsemestre_id, default_group_id) ]
 
     for partition in groups_infos.partitions:
@@ -153,7 +153,7 @@ def menu_groups_choice(context, groups_infos):
     H.append("""
     <script type="text/javascript">
   $(document).ready(function() {
-    $('.multiselect').multiselect(
+  $('#group_ids_sel').multiselect(
     {
     includeSelectAllOption: false,
     nonSelectedText:'choisir...',
@@ -292,18 +292,7 @@ def groups_table(
     with_paiement= int(with_paiement)
     with_archives= int(with_archives)
     with_annotations = int(with_annotations)
-    if with_archives:
-        with_archives_checked = 'checked="checked"'
-    else:
-        with_archives_checked = ''
-    if with_paiement:
-        with_paiement_checked = 'checked="checked"'
-    else:
-        with_paiement_checked = ''
-    if with_annotations:
-        with_annotations_checked = 'checked="checked"'
-    else:
-        with_annotations_checked = ''
+    
     base_url_np = groups_infos.base_url + '&with_codes=%s' % with_codes
     base_url = base_url_np + '&with_paiement=%s&with_archives=%s&with_annotations=%s' % (with_paiement, with_archives, with_annotations)
     #
@@ -382,20 +371,44 @@ def groups_table(
         else:
             htitle = 'Aucun étudiant !'
         H = [ 
-            '<div class="tab-content">'
-            '<h3 class="formsemestre">', htitle, '</h3>' 
+            '<div class="tab-content"><form>'
+            '<h3 class="formsemestre"><span>', htitle, '</span>' 
             ]
         if groups_infos.members:
-            H.extend([
-                """<form name="wpf">
-              <input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer paiement inscription</input>
-              <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer fichiers archivés</input>
-              <input type="checkbox" name="with_annotations" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">lister annotations</input>                  
-              </form>
-                """ % (with_paiement_checked, base_url_np,
-                       with_archives_checked, base_url_np,
-                       with_annotations_checked, base_url_np),
+            Of = []
+            options = {  "with_paiement" : "Paiement inscription", 
+                         "with_archives" : "Fichiers archivés", 
+                         "with_annotations" : "Annotations", 
+                         "with_codes" : "Codes" }
+            for option in options:
+                if locals().get(option, False):
+                    selected = "selected"
+                else:
+                    selected = ""
+                Of.append( """<option value="%s" %s>%s</option>""" % (option, selected, options[option]))
                 
+            H.extend([
+                """<span style="margin-left: 2em;"><select name="group_list_options" id="group_list_options" class="multiselect" multiple="multiple">""",
+                '\n'.join(Of),
+                """
+            </select></span>
+            <script type="text/javascript">
+  $(document).ready(function() {
+  $('#group_list_options').multiselect(
+  {
+    includeSelectAllOption: false,
+    nonSelectedText:'Options...',
+    onChange: function(element, checked){
+        change_list_options();
+    }
+    }
+  );
+  });
+  </script>
+                """ ])
+        H.append('</h3></form>')
+        if groups_infos.members:
+            H.extend([
                 tab.html(),
                 
                 '<ul><li><a class="stdlink" href="mailto:?bcc=%s">Envoyer un mail collectif au groupe de %s</a></li></ul>' 
