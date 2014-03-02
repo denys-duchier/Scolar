@@ -29,24 +29,27 @@ function groups_view_url() {
     return url;
 }
 
-// Selectionne tous les etudiants:
+// Selectionne tous les etudiants et recharge la page:
 function select_tous() {
     var url = groups_view_url();
     var default_group_id = $("#group_selector")[0].default_group_id.value;
     delete url.param()['group_ids'];
     url.param()['group_ids'] = [ default_group_id ];
 
-    reload_groups_view(url);
-}
-
-function reload_groups_view(url) {
     var query_string = $.param(url.param(), traditional=true );
     window.location = url.attr('base') + url.attr('path') + '?' + query_string;
 }
 
+// L'URL pour l'état courant de la page:
+function get_current_url() {
+    var url = groups_view_url();
+    var query_string = $.param(url.param(), traditional=true );
+    return url.attr('base') + url.attr('path') + '?' + query_string;
+}
+
 // Recharge la page en changeant les groupes selectionnés et en conservant le tab actif:
 function submit_group_selector() {
-    reload_groups_view(groups_view_url());
+    window.location = get_current_url();
 }
 
 function show_current_tab() {
