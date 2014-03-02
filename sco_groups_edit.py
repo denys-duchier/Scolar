@@ -50,7 +50,7 @@ def affectGroups(context, partition_id, REQUEST=None):
     H = [ context.sco_header(
         REQUEST, page_title='Affectation aux groupes',
         javascripts=['js/groupmgr.js'],
-        cssstyles=['groups.css']
+        cssstyles=['css/groups.css']
         ),
         """<h2 class="formsemestre">Affectation aux groupes de %s</h2><form id="sp">""" % partition['partition_name']]    
     

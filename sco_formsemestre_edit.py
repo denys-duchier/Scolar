@@ -46,7 +46,7 @@ def formsemestre_createwithmodules(context, REQUEST=None):
     H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
                              init_jquery_ui=True,
                              javascripts=['libjs/AutoSuggest.js'],
-                             cssstyles=['autosuggest_inquisitor.css'], 
+                             cssstyles=['css/autosuggest_inquisitor.css'], 
                              bodyOnLoad="init_tf_form('')"
                              ),
           """<h2>Mise en place d'un semestre de formation</h2>""",
@@ -64,7 +64,7 @@ def formsemestre_editwithmodules(context, REQUEST, formsemestre_id):
     H = [ context.html_sem_header(REQUEST, 'Modification du semestre', sem,
                                   init_jquery_ui=True,
                                   javascripts=['libjs/AutoSuggest.js'],
-                                  cssstyles=['autosuggest_inquisitor.css'], 
+                                  cssstyles=['css/autosuggest_inquisitor.css'], 
                                   bodyOnLoad="init_tf_form('')"
                                   ) ]
     if sem['etat'] != '1':
@@ -562,7 +562,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
         context.html_sem_header(REQUEST, 'Copie du semestre', sem,
                                 init_jquery_ui=True,
                                 javascripts=['libjs/AutoSuggest.js'],
-                                cssstyles=['autosuggest_inquisitor.css'],
+                                cssstyles=['css/autosuggest_inquisitor.css'],
                                 bodyOnLoad="init_tf_form('')"),
         """<p class="help">Cette opération duplique un semestre: on reprend les mêmes modules et responsables. Aucun étudiant n'est inscrit.</p>"""
     ]

@@ -103,20 +103,22 @@ def sco_header(context, REQUEST=None,
 <meta name="LANG" content="fr" />
 <meta name="DESCRIPTION" content="ScoDoc" />
 
-<link href="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css" />
-<link href="/ScoDoc/static/css/menu.css" rel="stylesheet" type="text/css" />""" % params ]
+""" % params ]
     # jQuery UI
     if init_jquery_ui:
         # can modify loaded theme here
         H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/libjs/jquery-ui-1.10.4.custom/css/smoothness/jquery-ui-1.10.4.custom.min.css" />\n')
     if init_google_maps:
         H.append('<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>')
+
     # Feuilles de style additionnelles:
     for cssstyle in cssstyles:
-        H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/%s" />\n"""
+        H.append( """<link type="text/css" rel="stylesheet" href="/ScoDoc/static/%s" />\n"""
                   % cssstyle )
     
     H.append( """
+<link href="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css" />
+<link href="/ScoDoc/static/css/menu.css" rel="stylesheet" type="text/css" />
 <script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/menu.js"></script>
 <script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/sorttable.js"></script>
 <script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/bubble.js"></script>
@@ -127,12 +129,12 @@ def sco_header(context, REQUEST=None,
     # jQuery
     if init_jquery:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery.js"></script>')
-        # Seems necessary for the new (2.0.1) qtip with jQuery 1.10.1
+        # Seems necessary for the new (>= 2.0.1) qtip with jQuery 1.10.1
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery-migrate-1.2.0.min.js"></script>')
     # qTip
     if init_qtip:
-        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/qtip/jquery.qtip.js"></script>')
-        H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/css/jquery.qtip.min.css" />')
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/qtip/jquery.qtip-2.2.0.min.js"></script>')
+        H.append('<link type="text/css" rel="stylesheet" href="/ScoDoc/static/libjs/qtip/jquery.qtip-2.2.0.min.css" />')
 
     if init_jquery_ui:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery-ui-1.10.4.custom/js/jquery-ui-1.10.4.custom.min.js"></script>')

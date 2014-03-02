@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2014 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -168,12 +168,13 @@ def etud_get_archived_file(context, REQUEST, etudid, archive_name, filename):
 def etudarchive_generate_excel_sample(context, group_id=None, REQUEST=None):
     """Feuille excel pour import fichiers etudiants (utilisé pour admissions)
     """    
-    format = ImportScolars.sco_import_format()
+    fmt = ImportScolars.sco_import_format()
     data = ImportScolars.sco_import_generate_excel_sample(
-        format, context=context, group_id=group_id,
+        fmt, context=context, group_ids=[group_id],
         only_tables=['identite'], 
         exclude_cols=[ 'date_naissance', 'lieu_naissance', 'nationalite', 'statut', 'photo_filename' ],
-        extra_cols = ['fichier_a_charger'])
+        extra_cols = ['fichier_a_charger'],
+        REQUEST=REQUEST)
     return sco_excel.sendExcelFile(REQUEST, data, 'ImportFichiersEtudiants.xls')
 
 def etudarchive_import_files_form(context, group_id, REQUEST=None):

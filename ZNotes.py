@@ -1121,7 +1121,7 @@ class ZNotes(ObjectManager,
             % (moduleimpl_id, M['module']['titre']), 
             page_title='Enseignants du module %s' % M['module']['titre'],
             javascripts=['libjs/AutoSuggest.js'],
-            cssstyles=['autosuggest_inquisitor.css'], 
+            cssstyles=['css/autosuggest_inquisitor.css'], 
             bodyOnLoad="init_tf_form('')"
             )
         footer = self.sco_footer(REQUEST)
@@ -1199,7 +1199,7 @@ class ZNotes(ObjectManager,
                     % (moduleimpl_id, M['module']['titre']), 
                     sem,
                     javascripts=['libjs/AutoSuggest.js'],
-                    cssstyles=['autosuggest_inquisitor.css'], 
+                    cssstyles=['css/autosuggest_inquisitor.css'], 
                     bodyOnLoad="init_tf_form('')"
                     )
             ]
@@ -2194,7 +2194,7 @@ class ZNotes(ObjectManager,
     def evaluation_listenotes(self, REQUEST=None ):
         """Affichage des notes d'une évaluation"""
         if REQUEST.form.get('format','html')=='html':
-            H = self.sco_header(REQUEST, cssstyles=['verticalhisto.css']) 
+            H = self.sco_header(REQUEST, cssstyles=['css/verticalhisto.css']) 
             F = self.sco_footer(REQUEST)
         else:
             H, F = '', ''

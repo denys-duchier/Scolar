@@ -73,6 +73,7 @@ import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
 import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
+import sco_groups_view
 import sco_parcours_dut
 import sco_report
 import sco_archives_etud
@@ -220,7 +221,7 @@ class ZScolar(ObjectManager,
     def essaiform(self,REQUEST=None):
         """essai autocompletion"""
         H = [ self.sco_header(REQUEST, javascripts=['libjs/AutoSuggest.js'],
-                              cssstyles=['autosuggest_inquisitor.css'],
+                              cssstyles=['css/autosuggest_inquisitor.css'],
                               bodyOnLoad="initform()"),
               """<form method="get" action="essai">
               <input type="text" style="width: 200px" id="testinput_c" value=""/>
@@ -357,7 +358,7 @@ class ZScolar(ObjectManager,
     def about(self, REQUEST):
         "version info"
         H = [ """<h2>Système de gestion scolarité</h2>
-        <p>&copy; Emmanuel Viennet 1997-2013</p>
+        <p>&copy; Emmanuel Viennet 1997-2014</p>
         <p>Version %s (subversion %s)</p>
         """ % (SCOVERSION, get_svn_version(file_path)) ]
         H.append('<p>Logiciel libre écrit en <a href="http://www.python.org">Python</a>.</p><p>Utilise <a href="http://www.reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')
@@ -761,10 +762,10 @@ class ZScolar(ObjectManager,
                         group['label'] = 'liste'
                     H.append('<tr class="listegroupelink">')                
                     H.append("""<td>
-                        <a href="%(url)s/group_list?group_id=%(group_id)s">%(label)s</a>
+                        <a href="%(url)s/groups_view?group_ids=%(group_id)s">%(label)s</a>
                         </td><td>
-                        (<a href="%(url)s/group_list?&group_id=%(group_id)s&format=xls">format tableur</a>)
-                        <a href="%(url)s/trombino?group_id=%(group_id)s&etat=I">Photos</a>
+                        (<a href="%(url)s/groups_view?&group_ids=%(group_id)s&format=xls">format tableur</a>)
+                        <a href="%(url)s/groups_view?curtab=tab-photos&group_ids=%(group_id)s&etat=I">Photos</a>
                         </td>""" % group )
                     H.append('<td>(%d étudiants)</td>' % n_members )
 
@@ -787,7 +788,6 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView, 'group_list')
     def group_list(self, group_id, REQUEST=None,
                    with_codes=0,
-                   all_groups=0,
                    etat=None,
                    format='html',
                    with_paiement=0, # si vrai, ajoute colonne infos paiement droits inscription (lent car interrogation portail)
@@ -797,212 +797,17 @@ class ZScolar(ObjectManager,
         """liste etudiants inscrits dans ce semestre
         format: html, csv, xls, xml, allxls, pdf, json
         Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
-        Si all_groups, donne les groupes
         """
-        authuser = REQUEST.AUTHENTICATED_USER
-        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
-        if not group['group_name']:
-            all_groups = 1
-
-        with_codes = int(with_codes)
-        all_groups = int(all_groups)
-        with_paiement= int(with_paiement)
-        with_archives= int(with_archives)
-        with_annotations = int(with_annotations)
-        if with_archives:
-            with_archives_checked = 'checked="checked"'
-        else:
-            with_archives_checked = ''
-        if with_paiement:
-            with_paiement_checked = 'checked="checked"'
-        else:
-            with_paiement_checked = ''
-        if with_annotations:
-            with_annotations_checked = 'checked="checked"'
-        else:
-            with_annotations_checked = ''
-        base_url_np = '%s?group_id=%s&with_codes=%s&all_groups=%s' % (REQUEST.URL0,group_id,with_codes,all_groups)
-        base_url = base_url_np + '&with_paiement=%s&with_archives=%s&with_annotations=%s' % (with_paiement, with_archives, with_annotations)
-        
-        formsemestre_id = group['formsemestre_id']
-        #
-        columns_ids=['nom_disp', 'prenom' ] # colonnes a inclure
-        titles = { 'nom_disp' : 'Nom',
-                   'prenom' : 'Prénom',
-                   'email' : 'Mail',
-                   'etat':'Etat',
-                   'etudid':'etudid',
-                   'code_nip':'code_nip', 'code_ine':'code_ine',
-                   'paiementinscription_str' : 'Paiement',
-                   'etudarchive' : 'Fichiers',
-                   'annotations_str' : 'Annotations'
-                   }
-        
-        if all_groups:
-            # ajoute colonnes pour groupes
-            for partition in sco_groups.get_partitions_list(self, formsemestre_id):
-                if partition['partition_name']:
-                    columns_ids.append( partition['partition_id'] )
-                    titles[partition['partition_id']] = partition['partition_name']
-        
-        if format != 'html': # ne mentionne l'état que en Excel (style en html)
-            columns_ids.append('etat')
-        columns_ids.append('email')
-        if with_codes:
-            columns_ids += ['etudid', 'code_nip', 'code_ine']
-        if with_paiement:
-            sco_portal_apogee.check_paiement_etuds(self, members)
-            columns_ids += ['paiementinscription_str']
-        if with_archives:
-            sco_archives_etud.add_archives_info_to_etud_list(self, members)
-            columns_ids += ['etudarchive']
-        if with_annotations:
-            scolars.add_annotations_to_etud_list(self, members)
-            columns_ids += ['annotations_str']
-        # ajoute liens
-        for etud in members:
-            if  etud['email']:
-                etud['_email_target'] = 'mailto:' + etud['email']
-            else:
-                etud['_email_target'] = ''
-            etud['_nom_disp_target'] = 'ficheEtud?etudid=' + etud['etudid']
-            etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
-
-            etud['_nom_disp_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
-            
-            if etud['etat'] == 'D':                
-                etud['_css_row_class'] = 'etuddem'
-            # et groupes:
-            for partition_id in etud['partitions']:
-                etud[partition_id] = etud['partitions'][partition_id]['group_name']
-            
-        if nbdem > 1:
-            s = 's'
-        else:
-            s = ''
-        
-        tab = GenTable( rows=members, columns_ids=columns_ids, titles=titles,
-                        caption='soit %d étudiants inscrits et %d démissionaire%s.' 
-                        % (len(members)-nbdem,nbdem,s),
-                        base_url=base_url,
-                        pdf_link=False, # pas d'export pdf
-                        html_sortable=True,
-                        html_class='gt_table table_leftalign table_listegroupe',
-                        xml_outer_tag='group_list',
-                        xml_row_tag='etud',
-                        preferences=self.get_preferences(formsemestre_id) )
-        #
-        if format == 'html':
-            amail=','.join([x['email'] for x in members if x['email'] ])
-            
-            if len(members):
-                if group['group_name'] != None:
-                    htitle = 'Groupe %s (%d étudiants)' % (group['group_name'],len(members))
-                else:
-                    htitle = 'Les %d étudiants inscrits' % len(members)
-            else:
-                htitle = 'Aucun étudiant'
-            H = [ self.Notes.html_sem_header(
-                REQUEST,
-                htitle, sem,
-                init_qtip = True,
-                javascripts=['js/etud_info.js']
-                ),
-                tab.html(),
-                  """<form name="wpf">
-                  <input type="checkbox" name="with_paiement" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer paiement inscription</input>
-                  <input type="checkbox" name="with_archives" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">indiquer fichiers archivés</input>
-                  <input type="checkbox" name="with_annotations" %s onchange="document.location.href='%s&with_paiement='+(document.wpf.with_paiement.checked|0)+'&with_archives='+(document.wpf.with_archives.checked|0)+'&with_annotations='+(document.wpf.with_annotations.checked|0);">lister annotations</input>                  
-                  </form>
-                  """ % (with_paiement_checked, base_url_np,
-                         with_archives_checked, base_url_np,
-                         with_annotations_checked, base_url_np),
-                  """<ul><li><a class="stdlink" href="%s&format=xls">Feuille d'émargement</a></li>"""
-                  % base_url,
-                  """<li><a class="stdlink" href="trombino?group_id=%s&etat=I">Photos</a></li>"""
-                  % (group_id,),
-                  '<li><a class="stdlink" href="mailto:?bcc=%s">Envoyer un mail collectif au groupe de %s</a></li>' % (amail, group_tit)
-                  ]
-            
-            # Lien pour verif codes INE/NIP
-            if authuser.has_permission(ScoEtudInscrit,self):                
-                H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a></li>'
-                         % (group_id,etat or ''))
-            # Lien pour ajout fichiers étudiants
-            if authuser.has_permission(ScoEtudAddAnnotations,self):
-                H.append("""<li><a class="stdlink" href="etudarchive_import_files_form?group_id=%s">Télécharger des fichiers associés aux étudiants (e.g. dossiers d'admission)</a></li>"""
-                         % (group_id))
-            H.append('</ul>')
-            
-            return '\n'.join(H)+self.sco_footer(REQUEST)
-        
-        elif format=='pdf' or format=='xml' or format=='json':
-            return tab.make_page(self, format=format, REQUEST=REQUEST)
-        
-        elif format == 'xls':
-            title = 'liste_%s' % group_tit
-            xls = sco_excel.Excel_feuille_listeappel(self, sem, group_tit, members,
-                                                     partitions= [ group ] + other_partitions,
-                                                     with_codes=with_codes,
-                                                     with_paiement=with_paiement,
-                                                     server_name=REQUEST.BASE0)
-            filename = title + '.xls'
-            return sco_excel.sendExcelFile(REQUEST, xls, filename )
-        elif format == 'allxls':
-            # feuille Excel avec toutes les infos etudiants
-            if not members:
-                return ''            
-            keys = ['etudid', 'code_nip', 'etat',
-                    'sexe', 'nom', 'nom_usuel', 'prenom',
-                    'inscriptionstr']
-            if with_paiement:
-                keys.append('paiementinscription')
-            keys += [ 'email', 'domicile', 'villedomicile', 'codepostaldomicile', 'paysdomicile',
-                      'telephone', 'telephonemobile', 'fax',
-                      'date_naissance', 'lieu_naissance',
-                      'bac', 'specialite', 'annee_bac',
-                      'nomlycee', 'villelycee', 'codepostallycee', 'codelycee',
-                      'type_admission', 'boursier_prec',
-                      'debouche',
-                      'parcours', 'codeparcours'
-                    ]
-            titles = keys[:]
-            keys += [ p['partition_id'] for p in other_partitions ]
-            titles += [ p['partition_name'] for p in other_partitions ]
-            # remplis infos lycee si on a que le code lycée
-            # et ajoute infos inscription
-            for m in members:
-                etud = self.getEtudInfo(m['etudid'], filled=True)[0]
-                m.update(etud)
-                scolars.etud_add_lycee_infos(etud)
-                # et ajoute le parcours
-                Se = sco_parcours_dut.SituationEtudParcours(self.Notes, etud, formsemestre_id)
-                m['parcours'] = Se.get_parcours_descr() 
-                m['codeparcours'] = sco_report.get_codeparcoursetud(self.Notes, etud)
-            
-            def dicttakestr(d, keys):
-                r = []
-                for k in keys:
-                    r.append(str(d.get(k, '')))
-                return r
-            L = [ dicttakestr(m, keys) for m in members ]            
-            title = ('etudiants_%s' % group_tit).replace(' ', '_')
-            xls = sco_excel.Excel_SimpleTable(
-                titles=titles,
-                lines = L,
-                SheetName = title )
-            filename = title + '.xls'
-            return sco_excel.sendExcelFile(REQUEST, xls, filename)
-
-        # format XML supprimé (était inutile, à vérifier)
-        else:
-            raise ValueError('unsupported format')
-
+        return Exception('group_list est remplacé par groups_view') # XXX A ENLEVER AVANT COMMIT XXX
+    
     security.declareProtected(ScoView,'trombino')
     trombino = sco_trombino.trombino
 
     security.declareProtected(ScoView,'trombino_copy_photos')
     trombino_copy_photos = sco_trombino.trombino_copy_photos
+
+    security.declareProtected(ScoView,'groups_view')
+    groups_view = sco_groups_view.groups_view
     
     security.declareProtected(ScoView,'getEtudInfoGroupe')
     def getEtudInfoGroupe(self, group_id, etat=None):
@@ -2139,7 +1944,7 @@ function tweakmenu( gname ) {
         formsemestre_id = group['formsemestre_id']
         
         cnx = self.GetDBConnexion()
-        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % group['group_name'], sem),
+        H = [ self.Notes.html_sem_header(REQUEST, 'Etudiants du %s' % (group['group_name'] or 'semestre'), sem),
               '<table class="sortable" id="listegroupe">',
               '<tr><th>Nom</th><th>Nom usuel</th><th>Prénom</th><th>Mail</th><th>NIP (ScoDoc)</th><th>Apogée</th></tr>' ]
         nerrs = 0 # nombre d'anomalies détectées
@@ -2333,8 +2138,8 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés
         else:
             with_codesemestre = 0
         format = ImportScolars.sco_import_format()
-        data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre, exclude_cols=['photo_filename'])
-        return sco_excel.sendExcelFile(REQUEST,data,'ImportEtudiants.xls')
+        data = ImportScolars.sco_import_generate_excel_sample(format, with_codesemestre, exclude_cols=['photo_filename'], REQUEST=REQUEST)
+        return sco_excel.sendExcelFile(REQUEST, data, 'ImportEtudiants.xls')
 
     # --- Données admission
     security.declareProtected(ScoEtudInscrit, "form_students_import_infos_admissions")
@@ -2388,13 +2193,13 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés
     def import_generate_admission_sample(self, REQUEST, formsemestre_id):
         "une feuille excel pour importation données admissions"
         group = sco_groups.get_group(self, sco_groups.get_default_group(self, formsemestre_id))
-        format = ImportScolars.sco_import_format()
+        fmt = ImportScolars.sco_import_format()
         data = ImportScolars.sco_import_generate_excel_sample(
-            format, 
+            fmt, 
             only_tables=['identite', 'admissions', 'adresse' ],
             exclude_cols = ['nationalite', 'foto', 'photo_filename' ],
-            group_id=group['group_id'], 
-            context=self.Notes)
+            group_ids=[group['group_id']], 
+            context=self.Notes, REQUEST=REQUEST)
         return sco_excel.sendExcelFile(REQUEST,data,'AdmissionEtudiants.xls')
 
     security.declareProtected(ScoEtudInscrit, "students_import_admission")
@@ -2475,8 +2280,13 @@ Les champs avec un astérisque (*) doivent être présents (nulls non autorisés
         for param in parameters.keys():
             if parameters[param] is None:
                 parameters[param] = ''
-            H.append('<input type="hidden" name="%s" value="%s"/>'
-                     % (param, parameters[param]))
+            if type(parameters[param]) == type([]):
+                for e in parameters[param]:
+                    H.append('<input type="hidden" name="%s" value="%s"/>'
+                     % (param, e))
+            else:
+                H.append('<input type="hidden" name="%s" value="%s"/>'
+                         % (param, parameters[param]))
         H.append('</form>')
         if helpmsg:
             H.append('<p class="help">' + helpmsg + '</p>') 

@@ -364,7 +364,7 @@ def formsemestre_evaluations_cal(context, formsemestre_id, REQUEST=None):
             
     CalHTML = ZAbsences.YearTable(context.Absences, year, events=events.values(), halfday=False, pad_width=None )
 
-    H = [ context.html_sem_header(REQUEST, 'Evaluations du semestre', sem, cssstyles=['calabs.css']),
+    H = [ context.html_sem_header(REQUEST, 'Evaluations du semestre', sem, cssstyles=['css/calabs.css']),
           '<div class="cal_evaluations">',
           CalHTML,
           '</div>',

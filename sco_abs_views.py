@@ -464,7 +464,7 @@ def CalAbs(context, REQUEST=None): # etud implied
     #
     H = [ context.sco_header(REQUEST,
                              page_title="Calendrier des absences de %(nomprenom)s"%etud, 
-                             cssstyles=['calabs.css']),
+                             cssstyles=['css/calabs.css']),
           """<table><tr><td><h2>Absences de <b>%(nomprenom)s (%(inscription)s)</h2><p>""" % etud,
           """<font color="#EE0000">A : absence NON justifiée</font><br>
              <font color="#F8B7B0">a : absence justifiée</font><br>
@@ -581,7 +581,7 @@ def absences_index_html(context, REQUEST=None):
     authuser = REQUEST.AUTHENTICATED_USER
     
     H = [ context.sco_header(REQUEST,page_title="Gestion des absences",
-                             cssstyles=['calabs.css'], javascripts=['js/calabs.js']),
+                             cssstyles=['css/calabs.css'], javascripts=['js/calabs.js']),
           """<h2>Gestion des Absences</h2>""" ]
     if not sems:
         H.append("""<p class="warning">Aucun semestre défini (ou aucun groupe d'étudiant)</p>""")

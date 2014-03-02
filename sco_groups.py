@@ -117,10 +117,10 @@ def get_default_partition(context, formsemestre_id):
         raise ScoException('inconsistent partition: %d with NULL name for formsemestre_id=%s'%(len(r),formsemestre_id))
     return r[0]
 
-def get_formsemestre_groups(context, formsemestre_id):
+def get_formsemestre_groups(context, formsemestre_id, with_default=False):
     """Returns  { partition_id : { etudid : group } }
     """
-    partitions = get_partitions_list(context, formsemestre_id, with_default=False)
+    partitions = get_partitions_list(context, formsemestre_id, with_default=with_default)
     partitions_etud_groups = {} # { partition_id : { etudid : group } }
     for partition in partitions:
         pid=partition['partition_id']

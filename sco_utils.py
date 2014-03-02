@@ -454,7 +454,7 @@ def get_svn_version(path):
         return 'non disponible'
 
 
-# Simple string manipulmations
+# Simple string manipulations
 # on utf-8 encoded python strings
 # (yes, we should only use unicode strings, but... we use only strings)
 def strupper(s):

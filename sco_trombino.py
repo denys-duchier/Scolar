@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2014 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,9 +36,10 @@ import tempfile
 
 from notes_log import log
 from sco_utils import *
-from scolars import format_nom, format_prenom, format_sexe
+import scolars
 import sco_photos
 import sco_groups
+import sco_groups_view
 import sco_portal_apogee
 from sco_formsemestre_status import makeMenu
 from sco_pdf import *
@@ -48,58 +49,44 @@ from reportlab.lib import colors
 
 NB_COLS = 5 # nb of columns of photo grid (should be a preference ?)
 
-def trombino(context, REQUEST, group_id,
+def trombino(context, 
+             REQUEST=None, 
+             group_ids=[], # liste des groupes à afficher
+             formsemestre_id=None, # utilisé si pas de groupes selectionné
              etat=None,
-             format = 'html', dialog_confirmed=False ):
+             format = 'html', 
+             dialog_confirmed=False ):
     """Trombinoscope"""
     if not etat:
         etat = None # may be passed as ''
-    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
-    args='group_id=%s' % group_id
-    if etat:
-        args += '&etat=%s' % etat
+    # Informations sur les groupes à afficher:
+    groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, formsemestre_id=formsemestre_id, etat=etat, REQUEST=REQUEST)
+    
     #
     if format != 'html' and not dialog_confirmed:
-        # check that we have local copies of all images
-        nb_missing = 0
-        for t in members:
-            etudid = t['etudid']
-            url = sco_photos.etud_photo_url(context, t) # -> copy distant files if needed
-            if not sco_photos.etud_photo_is_local(context, t):
-                nb_missing += 1
-        if nb_missing > 0:
-            parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
-            return context.confirmDialog(
-                """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="trombino?%s&format=%s&dialog_confirmed=1">exporter seulement les photos existantes</a>""" % (nb_missing, args, format ),
-                dest_url = 'trombino',
-                OK = 'Exporter seulement les photos existantes',
-                cancel_url="trombino?%s"%args,
-                REQUEST=REQUEST, parameters=parameters )
+        ok, dialog = check_local_photos_availability(context, groups_infos, REQUEST)
+        if not ok:
+            return dialog
     
     if format == 'zip':
-        return _trombino_zip(context, members, REQUEST)
+        return _trombino_zip(context, groups_infos, REQUEST)
     elif format == 'pdf':
-        return _trombino_pdf(context, sem, group_tit, members, REQUEST)
+        return _trombino_pdf(context, groups_infos, REQUEST)
     elif format == 'pdflist':
-        return _listeappel_photos_pdf(context, sem, group_tit, members, REQUEST)
+        return _listeappel_photos_pdf(context, groups_infos, REQUEST)
     else:
-        return _trombino_html_header(context, REQUEST) + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
+        raise Exception('invalid format')
+        #return _trombino_html_header(context, REQUEST) + trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
 
 def _trombino_html_header(context, REQUEST):
     return context.sco_header(REQUEST, javascripts=[ 'js/trombino.js' ])
 
-def _trombino_html(context, group, members, REQUEST=None):
+def trombino_html(context, groups_infos, REQUEST=None):
     "HTML snippet for trombino (with title and menu)"
-    args='group_id=%(group_id)s' % group
+    args= groups_infos.groups_query_args
     menuTrombi = [
-        { 'title' : 'Trombinoscope en PDF',
-          'url' : 'trombino?%s&format=pdf' % args,
-          },
-        { 'title' : "Liste d'appel avec photos (beta)",
-          'url' : 'trombino?%s&format=pdflist' % args,
-          },
         { 'title' : 'Charger des photos...',
-          'url' : 'photos_import_files_form?group_id=%(group_id)s' % group,
+          'url' : 'photos_import_files_form?%s' % args,
           },
         { 'title' : 'Obtenir archive Zip des photos',
           'url' : 'trombino?%s&format=zip' % args,
@@ -109,45 +96,70 @@ def _trombino_html(context, group, members, REQUEST=None):
           }
         ]
     
-    if members:
-        if group['group_name'] != None:
-            ng = 'Groupe %s' % group['group_name']
-        else:
+    if groups_infos.members:
+        if groups_infos.tous_les_etuds_du_sem:
             ng = 'Tous les étudiants'
+        else:
+            ng = 'Groupe %s' % groups_infos.groups_titles           
     else:
         ng = "Aucun étudiant inscrit dans ce groupe !"
     H = [ '<table style="padding-top: 10px; padding-bottom: 10px;"><tr><td><span style="font-style: bold; font-size: 150%%; padding-right: 20px;">%s</span></td>' % (ng) ]
-    if members:
-        H.append( '<td>' + makeMenu( 'Photos', menuTrombi, alone=True ) + '</td>' )
+    if groups_infos.members:
+        H.append( '<td>' + makeMenu( 'Gérer les photos', menuTrombi, alone=True ) + '</td>' )
     H.append('</tr></table>')
-    H.append('<div><table width="100%">')
+    H.append('<div>')
     i = 0
-    for t in members:
-        if i % NB_COLS == 0:
-            H.append('<tr>')
-        H.append('<td align="center">')
+    for t in groups_infos.members:
+        #if i % NB_COLS == 0:
+        #    H.append('<tr>')
+        H.append('<span class="trombi_box etudinfo-trombi" id="trombi-%s"><span class="trombi-photo">' % t['etudid'])
         if sco_photos.has_photo(context, t, version=sco_photos.H90):
             foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
         else: # la photo n'est pas immédiatement dispo
             foto = '<span class="unloaded_img" id="%s"><img border="0" height="90" alt="en cours" src="/ScoDoc/static/photos/loading.jpg"/></span>' % t['etudid']
         H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
-        H.append('<br/>' + format_prenom(t['prenom']) + '<br/>' + format_nom(t['nom']) )
-        H.append('</td>')
+        H.append('</span>')
+        H.append('<span class="trombi_legend"><span class="trombi_prenom">' + scolars.format_prenom(t['prenom']) + '</span><span class="trombi_nom">' + scolars.format_nom(t['nom']) )
+        H.append('</span></span></span>')
         i += 1
-        if i % NB_COLS == 0:
-            H.append('</tr>')
-    H.append('</table><div>')
-    # H.append('<p style="font-size:50%%"><a href="trombino?%s">Archive zip des photos</a></p>' % args)
+        #if i % NB_COLS == 0:
+        #    H.append('</tr>')
+
+    H.append('</div>')
+    H.append('<div style="margin-bottom:15px;"><a class="stdlink" href="trombino?format=pdf&%s">Version PDF</a></div>' % args)
     return  '\n'.join(H)
     
 
-def _trombino_zip(context, T, REQUEST ):
-    "Send photos as zip archive"
+def check_local_photos_availability(context, groups_infos, REQUEST):
+    """Verifie que toutes les photos (des gropupes indiqués) sont copiées localement
+    dans ScoDoc (seules les photosdont nous disposons localement peuvent être exportées 
+    en pdf ou en zip).
+    Si toutes ne sont pas dispo, retourne un dialogue d'avertissement pour l'utilisateur.
+    """    
+    nb_missing = 0
+    for t in groups_infos.members:
+        etudid = t['etudid']
+        url = sco_photos.etud_photo_url(context, t) # -> copy distant files if needed
+        if not sco_photos.etud_photo_is_local(context, t):
+            nb_missing += 1
+    if nb_missing > 0:
+        parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
+        return False, context.confirmDialog(
+            """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="%s">exporter seulement les photos existantes</a>""" % (nb_missing, groups_infos.base_url + '&dialog_confirmed=1&format=' + format ),
+            dest_url = 'trombino',
+            OK = 'Exporter seulement les photos existantes',
+            cancel_url=groups_infos.base_url,
+            REQUEST=REQUEST, parameters=parameters )
+    else:
+        return True, ''
+
+def _trombino_zip(context, groups_infos, REQUEST ):
+    "Send photos as zip archive"    
     data = StringIO()
     Z = ZipFile( data, 'w' )                        
     # assume we have the photos (or the user acknowledged the fact)
     # Archive originals (not reduced) images, in JPEG
-    for t in T:
+    for t in groups_infos.members:
         rel_path = sco_photos.has_photo(context, t)
         if not rel_path:
             continue
@@ -171,39 +183,37 @@ def _trombino_zip(context, T, REQUEST ):
 
 
 # Copy photos from portal to ScoDoc
-def trombino_copy_photos(context, group_id, REQUEST=None, dialog_confirmed=False):
+def trombino_copy_photos(context, group_ids=[], REQUEST=None, dialog_confirmed=False):
     "Copy photos from portal to ScoDoc (overwriting local copy)"
-    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=None)
-    if group['group_name'] != None:
-        ng = 'Groupe %s' % group['group_name']
-    else:
-        ng = 'Tous les étudiants'
+    groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
+    back_url = 'groups_view?%s&curtab=tab-photos' % groups_infos.groups_query_args
+    
     portal_url = sco_portal_apogee.get_portal_url(context)
     header = context.sco_header(REQUEST, page_title='Chargement des photos') 
     footer = context.sco_footer(REQUEST)
     if not portal_url:
-        return header + '<p>portail non configuré</p><p><a href="trombino?group_id=%s">Retour au trombinoscope</a></p>'%group_id + footer
+        return header + '<p>portail non configuré</p><p><a href="%s">Retour au trombinoscope</a></p>'%back_url + footer
     if not dialog_confirmed:
         return context.confirmDialog(
                 """<h2>Copier les photos du portail vers ScoDoc ?</h2>
                 <p>Les photos du groupe %s présentes dans ScoDoc seront remplacées par celles du portail (si elles existent).</p>
                 <p>(les photos sont normalement automatiquement copiées lors de leur première utilisation, l'usage de cette fonction n'est nécessaire que si les photos du portail ont été modifiées)</p>
-                """ % (ng),
+                """ % (groups_infos.groups_titles),
                 dest_url="", REQUEST=REQUEST,
-                cancel_url="trombino?group_id=%s" % group_id,
-                parameters={'group_id': group_id})
+                cancel_url=back_url,
+                parameters={'group_ids': group_ids})
     
     msg = []
     nok = 0
-    for etud in members:
+    for etud in groups_infos.members:
         path, diag = sco_photos.copy_portal_photo_to_fs(context, etud)
         msg.append(diag)
         if path:
             nok += 1
     
     msg.append('<b>%d photos correctement chargées</b>' % nok )
-    args='group_id=%s' % group_id
-    return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="trombino?%s">retour au trombinoscope</a>' % args + footer
+    
+    return header + '<h2>Chargement des photos depuis le portail</h2><ul><li>' + '</li><li>'.join(msg) + '</li></ul>' + '<p><a href="%s">retour au trombinoscope</a>' % back_url + footer
 
 def _get_etud_platypus_image(context, t, image_width=2*cm):
     """Returns aplatypus object for the photo of student t
@@ -228,28 +238,32 @@ def _get_etud_platypus_image(context, t, image_width=2*cm):
         log('*** exception while processing photo of %s (%s) (path=%s)' % (t['nom'], t['etudid'], path))
         raise
 
-def _trombino_pdf(context, sem, ng, T, REQUEST):
+def _trombino_pdf(context, groups_infos, REQUEST):
     "Send photos as pdf page"
     # Generate PDF page
-    objects = []
-    StyleSheet = styles.getSampleStyleSheet()
-    report = StringIO() # in-memory document, no disk file
-    filename = ('trombino-%s.pdf' % ng ).replace(' ', '_') # XXX should sanitize this filename
-    objects.append(Paragraph(SU("Trombinoscope " + sem['titreannee'] + ' ' + ng ), StyleSheet["Heading3"]))
+    filename = 'trombino_%s' % groups_infos.groups_filename + '.pdf'
+    sem = groups_infos.formsemestre # suppose 1 seul semestre
+    
     PHOTOWIDTH = 3*cm
     COLWIDTH = 3.6*cm
     N_PER_ROW = 5 # XXX should be in ScoDoc preferences
+
+    StyleSheet = styles.getSampleStyleSheet()
+    report = StringIO() # in-memory document, no disk file
+    objects = [ 
+        Paragraph(SU("Trombinoscope " + sem['titreannee'] + ' ' + groups_infos.groups_titles ), 
+                  StyleSheet["Heading3"]) ]
     L = []
     n = 0
     currow = []
-    log('_trombino_pdf %d elements' % len(T))
-    for t in T:
+    log('_trombino_pdf %d elements' % len(groups_infos.members))
+    for t in groups_infos.members:
         img = _get_etud_platypus_image(context, t, image_width=PHOTOWIDTH )
         elem = Table(
             [ [ img ],
               [ Paragraph(
-                  SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
-                     + ' ' + format_nom(t['nom'])), StyleSheet['Normal']) ] ],
+                  SU(scolars.format_sexe(t['sexe']) + ' ' + scolars.format_prenom(t['prenom'])
+                     + ' ' + scolars.format_nom(t['nom'])), StyleSheet['Normal']) ] ],
             colWidths=[ PHOTOWIDTH ] )
         currow.append( elem )
         if n == (N_PER_ROW-1):
@@ -271,36 +285,42 @@ def _trombino_pdf(context, sem, ng, T, REQUEST):
     objects.append(table)
     # Build document
     document = BaseDocTemplate(report)
-    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
+    document.addPageTemplates(
+        ScolarsPageTemplate(document, preferences=context.get_preferences(sem['formsemestre_id'])))
     document.build(objects)
     data = report.getvalue()
     
     return sendPDFFile(REQUEST, data, filename)
 
 # --------------------- Sur une idée de l'IUT d'Orléans:
-def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
-    "Doc pdf pour liste d'appel avec photos"
-    objects = []
-    StyleSheet = styles.getSampleStyleSheet()
-    report = StringIO() # in-memory document, no disk file
-    filename = ('trombino-%s.pdf' % ng ).replace(' ', '_') # XXX should sanitize this filename
-    objects.append(Paragraph(SU( sem['titreannee'] + ' ' + ng + ' (%d)'%len(T) ), StyleSheet["Heading3"]))
+def _listeappel_photos_pdf(context, groups_infos, REQUEST):
+    "Doc pdf pour liste d'appel avec photos"    
+    filename = 'trombino_%s' % groups_infos.groups_filename + '.pdf'
+    sem = groups_infos.formsemestre # suppose 1 seul semestre
+    
     PHOTOWIDTH = 2*cm
     COLWIDTH = 3.6*cm
     ROWS_PER_PAGE = 26 # XXX should be in ScoDoc preferences
+    
+    StyleSheet = styles.getSampleStyleSheet()
+    report = StringIO() # in-memory document, no disk file
+    objects = [
+        Paragraph(SU( sem['titreannee'] + ' ' + groups_infos.groups_titles + ' (%d)'%len(groups_infos.members) ), 
+                  StyleSheet["Heading3"]) ]
     L = []
     n = 0
     currow = []
-    log('_listeappel_photos_pdf %d elements' % len(T))
-    n = len(T)
+    log('_listeappel_photos_pdf %d elements' % len(groups_infos.members))
+    n = len(groups_infos.members)
     #npages = n / 2*ROWS_PER_PAGE + 1 # nb de pages papier
     #for page in range(npages):
     for i in range(n): # page*2*ROWS_PER_PAGE, (page+1)*2*ROWS_PER_PAGE):
-        t = T[i]
+        t = groups_infos.members[i]
         img = _get_etud_platypus_image(context, t, image_width=PHOTOWIDTH)
-        txt =  Paragraph(SU( format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
-                             + ' ' + format_nom(t['nom'])),
-                         StyleSheet['Normal'])
+        txt =  Paragraph(
+            SU( scolars.format_sexe(t['sexe']) + ' ' + scolars.format_prenom(t['prenom'])
+                + ' ' + scolars.format_nom(t['nom'])),
+            StyleSheet['Normal'])
         if currow:
             currow += ['']
         currow += [ img, txt, '' ]
@@ -346,8 +366,8 @@ def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
         img = _get_etud_platypus_image(context, t, image_width=2*cm)
         currow += [
             Paragraph(
-                SU(format_sexe(t['sexe']) + ' ' + format_prenom(t['prenom'])
-                   + ' ' + format_nom(t['nom'])), StyleSheet['Normal']),
+                SU(scolars.format_sexe(t['sexe']) + ' ' + scolars.format_prenom(t['prenom'])
+                   + ' ' + scolars.format_nom(t['nom'])), StyleSheet['Normal']),
             '', # empty cell (signature ou autre info a remplir sur papier)
             img ]
         
@@ -374,20 +394,24 @@ def _listeappel_photos_pdf(context, sem, ng, T, REQUEST):
 
 
 # ---------------------    Upload des photos de tout un groupe
-def photos_generate_excel_sample(context, group_id=None, REQUEST=None):
+def photos_generate_excel_sample(context, group_ids=[], REQUEST=None):
     """Feuille excel pour import fichiers photos
     """    
-    format = ImportScolars.sco_import_format()
+    fmt = ImportScolars.sco_import_format()
     data = ImportScolars.sco_import_generate_excel_sample(
-        format, context=context, group_id=group_id,
+        fmt, context=context, group_ids=group_ids,
         only_tables=['identite'], 
         exclude_cols=[ 'date_naissance', 'lieu_naissance', 'nationalite', 'statut', 'photo_filename' ],
-        extra_cols = ['fichier_photo'])
+        extra_cols = ['fichier_photo'],
+        REQUEST=REQUEST)
     return sco_excel.sendExcelFile(REQUEST, data, 'ImportPhotos.xls')
 
-def photos_import_files_form(context, group_id, REQUEST=None):
-    """Formualaire pour importation photos
+def photos_import_files_form(context, group_ids=[], REQUEST=None):
+    """Formulaire pour importation photos
     """
+    groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
+    back_url = 'groups_view?%s&curtab=tab-photos' % groups_infos.groups_query_args
+    
     H = [context.sco_header(REQUEST, page_title='Import des photos des étudiants'),
          """<h2 class="formsemestre">Téléchargement des photos des étudiants</h2>
          <p><b>Vous pouvez aussi charger les photos individuellement via la fiche de chaque étudiant (menu "Etudiant" / "Changer la photo").</b></p>
@@ -399,43 +423,44 @@ def photos_import_files_form(context, group_id, REQUEST=None):
          simultanément le fichier excel et le fichier zip.
          </p>
         <ol>
-        <li><a class="stdlink" href="photos_generate_excel_sample?group_id=%s">
+        <li><a class="stdlink" href="photos_generate_excel_sample?%s">
         Obtenir la feuille excel à remplir</a>
         </li>
         <li style="padding-top: 2em;">
-         """ % group_id]
+         """ % groups_infos.groups_query_args]
     F = context.sco_footer(REQUEST)
+    REQUEST.form['group_ids'] = groups_infos.group_ids
     tf = TrivialFormulator(
         REQUEST.URL0, REQUEST.form,
         (('xlsfile', {'title' : 'Fichier Excel:', 'input_type' : 'file', 'size' : 40 }),
          ('zipfile', {'title' : 'Fichier zip:', 'input_type' : 'file', 'size' : 40 }),
-         ('group_id', {'input_type' : 'hidden' }),
+         ('group_ids', {'input_type' : 'hidden', 'type' : 'list' }),
          ))
     
     if  tf[0] == 0:
         return '\n'.join(H) + tf[1] + '</li></ol>' + F
     elif tf[0] == -1:
-        return REQUEST.RESPONSE.redirect( 'sco_trombino?group_id=' + group_id )
+        return REQUEST.RESPONSE.redirect( back_url )
     else:
-        return photos_import_files(context, group_id=tf[2]['group_id'],
+        return photos_import_files(context, group_ids=tf[2]['group_ids'],
                                    xlsfile=tf[2]['xlsfile'],
                                    zipfile=tf[2]['zipfile'],
                                    REQUEST=REQUEST)
 
 
-def photos_import_files(context, group_id=None, xlsfile=None, zipfile=None, REQUEST=None):
+def photos_import_files(context, group_ids=[], xlsfile=None, zipfile=None, REQUEST=None):
     """Importation des photos
     """
-    members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id)
+    groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
     filename_title = 'fichier_photo'
     page_title = 'Téléchargement des photos des étudiants'
     def callback(context, etud, data, filename, REQUEST): 
         sco_photos.store_photo(context, etud, data, REQUEST)
-    r = zip_excel_import_files(context, group_id, xlsfile, zipfile,
+    r = zip_excel_import_files(context, xlsfile, zipfile,
                                REQUEST, callback, filename_title, page_title)
-    return r + _trombino_html(context, group, members, REQUEST=REQUEST) + context.sco_footer(REQUEST)
+    return REQUEST.RESPONSE.redirect(back_url + '&head_message=photos%20 importees')
 
-def zip_excel_import_files(context, group_id=None, xlsfile=None, zipfile=None,
+def zip_excel_import_files(context, xlsfile=None, zipfile=None,
                            REQUEST=None,
                            callback = None,
                            filename_title = '', # doit obligatoirement etre specifié

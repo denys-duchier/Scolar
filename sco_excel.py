@@ -420,7 +420,7 @@ def Excel_to_list( data ): # we may need 'encoding' argument ?
 
 #
 def Excel_feuille_listeappel(context, sem, groupname, lines,
-                             partitions=[], # partitions a montrer (colonnes)
+                             partitions = [], # partitions a montrer (colonnes)
                              with_codes=False, # indique codes etuds
                              with_paiement=False, # indique si etudiant a paye inscription
                              server_name=None ):

@@ -1,5 +1,5 @@
 /* # -*- mode: css -*- 
-           ScoDoc, (c) Emmanuel Viennet 1998 - 2013
+           ScoDoc, (c) Emmanuel Viennet 1998 - 2014
  */
 
 html,body {
@@ -7,12 +7,9 @@ html,body {
   padding:0;
   width: 100%;
   background-color: rgb(242,242,238);
-  font-family: "Times New Roman", Times, serif;
+  font-family:   "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 12pt;
 }
-
-a:link { color:  #008080 }
-a:visited { color : #000080 }
 
 
 @media print {
@@ -22,7 +19,28 @@ a:visited { color : #000080 }
 }
 
 h1, h2, h3 {
-   font-family : arial, verdana, sans-serif ;
+ font-family : "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+.scotext {
+ font-family : TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif;
+}
+
+div.tab-content {
+  margin-top: 10px;
+  margin-left: 15px;
+}
+div.tab-content ul {
+  padding-bottom: 3px;
+}
+div.tab-content h3 {
+  font-size: 1.17em;
+}
+
+#group_selector button {
+  padding-top: 3px;
+  padding-bottom: 3px;
+  margin-bottom: 3px;
 }
 
 /* ----- bandeau haut ------ */
@@ -200,7 +218,7 @@ div.etud_info_div {
     background-color: #f7f7ff;
 }
 
-div.eid_left {
+span.eid_left {
     padding: 2px; 
     border: 0px;
     vertical-align: top;
@@ -478,6 +496,59 @@ span.spanlink:hover {
   color: red;
 }
 
+/* Trombinoscope */
+
+.trombi_legend {
+ font-family : TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif;
+ font-size: 90%;
+ margin-bottom: 3px;
+ -ms-word-break: break-all;
+ word-break: break-all;
+ // non std for webkit:
+ work-break: break-word; 
+ -webkit-hyphens: auto;
+ -moz-hyphens: auto;
+ hyphens: auto;
+}
+
+.trombi_box {
+  display: inline-block;
+  width: 110px;
+  vertical-align: top;
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
+span.trombi_legend {
+  display: inline-block;
+}
+span.trombi-photo {
+ display: inline-block;
+}
+span.trombi_box a {
+  display: inline-block;
+}
+span.trombi_box a img {
+  display: inline-block;
+}
+
+.trombi_nom {
+  display: block;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: -5px;
+  margin-bottom: 0px;
+}
+
+.trombi_prenom {
+  display: inline-block;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: -2px;
+  margin-bottom: 0px;
+}
+
+
 /* markup non semantique pour les cas simples */
 
 .fontred { color: red; }
@@ -705,6 +776,10 @@ h2.formsemestre, .gtrcontent h2 {
     padding-top: 10px;
 }
 
+.formsemestre_page_title a {
+    color: black;
+}
+
 /*
 .formsemestre_menubar {
     border-top: 3px solid #67A7E3;
@@ -766,9 +841,9 @@ h2.formsemestre, .gtrcontent h2 {
 }
 
 .formsemestre_page_title span.semtitle {
-    font-size: 110%;
+    font-size: 12pt;
 }
-.formsemestre_page_title span.resp {
+.formsemestre_page_title span.resp, span.resp a {
     color: red;
     font-weight: bold;
 }
@@ -814,6 +889,7 @@ th.formsemestre_status_inscrits {
 }
 td.formsemestre_status_code {
     width: 2em;
+    padding-right: 1em;
 }
 a.formsemestre_status_link {
     text-decoration:none;
@@ -2013,4 +2089,22 @@ div.update_warning_sub {
     padding-left: 8ex;
 }
 
+/* Titres des tabs: */
+.nav-tabs li a { 
+    /* font-variant: small-caps; */
+    /*font-size: 13pt;*/
+}
 
+/*
+#group-tabs {
+ clear: both;
+}
+
+#group-tabs ul {
+ display: inline;
+}
+
+#group-tabs ul li {
+ display: inline;
+}
+*/

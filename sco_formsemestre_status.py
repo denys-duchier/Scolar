@@ -256,7 +256,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
 
         { 'title' : 'Exporter table des étudiants',
-          'url' : 'group_list?format=allxls&group_id='+ sco_groups.get_default_group(context, formsemestre_id),
+          'url' : 'groups_view?format=allxls&group_ids='+ sco_groups.get_default_group(context, formsemestre_id),
           },
         { 'title' : 'Vérifier inscriptions multiples',
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
@@ -264,7 +264,13 @@ def formsemestre_status_menubar(context, sem, REQUEST):
         ]
 
     menuGroupes = [
-        { 'title' : 'Listes des étudiants',
+        { 'title' : 'Listes, photos, feuilles...',
+          'url' : 'groups_view?formsemestre_id=' + formsemestre_id,
+          'enabled' : True,
+          'helpmsg' : 'Accès aux listes des groupes d\'étudiants'
+          },
+        # On laisse l'accès à l'ancienne page, le temps de tester
+        { 'title' : 'Listes (ancienne page)',
           'url' : 'formsemestre_lists?formsemestre_id=' + formsemestre_id,
           'enabled' : True,
           'helpmsg' : 'Accès aux listes des groupes d\'étudiants'
@@ -362,6 +368,7 @@ def formsemestre_page_title(context, REQUEST):
     except:
         notes = context
     # Search formsemestre
+    group_ids = REQUEST.form.get('group_ids', [])
     if REQUEST.form.has_key('formsemestre_id'):
         formsemestre_id = REQUEST.form['formsemestre_id']
     elif REQUEST.form.has_key('moduleimpl_id'):
@@ -379,6 +386,15 @@ def formsemestre_page_title(context, REQUEST):
         formsemestre_id = modimpl['formsemestre_id']
     elif REQUEST.form.has_key('group_id'):
         group = sco_groups.get_group(context, REQUEST.form['group_id'])        
+        formsemestre_id = group['formsemestre_id']
+    elif group_ids:
+        if group_ids:
+            if type(group_ids) == str:
+                group_id = group_ids
+            else:
+                # prend le semestre du 1er groupe de la liste:
+                group_id = group_ids[0]
+            group = sco_groups.get_group(context, group_id) 
         formsemestre_id = group['formsemestre_id']
     elif REQUEST.form.has_key('partition_id'):
         partition = sco_groups.get_partition(context, REQUEST.form['partition_id'])
@@ -469,8 +485,10 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
         l = { 'UE' : M['ue']['acronyme'],
               'Code' : M['module']['code'],
               'Module' : M['module']['abbrev'] or M['module']['titre'],
+              '_Module_class' : 'scotext',
               'Inscrits' : len(ModInscrits),
               'Responsable' : context.Users.user_info(M['responsable_id'],REQUEST)['nomprenom'],
+              '_Responsable_class' : 'scotext',
               'Coef.' : M['module']['coefficient'],
               # 'ECTS' : M['module']['ects'],
               # Lien sur titre -> module
@@ -528,7 +546,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
         origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
         caption = title,
         html_caption = title,
-        html_class='gt_table table_leftalign',
+        html_class='gt_table table_leftalign formsemestre_description',
         base_url = '%s?formsemestre_id=%s&with_evals=%s' % (REQUEST.URL0, formsemestre_id, with_evals),
         page_title = title,
         html_title = context.html_sem_header(REQUEST, 'Description du semestre', sem, with_page_header=False), 
@@ -553,7 +571,9 @@ def formsemestre_description(context, formsemestre_id, format='html', with_evals
     return tab.make_page(context, format=format, REQUEST=REQUEST)                          
 
 def formsemestre_lists(context, formsemestre_id, REQUEST=None):
-    """Listes des étudiants"""
+    """Listes des étudiants
+    XXX (ancienne page, remplacée par groups_view, va être supprimée)
+    """
     sem = context.get_formsemestre(formsemestre_id)
     H = [ context.html_sem_header(REQUEST, '', sem),
           context.make_listes_sem(sem, REQUEST),
@@ -693,10 +713,10 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
 
         H.append('<td class="formsemestre_status_code"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s" class="stdlink">%s</a></td>' % 
                  (M['moduleimpl_id'],ModDescr,Mod['code']))
-        H.append('<td><a href="moduleimpl_status?moduleimpl_id=%s" title="%s" class="formsemestre_status_link">%s</a></td>'
+        H.append('<td class="scotext"><a href="moduleimpl_status?moduleimpl_id=%s" title="%s" class="formsemestre_status_link">%s</a></td>'
                  % (M['moduleimpl_id'], ModDescr, Mod['abbrev'] or Mod['titre']))
         H.append('<td class="formsemestre_status_inscrits">%s</td>' % len( ModInscrits ))
-        H.append('<td class="resp"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>'
+        H.append('<td class="resp scotext"><a class="discretelink" href="moduleimpl_status?moduleimpl_id=%s" title="%s">%s</a></td>'
                  % (M['moduleimpl_id'], ModEns, context.Users.user_info(M['responsable_id'],REQUEST)['prenomnom']))
         
         H.append('<td class="evals">')

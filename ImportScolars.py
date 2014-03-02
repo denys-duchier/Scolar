@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2007 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2014 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ from notesdb import *
 from notes_log import log
 import scolars
 import sco_excel
-import sco_groups
+import sco_groups_view
 import sco_news
 from sco_news import NEWS_INSCR, NEWS_NOTE, NEWS_FORM, NEWS_SEM, NEWS_MISC
 from sco_formsemestre_inscriptions import do_formsemestre_inscription_with_modules
@@ -86,14 +86,15 @@ def sco_import_format_dict( with_codesemestre=True ):
         R[l[0]] = { 'type' : l[1], 'table' : l[2], 'allow_nulls' : l[3], 'description' : l[4] }
     return R
         
-def sco_import_generate_excel_sample( format,
+def sco_import_generate_excel_sample( fmt,
                                       with_codesemestre=True,
                                       only_tables=None,
                                       exclude_cols=[],
                                       extra_cols=[],
-                                      group_id=None,
-                                      context=None):
-    """generates an excel document based on format
+                                      group_ids=[],
+                                      context=None,
+                                      REQUEST=None):
+    """generates an excel document based on format fmt
     (format is the result of sco_import_format())
     If not None, only_tables can specify a list of sql table names
     (only columns from these tables will be generated)
@@ -103,7 +104,7 @@ def sco_import_generate_excel_sample( format,
     style_required = sco_excel.Excel_MakeStyle(bold=True, color='red')
     titles = []
     titlesStyles = []
-    for l in format:
+    for l in fmt:
         name = strlower(l[0])
         if (not with_codesemestre) and name == 'codesemestre':
             continue # pas de colonne codesemestre
@@ -118,10 +119,10 @@ def sco_import_generate_excel_sample( format,
         titles.append(name)
     titles += extra_cols
     titlesStyles += [style]*len(extra_cols)
-    if group_id and context:
-        group = sco_groups.get_group(context, group_id)
-        members = sco_groups.get_group_members(context, group['group_id'])
-        log('sco_import_generate_excel_sample: group_id=%s  %d members' % (group_id, len(members)))
+    if group_ids and context:
+        groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
+        members = groups_infos.members
+        log('sco_import_generate_excel_sample: group_ids=%s  %d members' % (group_ids, len(members)))
         titles = [ 'etudid' ] + titles
         titlesStyles = [ style ] + titlesStyles
         # rempli table avec données actuelles 

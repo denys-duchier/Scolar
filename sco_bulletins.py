@@ -716,7 +716,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
                                           'libjs/d3.v3.min.js',
                                           'js/radar_bulletin.js'
                                           ],
-                             cssstyles=['radar_bulletin.css']
+                             cssstyles=['css/radar_bulletin.css']
                                           ),
           """<table class="bull_head"><tr><td>
           <h2><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a></h2>

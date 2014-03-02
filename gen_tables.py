@@ -328,17 +328,22 @@ class GenTable:
                     cell_link_class = row.get('_%s_link_class', 'discretelink')
                     if help or target:
                         content = '<a class="%s" href="%s" title="%s"%s>%s</a>' % (cell_link_class, target,help, idstr, content)
+                    klass = row.get('_%s_class'%cid, '')
                     if self.html_with_td_classes:
-                        c = ' class="%s"' % cid
+                        c = cid
                     else:
                         c = ''
+                    if c or klass:
+                        klass = ' class="%s"' % (' '.join((klass, c)))
+                    else:
+                        klass = ''
                     colspan = row.get('_%s_colspan'%cid, 0)
                     if colspan > 1:
                         colspan_txt=' colspan="%d" ' % colspan
                         colspan_count = colspan
                     else:
                         colspan_txt=''
-                    r.append( '<td%s %s%s%s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''), c, colspan_txt, content))
+                    r.append( '<td%s %s%s%s>%s</td>' % (std, row.get('_%s_td_attrs'%cid,''), klass, colspan_txt, content))
                 
                 H.append(''.join(r) + '</tr>')
             elif not self.lines_titles:

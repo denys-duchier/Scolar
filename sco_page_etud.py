@@ -166,7 +166,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
                 gr_name = group['group_name']
             else:
                 gr_name = 'tous'
-            grlink = '<a class="discretelink" href="group_list?group_id=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
+            grlink = '<a class="discretelink" href="groups_view?group_ids=%s" title="Liste du groupe">groupe %s</a>' % (group['group_id'], gr_name)
         # infos ajoutées au semestre dans le parcours (groupe, menu)
         menu =  _menuScolarite(context, authuser, sem, etudid)
         if menu:
@@ -365,26 +365,26 @@ def menus_etud(context, REQUEST=None):
     return makeMenu( 'Etudiant', menuEtud, base_url=context.absolute_url() + '/', alone=True)
 
 
-def etud_info_html(context, etudid, REQUEST=None, debug=False):
+def etud_info_html(context, etudid, with_photo='1', REQUEST=None, debug=False):
     """An HTML div with basic information and links about this etud.
     Used for popups information windows.
     """
+    with_photo = int(with_photo)
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
     # experimental: may be too slow to be here
     etud['codeparcours'] = sco_report.get_codeparcoursetud(context.Notes, etud, prefix='S', separator=', ')
     
-    etud['photo_html'] = photo_html
     H = """<div class="etud_info_div">
-    <div class="eid_left">
+    <span class="eid_left">
      <span class="eid_nom">%(nomprenom)s</span>
      <div class="edi_info">Bac: %(bac)s</div>
      <div class="eid_info">%(codeparcours)s</div>
-    </div>
-    <span class="eid_right">
-    %(photo_html)s
-    </span>
-    </div>""" % etud
+    </span>""" % etud
+    if with_photo:
+        H += '<span class="eid_right">' + photo_html + '</span>'
+    
+    H += '</div>'
     if debug:
         return context.standard_html_header(context) + H + context.standard_html_footer(context)
     else:

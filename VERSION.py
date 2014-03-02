@@ -1,11 +1,15 @@
 # -*- mode: python -*-
 # -*- coding: utf-8 -*-
 
-SCOVERSION = "7.0b1"
+SCOVERSION = "7.1a"
 
 SCONAME = "ScoDoc"
 
 SCONEWS = """
+<h4>Année 2014</h4>
+<ul>
+<li>Nouvelle interface pour listes groupes, photos, feuilles d'émargement.</li>
+</ul>
 <h4>Année 2013</h4>
 <ul>
 <li>Modernisation de nombreux composants logiciels (ScoDoc 7)</li>
