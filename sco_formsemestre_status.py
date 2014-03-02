@@ -62,7 +62,7 @@ def makeMenu( title, items, css_class='', base_url='', alone=False ):
             else:
                 cls = ''
             if base_url and 'url' in item:
-                item['urlq'] = base_url + urllib.quote(item['url'])
+                item['urlq'] = base_url + item['url']
             else:
                 item['urlq'] = item.get('url', '#')
             submenu = item.get('submenu', None)
