@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# usage: backup_db2 dbname
+# Dump une base postgresql, et garde plusieurs dumps dans le passe
+# (configurable dans le script backup_rotation.sh)
+# Les dumps sont compresses (gzip).
+#
+# E. Viennet pour ScoDoc, 2014
+# (ce script est meilleur que l'ancien backup-db, car l'espace entre 
+#   deux sauvegardes dépend de leur anciennete)
+#
+#
+# Note: pour restaurer un backup (en supprimant la base existante !)
+# 1- supprimer la base existante si elle existe (dropdb)
+# 2- recreer la base, vide: createdb -E LATIN1 NOMDELABASE
+# 3- pg_restore  --create -d SCOINFO SCOINFO_pgdump
+
+
+DBNAME=$1
+DUMPBASE="$DBNAME"-BACKUPS
+DUMPFILE="$DUMPBASE"/incoming/"$DBNAME"_pgdump
+
+
+# 1-Check if base pathname for backups exist
+if [ ! -e ${DUMPBASE} ]; then
+    mkdir ${DUMPBASE}
+fi
+
+# Initialize subdirs if needed
+for s in incoming backup.hourly backup.daily backup.weekly backup.monthly
+do
+    if [ ! -e ${DUMPBASE}/"$s" ]; then
+        mkdir ${DUMPBASE}/"$s"
+    fi
+done
+
+
+# 2- Dump postgresql data
+pg_dump --format=t "$DBNAME" -f $DUMPFILE
+
+gzip $DUMPFILE
+
+# 3- Rotate backups: remove unneeded copies
+./backup_rotation.sh "$DUMPBASE"
