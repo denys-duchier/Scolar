@@ -41,4 +41,4 @@ pg_dump --format=t "$DBNAME" -f $DUMPFILE
 gzip $DUMPFILE
 
 # 3- Rotate backups: remove unneeded copies
-/opt/scodoc/instance/Products/ScoDoc/misc/backup_rotation.sh "$DUMPBASE"
+/opt/scodoc/Products/ScoDoc/misc/backup_rotation.sh "$DUMPBASE"

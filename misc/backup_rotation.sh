@@ -11,7 +11,7 @@
 # Must contain backup.monthly backup.weekly backup.daily backup.hourly folders
 storage="$1"
 
-NB_HOURLY=2 #48   # nb de sauvegardes horaires a conserver (1 par heure)
+NB_HOURLY=48   # nb de sauvegardes horaires a conserver (1 par heure)
 NB_DAILY=40    # nb de sauvegardes quotidiennes a conserver
 NB_WEEKLY=30   # nombre de sauvegardes hebdomadaires a conserver
 NB_MONTHLY=200 # nombre de sauvegardes mensuelles a conserver
