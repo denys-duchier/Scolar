@@ -887,7 +887,7 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrSemestre')
     def SignaleAbsenceGrSemestre(self, datedebut, datefin, 
-                                 destination,
+                                 destination='',
                                  group_ids=[], # list of groups to display
                                  group_id=None, # for backward compat
                                  nbweeks=4, # ne montre que les nbweeks dernieres semaines
@@ -895,7 +895,7 @@ class ZAbsences(ObjectManager,
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre (ou intervalle de dates) entier
         """
-        # log('SignaleAbsenceGrSemestre: moduleimpl_id=%s' % moduleimpl_id)
+        #log('SignaleAbsenceGrSemestre: moduleimpl_id=%s destination=%s' % (moduleimpl_id, destination))
         if type(group_ids) == str:
             if group_ids:
                 group_ids = [group_ids]
@@ -913,7 +913,7 @@ class ZAbsences(ObjectManager,
                 
         if not moduleimpl_id:
             moduleimp_id = None
-        base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&%s&destination=%s' % (datedebut, datefin, groups_infos.groups_query_args, destination)
+        base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&%s&destination=%s' % (datedebut, datefin, groups_infos.groups_query_args, urllib.quote(destination))
         base_url = base_url_noweeks + '&nbweeks=%s'%nbweeks # sans le moduleimpl_id
 
         if etuds: 
@@ -1106,7 +1106,7 @@ class ZAbsences(ObjectManager,
         H.append('<input type="hidden" name="dates" value="%s"/>'
                  % ','.join(dates) )
         H.append('<input type="hidden" name="destination" value="%s"/>'
-                 % destination )
+                 % urllib.quote(destination) )
         #
         # version pour formulaire avec AJAX (Yann LB)
         H.append("""
