@@ -723,10 +723,10 @@ class ZScolar(ObjectManager,
         if with_absences:
             first_monday = ZAbsences.ddmmyyyy(sem['date_debut']).prev_monday()
             FA = [] # formulaire avec menu saisi absences
-            FA.append('<td><form action="Absences/SignaleAbsenceGrSemestre" method="GET">')
+            FA.append('<td><form action="Absences/SignaleAbsenceGrSemestre" method="get">')
             FA.append('<input type="hidden" name="datefin" value="%(date_fin)s"/>'
                              % sem )
-            FA.append('<input type="hidden" name="group_id" value="%(group_id)s"/>')
+            FA.append('<input type="hidden" name="group_ids" value="%(group_id)s"/>')
 
             FA.append('<input type="hidden" name="destination" value="%s"/>'
                       % destination)
@@ -1279,7 +1279,7 @@ class ZScolar(ObjectManager,
         # Liste des groupes existants
         raise NotImplementedError # XXX utiliser form_group_choice ou supprimer completement ?
         #
-        H.append("""<form action="doChangeGroup" method="GET" name="cg">""")
+        H.append("""<form action="doChangeGroup" method="get" name="cg">""")
         
         H.append("""<input type="hidden" name="etudid" value="%s">
 <input type="hidden" name="formsemestre_id" value="%s">
@@ -1507,7 +1507,7 @@ function tweakmenu( gname ) {
             REQUEST,
             page_title = '%(operation_name)s de  %(nomprenom)s (du semestre %(semtitre)s)'%etud)
         H = [ '<h2><font color="#FF0000">%(operation_name)s de</font> %(nomprenom)s (semestre %(semtitre)s)</h2><p>' % etud ]
-        H.append("""<form action="%s" method="GET">
+        H.append("""<form action="%s" method="get">
         <b>Date de la %s (J/M/AAAA):&nbsp;</b>
         """ % (operation_method, strlower(operation_name)))
         H.append("""

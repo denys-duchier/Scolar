@@ -181,7 +181,7 @@ class DisplayedGroupsInfos:
                  formsemestre_id=None, 
                  etat=None, 
                  REQUEST=None):
-        #log('DisplayedGroupsInfos %s' % group_ids)
+        log('DisplayedGroupsInfos %s' % group_ids)
         if type(group_ids) == str:
             if group_ids:
                 group_ids = [group_ids] # cas ou un seul parametre, pas de liste

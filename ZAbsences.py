@@ -889,20 +889,12 @@ class ZAbsences(ObjectManager,
     def SignaleAbsenceGrSemestre(self, datedebut, datefin, 
                                  destination='',
                                  group_ids=[], # list of groups to display
-                                 group_id=None, # for backward compat
                                  nbweeks=4, # ne montre que les nbweeks dernieres semaines
                                  moduleimpl_id=None,
                                  REQUEST=None):
         """Saisie des absences sur une journée sur un semestre (ou intervalle de dates) entier
         """
         #log('SignaleAbsenceGrSemestre: moduleimpl_id=%s destination=%s' % (moduleimpl_id, destination))
-        if type(group_ids) == str:
-            if group_ids:
-                group_ids = [group_ids]
-            else:
-                group_ids = []
-        if group_id and not group_id in group_ids:
-            group_ids.append(group_id)
         groups_infos = sco_groups_view.DisplayedGroupsInfos(self, group_ids, REQUEST=REQUEST)
         if not groups_infos.members:
             return self.sco_header(page_title='Saisie des absences',REQUEST=REQUEST) + '<h3>Aucun étudiant !</h3>' + self.sco_footer(REQUEST)
