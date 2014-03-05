@@ -64,7 +64,7 @@ def trombino(context,
     
     #
     if format != 'html' and not dialog_confirmed:
-        ok, dialog = check_local_photos_availability(context, groups_infos, REQUEST)
+        ok, dialog = check_local_photos_availability(context, groups_infos, REQUEST, format=format)
         if not ok:
             return dialog
     
@@ -130,7 +130,7 @@ def trombino_html(context, groups_infos, REQUEST=None):
     return  '\n'.join(H)
     
 
-def check_local_photos_availability(context, groups_infos, REQUEST):
+def check_local_photos_availability(context, groups_infos, REQUEST, format=''):
     """Verifie que toutes les photos (des gropupes indiqués) sont copiées localement
     dans ScoDoc (seules les photosdont nous disposons localement peuvent être exportées 
     en pdf ou en zip).
@@ -143,12 +143,12 @@ def check_local_photos_availability(context, groups_infos, REQUEST):
         if not sco_photos.etud_photo_is_local(context, t):
             nb_missing += 1
     if nb_missing > 0:
-        parameters = { 'group_id' : group_id, 'etat' : etat, 'format' : format }
+        parameters = { 'group_ids' : groups_infos.group_ids, 'format' : format }
         return False, context.confirmDialog(
-            """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="%s">exporter seulement les photos existantes</a>""" % (nb_missing, groups_infos.base_url + '&dialog_confirmed=1&format=' + format ),
+            """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="%s">exporter seulement les photos existantes</a>""" % (nb_missing, groups_infos.base_url + '&dialog_confirmed=1&format=%s' % format ),
             dest_url = 'trombino',
             OK = 'Exporter seulement les photos existantes',
-            cancel_url=groups_infos.base_url,
+            cancel_url='groups_view?curtab=tab-photos&' + groups_infos.groups_query_args,
             REQUEST=REQUEST, parameters=parameters )
     else:
         return True, ''
