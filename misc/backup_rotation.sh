@@ -59,19 +59,19 @@ fi
 
 # Move the files
 mkdir $destination
-mv -v $source/* $destination
+mv $source/* $destination
 
 # hourly - keep NB_HOURLY 
 m=$(($NB_HOURLY * 60))
-find ./backup.hourly  -maxdepth 1 -mmin +"$m" -type d -exec rm -rv {} \;
+find ./backup.hourly  -maxdepth 1 -mmin +"$m" -type d -exec /bin/rm -r {} \;
 
 # daily - keep for NB_DAILY days
-find ./backup.daily/ -maxdepth 1 -mtime +"$NB_DAILY" -type d -exec rm -rv {} \;
+find ./backup.daily/ -maxdepth 1 -mtime +"$NB_DAILY" -type d -exec /bin/rm -r {} \;
 
 # weekly - keep for NB_WEEKLY days
 d=$(($NB_WEEKLY * 7))
-find ./backup.weekly/ -maxdepth 1 -mtime +"$d" -type d -exec rm -rv {} \;
+find ./backup.weekly/ -maxdepth 1 -mtime +"$d" -type d -exec /bin/rm -r {} \;
 
 # monthly - keep for NB_MONTHLY days (approx: 30 days/month)
 d=$(($NB_MONTHLY * 30))
-find ./backup.monthly/ -maxdepth 1 -mtime +"$d" -type d -exec rm -rv {} \;
+find ./backup.monthly/ -maxdepth 1 -mtime +"$d" -type d -exec /bin/rm -r {} \;

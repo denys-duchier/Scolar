@@ -40,7 +40,6 @@ import sco_excel
 import sco_groups
 import sco_trombino
 import sco_portal_apogee
-import sco_archives_etud
 
 def groups_view(
         context, group_ids=[], 
@@ -322,6 +321,7 @@ def groups_table(
         sco_portal_apogee.check_paiement_etuds(context, groups_infos.members)
         columns_ids += ['paiementinscription_str']
     if with_archives:
+        import sco_archives_etud
         sco_archives_etud.add_archives_info_to_etud_list(context, groups_infos.members)
         columns_ids += ['etudarchive']
     if with_annotations:

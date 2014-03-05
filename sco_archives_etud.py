@@ -35,12 +35,11 @@ from notes_log import log
 import ImportScolars
 import sco_trombino
 import sco_excel
+import sco_archives
 
-from sco_archives import BaseArchiver
-
-class EtudsArchiver(BaseArchiver):
+class EtudsArchiver(sco_archives.BaseArchiver):
     def __init__(self):
-        BaseArchiver.__init__(self, archive_type='docetuds')
+        sco_archives.BaseArchiver.__init__(self, archive_type='docetuds')
 
 EtudsArchive = EtudsArchiver()
 

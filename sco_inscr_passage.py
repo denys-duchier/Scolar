@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 #
-# Copyright (c) 2001 - 2013 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2014 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ def list_authorized_etuds_by_sem(context, sem, delai=274):
                 if DateDMYtoISO(isem['date_debut']) >= DateDMYtoISO(src['date_fin']):
                     auth_used = True
             if not auth_used:
-                candidats[e['etudid']] = e
+                candidats[e['etudid']] = etud
                 liste_filtree.append(e)
                 nb+=1        
         r[src['formsemestre_id']] = {
@@ -130,17 +130,52 @@ def list_inscrits_date(context, sem):
                       and S.date_fin >= %(date_debut_iso)s""", sem)
     return [ x[0] for x in cursor.fetchall() ]
                       
-def do_inscrit(context, sem, etudids, REQUEST):
+def do_inscrit(context, sem, etudids, REQUEST=None, inscrit_groupes=False):
     """Inscrit ces etudiants dans ce semestre
     (la liste doit avoir été vérifiée au préalable)
+    En option: inscrit aux mêmes groupes que dans le semestre origine
     """
-    log('do_inscrit: %s' % etudids)
+    log('do_inscrit (inscrit_groupes=%s): %s' % (inscrit_groupes,etudids))
     for etudid in etudids:
         sco_formsemestre_inscriptions.do_formsemestre_inscription_with_modules(
             context, sem['formsemestre_id'], etudid,
             etat = 'I',
             REQUEST = REQUEST,
             method = 'formsemestre_inscr_passage' )
+        if inscrit_groupes:
+            # Inscription dans les mêmes groupes que ceux du semestre  d'origine, 
+            # s'ils existent.
+            # (mise en correspondance à partir du nom du groupe, sans tenir compte 
+            #  du nom de la partition: évidemment, cela ne marche pas si on a les 
+            #   même noms de groupes dans des partitions différentes)
+            etud = context.getEtudInfo(etudid=etudid, filled=True)[0]
+            log('cherche groupes de %(nom)s' % etud)
+            
+            # recherche le semestre origine (il serait plus propre de l'avoir conservé!)
+            if len(etud['sems']) < 2:
+                continue
+            prev_formsemestre = etud['sems'][1]           
+            sco_groups.etud_add_group_infos(context, etud, prev_formsemestre)
+
+            cursem_groups_by_name = dict( 
+                [(g['group_name'], g) 
+                 for g in sco_groups.get_sem_groups(
+                         context, 
+                         sem['formsemestre_id']) if g['group_name'] ])
+            
+            # forme la liste des groupes présents dans les deux semestres:
+            partition_groups = [] # [ partition+group ] (ds nouveau sem.)
+            for partition_id in etud['partitions']:
+                prev_group_name = etud['partitions'][partition_id]['group_name']
+                if prev_group_name in cursem_groups_by_name:
+                    new_group = cursem_groups_by_name[prev_group_name]
+                    partition_groups.append(new_group)
+
+            # inscrit aux groupes
+            for partition_group in partition_groups: 
+                sco_groups.change_etud_group_in_partition(
+                    context, etudid, partition_group['group_id'], partition_group, REQUEST=REQUEST)
+
 
 def do_desinscrit(context, sem, etudids, REQUEST):
     log('do_desinscrit: %s' % etudids)
@@ -188,6 +223,7 @@ def list_source_sems(context, sem, delai=None):
     return othersems
 
 def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
+                               inscrit_groupes=False,
                                submitted=False, dialog_confirmed=False,
                                REQUEST=None):
     """Form. pour inscription des etudiants d'un semestre dans un autre
@@ -203,6 +239,7 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     - Confirmation: indiquer les étudiants inscrits et ceux désinscrits, le total courant.    
 
     """
+    inscrit_groupes = int(inscrit_groupes)
     #log('formsemestre_inscr_passage: formsemestre_id=%s submitted=%s, dialog_confirmed=%s len(etuds)=%d'
     #    % (formsemestre_id, submitted, dialog_confirmed, len(etuds)) )
     cnx = context.GetDBConnexion()
@@ -239,7 +276,7 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     if not submitted:
         H += build_page(context, REQUEST, sem, auth_etuds_by_sem,
                         inscrits, candidats_non_inscrits,
-                        inscrits_ailleurs)
+                        inscrits_ailleurs, inscrit_groupes=inscrit_groupes)
     else:
         if not dialog_confirmed:
             # Confirmation
@@ -268,13 +305,16 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
                 OK = "Effectuer l'opération",
                 parameters = { 'formsemestre_id' : formsemestre_id,
                                'etuds' : ','.join(etuds),
+                               'inscrit_groupes' : inscrit_groupes,
                                'submitted' : 1, 
                                },
                 REQUEST=REQUEST
                 ) )
         else:
-            # OK, do it
-            do_inscrit(context, sem, a_inscrire, REQUEST)
+            # Inscription des étudiants au nouveau semestre:            
+            do_inscrit(context, sem, a_inscrire, REQUEST=REQUEST, inscrit_groupes=inscrit_groupes)
+                                
+            # Desincriptions: 
             do_desinscrit(context, sem, a_desinscrire, REQUEST)
             
             H.append("""<h3>Opération effectuée</h3>
@@ -290,16 +330,27 @@ def formsemestre_inscr_passage(context, formsemestre_id, etuds=[],
     return '\n'.join(H)
 
 
+
+
 def build_page(context, REQUEST, sem, auth_etuds_by_sem, inscrits,
-               candidats_non_inscrits, inscrits_ailleurs ):
+               candidats_non_inscrits, inscrits_ailleurs,
+               inscrit_groupes = False
+               ):
+    inscrit_groupes = int(inscrit_groupes)
+    if inscrit_groupes:
+        inscrit_groupes_checked = ' checked'
+    else:
+        inscrit_groupes_checked = ''
+    
     H = [ context.html_sem_header(REQUEST, 'Passages dans le semestre', sem, with_page_header=False),
           """<form method="post" action="%s">""" % REQUEST.URL0,
           """<input type="hidden" name="formsemestre_id" value="%(formsemestre_id)s"/>
     <input type="submit" name="submitted" value="Appliquer les modifications"/>
     &nbsp;<a href="#help">aide</a>
     """ % sem, # "
-
-        """<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
+          """<input name="inscrit_groupes" type="checkbox" value="1" %s>inscrire aux mêmes groupes</input>""" % inscrit_groupes_checked,
+          
+          """<div class="pas_recap">Actuellement <span id="nbinscrits">%s</span> inscrits
         et %d candidats supplémentaires
         </div>""" % (len(inscrits), len(candidats_non_inscrits)),
         
