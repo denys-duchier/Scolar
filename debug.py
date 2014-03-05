@@ -35,6 +35,7 @@ import sco_groups
 import sco_evaluations
 import sco_formsemestre_edit
 import sco_compute_moy
+import sco_parcours_dut
 import sco_codes_parcours
 import sco_bulletins
 import sco_excel
@@ -44,7 +45,7 @@ import sco_bulletins_xml
 # Prend le premier departement comme context
 
 def go(app, n=0):
-    context = app.ScoDoc.objectValues('Folder')[0].Scolarite
+    context = app.ScoDoc.objectValues('Folder')[n].Scolarite
     return context
 
 

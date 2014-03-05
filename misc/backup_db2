@@ -10,9 +10,13 @@
 #   deux sauvegardes dépend de leur anciennete)
 #
 #
-# Note: pour restaurer un backup (en supprimant la base existante !)
+# Note: pour restaurer un backup (en supprimant la base existante !):
+#
 # 1- supprimer la base existante si elle existe (dropdb)
-# 2- recreer la base, vide: createdb -E LATIN1 NOMDELABASE
+#
+# 2- recreer la base, vide: createdb -E UTF-8 NOMDELABASE
+#         (nom de la base: SCOXXX ou XXX=departement)
+#
 # 3- pg_restore  --create -d SCOINFO SCOINFO_pgdump
 
 

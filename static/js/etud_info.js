@@ -40,27 +40,3 @@ $().ready(function(){
 });
 
 
-$().ready(function(){
-
-    var elems = $(".etudinfo-trombi");
-    for (var i=0; i < elems.length; i++) {
-	$(elems[i]).qtip(
-        {
-	        content: {
-		        ajax: {
-			        url: "etud_info_html?with_photo=0&etudid=" + get_etudid_from_elem(elems[i])
-		        },
-		        text: "Loading..."
-	        },
-	        position: {
-		        target: 'mouse'
-	        },
-	        style: {
-		        classes: 'qtip-etud'
-	        },
-            // utile pour debugguer le css: 
-            // hide: { event: 'unfocus' }
-        }
-    );
-    }
-});

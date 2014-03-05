@@ -80,3 +80,31 @@ function change_list_options() {
     var query_string = $.param(url.param(), traditional=true );
     window.location = url.attr('base') + url.attr('path') + '?' + query_string;
 }
+
+
+// Trombinoscope
+$().ready(function(){
+
+    var elems = $(".trombi-photo");
+    for (var i=0; i < elems.length; i++) {
+	$(elems[i]).qtip(
+        {
+	        content: {
+		        ajax: {
+			        url: "etud_info_html?with_photo=0&etudid=" + get_etudid_from_elem(elems[i])
+		        },
+		        text: "Loading..."
+	        },
+	        position: {
+		        at : "right",
+                my : "left top"
+	        },
+	        style: {
+		        classes: 'qtip-etud'
+	        },
+            // utile pour debugguer le css: 
+            // hide: { event: 'unfocus' }
+        }
+    );
+    }
+});

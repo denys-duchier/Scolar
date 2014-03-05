@@ -8,7 +8,7 @@
 
 # Note: pour restaurer un backup (en supprimant la base existante !!!)
 # 1- supprimer la base existante si elle existe (dropdb)
-# 2- recreer la base, vide: createdb -E LATIN1 NOMDELABASE
+# 2- recreer la base, vide: createdb -E UTF-8 NOMDELABASE
 # 3- pg_restore  --create -d SCOINFO SCOINFO_pgdump
 
 

@@ -112,9 +112,9 @@ def trombino_html(context, groups_infos, REQUEST=None):
     for t in groups_infos.members:
         #if i % NB_COLS == 0:
         #    H.append('<tr>')
-        H.append('<span class="trombi_box etudinfo-trombi" id="trombi-%s"><span class="trombi-photo">' % t['etudid'])
+        H.append('<span class="trombi_box"><span class="trombi-photo" id="trombi-%s">' % t['etudid'])
         if sco_photos.has_photo(context, t, version=sco_photos.H90):
-            foto = sco_photos.etud_photo_html(context, t, title='fiche de '+ t['nom'], REQUEST=REQUEST)
+            foto = sco_photos.etud_photo_html(context, t, title='', REQUEST=REQUEST)
         else: # la photo n'est pas immédiatement dispo
             foto = '<span class="unloaded_img" id="%s"><img border="0" height="90" alt="en cours" src="/ScoDoc/static/photos/loading.jpg"/></span>' % t['etudid']
         H.append('<a href="ficheEtud?etudid='+t['etudid']+'">'+foto+'</a>')
