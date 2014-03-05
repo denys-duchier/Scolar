@@ -417,14 +417,14 @@ def formChoixSemestreGroupe(context, all=False):
     """partie de formulaire pour le choix d'un semestre et d'un groupe.
     Si all, donne tous les semestres (même ceux verrouillés).
     """
-    # XXX assez primitif, à ameliorer
+    # XXX assez primitif, à ameliorer TOTALEMENT OBSOLETE !
     if all:
         sems = context.Notes.do_formsemestre_list()
     else:
         sems = context.Notes.do_formsemestre_list( args={'etat':'1'} )
     if not sems:
         raise ScoValueError('aucun semestre !' )
-    H = [ '<select  name="group_id">' ]        
+    H = [ '<select  name="group_ids">' ]        
     nbgroups = 0
     for sem in sems:
         for p in sco_groups.get_partitions_list(context, sem['formsemestre_id']):
