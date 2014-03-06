@@ -388,7 +388,7 @@ for dept in get_depts():
     titre text, -- le nom complet de la modalite pour les documents scodoc
     numero SERIAL -- integer, ordre de presentation
      );""",
-    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('', 'Inconnue');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('', 'Autres formations');""",
     """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FI', 'Formation Initiale');""",
     """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FC', 'Formation Continue');""",
     """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FAP', 'Apprentissage');""",
