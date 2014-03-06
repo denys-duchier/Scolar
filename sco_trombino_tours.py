@@ -37,6 +37,7 @@ import tempfile
 
 from notes_log import log
 from sco_utils import *
+import ZAbsences
 import scolars
 import sco_photos
 import sco_groups
@@ -45,6 +46,7 @@ import sco_groups_view
 import sco_trombino
 from sco_pdf import *
 from reportlab.lib import colors
+from reportlab.lib import pagesizes
 
 # Paramétrage de l'aspect graphique:
 PHOTOWIDTH = 2.8*cm
@@ -152,10 +154,133 @@ def pdf_trombino_tours(
     objects = [KeepInFrame(0,0,objects,mode='shrink')]    
     # Build document
     report = StringIO() # in-memory document, no disk file
-    filename = ('trombino-%s%s.pdf' %(DeptName, groups) ).replace(' ', '_')
+    filename = 'trombino-%s-%s.pdf' % (DeptName, groups_infos.groups_filename)
     document = BaseDocTemplate(report)
     document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences()))
     document.build(objects)
     data = report.getvalue()
     
     return sendPDFFile(REQUEST, data, filename)
+
+
+# Feuille d'absences en pdf avec photos:
+
+def pdf_feuille_releve_absences(
+        context,
+        group_ids=[], # liste des groupes à afficher
+        formsemestre_id=None, # utilisé si pas de groupes selectionné
+        REQUEST=None):
+    """Generation de la feuille d'absence en fichier PDF, avec photos
+    """
+    
+    NB_CELL_AM = 2
+    NB_CELL_PM = 3
+    COLWIDTH = 0.85*cm
+    days = ZAbsences.DAYNAMES[:6] # Lundi, ..., Samedi
+    nb_days = len(days)
+
+    # Informations sur les groupes à afficher:
+    groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, formsemestre_id=formsemestre_id, REQUEST=REQUEST)
+    
+    
+    DeptName = context.get_preference('DeptName')
+    DeptFullName = context.get_preference('DeptFullName')
+    UnivName = context.get_preference('UnivName')
+    InstituteName = context.get_preference('InstituteName')
+    # Generate PDF page
+    StyleSheet = styles.getSampleStyleSheet()
+    objects = [ Table([ 
+        [ Paragraph(SU(InstituteName), StyleSheet["Heading3"]),
+          Paragraph(SU('<para align=right>Semaine ..................................................................</para>'), StyleSheet["Normal"]) ],
+          [ Paragraph(SU('Département ' + DeptFullName), StyleSheet["Heading3"]), '' ],
+        ],
+        style = TableStyle([ ('SPAN', (0,1), (1,1)),
+                             ('BOTTOMPADDING', (0, -1), (-1, -1), 10)
+                             ] )
+        )]
+
+    currow = ['']*(NB_CELL_AM + 1 + NB_CELL_PM + 1)
+    elem_day = Table([currow], 
+                     colWidths=([ COLWIDTH ]*( NB_CELL_AM + 1 + NB_CELL_PM + 1 )),
+                     style = TableStyle( [
+                         ('GRID', (0,0), (NB_CELL_AM-1,0), 0.25, black),
+                         ('GRID', (NB_CELL_AM+1,0), (NB_CELL_AM+NB_CELL_PM,0), 0.25, black)
+                         ] )
+                         )
+    W = []
+    currow = []
+    for n in range(nb_days):
+        currow.append(elem_day)
+    W.append(currow)
+    
+    elem_week = Table(W, 
+                      colWidths=([ COLWIDTH*( NB_CELL_AM + 1 + NB_CELL_PM + 1 )]*nb_days),
+                      style = TableStyle( [
+                          ('LEFTPADDING', (0,0), (-1,-1), 0),
+                          ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                          ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                          ('TOPPADDING', (0,0), (-1,-1), 0),
+                          ] )
+                     )
+    currow = []    
+    for n in range(nb_days):
+        currow += [Paragraph(SU('<b>' + days[n] + '</b>'), StyleSheet["Normal"])]
+        
+    elem_day_name = Table([currow], 
+                          colWidths=([ COLWIDTH*( NB_CELL_AM + 1 + NB_CELL_PM + 1 )]*nb_days),
+                          style = TableStyle( [
+                          ('LEFTPADDING', (0,0), (-1,-1), 0),
+                          ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                          ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                          ('TOPPADDING', (0,0), (-1,-1), 0),
+                          ] )
+                          )
+    
+    for group_id in groups_infos.group_ids:
+        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, None)
+        L = []
+
+        currow = [ Paragraph(SU('<b>Groupe ' + group_tit + '</b>'), 
+                             StyleSheet["Normal"]) ]
+        currow.append(elem_day_name)
+        L.append(currow)
+
+        currow = [ Paragraph(SU('Initiales enseignant :'), StyleSheet["Normal"]) ]
+        currow.append(elem_week)
+        L.append(currow)
+
+        for m in members:
+            currow = [ Paragraph(SU(scolars.format_nom(m['nom']) + ' ' + scolars.format_prenom(m['prenom'])), StyleSheet["Normal"]) ]
+            currow.append(elem_week)
+            L.append(currow)
+
+        if not L:
+            T = Paragraph( SU('Aucun étudiant !'),  StyleSheet['Normal'])
+        else:
+            T = Table( L, colWidths=([5.*cm,(COLWIDTH*( NB_CELL_AM + 1 + NB_CELL_PM + 1 )*nb_days)]),
+                       style = TableStyle( [
+                       ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                       ('LEFTPADDING', (0,0), (-1,-1), 0),
+                       ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                       ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+                       ('TOPPADDING', (0,0), (-1,-1), 3),
+                       ('BOTTOMPADDING', (0,-1), (-1,-1), 10),
+                       ('ROWBACKGROUNDS', (0,1), (-1,-1), (colors.white, colors.darkgrey))
+                       ] )
+                     )
+
+        objects.append(T)
+
+    # Réduit sur une page
+    objects = [KeepInFrame(0,0,objects,mode='shrink')]    
+    # Build document
+    report = StringIO() # in-memory document, no disk file
+    filename = 'absences-%s-%s.pdf' % (DeptName, groups_infos.groups_filename)
+    document = BaseDocTemplate(report, pagesize=landscape(pagesizes.A3))
+    document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences()))
+    document.build(objects)
+    data = report.getvalue()
+    
+    return sendPDFFile(REQUEST, data, filename)
+
+

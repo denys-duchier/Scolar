@@ -807,6 +807,9 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView,'pdf_trombino_tours')
     pdf_trombino_tours = sco_trombino_tours.pdf_trombino_tours
     
+    security.declareProtected(ScoView,'pdf_feuille_releve_absences')
+    pdf_feuille_releve_absences = sco_trombino_tours.pdf_feuille_releve_absences
+    
     security.declareProtected(ScoView,'trombino_copy_photos')
     trombino_copy_photos = sco_trombino.trombino_copy_photos
 
