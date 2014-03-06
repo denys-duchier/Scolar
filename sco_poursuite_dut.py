@@ -92,7 +92,7 @@ def formsemestre_poursuite_report(context, formsemestre_id, format='html', REQUE
     """
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id)
-    etuds = context.getEtudInfoGroupe(sco_groups.get_default_group(context, formsemestre_id))
+    etuds = context.getEtudInfoGroupes([sco_groups.get_default_group(context, formsemestre_id)])
     
     infos = []
     ids = []

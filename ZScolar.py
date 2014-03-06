@@ -813,16 +813,17 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView,'groups_view')
     groups_view = sco_groups_view.groups_view
     
-    security.declareProtected(ScoView,'getEtudInfoGroupe')
-    def getEtudInfoGroupe(self, group_id, etat=None):
+    security.declareProtected(ScoView,'getEtudInfoGroupes')
+    def getEtudInfoGroupes(self, group_ids, etat=None):
         """liste triée d'infos (dict) sur les etudiants du groupe indiqué.
         Attention: lent, car plusieurs requetes SQL par etudiant !
         """
-        members = sco_groups.get_group_members(self, group_id, etat=etat)
         etuds = []
-        for m in members:
-            etud = self.getEtudInfo(etudid=m['etudid'],filled=True)[0]
-            etuds.append(etud)
+        for group_id in group_ids:
+            members = sco_groups.get_group_members(self, group_id, etat=etat)
+            for m in members:
+                etud = self.getEtudInfo(etudid=m['etudid'],filled=True)[0]
+                etuds.append(etud)
         
         return etuds
         

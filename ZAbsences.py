@@ -799,29 +799,40 @@ class ZAbsences(ObjectManager,
 
     # ------------ HTML Interfaces
     security.declareProtected(ScoAbsChange, 'SignaleAbsenceGrHebdo')
-    def SignaleAbsenceGrHebdo(self, datelundi, group_id,
-                              destination,moduleimpl_id=None, REQUEST=None):
+    def SignaleAbsenceGrHebdo(self, datelundi, 
+                              group_ids=[],
+                              destination='',
+                              moduleimpl_id=None, 
+                              REQUEST=None):
         "Saisie hebdomadaire des absences"
-        # log('SignaleAbsenceGrHebdo: moduleimpl_id=%s' % moduleimpl_id)
         if not moduleimpl_id:
             moduleimp_id = None
-
-        base_url='SignaleAbsenceGrHebdo?datelundi=%s&group_id=%s&destination=%s' % (datelundi, group_id, destination)
         
-        group = sco_groups.get_group(self, group_id)
-        formsemestre_id = group['formsemestre_id']
+        groups_infos = sco_groups_view.DisplayedGroupsInfos(self, group_ids, REQUEST=REQUEST)
+        if not groups_infos.members:
+            return self.sco_header(page_title='Saisie des absences',REQUEST=REQUEST) + '<h3>Aucun étudiant !</h3>' + self.sco_footer(REQUEST)
+        
+        base_url='SignaleAbsenceGrHebdo?datelundi=%s&%s&destination=%s' % (datelundi, groups_infos.groups_query_args, urllib.quote(destination))
+        
+        formsemestre_id = groups_infos.formsemestre_id
+        etuds = [ self.getEtudInfo(etudid=m['etudid'],filled=True)[0] for m in groups_infos.members ]
         nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
         sem = self.Notes.do_formsemestre_list({'formsemestre_id':formsemestre_id})[0]
+        
         # calcule dates jours de cette semaine
         datessem = [ DateDMYtoISO(datelundi) ]
         for jour in self.day_names()[1:]:
             datessem.append( self.NextISODay(datessem[-1]) )
 
         #                
-        if group['partition_name']:
-            gr_tit = 'du groupe <span class="fontred">%s %s</span> de' % (group['partition_name'], group['group_name'])
-        else:
+        if groups_infos.tous_les_etuds_du_sem:
             gr_tit = 'en'
+        else:
+            if len(groups_infos.group_ids) > 1:
+                p = 'des groupes'
+            else:
+                p = 'du groupe'
+            gr_tit = p + '<span class="fontred">' + groups_infos.groups_titles + '</span>'
         
         H = [ self.sco_header(page_title='Saisie hebdomadaire des absences',
                               init_jquery_ui=True,
@@ -841,39 +852,37 @@ class ZAbsences(ObjectManager,
               <form action="doSignaleAbsenceGrHebdo" method="post" action="%s">              
               """ % (gr_tit, sem['titre_num'], datelundi, REQUEST.URL0) ]
         #
-        etuds = self.getEtudInfoGroupe(group_id)
-        if etuds:            
-            modimpls_list = []
-            # Initialize with first student
-            ues = nt.get_ues(etudid=etuds[0]['etudid'])
+        modimpls_list = []
+        # Initialize with first student
+        ues = nt.get_ues(etudid=etuds[0]['etudid'])
+        for ue in ues:
+            modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
+
+        # Add modules other students are subscribed to
+        for etud in etuds[1:]:
+            modimpls_etud = []
+            ues = nt.get_ues(etudid=etud['etudid'])
             for ue in ues:
-                modimpls_list += nt.get_modimpls(ue_id=ue['ue_id'])
+                modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
+            modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
 
-            # Add modules other students are subscribed to
-            for etud in etuds[1:]:
-                modimpls_etud = []
-                ues = nt.get_ues(etudid=etud['etudid'])
-                for ue in ues:
-                    modimpls_etud += nt.get_modimpls(ue_id=ue['ue_id'])
-                modimpls_list += [m for m in modimpls_etud if m not in modimpls_list]
-
-            menu_module = ''
-            for modimpl in modimpls_list:
-                if modimpl['moduleimpl_id'] == moduleimpl_id:
-                    sel = 'selected'
-                else:
-                    sel = ''
-                menu_module += """<option value="%(modimpl_id)s" %(sel)s>%(modname)s</option>\n""" % {
-                    'modimpl_id': modimpl['moduleimpl_id'],
-                    'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']),
-                    'sel' : sel
-                    }
-            if moduleimpl_id:
-                sel = ''
+        menu_module = ''
+        for modimpl in modimpls_list:
+            if modimpl['moduleimpl_id'] == moduleimpl_id:
+                sel = 'selected'
             else:
-                sel = 'selected' # aucun module specifie
-
-            H.append("""
+                sel = ''
+            menu_module += """<option value="%(modimpl_id)s" %(sel)s>%(modname)s</option>\n""" % {
+                'modimpl_id': modimpl['moduleimpl_id'],
+                'modname': modimpl['module']['code'] + ' ' + (modimpl['module']['abbrev'] or modimpl['module']['titre']),
+                'sel' : sel
+                }
+        if moduleimpl_id:
+            sel = ''
+        else:
+            sel = 'selected' # aucun module specifie
+        
+        H.append("""
  Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
     <option value="" %(sel)s>non spécifié</option>
     %(menu_module)s
@@ -881,7 +890,7 @@ class ZAbsences(ObjectManager,
     </p>""" % {'menu_module': menu_module, 'url' : base_url, 'sel':sel })
         
         H += self._gen_form_saisie_groupe(etuds, self.day_names(), datessem, destination, None, moduleimpl_id)
-
+        
         H.append(self.sco_footer(REQUEST))
         return '\n'.join(H)
 
@@ -1330,7 +1339,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
             t_nbabsam=0
             t_nbabsjustpm=0
             t_nbabspm=0
-            etuds = self.getEtudInfoGroupe(group_id)
+            etuds = self.getEtudInfoGroupes(groups_infos.group_ids)
             H.append( '<h2>Etat des absences le %s</h2>' % date )
             H.append( """<table border="0" cellspacing="4" cellpadding="0">
              <tr><th>&nbsp;</th>
