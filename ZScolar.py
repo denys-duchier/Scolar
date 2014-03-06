@@ -74,6 +74,7 @@ import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
 import sco_groups_view
+import sco_trombino_tours
 import sco_parcours_dut
 import sco_report
 import sco_archives_etud
@@ -803,6 +804,9 @@ class ZScolar(ObjectManager,
     security.declareProtected(ScoView,'trombino')
     trombino = sco_trombino.trombino
 
+    security.declareProtected(ScoView,'pdf_trombino_tours')
+    pdf_trombino_tours = sco_trombino_tours.pdf_trombino_tours
+    
     security.declareProtected(ScoView,'trombino_copy_photos')
     trombino_copy_photos = sco_trombino.trombino_copy_photos
 

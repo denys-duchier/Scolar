@@ -502,6 +502,8 @@ def tab_absences_html(context, groups_infos, etat=None, REQUEST=None):
           % (groups_infos.base_url, groups_infos.groups_titles),
           """<li><a class="stdlink" href="trombino?%s&format=pdf">Trombinoscope en PDF</a></li>"""
           % groups_infos.groups_query_args,
+          """<li><a class="stdlink" href="pdf_trombino_tours?%s&format=pdf">Trombinoscope en PDF (format "IUT de Tours", beta)</a></li>"""
+          % groups_infos.groups_query_args,
           """<li><a class="stdlink" href="trombino?%s&format=pdflist">Liste d'appel avec photos</a></li>"""
           % groups_infos.groups_query_args,
           '</ul>'

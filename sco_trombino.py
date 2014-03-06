@@ -47,7 +47,6 @@ import ImportScolars
 import sco_excel
 from reportlab.lib import colors
 
-NB_COLS = 5 # nb of columns of photo grid (should be a preference ?)
 
 def trombino(context, 
              REQUEST=None, 
@@ -110,8 +109,6 @@ def trombino_html(context, groups_infos, REQUEST=None):
     H.append('<div>')
     i = 0
     for t in groups_infos.members:
-        #if i % NB_COLS == 0:
-        #    H.append('<tr>')
         H.append('<span class="trombi_box"><span class="trombi-photo" id="trombi-%s">' % t['etudid'])
         if sco_photos.has_photo(context, t, version=sco_photos.H90):
             foto = sco_photos.etud_photo_html(context, t, title='', REQUEST=REQUEST)
@@ -122,8 +119,6 @@ def trombino_html(context, groups_infos, REQUEST=None):
         H.append('<span class="trombi_legend"><span class="trombi_prenom">' + scolars.format_prenom(t['prenom']) + '</span><span class="trombi_nom">' + scolars.format_nom(t['nom']) )
         H.append('</span></span></span>')
         i += 1
-        #if i % NB_COLS == 0:
-        #    H.append('</tr>')
 
     H.append('</div>')
     H.append('<div style="margin-bottom:15px;"><a class="stdlink" href="trombino?format=pdf&%s">Version PDF</a></div>' % args)
