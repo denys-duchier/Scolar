@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 # -*- coding: utf-8 -*-
 
-SCOVERSION = "7.1a"
+SCOVERSION = "7.1b"
 
 SCONAME = "ScoDoc"
 
