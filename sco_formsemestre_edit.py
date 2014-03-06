@@ -35,6 +35,7 @@ from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 import sco_portal_apogee, scolars, sco_parcours_dut
 import sco_compute_moy
+import sco_modalites
 
 def _default_sem_title(F):
     """Default title for a semestre in formation F"""
@@ -179,6 +180,10 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
         semestre_ids[mod['semestre_id']] = 1
     semestre_ids = semestre_ids.keys()
     semestre_ids.sort()
+
+    modalites = sco_modalites.do_modalite_list(context)
+    modalites_abbrv = [ m['modalite'] for m in modalites ]
+    modalites_titles= [ m['titre'] for m in modalites ]
     #
     modform = [
         ('formsemestre_id', { 'input_type' : 'hidden' }),
@@ -209,8 +214,9 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                     }),
         ('modalite', { 'input_type' : 'menu',
                           'title' : 'Modalité',
-                          'allowed_values' : ('', 'FI', 'FC', 'FAP'),
-                          'labels' : ('Inconnue', 'Formation Initiale', 'Formation Continue', 'Apprentissage') }),
+                          'allowed_values' : modalites_abbrv,
+                          'labels' : modalites_titles
+                          }),
         ('semestre_id', { 'input_type' : 'menu',
                           'title' : 'Semestre dans la formation',
                           'allowed_values' : semestre_id_list,

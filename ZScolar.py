@@ -70,6 +70,7 @@ import sco_excel
 import imageresize
 
 import ZNotes, ZAbsences, ZEntreprises, ZScoUsers
+import sco_modalites
 import ImportScolars
 import sco_portal_apogee, sco_synchro_etuds
 import sco_page_etud, sco_groups, sco_trombino
@@ -654,31 +655,18 @@ class ZScolar(ObjectManager,
         </td>
         </tr>
         """
-        # " (this quote fix a font lock bug)
-        H = ['<table class="listesems">']
-        # différentes modalités ?
-        modalites = list(Set([s['modalite'] for s in sems]))
-        # tri selon un ordre fixé:
-        modalites.sort( lambda x,y: cmp(MODALITY_ORDER[x],MODALITY_ORDER[y]))
-        sems_by_mod = DictDefault(defaultvalue=[])
-        for modalite in modalites:
-            for sem in sems:
-                if sem['semestre_id'] < 0: # formations en un semestre
-                    sem['sortkey'] = (100*sem['semestre_id'],sem['dateord'])
-                else:
-                    sem['sortkey'] = (-sem['semestre_id'],sem['dateord'])
-                if sem['modalite'] == modalite:
-                    sems_by_mod[modalite].append(sem)
+
+        # Liste des semestres, groupés par modalités
+        sems_by_mod, modalites = sco_modalites.group_sems_by_modalite(self, sems)
         
+        H = ['<table class="listesems">']
         for modalite in modalites:
             if len(modalites) > 1:
-                H.append('<tr><th colspan="4">%s</th></tr>' % MODALITY_NAMES[modalite])
-            # tri dans chaque modalité par indice de semestre et date debut
-            sems_by_mod[modalite].sort(
-                lambda x,y: cmp(y['sortkey'],x['sortkey']))            
-            if sems_by_mod[modalite]:
-                cur_idx = sems_by_mod[modalite][0]['semestre_id']
-                for sem in sems_by_mod[modalite]:
+                H.append('<tr><th colspan="4">%s</th></tr>' % modalite['titre'])
+
+            if sems_by_mod[modalite['modalite']]:
+                cur_idx = sems_by_mod[modalite['modalite']][0]['semestre_id']
+                for sem in sems_by_mod[modalite['modalite']]:
                     if cur_idx != sem['semestre_id']:
                         sem['trclass'] = 'firstsem' # separe les groupes de semestres
                         cur_idx = sem['semestre_id']

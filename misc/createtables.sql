@@ -351,6 +351,19 @@ CREATE TABLE notes_formsemestre (
 	ens_can_edit_eval int default 0 -- autorise les ens a creer des evals
 ) WITH OIDS;
 
+CREATE TABLE notes_form_modalites (
+    form_modalite_id text default notes_newid('Md') PRIMARY KEY,
+    modalite text, -- la clef dans notes_formsemestre
+    titre text, -- le nom complet de la modalite pour les documents scodoc
+    numero SERIAL -- integer, ordre de presentation
+);
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('', 'Autres formations');
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('FI', 'Formation Initiale');
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('FC', 'Formation Continue');
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('FAP', 'Apprentissage');
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('DEC', 'Formation Décalées');
+INSERT INTO notes_form_modalite (modalite, titre) VALUES ('LIC', 'Licence');
+
 -- Coef des UE capitalisees arrivant dans ce semestre:
 CREATE TABLE notes_formsemestre_uecoef (
 	formsemestre_uecoef_id text default notes_newid('SEM') PRIMARY KEY,

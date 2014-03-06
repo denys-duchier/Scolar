@@ -1,4 +1,5 @@
 #!/opt/zope213/bin/python
+# -*- coding: utf-8 -*-
 
 """
 ScoDoc post-upgrade script: databases housekeeping
@@ -379,7 +380,21 @@ for dept in get_depts():
     check_field(cnx, 'admissions', 'boursier_prec',
                 ['alter table admissions add column boursier_prec integer default NULL',
                  ])
-    
+    # add modalites formation
+    check_table( cnx, 'notes_form_modalites', [
+        """CREATE TABLE notes_form_modalites (
+    form_modalite_id text default notes_newid('Md') PRIMARY KEY,
+    modalite text, -- la clef dans notes_formsemestre
+    titre text, -- le nom complet de la modalite pour les documents scodoc
+    numero SERIAL -- integer, ordre de presentation
+     );""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('', 'Inconnue');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FI', 'Formation Initiale');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FC', 'Formation Continue');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('FAP', 'Apprentissage');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('DEC', 'Formation Décalées');""",
+    """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('LIC', 'Licence');"""
+    ] )
     # Add here actions to performs after upgrades:
     
     cnx.commit()

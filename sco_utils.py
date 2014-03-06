@@ -256,16 +256,6 @@ def group_by_key(d, key) :
         g[e[key]].append(e)
     return g
 
-MODALITY_NAMES = DictDefault(
-    kv_dict = { 'FI' : 'Formations Initiales',
-                'FC' : 'Formations Continues',
-                'FAP': 'Formations en Apprentissage',
-                },
-    defaultvalue = 'Autres formations' )
-
-MODALITY_ORDER = DictDefault(
-    kv_dict={ 'FI':10, 'FAP' : 20, 'FC' : 30 }, defaultvalue = 100 )
-
 
 # Admissions des étudiants
 # Différents types de voies d'admission:
