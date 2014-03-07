@@ -145,6 +145,7 @@ PREF_CATEGORIES = (
                        'related' : ('bul', 'bul_mail', 'pdf')}),
     ('bul_mail', { 'title' : 'Envoi des bulletins par e-mail',
                    'related' : ('bul', 'bul_margins', 'pdf') }),
+    ('edt',      { 'title' : "Connexion avec le logiciel d'emplois du temps" } ),
 )
 
 
@@ -933,8 +934,24 @@ Année scolaire: %(anneescolaire)s
         'size' : 10, 'title' : 'Marge basse', 'type' : 'float',
         'category' : 'bul_margins'
        }),
-        
 
+    # Lien avec logiciel emplois du temps 
+    ( 'edt_sem_ics_url',
+      { 'title' : "Lien EDT",
+        'initvalue' : '',
+        'explanation' : "URL du calendrier ics emploi du temps du semestre",
+        'size' : 80,
+        'category' : 'edt',
+        }),
+    ( 'edt_groups2scodoc',
+      { 'input_type' : 'textarea',
+        'initvalue' : '',
+        'title' : 'Noms Groupes',
+        'explanation': "Transcodage: nom de groupe EDT ; non de groupe ScoDoc (sur plusieurs lignes)",
+        'rows' : 8,
+        'cols' : 16,
+        'category' : 'edt'
+        }),
 )
 
 PREFS_NAMES = set( [ x[0] for x in PREFS ] )

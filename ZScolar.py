@@ -81,6 +81,7 @@ import sco_report
 import sco_archives_etud
 import sco_groups_edit
 import sco_up_to_date
+import sco_edt_cal
 
 from VERSION import SCOVERSION, SCONEWS
 
@@ -303,7 +304,14 @@ class ZScolar(ObjectManager,
         b += '<p>xxx</p><hr><p>' + str(self.aq_parent.aq_parent)
 
         return self.sco_header(REQUEST)+ str(b) + self.sco_footer(REQUEST)
-        
+
+
+    # essais calendriers:
+    security.declareProtected(ScoView, 'experimental_calendar')
+    experimental_calendar = sco_edt_cal.experimental_calendar
+    security.declareProtected(ScoView, 'group_edt_json')
+    group_edt_json = sco_edt_cal.group_edt_json
+    
     security.declareProtected(ScoView, 'ScoURL')
     def ScoURL(self):
         "base URL for this sco instance"
@@ -773,21 +781,6 @@ class ZScolar(ObjectManager,
 
         H.append('</div>')        
         return '\n'.join(H)
-
-    security.declareProtected(ScoView, 'group_list')
-    def group_list(self, group_id, REQUEST=None,
-                   with_codes=0,
-                   etat=None,
-                   format='html',
-                   with_paiement=0, # si vrai, ajoute colonne infos paiement droits inscription (lent car interrogation portail)
-                   with_archives=0, # ajoute colonne avec noms fichiers archivés
-                   with_annotations=0
-                   ):
-        """liste etudiants inscrits dans ce semestre
-        format: html, csv, xls, xml, allxls, pdf, json
-        Si with_codes, ajoute 3 colonnes avec les codes etudid, NIP, INE
-        """
-        return Exception('group_list est remplacé par groups_view') # XXX A ENLEVER AVANT COMMIT XXX
     
     security.declareProtected(ScoView,'trombino')
     trombino = sco_trombino.trombino
@@ -1317,26 +1310,6 @@ function tweakmenu( gname ) {
               REQUEST.URL1) )
         
         return header + '\n'.join(H) + self.sco_footer(REQUEST)
-
-    # security.declareProtected(ScoView, 'doChangeGroup') # XXX unused
-    # def _xxx_doChangeGroup(self, etudid, partition_id, group_id, REQUEST=None,
-    #                    redirect=True):
-    #     """Change le groupe de l'etudiant dans cette partition. 
-    #     Si la valeur de group_id est '' (vide) ou 'None', le met à NULL (aucun groupe).
-    #     """
-    #     # inutilise, non testé (serait utilisable par formChangeGroupe si on l'implemente)
-    #     partition = sco_groups.get_partition(self, partition_id)
-    #     formsemestre_id=partition['formsemestre_id']
-    #     if not self.Notes.can_change_groups(REQUEST, formsemestre_id):
-    #         raise ScoValueError("Vous n'avez pas le droit d'effectuer cette opération !")
-    #     sem = self.Notes.get_formsemestre(partition['formsemestre_id'])        
-    #     if sem['etat'] != '1':
-    #         raise ScoValueError('Modification impossible: semestre verrouillé')
-        
-    #     log('doChangeGroup(etudid=%s,partition_id=%s,group_id=%s)'%(etudid,formsemestre_id, group_id))
-    #     sco_groups.change_etud_group_in_partition(self, etudid, group_id, partition, REQUEST=REQUEST)        
-    #     if redirect:
-    #         REQUEST.RESPONSE.redirect('ficheEtud?etudid='+etudid)
     
     # --- Gestion des groupes:
     security.declareProtected(ScoView, 'affectGroups')

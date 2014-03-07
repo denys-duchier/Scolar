@@ -134,7 +134,6 @@ def menu_groups_choice(context, groups_infos):
 
     for partition in groups_infos.partitions:
         H.append('<optgroup label="%s">' % partition['partition_name'] )
-
         # Les groupes dans cette partition:
         for g in sco_groups.get_partition_groups(context, partition):
             if g['group_id'] in groups_infos.group_ids:
@@ -166,7 +165,51 @@ def menu_groups_choice(context, groups_infos):
     """)
     return '\n'.join(H)
 
-
+def menu_group_choice(context, group_id=None, formsemestre_id=None):
+    """Un bête menu pour choisir un seul groupe
+    group_id est le groupe actuellement sélectionné.
+    Si aucun groupe selectionné, utilise formsemestre_id pour lister les groupes.
+    """
+    if group_id:
+        group = sco_groups.get_group(context, group_id)
+        formsemestre_id = group['formsemestre_id']
+    elif not formsemestre_id:
+        raise ValueError('missing formsemestre_id')
+    H = [ """
+    <select id="group_selector_u" name="group_id" onchange="reload_selected_group();">
+    """]
+    if not group_id:
+        H.append('<option value="">choisir...</option>')
+    for partition in sco_groups.get_partitions_list(context, formsemestre_id):
+        if partition['partition_name']:
+            H.append('<optgroup label="%s">' % partition['partition_name'] )
+        groups = sco_groups.get_partition_groups(context, partition)
+        for group in groups:
+            if group['group_id'] == group_id:
+                selected = 'selected'
+            else:
+                selected = ''
+            name = group['group_name'] or 'Tous'
+            n_members = len(sco_groups.get_group_members(context, group['group_id']))
+            H.append('<option value="%s" %s>%s (%s)</option>' 
+                     % (group['group_id'], selected, name, n_members) )
+        if partition['partition_name']:
+            H.append('</optgroup>')
+    H.append("""</select>
+    <script>
+function reload_selected_group() {
+var url = $.url();
+var group_id = $("#group_selector_u").val();
+if (group_id) {
+  url.param()['group_id'] = group_id;
+  var query_string = $.param(url.param(), traditional=true );
+  window.location = url.attr('base') + url.attr('path') + '?' + query_string;
+}
+}
+    </script>
+    """)
+    return '\n'.join(H)
+    
 class DisplayedGroupsInfos:
     """Container with attributes describing groups to display in the page
     .groups_query_args : 'group_ids=xxx&group_ids=yyy'
@@ -190,7 +233,7 @@ class DisplayedGroupsInfos:
         if not group_ids: # appel sans groupe (eg page accueil)
             if not formsemestre_id:
                 raise Exception('missing parameter') # formsemestre_id or group_ids
-            # selectionne le permier groupe trouvé, s'il y en a un
+            # selectionne le premier groupe trouvé, s'il y en a un
             partition = sco_groups.get_partitions_list(context, formsemestre_id, with_default=True)[0]
             groups = sco_groups.get_partition_groups(context, partition)
             if groups:

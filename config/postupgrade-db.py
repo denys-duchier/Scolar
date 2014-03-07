@@ -414,6 +414,9 @@ check_field(cnx, 'sco_users', 'date_expiration',
             ["alter table sco_users add column date_expiration date",
              "update sco_users set status=NULL where status=''" # fix a bug in previous update...
              ])
+check_field(cnx, 'sco_users', 'login_edt',
+            ["alter table sco_users add column login_edt text default NULL",
+             ])
 cnx.commit()
 cnx.close()
 

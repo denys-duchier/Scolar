@@ -58,7 +58,7 @@ import scolars
 import sco_parcours_dut
 
 
-def checkGroupName(groupName): # XXX unused: now allow any string as a  gropu or partition name
+def checkGroupName(groupName): # XXX unused: now allow any string as a group or partition name
     "Raises exception if not a valid group name"
     if groupName and (
         not re.match( '^\w+$', groupName ) 

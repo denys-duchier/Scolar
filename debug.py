@@ -5,7 +5,7 @@
 
 Lancer ScoDoc ainsi: (comme root)
 
- /opt/scodoc/instance/bin/zopectl debug 
+ /opt/scodoc/bin/zopectl debug 
 
 Puis
 

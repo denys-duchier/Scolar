@@ -21,6 +21,7 @@ CREATE TABLE sco_users (
 	dept text, -- departement d'appartenance
 	passwd_temp int default 0, -- 0 ok, 1 mot de passe temporaire
 	status text default NULL, -- NULL actif, 'old' ancien (pas de login possible)
-	date_expiration date -- date limite, NULL => sans limite
+	date_expiration date, -- date limite, NULL => sans limite
+    login_edt text default NULL -- login logiciel emplois du temps (pour decodage ics)
 ) with oids;
 

@@ -76,6 +76,9 @@ then
   exit 0
 fi
 
+# Add some python modules:
+"$SCODOC_DIR"/config/install_cal_modules.sh
+
 # post-upgrade scripts
 echo "Executing post-upgrade script..."
 "$SCODOC_DIR"/config/postupgrade.py
