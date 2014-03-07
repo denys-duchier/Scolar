@@ -60,9 +60,9 @@ def group_sems_by_modalite(context, sems):
     for modalite in modalites:
         for sem in sems:
             if sem['semestre_id'] < 0: # formations en un semestre
-                sem['sortkey'] = (100*sem['semestre_id'],sem['dateord'])
+                sem['sortkey'] = (-100*sem['semestre_id'],sem['dateord'])
             else:
-                sem['sortkey'] = (-sem['semestre_id'],sem['dateord'])
+                sem['sortkey'] = (sem['semestre_id'],sem['dateord'])
             if sem['modalite'] == modalite['modalite']:
                 sems_by_mod[modalite['modalite']].append(sem)
     # tri dans chaque modalité par indice de semestre et date debut
