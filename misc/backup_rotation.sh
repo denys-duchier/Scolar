@@ -39,12 +39,12 @@ hour=$(date +"%H")
 # We take files from source folder and move them to
 # the appropriate destination folder:
 
-# On first month day do
-if [ "$month_day" -eq 1 ] ; then
+# On first month day do (once)
+if [ "$month_day" -eq 1 ] && [ ! -e backup.monthly/$date_daily ]; then
   destination=backup.monthly/$date_daily
 else
-  # On sunday do
-  if [ "$week_day" -eq 7 ] ; then
+  # On sunday do (once)
+  if [ "$week_day" -eq 7 ] && [ ! -e backup.weekly/$date_daily ]; then
     destination=backup.weekly/$date_daily
   else
     if [ "$hour" -eq 0 ] ; then
