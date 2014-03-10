@@ -669,7 +669,7 @@ ou <a href="mailto:%s">%s</a>
 </table>        """ % vars() )
                 # display error traceback (? may open a security risk via xss attack ?)
                 #log('exc B')
-            txt_html = self._report_request(REQUEST, format='html')
+            txt_html = self._report_request(REQUEST, fmt='html')
             H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
 <p><b>Informations:</b><br/>
@@ -684,6 +684,7 @@ ou <a href="mailto:%s">%s</a>
             except:
                 log('no footer found for error page')
                 pass
+        
         # --- Mail:
         error_traceback_txt = scodoc_html2txt(error_tb)
         txt = """
@@ -698,7 +699,7 @@ ErrorType: %(error_type)s
         # log( '\n page=\n' + '\n'.join(H) )
         return '\n'.join(H)
 
-    def _report_request(self, REQUEST, format='txt'):
+    def _report_request(self, REQUEST, fmt='txt'):
         """string describing current request for bug reports"""
         AUTHENTICATED_USER = REQUEST.get('AUTHENTICATED_USER', '')
         dt = time.asctime()
@@ -708,10 +709,14 @@ ErrorType: %(error_type)s
             QUERY_STRING = '?' + QUERY_STRING
         METHOD = REQUEST.get('REQUEST_METHOD', '')
 
-        REFERER = 'na' # REQUEST.get('HTTP_REFERER', '')
+        if fmt == 'txt':
+            REFERER = REQUEST.get('HTTP_REFERER', '')
+            HTTP_USER_AGENT = REQUEST.get('HTTP_USER_AGENT', '')
+        else:
+            REFERER = 'na'
+            HTTP_USER_AGENT = 'na'
         form = REQUEST.get('form', '')
         HTTP_X_FORWARDED_FOR = REQUEST.get('HTTP_X_FORWARDED_FOR', '')
-        HTTP_USER_AGENT = 'na' # REQUEST.get('HTTP_USER_AGENT', '')
         svn_version = get_svn_version(self.file_path)
         SCOVERSION = VERSION.SCOVERSION
         
@@ -729,7 +734,7 @@ Agent: %(HTTP_USER_AGENT)s
 
 subversion: %(svn_version)s
 """ % vars()
-        if format == 'html':
+        if fmt == 'html':
             txt = txt.replace('\n', '<br/>')
         return txt
 
