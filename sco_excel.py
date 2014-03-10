@@ -558,9 +558,21 @@ def Excel_feuille_listeappel(context, sem, groupname, lines,
                 co += 1
         if with_codes:
             ws0.write(li,coc, t['etudid'].decode(SCO_ENCODING), style2t3)
-            ws0.write(li,coc+1, t['code_nip'].decode(SCO_ENCODING), style2t3)
-            ws0.write(li,coc+2, t['code_ine'].decode(SCO_ENCODING), style2t3)
-        ws0.write(li, co, t['etath'].decode(SCO_ENCODING), style2b) # etat
+            if t['code_nip']:
+                code_nip = t['code_nip'].decode(SCO_ENCODING)
+            else:
+                code_nip = u''
+            ws0.write(li,coc+1, code_nip, style2t3)
+            if t['code_ine']:
+                code_ine = t['code_ine'].decode(SCO_ENCODING)
+            else:
+                code_ine = u''
+            ws0.write(li,coc+2, code_ine, style2t3)
+        if t['etath']:
+            etath = t['etath'].decode(SCO_ENCODING)
+        else:
+            etath = u''
+        ws0.write(li, co, etath, style2b) # etat
         for i in range(1,NbWeeks):
             ws0.write(li, co+i, u'',  style2b) # cellules vides
         ws0.row(li).height = 850 # sans effet ?
