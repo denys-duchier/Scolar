@@ -83,7 +83,7 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           'enabled' : nbnotes > 0
           },            
         { 'title' : 'Absences ce jour',
-          'url' : 'Absences/EtatAbsencesDate?date=%s&group_id=%s'
+          'url' : 'Absences/EtatAbsencesDate?date=%s&group_ids=%s'
           % (urllib.quote(E['jour'],safe=''), group_id),
           'enabled' : E['jour']
           },

@@ -734,7 +734,7 @@ class ZScolar(ObjectManager,
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
             FA.append('</select>')
-            FA.append('<a href="Absences/EtatAbsencesGr?group_id=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
+            FA.append('<a href="Absences/EtatAbsencesGr?group_ids=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
             FA.append('</form></td>')
             FormAbs = '\n'.join(FA)
         else:

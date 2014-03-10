@@ -1226,15 +1226,10 @@ class ZAbsences(ObjectManager,
 
     security.declareProtected(ScoView, 'EtatAbsencesGr') # ported from dtml
     def EtatAbsencesGr(self, group_ids=[], # list of groups to display
-                       group_id=None, # for backward compat
                        debut='', fin='', 
                        format='html', REQUEST=None): 
         """Liste les absences de groupes
         """
-        if type(group_ids) == str:
-            group_ids = [group_ids]
-        if group_id and not group_id in group_ids:
-            group_ids.append(group_id)
         datedebut = DateDMYtoISO(debut)
         datefin = DateDMYtoISO(fin)
         # Informations sur les groupes à afficher:
@@ -1269,7 +1264,7 @@ class ZAbsences(ObjectManager,
         if groups_infos.tous_les_etuds_du_sem:
             gr_tit = ''
         else:
-            if len(group_ids) > 1:
+            if len(groups_infos.group_ids) > 1:
                 p = 'des groupes'
             else:
                 p = 'du groupe'
@@ -1319,14 +1314,9 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     
     security.declareProtected(ScoView, 'EtatAbsencesDate') # ported from dtml
     def EtatAbsencesDate(self, group_ids=[], # list of groups to display
-                         group_id=None, # for backward compat
                          date=None, REQUEST=None): 
         """Etat des absences pour un groupe à une date donnée
         """
-        if type(group_ids) == str:
-            group_ids = [group_ids]
-        if group_id and not group_id in group_ids:
-            group_ids.append(group_id)
         # Informations sur les groupes à afficher:
         groups_infos = sco_groups_view.DisplayedGroupsInfos(self, group_ids, REQUEST=REQUEST)
         formsemestre_id = groups_infos.formsemestre_id
