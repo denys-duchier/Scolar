@@ -94,7 +94,7 @@ def pdf_trombino_tours(
     
     for group_id in groups_infos.group_ids:
         if group_id != "None":
-            members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, 'I')
+            members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(context, group_id, 'I')
             groups += ' %s' % group_tit
             L = []
             currow = []
@@ -237,7 +237,7 @@ def pdf_feuille_releve_absences(
                           )
     
     for group_id in groups_infos.group_ids:
-        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, None)
+        members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(context, group_id, None)
         L = []
 
         currow = [ Paragraph(SU('<b>Groupe ' + group_tit + '</b>'), 

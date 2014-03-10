@@ -174,7 +174,7 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
     cursor = cnx.cursor(cursor_factory=ScoDocCursor)
     group = get_group(context, group_id)
     sem = context.Notes.get_formsemestre(group['formsemestre_id'])
-    other_partitions = [ p for p in get_partitions_list(context, sem['formsemestre_id'] ) if p['partition_id'] != group['partition_id'] and p['partition_name'] ]
+    
     members = get_group_members(context, group_id, etat=etat)
     # add human readable description of state:
     nbdem = 0
@@ -207,8 +207,16 @@ def get_group_infos(context, group_id, etat=None): # was _getlisteetud
     else:
         group_tit = 'tous'
 
-    return members, group, group_tit, sem, nbdem, other_partitions
+    return members, group, group_tit, sem, nbdem
 
+def get_group_other_partitions(context, group):
+    """Liste des partitions du même semestre que ce groupe,
+    sans celle qui contient ce groupe.
+    """    
+    other_partitions = [ p for p in get_partitions_list(context, group['formsemestre_id'] ) 
+                         if p['partition_id'] != group['partition_id'] and p['partition_name'] ]
+    return other_partitions
+    
 def get_etud_groups(context, etudid, sem, exclude_default=False):
     """Infos sur groupes de l'etudiant dans ce semestre
     [ group + partition_name ]

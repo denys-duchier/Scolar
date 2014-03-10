@@ -224,6 +224,6 @@ def etudarchive_import_files(context, group_id=None, xlsfile=None, zipfile=None,
     filename_title = 'fichier_a_charger'
     page_title = 'Téléchargement de fichiers associés aux étudiants'
     # Utilise la fontion au depart developpee pour les photos
-    r = sco_trombino.zip_excel_import_files(context, group_id, xlsfile, zipfile,
+    r = sco_trombino.zip_excel_import_files(context, xlsfile, zipfile,
                                             REQUEST, callback, filename_title, page_title)
     return r + context.sco_footer(REQUEST)

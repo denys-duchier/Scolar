@@ -40,6 +40,8 @@ import sco_excel
 import sco_groups
 import sco_trombino
 import sco_portal_apogee
+import sco_parcours_dut
+import sco_report
 
 def groups_view(
         context, group_ids=[], 
@@ -257,7 +259,7 @@ class DisplayedGroupsInfos:
         self.formsemestre_id = formsemestre_id
         self.nbdem = 0 # nombre d'étudiants démissionnaires en tout
         for group_id in group_ids:
-            group_members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(context, group_id, etat=etat)
+            group_members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(context, group_id, etat=etat)
             self.groups.append(group)
             self.nbdem += nbdem
             self.sems[sem['formsemestre_id']] = sem
@@ -493,6 +495,7 @@ def groups_table(
                   'parcours', 'codeparcours'
                 ]
         titles = keys[:]
+        other_partitions = sco_groups.get_group_other_partitions(context, groups_infos.groups[0])
         keys += [ p['partition_id'] for p in other_partitions ]
         titles += [ p['partition_name'] for p in other_partitions ]
         # remplis infos lycee si on a que le code lycée

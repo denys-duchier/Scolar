@@ -447,6 +447,7 @@ def photos_import_files(context, group_ids=[], xlsfile=None, zipfile=None, REQUE
     """Importation des photos
     """
     groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
+    back_url = 'groups_view?%s&curtab=tab-photos' % groups_infos.groups_query_args
     filename_title = 'fichier_photo'
     page_title = 'Téléchargement des photos des étudiants'
     def callback(context, etud, data, filename, REQUEST): 

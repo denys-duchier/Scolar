@@ -1909,7 +1909,7 @@ function tweakmenu( gname ) {
         Si fix == True, change les codes avec Apogée.
         """
         etat = etat or None
-        members, group, group_tit, sem, nbdem, other_partitions = sco_groups.get_group_infos(self, group_id, etat=etat)
+        members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(self, group_id, etat=etat)
         formsemestre_id = group['formsemestre_id']
         
         cnx = self.GetDBConnexion()
