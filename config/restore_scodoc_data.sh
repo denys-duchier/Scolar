@@ -95,6 +95,12 @@ $COPY "$SRC/logos" "$SCODOC_DIR/"
 
 mv "$SCODOC_DIR/config/scodoc_config.py"  "$SCODOC_DIR/config/scodoc_config.py.bak" 
 $COPY "$SRC/scodoc_config.py" "$SCODOC_DIR/config/"
+# Verifie le codage de ce fichier:
+if [ -z "$(file scodoc_config.py | grep -i UTF-8)" ] 
+then
+   mv "$SCODOC_DIR/config/scodoc_config.py" "$SCODOC_DIR/config/scodoc_config.py.orig"
+   iconv -f iso8859-15 -t utf-8 "$SCODOC_DIR/config/scodoc_config.py.orig" > "$SCODOC_DIR/config/scodoc_config.py"
+fi
 
 rm -rf "$INSTANCE_DIR/log"
 $COPY "$SRC/log" "$INSTANCE_DIR/"
