@@ -354,7 +354,7 @@ def simple_dictlist2xml(dictlist, doc=None, tagname=None, quote=False):
     return doc
 
 # Expression used to check noms/prenoms
-FORBIDDEN_CHARS_EXP = re.compile( r'[*\|~]' )
+FORBIDDEN_CHARS_EXP = re.compile( r'[*\|~\(\)\\]' )
 
 def strnone(s):
     "convert s to string, '' if s is false"
