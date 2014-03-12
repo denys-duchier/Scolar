@@ -218,9 +218,6 @@ PDF_MIMETYPE = 'application/pdf'
 XML_MIMETYPE = 'text/xml'
 JSON_MIMETYPE= 'application/json'
 
-ICON_PDF = '<img src="icons/pdficon16x20_img" border="0" title="Version PDF"/>'
-ICON_XLS = '<img src="icons/xlsicon_img" border="0" title="Version tableur"/>'
-
 class DictDefault(dict):
     """A dictionnary with default value for all keys
     Each time a non existent key is requested, it is added to the dict.
@@ -598,6 +595,8 @@ def icontag(name, file_format='png', **attrs):
     s = ' '.join([ '%s="%s"' % (k, attrs[k]) for k in attrs ])
     return '<img %s src="/ScoDoc/static/icons/%s.%s" />' % (s, name, file_format)
 
+ICON_PDF = icontag('pdficon16x20_img', title="Version PDF")
+ICON_XLS = icontag('xlsicon_img', title="Version tableur")
 
 def sort_dates(L, reverse=False):
     """Return sorted list of dates, allowing None items (they are put at the beginning)"""
