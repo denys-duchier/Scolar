@@ -34,6 +34,7 @@ from sco_utils import *
 from notesdb import *
 from notes_log import log
 import scolars
+import sco_groups
 import sco_excel
 import sco_groups_view
 import sco_news
