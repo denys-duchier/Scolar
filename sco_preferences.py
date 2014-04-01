@@ -1255,7 +1255,7 @@ function set_global_pref(el, pref_name) {
             # done: change prefs and redirect to semestre status
             destination = tf[2]['destination']
             if destination == 'done' or destination == '':
-                return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/formsemestre_status?head_message=Préférences modifiées&formsemestre_id=' + self.formsemestre_id ) 
+                return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/formsemestre_status?head_message=Préférences modifiées&amp;formsemestre_id=' + self.formsemestre_id ) 
             elif destination == 'again':
                 return REQUEST.RESPONSE.redirect( REQUEST.URL0 + '?formsemestre_id=' + self.formsemestre_id )
             elif destination == 'global':

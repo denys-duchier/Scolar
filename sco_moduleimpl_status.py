@@ -83,7 +83,7 @@ def moduleimpl_evaluation_menu(context, evaluation_id, nbnotes=0, REQUEST=None):
           'enabled' : nbnotes > 0
           },            
         { 'title' : 'Absences ce jour',
-          'url' : 'Absences/EtatAbsencesDate?date=%s&group_ids=%s'
+          'url' : 'Absences/EtatAbsencesDate?date=%s&amp;group_ids=%s'
           % (urllib.quote(E['jour'],safe=''), group_id),
           'enabled' : E['jour']
           },
@@ -199,7 +199,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
     top_table_links = ''
     if sem['etat'] == '1': # non verrouillé
         top_table_links = """<a class="stdlink" href="evaluation_create?moduleimpl_id=%(moduleimpl_id)s">Créer nouvelle évaluation</a>
-        <a class="stdlink" style="margin-left:2em;" href="module_evaluation_renumber?moduleimpl_id=%(moduleimpl_id)s&redirect=1">Trier par date</a>
+        <a class="stdlink" style="margin-left:2em;" href="module_evaluation_renumber?moduleimpl_id=%(moduleimpl_id)s&amp;redirect=1">Trier par date</a>
         """ % M
     if ModEvals:
         H.append( '<div class="moduleimpl_evaluations_top_links">' + top_table_links + '</div>')
@@ -235,11 +235,11 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
         # Fleches:
         H.append('<span class="eval_arrows_chld">')
         if eval_index != (len(ModEvals) - 1) and caneditevals:
-            H.append('<a href="module_evaluation_move?evaluation_id=%s&after=0" class="aud">%s</a>' % (eval['evaluation_id'], arrow_up))
+            H.append('<a href="module_evaluation_move?evaluation_id=%s&amp;after=0" class="aud">%s</a>' % (eval['evaluation_id'], arrow_up))
         else:
             H.append(arrow_none)
         if eval_index > 0 and caneditevals:
-            H.append('<a href="module_evaluation_move?evaluation_id=%s&after=1" class="aud">%s</a>' % (eval['evaluation_id'], arrow_down))
+            H.append('<a href="module_evaluation_move?evaluation_id=%s&amp;after=1" class="aud">%s</a>' % (eval['evaluation_id'], arrow_down))
         else:
             H.append(arrow_none)
         H.append('</span></span>')
@@ -322,7 +322,7 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                 H.append("""<td colspan="5" class="mievr_grtit">%s &nbsp;</td><td>""" % name )
                 if gr_moyenne['gr_nb_notes'] > 0:
                     H.append( '%(gr_moy)s' %  gr_moyenne )
-                    H.append("""&nbsp; (<a href="evaluation_listenotes?tf-submitted=1&evaluation_id=%s&group_ids%%3Alist=%s">%s</a> notes"""
+                    H.append("""&nbsp; (<a href="evaluation_listenotes?tf-submitted=1&amp;evaluation_id=%s&amp;group_ids%%3Alist=%s">%s</a> notes"""
                              % (eval['evaluation_id'], gr_moyenne['group_id'], gr_moyenne['gr_nb_notes']))
                     if gr_moyenne['gr_nb_att'] > 0:
                         H.append(""", <span class="redboldtext">%s en attente</span>""" % gr_moyenne['gr_nb_att'])
@@ -330,13 +330,13 @@ def moduleimpl_status(context, moduleimpl_id=None, partition_id=None, REQUEST=No
                     if gr_moyenne['group_id'] in etat['gr_incomplets']:
                         H.append("""[<font color="red">""")
                         if caneditnotes:
-                            H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&group_ids:list=%s">incomplet</a></font>]""" % (eval['evaluation_id'], gr_moyenne['group_id']))
+                            H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&amp;group_ids:list=%s">incomplet</a></font>]""" % (eval['evaluation_id'], gr_moyenne['group_id']))
                         else:
                             H.append("""incomplet</font>]""")
                 else:
                     H.append("""<span class="redboldtext">&nbsp; """)
                     if caneditnotes:
-                        H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&group_ids:list=%s">""" % (eval['evaluation_id'], gr_moyenne['group_id']))
+                        H.append("""<a class="redlink" href="notes_eval_selectetuds?evaluation_id=%s&amp;group_ids:list=%s">""" % (eval['evaluation_id'], gr_moyenne['group_id']))
                     H.append('pas de notes')
                     if caneditnotes:
                         H.append("""</a>""")

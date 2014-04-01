@@ -169,7 +169,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'helpmsg' : 'Tableau de bord du semestre'
           },
         { 'title' : 'Modifier le semestre',
-          'url' : 'formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s' % sem,
+          'url' : 'formsemestre_editwithmodules?formation_id=%(formation_id)s&amp;formsemestre_id=%(formsemestre_id)s' % sem,
           'enabled' : (authuser.has_permission(ScoImplement, context) or (sem['responsable_id'] == str(REQUEST.AUTHENTICATED_USER) and sem['resp_can_edit'])) and (sem['etat'] == '1'),
           'helpmsg' : 'Modifie le contenu du semestre (modules)'
           },
@@ -256,7 +256,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
 
         { 'title' : 'Exporter table des étudiants',
-          'url' : 'groups_view?format=allxls&group_ids='+ sco_groups.get_default_group(context, formsemestre_id),
+          'url' : 'groups_view?format=allxls&amp;group_ids='+ sco_groups.get_default_group(context, formsemestre_id),
           },
         { 'title' : 'Vérifier inscriptions multiples',
           'url' : 'formsemestre_inscrits_ailleurs?formsemestre_id=' + formsemestre_id,
@@ -327,7 +327,7 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           'url' : 'feuille_preparation_jury?formsemestre_id=' + formsemestre_id,
           },
         { 'title' : 'Saisie des décisions du jury',
-          'url' : 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=' + formsemestre_id,
+          'url' : 'formsemestre_recapcomplet?modejury=1&amp;hidemodules=1&amp;formsemestre_id=' + formsemestre_id,
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           },
         { 'title' : 'Editer les PV et archiver les résultats',
@@ -547,7 +547,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
         caption = title,
         html_caption = title,
         html_class='gt_table table_leftalign formsemestre_description',
-        base_url = '%s?formsemestre_id=%s&with_evals=%s' % (REQUEST.URL0, formsemestre_id, with_evals),
+        base_url = '%s?formsemestre_id=%s&amp;with_evals=%s' % (REQUEST.URL0, formsemestre_id, with_evals),
         page_title = title,
         html_title = context.html_sem_header(REQUEST, 'Description du semestre', sem, with_page_header=False), 
         pdf_title = title,
@@ -692,7 +692,7 @@ def formsemestre_status(context, formsemestre_id=None, REQUEST=None):
             expr = sco_compute_moy.get_ue_expression(formsemestre_id, M['ue']['ue_id'], cnx, html_quote=True)
 
             if can_edit:
-                H.append(' <a href="edit_ue_expr?formsemestre_id=%s&ue_id=%s">' % (formsemestre_id, M['ue']['ue_id']))
+                H.append(' <a href="edit_ue_expr?formsemestre_id=%s&amp;ue_id=%s">' % (formsemestre_id, M['ue']['ue_id']))
             H.append(icontag('formula', title="Mode calcul moyenne d'UE", style="vertical-align:middle"))
             if can_edit:
                 H.append('</a>')

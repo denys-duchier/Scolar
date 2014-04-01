@@ -214,7 +214,7 @@ def _make_table_notes(context, REQUEST, html_form, evals,
                        '_code_td_attrs' : 'style="padding-left: 1em; padding-right: 2em;"',
                        'etudid' : etudid,
                        'nom' : strupper(etud['nom']),
-                       '_nomprenom_target' : 'formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s' % (M['formsemestre_id'], etudid),
+                       '_nomprenom_target' : 'formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s' % (M['formsemestre_id'], etudid),
                        'prenom' : strcapitalize(strlower(etud['prenom'])),
                        'nomprenom' : etud['nomprenom'],
                        'group' : grc,
@@ -271,11 +271,11 @@ def _make_table_notes(context, REQUEST, html_form, evals,
             columns_ids.append( 'comment' ) 
     
     # titres divers:
-    gl = ''.join([ '&group_ids%3Alist=' + g for g in group_ids ])
+    gl = ''.join([ '&amp;group_ids%3Alist=' + g for g in group_ids ])
     if note_sur_20:
-        gl = '&note_sur_20%3Alist=yes' + gl
+        gl = '&amp;note_sur_20%3Alist=yes' + gl
     if anonymous_listing:
-        gl = '&anonymous_listing%3Alist=yes' + gl
+        gl = '&amp;anonymous_listing%3Alist=yes' + gl
 
     if len(evals) == 1:
         evalname = '%s-%s' % (Mod['code'],DateDMYtoISO(E['jour']))
@@ -579,7 +579,7 @@ def evaluation_check_absences_html(context, evaluation_id, with_header=True, sho
             etud = context.getEtudInfo(etudid=etudid,filled=True)[0]
             H.append('<li><a class="discretelink" href="ficheEtud?etudid=%(etudid)s">%(nomprenom)s</a>' % etud )
             if linkabs:
-                H.append('<a class="stdlink" href="Absences/doSignaleAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s&moduleimpl_id=%s">signaler cette absence</a>'
+                H.append('<a class="stdlink" href="Absences/doSignaleAbsence?etudid=%s&amp;datedebut=%s&amp;datefin=%s&amp;demijournee=%s&amp;moduleimpl_id=%s">signaler cette absence</a>'
                          % (etud['etudid'],urllib.quote(E['jour']), urllib.quote(E['jour']), demijournee, E['moduleimpl_id']) )
             H.append('</li>')
         H.append('</ul>')

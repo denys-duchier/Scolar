@@ -596,10 +596,10 @@ def editPartitionForm(context, formsemestre_id=None, REQUEST=None):
         if p['partition_name'] is not None:
             H.append('<tr><td class="epnav"><a class="stdlink" href="partition_delete?partition_id=%s">%s</a>&nbsp;</td><td class="epnav">' % (p['partition_id'], suppricon))
             if i != 0:
-                H.append('<a href="partition_move?partition_id=%s&after=0">%s</a>' % (p['partition_id'], arrow_up))
+                H.append('<a href="partition_move?partition_id=%s&amp;after=0">%s</a>' % (p['partition_id'], arrow_up))
             H.append('</td><td class="epnav">')
             if i < len(partitions) - 2:
-                H.append('<a href="partition_move?partition_id=%s&after=1">%s</a>' % (p['partition_id'], arrow_down))
+                H.append('<a href="partition_move?partition_id=%s&amp;after=1">%s</a>' % (p['partition_id'], arrow_down))
             i += 1
             H.append('</td>')
             pname = p['partition_name'] or ''
@@ -1024,7 +1024,7 @@ def form_group_choice(context, formsemestre_id,
 
 def make_query_groups(group_ids):
     if group_ids:
-        return '&'.join( [ 'group_ids%3Alist=' + group_id for group_id in group_ids ] )
+        return '&amp;'.join( [ 'group_ids%3Alist=' + group_id for group_id in group_ids ] )
     else:
         return ''
 

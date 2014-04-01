@@ -173,7 +173,7 @@ def formsemestre_report(context, formsemestre_id, etuds, REQUEST=None,
     tab.html_caption = "Répartition des résultats par %s." % category_name
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if only_primo:
-        tab.base_url += '&only_primo=on'
+        tab.base_url += '&amp;only_primo=on'
     return tab
 
 
@@ -525,20 +525,20 @@ def formsemestre_suivi_cohorte(context, formsemestre_id, format='html', percent=
     tab, expl, bacs, bacspecialites, sexes, statuts = table_suivi_cohorte(
         context, formsemestre_id, percent=percent,
         bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut, only_primo=only_primo)
-    tab.base_url = '%s?formsemestre_id=%s&percent=%s&bac=%s&bacspecialite=%s&sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
+    tab.base_url = '%s?formsemestre_id=%s&amp;percent=%s&amp;bac=%s&amp;bacspecialite=%s&amp;sexe=%s' % (REQUEST.URL0, formsemestre_id, percent, bac, bacspecialite, sexe)
     if only_primo:
-        tab.base_url += '&only_primo=on'
+        tab.base_url += '&amp;only_primo=on'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
 
     base_url = REQUEST.URL0
-    burl = '%s?formsemestre_id=%s&bac=%s&bacspecialite=%s&sexe=%s&statut=%s' % (
+    burl = '%s?formsemestre_id=%s&amp;bac=%s&amp;bacspecialite=%s&amp;sexe=%s&amp;statut=%s' % (
         base_url, formsemestre_id, bac, bacspecialite, sexe, statut)
     if percent:
-        pplink = '<p><a href="%s&percent=0">Afficher les résultats bruts</a></p>' % burl
+        pplink = '<p><a href="%s&amp;percent=0">Afficher les résultats bruts</a></p>' % burl
     else:
-        pplink = '<p><a href="%s&percent=1">Afficher les résultats en pourcentages</a></p>' % burl
+        pplink = '<p><a href="%s&amp;percent=1">Afficher les résultats en pourcentages</a></p>' % burl
     help = pplink + """    
     <p class="help">Nombre d'étudiants dans chaque semestre. Les dates indiquées sont les dates approximatives de <b>début</b> des semestres (les semestres commençant à des dates proches sont groupés). Le nombre de diplômés est celui à la <b>fin</b> du semestre correspondant. Lorsqu'il y a moins de 10 étudiants dans une case, vous pouvez afficher leurs noms en passant le curseur sur le chiffre.</p>
 <p class="help">Les menus permettent de n'étudier que certaines catégories d'étudiants (titulaires d'un type de bac, garçons ou filles). La case "restreindre aux primo-entrants" permet de ne considérer que les étudiants qui n'ont jamais été inscrits dans ScoDoc avant le semestre considéré.</p>
@@ -849,9 +849,9 @@ def formsemestre_suivi_parcours(context, formsemestre_id, format='html',
     tab = table_suivi_parcours(context, formsemestre_id, only_primo=only_primo, grouped_parcours=not no_grouping)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if only_primo:
-        tab.base_url += '&only_primo=1'
+        tab.base_url += '&amp;only_primo=1'
     if no_grouping:
-        tab.base_url += '&no_grouping=1'
+        tab.base_url += '&amp;no_grouping=1'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t
@@ -1058,7 +1058,7 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_pr
         REQUEST.RESPONSE.setHeader('content-type', 'image/png' )
         return doc
     elif format == 'html':
-        url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&format="%sem)
+        url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&amp;format="%sem)
  
         doc, bacs, bacspecialites, sexes, statuts = graph_parcours(context, formsemestre_id, only_primo=only_primo, 
                                                                    bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut)

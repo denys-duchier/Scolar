@@ -126,7 +126,7 @@ def do_evaluation_selectetuds(context, REQUEST ):
         if note_method in ('form', 'xls'):
             # return notes_evaluation_formnotes( REQUEST )
             gs = [('group_ids%3Alist=' + urllib.quote_plus(x)) for x in group_ids ]
-            query = 'evaluation_id=%s&note_method=%s&' % (evaluation_id,note_method) + '&'.join(gs)
+            query = 'evaluation_id=%s&amp;note_method=%s&amp;' % (evaluation_id,note_method) + '&amp;'.join(gs)
             REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/notes_evaluation_formnotes?' + query )
         else:
             raise ValueError, "invalid note_method (%s)" % tf[2]['note_method'] 

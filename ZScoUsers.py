@@ -453,7 +453,7 @@ class ZScoUsers(ObjectManager,
              <li><a class="stdlink" href="form_change_password?user_name=%(user_name)s">changer le mot de passe</a></li>""" % info[0])
             if authuser.has_permission(ScoUsersAdmin,self):
                 H.append("""
-             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&edit=1">modifier/déactiver ce compte</a></li>
+             <li><a  class="stdlink" href="create_user_form?user_name=%(user_name)s&amp;edit=1">modifier/déactiver ce compte</a></li>
              <li><a  class="stdlink" href="delete_user_form?user_name=%(user_name)s">supprimer cet utilisateur</a> <em>(à n'utiliser qu'en cas d'erreur !)</em></li>
              """ % info[0])
                 

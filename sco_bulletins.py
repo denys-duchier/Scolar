@@ -228,7 +228,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         if ue_status['is_capitalized']:
             sem_origin = context.get_formsemestre(ue_status['formsemestre_id'])
             u['ue_descr_txt'] =  'Capitalisée le %s' % DateISOtoDMY(ue_status['event_date'])
-            u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
+            u['ue_descr_html'] = '<a href="formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s" title="%s" class="bull_link">%s</a>' % (sem_origin['formsemestre_id'], etudid, sem_origin['titreannee'], u['ue_descr_txt'])
             # log('cap details   %s' % ue_status['moy'])
             if ue_status['moy'] != 'NA' and ue_status['formsemestre_id']:
                 # detail des modules de l'UE capitalisee
@@ -340,7 +340,7 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                 mod['evaluations'].append(e)
                 if e['visibulletin'] == '1' or version == 'long':
                     e['name'] = e['description'] or 'le %s' % e['jour']
-                e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1' % e['evaluation_id']
+                e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&amp;format=html&amp;tf-submitted=1' % e['evaluation_id']
                 e['name_html'] = '<a class="bull_link" href="%s">%s</a>' % (e['target_html'], e['name'])
                 val = e['notes'].get(etudid, {'value':'NP'})['value'] # NA si etud demissionnaire
                 if val == 'NP':
@@ -366,7 +366,7 @@ def _ue_mod_bulletin(context, etudid, formsemestre_id, ue_id, modimpls, nt, vers
                         e = e.copy()                        
                         mod['evaluations_incompletes'].append(e)
                         e['name'] = (e['description'] or '') + ' (%s)' % e['jour']
-                        e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&format=html&tf-submitted=1' % e['evaluation_id']
+                        e['target_html'] = 'evaluation_listenotes?evaluation_id=%s&amp;format=html&amp;tf-submitted=1' % e['evaluation_id']
                         e['name_html'] = '<a class="bull_link" href="%s">%s</a>' % (e['target_html'], e['name'])
                         e['note_txt'] = e['note_html'] = ''
                         e['coef_txt'] = fmt_coef(e['coefficient'])
@@ -749,34 +749,34 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     
     menuBul = [
         { 'title' : 'Réglages bulletins',
-          'url' : 'formsemestre_edit_options?formsemestre_id=%s&target_url=%s' % (formsemestre_id, qurl),
+          'url' : 'formsemestre_edit_options?formsemestre_id=%s&amp;target_url=%s' % (formsemestre_id, qurl),
           'enabled' : (uid == sem['responsable_id']) or authuser.has_permission(ScoImplement, context),
           },
         { 'title' : 'Version papier (pdf, format "%s")' % sco_bulletins_generator.bulletin_get_class_name_displayed(context, formsemestre_id),
-          'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s' % (formsemestre_id,etudid,version),
+          'url' : url + '?formsemestre_id=%s&amp;etudid=%s&amp;format=pdf&amp;version=%s' % (formsemestre_id,etudid,version),
           },
         { 'title' : "Envoi par mail à l'étudiant",
-          'url' : url + '?formsemestre_id=%s&etudid=%s&format=pdfmail&version=%s' % (formsemestre_id,etudid,version),
+          'url' : url + '?formsemestre_id=%s&amp;etudid=%s&amp;format=pdfmail&amp;version=%s' % (formsemestre_id,etudid,version),
           'enabled' : etud['email'] and can_send_bulletin_by_mail(context, formsemestre_id, REQUEST) # possible slt si on a un mail...
           },
         { 'title' : 'Version XML',
-          'url' : url + '?formsemestre_id=%s&etudid=%s&format=xml&version=%s' % (formsemestre_id,etudid,version),
+          'url' : url + '?formsemestre_id=%s&amp;etudid=%s&amp;format=xml&amp;version=%s' % (formsemestre_id,etudid,version),
           },
         { 'title' : 'Ajouter une appréciation',
-          'url' : 'appreciation_add_form?etudid=%s&formsemestre_id=%s' % (etudid, formsemestre_id),
+          'url' : 'appreciation_add_form?etudid=%s&amp;formsemestre_id=%s' % (etudid, formsemestre_id),
           'enabled' : ((authuser == sem['responsable_id'])
                        or (authuser.has_permission(ScoEtudInscrit,context)))
           },
         { 'title' : "Enregistrer une validation d'UE antérieure",
-          'url' : 'formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s' % (etudid, formsemestre_id),
+          'url' : 'formsemestre_validate_previous_ue?etudid=%s&amp;formsemestre_id=%s' % (etudid, formsemestre_id),
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
           },
         { 'title' : 'Entrer décisions jury',
-          'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s'%(formsemestre_id,etudid),
+          'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s'%(formsemestre_id,etudid),
           'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
         },
         { 'title' : 'Editer PV jury',
-          'url' : 'formsemestre_pvjury_pdf?formsemestre_id=%s&etudid=%s' % (formsemestre_id,etudid),
+          'url' : 'formsemestre_pvjury_pdf?formsemestre_id=%s&amp;etudid=%s' % (formsemestre_id,etudid),
           'enabled' : True
           }
         ]
@@ -784,7 +784,7 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
     H.append("""<td class="bulletin_menubar"><div class="bulletin_menubar">""")
     H.append( sco_formsemestre_status.makeMenu( 'Autres opérations', menuBul, alone=True) )
     H.append("""</div></td>""")
-    H.append('<td> <a href="%s">%s</a></td>'%(url + '?formsemestre_id=%s&etudid=%s&format=pdf&version=%s'% (formsemestre_id,etudid,version),ICON_PDF))
+    H.append('<td> <a href="%s">%s</a></td>'%(url + '?formsemestre_id=%s&amp;etudid=%s&amp;format=pdf&amp;version=%s'% (formsemestre_id,etudid,version),ICON_PDF))
     H.append("""</tr></table>""")
     #
     H.append("""</form></span></td><td class="bull_photo">

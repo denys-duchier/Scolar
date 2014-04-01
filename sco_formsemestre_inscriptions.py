@@ -105,7 +105,7 @@ def formsemestre_inscription_with_modules_form(context,etudid,REQUEST):
                 if i['formsemestre_id'] == sem['formsemestre_id']:
                     inscrit = True
             if not inscrit:
-                H.append('<li><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s">%s</a>' %
+                H.append('<li><a href="formsemestre_inscription_with_modules?etudid=%s&amp;formsemestre_id=%s">%s</a>' %
                          (etudid,sem['formsemestre_id'],sem['titremois']))
         H.append('</ul>')
     else:
@@ -153,9 +153,9 @@ def formsemestre_inscription_with_modules(
                  % (etud['nomprenom'], ', '.join(l)))
         H.append('<ul>')
         for s in others:
-            H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&etudid=%s">déinscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
+            H.append('<li><a href="formsemestre_desinscription?formsemestre_id=%s&amp;etudid=%s">déinscrire de %s</li>' % (s['formsemestre_id'],etudid,s['titreannee']))
         H.append('</ul>')
-        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&formsemestre_id=%s&multiple_ok=1&%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, sco_groups.make_query_groups(group_ids)))
+        H.append("""<p><a href="formsemestre_inscription_with_modules?etudid=%s&amp;formsemestre_id=%s&amp;multiple_ok=1&amp;%s">Continuer quand même l'inscription</a></p>""" % (etudid, formsemestre_id, sco_groups.make_query_groups(group_ids)))
         return '\n'.join(H) + F
     #
     if group_ids is not None:
@@ -240,7 +240,7 @@ def formsemestre_inscription_option(context, etudid, formsemestre_id, REQUEST=No
         ue_status = nt.get_etud_ue_status(etudid, ue_id)
         if ue_status['is_capitalized']:
             sem_origin = context.do_formsemestre_list(args={ 'formsemestre_id' : ue_status['formsemestre_id'] } )[0]
-            ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="%s">(capitalisée le %s)' % (sem_origin['formsemestre_id'], 
+            ue_descr += ' <a class="discretelink" href="formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s" title="%s">(capitalisée le %s)' % (sem_origin['formsemestre_id'], 
 etudid, sem_origin['titreannee'], DateISOtoDMY(ue_status['event_date']))
         descr.append( 
             ('sec_%s' % ue_id, 

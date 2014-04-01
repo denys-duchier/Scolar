@@ -219,11 +219,11 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 Mod['nb_moduleimpls'] = context.module_count_moduleimpls(Mod['module_id'])
                 H.append('<li class="notes_module_list">')
                 if im != 0 and editable:
-                    H.append('<a href="module_move?module_id=%s&after=0" class="aud">%s</a>' % (Mod['module_id'], arrow_up))
+                    H.append('<a href="module_move?module_id=%s&amp;after=0" class="aud">%s</a>' % (Mod['module_id'], arrow_up))
                 else:
                     H.append(arrow_none)
                 if im < len(Modlist) - 1 and editable:
-                    H.append('<a href="module_move?module_id=%s&after=1" class="aud">%s</a>' % (Mod['module_id'], arrow_down))
+                    H.append('<a href="module_move?module_id=%s&amp;after=1" class="aud">%s</a>' % (Mod['module_id'], arrow_down))
                 else:
                     H.append(arrow_none)
                 im += 1
@@ -272,7 +272,10 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
     H.append("""
 <li><a class="stdlink" href="formation_table_recap?formation_id=%(formation_id)s">Table récapitulative de la formation</a></li>
     
-<li><a class="stdlink" href="formation_export?formation_id=%(formation_id)s&format=xml">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
+<li><a class="stdlink" href="formation_export?formation_id=%(formation_id)s&amp;format=xml">Export XML de la formation</a> (permet de la sauvegarder pour l'échanger avec un autre site)</li>
+
+<li><a class="stdlink" href="formation_export?formation_id=%(formation_id)s&amp;format=json">Export JSON de la formation</a></li>
+
 <li><a class="stdlink" href="module_list?formation_id=%(formation_id)s">Liste détaillée des modules de la formation</a> (debug) </li>
 </ul>
 </p>""" % F )
@@ -285,13 +288,13 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
             if sem['etat'] != '1':
                 H.append(' [verrouillé]')
             else:
-                H.append(' <a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier</a>' % sem )
+                H.append(' <a class="stdlink" href="formsemestre_editwithmodules?formation_id=%(formation_id)s&amp;formsemestre_id=%(formsemestre_id)s">Modifier</a>' % sem )
             H.append('</li>')
         H.append('</ul>')
     
     if authuser.has_permission(ScoImplement,context):
         H.append("""<ul>
-        <li><a class="stdlink" href="formsemestre_createwithmodules?formation_id=%(formation_id)s&semestre_id=1">Mettre en place un nouveau semestre de formation %(acronyme)s</a>
+        <li><a class="stdlink" href="formsemestre_createwithmodules?formation_id=%(formation_id)s&amp;semestre_id=1">Mettre en place un nouveau semestre de formation %(acronyme)s</a>
  </li>
 
 </ul>""" % F)

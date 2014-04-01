@@ -67,12 +67,12 @@ def etud_list_archives_html(context, REQUEST, etudid):
         H.append("""<li><span class ="etudarchive_descr" title="%s">%s</span>"""
                  % (a['date'].strftime('%d/%m/%Y %H:%M'), a['description']))
         for filename in a['content']:
-            H.append("""<a class="stdlink etudarchive_link" href="etud_get_archived_file?etudid=%s&archive_name=%s&filename=%s">%s</a>"""
+            H.append("""<a class="stdlink etudarchive_link" href="etud_get_archived_file?etudid=%s&amp;archive_name=%s&amp;filename=%s">%s</a>"""
                      % (etudid, archive_name, filename, filename))
         if not a['content']:
             H.append('<em>aucun fichier !</em>')
         if can_edit:
-            H.append('<span class="deletudarchive"><a class="smallbutton" href="etud_delete_archive?etudid=%s&archive_name=%s">%s</a></span>'
+            H.append('<span class="deletudarchive"><a class="smallbutton" href="etud_delete_archive?etudid=%s&amp;archive_name=%s">%s</a></span>'
                      % (etudid, archive_name, delete_icon))
         else:
             H.append('<span class="deletudarchive">' + delete_disabled_icon + '</span>')
@@ -156,7 +156,7 @@ def etud_delete_archive(context, REQUEST, etudid, archive_name, dialog_confirmed
             parameters={'etudid' : etudid, 'archive_name' : archive_name })
     
     EtudsArchive.delete_archive(archive_id)
-    return REQUEST.RESPONSE.redirect(dest_url+'&head_message=Archive%20supprimée')
+    return REQUEST.RESPONSE.redirect(dest_url+'&amp;head_message=Archive%20supprimée')
 
 def etud_get_archived_file(context, REQUEST, etudid, archive_name, filename):
     """Send file to client.

@@ -90,13 +90,13 @@ def formsemestre_synchro_etuds(
         raise ScoValueError('opération impossible: semestre verrouille')
     if not sem['etape_apo'] and not sem['etape_apo2'] and not sem['etape_apo3'] and not sem['etape_apo4']:
         raise ScoValueError("""opération impossible: ce semestre n'a pas de code étape
-        (voir "<a href="formsemestre_editwithmodules?formation_id=%(formation_id)s&formsemestre_id=%(formsemestre_id)s">Modifier ce semestre</a>")
+        (voir "<a href="formsemestre_editwithmodules?formation_id=%(formation_id)s&amp;formsemestre_id=%(formsemestre_id)s">Modifier ce semestre</a>")
         """ % sem )
     header = context.sco_header(REQUEST, page_title='Synchronisation étudiants')
     footer = context.sco_footer(REQUEST)
     base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if anneeapogee:
-        base_url += '&anneeapogee=%s' % anneeapogee
+        base_url += '&amp;anneeapogee=%s' % anneeapogee
     
     if anneeapogee == None: # année d'inscription par défaut
         anneeapogee = str(annee_scolaire_debut(sem['annee_debut'], sem['mois_debut_ord']))
@@ -243,7 +243,7 @@ def build_page(context, sem, etuds_by_cat, anneeapogee,
         <form method="post" action="formsemestre_synchro_etuds">
         """ % sem,
         """
-        Année Apogée: <select id="anneeapogee" name="anneeapogee" onchange="document.location='formsemestre_synchro_etuds?formsemestre_id=%s&anneeapogee='+document.getElementById('anneeapogee').value">""" % (sem['formsemestre_id']),
+        Année Apogée: <select id="anneeapogee" name="anneeapogee" onchange="document.location='formsemestre_synchro_etuds?formsemestre_id=%s&amp;anneeapogee='+document.getElementById('anneeapogee').value">""" % (sem['formsemestre_id']),
         '\n'.join(options),
         """
         </select>

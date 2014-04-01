@@ -124,13 +124,13 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         H.append('<div class="bull_appreciations">')
         for app in self.infos['appreciations_list']:
             if can_edit_app:
-                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
+                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&amp;suppress=1">supprimer</a>'%(app['id'],app['id'])
             else:
                 mlink = ''
             H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
                      % (app['date'], app['comment'], mlink ) )
         if can_edit_app:
-            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
         H.append('</div>')
         # Appreciations sur PDF:
         if self.infos.get('appreciations_list', False):

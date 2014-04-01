@@ -61,22 +61,22 @@ def _menuScolarite(context, authuser, sem, etudid):
 
     if ins['etat'] != 'D':
         dem_title = 'Démission'
-        dem_url = 'formDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+        dem_url = 'formDem?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s' % args
     else:
         dem_title = 'Annuler la démission'
-        dem_url = 'doCancelDem?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+        dem_url = 'doCancelDem?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s' % args
 
     # Note: seul un etudiant inscrit (I) peut devenir défaillant.
     if ins['etat'] != 'DEF':
         def_title = 'Déclarer défaillance'
-        def_url = 'formDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+        def_url = 'formDef?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s' % args
     elif ins['etat'] == 'DEF':
         def_title = 'Annuler la défaillance'
-        def_url = 'doCancelDef?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s' % args
+        def_url = 'doCancelDef?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s' % args
     def_enabled = (ins['etat'] != 'D') and authuser.has_permission(ScoEtudInscrit,context) and not locked
     items = [
 #        { 'title' : 'Changer de groupe',
-#          'url' : 'formChangeGroup?etudid=%s&formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
+#          'url' : 'formChangeGroup?etudid=%s&amp;formsemestre_id=%s' % (etudid,ins['formsemestre_id']),
 #          'enabled' : authuser.has_permission(ScoEtudChangeGroups,context) and not locked,
 #        },
         { 'title' : dem_title,
@@ -84,7 +84,7 @@ def _menuScolarite(context, authuser, sem, etudid):
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
         { 'title' : "Validation du semestre (jury)",
-          'url' : "Notes/formsemestre_validation_etud_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s" % args,
+          'url' : "Notes/formsemestre_validation_etud_form?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
         { 'title' : def_title,
@@ -92,11 +92,11 @@ def _menuScolarite(context, authuser, sem, etudid):
           'enabled' : def_enabled
         },
         { 'title' : "Inscrire à un module optionnel (ou au sport)",
-          'url' : "Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
+          'url' : "Notes/formsemestre_inscription_option?formsemestre_id=%(formsemestre_id)s&amp;etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
         { 'title' : "Désinscrire (en cas d'erreur)",
-          'url' : "Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s" % args,
+          'url' : "Notes/formsemestre_desinscription?formsemestre_id=%(formsemestre_id)s&amp;etudid=%(etudid)s" % args,
           'enabled' : authuser.has_permission(ScoEtudInscrit,context) and not locked
         },
 
@@ -199,7 +199,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         if not context.canSuppressAnnotation(a['id'], REQUEST):
             a['dellink'] = ''
         else:
-            a['dellink'] = '<td bgcolor="%s" class="annodel"><a href="doSuppressAnnotation?etudid=%s&annotation_id=%s">%s</a></td>' % (a['bgcolor'], etudid, a['id'], icontag('delete_img', border="0", alt="suppress", title="Supprimer cette annotation"))
+            a['dellink'] = '<td bgcolor="%s" class="annodel"><a href="doSuppressAnnotation?etudid=%s&amp;annotation_id=%s">%s</a></td>' % (a['bgcolor'], etudid, a['id'], icontag('delete_img', border="0", alt="suppress", title="Supprimer cette annotation"))
         alist.append('<tr><td bgcolor="%(bgcolor)s">Le %(date)s par <b>%(author)s</b> (%(zope_authenticated_user)s) :<br/>%(comment)s</td>%(dellink)s</tr>' % a )
     info['liste_annotations'] = '\n'.join(alist)
     # fiche admission
@@ -249,7 +249,7 @@ def ficheEtud(context, etudid=None, REQUEST=None):
         info['tit_anno'] = ''
     # Inscriptions
     if info['sems']:
-        rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&etudid=%(etudid)s&formsemestre_id=%(last_formsemestre_id)s&desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
+        rcl = """(<a href="%(ScoURL)s/Notes/formsemestre_validation_etud_form?check=1&amp;etudid=%(etudid)s&amp;formsemestre_id=%(last_formsemestre_id)s&amp;desturl=ficheEtud?etudid=%(etudid)s">récapitulatif parcours</a>)""" % info
     else:
         rcl = ''
     info['inscriptions_mkup'] = """<div class="ficheinscriptions" id="ficheinscriptions">

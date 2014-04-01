@@ -812,7 +812,7 @@ class ZAbsences(ObjectManager,
         if not groups_infos.members:
             return self.sco_header(page_title='Saisie des absences',REQUEST=REQUEST) + '<h3>Aucun étudiant !</h3>' + self.sco_footer(REQUEST)
         
-        base_url='SignaleAbsenceGrHebdo?datelundi=%s&%s&destination=%s' % (datelundi, groups_infos.groups_query_args, urllib.quote(destination))
+        base_url='SignaleAbsenceGrHebdo?datelundi=%s&amp;%s&amp;destination=%s' % (datelundi, groups_infos.groups_query_args, urllib.quote(destination))
         
         formsemestre_id = groups_infos.formsemestre_id
         etuds = [ self.getEtudInfo(etudid=m['etudid'],filled=True)[0] for m in groups_infos.members ]
@@ -883,7 +883,7 @@ class ZAbsences(ObjectManager,
             sel = 'selected' # aucun module specifie
         
         H.append("""
- Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+ Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&amp;moduleimpl_id='+document.getElementById('moduleimpl_id').value">
     <option value="" %(sel)s>non spécifié</option>
     %(menu_module)s
     </select>
@@ -914,8 +914,8 @@ class ZAbsences(ObjectManager,
                 
         if not moduleimpl_id:
             moduleimp_id = None
-        base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&datefin=%s&%s&destination=%s' % (datedebut, datefin, groups_infos.groups_query_args, urllib.quote(destination))
-        base_url = base_url_noweeks + '&nbweeks=%s'%nbweeks # sans le moduleimpl_id
+        base_url_noweeks='SignaleAbsenceGrSemestre?datedebut=%s&amp;datefin=%s&amp;%s&amp;destination=%s' % (datedebut, datefin, groups_infos.groups_query_args, urllib.quote(destination))
+        base_url = base_url_noweeks + '&amp;nbweeks=%s'%nbweeks # sans le moduleimpl_id
 
         if etuds: 
             nt = self.Notes._getNotesCache().get_NotesTable(self.Notes, formsemestre_id)
@@ -947,9 +947,9 @@ class ZAbsences(ObjectManager,
                 dates = dates[-nbweeks:]
                 msg = 'Montrer toutes les semaines'
                 nwl = 0
-        url_link_semaines = base_url_noweeks + '&nbweeks=%s'%nwl
+        url_link_semaines = base_url_noweeks + '&amp;nbweeks=%s'%nwl
         if moduleimpl_id:
-            url_link_semaines += '&moduleimpl_id=' + moduleimpl_id
+            url_link_semaines += '&amp;moduleimpl_id=' + moduleimpl_id
         #
         colnames = [ str(x) for x in dates ]
         dates = [ x.ISO() for x in dates ]
@@ -1012,7 +1012,7 @@ class ZAbsences(ObjectManager,
             else:
                 sel = 'selected' # aucun module specifie
             H.append("""<p>
-    Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&moduleimpl_id='+document.getElementById('moduleimpl_id').value">
+    Module concerné par ces absences (optionnel): <select id="moduleimpl_id" name="moduleimpl_id" onchange="document.location='%(url)s&amp;moduleimpl_id='+document.getElementById('moduleimpl_id').value">
     <option value="" %(sel)s>non spécifié</option>
     %(menu_module)s
     </select>
@@ -1210,7 +1210,7 @@ class ZAbsences(ObjectManager,
         if format == 'html':
             for a in absnonjust:
                 a['justlink'] = '<em>justifier</em>'
-                a['_justlink_target'] = 'doJustifAbsence?etudid=%s&datedebut=%s&datefin=%s&demijournee=%s'%(etudid, a['datedmy'], a['datedmy'], a['matin_o'])
+                a['_justlink_target'] = 'doJustifAbsence?etudid=%s&amp;datedebut=%s&amp;datefin=%s&amp;demijournee=%s'%(etudid, a['datedmy'], a['datedmy'], a['matin_o'])
         #
         titles={'datedmy' : 'Date', 'matin' : '', 'exams' : 'Examens ce jour', 'justlink' : '', 'description' : 'Modules', 'motif': 'Motif' }
         columns_ids=['datedmy', 'matin']
@@ -1294,7 +1294,7 @@ class ZAbsences(ObjectManager,
                                                                 with_page_header=False) 
                        +  '<p>Période du %s au %s (nombre de <b>demi-journées</b>)<br/>' % (debut, fin),
                        
-                       base_url = '%s&formsemestre_id=%s&debut=%s&fin=%s' % (groups_infos.base_url, formsemestre_id, debut, fin),
+                       base_url = '%s&amp;formsemestre_id=%s&amp;debut=%s&amp;fin=%s' % (groups_infos.base_url, formsemestre_id, debut, fin),
                        filename='etat_abs_'+make_filename('%s de %s'%(groups_infos.groups_filename, sem['titreannee'])),
                        caption=title,
                        html_next_section="""</table>
@@ -1461,7 +1461,7 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
                     b['etat_str'] = 'à justifier'
                 b['_etat_str_target'] = 'ProcessBilletAbsenceForm?billet_id=%s' % b['billet_id']
                 if etud:
-                    b['_etat_str_target'] += '&etudid=%s' % etud['etudid']
+                    b['_etat_str_target'] += '&amp;etudid=%s' % etud['etudid']
                 b['_billet_id_target'] = b['_etat_str_target']
             else:
                 b['etat_str'] = 'ok'

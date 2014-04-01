@@ -366,11 +366,11 @@ class GenTable:
                 H.append(caption)
             if self.base_url:
                 if self.xls_link:
-                    H.append(' <a href="%s&format=xls">%s</a>'%(self.base_url,ICON_XLS))
+                    H.append(' <a href="%s&amp;format=xls">%s</a>'%(self.base_url,ICON_XLS))
                 if self.xls_link and self.pdf_link:
                     H.append('&nbsp;&nbsp;')
                 if self.pdf_link:
-                    H.append(' <a href="%s&format=pdf">%s</a>'%(self.base_url,ICON_PDF))
+                    H.append(' <a href="%s&amp;format=pdf">%s</a>'%(self.base_url,ICON_PDF))
             H.append('</p>')
             
         H.append(self.html_next_section)

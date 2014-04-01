@@ -431,7 +431,7 @@ class ZNotes(ObjectManager,
         sco_news.add(self, REQUEST, typ=NEWS_FORM, object=new_id,
                      text='Nouvelle version de la formation %(acronyme)s'%F)
         if redirect:
-            return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&msg=Nouvelle version !')
+            return REQUEST.RESPONSE.redirect("ue_list?formation_id=" + new_id + '&amp;msg=Nouvelle version !')
         else:
             return new_id, modules_old2new, ues_old2new
         
@@ -1137,7 +1137,7 @@ class ZNotes(ObjectManager,
               '<ul><li><b>%s</b> (responsable)</li>' % login2display.get(M['responsable_id'],M['responsable_id'])
               ]
         for ens in M['ens']:
-            H.append('<li>%s (<a class="stdlink" href="edit_enseignants_form_delete?moduleimpl_id=%s&ens_id=%s">supprimer</a>)</li>' %
+            H.append('<li>%s (<a class="stdlink" href="edit_enseignants_form_delete?moduleimpl_id=%s&amp;ens_id=%s">supprimer</a>)</li>' %
                      (login2display.get(ens['ens_id'],ens['ens_id']),
                       moduleimpl_id, ens['ens_id']))
         H.append('</ul>')
@@ -1145,7 +1145,7 @@ class ZNotes(ObjectManager,
         saisir et modifier toutes les notes des évaluations de ce module.
         </p>
         <p class="help">Pour changer le responsable du module, passez par la
-        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de département)
+        page "<a class="stdlink" href="formsemestre_editwithmodules?formation_id=%s&amp;formsemestre_id=%s">Modification du semestre</a>", accessible uniquement au responsable de la formation (chef de département)
         </p>
         """ % (sem['formation_id'],M['formsemestre_id'])
         
@@ -1244,7 +1244,7 @@ class ZNotes(ObjectManager,
                                        'responsable_id' : responsable_id },
                                      formsemestre_id=sem['formsemestre_id']
                                      )
-            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=responsable%20modifié')
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&amp;head_message=responsable%20modifié')
 
     _expr_help = """<p class="help">Expérimental: formule de calcul de la moyenne %(target)s</p>
         <p class="help">Dans la formule, les variables suivantes sont définies:</p>
@@ -1299,7 +1299,7 @@ class ZNotes(ObjectManager,
                                        'computation_expr' : tf[2]['computation_expr'] },
                                      formsemestre_id=sem['formsemestre_id'])
             self._inval_cache(formsemestre_id=sem['formsemestre_id']) #> modif regle calcul
-            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&head_message=règle%20de%20calcul%20modifiée')
+            return REQUEST.RESPONSE.redirect('moduleimpl_status?moduleimpl_id='+moduleimpl_id+'&amp;head_message=règle%20de%20calcul%20modifiée')
     
     
     security.declareProtected(ScoView, 'view_module_abs')
@@ -1401,7 +1401,7 @@ class ZNotes(ObjectManager,
                 sco_compute_moy.formsemestre_ue_computation_expr_create(cnx, tf[2])
             
             self._inval_cache(formsemestre_id=formsemestre_id) #> modif regle calcul
-            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id+'&head_message=règle%20de%20calcul%20modifiée')
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id='+formsemestre_id+'&amp;head_message=règle%20de%20calcul%20modifiée')
 
     security.declareProtected(ScoView, 'formsemestre_enseignants_list')
     def formsemestre_enseignants_list(self, REQUEST, formsemestre_id, format='html'):
@@ -2067,7 +2067,7 @@ class ZNotes(ObjectManager,
             submitlabel = 'Modifier les données'
             if readonly:
                 action = 'E'
-                link=' &nbsp;<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
+                link=' &amp;nbsp;<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
             else:
                 action = 'Modification d\'une é'
                 link =''
@@ -2433,7 +2433,7 @@ class ZNotes(ObjectManager,
         if not can_edit_app:
             raise AccessDenied("vous n'avez pas le droit d'ajouter une appreciation")
         #
-        bull_url = 'formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s' % (formsemestre_id,etudid)
+        bull_url = 'formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s' % (formsemestre_id,etudid)
         if suppress:
             scolars.appreciations_delete( cnx, id )
             logdb(REQUEST, cnx, method='appreciation_suppress',
@@ -2634,11 +2634,11 @@ class ZNotes(ObjectManager,
                 """ % (sem['titre_num'],sem['date_debut'],sem['date_fin'], etud['nomprenom'],existing),
                 OK = "Supprimer", 
                 dest_url="", REQUEST=REQUEST,
-                cancel_url="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s" % (formsemestre_id, etudid),
+                cancel_url="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s" % (formsemestre_id, etudid),
                 parameters={'etudid':etudid, 'formsemestre_id' : formsemestre_id})
         
         sco_formsemestre_validation.formsemestre_validation_suppress_etud(self, formsemestre_id, etudid)
-        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&head_message=Décision%%20supprimée' % (formsemestre_id,etudid))
+        return REQUEST.RESPONSE.redirect( self.ScoURL()+'/Notes/formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s&amp;head_message=Décision%%20supprimée' % (formsemestre_id,etudid))
     
     # ------------- PV de JURY et archives
     security.declareProtected(ScoView, 'formsemestre_pvjury')

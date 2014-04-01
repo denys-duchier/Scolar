@@ -243,13 +243,13 @@ class BulletinGeneratorLegacy(sco_bulletins_generator.BulletinGenerator):
             H.append('<p><b>Appréciations</b></p>')
         for app in I['appreciations_list']:
             if can_edit_app:
-                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&suppress=1">supprimer</a>'%(app['id'],app['id'])
+                mlink = '<a class="stdlink" href="appreciation_add_form?id=%s">modifier</a> <a class="stdlink" href="appreciation_add_form?id=%s&amp;suppress=1">supprimer</a>'%(app['id'],app['id'])
             else:
                 mlink = ''
             H.append('<p><span class="bull_appreciations_date">%s</span>%s<span class="bull_appreciations_link">%s</span></p>'
                          % (app['date'], app['comment'], mlink ) )
         if can_edit_app:
-            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
+            H.append('<p><a class="stdlink" href="appreciation_add_form?etudid=%(etudid)s&amp;formsemestre_id=%(formsemestre_id)s">Ajouter une appréciation</a></p>' % self.infos)
         H.append('</div>')
         # ---------------
         return '\n'.join(H)

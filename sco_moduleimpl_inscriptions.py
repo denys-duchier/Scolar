@@ -268,11 +268,11 @@ def moduleimpl_inscriptions_stats(context, formsemestre_id, REQUEST=None):
                     else:
                         H.append("""<div><em style="font-size: 70%">UE actuelle meilleure que l'UE capitalisée</em></div>""")
                     if can_change:
-                        H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">désinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
+                        H.append('<div><a class="stdlink" href="etud_desinscrit_ue?etudid=%s&amp;formsemestre_id=%s&amp;ue_id=%s">désinscrire des modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
                 else:
                     H.append('(non réinscrit dans cette UE)')
                     if can_change:
-                        H.append('<div><a class="stdlink" href="etud_inscrit_ue?etudid=%s&formsemestre_id=%s&ue_id=%s">inscrire à tous les modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
+                        H.append('<div><a class="stdlink" href="etud_inscrit_ue?etudid=%s&amp;formsemestre_id=%s&amp;ue_id=%s">inscrire à tous les modules de cette UE</a></div>' % (etud['etudid'], formsemestre_id, ue['ue_id']))
                 H.append( '</li>' )
             H.append( '</ul></li>' )
         H.append('</ul>')

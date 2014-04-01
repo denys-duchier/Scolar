@@ -455,7 +455,7 @@ def etuds_select_boxes(context, auth_etuds_by_cat,
             if with_checkbox or sel_inscrits:
                 H.append(')')
             if base_url and etuds:
-                H.append('<a href="%s&export_cat_xls=%s">%s</a>&nbsp;' % (base_url, src_cat, ICON_XLS))
+                H.append('<a href="%s&amp;export_cat_xls=%s">%s</a>&nbsp;' % (base_url, src_cat, ICON_XLS))
             H.append('</div>' )
             for etud in etuds:
                 if etud.get('inscrit', False):

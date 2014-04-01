@@ -145,9 +145,9 @@ def formsemestre_etuds_lycees(context, formsemestre_id, format='html',
     tab, etuds_by_lycee = formsemestre_table_etuds_lycees(context, formsemestre_id, only_primo=only_primo, group_lycees=not no_grouping)
     tab.base_url = '%s?formsemestre_id=%s' % (REQUEST.URL0, formsemestre_id)
     if only_primo:
-        tab.base_url += '&only_primo=1'
+        tab.base_url += '&amp;only_primo=1'
     if no_grouping:
-        tab.base_url += '&no_grouping=1'
+        tab.base_url += '&amp;no_grouping=1'
     t = tab.make_page(context, format=format, with_html_headers=False, REQUEST=REQUEST)
     if format != 'html':
         return t

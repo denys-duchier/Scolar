@@ -456,7 +456,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                             'responsable_id' :  tf[2][module_id]
                             }
                 mid = context.do_moduleimpl_create(modargs)
-            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % formsemestre_id )
+            return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&amp;head_message=Nouveau%%20semestre%%20créé' % formsemestre_id )
         else:
             # modification du semestre:
             # on doit creer les modules nouvellement selectionnés
@@ -518,7 +518,7 @@ def do_formsemestre_createwithmodules(context, REQUEST=None, edit=False ):
                 msg_html += '<a href="formsemestre_status?formsemestre_id=%s">retour au tableau de bord</a>' %  formsemestre_id
                 return msg_html            
             else:
-                return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&head_message=Semestre modifié' %  formsemestre_id)
+                return REQUEST.RESPONSE.redirect( 'formsemestre_status?formsemestre_id=%s&amp;head_message=Semestre modifié' %  formsemestre_id)
 
 
 def formsemestre_delete_moduleimpls(context, formsemestre_id, module_ids_to_del):
@@ -624,7 +624,7 @@ def formsemestre_clone(context, formsemestre_id, REQUEST=None):
             clone_evaluations=tf[2]['clone_evaluations'],
             clone_partitions=tf[2]['clone_partitions'],
             REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&amp;head_message=Nouveau%%20semestre%%20créé' % new_formsemestre_id )    
 
 
 def do_formsemestre_clone(context, orig_formsemestre_id, 
@@ -758,7 +758,7 @@ def formsemestre_associate_new_version(context, formsemestre_id,
                 parameters={'formsemestre_id' : formsemestre_id})
     else:
         do_formsemestres_associate_new_version(context, [formsemestre_id] + other_formsemestre_ids, REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&head_message=Formation%%20dupliquée' % formsemestre_id )
+        return REQUEST.RESPONSE.redirect('formsemestre_status?formsemestre_id=%s&amp;head_message=Formation%%20dupliquée' % formsemestre_id )
 
 
 def do_formsemestres_associate_new_version(context, formsemestre_ids, REQUEST=None):

@@ -151,7 +151,7 @@ def formsemestre_estim_cost(context, formsemestre_id,
         % (REQUEST.URL0, formsemestre_id, n_group_td, n_group_tp, coef_tp)    
         )
     tab.html_before_table = h
-    tab.base_url = '%s?formsemestre_id=%s&n_group_td=%s&n_group_tp=%s&coef_tp=%s' % (
+    tab.base_url = '%s?formsemestre_id=%s&amp;n_group_td=%s&amp;n_group_tp=%s&amp;coef_tp=%s' % (
         REQUEST.URL0, formsemestre_id, n_group_td, n_group_tp, coef_tp)
     
     return tab.make_page(context, format=format, REQUEST=REQUEST)

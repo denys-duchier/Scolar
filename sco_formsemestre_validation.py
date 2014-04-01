@@ -93,10 +93,10 @@ def formsemestre_validation_etud_form(
     # Navigation suivant/precedent
     if etud_index_prev != None:
         etud_p = context.getEtudInfo(etudid=T[etud_index_prev][-1], filled=True)[0]
-        Footer.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud_p['nomprenom']) )
+        Footer.append('<span><a href="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etud_index=%s">Etud. précédent (%s)</a></span>' % (formsemestre_id,etud_index_prev, etud_p['nomprenom']) )
     if etud_index_next != None:
         etud_n = context.getEtudInfo(etudid=T[etud_index_next][-1], filled=True)[0]
-        Footer.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud_n['nomprenom']) )
+        Footer.append('<span style="padding-left: 50px;"><a href="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etud_index=%s">Etud. suivant (%s)</a></span>' % (formsemestre_id,etud_index_next, etud_n['nomprenom']) )
     Footer.append('</p>')
     Footer.append(context.sco_footer(REQUEST))
 
@@ -123,9 +123,9 @@ def formsemestre_validation_etud_form(
     H.append( formsemestre_recap_parcours_table(context, Se, etudid, with_links=(check and not readonly)) )
     if check:
         if not desturl:
-            desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id='+formsemestre_id
+            desturl = 'formsemestre_recapcomplet?modejury=1&amp;hidemodules=1&amp;formsemestre_id='+formsemestre_id
             if sortcol:
-                desturl += '&sortcol=' + sortcol # pour refaire tri sorttable du tableau de notes
+                desturl += '&amp;sortcol=' + sortcol # pour refaire tri sorttable du tableau de notes
             desturl += '#etudid%s' % etudid # va a la bonne ligne
         H.append('<ul><li><a href="%s">Continuer</a></li></ul>' % desturl)
         
@@ -146,9 +146,9 @@ def formsemestre_validation_etud_form(
             H.append('<p>Pas de semestre précédent !</p>')
     else:
         if not Se.prev_decision:
-            H.append(tf_error_message("""Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
+            H.append(tf_error_message("""Le jury n\'a pas statué sur le semestre précédent ! (<a href="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s">le faire maintenant</a>)""" % (Se.prev['formsemestre_id'], etudid)))
             if decision_jury:
-                H.append('<a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer décision existante</a>'% (etudid, formsemestre_id))
+                H.append('<a href="formsemestre_validation_suppress_etud?etudid=%s&amp;formsemestre_id=%s" class="stdlink">Supprimer décision existante</a>'% (etudid, formsemestre_id))
             H.append(context.sco_footer(REQUEST))
             return '\n'.join(H)
 
@@ -182,7 +182,7 @@ def formsemestre_validation_etud_form(
         <input type="submit" value="Statuer sur le semestre précédent"/>
         <input type="hidden" name="formsemestre_id" value="%s"/>
         <input type="hidden" name="etudid" value="%s"/>
-        <input type="hidden" name="desturl" value="formsemestre_validation_etud_form?etudid=%s&formsemestre_id=%s"/>
+        <input type="hidden" name="desturl" value="formsemestre_validation_etud_form?etudid=%s&amp;formsemestre_id=%s"/>
         """ % (Se.prev['formsemestre_id'], etudid, etudid, formsemestre_id))
         if sortcol:
             H.append('<input type="hidden" name="sortcol" value="%s"/>' % sortcol)
@@ -233,7 +233,7 @@ def formsemestre_validation_etud_form(
 
     H.append( form_decision_manuelle(context, Se, formsemestre_id, etudid) )
 
-    H.append( """<div class="link_defaillance">Ou <a class="stdlink" href="formDef?etudid=%s&formsemestre_id=%s">déclarer l'étudiant comme défaillant dans ce semestre</a></div>""" % (etudid, formsemestre_id) )
+    H.append( """<div class="link_defaillance">Ou <a class="stdlink" href="formDef?etudid=%s&amp;formsemestre_id=%s">déclarer l'étudiant comme défaillant dans ce semestre</a></div>""" % (etudid, formsemestre_id) )
 
     H.append('<p style="font-size: 50%;">Formation ' )
     if Se.sem['gestion_semestrielle'] == '1':
@@ -304,19 +304,19 @@ def formsemestre_validation_etud_manu(
 
 
 def _redirect_valid_choice(formsemestre_id, etudid, Se, choice, desturl, sortcol, REQUEST):
-    adr = 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1' % (formsemestre_id, etudid)
+    adr = 'formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s&amp;check=1' % (formsemestre_id, etudid)
     if sortcol:
-        adr += '&sortcol=' + sortcol
+        adr += '&amp;sortcol=' + sortcol
     if desturl:
-        desturl += '&desturl=' + desturl
+        desturl += '&amp;desturl=' + desturl
     REQUEST.RESPONSE.redirect(adr)
     # Si le precedent a été modifié, demande relecture du parcours.
     # sinon  renvoie au listing general,
 #     if choice.new_code_prev:
-#         REQUEST.RESPONSE.redirect( 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1&desturl=%s' % (formsemestre_id, etudid, desturl) )
+#         REQUEST.RESPONSE.redirect( 'formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&amp;check=1&amp;desturl=%s' % (formsemestre_id, etudid, desturl) )
 #     else:
 #         if not desturl:
-#             desturl = 'formsemestre_recapcomplet?modejury=1&hidemodules=1&formsemestre_id=' + formsemestre_id          
+#             desturl = 'formsemestre_recapcomplet?modejury=1&amp;hidemodules=1&amp;formsemestre_id=' + formsemestre_id          
 #         REQUEST.RESPONSE.redirect(desturl)
 
 
@@ -429,7 +429,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         H.append('<td class="rcp_type_sem" style="background-color:%s;">%s%s</td>'
                  % (bgcolor, num_sem, pm) )
         H.append('<td class="datedebut">%(mois_debut)s</td>' % sem )
-        H.append('<td><a class="formsemestre_status_link" href="%sformsemestre_bulletinetud?formsemestre_id=%s&etudid=%s" title="Bulletin de notes">%s</a></td>' % (a_url,sem['formsemestre_id'], etudid,sem['titreannee']))
+        H.append('<td><a class="formsemestre_status_link" href="%sformsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s" title="Bulletin de notes">%s</a></td>' % (a_url,sem['formsemestre_id'], etudid,sem['titreannee']))
         if decision_sem:
             H.append('<td class="rcp_dec">%s</td>' % decision_sem['code'])
         else:
@@ -493,7 +493,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         
         H.append('<td></td>')
         if with_links:
-            H.append('<td><a href="%sformsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">modifier</a></td>' % (a_url,sem['formsemestre_id'],etudid))
+            H.append('<td><a href="%sformsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s">modifier</a></td>' % (a_url,sem['formsemestre_id'],etudid))
 
         H.append('</tr>')
     H.append('</table>')
@@ -593,7 +593,7 @@ def form_decision_manuelle(context, Se, formsemestre_id, etudid, desturl='', sor
     
     H.append("""</table>
     <input type="submit" name="formvalidmanu_submit" value="Valider décision manuelle"/>
-    <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&formsemestre_id=%s" class="stdlink">Supprimer décision existante</a></span>
+    <span style="padding-left: 5em;"><a href="formsemestre_validation_suppress_etud?etudid=%s&amp;formsemestre_id=%s" class="stdlink">Supprimer décision existante</a></span>
     </form>
     """ % (etudid, formsemestre_id))
     return '\n'.join(H)
@@ -672,10 +672,10 @@ def do_formsemestre_validation_auto(context, formsemestre_id, REQUEST):
         H.append("""<p><b>Attention:</b> %d étudiants non modifiés car décisions différentes
         déja saisies :<ul>""" % len(conflicts))
         for etud in conflicts:
-            H.append('<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s&check=1">%s</li>'
+            H.append('<li><a href="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s&amp;check=1">%s</li>'
                      % (formsemestre_id, etud['etudid'], etud['nomprenom']) )
         H.append('</ul>')
-    H.append('<a href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">continuer</a>'
+    H.append('<a href="formsemestre_recapcomplet?formsemestre_id=%s&amp;modejury=1&amp;hidemodules=1">continuer</a>'
              % formsemestre_id)
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
@@ -844,7 +844,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
                                              tf[2]['ue_id'], tf[2]['moy_ue'], tf[2]['date'],
                                              semestre_id=semestre_id,
                                              REQUEST=REQUEST)
-        return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_bulletinetud?formsemestre_id=%s&etudid=%s&head_message=Validation%%20d'UE%%20enregistree" % (formsemestre_id, etudid))
+        return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s&amp;head_message=Validation%%20d'UE%%20enregistree" % (formsemestre_id, etudid))
 
 def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id, moy_ue, date,
                                          semestre_id=None,
@@ -896,7 +896,7 @@ def get_etud_ue_cap_html(context, etudid, formsemestre_id, ue_id, REQUEST=None):
         if valid['semestre_id']:
             valid['s'] += ' (<b>S%d</b>)' % valid['semestre_id']
         valid['ds'] = formsemestre_id
-        H.append('<li>%(code)s%(m)s%(s)s, le %(event_date)s  <a class="stdlink" href="etud_ue_suppress_validation?etudid=%(etudid)s&ue_id=%(ue_id)s&formsemestre_id=%(ds)s" title="supprime cette validation">effacer</a></li>' % valid )
+        H.append('<li>%(code)s%(m)s%(s)s, le %(event_date)s  <a class="stdlink" href="etud_ue_suppress_validation?etudid=%(etudid)s&amp;ue_id=%(ue_id)s&amp;formsemestre_id=%(ds)s" title="supprime cette validation">effacer</a></li>' % valid )
     H.append('</ul></div>')
     return '\n'.join(H)
 
@@ -911,7 +911,7 @@ def etud_ue_suppress_validation(context, etudid, formsemestre_id, ue_id, REQUEST
     sem = context.get_formsemestre(formsemestre_id)
     _invalidate_etud_formation_caches(context, etudid, sem['formation_id'])
     
-    return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_validate_previous_ue?etudid=%s&formsemestre_id=%s" % (etudid, formsemestre_id))
+    return REQUEST.RESPONSE.redirect( context.ScoURL()+"/Notes/formsemestre_validate_previous_ue?etudid=%s&amp;formsemestre_id=%s" % (etudid, formsemestre_id))
 
 def check_formation_ues(context, formation_id):
     """Verifie que les UE d'une formation sont chacune utilisée dans un seul semestre_id

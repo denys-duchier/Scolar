@@ -513,8 +513,8 @@ def ListeAbsEtud(context, etudid,
         etudid, datedebut, with_evals=with_evals, format=format )
 
     if REQUEST:
-        base_url_nj =  '%s?etudid=%s&absjust_only=0' % (REQUEST.URL0, etudid)
-        base_url_j = '%s?etudid=%s&absjust_only=1' % (REQUEST.URL0, etudid)
+        base_url_nj =  '%s?etudid=%s&amp;absjust_only=0' % (REQUEST.URL0, etudid)
+        base_url_j = '%s?etudid=%s&amp;absjust_only=1' % (REQUEST.URL0, etudid)
     else:
         base_url_nj = base_url_j = ''
     tab_absnonjust = GenTable( titles=titles, columns_ids=columns_ids, rows = absnonjust,

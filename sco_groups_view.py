@@ -247,7 +247,7 @@ class DisplayedGroupsInfos:
         gq = []
         for group_id in group_ids:
             gq.append('group_ids=' + group_id)
-        self.groups_query_args = '&'.join(gq)
+        self.groups_query_args = '&amp;'.join(gq)
         self.base_url = REQUEST.URL0 + '?' + self.groups_query_args
         self.group_ids = group_ids
         self.groups = []
@@ -337,8 +337,8 @@ def groups_table(
     with_archives= int(with_archives)
     with_annotations = int(with_annotations)
     
-    base_url_np = groups_infos.base_url + '&with_codes=%s' % with_codes
-    base_url = base_url_np + '&with_paiement=%s&with_archives=%s&with_annotations=%s' % (with_paiement, with_archives, with_annotations)
+    base_url_np = groups_infos.base_url + '&amp;with_codes=%s' % with_codes
+    base_url = base_url_np + '&amp;with_paiement=%s&amp;with_archives=%s&amp;with_annotations=%s' % (with_paiement, with_archives, with_annotations)
     #
     columns_ids=['nom_disp', 'prenom' ] # colonnes a inclure
     titles = { 'nom_disp' : 'Nom',
@@ -537,22 +537,22 @@ def tab_absences_html(context, groups_infos, etat=None, REQUEST=None):
           '<h3>Absences</h3>',
           '<ul class="ul_abs">',
           '<li>', form_choix_jour_saisie_hebdo(context, groups_infos, REQUEST=REQUEST), '</li>',          
-          """<li><a class="stdlink" href="Absences/EtatAbsencesGr?%s&debut=%s&fin=%s">Etat des absences du groupe</a></li>"""
+          """<li><a class="stdlink" href="Absences/EtatAbsencesGr?%s&amp;debut=%s&amp;fin=%s">Etat des absences du groupe</a></li>"""
           % (groups_infos.groups_query_args, groups_infos.formsemestre['date_debut'], groups_infos.formsemestre['date_fin']),
           '</ul>',
           
           '<h3>Feuilles</h3>',
           '<ul class="ul_feuilles">',
 
-          """<li><a class="stdlink" href="%s&format=xls">Feuille d'émargement %s (Excel)</a></li>""" 
+          """<li><a class="stdlink" href="%s&amp;format=xls">Feuille d'émargement %s (Excel)</a></li>""" 
           % (groups_infos.base_url, groups_infos.groups_titles),
-          """<li><a class="stdlink" href="trombino?%s&format=pdf">Trombinoscope en PDF</a></li>"""
+          """<li><a class="stdlink" href="trombino?%s&amp;format=pdf">Trombinoscope en PDF</a></li>"""
           % groups_infos.groups_query_args,
-          """<li><a class="stdlink" href="pdf_trombino_tours?%s&format=pdf">Trombinoscope en PDF (format "IUT de Tours", beta)</a></li>"""
+          """<li><a class="stdlink" href="pdf_trombino_tours?%s&amp;format=pdf">Trombinoscope en PDF (format "IUT de Tours", beta)</a></li>"""
           % groups_infos.groups_query_args,
-          """<li><a class="stdlink" href="pdf_feuille_releve_absences?%s&format=pdf">Feuille relevé absences hebdomadaire (beta)</a></li>"""
+          """<li><a class="stdlink" href="pdf_feuille_releve_absences?%s&amp;format=pdf">Feuille relevé absences hebdomadaire (beta)</a></li>"""
           % groups_infos.groups_query_args,
-          """<li><a class="stdlink" href="trombino?%s&format=pdflist">Liste d'appel avec photos</a></li>"""
+          """<li><a class="stdlink" href="trombino?%s&amp;format=pdflist">Liste d'appel avec photos</a></li>"""
           % groups_infos.groups_query_args,
           '</ul>'
     ] )
@@ -562,7 +562,7 @@ def tab_absences_html(context, groups_infos, etat=None, REQUEST=None):
     # (pour tous les etudiants du semestre)
     group_id = sco_groups.get_default_group(context, groups_infos.formsemestre_id)
     if authuser.has_permission(ScoEtudInscrit,context):
-        H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&etat=%s">Vérifier codes Apogée</a> (de tous les groupes)</li>'
+        H.append('<li><a class="stdlink" href="check_group_apogee?group_id=%s&amp;etat=%s">Vérifier codes Apogée</a> (de tous les groupes)</li>'
                  % (group_id,etat or ''))
     # Lien pour ajout fichiers étudiants
     if authuser.has_permission(ScoEtudAddAnnotations,context):

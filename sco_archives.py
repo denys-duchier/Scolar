@@ -339,7 +339,7 @@ enregistrés et non modifiables, on peut les retrouver ultérieurement.
         msg = 'Nouvelle%20archive%20créée'
     
     # submitted or cancelled:
-    return REQUEST.RESPONSE.redirect( "formsemestre_list_archives?formsemestre_id=%s&head_message=%s" %(formsemestre_id, msg))
+    return REQUEST.RESPONSE.redirect( "formsemestre_list_archives?formsemestre_id=%s&amp;head_message=%s" %(formsemestre_id, msg))
 
 def formsemestre_list_archives(context, REQUEST, formsemestre_id):
     """Page listing archives
@@ -360,9 +360,9 @@ def formsemestre_list_archives(context, REQUEST, formsemestre_id):
         H.append('<ul>')
         for a in L:
             archive_name = PVArchive.get_archive_name(a['archive_id'])
-            H.append('<li>%s : <em>%s</em> (<a href="formsemestre_delete_archive?formsemestre_id=%s&archive_name=%s">supprimer</a>)<ul>' % (a['date'].strftime('%d/%m/%Y %H:%M'), a['description'], formsemestre_id, archive_name))
+            H.append('<li>%s : <em>%s</em> (<a href="formsemestre_delete_archive?formsemestre_id=%s&amp;archive_name=%s">supprimer</a>)<ul>' % (a['date'].strftime('%d/%m/%Y %H:%M'), a['description'], formsemestre_id, archive_name))
             for filename in a['content']:
-                H.append('<li><a href="formsemestre_get_archived_file?formsemestre_id=%s&archive_name=%s&filename=%s">%s</a></li>' % (formsemestre_id, archive_name, filename, filename))
+                H.append('<li><a href="formsemestre_get_archived_file?formsemestre_id=%s&amp;archive_name=%s&amp;filename=%s">%s</a></li>' % (formsemestre_id, archive_name, filename, filename))
             if not a['content']:
                 H.append('<li><em>aucun fichier !</em></li>')
             H.append('</ul></li>')
@@ -392,4 +392,4 @@ def formsemestre_delete_archive(context, REQUEST, formsemestre_id, archive_name,
             parameters={'formsemestre_id' : formsemestre_id, 'archive_name' : archive_name })
     
     PVArchive.delete_archive(archive_id)
-    return REQUEST.RESPONSE.redirect(dest_url+'&head_message=Archive%20supprimée')
+    return REQUEST.RESPONSE.redirect(dest_url+'&amp;head_message=Archive%20supprimée')

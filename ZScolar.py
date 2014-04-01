@@ -734,7 +734,7 @@ class ZScolar(ObjectManager,
                 FA.append('<option value="%s">%s</option>' % (date, jour) )
                 date = date.next()
             FA.append('</select>')
-            FA.append('<a href="Absences/EtatAbsencesGr?group_ids=%%(group_id)s&debut=%(date_debut)s&fin=%(date_fin)s">état</a>' % sem )
+            FA.append('<a href="Absences/EtatAbsencesGr?group_ids=%%(group_id)s&amp;debut=%(date_debut)s&amp;fin=%(date_fin)s">état</a>' % sem )
             FA.append('</form></td>')
             FormAbs = '\n'.join(FA)
         else:
@@ -761,8 +761,8 @@ class ZScolar(ObjectManager,
                     H.append("""<td>
                         <a href="%(url)s/groups_view?group_ids=%(group_id)s">%(label)s</a>
                         </td><td>
-                        (<a href="%(url)s/groups_view?&group_ids=%(group_id)s&format=xls">format tableur</a>)
-                        <a href="%(url)s/groups_view?curtab=tab-photos&group_ids=%(group_id)s&etat=I">Photos</a>
+                        (<a href="%(url)s/groups_view?group_ids=%(group_id)s&amp;format=xls">format tableur</a>)
+                        <a href="%(url)s/groups_view?curtab=tab-photos&amp;group_ids=%(group_id)s&amp;etat=I">Photos</a>
                         </td>""" % group )
                     H.append('<td>(%d étudiants)</td>' % n_members )
 
@@ -862,7 +862,7 @@ class ZScolar(ObjectManager,
                 v = REQUEST.form.get(key,False)
                 if v:
                     q.append( '%s=%s' % (key,v) )
-        query_string = '&'.join(q)
+        query_string = '&amp;'.join(q)
         
         no_side_bar = True
         H = []
@@ -874,7 +874,7 @@ class ZScolar(ObjectManager,
             etuds = []
         if len(etuds) == 1:
             # va directement a la destination
-            return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&' % etuds[0]['etudid'] + query_string )
+            return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&amp;' % etuds[0]['etudid'] + query_string )
 
         if len(etuds) > 0:
             # Choix dans la liste des résultats:
@@ -883,7 +883,7 @@ class ZScolar(ObjectManager,
                                           parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
 
             for e in etuds:
-                target = dest_url + '?etudid=%s&' % e['etudid'] + query_string
+                target = dest_url + '?etudid=%s&amp;' % e['etudid'] + query_string
                 e['_nomprenom_target'] = target
                 e['inscription_target'] = target
                 e['_nomprenom_td_attrs'] = 'id="%s" class="etudinfo"' % (e['etudid'])
@@ -1201,7 +1201,7 @@ class ZScolar(ObjectManager,
         logdb(REQUEST,cnx,method='SuppressAnnotation', etudid=etudid )
         scolars.etud_annotations_delete(cnx, annotation_id)
         
-        REQUEST.RESPONSE.redirect('ficheEtud?etudid=%s&head_message=Annotation%%20supprimée'%(etudid))
+        REQUEST.RESPONSE.redirect('ficheEtud?etudid=%s&amp;head_message=Annotation%%20supprimée'%(etudid))
     
     security.declareProtected(ScoEtudChangeAdr, 'formChangeCoordonnees')
     def formChangeCoordonnees(self,etudid,REQUEST):
@@ -2349,7 +2349,7 @@ def _simple_error_page(context, msg, DeptId=None):
           '<h2>Erreur !</h2>',
           '<p>', msg, '</p>' ]
     if DeptId:
-        H.append('<p><a href="delete_dept?DeptId=%s&force=1">Supprimer le dossier %s</a>(très recommandé !)</p>'
+        H.append('<p><a href="delete_dept?DeptId=%s&amp;force=1">Supprimer le dossier %s</a>(très recommandé !)</p>'
                  % (DeptId,DeptId) )
     H.append(context.standard_html_footer(context))
     return '\n'.join(H)

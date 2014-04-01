@@ -107,7 +107,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
 <span style="font-size: 75%%;">(corrige incohérences éventuelles introduites avant juin 2008)<span>
 </p>""" % (formsemestre_id, formsemestre_id))
             else:
-                H.append("""<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=%s&modejury=1&hidemodules=1">Saisie des décisions du jury</a>""" % formsemestre_id)
+                H.append("""<a class="stdlink" href="formsemestre_recapcomplet?formsemestre_id=%s&amp;modejury=1&amp;hidemodules=1">Saisie des décisions du jury</a>""" % formsemestre_id)
             H.append('</p>')
         H.append(context.sco_footer(REQUEST))
     return ''.join(H) # HTML or binary data...
@@ -361,9 +361,9 @@ def make_formsemestre_recapcomplet(
         H = [ """
         <script type="text/javascript">
         function va_saisir(formsemestre_id, etudid) {
-        loc = 'formsemestre_validation_etud_form?formsemestre_id='+formsemestre_id+'&etudid='+etudid;
+        loc = 'formsemestre_validation_etud_form?formsemestre_id='+formsemestre_id+'&amp;etudid='+etudid;
         if (SORT_COLUMN_INDEX) {
-           loc += '&sortcol=' + SORT_COLUMN_INDEX;
+           loc += '&amp;sortcol=' + SORT_COLUMN_INDEX;
         }
         loc += '#etudid' + etudid;   
         document.location=loc;
@@ -418,7 +418,7 @@ def make_formsemestre_recapcomplet(
         if disable_etudlink:
             etudlink = '%(name)s'
         else:
-            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&etudid=%(etudid)s&version=selectedevals" id="%(etudid)s" class="etudinfo">%(name)s</a>'
+            etudlink='<a href="formsemestre_bulletinetud?formsemestre_id=%(formsemestre_id)s&amp;etudid=%(etudid)s&amp;version=selectedevals" id="%(etudid)s" class="etudinfo">%(name)s</a>'
         ir = 0
         nblines = len(F)-1
         for l in F[1:]:
@@ -486,7 +486,7 @@ def make_formsemestre_recapcomplet(
                     act = 'saisir'
                 cells += '<td class="decision">%s' % code
                 if act:
-                    #cells += ' <a href="formsemestre_validation_etud_form?formsemestre_id=%s&etudid=%s">%s</a>' % (formsemestre_id, etudid, act)
+                    #cells += ' <a href="formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s">%s</a>' % (formsemestre_id, etudid, act)
                     cells += ''' <a href="#" onclick="va_saisir('%s', '%s')">%s</a>''' % (formsemestre_id, etudid, act)
                 cells += '</td>'
             H.append( cells + '</tr>' )

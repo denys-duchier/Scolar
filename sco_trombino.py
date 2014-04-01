@@ -88,7 +88,7 @@ def trombino_html(context, groups_infos, REQUEST=None):
           'url' : 'photos_import_files_form?%s' % args,
           },
         { 'title' : 'Obtenir archive Zip des photos',
-          'url' : 'trombino?%s&format=zip' % args,
+          'url' : 'trombino?%s&amp;format=zip' % args,
           },
         { 'title' : 'Recopier les photos depuis le portail',
           'url' : 'trombino_copy_photos?%s' % args,
@@ -121,7 +121,7 @@ def trombino_html(context, groups_infos, REQUEST=None):
         i += 1
 
     H.append('</div>')
-    H.append('<div style="margin-bottom:15px;"><a class="stdlink" href="trombino?format=pdf&%s">Version PDF</a></div>' % args)
+    H.append('<div style="margin-bottom:15px;"><a class="stdlink" href="trombino?format=pdf&amp;%s">Version PDF</a></div>' % args)
     return  '\n'.join(H)
     
 
@@ -140,10 +140,10 @@ def check_local_photos_availability(context, groups_infos, REQUEST, format=''):
     if nb_missing > 0:
         parameters = { 'group_ids' : groups_infos.group_ids, 'format' : format }
         return False, context.confirmDialog(
-            """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="%s">exporter seulement les photos existantes</a>""" % (nb_missing, groups_infos.base_url + '&dialog_confirmed=1&format=%s' % format ),
+            """<p>Attention: %d photos ne sont pas disponibles et ne peuvent pas être exportées.</p><p>Vous pouvez <a class="stdlink" href="%s">exporter seulement les photos existantes</a>""" % (nb_missing, groups_infos.base_url + '&amp;dialog_confirmed=1&amp;format=%s' % format ),
             dest_url = 'trombino',
             OK = 'Exporter seulement les photos existantes',
-            cancel_url='groups_view?curtab=tab-photos&' + groups_infos.groups_query_args,
+            cancel_url='groups_view?curtab=tab-photos&amp;' + groups_infos.groups_query_args,
             REQUEST=REQUEST, parameters=parameters )
     else:
         return True, ''
@@ -181,7 +181,7 @@ def _trombino_zip(context, groups_infos, REQUEST ):
 def trombino_copy_photos(context, group_ids=[], REQUEST=None, dialog_confirmed=False):
     "Copy photos from portal to ScoDoc (overwriting local copy)"
     groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
-    back_url = 'groups_view?%s&curtab=tab-photos' % groups_infos.groups_query_args
+    back_url = 'groups_view?%s&amp;curtab=tab-photos' % groups_infos.groups_query_args
     
     portal_url = sco_portal_apogee.get_portal_url(context)
     header = context.sco_header(REQUEST, page_title='Chargement des photos') 
@@ -405,7 +405,7 @@ def photos_import_files_form(context, group_ids=[], REQUEST=None):
     """Formulaire pour importation photos
     """
     groups_infos = sco_groups_view.DisplayedGroupsInfos(context, group_ids, REQUEST=REQUEST)
-    back_url = 'groups_view?%s&curtab=tab-photos' % groups_infos.groups_query_args
+    back_url = 'groups_view?%s&amp;curtab=tab-photos' % groups_infos.groups_query_args
     
     H = [context.sco_header(REQUEST, page_title='Import des photos des étudiants'),
          """<h2 class="formsemestre">Téléchargement des photos des étudiants</h2>
@@ -454,7 +454,7 @@ def photos_import_files(context, group_ids=[], xlsfile=None, zipfile=None, REQUE
         sco_photos.store_photo(context, etud, data, REQUEST)
     r = zip_excel_import_files(context, xlsfile, zipfile,
                                REQUEST, callback, filename_title, page_title)
-    return REQUEST.RESPONSE.redirect(back_url + '&head_message=photos%20 importees')
+    return REQUEST.RESPONSE.redirect(back_url + '&amp;head_message=photos%20 importees')
 
 def zip_excel_import_files(context, xlsfile=None, zipfile=None,
                            REQUEST=None,
