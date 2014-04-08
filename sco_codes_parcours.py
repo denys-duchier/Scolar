@@ -186,7 +186,7 @@ class ParcoursLP(TypeParcours):
     NAME = "LP"
     NB_SEM = 1
     COMPENSATION_UE = False
-    BARRE_UE_DEFAULT = 10. # barre à 10 dans toutes les UE
+    BARRE_UE_DEFAULT = 0. # pas de barre sur les UE "normales"
     BARRE_UE = { UE_STAGE_LP : 10. }
     # pas de codes ATT en LP
     UNUSED_CODES = set( (ADC, ATT, ATB) )
