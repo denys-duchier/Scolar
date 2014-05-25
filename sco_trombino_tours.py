@@ -112,11 +112,16 @@ def pdf_trombino_tours(
             n = 1
             for m in members:
                 img = sco_trombino._get_etud_platypus_image(context, m, image_width=PHOTOWIDTH )
+                etud_main_group = sco_groups.get_etud_main_group(context, m['etudid'], sem)
+                if group_id != etud_main_group['group_id']:
+                    text_group = ' (' + etud_main_group['group_name'] + ')'
+                else:
+                    text_group = ''
                 elem = Table(
                     [ [ img ],
                       [ Paragraph(
                           SU('<para align=center><font size=8>' + scolars.format_prenom(m['prenom'])
-                             + ' ' + scolars.format_nom(m['nom']) + '</font></para>'), StyleSheet['Normal']) ] ],
+                             + ' ' + scolars.format_nom(m['nom']) + text_group + '</font></para>'), StyleSheet['Normal']) ] ],
                       colWidths=[ COLWIDTH ],
                       style = TableStyle( [
                     ('ALIGN', (0,0), (-1,-1), 'CENTER')

@@ -2067,7 +2067,7 @@ class ZNotes(ObjectManager,
             submitlabel = 'Modifier les données'
             if readonly:
                 action = 'E'
-                link=' &amp;nbsp;<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
+                link='<span class="evallink"><a class="stdlink" href="evaluation_listenotes?moduleimpl_id=%s">voir toutes les notes du module</a></span>'%M['moduleimpl_id']
             else:
                 action = 'Modification d\'une é'
                 link =''
