@@ -193,7 +193,7 @@ class SituationEtudParcours:
             return decision and code_semestre_validant(decision['code'])
         else:
             to_validate = Set(range(1, self.parcours.NB_SEM + 1)) # ensemble des indices à valider
-            if exclude_current:
+            if exclude_current and self.sem['semestre_id'] in to_validate:
                 to_validate.remove(self.sem['semestre_id'])
             return self._sem_list_validated(to_validate)            
 
