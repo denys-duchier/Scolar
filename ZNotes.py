@@ -1209,7 +1209,7 @@ class ZNotes(ObjectManager,
         login2display = {} # user_name : forme pour affichage = "NOM Prenom (login)"
         for u in userlist:
             login2display[u['user_name']] = u['nomplogin']
-            allowed_user_names = login2display.values()
+        allowed_user_names = login2display.values()
 
         initvalues = M
         initvalues['responsable_id'] = login2display.get(M['responsable_id'], M['responsable_id'])

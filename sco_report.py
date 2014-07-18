@@ -36,6 +36,7 @@ from gen_tables import GenTable
 import sco_excel, sco_pdf
 import sco_codes_parcours
 from sco_codes_parcours import code_semestre_validant
+import sco_parcours_dut
 from mx.DateTime import DateTime as mxDateTime
 import mx.DateTime
 import tempfile, urllib, re
@@ -60,6 +61,13 @@ def formsemestre_etuds_stats(context, sem, only_primo=False):
             etud['codedecision'] = 'DEM'
         if not etud.has_key('codedecision'):
             etud['codedecision'] = '(nd)' # pas de decision jury
+        # Ajout devenir (autorisations inscriptions), utile pour stats passage
+        aut_list = sco_parcours_dut.formsemestre_get_autorisation_inscription(
+            context, etudid, sem['formsemestre_id'])
+        autorisations = [ 'S%s' % x['semestre_id'] for x in aut_list ]
+        autorisations.sort()
+        autorisations_str = ', '.join(autorisations)
+        etud['devenir'] = autorisations_str
         # Ajout clé 'bac-specialite'
         bs = []
         if etud['bac']:
@@ -218,7 +226,7 @@ def formsemestre_report_counts(context, formsemestre_id, format='html', REQUEST=
         else:
             # clés présentées à l'utilisateur:
             keys = ['annee_bac', 'annee_naissance', 'bac', 'specialite', 'bac-specialite',
-                    'codedecision', 'etat', 'sexe', 'qualite', 'villelycee', 'statut',
+                    'codedecision', 'devenir', 'etat', 'sexe', 'qualite', 'villelycee', 'statut',
                     'type_admission', 'boursier_prec' ]
         keys.sort()
         F = [ """<form name="f" method="get" action="%s"><p>
@@ -1058,8 +1066,8 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_pr
         REQUEST.RESPONSE.setHeader('content-type', 'image/png' )
         return doc
     elif format == 'html':
-        url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%(formsemestre_id)s&amp;format="%sem)
- 
+        url = urllib.quote("formsemestre_graph_parcours?formsemestre_id=%s&amp;only_primo=%s&amp;bac=%s&amp;bacspecialite=%s&amp;sexe=%s&amp;statut=%s&amp;format=" % 
+                           (formsemestre_id, only_primo, bac, bacspecialite, sexe, statut))
         doc, bacs, bacspecialites, sexes, statuts = graph_parcours(context, formsemestre_id, only_primo=only_primo, 
                                                                    bac=bac, bacspecialite=bacspecialite, sexe=sexe, statut=statut)
             
