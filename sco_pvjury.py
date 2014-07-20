@@ -105,6 +105,17 @@ def descr_autorisations(znotes, autorisations):
         alist.append( 'S' + str(aut['semestre_id']) )
     return ', '.join(alist)
 
+def _comp_sum_ects(decision_ues):
+    """calcul somme des ECTS validés dans ce semestre
+    decision_ues est le resultat de nt.get_etud_decision_ues
+    
+    """
+    if not decision_ues:
+        return 0.
+    ects = 0.
+    for d in decision_ues.values():
+        ects += d['ects']
+    return ects
 
 def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     """Données pour édition jury
@@ -117,13 +128,14 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
     'formation' : { 'acronyme' :, 'titre': ... }
     'decisions' : { [ { 'identite' : {'nom' :, 'prenom':,  ...,},
                         'etat' : I ou D ou DEF
-                        'decision' : {'code':, 'code_prev': },
-                        'ues' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
+                        'decision_sem' : {'code':, 'code_prev': },
+                        'decisions_ue' : {  ue_id : { 'code' : ADM|CMP|AJ, 'event_date' :,
                                              'acronyme', 'numero': } },
                         'autorisations' : [ { 'semestre_id' : { ... } },
                         'validation_parcours' : True si parcours validé (diplome obtenu)
                         'prev_code' : code (calculé slt si with_prev),
-                        'mention' : mention (en fct moy gen)
+                        'mention' : mention (en fct moy gen),
+                        'sum_ects' : total ECTS acquis dans ce semestre
                     ]
                   }
     }    
@@ -149,6 +161,7 @@ def dict_pvjury( znotes, formsemestre_id, etudids=None, with_prev=False ):
         d['etat'] = nt.get_etud_etat(etudid) # I|D|DEF  (inscription ou démission ou défaillant)
         d['decision_sem'] = nt.get_etud_decision_sem(etudid)
         d['decisions_ue'] = nt.get_etud_decision_ues(etudid)
+        d['sum_ects'] = _comp_sum_ects(d['decisions_ue'])
         if d['decision_sem']:
             d['mention'] = get_mention(nt.get_etud_moy_gen(etudid))
         else:
@@ -233,9 +246,12 @@ def pvjury_table(context, dpv, only_diplome=False):
               'decision' : 'Décision' + id_cur,
               'mention' : 'Mention',
               'ue_cap' : 'UE' + id_cur + ' capitalisées',
+              'ects' : 'ECTS',
               'devenir' : 'Devenir', 'observations' : 'Observations'
               }
     columns_ids = ['nomprenom', 'parcours', 'decision', 'ue_cap']
+    if context.get_preference('bul_show_ects', sem['formsemestre_id']):
+        columns_ids.append('ects')
     if dpv['semestre_non_terminal']:
         columns_ids.append('devenir')
     columns_ids.append('observations')
@@ -259,7 +275,8 @@ def pvjury_table(context, dpv, only_diplome=False):
               'ue_cap' : e['decisions_ue_descr'],
               'devenir' :  e['autorisations_descr'],
               'observations' : unquote(e['observation']),
-              'mention' : e['mention']
+              'mention' : e['mention'],
+              'ects' : e['sum_ects']
               }
         if e['validation_parcours']:
             l['devenir'] = "Diplôme obtenu"

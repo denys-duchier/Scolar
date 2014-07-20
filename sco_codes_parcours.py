@@ -40,10 +40,10 @@ ATT='ATT' #
 ATJ='ATJ' # pb assiduité: décision repoussée au semestre suivant
 ATB='ATB'
 AJ ='AJ'
-CMP='CMP' # utile pour UE seulement
+CMP='CMP' # utile pour UE seulement (indique UE acquise car semestre acquis)
 NAR='NAR'
 RAT='RAT' # en attente rattrapage, pas dans Apogée
-DEF = 'DEF' # défaillance (b'est pas un code jury dans scodoc mais un état, comme inscrit ou demission)
+DEF = 'DEF' # défaillance (n'est pas un code jury dans scodoc mais un état, comme inscrit ou demission)
 
 # codes actions
 REDOANNEE = 'REDOANNEE'  # redouble annee (va en Sn-1)
@@ -77,6 +77,8 @@ CODES_SEM_ATTENTES = { ATT : True, ATB : True, ATJ : True } # semestre en attent
 
 CODES_SEM_REO = { 'NAR':1 } # reorientation
 
+CODES_UE_VALIDES = { ADM : True, CMP : True } # UE validée
+
 def code_semestre_validant(code):
     "Vrai si ce CODE entraine la validation du semestre"
     return CODES_SEM_VALIDES.get(code, False)
@@ -84,6 +86,10 @@ def code_semestre_validant(code):
 def code_semestre_attente(code):
     "Vrai si ce CODE est un code d'attente (semestre validable plus tard par jury ou compensation)"
     return CODES_SEM_ATTENTES.get(code, False)
+
+def code_ue_validant(code):
+    "Vrai si ce code entraine la validation de l'UE"
+    return CODES_UE_VALIDES.get(code, False)
 
 DEVENIR_EXPL = {
     NEXT      : 'Passage au semestre suivant',

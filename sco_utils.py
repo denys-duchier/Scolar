@@ -152,6 +152,8 @@ GSL = thread.allocate_lock() # Global ScoDoc Lock
 SCO_SRCDIR = os.path.split(VERSION.__file__)[0]
 if SCO_SRCDIR:
     SCO_SRCDIR += '/'
+else:
+    SCO_SRCDIR = '/opt/scodoc/Products/ScoDoc/' # debug mode
 try:
     _config_filename = SCO_SRCDIR + 'config/scodoc_config.py'
     _config_text = open(_config_filename).read()

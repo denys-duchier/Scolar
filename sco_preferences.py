@@ -206,10 +206,20 @@ PREFS = (
     ('emails_notifications',
     { 'initvalue' : '',
        'title' : 'e-mails à qui notifier les opérations',
-        'size' : 70,
-        'explanation' : 'adresses séparées par des virgules; notifie les opérations (saisies de notes, etc). (vous pouvez préférer utiliser le flux rss)',
-        'category' : 'general',
-        'only_global' : False # peut être spécifique à un semestre
+       'size' : 70,
+       'explanation' : 'adresses séparées par des virgules; notifie les opérations (saisies de notes, etc). (vous pouvez préférer utiliser le flux rss)',
+       'category' : 'general',
+       'only_global' : False # peut être spécifique à un semestre
+        }
+      ),
+    ('ects_mode', # valeurs: 'UE' (defaut), 'module' (futur ?)
+    { 'initvalue' : 'UE',
+      'title' : 'Mode de calcul des ECTS',
+      'category' : 'general',
+      'only_global' : False, # peut être spécifique à un semestre
+      'input_type' : 'radio',
+      'allowed_values' : ('UE', ), # , 'module'),
+      'labels' : ( 'par UE', ), # 'par modules', ),
         }
       ),
     ( 'email_chefdpt',
@@ -636,8 +646,17 @@ s'est réuni le %(date_jury)s.
         }
       ),
     ( 'bul_show_decision', 
-      { 'initvalue' : 1,
+      { 'initvalue' : 0,
         'title' : 'Faire figurer les décisions sur les bulletins',
+        'input_type' : 'boolcheckbox',
+        'category' : 'bul',
+        'labels' : ['non', 'oui']
+        }
+      ),
+    ( 'bul_show_ects', 
+      { 'initvalue' : 1,
+        'title' : 'Faire figurer les ECTS sur les bulletins',
+        'explanation' : 'crédits associés aux UE ou aux modules, selon réglage',
         'input_type' : 'boolcheckbox',
         'category' : 'bul',
         'labels' : ['non', 'oui']

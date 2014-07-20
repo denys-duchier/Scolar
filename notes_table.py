@@ -141,6 +141,7 @@ class NotesTable:
         for e in valid_evals:
             self._valid_evals[e['evaluation_id']] = e        # Liste des modules et UE
         uedict = {}
+        self.uedict = uedict
         for modimpl in self._modimpls:
             mod = context.do_module_list(args={'module_id' : modimpl['module_id']} )[0]
             modimpl['module'] = mod # add module dict to moduleimpl
@@ -560,6 +561,7 @@ class NotesTable:
              'moy' : , 'coef_ue' : , # avec capitalisation eventuelle
              'cur_moy_ue' : , 'cur_coef_ue' # dans ce sem., sans capitalisation
              'is_capitalized' : True|False,
+             'ects' : nb de crédits ECTS acquis dans cette UE,
              'formsemestre_id' : (si capitalisee),
              'event_date' : (si capitalisee)
              }
@@ -751,8 +753,19 @@ class NotesTable:
         for (etudid, ue_id, code, event_date) in cursor.fetchall():
             if not decisions_jury_ues.has_key(etudid):
                 decisions_jury_ues[etudid] = {}
-            decisions_jury_ues[etudid][ue_id] = {'code' : code,
-                                                 'event_date' : DateISOtoDMY(event_date) }
+            # Calcul des ECTS associes a cette UE:
+            ects = 0.
+            if sco_codes_parcours.code_ue_validant(code) and self.context.get_preference('ects_mode', self.formsemestre_id) == 'UE':
+                ue = self.uedict.get(ue_id, None)
+                if ue is None: # not in cache
+                    ue = self.context.do_ue_list(args={'ue_id' : ue_id})[0]
+                    self.uedict[ue_id] = ue # cache
+                ects = ue['ects'] or 0. # 0 if None
+            
+            decisions_jury_ues[etudid][ue_id] = {
+                'code' : code,
+                'ects' : ects, # 0. si non UE validée ou si mode de calcul different (?)
+                'event_date' : DateISOtoDMY(event_date) }
         
         self.decisions_jury_ues = decisions_jury_ues
     

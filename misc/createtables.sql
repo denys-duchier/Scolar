@@ -4,10 +4,11 @@
 
 
 
--- creation de la base:
---  en tant qu'utilisateur postgres
+-- creation de la base: utiliser le script config/create_dept.sh 
+--
+--  ou pour tester: en tant qu'utilisateur postgres
 --     createuser --pwprompt scogea
---     createdb -E latin1 -O scogea SCOGEA "scolarite GEA"
+--     createdb -E UTF-8 -O scogea SCOGEA "scolarite GEA"
 --
 --
 
@@ -314,7 +315,7 @@ CREATE TABLE notes_modules (
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
 	numero int, -- ordre de presentation
 	abbrev text, -- nom court
-	ects real -- nombre de credits ECTS (inutilises: ils sont associes aux UE)
+	ects real -- nombre de credits ECTS (utilises si non associes aux UE)
 ) WITH OIDS;
 
 -- Mise en oeuvre d'un semestre de formation
