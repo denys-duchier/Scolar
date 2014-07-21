@@ -2025,6 +2025,10 @@ table.list_users td.date_modif_passwd {
   white-space: nowrap;
 }
 
+table.formsemestre_description tr.table_row_ue td {
+  font-weight: bold;
+}
+
 /* ----------------------------- */
 
 div.form_rename_partition {

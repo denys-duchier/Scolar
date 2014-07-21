@@ -480,7 +480,24 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
     R = []
     sum_coef = 0
     sum_ects = 0
+    last_ue_id = None
     for M in Mlist:
+        # Ligne UE avec ECTS:
+        ue = M['ue'] 
+        if ue['ue_id'] != last_ue_id:            
+            last_ue_id = ue['ue_id']
+            if ue['ects'] is None:
+                ects_str = '-'
+            else:
+                sum_ects += ue['ects']
+                ects_str = ue['ects']
+            R.append( {
+                'UE' : ue['acronyme'],
+                'ects' : ects_str,
+                'Module' : ue['titre'],
+                '_css_row_class' : 'table_row_ue'
+                } )
+        
         ModInscrits = context.do_moduleimpl_inscription_list( args={ 'moduleimpl_id' : M['moduleimpl_id'] })
         l = { 'UE' : M['ue']['acronyme'],
               'Code' : M['module']['code'],
@@ -498,8 +515,7 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
         R.append(l)
         if M['module']['coefficient']:
             sum_coef += M['module']['coefficient']
-        # if M['module']['ects']:
-        #    sum_ects += M['module']['ects']
+        
         if with_evals:
             # Ajoute lignes pour evaluations
             evals = context.do_evaluation_list( { 'moduleimpl_id' : M['moduleimpl_id'] } )
@@ -524,16 +540,20 @@ def formsemestre_description_table(context, formsemestre_id, REQUEST=None, with_
             R += evals
     
     sums = { '_css_row_class' : 'moyenne sortbottom',
-             # 'ECTS' : sum_ects,
+             'ects' : sum_ects,
              'Coef.' : sum_coef }
     R.append(sums)
-    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.', 'Inscrits', 'Responsable' ]
+    columns_ids = [ 'UE', 'Code', 'Module', 'Coef.' ]
+    if context.get_preference('bul_show_ects', formsemestre_id):
+        columns_ids += [ 'ects' ]
+    columns_ids += [ 'Inscrits', 'Responsable' ]
     if with_evals:
         columns_ids += [ 'jour', 'description', 'coefficient', 'evalcomplete_str', 
                          'publish_incomplete_str' ]
     titles = {}
     # on veut { id : id }, peu elegant en python 2.3:
     map( lambda x,titles=titles: titles.__setitem__(x[0],x[1]), zip(columns_ids,columns_ids) )
+    titles['ects'] = 'ECTS'
     titles['jour'] = 'Evaluation'
     titles['description'] = ''
     titles['coefficient'] = 'Coef. éval.'
