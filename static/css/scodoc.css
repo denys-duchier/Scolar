@@ -1291,6 +1291,10 @@ table.notes_recapcomplet a:hover {
 }
 
 /* bulletin */
+div.notes_bulletin {
+  margin-right: 5px;
+}
+
 table.notes_bulletin {
    border-collapse: collapse;
    border: 2px solid rgb(100,100,240);
@@ -1332,6 +1336,11 @@ tr.notes_bulletin_row_mat {
 
 tr.notes_bulletin_row_mod {
   border-top: 1px solid rgb(140,140,140);
+}
+tr.notes_bulletin_row_sum_ects {
+  border-top: 1px solid black;
+  font-weight: bold;
+  background-color: rgb(170,190,200);
 }
 
 tr.notes_bulletin_row_mod td.titre, tr.notes_bulletin_row_mat td.titre {

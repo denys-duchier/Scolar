@@ -216,7 +216,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         with_col_minmax = prefs['bul_show_minmax'] or prefs['bul_show_minmax_mod']
         with_col_rang = prefs['bul_show_rangs']
         with_col_coef = prefs['bul_show_coef']
-
+        with_col_ects = prefs['bul_show_ects']
+        
         colkeys = ['titre', 'module' ] # noms des colonnes à afficher
         if with_col_rang:
             colkeys += ['rang']
@@ -225,6 +226,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         colkeys += ['note']
         if with_col_coef:
             colkeys += ['coef']
+        if with_col_ects:
+            colkeys += ['ects']
         if with_col_abs:
             colkeys += ['abs']
         colidx = {}  # { nom_colonne : indice à partir de 0 } (pour styles platypus)
@@ -240,7 +243,9 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
         colWidths = { 'titre' : None, 'module' : bul_pdf_mod_colwidth,
                       'min' : 1.5*cm, 'max' : 1.5*cm, 'rang' : 2.2*cm,
                       'note' : 2*cm,
-                      'coef' : 1.5*cm, 'abs' : 2.0*cm }
+                      'coef' : 1.5*cm, 
+                      'ects' : 1.5*cm,
+                      'abs' : 2.0*cm }
         # HTML specific
         linktmpl  = '<span onclick="toggle_vis_ue(this);" class="toggle_ue">%s</span>&nbsp;'
         minuslink = linktmpl % icontag('minus_img', border="0", alt="-")
@@ -248,7 +253,9 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
 
         # 1er ligne titres
         t = { 'min': 'Promotion', 'max' : '', 'rang' : 'Rang',
-              'note' : 'Note/20', 'coef' : 'Coef.',
+              'note' : 'Note/20', 
+              'coef' : 'Coef.',
+              'ects' : 'ECTS',
               'abs' : 'Abs.',
               '_min_colspan' : 2,
               '_css_row_class' : 'note_bold',
@@ -313,6 +320,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                       'module' : ue_descr,
                       'note' : ue['moy_ue_txt'],
                       'coef' : coef_ue,
+                      'ects' : str(int(ue['ects'])),
                       '_css_row_class' : 'notes_bulletin_row_ue',
                       '_tr_attrs' : 'style="background-color: %s"' % self.ue_color_rgb(),
                       '_pdf_row_markup' : ['b'],
@@ -335,6 +343,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                   'rang' : ue_descr,
                   'note' : ue['cur_moy_ue_txt'],
                   'coef' : coef_ue,
+                  'ects' : str(int(ue['ects'])),
                   '_css_row_class' : 'notes_bulletin_row_ue',
                   '_tr_attrs' : 'style="background-color: %s"' % self.ue_color_rgb(ue_type=ue['type']),
                   '_pdf_row_markup' : ['b'],
@@ -360,6 +369,17 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                 self._list_modules(ue['modules'], matieres_modules=self.infos['matieres_modules'],
                                    ue_type=ue_type, P=P, prefs=prefs, rowstyle=rowstyle)
 
+        # Ligne somme ECTS
+        if with_col_ects:            
+            t = { 'titre' : 'Crédits ECTS acquis:',
+                  'ects' : str(int(I['sum_ects'])),
+                  '_css_row_class' : 'notes_bulletin_row_sum_ects',
+                  '_pdf_row_markup' : ['b'], # bold
+                  '_pdf_style' : [ ('BACKGROUND', (0,0), (-1,0), self.PDF_LIGHT_GRAY),
+                                   ('LINEABOVE', (0,0), (-1,0), 1, self.PDF_LINECOLOR),
+                                   ]
+                }
+            P.append(t)
         # Global pdf style commands:
         pdf_style = [
             ('VALIGN', (0,0), (-1,-1), 'TOP'),

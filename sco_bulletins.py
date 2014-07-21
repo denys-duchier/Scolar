@@ -172,6 +172,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['mention'] = get_mention(moy_gen)
     else:
         I['mention'] = ''
+    if dpv:
+        I['sum_ects'] = dpv['decisions'][0]['sum_ects']
+    else:
+        I['sum_ects'] = 0
     I['moy_moy'] = fmt_note(nt.moy_moy) # moyenne des moyennes generales
     if type(moy_gen) != StringType and type(nt.moy_moy) != StringType:
         I['moy_gen_bargraph_html'] = '&nbsp;' + htmlutils.horizontal_bargraph(moy_gen*5, nt.moy_moy*5)
@@ -217,7 +221,10 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             u['cur_moy_ue_txt'] = 'bonus de %s points' % nt.bonus[etudid]
         u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
-        
+        if dpv:
+            u['ects'] = dpv['decisions'][0]['decisions_ue'][ue['ue_id']]['ects']
+        else:
+            u['ects'] = '-'
         modules, ue_attente = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)
         #
         u['modules'] = modules # detail des modules de l'UE (dans le semestre courant)
