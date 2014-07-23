@@ -172,7 +172,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['mention'] = get_mention(moy_gen)
     else:
         I['mention'] = ''
-    if dpv:
+    if dpv and dpv['decisions'][0]:
         I['sum_ects'] = dpv['decisions'][0]['sum_ects']
     else:
         I['sum_ects'] = 0
@@ -221,7 +221,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
             u['cur_moy_ue_txt'] = 'bonus de %s points' % nt.bonus[etudid]
         u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
-        if dpv:
+        if dpv and dpv['decisions'][0]['decisions_ue']:
             u['ects'] = dpv['decisions'][0]['decisions_ue'][ue['ue_id']]['ects']
         else:
             u['ects'] = '-'

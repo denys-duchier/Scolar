@@ -239,7 +239,7 @@ class ParcoursLegacy(TypeParcours):
     COMPENSATION_UE = None # backward compat: defini dans formsemestre
 
 register_parcours(ParcoursLegacy())
-
+    
 class ParcoursUCAC(TypeParcours):
     """Règles de validation UCAC"""
     SESSION_NAME = "année"
