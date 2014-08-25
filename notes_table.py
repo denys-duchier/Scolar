@@ -755,7 +755,7 @@ class NotesTable:
                 decisions_jury_ues[etudid] = {}
             # Calcul des ECTS associes a cette UE:
             ects = 0.
-            if sco_codes_parcours.code_ue_validant(code) and self.context.get_preference('ects_mode', self.formsemestre_id) == 'UE':
+            if sco_codes_parcours.code_ue_validant(code):
                 ue = self.uedict.get(ue_id, None)
                 if ue is None: # not in cache
                     ue = self.context.do_ue_list(args={'ue_id' : ue_id})[0]

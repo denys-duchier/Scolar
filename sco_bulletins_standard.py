@@ -337,13 +337,16 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                 ue_type = 'cur'
                 ue_descr = ''
                 rowstyle=' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
-
+            try:
+                ects_txt = str(int(ue['ects'])),
+            except:
+                ects_txt = '-'
             t = { 'titre' : ue['acronyme'],
                   '_titre_html' : minuslink + ue['acronyme'],
                   'rang' : ue_descr,
                   'note' : ue['cur_moy_ue_txt'],
                   'coef' : coef_ue,
-                  'ects' : str(int(ue['ects'])),
+                  'ects' : ects_txt, 
                   '_css_row_class' : 'notes_bulletin_row_ue',
                   '_tr_attrs' : 'style="background-color: %s"' % self.ue_color_rgb(ue_type=ue['type']),
                   '_pdf_row_markup' : ['b'],
