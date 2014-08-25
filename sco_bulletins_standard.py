@@ -314,13 +314,16 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                     hidden = True
                     cssstyle = 'sco_hide'
                     plusminus = pluslink
-
+                try:
+                    ects_txt = str(int(ue['ects'])),
+                except:
+                    ects_txt = '-'
                 t = { 'titre' : ue['acronyme'],
                       '_titre_html' : plusminus + ue['acronyme'],
                       'module' : ue_descr,
                       'note' : ue['moy_ue_txt'],
                       'coef' : coef_ue,
-                      'ects' : str(int(ue['ects'])),
+                      'ects' : ects_txt,
                       '_css_row_class' : 'notes_bulletin_row_ue',
                       '_tr_attrs' : 'style="background-color: %s"' % self.ue_color_rgb(),
                       '_pdf_row_markup' : ['b'],
