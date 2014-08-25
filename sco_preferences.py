@@ -212,16 +212,6 @@ PREFS = (
        'only_global' : False # peut être spécifique à un semestre
         }
       ),
-    ('ects_mode', # valeurs: 'UE' (defaut), 'module' (futur ?)
-    { 'initvalue' : 'UE',
-      'title' : 'Mode de calcul des ECTS',
-      'category' : 'general',
-      'only_global' : False, # peut être spécifique à un semestre
-      'input_type' : 'radio',
-      'allowed_values' : ('UE', ), # , 'module'),
-      'labels' : ( 'par UE', ), # 'par modules', ),
-        }
-      ),
     ( 'email_chefdpt',
       { 'initvalue' : '',
         'title' : 'e-mail chef du département',
