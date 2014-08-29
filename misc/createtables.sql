@@ -315,7 +315,7 @@ CREATE TABLE notes_modules (
 	semestre_id integer REFERENCES notes_semestres(semestre_id),
 	numero int, -- ordre de presentation
 	abbrev text, -- nom court
-	ects real -- nombre de credits ECTS (utilises si non associes aux UE)
+	ects real -- nombre de credits ECTS (NON UTILISES)
 ) WITH OIDS;
 
 -- Mise en oeuvre d'un semestre de formation

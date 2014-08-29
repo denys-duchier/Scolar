@@ -97,6 +97,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
     I = DictDefault(defaultvalue='')
     I['etudid'] = etudid
     I['formsemestre_id'] = formsemestre_id
+    I['sem'] = context.get_formsemestre(formsemestre_id)
     if REQUEST:
         I['server_name'] = REQUEST.BASE0
     else:
@@ -104,7 +105,9 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
 
     prefs = context.get_preferences(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> toutes notes
-    
+    # Formation et parcours
+    I['formation'] = context.formation_list( args={ 'formation_id' : I['sem']['formation_id'] } )[0]
+    I['parcours'] = sco_codes_parcours.get_parcours_from_code(I['formation']['type_parcours'])
     # Infos sur l'etudiant
     I['etud'] = context.getEtudInfo(etudid=etudid,filled=1)[0] 
     I['descr_situation'] = I['etud']['inscriptionstr']
@@ -260,8 +263,7 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         I['matieres_modules'].update(_sort_mod_by_matiere(modules, nt, etudid))
 
     #
-    sem = context.get_formsemestre(formsemestre_id)
-    C = make_context_dict(context, sem, I['etud'])
+    C = make_context_dict(context, I['sem'], I['etud'])
     C.update(I)
     #
     # log( 'C = \n%s\n' % pprint.pformat(C) ) # tres pratique pour voir toutes les infos dispo

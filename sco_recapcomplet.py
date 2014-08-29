@@ -34,6 +34,7 @@ import sco_groups
 import sco_evaluations
 import sco_formsemestre_status
 import sco_bulletins_xml
+import sco_codes_parcours
 
 def formsemestre_recapcomplet(context, formsemestre_id=None, 
                               modejury=False, # affiche lien saisie decision jury
@@ -49,9 +50,12 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     pour tous les étudiants, les moyennes par UE et générale,
     trié par moyenne générale décroissante.
     """
+    sem = context.do_formsemestre_list(args={ 'formsemestre_id' : formsemestre_id } )[0]
+    F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     # traduit du DTML
     modejury=int(modejury)
-    hidemodules=int(hidemodules)
+    hidemodules = int(hidemodules) or parcours.UE_IS_MODULE # cache les colonnes des modules
     xml_with_decisions=int(xml_with_decisions)
     isFile = tabformat in ('csv','xls','xml', 'xlsall')
     H = []
@@ -82,10 +86,11 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
         H.append('</select>')
         
         H.append("""(cliquer sur un nom pour afficher son bulletin ou <a class="stdlink" href="%s/Notes/formsemestre_bulletins_pdf?formsemestre_id=%s">ici avoir le classeur papier</a>)""" % (context.ScoURL(), formsemestre_id))
-        H.append( """<input type="checkbox" name="hidemodules" value="1" onchange="document.f.submit()" """)
-        if hidemodules:
-            H.append('checked')
-        H.append(""" >cacher les modules</input>""")
+        if not parcours.UE_IS_MODULE:
+            H.append( """<input type="checkbox" name="hidemodules" value="1" onchange="document.f.submit()" """)
+            if hidemodules:
+                H.append('checked')
+            H.append(""" >cacher les modules</input>""")
 
     if tabformat == 'xml':
         REQUEST.RESPONSE.setHeader('content-type', 'text/xml')

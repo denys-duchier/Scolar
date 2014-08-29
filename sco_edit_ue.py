@@ -56,13 +56,15 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         initvalues = U
         submitlabel = 'Modifier les valeurs'
     else:
-        title = "Creation d'une UE"
+        title = "Création d'une UE"
         initvalues = {}
         submitlabel = 'Créer cette UE'
     Fol = context.formation_list( args={ 'formation_id' : formation_id } )
     if not Fol:
         raise ScoValueError("Formation %s inexistante ! (si vous avez suivi un lien valide, merci de signaler le problème)" % formation_id)
     Fo = Fol[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
+    
     H = [ context.sco_header(REQUEST, page_title=title,
                              javascripts=[ 'js/edit_ue.js' ]
                              ),
@@ -93,9 +95,16 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
                    'allowed_values': ue_types,
                    'labels' : ue_types_names }),
         ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
-        ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-desous.' }),
+        ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-dessous.' }),
     ]
-    if create:
+    if parcours.UE_IS_MODULE:
+        # demande le semestre pour creer le module immediatement:
+        semestres_indices = range(1, parcours.NB_SEM+1)
+        fw.append( ('semestre_id', { 'input_type' : 'menu',  'type' : 'int',
+                          'title' : strcapitalize(parcours.SESSION_NAME), 
+                          'explanation' : '%s de début du module dans la formation' % parcours.SESSION_NAME,
+                          'labels' : [ str(x) for x in semestres_indices ], 'allowed_values' : semestres_indices }) )
+    if create and not parcours.UE_IS_MODULE:
         fw.append(  ('create_matiere',
                      { 'input_type' : 'boolcheckbox',
                        'default' : False,
@@ -113,8 +122,19 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
             if not tf[2]['ue_code']:
                 del tf[2]['ue_code']
             ue_id = context.do_ue_create(tf[2],REQUEST)
-            if tf[2]['create_matiere']:
+            if parcours.UE_IS_MODULE or tf[2]['create_matiere']:
                 matiere_id = context.do_matiere_create( { 'ue_id' : ue_id, 'titre' : tf[2]['titre'], 'numero' : 1 }, REQUEST )
+            if parcours.UE_IS_MODULE:
+                # dans ce mode, crée un (unique) module dans l'UE:
+                module_id = context.do_module_create( 
+                    { 'titre' : tf[2]['titre'], 
+                      'code' : tf[2]['acronyme'], 
+                      'coefficient' : 1.0, # tous les modules auront coef 1, et on utilisera les ECTS
+                      'ue_id' : ue_id,
+                      'matiere_id' : matiere_id,
+                      'formation_id' : formation_id,
+                      'semestre_id' : tf[2]['semestre_id'], 
+                      }, REQUEST )                      
         else:
             ue_id = do_ue_edit(context, tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + formation_id )
@@ -137,7 +157,8 @@ def ue_delete(context, ue_id=None, delete_validations=False, dialog_confirmed=Fa
 
 
 def ue_list(context, formation_id=None, msg='', REQUEST=None):
-    """Liste des matières (dans une formation)
+    """Liste des matières et modules d'une formation, avec liens pour 
+    editer (si non verrouillée).
     """
     authuser = REQUEST.AUTHENTICATED_USER
 
@@ -147,7 +168,7 @@ def ue_list(context, formation_id=None, msg='', REQUEST=None):
     F = F[0]
     parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
     locked = context.formation_has_locked_sems(formation_id)
-
+    
     perm_change = authuser.has_permission(ScoChangeFormation,context)
     # editable = (not locked) and perm_change
     # On autorise maintanant la modification des formations qui ont des semestres verrouillés,
@@ -186,7 +207,9 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
     H.append('<div class="fd_d"><span class="fd_t">Acronyme:</span><span class="fd_v">%(acronyme)s</span></div>' % F )
     H.append('<div class="fd_d"><span class="fd_t">Code:</span><span class="fd_v">%(formation_code)s</span></div>' % F )
     H.append('<div class="fd_d"><span class="fd_t">Version:</span><span class="fd_v">%(version)s</span></div>' % F )
-    H.append('<div class="fd_d"><span class="fd_t">Type parcours:</span><span class="fd_v">%s</span></div>' % sco_codes_parcours.get_parcours_from_code(F['type_parcours']).__doc__ )
+    H.append('<div class="fd_d"><span class="fd_t">Type parcours:</span><span class="fd_v">%s</span></div>' % parcours.__doc__ )
+    if parcours.UE_IS_MODULE:
+        H.append('<div class="fd_d"><span class="fd_t"> </span><span class="fd_n">(Chaque module est une UE)</span></div>' )
     H.append('<div><a href="formation_edit?formation_id=%(formation_id)s" class="stdlink">modifier ces informations</a></div>' % F )
     H.append('</div>')
     # Description des UE/matières/modules
@@ -210,7 +233,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
         Matlist = context.do_matiere_list( args={ 'ue_id' : UE['ue_id'] } )
         for Mat in Matlist:
             H.append('<li class="notes_matiere_list">%(titre)s' % Mat)
-            if editable and not context.matiere_is_locked(Mat['matiere_id']):
+            if editable and not context.matiere_is_locked(Mat['matiere_id']) and not parcours.UE_IS_MODULE:
                 H.append('<a class="stdlink" href="matiere_edit?matiere_id=%(matiere_id)s">modifier</a>' % Mat)
             H.append('<ul class="notes_module_list">')
             Modlist = context.do_module_list( args={ 'matiere_id' : Mat['matiere_id'] } )
@@ -239,8 +262,6 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 if mod_editable:
                     H.append('</a>')
                 heurescoef = '%(heures_cours)s/%(heures_td)s/%(heures_tp)s, coef. %(coefficient)s' % Mod
-                if Mod['ects'] is not None:
-                    heurescoef += ', %g ECTS' % Mod['ects']
                 H.append(' (%s %s)' % (parcours.SESSION_NAME, Mod['semestre_id']) + ' (%s)' % heurescoef )
                 H.append('</li>')
             if not Modlist:
@@ -248,7 +269,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 if editable:
                     H.append('<a class="stdlink" href="matiere_delete?matiere_id=%(matiere_id)s">supprimer cette matière</a>' % Mat)
                 H.append('</li>')
-            if editable:
+            if editable and ((not parcours.UE_IS_MODULE) or len(Modlist) == 0):
                 H.append('<li> <a class="stdlink" href="module_create?matiere_id=%(matiere_id)s">créer un module</a></li>' % Mat)            
             H.append('</ul>')
             H.append('</li>')
@@ -257,7 +278,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
             if editable:
                 H.append("""<a class="stdlink" href="ue_delete?ue_id=%(ue_id)s">supprimer l'UE</a>""" % UE)
             H.append('</li>')
-        if editable:
+        if editable and not parcours.UE_IS_MODULE:
             H.append('<li><a class="stdlink" href="matiere_create?ue_id=%(ue_id)s">créer une matière</a> </li>' % UE)
         H.append('</ul>')
     if editable:

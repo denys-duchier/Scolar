@@ -1101,6 +1101,12 @@ div.formation_descr span.fd_t {
   font-weight: bold;
   margin-right: 1em;
 }
+div.formation_descr span.fd_n {
+  font-weight: bold;
+  font-style: italic;
+  color: green;
+  margin-left: 6em;
+}
 
 div.ue_list_tit {
   font-weight: bold;

@@ -32,7 +32,7 @@ Note: la structure de ce XML est issue de (mauvais) choix historiques
 et ne peut pas être modifiée car d'autres logiciels l'utilisent (portail publication bulletins etudiants).
 
 Je recommande d'utiliser la version JSON.
-Malheureusement, le code de génération JSON et XML sont séparés, ce qui est absurde et complique la maintenance (si on ajoute des informations au xbuletins).
+Malheureusement, le code de génération JSON et XML sont séparés, ce qui est absurde et complique la maintenance (si on ajoute des informations aux bulletins).
 
 Je propose de considérer le XMl comme "deprecated" et de ne plus le modifier, sauf nécessité.
 """
@@ -151,6 +151,13 @@ def make_xml_formsemestre_bulletinetud(
         doc._push()
         doc.note( value=fmt_note(ue_status['cur_moy_ue']), 
                   min=fmt_note(ue['min']), max=fmt_note(ue['max']) )
+        doc._pop()
+        try:
+            ects_txt = str(int(ue['ects']))
+        except:
+            ects_txt = ''
+        doc._push()
+        doc.ects( value=ects_txt )
         doc._pop()
         doc._push()
         doc.rang( value=str(nt.ue_rangs[ue['ue_id']][0][etudid]) )

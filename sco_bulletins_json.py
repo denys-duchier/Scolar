@@ -159,6 +159,10 @@ def formsemestre_bulletinetud_published_dict(
     d['ue_capitalisee'] = []
     for ue in ues:
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
+        try:
+            ects_txt = str(int(ue['ects']))
+        except:
+            ects_txt = ''
         u =  dict( id=ue['ue_id'],
                   numero=quote_xml_attr(ue['numero']),
                   acronyme=quote_xml_attr(ue['acronyme']),
@@ -166,7 +170,8 @@ def formsemestre_bulletinetud_published_dict(
                   note = dict(value=fmt_note(ue_status['cur_moy_ue']), 
                               min=fmt_note(ue['min']), max=fmt_note(ue['max'])),                            
                   rang = str(nt.ue_rangs[ue['ue_id']][0][etudid]),
-                  effectif = str(nt.ue_rangs[ue['ue_id']][1] - nt.nb_demissions)
+                  effectif = str(nt.ue_rangs[ue['ue_id']][1] - nt.nb_demissions),
+                  ects = ects_txt
                 )
         d['ue'].append(u) 
         u['module'] = []

@@ -152,8 +152,7 @@ class TypeParcours:
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
     SESSION_NAME = 'semestre'
     UNUSED_CODES = set() # Ensemble des codes jury non autorisés dans ce parcours
-
-    ECTS_MODULE = False # pas d'ECTS associés aux modules (ils sont associés aux UE)
+    UE_IS_MODULE = False # 1 seul module par UE
     
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
@@ -246,23 +245,32 @@ register_parcours(ParcoursLegacy())
 class ParcoursISCID(TypeParcours):
     """Superclasse pour les parcours de l'ISCID"""
     COMPENSATION_UE = False
-    ECTS_MODULE = True # todo
+    UE_IS_MODULE = True # todo
     ECTS_JURY = True # a voir ? XXX
     NOTES_BARRE_VALID_MODULE_TH = 10.
     NOTES_BARRE_VALID_MODULE = NOTES_BARRE_VALID_MODULE_TH - NOTES_TOLERANCE # barre sur module
     ECTS_BARRE_VALID_YEAR = 60
 
-class ParcoursBachelorISCID(ParcoursISCID):
+class ParcoursBachelorISCID6(ParcoursISCID):
+    """Bachelor ISCID en 3 ans"""
+    NAME = "ParcoursBachelorISCID6"
     TYPE_PARCOURS = 1001
-    NAME = "Bachelor ISCID en 6 semestres"
+    NAME = ""
+    SESSION_NAME = "année"
     NB_SEM = 3
 
-class ParcoursMasterISCID(ParcoursISCID):
-    TYPE_PARCOURS = 1002
-    NAME = "Master ISCID en 4 semestres"
-    NB_SEM = 4
+register_parcours(ParcoursBachelorISCID6())
 
-# XXX TODO: call register_parcours()
+class ParcoursMasterISCID4(ParcoursISCID):
+    "Master ISCID en 2 ans"
+    TYPE_PARCOURS = 1002
+    NAME = "ParcoursMasterISCID4"
+    SESSION_NAME = "année"
+    NB_SEM = 2
+
+register_parcours(ParcoursMasterISCID4())
+
+
 
 class ParcoursUCAC(TypeParcours):
     """Règles de validation UCAC"""

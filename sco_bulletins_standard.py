@@ -55,6 +55,7 @@ import sco_bulletins_generator
 import sco_bulletins_pdf
 import sco_groups
 import gen_tables
+import sco_codes_parcours
 
 # Important: Le nom de la classe ne doit pas changer (bien le choisir), car il sera stocké en base de données (dans les préférences)
 class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
@@ -318,6 +319,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                     ects_txt = str(int(ue['ects'])),
                 except:
                     ects_txt = '-'
+                
                 t = { 'titre' : ue['acronyme'],
                       '_titre_html' : plusminus + ue['acronyme'],
                       'module' : ue_descr,
@@ -341,11 +343,12 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                 ue_descr = ''
                 rowstyle=' bul_row_ue_cur' # style css pour indiquer UE non prise en compte
             try:
-                ects_txt = str(int(ue['ects'])),
+                ects_txt = str(int(ue['ects']))
             except:
                 ects_txt = '-'
             t = { 'titre' : ue['acronyme'],
                   '_titre_html' : minuslink + ue['acronyme'],
+                  'module' : ue['titre'],
                   'rang' : ue_descr,
                   'note' : ue['cur_moy_ue_txt'],
                   'coef' : coef_ue,
@@ -399,6 +402,8 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                       rowstyle='', hidden=False):
         """Liste dans la table les descriptions des modules et, si version != short, des évaluations.
         """
+        if self.infos['parcours'].UE_IS_MODULE:
+            return # ne liste pas les modules
         if ue_type == 'cur':  # UE courante non prise en compte (car capitalisee)
             pdf_style_bg = [('BACKGROUND', (0,0), (-1,0), self.PDF_UE_CUR_BG)]
         else:
