@@ -316,7 +316,7 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                     cssstyle = 'sco_hide'
                     plusminus = pluslink
                 try:
-                    ects_txt = str(int(ue['ects'])),
+                    ects_txt = str(int(ue['ects']))
                 except:
                     ects_txt = '-'
                 
