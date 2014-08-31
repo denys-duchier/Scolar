@@ -188,6 +188,16 @@ class ParcoursDUT4(ParcoursDUT):
 register_parcours(ParcoursDUT4())
 
 
+class ParcoursDUTMono(TypeParcours):
+    """DUT en un an (FC, Années spéciales)"""
+    TYPE_PARCOURS = 120
+    NAME = "DUT"
+    NB_SEM = 1
+    COMPENSATION_UE = False
+    UNUSED_CODES = set( (ADC, ATT, ATB) )
+
+register_parcours(ParcoursDUTMono())
+    
 class ParcoursLP(TypeParcours):
     """Licence Pro (en un "semestre")"""
     TYPE_PARCOURS = 200

@@ -1162,7 +1162,7 @@ def get_formsemestre_sessionid(context, sem, F, parcours):
         decale = sem_decale_str(sem)
         semestre_id = 'S%d' % sem['semestre_id'] + decale
     else:
-        semestre_id = F['code_specialite'] # XXX TODO
+        semestre_id = F['code_specialite']
     annee_sco = str(annee_scolaire_debut(sem['annee_debut'], sem['mois_debut_ord']))
     
     return '-'.join( (DeptName, parcours_type, modalite, semestre_id, annee_sco) )
