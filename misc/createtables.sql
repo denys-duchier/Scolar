@@ -265,6 +265,7 @@ CREATE TABLE notes_formations (
 	version integer default 1, -- version de la formation
 	formation_code text default notes_newid_fcod('FCOD') NOT NULL,
 	type_parcours  int DEFAULT 0, -- 0 DUT, 100 Lic Pro
+    code_specialite text default NULL,
 	UNIQUE(acronyme,titre,version)
 ) WITH OIDS;
 
@@ -274,7 +275,7 @@ CREATE TABLE notes_ue (
 	acronyme text NOT NULL,
 	numero int, -- ordre de presentation
 	titre text,
-	type  int DEFAULT 0, -- 0 normal, 1 "sport", 2 "projet et stage (LP)"
+	type  int DEFAULT 0, -- 0 normal ("fondamentale"), 1 "sport", 2 "projet et stage (LP)", 4 "élective"
 	ue_code text default notes_newid_fcod('UCOD') NOT NULL,
     ects real -- nombre de credits ECTS
 ) WITH OIDS;
@@ -325,7 +326,7 @@ CREATE TABLE notes_formsemestre (
 	semestre_id int REFERENCES notes_semestres(semestre_id),
 	titre text,
 	date_debut date,
-        date_fin   date,
+    date_fin   date,
 	responsable_id text,
         -- gestion_absence integer default 1,   -- XXX obsolete
 	-- bul_show_decision integer default 1, -- XXX obsolete

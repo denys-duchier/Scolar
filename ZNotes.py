@@ -318,7 +318,14 @@ class ZNotes(ObjectManager,
     _formationEditor = EditableTable(
         'notes_formations',
         'formation_id',
-        ('formation_id', 'acronyme','titre', 'titre_officiel', 'version', 'formation_code', 'type_parcours'),
+        ('formation_id', 
+         'acronyme',
+         'titre', 
+         'titre_officiel', 
+         'version', 
+         'formation_code', 
+         'type_parcours', 
+         'code_specialite'),
         sortkey='acronyme'
         )
 
@@ -883,6 +890,7 @@ class ZNotes(ObjectManager,
             sem['mois_fin'] = mois_fin + ' ' + annee_fin
             sem['titremois'] =  '%s %s  (%s - %s)' % (sem['titre_num'], sem.get('modalite',''), 
                                                     sem['mois_debut'], sem['mois_fin'])
+            sem['session_id'] = sco_formsemestre_edit.get_formsemestre_sessionid(self, sem, F, parcours)
         # tri par date
         sems.sort(lambda x,y: cmp(y['dateord'],x['dateord']))
 

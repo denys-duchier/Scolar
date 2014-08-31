@@ -78,12 +78,13 @@ NOTES_BARRE_GEN = NOTES_BARRE_GEN_TH-NOTES_TOLERANCE # barre sur moyenne general
 UE_STANDARD = 0
 UE_SPORT = 1
 UE_STAGE_LP = 2 # ue "projet tuteuré et stage" dans les Lic. Pro.
-#UE_FONDAMENTALE = 3 # ue dite "fondamentale" dans certains parcours (eg UCAC)
-#UE_OPTIONNELLE  = 4 # ue dite "optionnelle" dans certains parcours (eg UCAC)
+UE_ELECTIVE = 4 # UE "élective" dans certains parcours (UCAC?, ISCID)
+
 
 UE_TYPE_NAME = { UE_STANDARD : 'Standard', 
                  UE_SPORT : 'Sport/Culture (points bonus)', 
                  UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)",
+                 UE_ELECTIVE : "Elective (ISCID)"
 #                 UE_FONDAMENTALE : '"Fondamentale" (eg UCAC)',
 #                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
                  }
@@ -508,6 +509,18 @@ def annee_scolaire_debut(year, month):
         return int(year)
     else:
         return int(year) - 1
+
+def sem_decale_str(sem):
+    """'D' si semestre decalé, ou ''"""
+    # considère "décalé" les semestre impairs commençant entre janvier et juin
+    # et les pairs entre juillet et decembre
+    if sem['semestre_id'] <= 0:
+        return ''
+    if ((sem['semestre_id'] % 2 and sem['mois_debut_ord'] <= 6) 
+        or (not sem['semestre_id'] % 2 and sem['mois_debut_ord'] > 6)):
+        return 'D'
+    else:
+        return ''
 
 # Graphes (optionnel pour ne pas accroitre les dependances de ScoDoc)
 try:

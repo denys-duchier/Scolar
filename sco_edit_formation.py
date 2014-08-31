@@ -113,6 +113,7 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
                             'explanation' : "détermine notamment le nombre de semestres et les règles de validation d'UE et de semestres (barres)",
                             }),
         ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
+        ('code_specialite', { 'size' : 12, 'title' : 'Code spécialité', 'explanation' : "optionel: code utilisé pour échanger avec d'autres logiciels et identifiant la filière ou spécialité (exemple: ASUR). N'est utilisé que s'il n'y a pas de numéro de semestre." })
         ),
                            initvalues = initvalues,
                            submitlabel = submitlabel)

@@ -395,6 +395,11 @@ for dept in get_depts():
     """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('DEC', 'Formation Décalées');""",
     """INSERT INTO notes_form_modalites (modalite, titre) VALUES ('LIC', 'Licence');"""
     ] )
+    # Add code_specialite
+    check_field( cnx, 'notes_formations', 'code_specialite',
+                 [ 'alter table notes_formations add column code_specialite text default NULL',
+                   ])
+    
     # Add here actions to performs after upgrades:
     
     cnx.commit()

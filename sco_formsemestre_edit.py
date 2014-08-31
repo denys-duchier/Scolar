@@ -1134,4 +1134,37 @@ def formsemestre_edit_uecoefs(context, formsemestre_id, REQUEST=None):
         header = context.html_sem_header(REQUEST,  'Coefficients des UE du semestre', sem)
         return header + '\n'.join(z) + """<p><a href="formsemestre_status?formsemestre_id=%s">Revenir au tableau de bord</a></p>""" % formsemestre_id + footer
         
+
+# ----- identification externe des sessions (pour SOJA et autres logiciels)
+def get_formsemestre_sessionid(context, sem, F, parcours):
+    """Identifiant de session pour ce semestre
+    Exemple:  RT-DUT-FI-S1-ANNEE
+
+    DEPT-TYPE-MODALITE+-S?|SPECIALITE
     
+    TYPE=DUT|LP*|M*
+    MODALITE=FC|FI|FA (si plusieurs, en inverse alpha)
+    
+    SPECIALITE=[A-Z]+   EON,ASSUR, ... (si pas Sn ou SnD)
+
+    ANNEE=annee universitaire de debut (exemple: un S2 de 2013-2014 sera S2-2013)
+    
+    """
+    #sem = context.get_formsemestre(formsemestre_id)
+    #F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    #parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
+
+    DeptName = context.get_preference('DeptName')
+    parcours_type = parcours.NAME
+    modalite = sem['modalite']
+    modalite = (modalite or '').replace('FAP', 'FA').replace('APP', 'FA') # exception pour code Apprentissage
+    if sem['semestre_id'] > 0:
+        decale = sem_decale_str(sem)
+        semestre_id = 'S%d' % sem['semestre_id'] + decale
+    else:
+        semestre_id = F['code_specialite'] # XXX TODO
+    annee_sco = str(annee_scolaire_debut(sem['annee_debut'], sem['mois_debut_ord']))
+    
+    return '-'.join( (DeptName, parcours_type, modalite, semestre_id, annee_sco) )
+
+
