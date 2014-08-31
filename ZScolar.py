@@ -657,7 +657,7 @@ class ZScolar(ObjectManager,
     def _sem_table(self, sems):
         tmpl = """<tr class="%(trclass)s">%(tmpcode)s
         <td class="semicon">%(lockimg)s <a href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s#groupes">%(groupicon)s</a></td>        
-        <td class="datesem">%(mois_debut)s</td><td class="datesem">- %(mois_fin)s</td>
+        <td class="datesem">%(mois_debut)s</td><td class="datesem"><a title="%(session_id)s">-</a> %(mois_fin)s</td>
         <td><a class="stdlink" href="Notes/formsemestre_status?formsemestre_id=%(formsemestre_id)s">%(titre_num)s</a>
         <span class="respsem">(%(responsable_name)s)</span>
         </td>
