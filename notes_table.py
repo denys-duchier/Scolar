@@ -561,7 +561,7 @@ class NotesTable:
              'moy' : , 'coef_ue' : , # avec capitalisation eventuelle
              'cur_moy_ue' : , 'cur_coef_ue' # dans ce sem., sans capitalisation
              'is_capitalized' : True|False,
-             'ects' : nb de crédits ECTS acquis dans cette UE,
+             'ects_pot' : (float) nb de crédits ECTS qui seraient validés (sous réserve de validation par le jury),
              'formsemestre_id' : (si capitalisee),
              'event_date' : (si capitalisee)
              }
@@ -615,8 +615,12 @@ class NotesTable:
                 mu['capitalized_ue_id'] = capitalized_ue_id
             if mu['was_capitalized']:
                 mu['event_date'] = event_date
-            
-            # - Calcul moyenne:
+            # - ECTS ?
+            if type(mu['moy']) == FloatType and mu['moy'] >= self.parcours.NOTES_BARRE_VALID_UE:
+                mu['ects_pot'] = ue['ects'] or 0.
+            else:
+                mu['ects_pot'] = 0.
+            # - Calcul moyenne générale dans le semestre:
             if mu['is_capitalized']:
                 try:
                     sum_notes += mu['moy'] * mu['coef_ue']
