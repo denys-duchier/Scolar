@@ -399,6 +399,8 @@ for dept in get_depts():
     check_field( cnx, 'notes_formations', 'code_specialite',
                  [ 'alter table notes_formations add column code_specialite text default NULL',
                    ])
+    # Fix modules without codes
+    cursor.execute("UPDATE notes_modules SET code = 'M_' || coalesce(upper(substring(titre from 1 for 2)), '') || '_' || coalesce(semestre_id,'0') where code is NULL;");
     
     # Add here actions to performs after upgrades:
     

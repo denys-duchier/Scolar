@@ -305,7 +305,7 @@ INSERT INTO notes_semestres (semestre_id) VALUES (8);
 CREATE TABLE notes_modules (
 	module_id text default notes_newid('MOD') PRIMARY KEY,
 	titre text,
-	code  text,
+	code  text NOT NULL,
 	heures_cours real, 
 	heures_td real, 
 	heures_tp real,

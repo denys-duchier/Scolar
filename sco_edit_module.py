@@ -73,7 +73,9 @@ def module_create(context, matiere_id=None, REQUEST=None):
     else:
         default_num = 10
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
-        ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
+        ('code'    , { 'size' : 10, 'explanation' : 'code du module (doit être unique dans la formation)', 'allow_null' : False,
+                       'validator' : lambda val, field, formation_id=Fo['formation_id']: check_module_code_unicity(val, field, formation_id, context),
+                       }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
         ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrégé (pour bulletins)' }),
 
@@ -129,6 +131,15 @@ def module_delete(context, module_id=None, REQUEST=None):
         context.do_module_delete( module_id, REQUEST )
         return REQUEST.RESPONSE.redirect(dest_url)
 
+def check_module_code_unicity(code, field, formation_id, context, module_id=None):
+    "true si code module unique dans la formation"
+    Mods = context.do_module_list( args={ 'code' : code, 'formation_id' : formation_id } )
+    if module_id: # edition: supprime le module en cours
+        Mods = [ m for m in Mods if m['module_id'] != module_id ]
+    
+    return len(Mods) == 0
+
+    
 def module_edit(context, module_id=None, REQUEST=None):
     """Edit a module"""
     if not module_id:
@@ -157,7 +168,9 @@ def module_edit(context, module_id=None, REQUEST=None):
         H.append("""<div class="ue_warning"><span>Formation verrouillée, seuls certains éléments peuvent être modifiés</span></div>""")
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
-        ('code'    , { 'size' : 10, 'explanation' : 'code du module' }),
+        ('code'    , { 'size' : 10, 'explanation' : 'code du module (doit être unique dans la formation)', 'allow_null' : False, 
+                       'validator' : lambda val, field, formation_id=Mod['formation_id']: check_module_code_unicity(val, field, formation_id, context, module_id=module_id),
+                       }),
         ('titre'    , { 'size' : 30, 'explanation' : 'nom du module' }),
         ('abbrev'    , { 'size' : 20, 'explanation' : 'nom abrégé (pour bulletins)' }),
 
@@ -191,6 +204,8 @@ def module_edit(context, module_id=None, REQUEST=None):
     else:
         # l'UE peut changer
         tf[2]['ue_id'], tf[2]['matiere_id'] = tf[2]['ue_matiere_id'].split('!')
+        # Check unicité code module dans la formation
+        
         context.do_module_edit(tf[2])
         return REQUEST.RESPONSE.redirect(dest_url)
 
