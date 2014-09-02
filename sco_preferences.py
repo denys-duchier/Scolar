@@ -961,6 +961,13 @@ Année scolaire: %(anneescolaire)s
         'cols' : 16,
         'category' : 'edt'
         }),
+    ( 'ImputationDept',
+      { 'title' : "Département d'imputation",
+        'initvalue' : '',
+        'explanation' : 'préfixe id de session (optionnel, remplace nom département)',
+        'size' : 10,
+        'category' : 'edt'
+        }),
 )
 
 PREFS_NAMES = set( [ x[0] for x in PREFS ] )

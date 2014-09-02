@@ -1154,7 +1154,10 @@ def get_formsemestre_sessionid(context, sem, F, parcours):
     #F = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
     #parcours = sco_codes_parcours.get_parcours_from_code(F['type_parcours'])
 
-    DeptName = context.get_preference('DeptName').upper()
+    ImputationDept = context.get_preference('ImputationDept', sem['formsemestre_id'])
+    if not ImputationDept:
+        ImputationDept = context.get_preference('DeptName')
+    ImputationDept = ImputationDept.upper()
     parcours_type = parcours.NAME
     modalite = sem['modalite']
     modalite = (modalite or '').replace('FAP', 'FA').replace('APP', 'FA') # exception pour code Apprentissage
@@ -1165,6 +1168,6 @@ def get_formsemestre_sessionid(context, sem, F, parcours):
         semestre_id = F['code_specialite']
     annee_sco = str(annee_scolaire_debut(sem['annee_debut'], sem['mois_debut_ord']))
     
-    return '-'.join( (DeptName, parcours_type, modalite, semestre_id, annee_sco) )
+    return '-'.join( (ImputationDept, parcours_type, modalite, semestre_id, annee_sco) )
 
 
