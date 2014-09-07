@@ -219,13 +219,15 @@ def formsemestre_bulletinetud_dict(context, formsemestre_id, etudid, version='lo
         ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
         u['ue_status'] = ue_status # { 'moy', 'coef_ue', ...}
         if ue['type'] != UE_SPORT:
-            u['cur_moy_ue_txt'] = fmt_note(ue_status['cur_moy_ue'])
+            u['cur_moy_ue_txt'] = fmt_note(ue_status['cur_moy_ue'])            
         else:
             u['cur_moy_ue_txt'] = 'bonus de %s points' % nt.bonus[etudid]
         u['moy_ue_txt']  = fmt_note(ue_status['moy'])
         u['coef_ue_txt'] = fmt_coef(ue_status['coef_ue'])
         if dpv and dpv['decisions'][0]['decisions_ue'] and ue['ue_id'] in dpv['decisions'][0]['decisions_ue']:
             u['ects'] = dpv['decisions'][0]['decisions_ue'][ue['ue_id']]['ects']
+            if ue['type'] == UE_ELECTIVE:
+                u['ects'] = '%g+' % u['ects'] # ajoute un "+" pour indiquer ECTS d'une UE élective
         else:
             u['ects'] = '-'
         modules, ue_attente = _ue_mod_bulletin(context, etudid, formsemestre_id, ue['ue_id'], modimpls, nt, version)

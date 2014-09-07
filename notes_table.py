@@ -171,6 +171,7 @@ class NotesTable:
         self.comp_ue_coefs(cnx)
         self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)
         self.moy_ue = {} # ue_id : { etudid : moy ue } (valeur numerique)
+        self.etud_moy_infos = {} # etudid : resultats de comp_etud_moy_gen()
         valid_moy = [] # liste des valeurs valides de moyenne generale (pour min/max)
         for ue in self._ues:
             self.moy_ue[ue['ue_id']] = {}
@@ -178,6 +179,7 @@ class NotesTable:
 
         for etudid in self.get_etudids():
             etud_moy_gen = self.comp_etud_moy_gen(etudid, cnx)
+            self.etud_moy_infos[etudid] = etud_moy_gen
             ue_status = etud_moy_gen['moy_ues']
             self._etud_moy_ues[etudid] = ue_status
             
@@ -554,14 +556,17 @@ class NotesTable:
     def comp_etud_moy_gen(self, etudid, cnx):
         """Calcule moyenne gen. pour un etudiant
         Return a dict:
-         moy  : moyenne générale
+         moy  : moyenne générale         
          nb_notes, nb_missing, sum_coefs
+         ects_pot : (float) nb de crédits ECTS qui seraient validés (sous réserve de validation par le jury),
+         ects_pot_fond: (float) nb d'ECTS issus d'UE fondamentales (non électives)
          moy_ues : { ue_id : ue_status }
         où ue_status = {
              'moy' : , 'coef_ue' : , # avec capitalisation eventuelle
              'cur_moy_ue' : , 'cur_coef_ue' # dans ce sem., sans capitalisation
              'is_capitalized' : True|False,
              'ects_pot' : (float) nb de crédits ECTS qui seraient validés (sous réserve de validation par le jury),
+             'ects_pot_fond': 0. si UE non fondamentale, = ects_pot sinon, 
              'formsemestre_id' : (si capitalisee),
              'event_date' : (si capitalisee)
              }
@@ -577,6 +582,8 @@ class NotesTable:
         sum_notes = 0. # somme des notes d'UE
         sum_coefs = 0. # somme des coefs d'UE (eux même somme des coefs de modules avec notes)
         nb_missing = 0 # nombre d'UE sans notes
+        sem_ects_pot = 0.
+        sem_ects_pot_fond = 0.
         
         for ue in self.get_ues():
             ue_id = ue['ue_id']
@@ -618,8 +625,16 @@ class NotesTable:
             # - ECTS ?
             if type(mu['moy']) == FloatType and mu['moy'] >= self.parcours.NOTES_BARRE_VALID_UE:
                 mu['ects_pot'] = ue['ects'] or 0.
+                if UE_is_fondamentale(ue['type']):
+                    mu['ects_pot_fond'] = mu['ects_pot']
+                else:
+                    mu['ects_pot_fond'] = 0.
             else:
                 mu['ects_pot'] = 0.
+                mu['ects_pot_fond'] = 0.
+            sem_ects_pot += mu['ects_pot'] 
+            sem_ects_pot_fond += mu['ects_pot_fond']
+            
             # - Calcul moyenne générale dans le semestre:
             if mu['is_capitalized']:
                 try:
@@ -641,6 +656,7 @@ class NotesTable:
         # Le resultat:
         infos = dict( nb_notes=nb_notes, nb_missing=nb_missing, 
                       sum_coefs=sum_coefs, moy_ues=moy_ues,
+                      ects_pot = sem_ects_pot, ects_pot_fond=sem_ects_pot_fond,
                       sem = self.sem )
         # ---- Calcul moyenne (avec bonus sport&culture)
         if sum_coefs <= 0:
@@ -674,6 +690,10 @@ class NotesTable:
         """
         return self.moy_gen[etudid]
 
+    def get_etud_moy_infos(self, etudid):
+        """Infos sur moyennes"""
+        return self.etud_moy_infos[etudid]
+    
     def etud_count_ues_under_threshold(self, etudid):
         """Nombre d'UE < barre
         Prend en compte les éventuelles UE capitalisées.

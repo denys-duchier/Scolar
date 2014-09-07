@@ -496,6 +496,21 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td><a href="%sformsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s">modifier</a></td>' % (a_url,sem['formsemestre_id'],etudid))
 
         H.append('</tr>')
+        # 3eme ligne: ECTS
+        if context.get_preference('bul_show_ects', sem['formsemestre_id']):
+            etud_moy_infos = nt.get_etud_moy_infos(etudid)
+            H.append('<tr class="%s rcp_l2">' % class_sem)
+            H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
+                     % (bgcolor) )
+            H.append('<td><td><td class="sem_info"></td>')
+            # total ECTS (affiché sous la moyenne générale)
+            H.append('<td class="rcp_moy">%g [%g]</td>' % (etud_moy_infos['ects_pot'],etud_moy_infos['ects_pot_fond']) ) 
+            # ECTS validables dans chaque UE
+            for ue in ues:
+                ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
+                H.append('<td class="ue">%g [%g]</td>' % (ue_status['ects_pot'],ue_status['ects_pot_fond']))
+            H.append('</tr>')
+
     H.append('</table>')
     return '\n'.join(H)
 

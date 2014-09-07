@@ -373,6 +373,9 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                 del t['coef']
                 t['_pdf_style'].append(('SPAN', (colidx['module'],0), (-1,0)))
                 t['_module_colspan'] = 3
+            # UE électives
+            if ue['type'] == UE_ELECTIVE:
+                t['module'] += ' <i>(élective)</i>'
             if ue['modules']:
                 P.append(t)
                 self._list_modules(ue['modules'], matieres_modules=self.infos['matieres_modules'],
