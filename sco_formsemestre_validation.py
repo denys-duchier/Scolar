@@ -103,7 +103,8 @@ def formsemestre_validation_etud_form(
 
     H.append('<table style="width: 100%"><tr><td>')
     if not check:
-        H.append('<h2 class="formsemestre">%s: validation du semestre</h2>Parcours: %s' % (etud['nomprenom'], Se.get_parcours_descr()))
+        H.append('<h2 class="formsemestre">%s: validation %s%s</h2>Parcours: %s' 
+                 % (etud['nomprenom'], Se.parcours.SESSION_NAME_A, Se.parcours.SESSION_NAME, Se.get_parcours_descr()))
     else:
         H.append('<h2 class="formsemestre">Parcours de %s</h2>%s' % (etud['nomprenom'], Se.get_parcours_descr()) )
     
@@ -333,14 +334,14 @@ def decisions_possible_rows(Se, assiduite, subtitle= '', trclass=''):
     TitlePrev = ''
     if Se.prev:
         if Se.prev['semestre_id'] >= 0:
-            TitlePrev = 'S%d' % Se.prev['semestre_id']
+            TitlePrev = '%s%d' % (Se.parcours.SESSION_ABBRV, Se.prev['semestre_id'])
         else:
             TitlePrev = 'Prec.'
 
     if Se.sem['semestre_id'] >= 0:
-        TitleCur = 'S%d' % Se.sem['semestre_id']
+        TitleCur = '%s%d' % (Se.parcours.SESSION_ABBRV, Se.sem['semestre_id'])
     else:
-        TitleCur = 'Sem'
+        TitleCur = Se.parcours.SESSION_NAME
     
     H = [ '<tr class="%s titles"><th class="sfv_subtitle">%s</em></th>' % (trclass, subtitle) ]
     if Se.prev:
@@ -370,7 +371,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
     with_all_columns: si faux, pas de colonne "assiduité".
     """
     H = []
-    linktmpl  = '<span onclick="toggle_vis(this);" class="toggle_sem">%s</span>'
+    linktmpl  = '<span onclick="toggle_vis(this);" class="toggle_sem sem_%%s">%s</span>'
     minuslink = linktmpl % icontag('minus_img', border="0", alt="-")
     pluslink  = linktmpl % icontag('plus_img', border="0", alt="+")
     if show_details:
@@ -419,13 +420,14 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
         else:
             bgcolor = 'background-color: rgb(255,255,240)'
         # 1ere ligne: titre sem, decision, acronymes UE
-        H.append('<tr class="%s rcp_l1">' % class_sem)
+        H.append('<tr class="%s rcp_l1 sem_%s">' % (class_sem,sem['formsemestre_id']))
         if is_cur:
             pm = ''
         elif is_prev:
-            pm = minuslink
+            pm = minuslink % sem['formsemestre_id']
         else:
-            pm = plusminus
+            pm = plusminus % sem['formsemestre_id']
+        
         H.append('<td class="rcp_type_sem" style="background-color:%s;">%s%s</td>'
                  % (bgcolor, num_sem, pm) )
         H.append('<td class="datedebut">%(mois_debut)s</td>' % sem )
@@ -452,7 +454,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td></td>')
         H.append('</tr>')
         # 2eme ligne: notes
-        H.append('<tr class="%s rcp_l2">' % class_sem)
+        H.append('<tr class="%s rcp_l2 sem_%s">' % (class_sem, sem['formsemestre_id']))
         H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
                  % (bgcolor) )
         if is_prev:
@@ -497,18 +499,19 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
 
         H.append('</tr>')
         # 3eme ligne: ECTS
-        if context.get_preference('bul_show_ects', sem['formsemestre_id']):
+        if context.get_preference('bul_show_ects', sem['formsemestre_id']) or nt.parcours.ECTS_ONLY:
             etud_moy_infos = nt.get_etud_moy_infos(etudid)
-            H.append('<tr class="%s rcp_l2">' % class_sem)
-            H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td>'
+            H.append('<tr class="%s rcp_l2 sem_%s">' % (class_sem, sem['formsemestre_id']))
+            H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td><td></td>'
                      % (bgcolor) )
-            H.append('<td><td><td class="sem_info"></td>')
             # total ECTS (affiché sous la moyenne générale)
-            H.append('<td class="rcp_moy">%g [%g]</td>' % (etud_moy_infos['ects_pot'],etud_moy_infos['ects_pot_fond']) ) 
+            H.append('<td class="sem_ects_tit">ECTS:</td><td class="sem_ects">%g <span class="ects_fond">%g</span></td>'
+                     % (etud_moy_infos['ects_pot'],etud_moy_infos['ects_pot_fond']))
+            H.append('<td class="rcp_abs"></td>'  ) 
             # ECTS validables dans chaque UE
             for ue in ues:
                 ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
-                H.append('<td class="ue">%g [%g]</td>' % (ue_status['ects_pot'],ue_status['ects_pot_fond']))
+                H.append('<td class="ue">%g <span class="ects_fond">%g</span></td>' % (ue_status['ects_pot'],ue_status['ects_pot_fond']))
             H.append('</tr>')
 
     H.append('</table>')

@@ -79,15 +79,18 @@ UE_STANDARD = 0 # UE "fondamentale"
 UE_SPORT = 1    # bonus "sport"
 UE_STAGE_LP = 2 # ue "projet tuteuré et stage" dans les Lic. Pro.
 UE_ELECTIVE = 4 # UE "élective" dans certains parcours (UCAC?, ISCID)
+UE_PROFESSIONNELLE = 5 # UE "professionnelle" (ISCID, ...)
 
 def UE_is_fondamentale(ue_type):
-    return ue_type in (UE_STANDARD, UE_STAGE_LP)
-
+    return ue_type in (UE_STANDARD, UE_STAGE_LP, UE_PROFESSIONNELLE)
+def UE_is_professionnelle(ue_type):
+    return ue_type == UE_PROFESSIONNELLE # NB: les UE_PROFESSIONNELLE sont à la fois fondamentales et pro
 
 UE_TYPE_NAME = { UE_STANDARD : 'Standard', 
                  UE_SPORT : 'Sport/Culture (points bonus)', 
                  UE_STAGE_LP : "Projet tuteuré et stage (Lic. Pro.)",
-                 UE_ELECTIVE : "Elective (ISCID)"
+                 UE_ELECTIVE : "Elective (ISCID)",
+                 UE_PROFESSIONNELLE : "Professionnelle (ISCID)"
 #                 UE_FONDAMENTALE : '"Fondamentale" (eg UCAC)',
 #                 UE_OPTIONNELLE : '"Optionnelle" (UCAC)'
                  }

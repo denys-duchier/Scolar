@@ -560,6 +560,7 @@ class NotesTable:
          nb_notes, nb_missing, sum_coefs
          ects_pot : (float) nb de crédits ECTS qui seraient validés (sous réserve de validation par le jury),
          ects_pot_fond: (float) nb d'ECTS issus d'UE fondamentales (non électives)
+         ects_pot_pro: (float) nb d'ECTS issus d'UE pro
          moy_ues : { ue_id : ue_status }
         où ue_status = {
              'moy' : , 'coef_ue' : , # avec capitalisation eventuelle
@@ -567,6 +568,7 @@ class NotesTable:
              'is_capitalized' : True|False,
              'ects_pot' : (float) nb de crédits ECTS qui seraient validés (sous réserve de validation par le jury),
              'ects_pot_fond': 0. si UE non fondamentale, = ects_pot sinon, 
+             'ects_pot_pro' : 0 si UE non pro, = ects_pot sinon, 
              'formsemestre_id' : (si capitalisee),
              'event_date' : (si capitalisee)
              }
@@ -584,6 +586,7 @@ class NotesTable:
         nb_missing = 0 # nombre d'UE sans notes
         sem_ects_pot = 0.
         sem_ects_pot_fond = 0.
+        sem_ects_pot_pro = 0.
         
         for ue in self.get_ues():
             ue_id = ue['ue_id']
@@ -629,11 +632,17 @@ class NotesTable:
                     mu['ects_pot_fond'] = mu['ects_pot']
                 else:
                     mu['ects_pot_fond'] = 0.
+                if UE_is_professionnelle(ue['type']):
+                    mu['ects_pot_pro'] = mu['ects_pot']
+                else:
+                    mu['ects_pot_pro'] = 0.
             else:
                 mu['ects_pot'] = 0.
                 mu['ects_pot_fond'] = 0.
+                mu['ects_pot_pro'] = 0.
             sem_ects_pot += mu['ects_pot'] 
             sem_ects_pot_fond += mu['ects_pot_fond']
+            sem_ects_pot_pro += mu['ects_pot_pro']
             
             # - Calcul moyenne générale dans le semestre:
             if mu['is_capitalized']:
@@ -656,7 +665,9 @@ class NotesTable:
         # Le resultat:
         infos = dict( nb_notes=nb_notes, nb_missing=nb_missing, 
                       sum_coefs=sum_coefs, moy_ues=moy_ues,
-                      ects_pot = sem_ects_pot, ects_pot_fond=sem_ects_pot_fond,
+                      ects_pot = sem_ects_pot, 
+                      ects_pot_fond=sem_ects_pot_fond,
+                      ects_pot_pro=sem_ects_pot_pro,
                       sem = self.sem )
         # ---- Calcul moyenne (avec bonus sport&culture)
         if sum_coefs <= 0:

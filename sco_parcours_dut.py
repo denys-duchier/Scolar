@@ -63,9 +63,21 @@ class DecisionSem:
         # xxx debug
         #log('%s: %s %s %s %s %s' % (self.codechoice,code_etat,new_code_prev,formsemestre_id_utilise_pour_compenser,devenir,assiduite) ) 
 
-class SituationEtudParcours:
+
+def SituationEtudParcours(znotes, etud, formsemestre_id):
+    """renvoie une instance de SituationEtudParcours (ou sous-classe spécialisée)
+    """
+    nt = znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_etud_decision_sem, etud_count_ues_under_threshold, get_etud_moy_gen, get_ues, get_etud_ue_status, etud_has_all_ue_over_threshold
+    parcours = nt.parcours
+    #
+    if parcours.ECTS_ONLY:
+        return SituationEtudParcoursECTS(znotes, etud, formsemestre_id, nt)
+    else:
+        return SituationEtudParcoursGeneric(znotes, etud, formsemestre_id, nt)
+
+class SituationEtudParcoursGeneric:
     "Semestre dans un parcours"
-    def __init__(self, znotes, etud, formsemestre_id):
+    def __init__(self, znotes, etud, formsemestre_id, nt):
         """
         etud: dict filled by fillEtudsInfo()
         """
@@ -76,7 +88,7 @@ class SituationEtudParcours:
         self.sem= znotes.do_formsemestre_list(
             args={ 'formsemestre_id' : formsemestre_id } )[0]
         
-        self.nt = self.znotes._getNotesCache().get_NotesTable(znotes, formsemestre_id ) #> get_etud_decision_sem, etud_count_ues_under_threshold, get_etud_moy_gen, get_ues, get_etud_ue_status, etud_has_all_ue_over_threshold
+        self.nt = nt
         self.formation = self.nt.formation
         self.parcours = self.nt.parcours
         # Ce semestre est-il le dernier de la formation ? (e.g. semestre 4 du DUT)
@@ -151,8 +163,9 @@ class SituationEtudParcours:
         else:
             next_s = self._get_next_semestre_id()
         #log('s=%s  next=%s' % (s, next_s))
+        SA = self.parcours.SESSION_ABBRV # 'S' ou 'A'
         if self.semestre_non_terminal and not self.all_other_validated(): 
-            passage = 'Passe en S%s' % next_s
+            passage = 'Passe en %s%s' % (SA, next_s)
         else:
             passage = 'Formation terminée'
         if devenir == NEXT:
@@ -160,19 +173,19 @@ class SituationEtudParcours:
         elif devenir == REO:
             return 'Réorienté'
         elif devenir == REDOANNEE:
-            return 'Redouble année (recommence S%s)' % (s - 1)
+            return 'Redouble année (recommence %s%s)' % (SA, (s - 1))
         elif devenir == REDOSEM:
-            return 'Redouble semestre (recommence en S%s)' % (s)
+            return 'Redouble semestre (recommence en %s%s)' % (SA, s)
         elif devenir == RA_OR_NEXT:
-            return passage + ', ou redouble année (en S%s)' % (s-1)
+            return passage + ', ou redouble année (en %s%s)' % (SA, (s-1))
         elif devenir == RA_OR_RS:
-            return 'Redouble semestre S%s, ou redouble année (en S%s)' % (s, s-1)
+            return 'Redouble semestre %s%s, ou redouble année (en %s%s)' % (SA, s, SA, s-1)
         elif devenir == RS_OR_NEXT:
-            return passage + ', ou semestre S%s' % (s)
+            return passage + ', ou semestre %s%s' % (SA, s)
         elif devenir == NEXT_OR_NEXT2:
-            return passage + ', ou en semestre S%s' % (s+2) # coherent avec  get_next_semestre_ids
+            return passage + ', ou en semestre %s%s' % (SA, s+2) # coherent avec  get_next_semestre_ids
         elif devenir == NEXT2:
-            return 'Passe en S%s' % (s+2) 
+            return 'Passe en %s%s' % (SA, s+2) 
         else:
             log('explique_devenir: code devenir inconnu: %s' % devenir)
             return 'Code devenir inconnu !'
@@ -276,10 +289,12 @@ class SituationEtudParcours:
                 dem = ''
             if filter_futur and s['dateord'] > cur_begin_date:
                 continue # skip semestres demarrant apres le courant
-            if s['semestre_id'] >= 0:
-                p.append( 'S%d%s' % (s['semestre_id'],dem) )
+            SA = self.parcours.SESSION_ABBRV # 'S' ou 'A'
+            if s['semestre_id'] < 0:
+                SA = 'A' # force, cas des DUT annuels par exemple                
+                p.append( '%s%d%s' % (SA, -s['semestre_id'],dem) )
             else:
-                p.append( 'A%d%s' % (-s['semestre_id'],dem) )
+                p.append( '%s%d%s' % (SA, s['semestre_id'],dem) )
         return ', '.join(p)
     
     def _comp_barres(self):
@@ -482,6 +497,41 @@ class SituationEtudParcours:
             self.znotes._inval_cache(formsemestre_id=formsemestre_id) #> modif decision jury
 
 
+
+class SituationEtudParcoursECTS(SituationEtudParcoursGeneric):
+    """Gestion parcours basés sur ECTS
+    """
+    def __init__(self, znotes, etud, formsemestre_id, nt):
+        SituationEtudParcoursGeneric.__init__(self, znotes, etud, formsemestre_id, nt)
+    def could_be_compensated(self):
+        return False # jamais de compensations dans ce parcours
+    def get_possible_choices(self, assiduite=True):
+        """Listes de décisions "recommandées" (hors décisions manuelles)
+        
+        Dans ce type de parcours, on n'utilise que ADM, AJ, et ADJ (?).
+        """
+        etud_moy_infos = self.nt.get_etud_moy_infos(self.etudid)
+        if (etud_moy_infos['ects_pot'] >= self.parcours.ECTS_BARRE_VALID_YEAR 
+            and etud_moy_infos['ects_pot'] >= self.parcours.ECTS_FONDAMENTAUX_PER_YEAR):
+            choices = [ DecisionSem(
+                code_etat = 'ADM',
+                new_code_prev = None,
+                devenir = NEXT,
+                formsemestre_id_utilise_pour_compenser=None,
+                explication = "Semestre validé",
+                assiduite=assiduite, rule_id='1000') ]
+        else:
+            choices = [ DecisionSem(
+                code_etat = 'AJ',
+                new_code_prev = None,
+                devenir = NEXT,
+                formsemestre_id_utilise_pour_compenser=None,
+                explication = "Semestre non validé",
+                assiduite=assiduite, rule_id='1001') ]
+        return choices
+
+
+#        
 def check_compensation( etudid, sem, nt, semc, ntc ):
     """Verifie si le semestre sem peut se compenser en utilisant semc
     - semc non utilisé par un autre semestre

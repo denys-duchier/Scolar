@@ -90,15 +90,19 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
 """]
         submitlabel = 'Créer cette formation'
         initvalues = {}
+        is_locked = False
     else:
         # edit an existing formation
         F = context.formation_list( args={ 'formation_id' : formation_id } )
         if not F:
             raise ScoValueError('formation inexistante !')
         initvalues = F[0]
+        is_locked = context.formation_has_locked_sems(formation_id)
         submitlabel = 'Modifier les valeurs'
         H = [ context.sco_header(REQUEST, page_title="Modification d'une formation"),
               """<h2>Modification de la formation %(acronyme)s</h2>""" % initvalues ]
+        if is_locked:
+            H.append('<p class="warning">Attention: Formation verrouillée, le type de parcours ne peut être modifié.</p>')
     
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('formation_id', { 'default' : formation_id, 'input_type' : 'hidden' }),
@@ -108,9 +112,10 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
         ('type_parcours', { 'input_type' : 'menu',
                             'title' : 'Type de parcours',
                             'type' : 'int',
-                            'allowed_values' : sco_codes_parcours.FORMATION_PARCOURS_TYPES,
+                            'allowed_values' : [ str(x) for x in sco_codes_parcours.FORMATION_PARCOURS_TYPES ],
                             'labels' : sco_codes_parcours.FORMATION_PARCOURS_DESCRS,
                             'explanation' : "détermine notamment le nombre de semestres et les règles de validation d'UE et de semestres (barres)",
+                            'readonly' : is_locked,
                             }),
         ('formation_code', { 'size' : 12, 'title' : 'Code formation', 'explanation' : 'code interne. Toutes les formations partageant le même code sont compatibles (compensation de semestres, capitalisation d\'UE).  Laisser vide si vous ne savez pas, ou entrer le code d\'une formation existante.' }),
         ('code_specialite', { 'size' : 12, 'title' : 'Code spécialité', 'explanation' : "optionel: code utilisé pour échanger avec d'autres logiciels et identifiant la filière ou spécialité (exemple: ASUR). N'est utilisé que s'il n'y a pas de numéro de semestre." })
@@ -143,14 +148,15 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
 
 def do_formation_edit(context, args):
     "edit a formation"
-    log('do_formation_edit( args=%s )'%args)
+    #log('do_formation_edit( args=%s )'%args)
     
-    #if context.formation_has_locked_sems(args[0]['formation_id']):
-    #    raise ScoLockedFormError()
-    # nb: on autorise finalement la modif de la formation meme si elle est verrouillee
+    # On autorise  la modif de la formation meme si elle est verrouillee
     # car cela ne change que du cosmetique, (sauf eventuellement le code formation ?)
-
-    # On ne peut pas supprimer le code formation:
+    # mais si verrouillée on ne peut changer le type de parcours
+    if context.formation_has_locked_sems(args[0]['formation_id']):
+        if args.has_key('type_parcours'):
+            del args['type_parcours']
+    # On ne peut jamais supprimer le code formation:
     if args.has_key('formation_code') and not args['formation_code']:
         del args['formation_code']
     

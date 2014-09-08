@@ -2,17 +2,25 @@
 // (uses jQuery)
 
 function toggle_vis(e, new_state) { // change visibility of tr (UE in tr and next tr)
-    // e is the span containg the clickeg +/- icon
+    // e is the span containg the clicked +/- icon
+    var formsemestre_class = e.classList[1];
     var tr = e.parentNode.parentNode;
     if (new_state == undefined) {
-	// current state: use alt attribute of current image
-	if (e.childNodes[0].alt == '+') {
+	    // current state: use alt attribute of current image
+	    if (e.childNodes[0].alt == '+') {
             new_state=false;
-	} else {
+	    } else {
             new_state=true;
-	}
-    } 
-    // find next tr in siblings
+	    }
+    }
+    if (new_state) {
+        new_tr_display = 'none';
+    } else {
+        new_tr_display = 'table-row';
+    }
+    $("tr."+formsemestre_class+":not(.rcp_l1)").css('display', new_tr_display)
+    
+    // find next tr in siblings (xxx legacy code, could be optimized)
     var sibl = tr.nextSibling;
     while ((sibl != null) && sibl.nodeType != 1 && sibl.tagName != 'TR') {
         sibl = sibl.nextSibling;
@@ -20,11 +28,9 @@ function toggle_vis(e, new_state) { // change visibility of tr (UE in tr and nex
     if (sibl) {
         var td_disp = 'none';
         if (new_state) {
-            sibl.style.display = 'none';
-            e.innerHTML = '<img width="13" height="13" border="0" title="" alt="+" src="/ScoDoc/icons/plus_img"/>';
+            e.innerHTML = '<img width="13" height="13" border="0" title="" alt="+" src="/ScoDoc/static/icons/plus_img.png"/>';
         } else {
-            sibl.style.display = 'table-row';
-            e.innerHTML = '<img width="13" height="13" border="0" title="" alt="-" src="/ScoDoc/icons/minus_img"/>';
+            e.innerHTML = '<img width="13" height="13" border="0" title="" alt="-" src="/ScoDoc/static/icons/minus_img.png"/>';
             td_disp = 'inline';
         }
         // acronymes d'UE

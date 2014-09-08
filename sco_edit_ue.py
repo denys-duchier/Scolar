@@ -77,7 +77,7 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
 <p class="help">Note: L'UE n'a pas de coefficient associé. Seuls les <em>modules</em> ont des coefficients.
 </p>""" ]
 
-    ue_types = UE_TYPE_NAME.keys()
+    ue_types = parcours.ALLOWED_UE_TYPES
     ue_types.sort()
     ue_types_names = [ UE_TYPE_NAME[k] for k in ue_types ]
     ue_types = [ str(x) for x in ue_types ]
@@ -90,12 +90,12 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False }),
         ('numero',    { 'size' : 2, 'explanation' : 'numéro (1,2,3,4) de l\'UE pour l\'ordre d\'affichage',
                         'type' : 'int' }),
-        ('type', { 'explanation': 'type d\'UE (normal, sport&culture)',
+        ('type', { 'explanation': 'type d\'UE',
                    'input_type' : 'menu',
                    'allowed_values': ue_types,
                    'labels' : ue_types_names }),
         ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS' }),
-        ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne. Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir informations ci-dessous.' }),
+        ('ue_code', { 'size' : 12, 'title' : 'Code UE', 'explanation' : 'code interne (optionnel). Toutes les UE partageant le même code (et le même code de formation) sont compatibles (compensation de semestres, capitalisation d\'UE). Voir liste ci-dessous.' }),
     ]
     if parcours.UE_IS_MODULE:
         # demande le semestre pour creer le module immediatement:

@@ -1546,6 +1546,11 @@ td.tf-ro-fieldlabel:after {
 td.tf-ro-field {
   vertical-align:top;
 }
+span.tf-ro-value {
+  background-color: white;
+  color: grey;
+  margin-right: 2em;
+}
 div.tf-ro-textarea {
   border: 1px solid grey;
   padding-left: 8px;
@@ -1826,6 +1831,18 @@ table.recap_hide_details tr.sem_courant td.ue_acro span, table.recap_hide_detail
 }
 
 td.rcp_moy {  
+}
+td.sem_ects_tit {
+ text-align: right;
+}
+span.ects_fond {
+ text-decoration: underline;
+}
+span.ects_fond:before {
+ content: "(";
+}
+span.ects_fond:after {
+ content: ")";
 }
 table.recap_parcours td.datedebut {
     color: rgb(0,0,128);

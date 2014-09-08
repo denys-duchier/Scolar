@@ -151,8 +151,12 @@ class TypeParcours:
     NOTES_BARRE_VALID_UE = NOTES_BARRE_VALID_UE_TH - NOTES_TOLERANCE   # barre sur UE
     ALLOW_SEM_SKIP = False # Passage: autorise-t-on les sauts de semestres ?
     SESSION_NAME = 'semestre'
+    SESSION_NAME_A = 'du '
+    SESSION_ABBRV = 'S' # S1, S2, ...
     UNUSED_CODES = set() # Ensemble des codes jury non autorisés dans ce parcours
     UE_IS_MODULE = False # 1 seul module par UE
+    ECTS_ONLY = False    # Parcours avec progression basée uniquement sur les ECTS
+    ALLOWED_UE_TYPES = UE_TYPE_NAME.keys() # par defaut, autorise tous les types d'UE
     
     def check(self, formation=None):
         return True, '' # status, diagnostic_message
@@ -176,7 +180,8 @@ class ParcoursDUT(TypeParcours):
     NAME = "DUT"
     NB_SEM = 4 
     COMPENSATION_UE = True
-
+    ALLOWED_UE_TYPES = [UE_STANDARD, UE_SPORT]
+    
 register_parcours(ParcoursDUT())
 
 class ParcoursDUT4(ParcoursDUT):
@@ -204,6 +209,7 @@ class ParcoursLP(TypeParcours):
     NAME = "LP"
     NB_SEM = 1
     COMPENSATION_UE = False
+    ALLOWED_UE_TYPES = [UE_STANDARD, UE_SPORT, UE_STAGE_LP]
     BARRE_UE_DEFAULT = 0. # pas de barre sur les UE "normales"
     BARRE_UE = { UE_STAGE_LP : 10. }
     # pas de codes ATT en LP
@@ -233,7 +239,7 @@ register_parcours(ParcoursLP2semEvry())
 
 
 class ParcoursMono(TypeParcours):
-    """Formation en une session"""
+    """Formation générique en une session"""
     TYPE_PARCOURS = 300
     NAME = "Mono"
     NB_SEM = 1
@@ -249,25 +255,33 @@ class ParcoursLegacy(TypeParcours):
     NAME = "DUT"
     NB_SEM = 4
     COMPENSATION_UE = None # backward compat: defini dans formsemestre
+    ALLOWED_UE_TYPES = [UE_STANDARD, UE_SPORT]
 
 register_parcours(ParcoursLegacy())
 
 class ParcoursISCID(TypeParcours):
     """Superclasse pour les parcours de l'ISCID"""
+    SESSION_NAME = "année"
+    SESSION_NAME_A = "de l'"
+    SESSION_ABBRV = 'A' # A1, A2, ...
     COMPENSATION_UE = False
-    UE_IS_MODULE = True # todo
-    ECTS_JURY = True # a voir ? XXX
+    UNUSED_CODES = set( (ADC, ATT, ATB, ATJ) )
+    UE_IS_MODULE = True # pas de matieres et modules
+    ECTS_ONLY = True # jury basés sur les ECTS (pas moyenne generales, pas de barres, pas de compensations)
+    ALLOWED_UE_TYPES = [UE_STANDARD, UE_ELECTIVE, UE_PROFESSIONNELLE]
     NOTES_BARRE_VALID_MODULE_TH = 10.
     NOTES_BARRE_VALID_MODULE = NOTES_BARRE_VALID_MODULE_TH - NOTES_TOLERANCE # barre sur module
     ECTS_BARRE_VALID_YEAR = 60
+    ECTS_FONDAMENTAUX_PER_YEAR = 42 # mini pour valider l'annee
+    ECTS_PROF_DIPL = 0 # crédits professionnels requis pour obtenir le diplôme
 
 class ParcoursBachelorISCID6(ParcoursISCID):
     """Bachelor ISCID en 3 ans"""
     NAME = "ParcoursBachelorISCID6"
     TYPE_PARCOURS = 1001
     NAME = ""
-    SESSION_NAME = "année"
     NB_SEM = 3
+    ECTS_PROF_DIPL = 8 # crédits professionnels requis pour obtenir le diplôme
 
 register_parcours(ParcoursBachelorISCID6())
 
@@ -275,8 +289,8 @@ class ParcoursMasterISCID4(ParcoursISCID):
     "Master ISCID en 2 ans"
     TYPE_PARCOURS = 1002
     NAME = "ParcoursMasterISCID4"
-    SESSION_NAME = "année"
     NB_SEM = 2
+    ECTS_PROF_DIPL = 15 # crédits professionnels requis pour obtenir le diplôme
 
 register_parcours(ParcoursMasterISCID4())
 
@@ -285,6 +299,7 @@ register_parcours(ParcoursMasterISCID4())
 class ParcoursUCAC(TypeParcours):
     """Règles de validation UCAC"""
     SESSION_NAME = "année"
+    SESSION_NAME_A = "de l'"
     COMPENSATION_UE = False
     BARRE_MOY = 12.
     NOTES_BARRE_VALID_UE_TH = 12. # seuil pour valider UE
