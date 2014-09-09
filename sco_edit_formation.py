@@ -112,7 +112,7 @@ def formation_edit(context, formation_id=None, create=False, REQUEST=None):
         ('type_parcours', { 'input_type' : 'menu',
                             'title' : 'Type de parcours',
                             'type' : 'int',
-                            'allowed_values' : [ str(x) for x in sco_codes_parcours.FORMATION_PARCOURS_TYPES ],
+                            'allowed_values' : sco_codes_parcours.FORMATION_PARCOURS_TYPES,
                             'labels' : sco_codes_parcours.FORMATION_PARCOURS_DESCRS,
                             'explanation' : "détermine notamment le nombre de semestres et les règles de validation d'UE et de semestres (barres)",
                             'readonly' : is_locked,
@@ -153,7 +153,7 @@ def do_formation_edit(context, args):
     # On autorise  la modif de la formation meme si elle est verrouillee
     # car cela ne change que du cosmetique, (sauf eventuellement le code formation ?)
     # mais si verrouillée on ne peut changer le type de parcours
-    if context.formation_has_locked_sems(args[0]['formation_id']):
+    if context.formation_has_locked_sems(args['formation_id']):
         if args.has_key('type_parcours'):
             del args['type_parcours']
     # On ne peut jamais supprimer le code formation:

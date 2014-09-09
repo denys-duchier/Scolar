@@ -559,7 +559,7 @@ class TF:
             else:
                 labels = descr.get('labels', descr['allowed_values'])
                 for i in range(len(labels)):
-                    if descr['allowed_values'][i] == self.values[field]:
+                    if str(descr['allowed_values'][i]) == str(self.values[field]):
                         R.append('<span class="tf-ro-value">%s</span>' % labels[i])
         elif input_type == 'textarea':
             R.append( '<div class="tf-ro-textarea">%s</div>' % self.values[field] )
