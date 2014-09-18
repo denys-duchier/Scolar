@@ -276,7 +276,7 @@ def pvjury_table(context, dpv, only_diplome=False):
               'devenir' :  e['autorisations_descr'],
               'observations' : unquote(e['observation']),
               'mention' : e['mention'],
-              'ects' : e['sum_ects']
+              'ects' : str(e['sum_ects'])
               }
         if e['validation_parcours']:
             l['devenir'] = "Diplôme obtenu"
