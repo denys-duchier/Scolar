@@ -469,6 +469,9 @@ def do_import_etuds_from_portal(context, sem, a_importer, etudsapo_ident, REQUES
             address = etud['address'].strip()
             if address[-2:] == '\\n': # certains champs se terminent par \n
                 address = address[:-2]
+            # Tolère que l'on ne donne pas le mail:
+            etud['mail'] = etud.get('mail', '')
+            
             args = { 'nom' : etud['nom'].strip(), 
                      'prenom' : etud['prenom'].strip(),
                      'sexe' : gender2sex(etud['gender'].strip()),
