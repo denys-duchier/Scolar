@@ -121,6 +121,10 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
         if create:
             if not tf[2]['ue_code']:
                 del tf[2]['ue_code']
+            if not tf[2]['numero']:
+                # numero regroupant par semestre ou année:
+                tf[2]['numero'] =  _next_ue_numero(context, formation_id, int(tf[2]['semestre_id'] or 0)) 
+            
             ue_id = context.do_ue_create(tf[2],REQUEST)
             if parcours.UE_IS_MODULE or tf[2]['create_matiere']:
                 matiere_id = context.do_matiere_create( { 'ue_id' : ue_id, 'titre' : tf[2]['titre'], 'numero' : 1 }, REQUEST )
@@ -139,7 +143,34 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
             ue_id = do_ue_edit(context, tf[2])
         return REQUEST.RESPONSE.redirect( REQUEST.URL1 + '/ue_list?formation_id=' + formation_id )
 
+def _add_ue_semestre_id(context, ue_list):
+    """ajoute semestre_id dans les ue, en regardant le premier module de chacune"""
+    for ue in ue_list:
+        Modlist = context.do_module_list( args={ 'ue_id' : ue['ue_id'] } )
+        if Modlist:
+            ue['semestre_id'] = Modlist[0]['semestre_id']
+        else:
+            ue['semestre_id'] = 0
+        
+def _next_ue_numero(context, formation_id, semestre_id=None):
+    """Numero d'une nouvelle UE dans cette formation.
+    Si le semestre est specifie, cherche les UE ayant des modules de ce semestre
+    """
+    ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
+    if not ue_list:
+        return 0
+    if semestre_id is None:
+        return ue_list[-1]['numero'] + 1000
+    else:
+        # Avec semestre: (prend le semestre du 1er module de l'UE)
+        _add_ue_semestre_id(context, ue_list)        
+        ue_list_semestre = [ ue for ue in ue_list if ue['semestre_id'] == semestre_id ]
+        if ue_list_semestre:
+            return ue_list_semestre[-1]['numero'] + 10
+        else:
+            return ue_list[-1]['numero'] + 1000
 
+        
 def ue_delete(context, ue_id=None, delete_validations=False, dialog_confirmed=False, REQUEST=None):
     """Delete an UE"""
     ue = context.do_ue_list( args={ 'ue_id' : ue_id } )
@@ -216,12 +247,28 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
     H.append('<div class="ue_list_tit">Programme pédagogique:</div>')
     H.append('<ul class="notes_ue_list">')
     ue_list = context.do_ue_list( args={ 'formation_id' : formation_id } )
+    # tri par semestre et numero:
+    _add_ue_semestre_id(context, ue_list)
+    ue_list.sort( key=lambda u: (u['semestre_id'], u['numero']))
+    
+    iue = 0
     for UE in ue_list:
         if UE['ects']:
             UE['ects_str'] = ', %g ECTS' %  UE['ects']
         else:
             UE['ects_str'] = ''
-        H.append('<li class="notes_ue_list">%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s%(ects_str)s)</span>' % UE)
+        H.append('<li class="notes_ue_list">')
+        if iue != 0 and editable:
+            H.append('<a href="ue_move?ue_id=%s&amp;after=0" class="aud">%s</a>' % (UE['ue_id'], arrow_up))
+        else:
+            H.append(arrow_none)
+        if iue < len(ue_list) - 1 and editable:
+            H.append('<a href="ue_move?ue_id=%s&amp;after=1" class="aud">%s</a>' % (UE['ue_id'], arrow_down))
+        else:
+            H.append(arrow_none)
+        iue += 1
+        H.append('%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s%(ects_str)s)</span>' % UE)
+        
         if UE['type'] != UE_STANDARD:
             H.append('<span class="ue_type">%s</span>' % UE_TYPE_NAME[UE['type']])
         ue_editable = editable and not context.ue_is_locked(UE['ue_id'])

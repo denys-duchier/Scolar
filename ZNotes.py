@@ -779,10 +779,39 @@ class ZNotes(ObjectManager,
                 self._moduleEditor.edit(cnx, module)
                 self._moduleEditor.edit(cnx, neigh)
         
-        # redirect to partition edit page:
+        # redirect to ue_list page:
         if redirect:
             return REQUEST.RESPONSE.redirect('ue_list?formation_id='+formation_id)
-    
+
+    def ue_move(self, ue_id, after=0, REQUEST=None, redirect=1):
+        """Move UE before/after previous one (decrement/increment numero)"""
+        o = self.do_ue_list({'ue_id' : ue_id})[0]
+        redirect = int(redirect)
+        after = int(after) # 0: deplace avant, 1 deplace apres
+        if after not in (0,1):
+            raise ValueError('invalid value for "after"')
+        formation_id = o['formation_id']
+        others = self.do_ue_list({'formation_id':formation_id})
+        if len(others) > 1:
+            idx = [ p['ue_id'] for p in others ].index(ue_id)
+            neigh = None # object to swap with
+            if after == 0 and idx > 0:
+                neigh = others[idx-1]            
+            elif after == 1 and idx < len(others)-1:
+                neigh = others[idx+1]
+            if neigh: # 
+                # swap numero between partition and its neighbor
+                # log('moving module %s' % module_id)
+                cnx = self.GetDBConnexion()
+                o['numero'], neigh['numero'] = neigh['numero'], o['numero']
+                if o['numero'] == neigh['numero']:
+                    neigh['numero'] -= 2*after - 1
+                self._ueEditor.edit(cnx, o)
+                self._ueEditor.edit(cnx, neigh)
+        # redirect to ue_list page
+        if redirect:
+            return REQUEST.RESPONSE.redirect('ue_list?formation_id='+o['formation_id'])
+                
     # --- Semestres de formation
     _formsemestreEditor = EditableTable(
         'notes_formsemestre',
