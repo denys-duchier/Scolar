@@ -351,7 +351,7 @@ def _import_one_student(context, cnx, REQUEST, formsemestre_id, values,
     log( 'scolars_import_excel_file: formsemestre_id=%s values=%s' % (formsemestre_id, str(values)) ) 
     # Identite
     args = values.copy()
-    etudid = scolars.identite_create(cnx, args, context=context)
+    etudid = scolars.identite_create(cnx, args, context=context, REQUEST=REQUEST)
     created_etudids.append(etudid)
     # Admissions
     args['etudid'] = etudid
