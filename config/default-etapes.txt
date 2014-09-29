@@ -9,7 +9,7 @@
 # "portal_dept_name" du département.
 
 # Attention: le codage de ce fichier doit etre le même que 
-# celui de ScoDoc (iso8859-15 ou latin1)
+# celui de ScoDoc (utf-8)
 
 rt : V1RT  : DUT Réseaux et Télécommunications 1
 rt : V2RT2 : DUT Réseaux et Télécommunications 2

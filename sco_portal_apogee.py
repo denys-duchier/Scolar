@@ -48,8 +48,20 @@ class PortalInterface:
             self.warning = True
         return portal_url
 
+    def get_etapes_url(self, context):
+        "Full URL of service giving list of etapes (in XML)"
+        etapes_url = context.get_preference('etapes_url')
+        if not etapes_url:
+            # Default:
+            portal_url = self.get_portal_url(context)
+            if not portal_url:
+                return None
+            etapes_url = portal_url + 'getEtapes.php'
+        return etapes_url
+
 _PI = PortalInterface()
 get_portal_url = _PI.get_portal_url
+get_etapes_url = _PI.get_etapes_url
 
 def get_inscrits_etape(context, code_etape, anneeapogee=None):
     """Liste des inscrits à une étape Apogée
@@ -222,41 +234,61 @@ def get_etapes_apogee(context):
     Demande la liste au portail, ou si échec utilise liste
     par défaut
     """
-    portal_url = get_portal_url(context)
-    if not portal_url:
+    etapes_url = get_etapes_url(context)
+    if not etapes_url:
         return {}
-    req = portal_url + 'getEtapes.php'
-    doc = query_portal(req)
-    # parser XML
+    doc = query_portal(etapes_url)
+
+    xml_etapes_by_dept = context.get_preference('xml_etapes_by_dept')
+    # parser XML    
     try:
         dom = xml.dom.minidom.parseString(doc)
         infos = {}
         if dom.childNodes[0].nodeName != u'etapes':
             raise ValueError
-        for d in dom.childNodes[0].childNodes:
-            if d.nodeType == d.ELEMENT_NODE:
-                dept = d.nodeName.encode(SCO_ENCODING)
-                for e in d.childNodes:
-                    if e.nodeType == e.ELEMENT_NODE:
-                        intitule = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
-                        code = e.attributes['code'].value.encode(SCO_ENCODING)
-                        if infos.has_key(dept):
-                            infos[dept][code] = intitule
-                        else:
-                            infos[dept] = { code : intitule }
+        if xml_etapes_by_dept:
+            # Ancien format XML avec des sections par departement:
+            for d in dom.childNodes[0].childNodes:
+                if d.nodeType == d.ELEMENT_NODE:
+                    dept = d.nodeName.encode(SCO_ENCODING)
+                    _xml_list_codes(infos, dept, d.childNodes)
+        else:
+            # Toutes les étapes:
+            dept = ''
+            _xml_list_codes(infos, '', dom.childNodes[0].childNodes)
     except:
-        log('invalid XML response from getEtapes Web Service\n%s' % req)
+        log('invalid XML response from getEtapes Web Service\n%s' % etapes_url)
+        raise
         return get_default_etapes(context)
     return infos
+
+def _xml_list_codes(target_dict, dept, nodes):
+    for e in nodes:
+        if e.nodeType == e.ELEMENT_NODE:
+            intitule = e.childNodes[0].nodeValue.encode(SCO_ENCODING)
+            code = e.attributes['code'].value.encode(SCO_ENCODING)
+            if target_dict.has_key(dept):
+                target_dict[dept][code] = intitule
+            else:
+                target_dict[dept] = { code : intitule }
 
 def get_etapes_apogee_dept(context):
     """Liste des etapes apogee pour ce departement.
     Utilise la propriete 'portal_dept_name' pour identifier le departement.
-    Returns [ ( code, intitule) ], ordonnee
-    """
-    portal_dept_name = context.get_preference('portal_dept_name')
-    log('get_etapes_apogee_dept: portal_dept_name="%s"' % portal_dept_name)
 
+    Si xml_etapes_by_dept est faux (nouveau format XML depuis sept 2014),
+    le departement n'est pas utilisé: toutes les étapes sont présentées.
+    
+    Returns [ ( code, intitule) ], ordonnée
+    """
+    xml_etapes_by_dept = context.get_preference('xml_etapes_by_dept')
+    if xml_etapes_by_dept:
+        portal_dept_name = context.get_preference('portal_dept_name')
+        log('get_etapes_apogee_dept: portal_dept_name="%s"' % portal_dept_name)
+    else:
+        portal_dept_name = ''
+        log('get_etapes_apogee_dept: pas de sections par departement')
+    
     infos = get_etapes_apogee(context)
     if portal_dept_name and not infos.has_key(portal_dept_name):
         log("get_etapes_apogee_dept: pas de section '%s' dans la reponse portail" %  portal_dept_name)

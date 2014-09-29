@@ -356,6 +356,24 @@ PS: Au dela de %(abs_notify_abs_threshold)s, un email automatique est adressé t
         'only_global' : True
         }
       ),
+    ( 'etapes_url',
+      { 'initvalue' : '',
+        'title' : 'URL listant les étapes Apogée',
+        'size' : 40,
+        'category' : 'portal',
+        'only_global' : True,
+        'explanation' : "par defaut, getEtapes sur l'URL du portail"
+        }
+      ),
+    ( 'xml_etapes_by_dept',
+      { 'initvalue' : 1,
+        'title' : 'Etapes séparées par département',
+        'explanation' : "XML getEtapes structuré en départements ?",
+        'input_type' : 'boolcheckbox',
+        'category' : 'portal',
+        'only_global' : True
+        }
+      ),
     ( 'notify_etud_changes_to',
       { 'initvalue' : '',
         'title' : 'e-mail à qui notifier les changements d\'identité des étudiants',

@@ -21,7 +21,7 @@ et postgresql lance
 Emmanuel Viennet, 2007
 """
 
-import pdb,os,sys,psycopg
+import pdb,os,sys,psycopg2
 
 
 DBCNXSTRING = 'dbname=SCOXXX' 
@@ -30,7 +30,7 @@ DBCNXSTRING = 'dbname=SCOXXX'
 OLD_ETUDID = 'EID1512' # etudid qui est en double (que l'on supprime)
 NEW_ETUDID = '10500686' # etudid destination (celui d'origine)
 
-cnx = psycopg.connect( DBCNXSTRING )
+cnx = psycopg2.connect( DBCNXSTRING )
 
 cursor = cnx.cursor()
 req = "update %s set etudid=%%(new_etudid)s where etudid=%%(old_etudid)s"
