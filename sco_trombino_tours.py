@@ -47,6 +47,7 @@ import sco_trombino
 from sco_pdf import *
 from reportlab.lib import colors
 from reportlab.lib import pagesizes
+from reportlab.lib.pagesizes import A4, A3
 
 # Paramétrage de l'aspect graphique:
 PHOTOWIDTH = 2.8*cm
@@ -178,10 +179,13 @@ def pdf_feuille_releve_absences(
     """Generation de la feuille d'absence en fichier PDF, avec photos
     """
     
-    NB_CELL_AM = 2
-    NB_CELL_PM = 3
+    NB_CELL_AM = context.get_preference('feuille_releve_abs_AM')
+    NB_CELL_PM = context.get_preference('feuille_releve_abs_PM')
     COLWIDTH = 0.85*cm
-    days = ZAbsences.DAYNAMES[:6] # Lundi, ..., Samedi
+    if context.get_preference('feuille_releve_abs_samedi'):
+        days = ZAbsences.DAYNAMES[:6] # Lundi, ..., Samedi
+    else:
+        days = ZAbsences.DAYNAMES[:5] # Lundi, ..., Vendredi
     nb_days = len(days)
 
     # Informations sur les groupes à afficher:
@@ -254,6 +258,10 @@ def pdf_feuille_releve_absences(
         currow.append(elem_week)
         L.append(currow)
 
+        currow = [ Paragraph(SU('Initiales module :'), StyleSheet["Normal"]) ]
+        currow.append(elem_week)
+        L.append(currow)
+
         for m in members:
             currow = [ Paragraph(SU(scolars.format_nom(m['nom']) + ' ' + scolars.format_prenom(m['prenom'])), StyleSheet["Normal"]) ]
             currow.append(elem_week)
@@ -270,7 +278,7 @@ def pdf_feuille_releve_absences(
                        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
                        ('TOPPADDING', (0,0), (-1,-1), 3),
                        ('BOTTOMPADDING', (0,-1), (-1,-1), 10),
-                       ('ROWBACKGROUNDS', (0,1), (-1,-1), (colors.white, colors.darkgrey))
+                       ('ROWBACKGROUNDS', (0,2), (-1,-1), (colors.white, colors.lightgrey))
                        ] )
                      )
 
@@ -281,7 +289,14 @@ def pdf_feuille_releve_absences(
     # Build document
     report = StringIO() # in-memory document, no disk file
     filename = 'absences-%s-%s.pdf' % (DeptName, groups_infos.groups_filename)
-    document = BaseDocTemplate(report, pagesize=landscape(pagesizes.A3))
+    if context.get_preference('feuille_releve_abs_taille') == 'A3':
+        taille = A3
+    elif context.get_preference('feuille_releve_abs_taille') == 'A4':
+        taille = A4
+    if context.get_preference('feuille_releve_abs_format') == 'Paysage':
+        document = BaseDocTemplate(report, pagesize=landscape(taille))
+    else:
+        document = BaseDocTemplate(report, pagesize=taille)
     document.addPageTemplates(ScolarsPageTemplate(document, preferences=context.get_preferences()))
     document.build(objects)
     data = report.getvalue()

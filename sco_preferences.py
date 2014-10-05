@@ -145,6 +145,7 @@ PREF_CATEGORIES = (
                        'related' : ('bul', 'bul_mail', 'pdf')}),
     ('bul_mail', { 'title' : 'Envoi des bulletins par e-mail',
                    'related' : ('bul', 'bul_margins', 'pdf') }),
+    ('feuilles',      { 'title' : "Mise en forme des feuilles (Absences, Trombinoscopes, ...)" } ),
     ('edt',      { 'title' : "Connexion avec le logiciel d'emplois du temps" } ),
 )
 
@@ -962,6 +963,51 @@ Année scolaire: %(anneescolaire)s
         'category' : 'bul_margins'
        }),
 
+    # Mise en page feuilles absences/trombinoscopes 
+    ( 'feuille_releve_abs_taille',
+      { 'initvalue' : 'A3',
+        'input_type' : 'menu',
+        'labels' : ['A3','A4'],
+        'allowed_values' : ['A3','A4'],
+        'title' : "Taille feuille relevé absences",
+        'explanation' : "Dimensions du papier pour les feuilles de relevés d'absences hebdomadaire",
+        'category' : 'feuilles',
+        }),
+    ( 'feuille_releve_abs_format',
+      { 'initvalue' : 'Paysage',
+        'input_type' : 'menu',
+        'labels' : ['Paysage','Portrait'],
+        'allowed_values' : ['Paysage','Portrait'],
+        'title' : "Format feuille relevé absences",
+        'explanation' : "Format du papier pour les feuilles de relevés d'absences hebdomadaire",
+        'category' : 'feuilles',
+        }),
+    ( 'feuille_releve_abs_samedi',
+      { 'initvalue' : 1,
+        'title' : 'Samedi travaillé',
+        'input_type' : 'boolcheckbox',
+        'labels' : ['non', 'oui'],
+        'category' : 'feuilles'
+        }),
+    ( 'feuille_releve_abs_AM',
+      { 'initvalue' : '2',
+        'title' : 'Créneaux cours matin',
+        'explanation': "Nombre de créneaux de cours le matin",
+        'size' : 4,
+        'type' : 'int',
+        'convert_numbers' : True,
+        'category' : 'feuilles'
+        }),
+    ( 'feuille_releve_abs_PM',
+      { 'initvalue' : '3',
+        'title' : 'Créneaux cours après-midi',
+        'explanation': "Nombre de créneaux de cours l'après-midi",
+        'size' : 4,
+        'type' : 'int',
+        'convert_numbers' : True,
+        'category' : 'feuilles'
+        }),
+	   
     # Lien avec logiciel emplois du temps 
     ( 'edt_sem_ics_url',
       { 'title' : "Lien EDT",
