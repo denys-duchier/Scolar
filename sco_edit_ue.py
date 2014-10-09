@@ -122,6 +122,8 @@ def ue_edit(context, ue_id=None, create=False, formation_id=None, REQUEST=None):
             if not tf[2]['ue_code']:
                 del tf[2]['ue_code']
             if not tf[2]['numero']:
+                if not 'semestre_id' in tf[2]:
+                    tf[2]['semestre_id'] = 0
                 # numero regroupant par semestre ou année:
                 tf[2]['numero'] =  _next_ue_numero(context, formation_id, int(tf[2]['semestre_id'] or 0)) 
             
