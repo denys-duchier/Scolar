@@ -154,7 +154,7 @@ class TypeParcours:
     SESSION_NAME_A = 'du '
     SESSION_ABBRV = 'S' # S1, S2, ...
     UNUSED_CODES = set() # Ensemble des codes jury non autorisés dans ce parcours
-    UE_IS_MODULE = False # 1 seul module par UE
+    UE_IS_MODULE = False # 1 seul module par UE (si plusieurs modules, etudiants censéments inscrits à un seul d'entre eux)
     ECTS_ONLY = False    # Parcours avec progression basée uniquement sur les ECTS
     ALLOWED_UE_TYPES = UE_TYPE_NAME.keys() # par defaut, autorise tous les types d'UE
     
@@ -261,9 +261,9 @@ register_parcours(ParcoursLegacy())
 
 class ParcoursISCID(TypeParcours):
     """Superclasse pour les parcours de l'ISCID"""
-    SESSION_NAME = "année"
-    SESSION_NAME_A = "de l'"
-    SESSION_ABBRV = 'A' # A1, A2, ...
+    #SESSION_NAME = "année"
+    #SESSION_NAME_A = "de l'"
+    #SESSION_ABBRV = 'A' # A1, A2, ...
     COMPENSATION_UE = False
     UNUSED_CODES = set( (ADC, ATT, ATB, ATJ) )
     UE_IS_MODULE = True # pas de matieres et modules
@@ -276,20 +276,20 @@ class ParcoursISCID(TypeParcours):
     ECTS_PROF_DIPL = 0 # crédits professionnels requis pour obtenir le diplôme
 
 class ParcoursBachelorISCID6(ParcoursISCID):
-    """Bachelor ISCID en 3 ans"""
+    """Bachelor ISCID en 3 ans (6 sem.)"""
     NAME = "ParcoursBachelorISCID6"
     TYPE_PARCOURS = 1001
     NAME = ""
-    NB_SEM = 3
+    NB_SEM = 6
     ECTS_PROF_DIPL = 8 # crédits professionnels requis pour obtenir le diplôme
 
 register_parcours(ParcoursBachelorISCID6())
 
 class ParcoursMasterISCID4(ParcoursISCID):
-    "Master ISCID en 2 ans"
+    "Master ISCID en 2 ans (4 sem.)"
     TYPE_PARCOURS = 1002
     NAME = "ParcoursMasterISCID4"
-    NB_SEM = 2
+    NB_SEM = 4
     ECTS_PROF_DIPL = 15 # crédits professionnels requis pour obtenir le diplôme
 
 register_parcours(ParcoursMasterISCID4())

@@ -269,7 +269,10 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
         else:
             H.append(arrow_none)
         iue += 1
-        H.append('%(acronyme)s %(titre)s <span class="ue_code">(code %(ue_code)s%(ects_str)s)</span>' % UE)
+        UE['acro_titre'] = str(UE['acronyme'])
+        if UE['titre'] != UE['acronyme']:
+            UE['acro_titre'] += ' ' + str(UE['titre'])
+        H.append('%(acro_titre)s <span class="ue_code">(code %(ue_code)s%(ects_str)s)</span>' % UE)
         
         if UE['type'] != UE_STANDARD:
             H.append('<span class="ue_type">%s</span>' % UE_TYPE_NAME[UE['type']])
@@ -278,12 +281,14 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
             H.append('<a class="stdlink" href="ue_edit?ue_id=%(ue_id)s">modifier</a>' % UE)
         else:
             H.append('<span class="locked">[verrouillé]</span>')
-        H.append('<ul class="notes_matiere_list">')
+        if not parcours.UE_IS_MODULE:   
+            H.append('<ul class="notes_matiere_list">')
         Matlist = context.do_matiere_list( args={ 'ue_id' : UE['ue_id'] } )
         for Mat in Matlist:
-            H.append('<li class="notes_matiere_list">%(titre)s' % Mat)
-            if editable and not context.matiere_is_locked(Mat['matiere_id']) and not parcours.UE_IS_MODULE:
-                H.append('<a class="stdlink" href="matiere_edit?matiere_id=%(matiere_id)s">modifier</a>' % Mat)
+            if not parcours.UE_IS_MODULE:                
+                H.append('<li class="notes_matiere_list">%(titre)s' % Mat)
+                if editable and not context.matiere_is_locked(Mat['matiere_id']):
+                    H.append('<a class="stdlink" href="matiere_edit?matiere_id=%(matiere_id)s">modifier</a>' % Mat)
             H.append('<ul class="notes_module_list">')
             Modlist = context.do_module_list( args={ 'matiere_id' : Mat['matiere_id'] } )
             im = 0
@@ -318,7 +323,7 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
                 if editable:
                     H.append('<a class="stdlink" href="matiere_delete?matiere_id=%(matiere_id)s">supprimer cette matière</a>' % Mat)
                 H.append('</li>')
-            if editable and ((not parcours.UE_IS_MODULE) or len(Modlist) == 0):
+            if editable: # and ((not parcours.UE_IS_MODULE) or len(Modlist) == 0):
                 H.append('<li> <a class="stdlink" href="module_create?matiere_id=%(matiere_id)s">créer un module</a></li>' % Mat)            
             H.append('</ul>')
             H.append('</li>')
@@ -329,7 +334,8 @@ Si vous souhaitez modifier cette formation (par exemple pour y ajouter un module
             H.append('</li>')
         if editable and not parcours.UE_IS_MODULE:
             H.append('<li><a class="stdlink" href="matiere_create?ue_id=%(ue_id)s">créer une matière</a> </li>' % UE)
-        H.append('</ul>')
+        if not parcours.UE_IS_MODULE:
+            H.append('</ul>')
     if editable:
         H.append('<a class="stdlink" href="ue_create?formation_id=%s">Ajouter une UE</a></li>' % formation_id)
     H.append('</ul>')
