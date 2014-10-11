@@ -523,7 +523,10 @@ class TF:
 	         }
 	     }
 	  }
-	}        
+	}
+
+    // Selections etendues avec shift (use jquery.field)
+    $('input[name="tf-checked:list"]').createCheckboxRange();
         </script>""")
         R.append('</form>')
         return R

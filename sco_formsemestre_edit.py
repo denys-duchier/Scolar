@@ -46,7 +46,8 @@ def formsemestre_createwithmodules(context, REQUEST=None):
     """Page création d'un semestre"""
     H = [ context.sco_header(REQUEST, page_title='Création d\'un semestre',
                              init_jquery_ui=True,
-                             javascripts=['libjs/AutoSuggest.js'],
+                             javascripts=['libjs/AutoSuggest.js',
+                             ],
                              cssstyles=['css/autosuggest_inquisitor.css'], 
                              bodyOnLoad="init_tf_form('')"
                              ),

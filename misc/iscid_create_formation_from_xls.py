@@ -49,6 +49,12 @@ for sheet_name in wb.get_sheet_names()[FIRST_SHEET_IDX:]:
             acronyme = code # ici l'acronyme d'UE est le code du module
             if not acronyme and (i < len(sheet.rows)-1):
                 acronyme = sheet.rows[i+1][0].value # code module sur ligne suivante
+                print acronyme
+                if acronyme: # tres specifique: deduit l'acronyme d'UE du code module
+                    parts = acronyme.split(u'-')
+                    parts[-1] = parts[-1][-1] # ne garde que le dernier chiffre
+                    acronyme = u'-'.join(parts) # B1-LV1-EN1 -> B1-LV1-1
+                print '->', acronyme
             if not acronyme:
                 acronyme = sheet.rows[i][3].value # fallback: titre
             ue = { 'acronyme' : acronyme,

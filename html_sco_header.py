@@ -131,6 +131,7 @@ def sco_header(context, REQUEST=None,
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery.js"></script>')
         # Seems necessary for the new (>= 2.0.1) qtip with jQuery 1.10.1
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery-migrate-1.2.0.min.js"></script>')
+        H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery.field.min.js"></script>')
     # qTip
     if init_qtip:
         H.append('<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/qtip/jquery.qtip-2.2.0.min.js"></script>')
