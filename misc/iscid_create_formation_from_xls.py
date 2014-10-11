@@ -49,18 +49,19 @@ for sheet_name in wb.get_sheet_names()[FIRST_SHEET_IDX:]:
             acronyme = code # ici l'acronyme d'UE est le code du module
             if not acronyme and (i < len(sheet.rows)-1):
                 acronyme = sheet.rows[i+1][0].value # code module sur ligne suivante
-                print acronyme
+                #print acronyme
                 if acronyme: # tres specifique: deduit l'acronyme d'UE du code module
                     parts = acronyme.split(u'-')
                     parts[-1] = parts[-1][-1] # ne garde que le dernier chiffre
                     acronyme = u'-'.join(parts) # B1-LV1-EN1 -> B1-LV1-1
-                print '->', acronyme
+                #print '->', acronyme
             if not acronyme:
                 acronyme = sheet.rows[i][3].value # fallback: titre
             ue = { 'acronyme' : acronyme,
                    'titre' : sheet.rows[i][3].value,
                    'ects' : sheet.rows[i][5].value or u"",
                    'type' : UE_TYPE2CODE[type_ue],
+                   'numero' : (sheet.rows[i][1].value or 0)*1000 + i*10,
                    'modules' : []
                    }
             i_ue = i
@@ -70,6 +71,7 @@ for sheet_name in wb.get_sheet_names()[FIRST_SHEET_IDX:]:
                 'heures_td' : sheet.rows[i_ue][4].value or u"",
                 'titre' : sheet.rows[i][3].value,
                 'semestre_id' : sheet.rows[i][1].value,
+                'numero' : i*10
                 } )
 
         i += 1 # next line
@@ -100,7 +102,7 @@ doc.formation( acronyme="Bachelor ISCID",
 
 for ue in UE:
     doc._push()
-    doc.ue( acronyme=sstr(ue['acronyme']), ects=sstr(ue['ects']), titre=sstr(ue['titre']) )
+    doc.ue( acronyme=sstr(ue['acronyme']), ects=sstr(ue['ects']), titre=sstr(ue['titre']), numero=sstr(ue['numero']) )
     doc._push()
     doc.matiere( titre=sstr(ue['titre']) ) # useless but necessary
     for m in ue['modules']:
@@ -108,7 +110,8 @@ for ue in UE:
         doc.module( coefficient="1.0", code=sstr(m['code']), 
                     heures_td=sstr(m['heures_td']), 
                     titre=sstr(m['titre']), abbrev=sstr(m['titre']),
-                    semestre_id=sstr(m['semestre_id'])
+                    semestre_id=sstr(m['semestre_id']),
+                    numero=sstr(m['numero']) 
             )
         doc._pop() # /module
     doc._pop() # /matiere

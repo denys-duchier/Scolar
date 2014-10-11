@@ -405,8 +405,6 @@ class BulletinGeneratorStandard(sco_bulletins_generator.BulletinGenerator):
                       rowstyle='', hidden=False):
         """Liste dans la table les descriptions des modules et, si version != short, des évaluations.
         """
-        if self.infos['parcours'].UE_IS_MODULE:
-            return # ne liste pas les modules
         if ue_type == 'cur':  # UE courante non prise en compte (car capitalisee)
             pdf_style_bg = [('BACKGROUND', (0,0), (-1,0), self.PDF_UE_CUR_BG)]
         else:

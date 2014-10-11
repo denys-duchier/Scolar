@@ -166,7 +166,8 @@ class NotesTable:
 
         # Liste des moyennes de tous, en chaines de car., triées
         self._ues = uedict.values()
-        self._ues.sort( lambda x,y: cmp( x['numero'], y['numero'] ) )
+        self._ues.sort(key=lambda u: u['numero'])
+        
         T = []
         self.comp_ue_coefs(cnx)
         self.moy_gen = {} # etudid : moy gen (avec UE capitalisées)

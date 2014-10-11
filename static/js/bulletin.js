@@ -26,25 +26,25 @@ function toggle_vis_ue(e, new_state) {
     //while ((tr != null) && sibl.tagName == 'TR') {
     var current = true;
     while ((tr != null) && current) {
-	if ((tr.nodeType==1) && (tr.tagName == 'TR')) {
-	    for (var i=0; i < tr.classList.length; i++) {
-		if (tr.classList[i] == 'notes_bulletin_row_ue') 
-		    current = false;
- 	    }
-	    if (current) {
-		if (new_state) {
-		    tr.style.display = 'none';
-		} else {
-		    tr.style.display = 'table-row';
-		}
-	    }
+	    if ((tr.nodeType==1) && (tr.tagName == 'TR')) {
+	        for (var i=0; i < tr.classList.length; i++) {
+		        if ((tr.classList[i] == 'notes_bulletin_row_ue') || (tr.classList[i] == 'notes_bulletin_row_sum_ects'))
+		            current = false;
+ 	        }
+	        if (current) {
+		        if (new_state) {
+		            tr.style.display = 'none';
+		        } else {
+		            tr.style.display = 'table-row';
+		        }
+	        }
         }
         tr = tr.nextSibling;	
     }
     if (new_state) {
-	e.innerHTML = '<img width="13" height="13" border="0" title="" alt="+" src="/ScoDoc/icons/plus_img"/>';
+	e.innerHTML = '<img width="13" height="13" border="0" title="" alt="+" src="/ScoDoc/static/icons/plus_img.png"/>';
     } else {
-	e.innerHTML = '<img width="13" height="13" border="0" title="" alt="-" src="/ScoDoc/icons/minus_img"/>';
+	e.innerHTML = '<img width="13" height="13" border="0" title="" alt="-" src="/ScoDoc/static/icons/minus_img.png"/>';
     }
 }
 
