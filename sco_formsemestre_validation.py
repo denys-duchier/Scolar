@@ -505,7 +505,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td><td></td>'
                      % (bgcolor) )
             # total ECTS (affiché sous la moyenne générale)
-            H.append('<td class="sem_ects_tit">ECTS:</td><td class="sem_ects">%g <span class="ects_fond">%g</span></td>'
+            H.append('<td class="sem_ects_tit"><a title="crédit obtenus (dont nb de fondamentaux)">ECTS:</a></td><td class="sem_ects">%g <span class="ects_fond">%g</span></td>'
                      % (etud_moy_infos['ects_pot'],etud_moy_infos['ects_pot_fond']))
             H.append('<td class="rcp_abs"></td>'  ) 
             # ECTS validables dans chaque UE

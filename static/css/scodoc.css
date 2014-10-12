@@ -400,6 +400,7 @@ div.ficheinscriptions {
    -moz-border-radius: 8px;
    -khtml-border-radius: 8px;
    border-radius: 8px;
+   overflow-x: scroll;
 }
 
 .ficheinscriptions a.sem {
