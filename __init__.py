@@ -30,12 +30,18 @@ from ZScolar import ZScolar, manage_addZScolarForm, manage_addZScolar
 
 from ZScoDoc import ZScoDoc, manage_addZScoDoc
 
+# from sco_zope import *
+# from notes_log import log
+# log.set_log_directory( INSTANCE_HOME + '/log' )
+
+
 __version__ = '1.0.0'
 
-
+    
 def initialize(context):
     """initialize the Scolar products"""
-
+    # called at each startup (context is a ProductContext instance, basically useless)
+    
     # --- ZScolars
     context.registerClass(
         ZScolar,

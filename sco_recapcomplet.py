@@ -105,7 +105,7 @@ def formsemestre_recapcomplet(context, formsemestre_id=None,
     if not isFile:
         H.append('</form>')
         H.append("""<p><a class="stdlink" href="formsemestre_pvjury?formsemestre_id=%s">Voir les décisions du jury</a></p>""" % formsemestre_id)
-        if context.can_validate_sem(REQUEST, formsemestre_id):
+        if context._can_validate_sem(REQUEST, formsemestre_id):
             H.append('<p>')
             if modejury:
                 H.append("""<a class="stdlink" href="formsemestre_validation_auto?formsemestre_id=%s">Calcul automatique des décisions du jury</a></p><p><a class="stdlink" href="formsemestre_fix_validation_ues?formsemestre_id=%s">Vérification décisions UE</a> 

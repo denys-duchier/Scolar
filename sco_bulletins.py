@@ -780,11 +780,11 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           },
         { 'title' : "Enregistrer une validation d'UE antérieure",
           'url' : 'formsemestre_validate_previous_ue?etudid=%s&amp;formsemestre_id=%s' % (etudid, formsemestre_id),
-          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+          'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)
           },
         { 'title' : 'Entrer décisions jury',
           'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s'%(formsemestre_id,etudid),
-          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+          'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)
         },
         { 'title' : 'Editer PV jury',
           'url' : 'formsemestre_pvjury_pdf?formsemestre_id=%s&amp;etudid=%s' % (formsemestre_id,etudid),

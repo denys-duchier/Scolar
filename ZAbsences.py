@@ -1043,7 +1043,7 @@ class ZAbsences(ObjectManager,
         </script>
         <div id="AjaxDiv"></div>
         <br/>
-        <table rules="cols" frame="box">
+        <table rules="cols" frame="box" class="abs_form_table">
         <tr><td>&nbsp;</td>
         """]
         # Titres colonnes
@@ -1078,18 +1078,19 @@ class ZAbsences(ObjectManager,
             else:
                 capstr = ''
             
-            bgcolor = ('bgcolor="#ffffff"', 'bgcolor="#ffffff"', 'bgcolor="#dfdfdf"')[i%3]
-            matin_bgcolor = ('bgcolor="#e1f7ff"', 'bgcolor="#e1f7ff"', 'bgcolor="#c1efff"')[i%3]
-            H.append('<tr %s><td><b class="etudinfo" id="%s"><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
-                     % (bgcolor, etudid, etudid, etud['nomprenom'], capstr))
+            tr_class = ('row_1', 'row_2', 'row_3')[i%3]
+            td_matin_class = ('matin_1', 'matin_2', 'matin_3')[i%3]
+            
+            H.append('<tr class="%s"><td><b class="etudinfo" id="%s"><a class="discretelink" href="ficheEtud?etudid=%s" target="new">%s</a></b>%s</td>'
+                     % (tr_class, etudid, etudid, etud['nomprenom'], capstr))
             for date in dates:
                 # matin
                 if self.CountAbs( etudid, date, date, True, moduleimpl_id=moduleimpl_id):
                     checked = 'checked'
                 else:
                     checked = ''
-                H.append('<td %s><input type="checkbox" name="abslist:list" value="%s" %s onclick="on_toggled(this, \'%s\', \'%s\')"/></td>'
-                         % (matin_bgcolor, etudid+':'+date+':'+'am', checked, etudid, date+':am'))
+                H.append('<td class="%s"><input type="checkbox" name="abslist:list" value="%s" %s onclick="on_toggled(this, \'%s\', \'%s\')"/></td>'
+                         % (td_matin_class, etudid+':'+date+':'+'am', checked, etudid, date+':am'))
                 # apres midi
                 if self.CountAbs( etudid, date, date, False, moduleimpl_id=moduleimpl_id):
                     checked = 'checked'

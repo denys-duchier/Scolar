@@ -328,11 +328,11 @@ def formsemestre_status_menubar(context, sem, REQUEST):
           },
         { 'title' : 'Saisie des décisions du jury',
           'url' : 'formsemestre_recapcomplet?modejury=1&amp;hidemodules=1&amp;formsemestre_id=' + formsemestre_id,
-          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+          'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)
           },
         { 'title' : 'Editer les PV et archiver les résultats',
           'url' : 'formsemestre_archive?formsemestre_id=' + formsemestre_id,
-          'enabled' : context.can_validate_sem(REQUEST, formsemestre_id)
+          'enabled' : context._can_edit_pv(REQUEST, formsemestre_id)
           },
         { 'title' : 'Documents archivés',
           'url' : 'formsemestre_list_archives?formsemestre_id=' + formsemestre_id,

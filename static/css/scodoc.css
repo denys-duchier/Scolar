@@ -1514,6 +1514,31 @@ span.capstr {
   color: red;
 }
 
+
+tr.row_1 {
+    background-color: white;
+}
+tr.row_2 {
+    background-color: white;
+}
+tr.row_3 {
+    background-color: #dfdfdf;
+}
+td.matin_1 {
+    background-color: #e1f7ff;
+}
+td.matin_2 {
+    background-color: #e1f7ff;
+}
+td.matin_3 {
+    background-color: #c1efff;
+}
+
+table.abs_form_table tr:hover td {
+    border: 1px solid red;
+}
+
+
 /* ----- Formulator  ------- */
 ul.tf-msg { 
   color: rgb(6,80,18);

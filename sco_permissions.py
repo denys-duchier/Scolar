@@ -23,6 +23,7 @@ ScoEtudAddAnnotations = "Sco Etud Add Annotations" # aussi pour archives
 ScoEtudSupprAnnotations = "Sco Etud Suppr Annotations" # XXX inutile: utiliser Add !
 ScoEntrepriseView = "Sco View Entreprises"
 ScoEntrepriseChange = "Sco Change Entreprises"
+ScoEditPVJury = "Sco Edit PV Jury"
 
 ScoView = 'Sco View' 
 ScoEnsView = 'Sco View Ens' # parties visibles par enseignants slt
@@ -52,7 +53,7 @@ Sco_Default_Permissions = {
     ScoAbsAddBillet       : ('Ens', 'Secr', 'Admin',),
     ScoEntrepriseView     : ('Ens', 'Secr', 'Admin',),    
     ScoEntrepriseChange   : (       'Secr', 'Admin',),
-    ScoEtudChangeAdr      : (       'Secr', 'Admin',),
+    ScoEtudChangeAdr      : (       'Secr', 'Admin',), # utilisé aussi pour pv jury secretariats
     ScoChangeFormation    : (               'Admin',),
     ScoEditAllNotes       : (               'Admin',),
     ScoEditAllEvals       : (               'Admin',),
