@@ -290,6 +290,9 @@ def do_formsemestre_archive(context, REQUEST, formsemestre_id, description='',
 def formsemestre_archive(context, REQUEST, formsemestre_id):
     """Make and store new archive for this formsemestre.
     """
+    if not context._can_edit_pv(REQUEST, formsemestre_id):
+        raise AccessDenied('opération non autorisée pour %s' % str(REQUEST.AUTHENTICATED_USER))
+
     sem = context.get_formsemestre(formsemestre_id)
     H = [context.html_sem_header(REQUEST, 'Archiver les PV et résultats du semestre', sem),
          """<p class="help">Cette page permet de générer et d'archiver tous
