@@ -382,6 +382,8 @@ def formsemestre_get_archived_file(context, REQUEST, formsemestre_id, archive_na
 def formsemestre_delete_archive(context, REQUEST, formsemestre_id, archive_name, dialog_confirmed=False):
     """Delete an archive
     """
+    if not context._can_edit_pv(REQUEST, formsemestre_id):
+        raise AccessDenied('opération non autorisée pour %s' % str(REQUEST.AUTHENTICATED_USER))
     sem = context.get_formsemestre(formsemestre_id) # check formsemestre_id
     archive_id = PVArchive.get_id_from_name(context, formsemestre_id, archive_name)
 

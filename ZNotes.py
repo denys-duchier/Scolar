@@ -2708,7 +2708,7 @@ class ZNotes(ObjectManager,
     security.declareProtected(ScoView, 'formsemestre_archive')
     formsemestre_archive = sco_archives.formsemestre_archive
 
-    security.declareProtected(ScoImplement, 'formsemestre_delete_archive')
+    security.declareProtected(ScoView, 'formsemestre_delete_archive')
     formsemestre_delete_archive = sco_archives.formsemestre_delete_archive
     
     security.declareProtected(ScoView, 'formsemestre_list_archives')
