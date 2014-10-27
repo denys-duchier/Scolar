@@ -1508,6 +1508,8 @@ ou entrez une date pour visualiser les absents un jour donné&nbsp;:
     def XMLgetBilletsEtud(self, etudid=False, REQUEST=None):
         """Liste billets pour un etudiant
         """
+        if not self.get_preference('handle_billets_abs'):
+            return ''
         t0 = time.time()
         r = self.listeBilletsEtud(etudid, REQUEST=REQUEST, format='xml')
         log('XMLgetBilletsEtud (%gs)' % (time.time()-t0))
