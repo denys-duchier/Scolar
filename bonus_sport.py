@@ -240,7 +240,18 @@ def bonus_saint_etienne(notes_sport, coefs, infos=None):
     bonus = min(0.6,sum([x for x in notes_sport]))  # plafonnement à 0.6 points
     
     return bonus
-    
+
+def bonus_iutTarbes(notes_sport, coefs, infos=None):
+    """Calcul bonus modules optionnels 
+    (sport, Langues, action sociale, Théâtre), règle IUT Tarbes
+    Les coefficients ne sont pas pris en compte, 
+     seule la meilleure note est prise en compte
+    le 1/30ème des points au-dessus de 10 sur 20  est retenu et s'ajoute à
+    la moyenne générale du semestre déjà obtenue par l'étudiant.
+    """
+    bonus = max( [ (x - 10) / 30. for x in notes_sport if x > 10 ] or [ 0. ] )
+    return bonus
+
 def bonus_demo(notes_sport, coefs, infos=None):
     """Fausse fonction "bonus" pour afficher les informations disponibles
     et aider les développeurs.
@@ -256,3 +267,4 @@ def bonus_demo(notes_sport, coefs, infos=None):
     #   #open('/tmp/log','a').write( pprint.pformat(ue_status) + '\n\n' )    
     
     return 0.
+
