@@ -23,13 +23,13 @@ cd $storage
 source="incoming"
 
 # Destination file names
-date_daily=$(date +"%Y-%m-%d")
-date_hourly=$(date +"%Y-%m-%dT%H:%M")
+date_daily=$(date -u +"%Y-%m-%d")
+date_hourly=$(date -u +"%Y-%m-%dT%H:%M")
 
 # Get current month and week day number
-month_day=$(date +"%d")
-week_day=$(date +"%u")
-hour=$(date +"%H")
+month_day=$(date -u +"%d")
+week_day=$(date -u +"%u")
+hour=$(date -u +"%H")
 
 # Optional check if source files exist. Email if failed.
 #if [ ! -f $source/archive.tgz ]; then
