@@ -702,9 +702,11 @@ def get_codeparcoursetud(context, etud, prefix='', separator=''):
     exemples:
        1234A pour un etudiant ayant effectué S1, S2, S3, S4 puis diplome
        12D   pour un étudiant en S1, S2 puis démission en S2
-       12R   pour un etudiant en S1, S2 réorienté en fin de S2    
+       12R   pour un etudiant en S1, S2 réorienté en fin de S2
+    Construit aussi un dict: { semestre_id : decision_jury | None }    
     """
     p = []
+    decisions_jury = {}
     # élimine les semestres spéciaux sans parcours (LP...)
     sems = [ s for s in etud['sems'] if s['semestre_id'] >= 0 ]
     i = len(sems)-1
@@ -712,19 +714,28 @@ def get_codeparcoursetud(context, etud, prefix='', separator=''):
         s = sems[i] # 'sems' est a l'envers, du plus recent au plus ancien        
         nt = context._getNotesCache().get_NotesTable(context, s['formsemestre_id']) #> get_etud_etat, get_etud_decision_sem
         p.append( _codesem(s, prefix=prefix) )
-        # code etat sur dernier semestre seulement
+        # code decisions jury de chaque semestre:
+        if nt.get_etud_etat(etud['etudid']) == 'D':
+            decisions_jury[s['semestre_id']] = 'DEM'
+        else:
+            dec = nt.get_etud_decision_sem(etud['etudid'])
+            if not dec:
+                decisions_jury[s['semestre_id']] = ''
+            else:
+                decisions_jury[s['semestre_id']] = dec['code']
+        # code etat dans le codeparcours sur dernier semestre seulement
         if i == 0:
             # Démission
             if nt.get_etud_etat(etud['etudid']) == 'D':
-                p.append( ':D' )
+                p.append( ':D' )                
             else:
-                dec = nt.get_etud_decision_sem(etud['etudid'])
+                dec = nt.get_etud_decision_sem(etud['etudid'])                
                 if dec and dec['code'] in sco_codes_parcours.CODES_SEM_REO:
                     p.append(':R')
                 if dec and s['semestre_id'] == nt.parcours.NB_SEM and code_semestre_validant(dec['code']):
                     p.append(':A')
         i -= 1
-    return separator.join(p)
+    return separator.join(p), decisions_jury
 
 def tsp_etud_list(context, formsemestre_id, only_primo=False,  
                   bac='', # selection sur type de bac
@@ -732,7 +743,7 @@ def tsp_etud_list(context, formsemestre_id, only_primo=False,
     """Liste des etuds a considerer dans table suivi parcours 
     ramene aussi ensembles des bacs, genres, statuts de (tous) les etudiants   
     """
-    log('tsp_etud_list(%s, bac="%s")' % (formsemestre_id,bac))
+    #log('tsp_etud_list(%s, bac="%s")' % (formsemestre_id,bac))
     sem = context.get_formsemestre(formsemestre_id)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id) #> get_etudids, 
     etudids = nt.get_etudids()
@@ -757,7 +768,7 @@ def tsp_etud_list(context, formsemestre_id, only_primo=False,
         sexes.add(etud['sexe'])
         if etud['statut']: # ne montre pas les statuts non renseignés
             statuts.add(etud['statut'])
-    log('tsp_etud_list: %s etuds' % len(etuds))
+    #log('tsp_etud_list: %s etuds' % len(etuds))
     return etuds, bacs, bacspecialites, sexes, statuts
 
 def tsp_grouped_list(context, codes_etuds):
@@ -784,11 +795,23 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
     etuds, bacs, bacspecialites, sexes, statuts = tsp_etud_list(context, formsemestre_id, only_primo=only_primo)
     codes_etuds = DictDefault(defaultvalue=[])
     for etud in etuds:
-        etud['codeparcours'] = get_codeparcoursetud(context, etud)
+        etud['codeparcours'], etud['decisions_jury'] = get_codeparcoursetud(context, etud)
         codes_etuds[etud['codeparcours']].append(etud)
         etud['_nom_target'] = 'ficheEtud?etudid=' + etud['etudid']
         etud['_prenom_target'] = 'ficheEtud?etudid=' + etud['etudid']
         etud['_nom_td_attrs'] = 'id="%s" class="etudinfo"' % (etud['etudid'])
+    
+    titles = { 
+        'parcours' : 'Code parcours',
+        'nb' : "Nombre d'étudiants",
+        'sexe' : '', 
+        'nom' : 'Nom', 
+        'prenom':'Prénom',
+        'etudid' : 'etudid',
+        'codeparcours' : 'Code parcours',
+        'bac' : 'Bac',
+        'specialite' : 'Spe.'
+        }
     
     if grouped_parcours:
         L = tsp_grouped_list(context, codes_etuds)
@@ -796,20 +819,24 @@ def table_suivi_parcours(context, formsemestre_id, only_primo=False, grouped_par
     else:
         # Table avec le parcours de chaque étudiant:
         L = etuds
-        columns_ids=('etudid', 'sexe', 'nom', 'prenom', 'codeparcours')    
-        
-
+        columns_ids=('etudid', 'sexe', 'nom', 'prenom', 'bac', 'specialite', 'codeparcours', )    
+        # Calcule intitulés de colonnes
+        S = set()
+        sems_ids = list(apply( S.union, [ e['decisions_jury'].keys() for e in etuds ] ))
+        sems_ids.sort()
+        sem_tits = [ 'S%s' % s for s in sems_ids ]
+        titles.update( [ (s,s) for s in sem_tits ] )
+        columns_ids += tuple( sem_tits )
+        for etud in etuds:
+            for s in etud['decisions_jury']:
+                etud['S%s'%s] = etud['decisions_jury'][s]
+                
     if only_primo:
         primostr='primo-entrants du'
     else:
         primostr='passés dans le'
     tab = GenTable( columns_ids=columns_ids, rows=L,
-                    titles={ 'parcours' : 'Code parcours',
-                             'nb' : "Nombre d'étudiants",
-                             'sexe' : '', 'nom' : 'Nom', 'prenom':'Prénom',
-                             'etudid' : 'etudid',
-                             'codeparcours' : 'Code parcours',
-                             },
+                    titles=titles,
                     origin = 'Généré par %s le ' % VERSION.SCONAME + timedate_human_repr() + '',
                     caption = 'Parcours suivis, étudiants %s semestre '%primostr + sem['titreannee'],
                     page_title = 'Parcours ' + sem['titreannee'],
@@ -1050,7 +1077,7 @@ def formsemestre_graph_parcours(context, formsemestre_id, format='html', only_pr
                                 REQUEST=None):
     """Graphe suivi cohortes
     """
-    log("formsemestre_graph_parcours")
+    #log("formsemestre_graph_parcours")
     sem = context.get_formsemestre(formsemestre_id)
     if format == 'pdf':
         doc, bacs, bacspecialites, sexes, statuts = graph_parcours(context, formsemestre_id, format='pdf', only_primo=only_primo, 

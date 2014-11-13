@@ -373,7 +373,7 @@ def etud_info_html(context, etudid, with_photo='1', REQUEST=None, debug=False):
     etud = context.getEtudInfo(filled=1, REQUEST=REQUEST)[0]
     photo_html = sco_photos.etud_photo_html(context, etud, title='fiche de '+etud['nom'], REQUEST=REQUEST)
     # experimental: may be too slow to be here
-    etud['codeparcours'] = sco_report.get_codeparcoursetud(context.Notes, etud, prefix='S', separator=', ')
+    etud['codeparcours'], etud['decisions_jury'] = sco_report.get_codeparcoursetud(context.Notes, etud, prefix='S', separator=', ')
     
     H = """<div class="etud_info_div">
     <span class="eid_left">

@@ -507,7 +507,7 @@ def groups_table(
             # et ajoute le parcours
             Se = sco_parcours_dut.SituationEtudParcours(context.Notes, etud, groups_infos.formsemestre_id)
             m['parcours'] = Se.get_parcours_descr() 
-            m['codeparcours'] = sco_report.get_codeparcoursetud(context.Notes, etud)
+            m['codeparcours'], decisions_jury = sco_report.get_codeparcoursetud(context.Notes, etud)
 
         def dicttakestr(d, keys):
             r = []
