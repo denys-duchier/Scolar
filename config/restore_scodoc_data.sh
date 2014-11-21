@@ -119,6 +119,7 @@ then
 fi
 
 # Mise a jour BD ScoDoc
+cd $SCODOC_DIR/config
 ./upgrade.sh
 
 #
