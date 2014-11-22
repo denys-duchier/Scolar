@@ -42,7 +42,12 @@ try:
 except:
 	from Products.exUserFolder.fcrypt.fcrypt import crypt
 
-
+# debug XXX
+# def xLOG(msg):
+#     f = open('/tmp/debug.log','a')
+#     f.write(msg+'\n')
+#     f.close()
+    
 def manage_addpgAuthSource(self, REQUEST):
 	""" Add a Postgres Auth Source """
 
@@ -243,11 +248,14 @@ class pgAuthSource(Folder):
 		return users
 
 	def listOneUser(self,username):
+		#xLOG('pg.listOneUser(%s)' % username)
 		if getattr(self, '_v_lastUser', {}):
 			if self._v_lastUser['username']==username:
-				return self._v_lastUser['users']		
+				return self._v_lastUser['users']
+		#xLOG('pg.listOneUser continuing')
 		users = []
 		result=self.sqlListOneUser(username=username)
+		#xLOG('pg.listOneUser result=%s' % result)
 		for n in result:
 			roles=[]
 			username=sqlattr(n,self.usernameColumn)

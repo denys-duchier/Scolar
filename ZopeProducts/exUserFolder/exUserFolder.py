@@ -533,11 +533,13 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 		return x.getUser(username)
 
 	def xcache_removeUser(self, username):
+		#zLOG.LOG('exUserFolder', zLOG.PANIC, 'xcache_removeUser(%s)' % username)
 		if not self.notSessionLength:
 			return
 		pp = string.join(self.getPhysicalPath(), '/')
 		x = XUFNotUserCache.getCache(pp)
 		if x:
+			#zLOG.LOG('exUserFolder', zLOG.PANIC, 'xcache_removeUser removing')
 			x.removeUser(username)
 
 	# Cookie Cache Functions
@@ -594,7 +596,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
     
     
     # Methode special pour ScoDoc: evite le code inutile dans notre contexte
-    # et accede a la BD via le curseur psycopg2 fournie
+    # et accede a la BD via le curseur psycopg2 fourni
     # (facilitera la separation de Zope)
 	def scodoc_editUser(self, cursor, username, password=None, roles=[]):
 		"""Edit a ScoDoc user"""
@@ -611,8 +613,10 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 		#self.sqlUpdateUser(username=username, roles=rolestring)
 		cursor.execute("UPDATE sco_users SET roles=%(rolestring)s WHERE user_name=%(username)s",
 					   { 'rolestring':rolestring, 'username': username } )
-		
-		self._v_lastUser={} # ? zope/exUserFolder specific		   
+
+		if hasattr(self.currentAuthSource, '_v_lastUser'):
+			# Specific for pgAuthSource:
+			self.currentAuthSource._v_lastUser={} # clear pg user cache
 		
 		# We may have updated roles or passwords... flush the user...
 		self.cache_removeUser(username)
@@ -795,10 +799,12 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 	def getUser(self, name):
 		"""Return the named user object or None if no such user exists"""
 		user = self.cache_getUser(name, '', 0)
+		#zLOG.LOG('exUserFolder.getUser', zLOG.PANIC, 'cache_getUser(%s)=%s' % (name,user))
 		if user:
 			return user
 		try:
 			items=self.listOneUser(name)
+			#zLOG.LOG('exUserFolder.getUser', zLOG.PANIC, 'listOneUser=%s' % items) 
 		except:
 			zLOG.LOG("exUserFolder", zLOG.ERROR,
                                  "error trying to list user %s" % name,
@@ -869,18 +875,22 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 		"""
 		Perform identification, authentication, and authorization.
 		"""
-
+		# Called at each web request
+		#zLOG.LOG('exUserFolder', zLOG.PANIC, 'validate')
 		v = request['PUBLISHED']
 		a, c, n, v = self._getobcontext(v, request)
 
-		name, password = self.identify(auth)
+		name, password = self.identify(auth) # decode cookie, and raises LoginRequired if no ident info
+        # password is the cleartext passwd
 		zLOG.LOG('exUserFolder', zLOG.DEBUG, 'identify returned %s, %s' % (name, password))
 
 		response = request.RESPONSE
 		if name is not None:
 			try:
 				xcached_user = self.xcache_getUser(name)
+				#zLOG.LOG('exUserFolder.validate', zLOG.PANIC, 'xcached_user=%s' % xcached_user)
 				if xcached_user:
+					#zLOG.LOG('exUserFolder.validate', zLOG.PANIC, 'returning None')
 					return None
 			except:
 				zLOG.LOG('exUserFolder', zLOG.ERROR,
@@ -889,6 +899,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 						 sys.exc_info())
 
 			user = self.authenticate(name, password, request)
+			#zLOG.LOG('exUserFolder.validate', zLOG.PANIC, 'user=%s' % user) 
 			if user is None:
 				# If it's none, because there's no user by that name,
 				# don't raise a login, allow it to go higher...
@@ -934,11 +945,13 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 				return None
 	
 	def authenticate(self, name, password, request):
+		#zLOG.LOG('exUserFolder.authenticate', zLOG.PANIC, '%s %s' % (name, password)) 
 		emergency = self._emergency_user
 		if emergency and name == emergency.getUserName():
 			return emergency
 		try:
 			user = self.cache_getUser(name, password)
+			#zLOG.LOG('exUserFolder.authenticate', zLOG.PANIC, 'cache_getUser=%s' % user) 
 			if user:
 				return user
 		except SessionExpiredException:
@@ -947,6 +960,7 @@ class exUserFolder(Folder,BasicUserFolder,BasicGroupFolderMixin,
 				self.challenge(request, request.RESPONSE, 'session_expired')
 				return None
 		user = self.getUser(name)
+		#zLOG.LOG('exUserFolder.authenticate', zLOG.PANIC, 'getUser=%s' % user) 
 		if user is not None:
 			if user.authenticate(self.currentAuthSource.listOneUser,
 								 password,
