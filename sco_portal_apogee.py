@@ -258,7 +258,6 @@ def get_etapes_apogee(context):
             _xml_list_codes(infos, '', dom.childNodes[0].childNodes)
     except:
         log('invalid XML response from getEtapes Web Service\n%s' % etapes_url)
-        raise
         return get_default_etapes(context)
     return infos
 
