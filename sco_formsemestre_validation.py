@@ -867,7 +867,7 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
 def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id, moy_ue, date,
                                          semestre_id=None,
                                          REQUEST=None):
-    """Enregistre validation d'UE"""
+    """Enregistre validation d'UE (obtenue hors ScoDoc)"""
     sem = context.get_formsemestre(formsemestre_id)
     cnx = context.GetDBConnexion(autocommit=False)
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id ) #> get_etud_ue_status

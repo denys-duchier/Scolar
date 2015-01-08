@@ -205,7 +205,7 @@ def unknown_image_path():
 def save_image(context, etudid, data):
     """img_file is a file-like object.
     Save image in JPEG in 2 sizes (original and h90).
-    Returns filename (relative to PHOTO_DIR), without extension.
+    Returns filename (relative to PHOTO_DIR), without extension
     """
     data_file = StringIO()
     data_file.write(data)
@@ -302,7 +302,11 @@ def copy_portal_photo_to_fs(context, etud, REQUEST=None):
         log('download failed')
         return None, '%s: erreur chargement de %s' % (etud['nomprenom'], url)
     data = f.read()
-    status, diag = store_photo(context, etud, data, REQUEST=REQUEST)
+    try:
+        status, diag = store_photo(context, etud, data, REQUEST=REQUEST)
+    except:
+        status = 0
+        log('copy_portal_photo_to_fs: failure (exception in store_photo)!')
     if status == 1:
         log('copy_portal_photo_to_fs: copied %s' % url)
         return has_photo(context, etud), '%s: photo chargée' % etud['nomprenom']
