@@ -306,6 +306,7 @@ def copy_portal_photo_to_fs(context, etud, REQUEST=None):
         status, diag = store_photo(context, etud, data, REQUEST=REQUEST)
     except:
         status = 0
+        diag = 'Erreur chargement photo du portail'
         log('copy_portal_photo_to_fs: failure (exception in store_photo)!')
     if status == 1:
         log('copy_portal_photo_to_fs: copied %s' % url)
