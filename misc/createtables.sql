@@ -277,7 +277,8 @@ CREATE TABLE notes_ue (
 	titre text,
 	type  int DEFAULT 0, -- 0 normal ("fondamentale"), 1 "sport", 2 "projet et stage (LP)", 4 "élective"
 	ue_code text default notes_newid_fcod('UCOD') NOT NULL,
-    ects real -- nombre de credits ECTS
+    ects real, -- nombre de credits ECTS
+    is_external integer default 0 -- si UE effectuee dans le cursus d'un autre etablissement
 ) WITH OIDS;
 
 CREATE TABLE notes_matieres (

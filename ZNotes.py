@@ -447,7 +447,7 @@ class ZNotes(ObjectManager,
         'notes_ue',
         'ue_id',
         ('ue_id', 'formation_id', 'acronyme', 'numero', 'titre',
-         'type', 'ue_code', 'ects' ),
+         'type', 'ue_code', 'ects', 'is_external' ),
         sortkey='numero',
         input_formators = { 'type' : int_null_is_zero },
         output_formators = { 'numero' : int_null_is_zero,
@@ -786,6 +786,7 @@ class ZNotes(ObjectManager,
     def ue_move(self, ue_id, after=0, REQUEST=None, redirect=1):
         """Move UE before/after previous one (decrement/increment numero)"""
         o = self.do_ue_list({'ue_id' : ue_id})[0]
+        #log('ue_move %s (#%s) after=%s' % (ue_id, o['numero'], after))
         redirect = int(redirect)
         after = int(after) # 0: deplace avant, 1 deplace apres
         if after not in (0,1):
@@ -801,7 +802,7 @@ class ZNotes(ObjectManager,
                 neigh = others[idx+1]
             if neigh: # 
                 # swap numero between partition and its neighbor
-                # log('moving module %s' % module_id)
+                #log('moving ue %s (neigh #%s)' % (ue_id, neigh['numero']))
                 cnx = self.GetDBConnexion()
                 o['numero'], neigh['numero'] = neigh['numero'], o['numero']
                 if o['numero'] == neigh['numero']:

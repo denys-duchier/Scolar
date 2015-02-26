@@ -101,6 +101,7 @@ UE_COLORS = { UE_STANDARD : UE_DEFAULT_COLOR,
               UE_SPORT : (0.40, 0.90, 0.50),
               UE_STAGE_LP : (0.80, 0.90, 0.90)
               }
+UE_SEM_DEFAULT = 1000000 # indice semestre des UE sans modules
 
 # borne supérieure de chaque mention
 NOTES_MENTIONS_TH = (NOTES_TOLERANCE, 7., 10., 12., 14., 16., 18., 20.+NOTES_TOLERANCE)

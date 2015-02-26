@@ -401,7 +401,11 @@ for dept in get_depts():
                    ])
     # Fix modules without codes
     cursor.execute("UPDATE notes_modules SET code = 'M_' || coalesce(upper(substring(titre from 1 for 2)), '') || '_' || coalesce(semestre_id,'0') where code is NULL;");
-    
+
+    # Add ue.is_external
+    check_field( cnx, 'notes_ue', 'is_external',
+                 [ 'alter table notes_ue add column is_external integer default 0',
+                   ])
     # Add here actions to performs after upgrades:
     
     cnx.commit()
