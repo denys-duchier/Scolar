@@ -37,7 +37,7 @@ from sco_utils import *
 # des avertissements de mise à jour: on veut pouvoir inciter à mettre à jour lors de
 # correctifs majeurs.
 
-GET_VER_URL = 'http://notes.iutv.univ-paris13.fr/scodoc-installmgr/last_stable_version'
+GET_VER_URL = 'http://scodoc.iutv.univ-paris13.fr/scodoc-installmgr/last_stable_version'
 
 def get_last_stable_version():
     """request last stable version number from server

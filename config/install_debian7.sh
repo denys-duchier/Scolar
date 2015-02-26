@@ -111,7 +111,7 @@ apt-get -y remove python-pydot
 
 # ------------
 SVNVERSION=$(cd ..; svnversion)
-SVERSION=$(curl --silent http://notes.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install\&svn=$SVNVERSION)
+SVERSION=$(curl --silent http://scodoc.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=install\&svn=$SVNVERSION)
 echo $SVERSION > $SCODOC_DIR/config/scodoc.sn
 
 
