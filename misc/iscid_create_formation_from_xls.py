@@ -102,7 +102,7 @@ doc.formation( acronyme="Bachelor ISCID",
 
 for ue in UE:
     doc._push()
-    doc.ue( acronyme=sstr(ue['acronyme']), ects=sstr(ue['ects']), titre=sstr(ue['titre']), numero=sstr(ue['numero']) )
+    doc.ue( acronyme=sstr(ue['acronyme']), ects=sstr(ue['ects']), titre=sstr(ue['titre']), numero=sstr(ue['numero']), type=sstr(ue['type']) )
     doc._push()
     doc.matiere( titre=sstr(ue['titre']) ) # useless but necessary
     for m in ue['modules']:
