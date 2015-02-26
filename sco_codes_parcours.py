@@ -202,6 +202,16 @@ class ParcoursDUTMono(TypeParcours):
     UNUSED_CODES = set( (ADC, ATT, ATB) )
 
 register_parcours(ParcoursDUTMono())
+
+
+class ParcoursDUT2(ParcoursDUT):
+    """DUT en deux semestres (par ex.: années spéciales semestrialisées)"""
+    TYPE_PARCOURS = 130
+    NAME = "DUT2"
+    NB_SEM = 2
+
+register_parcours(ParcoursDUT2())
+
     
 class ParcoursLP(TypeParcours):
     """Licence Pro (en un "semestre")"""
