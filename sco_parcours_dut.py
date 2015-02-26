@@ -678,12 +678,15 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
             # log('%s: %s: ue_status=%s' % (formsemestre_id,ue_id,ue_status))
             if type(ue_status['moy']) == FloatType and ue_status['moy'] >= nt.parcours.NOTES_BARRE_VALID_UE:
                 code_ue = ADM
+            elif type(ue_status['moy']) != FloatType:
+                # aucune note (pas de moyenne) dans l'UE: ne la valide pas
+                code_ue = None
             elif valid_semestre:
                 code_ue = CMP
             else:
                 code_ue = AJ
         # log('code_ue=%s' % code_ue)
-        if etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id):
+        if etud_est_inscrit_ue(cnx, etudid, formsemestre_id, ue_id) and code_ue:
             do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code_ue)
         
         if REQUEST:
