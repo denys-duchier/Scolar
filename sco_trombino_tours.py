@@ -246,7 +246,7 @@ def pdf_feuille_releve_absences(
                           )
     
     for group_id in groups_infos.group_ids:
-        members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(context, group_id, None)
+        members, group, group_tit, sem, nbdem = sco_groups.get_group_infos(context, group_id, 'I')
         L = []
 
         currow = [ Paragraph(SU('<b>Groupe ' + group_tit + '</b>'), 
