@@ -493,16 +493,25 @@ def formation_table_recap(context, formation_id, format='html', REQUEST=None):
                     'Mod_code' : Mod['code'],
                     'Mod_coef' : Mod['coefficient'],
                     'Mod_sem' : Mod['semestre_id'],
-                    'nb_moduleimpls' : Mod['nb_moduleimpls']
+                    'nb_moduleimpls' : Mod['nb_moduleimpls'],
+                    'heures_cours' : Mod['heures_cours'],
+                    'heures_td' : Mod['heures_td'],
+                    'heures_tp' : Mod['heures_tp'],
+                    'ects' : Mod['ects'],
                     })
-    columns_ids = [ 'UE_acro', 'Mat_tit', 'Mod_tit', 'Mod_code', 'Mod_coef', 'Mod_sem', 'nb_moduleimpls' ]
+    columns_ids = [ 'UE_acro', 'Mat_tit', 'Mod_tit', 'Mod_code', 'Mod_coef', 'Mod_sem', 'nb_moduleimpls', 'heures_cours', 'heures_td', 'heures_tp', 'ects' ]
     titles = { 'UE_acro' : 'UE',
                'Mat_tit' : 'Matière',
                'Mod_tit' : 'Module',
                'Mod_code' : 'Code',
                'Mod_coef' : 'Coef.',
                'Mod_sem' : 'Sem.',
-               'nb_moduleimpls' : 'Nb utilisé' }
+               'nb_moduleimpls' : 'Nb utilisé',
+               'heures_cours' : 'Cours (h)',
+               'heures_td' : 'TD (h)',
+               'heures_tp' : 'TP (h)',
+               'ects' : 'ECTS',
+               }
     
     title = """Formation %(titre)s (%(acronyme)s) [version %(version)s] code %(formation_code)s""" % F
     tab = GenTable(
