@@ -36,6 +36,7 @@ from notesdb import *
 from sco_utils import *
 from notes_log import log
 import sco_groups
+import sco_find_etud
 
 import ZAbsences
 
@@ -86,7 +87,7 @@ def doSignaleAbsence(context, datedebut, datefin, moduleimpl_id=None, demijourne
                     <li><a href="CalAbs?etudid=%(etudid)s">Calendrier de ses absences</a></li>
                 </ul>
               <hr>""" % etud )
-    H.append(context.formChercheEtud(REQUEST))
+    H.append(sco_find_etud.form_search_etud(context, REQUEST))
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
@@ -189,7 +190,7 @@ def doJustifAbsence(context, datedebut, datefin, demijournee, description=None, 
 <li><a href="ListeAbsEtud?etudid=%(etudid)s">Liste de ses absences</a></li>
 </ul>
 <hr>""" % etud )
-    H.append(context.formChercheEtud(REQUEST))
+    H.append(sco_find_etud.form_search_etud(context, REQUEST))
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
@@ -272,7 +273,7 @@ autre absence pour <b>%(nomprenom)s</b></a></li>
                     <li><a href="CalAbs?etudid=%(etudid)s">Calendrier de ses absences</a></li>
                 </ul>
               <hr>""" % etud )
-    H.append(context.formChercheEtud(REQUEST))
+    H.append(sco_find_etud.form_search_etud(context, REQUEST))
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
@@ -385,7 +386,7 @@ autre absence pour <b>%(nomprenom)s</b></a></li>
                     <li><a href="CalAbs?etudid=%(etudid)s">Calendrier de ses absences</a></li>
                 </ul>
               <hr>""" % etud )
-    H.append(context.formChercheEtud(REQUEST))
+    H.append(sco_find_etud.form_search_etud(context, REQUEST))
     H.append(context.sco_footer(REQUEST))
     return '\n'.join(H)
 
@@ -590,7 +591,7 @@ def absences_index_html(context, REQUEST=None):
         if context.get_preference('handle_billets_abs'):
             H.append("""<li><a href="listeBillets">Traitement des billets d'absence en attente</a></li>""")
         H.append("""<p>Pour signaler, annuler ou justifier une absence, choisissez d'abord l'étudiant concerné:</p>""")
-        H.append(context.formChercheEtud(REQUEST))
+        H.append(sco_find_etud.form_search_etud(context, REQUEST))
         if authuser.has_permission(ScoAbsChange,context):
             H.extend(("""<hr/>
 <form action="SignaleAbsenceGrHebdo" id="formw">

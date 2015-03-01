@@ -77,7 +77,7 @@ def sidebar(context, REQUEST=None):
           sidebar_common(context, REQUEST) ]
     
     H.append("""<div class="box-chercheetud">Chercher étudiant:<br/>
-<form action="%(ScoURL)s/chercheEtud">
+<form action="%(ScoURL)s/search_etud_in_dept">
 <div><input type="text" size="12" name="expnom"></input></div>
 </form></div>
 <div class="etud-insidebar">

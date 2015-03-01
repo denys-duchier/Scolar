@@ -58,6 +58,7 @@ import sco_preferences
 import sco_formations
 from scolars import format_nom, format_prenom, format_sexe, format_lycee, format_lycee_from_code
 from scolars import format_telephone, format_pays, make_etud_args
+import sco_find_etud
 import sco_photos
 
 import sco_news
@@ -476,44 +477,6 @@ class ZScolar(ObjectManager,
     #    ETUDIANTS
     #
     # --------------------------------------------------------------------
-
-    security.declareProtected(ScoView, 'formChercheEtud')
-    def formChercheEtud(self, REQUEST=None, 
-                        dest_url=None, 
-                        parameters=None, parameters_keys=None, 
-                        title='Rechercher un &eacute;tudiant par nom&nbsp;: ', 
-                        add_headers = False, # complete page
-                        ):
-        "form recherche par nom"
-        H = []
-        if title:
-            H.append('<h2>%s</h2>'%title)
-        H.append( """<form action="chercheEtud" method="POST">
-        <b>%s</b>
-        <input type="text" name="expnom" width=12 value="">
-        <input type="submit" value="Chercher">
-        <br/>(entrer une partie du nom)
-        """ % title)
-        if dest_url:
-            H.append('<input type="hidden" name="dest_url" value="%s"/>' % dest_url)
-        if parameters:
-            for param in parameters.keys():
-                H.append('<input type="hidden" name="%s" value="%s"/>'
-                         % (param, parameters[param]))
-            H.append('<input type="hidden" name="parameters_keys" value="%s"/>'%(','.join(parameters.keys())))
-        elif parameters_keys:
-            for key in parameters_keys.split(','):
-                v = REQUEST.form.get(key,False)
-                if v:
-                    H.append('<input type="hidden" name="%s" value="%s"/>'%(key,v))
-            H.append('<input type="hidden" name="parameters_keys" value="%s"/>'%parameters_keys)
-        H.append('</form>')
-        
-        if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant') + '\n'.join(H) + self.sco_footer(REQUEST)
-        else:
-            return '\n'.join(H)
-    
     
     # -----------------  BANDEAUX -------------------
     security.declareProtected(ScoView, 'sidebar')
@@ -838,95 +801,9 @@ class ZScolar(ObjectManager,
             % (etudid, code_nip, code_ine))
         return self.ScoErrorResponse( 'unknown student', format=format, REQUEST=REQUEST)
     
-    security.declareProtected(ScoView, "chercheEtud")
-    def chercheEtud(self, expnom=None,
-                    dest_url='ficheEtud',
-                    parameters={},
-                    parameters_keys='',
-                    add_headers = True, # complete page
-                    title=None,
-                    REQUEST=None ):
-        """Page recherche d'un etudiant
-        expnom est un regexp sur le nom
-        dest_url est la page sur laquelle on sera redirigé après choix
-        parameters spécifie des arguments additionnels a passer à l'URL (en plus de etudid)
-        """
-        if type(expnom) == ListType:
-            expnom = expnom[0]
-        q = []
-        if parameters:
-            for param in parameters.keys():
-                q.append( '%s=%s' % (param, parameters[param]))
-        elif parameters_keys:
-            for key in parameters_keys.split(','):
-                v = REQUEST.form.get(key,False)
-                if v:
-                    q.append( '%s=%s' % (key,v) )
-        query_string = '&amp;'.join(q)
-        
-        no_side_bar = True
-        H = []
-        if title:
-            H.append('<h2>%s</h2>'%title)
-        if expnom:
-            etuds = self.chercheEtudsInfo(expnom=expnom,REQUEST=REQUEST)
-        else:
-            etuds = []
-        if len(etuds) == 1:
-            # va directement a la destination
-            return REQUEST.RESPONSE.redirect( dest_url + '?etudid=%s&amp;' % etuds[0]['etudid'] + query_string )
-
-        if len(etuds) > 0:
-            # Choix dans la liste des résultats:
-            H.append("""<h2>%d résultats pour "%s": choisissez un étudiant:</h2>""" % (len(etuds),expnom))
-            H.append(self.formChercheEtud(dest_url=dest_url,
-                                          parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
-
-            for e in etuds:
-                target = dest_url + '?etudid=%s&amp;' % e['etudid'] + query_string
-                e['_nomprenom_target'] = target
-                e['inscription_target'] = target
-                e['_nomprenom_td_attrs'] = 'id="%s" class="etudinfo"' % (e['etudid'])
-                sco_groups.etud_add_group_infos(self, e, e['cursem'])
-
-            tab = GenTable( columns_ids=('nomprenom', 'inscription', 'groupes'),
-                            titles={ 'nomprenom' : 'Etudiant',
-                                     'inscription' : 'Inscription', 
-                                     'groupes' : 'Groupes' },
-                            rows = etuds,
-                            html_sortable=True,
-                            html_class='gt_table table_leftalign',
-                            preferences=self.get_preferences())
-            H.append(tab.html())            
-            if len(etuds) > 20: # si la page est grande
-                H.append(self.formChercheEtud(dest_url=dest_url,
-                                              parameters=parameters, parameters_keys=parameters_keys, REQUEST=REQUEST, title="Autre recherche"))
-
-        else:
-            H.append('<h2 style="color: red;">Aucun résultat pour "%s".</h2>' % expnom )
-            add_headers = True
-            no_side_bar = False
-        H.append("""<p class="help">La recherche porte sur tout ou partie du NOM de l'étudiant</p>""")
-        if add_headers:
-            return self.sco_header(REQUEST, page_title='Choix d\'un étudiant', 
-                                   init_qtip = True,
-                                   javascripts=['js/etud_info.js'],
-                                   no_side_bar=no_side_bar
-                                   ) + '\n'.join(H) + self.sco_footer(REQUEST)
-        else:
-            return '\n'.join(H)
+    security.declareProtected(ScoView, "search_etud_in_dept")
+    search_etud_in_dept = sco_find_etud.search_etud_in_dept
     
-    security.declareProtected(ScoView, "chercheEtudsInfo")
-    def chercheEtudsInfo(self, expnom, REQUEST):
-        """recherche les etudiant correspondant a expnom
-        et ramene liste de mappings utilisables en DTML.        
-        """
-        cnx = self.GetDBConnexion()
-        expnom = strupper(expnom) # les noms dans la BD sont en uppercase
-        etuds = scolars.etudident_list(cnx, args={'nom':expnom}, test='~' )        
-        self.fillEtudsInfo(etuds)
-        return etuds
-
     security.declareProtected(ScoView, "fillEtudsInfo")
     def fillEtudsInfo(self,etuds):
         """etuds est une liste d'etudiants (mappings)
@@ -935,8 +812,9 @@ class ZScolar(ObjectManager,
         """
         cnx = self.GetDBConnexion()
         #open('/tmp/t','w').write( str(etuds) )
-        for etud in etuds:
+        for etud in etuds:            
             etudid = etud['etudid']
+            etud['dept'] = self.DeptId()
             adrs = scolars.adresse_list(cnx, {'etudid':etudid})
             if not adrs:
                 # certains "vieux" etudiants n'ont pas d'adresse

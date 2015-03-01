@@ -188,6 +188,18 @@ div.box-chercheetud {
   margin-top: 12px;
 }
 
+div.table_etud_in_accessible_depts {
+  margin-left: 3em;
+  margin-bottom: 2em;
+}
+div.table_etud_in_dept {
+  margin-bottom: 2em;
+}
+
+div.table_etud_in_dept  table.gt_table {
+  width: 600px;
+}
+
 .etud-insidebar {
    font-size: small;
    background-color: rgb(220,220,220);
@@ -488,6 +500,12 @@ a.stdlink:hover {
   text-decoration: underline;
 }
 
+a.link_accessible {
+}
+a.link_unauthorized, a.link_unauthorized:visited {
+  color: rgb(75,75,75);
+}
+
 span.spanlink {
   color: rgb(0, 0, 255);
   text-decoration: underline;
@@ -597,6 +615,11 @@ a.discretelink:hover {
 
 .help {
   font-style: italic; 
+}
+
+.help_important {
+  font-style: italic; 
+  color: red;
 }
 
 p.indent {
@@ -2170,3 +2193,43 @@ div.update_warning_sub {
  display: inline;
 }
 */
+
+/* Page accueil */
+#scodoc_attribution p {
+   font-size:75%;
+}
+div.maindiv {
+   margin: 1em;
+}
+ul.main {
+   list-style-type: square;
+}
+
+ul.main li {
+   padding-bottom: 2ex;
+}
+
+
+#scodoc_admin {
+   background-color: #EEFFFF;
+}
+#message {
+   margin-top: 2px;
+   margin-bottom: 0px;
+   padding:  0.1em;
+   margin-left: auto;
+   margin-right: auto;
+   background-color: #ffff73;
+   -moz-border-radius: 8px;
+   -khtml-border-radius: 8px;
+   border-radius: 8px;
+   font-family : arial, verdana, sans-serif ;
+   font-weight: bold;
+   width: 40%;
+   text-align: center;
+   color: red;
+}
+h4.scodoc {
+   padding-top: 20px;
+   padding-bottom: 0px;
+}

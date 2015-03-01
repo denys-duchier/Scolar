@@ -54,6 +54,7 @@ except:
 
 from sco_utils import *
 from notes_log import log
+import sco_find_etud
 from ZScoUsers import pwdFascistCheck
 
 class ZScoDoc(ObjectManager,
@@ -224,11 +225,7 @@ class ZScoDoc(ObjectManager,
         # (non definies au top level)
         if not REQUEST.AUTHENTICATED_USER.has_role('Manager'):
             raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
-        H = [ self._html_begin % 
-              { 'page_title' : 'ScoDoc: changement mot de passe',
-                'encoding' : SCO_ENCODING },
-              self._top_level_css,
-              """</head><body>"""
+        H = [ self.scodoc_top_html_header(REQUEST, page_title='ScoDoc: changement mot de passe'),
               ]
         if message:
             H.append('<div id="message">%s</div>' % message )
@@ -304,70 +301,7 @@ class ZScoDoc(ObjectManager,
 
     _top_level_css = """
     <style type="text/css">
-div.maindiv {
-   margin: 1em;
-}
-ul.main {
-   list-style-type: square;
-}
-
-ul.main li {
-   padding-bottom: 2ex;
-}
-
-#scodoc_attribution p {
-   font-size:75%;
-}
-
-div.head_message {
-   margin-top: 2px;
-   margin-bottom: 0px;
-   padding:  0.1em;
-   margin-left: auto;
-   margin-right: auto;
-   background-color: #ffff73;
-   -moz-border-radius: 8px;
-   -khtml-border-radius: 8px;
-   border-radius: 8px;
-   font-family : arial, verdana, sans-serif ;
-   font-weight: bold;
-   width: 40%;
-   text-align: center;
-   
-}
-
-#scodoc_admin {
-   background-color: #EEFFFF;
-}
-
-h4 {
-   padding-top: 20px;
-   padding-bottom: 0px;
-}
-
-#message {
-   margin-top: 2px;
-   margin-bottom: 0px;
-   padding:  0.1em;
-   margin-left: auto;
-   margin-right: auto;
-   background-color: #ffff73;
-   -moz-border-radius: 8px;
-   -khtml-border-radius: 8px;
-   border-radius: 8px;
-   font-family : arial, verdana, sans-serif ;
-   font-weight: bold;
-   width: 40%;
-   text-align: center;
-   color: red;
-}
-
-.help {
-  font-style: italic; 
-  color: red;
-}
-
-</style>"""
+    </style>"""
 
     _html_begin = """<?xml version="1.0" encoding="%(encoding)s"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -377,7 +311,39 @@ h4 {
 <meta http-equiv="Content-Type" content="text/html; charset=%(encoding)s" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta name="LANG" content="fr" />
-<meta name="DESCRIPTION" content="ScoDoc" />"""
+<meta name="DESCRIPTION" content="ScoDoc" />
+
+<link type="text/css" rel="stylesheet" href="/ScoDoc/static/libjs/jquery-ui-1.10.4.custom/css/smoothness/jquery-ui-1.10.4.custom.min.css" />
+    
+<link href="/ScoDoc/static/css/scodoc.css" rel="stylesheet" type="text/css" />
+<link href="/ScoDoc/static/css/menu.css" rel="stylesheet" type="text/css" />
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/menu.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/sorttable.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/bubble.js"></script>
+<script type="text/javascript">
+ window.onload=function(){enableTooltips("gtrcontent")};
+</script>
+
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/jQuery/jquery-migrate-1.2.0.min.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/jquery.field.min.js"></script>
+
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/libjs/qtip/jquery.qtip-2.2.0.min.js"></script>
+<script language="javascript" type="text/javascript" src="/ScoDoc/static/js/etud_info.js"></script>
+"""
+
+    def scodoc_top_html_header(self, REQUEST,
+                           page_title = 'ScoDoc'
+                           ):
+        H = [ self._html_begin % { 
+            'page_title' : 'ScoDoc: bienvenue',
+            'encoding' : SCO_ENCODING 
+            },
+            self._top_level_css,
+            """</head><body>""",
+            CUSTOM_HTML_HEADER_CNX,
+            ]
+        return '\n'.join(H)
 
     security.declareProtected('View', 'index_html')
     def index_html(self, REQUEST=None, message=None):
@@ -402,12 +368,7 @@ h4 {
         except:
             pass
         
-        H = [ self._html_begin % 
-              { 'page_title' : 'ScoDoc: bienvenue',
-                'encoding' : SCO_ENCODING },
-              self._top_level_css,
-              """</head><body>""",
-              CUSTOM_HTML_HEADER_CNX,
+        H = [ self.scodoc_top_html_header(REQUEST, page_title='ScoDoc: bienvenue'),             
               self._check_users_folder(REQUEST=REQUEST), # ensure setup is done
         ]
         if message:
@@ -417,13 +378,15 @@ h4 {
             H.append('<div id="message">Attention: connecté comme administrateur</div>' )
             
         H.append("""
-              <div class="maindiv">
+        <div class="maindiv">
         <h2>ScoDoc: gestion scolarité</h2>
-        <p>
-        Ce site est <font color="red"><b>réservé au personnel autorisé</b></font>.
-        </p>                 
-        """)
-        
+        <p>""")
+        if authuser.has_role('Authenticated'):
+            H.append('Bonjour <font color="red"><b>%s</b></font>.' % str(authuser))
+        H.append("""
+        Ce site est <font color="red"><b>réservé au personnel autorisé</b></font>.        
+        """)        
+        H.append('</p>')
         
         if not deptList:
             H.append('<em>aucun département existant !</em>')
@@ -437,8 +400,12 @@ h4 {
              else:
                  dest_folder = ''
              for deptFolder in self.list_depts():
-                 H.append('<li><a class="stdlink" href="%s%s">Scolarité département %s</a>'
-                          % (deptFolder.absolute_url(), dest_folder, deptFolder.id))
+                 if authuser.has_permission(ScoView,deptFolder.Scolarite):
+                     link_cls='link_accessible'
+                 else:
+                     link_cls='link_unauthorized'
+                 H.append('<li><a class="stdlink %s" href="%s%s">Département %s</a>'
+                          % (link_cls, deptFolder.absolute_url(), dest_folder, deptFolder.id))
                  # check if roles are initialized in this depts, and do it if necessary
                  if deptFolder.Scolarite.roles_initialized == '0':
                      if isAdmin:
@@ -447,27 +414,20 @@ h4 {
                          H.append(' (non initialisé, connectez vous comme admin)')
                  H.append('</li>')
              H.append('</ul>')
-
-
+             # Recherche etudiant
+             H.append(sco_find_etud.form_search_etud_in_accessible_depts(self, REQUEST))
+                
         if isAdmin:
             H.append('<p><a href="scodoc_admin">Administration de ScoDoc</a></p>')
         else:
             H.append('<p><a href="%s/force_admin_authentication">Se connecter comme administrateur</a></p>' % REQUEST.BASE0)
 
-        try:
-            img = icontag('firefox_fr', border='0')
-        except:
-            img = '' # logo not available (?)
         H.append("""
 <div id="scodoc_attribution">
 <p><a href="%s">ScoDoc</a> est un logiciel libre de suivi de la scolarité des étudiants conçu par 
 E. Viennet (Université Paris 13).</p>
-
-<p>Ce logiciel est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
-ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
-<a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
 </div>
-</div>""" % (SCO_WEBSITE,img) )
+</div>""" % (SCO_WEBSITE,) )
 
         H.append("""</body></html>""")
         return '\n'.join(H)
@@ -483,7 +443,7 @@ ancien</em>. Utilisez par exemple Firefox (libre et gratuit).</p>
         except:
             log('*** problem in index_dept (%s) user=%s' % (deptfoldername,str(authuser)))
         
-        H = [ self.standard_html_header(self),
+        H = [ self.standard_html_header(REQUEST),
               """<div style="margin: 1em;">
 
 <h2>Scolarité du département %s</h2>
@@ -520,7 +480,7 @@ ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</
 
 </div>
 """ % (deptfoldername, icontag('firefox_fr', border='0')),
-              self.standard_html_footer(self)]
+              self.standard_html_footer(REQUEST)]
         return '\n'.join(H)
 
     security.declareProtected('View', 'doLogin')
@@ -637,17 +597,17 @@ ou <a href="mailto:%s">%s</a>
             return '<p>' + str(error_value) + '</p>'
         elif error_type in ('ScoValueError', 'FormatError'):
             # Not a bug, presents a gentle message to the user:
-            H = [ self.standard_html_header(self),
+            H = [ self.standard_html_header(REQUEST),
                   """<h2>Erreur !</h2><p>%s</p>""" % error_value ]
             if error_value.dest_url:
                 H.append('<p><a href="%s">Continuer</a></p>' % error_value.dest_url )
-            H.append(self.standard_html_footer(self))
+            H.append(self.standard_html_footer(REQUEST))
             return '\n'.join(H)
         else: # Other exceptions, try carefully to build an error page...
               #log('exc A')
             H = []
             try:
-                H.append( self.standard_html_header(self) )
+                H.append( self.standard_html_header(REQUEST) )
             except:
                 pass
             H.append("""<table border="0" width="100%%"><tr valign="top">
@@ -670,7 +630,7 @@ ou <a href="mailto:%s">%s</a>
                 # display error traceback (? may open a security risk via xss attack ?)
                 #log('exc B')
             txt_html = self._report_request(REQUEST, fmt='html')
-            H.append("""<h4>Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
+            H.append("""<h4 class="scodoc">Zope Traceback (à envoyer par mail à <a href="mailto:%(sco_dev_mail)s">%(sco_dev_mail)s</a>)</h4><div style="background-color: rgb(153,153,204); border: 1px;">
 %(error_tb)s
 <p><b>Informations:</b><br/>
 %(txt_html)s
@@ -680,7 +640,7 @@ ou <a href="mailto:%s">%s</a>
 <p>Merci de votre patience !</p>
 """ % vars() )
             try:
-                H.append( self.standard_html_footer(self) )
+                H.append( self.standard_html_footer(REQUEST) )
             except:
                 log('no footer found for error page')
                 pass
@@ -768,20 +728,15 @@ subversion: %(svn_version)s
         if e:
             return e
         
-        H = [ self._html_begin % 
-              { 'page_title' : 'ScoDoc: bienvenue',
-                'encoding' : SCO_ENCODING },
-              self._top_level_css,
-              """</head>
-              <body>
-              
+        H = [ self.scodoc_top_html_header(REQUEST, page_title='ScoDoc: bienvenue' ),
+              """              
 <h3>Administration ScoDoc</h3>
 
 <p><a href="change_admin_user_form">changer le mot de passe super-administrateur</a></p>
 <p><a href="%s">retour à la page d'accueil</a></p>
 
-<h4>Création d'un département</h4>
-<p class="help">Le département doit avoir été créé au préalable sur le serveur en utilisant le script
+<h4 class="scodoc">Création d'un département</h4>
+<p class="help_important">Le département doit avoir été créé au préalable sur le serveur en utilisant le script
 <tt>create_dept.sh</tt> (à lancer comme <tt>root</tt> dans le répertoire <tt>config</tt> de ScoDoc).
 </p>""" % self.absolute_url()]
 
@@ -803,7 +758,7 @@ subversion: %(svn_version)s
             
         if deptList:
             H.append("""
-<h4>Suppression d'un département</h4>
+<h4 class="scodoc">Suppression d'un département</h4>
 <p>Ceci permet de supprimer le site web associé à un département, mais n'affecte pas la base de données 
 (le site peut donc être recréé sans perte de données).
 </p>
@@ -864,7 +819,11 @@ subversion: %(svn_version)s
             # est present dans plusieurs semestres mais inscrit dans aucun
             return  depts_etud[0][0]
         return last_dept.id
-        
+    
+    security.declareProtected('View', 'table_etud_in_accessible_depts')
+    table_etud_in_accessible_depts = sco_find_etud.table_etud_in_accessible_depts
+
+
 def manage_addZScoDoc(self, id= 'ScoDoc',
                       title='Site ScoDoc',
                       REQUEST=None):

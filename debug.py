@@ -12,6 +12,9 @@ Puis
 from debug import *
 context = go(app)
 
+authuser = app.acl_users.getUserById('admin')
+authuser = authuser.__of__(app.acl_users)
+
 Exemple:
 sems = context.Notes.formsemestre_list()
 formsemestre_id = sems[0]['formsemestre_id']

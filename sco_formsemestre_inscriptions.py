@@ -34,6 +34,7 @@ from sco_utils import *
 from notes_log import log
 from TrivialFormulator import TrivialFormulator, TF
 from notes_table import *
+import sco_find_etud
 
 def do_formsemestre_inscription_with_modules(
     context, formsemestre_id, etudid, group_ids=[], etat='I', REQUEST=None,
@@ -76,11 +77,13 @@ def formsemestre_inscription_with_modules_etud(context, formsemestre_id, etudid=
     Si etudid n'est pas specifié, form. choix etudiant.
     """
     if not etudid:
-        return context.formChercheEtud( title="Choix de l'étudiant à inscrire dans ce semestre",
-                                     add_headers=True,
-                                     dest_url='formsemestre_inscription_with_modules_etud',
-                                     parameters={ 'formsemestre_id' : formsemestre_id },
-                                     REQUEST=REQUEST )
+        return sco_find_etud.form_search_etud(context,
+            title="Choix de l'étudiant à inscrire dans ce semestre",
+            add_headers=True,
+            dest_url='formsemestre_inscription_with_modules_etud',
+            parameters={ 'formsemestre_id' : formsemestre_id },
+            REQUEST=REQUEST )
+    
     return formsemestre_inscription_with_modules(context, etudid, formsemestre_id, REQUEST=REQUEST,
                                                  group_ids=group_ids)
 
