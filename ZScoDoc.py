@@ -96,7 +96,7 @@ class ZScoDoc(ObjectManager,
         self.manage_addProperty('admin_password_initialized', '0', 'string')
 
     security.declareProtected(ScoView, 'ScoDocURL')
-    def ScoDocURL(self): # XXX unused
+    def ScoDocURL(self): 
         "base URL for this instance (top level for ScoDoc site)"
         return self.absolute_url()
 
@@ -380,13 +380,13 @@ class ZScoDoc(ObjectManager,
         H.append("""
         <div class="maindiv">
         <h2>ScoDoc: gestion scolarité</h2>
-        <p>""")
+        """)
         if authuser.has_role('Authenticated'):
-            H.append('Bonjour <font color="red"><b>%s</b></font>.' % str(authuser))
-        H.append("""
-        Ce site est <font color="red"><b>réservé au personnel autorisé</b></font>.        
-        """)        
-        H.append('</p>')
+            H.append("""<p>Bonjour <font color="red"><b>%s</b></font>.</p>""" % str(authuser))
+            H.append("""<p>N'oubliez pas de vous <a href="acl_users/logout">déconnecter</a> après usage.</p>""")
+        else:
+            H.append("""<p>Ce site est <font color="red"><b>réservé au personnel autorisé</b></font></p>""")
+            H.append(self.authentication_form(destination='.'))
         
         if not deptList:
             H.append('<em>aucun département existant !</em>')
@@ -432,6 +432,25 @@ E. Viennet (Université Paris 13).</p>
         H.append("""</body></html>""")
         return '\n'.join(H)
 
+    def authentication_form(self, destination=''):
+        """html snippet for authentication"""
+        return """<!-- authentication_form -->
+<form action="doLogin" method="post">
+   <input type="hidden" name="destination" value="%s"/>
+<p>
+ <table border="0" cellpadding="3">
+    <tr>
+      <td><b>Nom:</b></td>
+      <td><input id="name" type="text" name="__ac_name" size="20"/></td>
+    </tr><tr>
+      <td><b>Mot de passe:</b></td>
+      <td><input id="password" type="password" name="__ac_password" size="20"/></td>
+      <td><input id="submit" name="submit" type="submit" value="OK"/></td>
+    </tr>
+ </table>
+</p>
+</form>""" % destination
+    
     security.declareProtected('View', 'index_dept')
     def index_dept(self, deptfoldername='', REQUEST=None):
         """Page d'accueil departement"""
@@ -445,41 +464,16 @@ E. Viennet (Université Paris 13).</p>
         
         H = [ self.standard_html_header(REQUEST),
               """<div style="margin: 1em;">
-
-<h2>Scolarité du département %s</h2>
-<p>
-
-Ce site est 
+<h2>Scolarité du département %s</h2>""" % deptfoldername,
+              """<p>Ce site est 
 <font color="#FF0000"><b>réservé au personnel du département</b></font>.
-</p>
-
-
-<!-- login -->
-<form action="doLogin" method="post">
-   <input type="hidden" name="destination" value="Scolarite"/>
-<p>
- <table border="0" cellpadding="3">
-    <tr>
-      <td><b>Nom:</b></td>
-      <td><input id="name" type="text" name="__ac_name" size="20"/></td>
-    </tr><tr>
-      <td><b>Mot de passe:</b></td>
-      <td><input id="password" type="password" name="__ac_password" size="20"/></td>
-      <td><input id="submit" name="submit" type="submit" value="OK"/></td>
-    </tr>
- </table>
-</p>
-</form>
-
-
-<p>Pour quitter, <a href="acl_users/logout">logout</a>
-</p>
-<p>Ce site est conçu pour un navigateur récent et <em>ne s'affichera pas correctement avec un logiciel
-ancien</em>. Utilisez par exemple Firefox (gratuit et respectueux des normes).</p>
-<a href="http://www.mozilla-europe.org/fr/products/firefox/">%s</a>
-
+</p>""",
+              self.authentication_form(destination='Scolarite'),
+              """
+<p>Pour quitter, <a href="acl_users/logout">logout</a></p>
+<p><a href="%s">Retour à l'accueil</a></p>
 </div>
-""" % (deptfoldername, icontag('firefox_fr', border='0')),
+""" % self.ScoDocURL(),
               self.standard_html_footer(REQUEST)]
         return '\n'.join(H)
 
