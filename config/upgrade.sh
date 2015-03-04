@@ -45,7 +45,6 @@ else
   echo 'Warning: cannot connect to scodoc release server'
 fi
 
-exit 0
 
 # Check that no Zope "access" file has been forgotten in the way:
 if [ -e $SCODOC_DIR/../../access ]
