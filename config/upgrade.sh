@@ -26,7 +26,7 @@ SVNVERSION=$(cd ..; svnversion)
 if [ -e "$SCODOC_DIR"/config/scodoc.sn ]
 then
   SN=$(cat "$SCODOC_DIR"/config/scodoc.sn)
-  if [[ -n "$SN" && ${SN:0:5} == '<body' ]]
+  if [[ ! "${SN}" =~ ^[0-9].* ]]
   then
     SN='' # fix for invalid previous replies
   fi 
@@ -35,12 +35,17 @@ else
   mode=install  
 fi
 
-SVERSION=$(curl --fail --connect-timeout 5 --silent http://scodoc.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn="$SVNVERSION"\&sn="$SN")
+CMD="curl --fail --connect-timeout 5 --silent http://scodoc.iutv.univ-paris13.fr/scodoc-installmgr/version?mode=$mode\&svn=${SVNVERSION}\&sn=${SN}"
+#echo $CMD
+SVERSION="$(${CMD})"
 if [ $? == 0 ]; then
+  #echo "answer=${SVERSION}" 
   echo "${SVERSION}" > "${SCODOC_DIR}"/config/scodoc.sn
 else
   echo 'Warning: cannot connect to scodoc release server'
 fi
+
+exit 0
 
 # Check that no Zope "access" file has been forgotten in the way:
 if [ -e $SCODOC_DIR/../../access ]
