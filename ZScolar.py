@@ -5,7 +5,7 @@
 #
 # Gestion scolarite IUT
 # 
-# Copyright (c) 2001 - 2014 Emmanuel Viennet.  All rights reserved.
+# Copyright (c) 2001 - 2015 Emmanuel Viennet.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -369,7 +369,7 @@ class ZScolar(ObjectManager,
     def about(self, REQUEST):
         "version info"
         H = [ """<h2>Système de gestion scolarité</h2>
-        <p>&copy; Emmanuel Viennet 1997-2014</p>
+        <p>&copy; Emmanuel Viennet 1997-2015</p>
         <p>Version %s (subversion %s)</p>
         """ % (SCOVERSION, get_svn_version(file_path)) ]
         H.append('<p>Logiciel libre écrit en <a href="http://www.python.org">Python</a>.</p><p>Utilise <a href="http://www.reportlab.org/">ReportLab</a> pour générer les documents PDF, et <a href="http://sourceforge.net/projects/pyexcelerator">pyExcelerator</a> pour le traitement des documents Excel.</p>')

@@ -8,6 +8,12 @@ SCONAME = "ScoDoc"
 SCONEWS = """
 <h4>Année 2014</h4>
 <ul>
+<li>recherche étudiants sur plusieurs départements</li>
+</ul>
+
+
+<h4>Année 2014</h4>
+<ul>
 <li>Nouvelle interface pour listes groupes, photos, feuilles d'émargement.</li>
 </ul>
 <h4>Année 2013</h4>
