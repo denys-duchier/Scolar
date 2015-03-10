@@ -264,8 +264,11 @@ def do_moduleimpl_moyennes(context, mod):
                 if note != None and note != NOTES_NEUTRALISE and note != NOTES_ATTENTE:
                     if type(R[etudid]) != FloatType:
                         R[etudid] = note
-                    elif note > R[etudid]:
-                        R[etudid] = note
+                    else:
+                        note_sur_20 = note * 20. / eval_rattr['note_max']
+                        if note_sur_20 > R[etudid]:
+                            log('note_sur_20=%s' % note_sur_20)
+                            R[etudid] = note_sur_20
     
     return R, valid_evals, attente, diag_info
 
