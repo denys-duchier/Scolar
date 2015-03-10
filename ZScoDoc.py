@@ -524,10 +524,9 @@ E. Viennet (Université Paris 13).</p>
     security.declareProtected('View', 'standard_html_footer')
     def standard_html_footer(self, REQUEST=None):
         return """<p class="footer">
-Problème de connexion (identifiant, mot de passe): <em>contacter votre responsable ou chef de département</em>.<br/>
-Probl&egrave;mes et suggestions sur le logiciel: <a href="mailto:emmanuel.viennet@univ-paris13.fr">emmanuel.viennet@univ-paris13.fr</a>
-ou <a href="mailto:%s">%s</a>
-</p>
+Problème de connexion (identifiant, mot de passe): <em>contacter votre responsable ou chef de département</em>.</p>
+<p>Probl&egrave;mes et suggestions sur le logiciel: <a href="mailto:%s">%s</a></p>
+<p><em>ScoDoc est un logiciel libre développé par Emmanuel Viennet.</em></p>
 </body></html>""" % (SCO_USERS_LIST, SCO_USERS_LIST)
 
     # sendEmail is not used through the web
