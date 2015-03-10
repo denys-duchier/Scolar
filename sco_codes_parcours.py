@@ -64,7 +64,7 @@ CODES_EXPL = {
     ADC : 'Validé par compensation',
     ADJ : 'Validé par le Jury',
     ATT : 'Décision en attente d\'un autre semestre (faute d\'atteindre la moyenne)',
-    ATB : 'Décision en attente d\'un autre semestre (une UE n\'atteint pas la barre)',
+    ATB : 'Décision en attente d\'un autre semestre (au moins une UE sous la barre)',
     ATJ : 'Décision en attente d\'un autre semestre (assiduité insuffisante)',
     AJ  : 'Ajourné (échec)',
     NAR : 'Echec, non autorisé à redoubler',
