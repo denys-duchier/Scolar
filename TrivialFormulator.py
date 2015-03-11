@@ -279,7 +279,7 @@ class TF:
         </tr>
         """
         hiddenitemtemplate = "%(elem)s"
-        separatortemplate = '<tr><td colspan="2">%(label)s</td></tr>'
+        separatortemplate = '<tr%(item_dom_attr)s><td colspan="2">%(label)s</td></tr>'
         # ---- build form
         buttons_markup = ''
         if self.submitbutton:
@@ -336,7 +336,7 @@ class TF:
                     etempl = hiddenitemtemplate
                 elif input_type == 'separator':
                     etempl = separatortemplate
-                    R.append( etempl % { 'label' : title } )
+                    R.append( etempl % { 'label' : title, 'item_dom_attr' : item_dom_attr } )
                     continue
                 else:
                     etempl = itemtemplate

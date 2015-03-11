@@ -782,6 +782,10 @@ def _formsemestre_bulletinetud_header_html(context, etud, etudid, sem,
           'url' : 'formsemestre_validate_previous_ue?etudid=%s&amp;formsemestre_id=%s' % (etudid, formsemestre_id),
           'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)
           },
+        { 'title' : "Enregistrer note d'une UE externe",
+          'url' : 'external_ue_create_form?etudid=%s&amp;formsemestre_id=%s' % (etudid, formsemestre_id),
+          'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)
+        },          
         { 'title' : 'Entrer décisions jury',
           'url' : 'formsemestre_validation_etud_form?formsemestre_id=%s&amp;etudid=%s'%(formsemestre_id,etudid),
           'enabled' : context._can_validate_sem(REQUEST, formsemestre_id)

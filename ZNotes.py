@@ -63,6 +63,7 @@ import sco_report
 import sco_lycee
 import sco_poursuite_dut
 import sco_debouche
+import sco_ue_external
 import sco_cost_formation
 import sco_formsemestre_validation, sco_parcours_dut, sco_codes_parcours
 import sco_pvjury, sco_pvpdf, sco_prepajury
@@ -1886,7 +1887,7 @@ class ZNotes(ObjectManager,
             ModEvals = self.do_evaluation_list(
                 args={ 'moduleimpl_id' : moduleimpl_id },
                 sortkey='jour asc, heure_debut asc' )
-            log('ModEvals=[%s]' % ','.join( [x['evaluation_id'] for x in ModEvals ]) )
+            # log('ModEvals=[%s]' % ','.join( [x['evaluation_id'] for x in ModEvals ]) )
             if args['jour']:
                 next_eval = None
                 t = (DateDMYtoISO(args['jour']),
@@ -1929,6 +1930,7 @@ class ZNotes(ObjectManager,
         moduleimpl_id = args['moduleimpl_id']
         # check date
         jour = args.get('jour', None)
+        args['jour'] = jour
         if jour:
             M = self.do_moduleimpl_list( args={ 'moduleimpl_id' : moduleimpl_id } )[0]
             sem = self.get_formsemestre(M['formsemestre_id'])
@@ -1942,7 +1944,9 @@ class ZNotes(ObjectManager,
             if (jour > date_fin) or (jour < date_debut):
                 raise ScoValueError("La date de l'évaluation (%s/%s/%s) n'est pas dans le semestre !" % (d,m,y))
         heure_debut = args.get('heure_debut', None)
+        args['heure_debut'] = heure_debut
         heure_fin = args.get('heure_fin', None)
+        args['heure_fin'] = heure_fin
         d = TimeDuration(heure_debut, heure_fin)
         if d and ((d < 0) or (d > 60*12)):
             raise ScoValueError("Heures de l'évaluation incohérentes !")            
@@ -2445,6 +2449,10 @@ class ZNotes(ObjectManager,
         #
         return self.sco_header(REQUEST) + '<p>%d bulletins envoyés par mail !</p><p><a class="stdlink" href="formsemestre_status?formsemestre_id=%s">continuer</a></p>' % (len(etudids),formsemestre_id) + self.sco_footer(REQUEST)
 
+    
+    security.declareProtected(ScoView, 'formsemestre_bulletins_mailetuds')
+    external_ue_create_form = sco_ue_external.external_ue_create_form
+    
     security.declareProtected(ScoEnsView, 'appreciation_add_form')
     def appreciation_add_form(self, etudid=None, formsemestre_id=None,
                               id=None, # si id, edit

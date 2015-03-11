@@ -667,7 +667,33 @@ def evaluation_suppress_alln(context, evaluation_id, REQUEST, dialog_confirmed=F
 
     return context.sco_header(REQUEST) + '\n'.join(H) + context.sco_footer(REQUEST)
 
+def convert_note_from_string(note, note_max, etudid=None, absents=[], tosuppress=[], invalids=[] ):
+    """converti une valeur (chaine saisie) vers une note numérique (float)
+    Les listes absents, tosuppress et invalids sont modifiées
+    """
+    invalid = False
+    note = note.replace(',','.')
+    if note[:3] == 'ABS':
+        note_value = None
+        absents.append(etudid)
+    elif note[:3] == 'NEU' or note[:3] == 'EXC':
+        note_value = NOTES_NEUTRALISE
+    elif  note[:3] == 'ATT':
+        note_value = NOTES_ATTENTE
+    elif note[:3] == 'SUP':
+        note_value = NOTES_SUPPRESS
+        tosuppress.append(etudid)
+    else:
+        try:
+            note_value = float(note)
+            if (note_value < NOTES_MIN) or (note_value > note_max):
+                raise ValueError
+        except:
+            invalids.append(etudid)
+            invalid = True
 
+    return note_value, invalid
+    
 def _check_notes( notes, evaluation ):
     """notes is a list of tuples (etudid, value)
     returns list of valid notes (etudid, float value)
@@ -681,32 +707,15 @@ def _check_notes( notes, evaluation ):
     tosuppress = [] # etudids avec ancienne note à supprimer
     existingjury = [] # etudids avec decision de jury (sem et/ou UE) a revoir eventuellement
     for (etudid, note) in notes:
-        note = str(note)        
+        note = str(note).strip().upper()
+        if note[:3] == 'DEM':
+            continue # skip !
         if note:
-            invalid = False
-            note = note.strip().upper().replace(',','.')
-            if note[:3] == 'ABS':
-                note = None
-                absents.append(etudid)
-            elif note[:3] == 'NEU' or note[:3] == 'EXC':
-                note = NOTES_NEUTRALISE
-            elif  note[:3] == 'ATT':
-                note = NOTES_ATTENTE
-            elif note[:3] == 'SUP':
-                note = NOTES_SUPPRESS
-                tosuppress.append(etudid)
-            elif note[:3] == 'DEM':
-                continue # skip !
-            else:
-                try:
-                    note = float(note)
-                    if (note < NOTES_MIN) or (note > note_max):
-                        raise ValueError
-                except:
-                    invalids.append(etudid)
-                    invalid = True
+            value, invalid = convert_note_from_string(
+                note, note_max, 
+                etudid=etudid, absents=absents, tosuppress=tosuppress, invalids=invalids )
             if not invalid:
-                L.append((etudid,note))
+                L.append((etudid,value))
         else:
             withoutnotes.append(etudid)
     
