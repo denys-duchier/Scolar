@@ -210,7 +210,7 @@ def make_formsemestre_recapcomplet(
                 h.append('')
             pass
         
-        if not hidemodules:
+        if not hidemodules and not ue['is_external']:
             for modimpl in modimpls:
                 if modimpl['module']['ue_id'] == ue['ue_id']:
                     code = modimpl['module']['code']
@@ -286,14 +286,14 @@ def make_formsemestre_recapcomplet(
         i = 0
         for ue in ues:
             i += 1
-            if ue['type'] !=UE_SPORT:
+            if ue['type'] != UE_SPORT:
                 l.append( fmtnum(t[i]) ) # moyenne etud dans ue
             else: # UE_SPORT:
                 # n'affiche pas la moyenne d'UE dans ce cas
                 if not hidemodules:
                     l.append('')
             ue_index.append(len(l)-1)
-            if not hidemodules:
+            if not hidemodules and not ue['is_external']:
                 j = 0
                 for modimpl in modimpls:
                     if modimpl['module']['ue_id'] == ue['ue_id']:
@@ -331,7 +331,7 @@ def make_formsemestre_recapcomplet(
                 if not hidemodules:
                     l.append('') 
             ue_index.append(len(l)-1)
-            if not hidemodules:
+            if not hidemodules and not ue['is_external']:
                 for modimpl in modimpls:
                     if modimpl['module']['ue_id'] == ue['ue_id']:
                         if key == 'coef':

@@ -582,7 +582,7 @@ _scolar_formsemestre_validation_editor = EditableTable(
     'scolar_formsemestre_validation',
     'formsemestre_validation_id',
     ('formsemestre_validation_id', 'etudid', 'formsemestre_id', 'ue_id', 'code', 'assidu', 'event_date',
-     'compense_formsemestre_id', 'moy_ue', 'semestre_id' ),
+     'compense_formsemestre_id', 'moy_ue', 'semestre_id', 'is_external' ),
     output_formators = { 'event_date' : DateISOtoDMY,
                          'assidu' : str },
     input_formators  = { 'event_date' : DateDMYtoISO,
@@ -694,12 +694,17 @@ def formsemestre_validate_ues(znotes, formsemestre_id, etudid, code_etat_sem, as
                   msg='ue_id=%s code=%s'%(ue_id, code_ue), commit=False)
     cnx.commit()
 
-def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, etudid, ue_id, code, moy_ue=None, date=None, semestre_id=None):
+def do_formsemestre_validate_ue(cnx, nt, formsemestre_id, 
+                                etudid, ue_id, code, moy_ue=None, date=None, semestre_id=None,
+                                is_external=0
+                                ):
     "Ajoute ou change validation UE"
     args = { 'formsemestre_id' : formsemestre_id, 
              'etudid' : etudid, 
              'ue_id' : ue_id, 
-             'semestre_id' : semestre_id }
+             'semestre_id' : semestre_id,
+             'is_external' : is_external
+             }
     if date:
         args['event_date'] = date
         
@@ -763,11 +768,13 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
     """Liste des UE capitalisées (ADM) correspondant au semestre sem.
     Recherche dans les semestres de la même formation (code) avec le même
     semestre_id et une date de début antérieure à celle du semestre mentionné.
+    Et aussi les UE externes validées.
     Resultat: [ { 'formsemestre_id' :
                   'ue_id' :
                   'ue_code' : 
                   'moy_ue' :
-                  'event_date' :                  
+                  'event_date' : 
+                  'is_external'                 
                   } ]
     """
     cnx = znotes.GetDBConnexion()
@@ -787,7 +794,7 @@ def formsemestre_get_etud_capitalisation(znotes, sem, etudid):
            and sem.date_debut < %(date_debut)s
            and sem.semestre_id = %(semestre_id)s )
          or (
-             (SFV.formsemestre_id is NULL) 
+             ((SFV.formsemestre_id is NULL) OR (SFV.is_external = 1)) -- les UE externes ou "anterieures"
              AND (SFV.semestre_id is NULL OR SFV.semestre_id=%(semestre_id)s)
            ) )
     """, { 'etudid' : etudid,

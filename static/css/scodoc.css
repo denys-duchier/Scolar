@@ -1916,6 +1916,10 @@ td.ue_cmp {
 td.ue { 
 }
 
+td.ue_capitalized {
+  text-decoration: underline;
+}
+
 h3.sfv {   
   margin-top: 0px;
 }
@@ -2115,7 +2119,7 @@ tr#tf_extue_decl > td, tr#tf_extue_note > td {
    padding-top: 20px;
 }
 
-tr#tf_extue_titre > td, tr#tf_extue_acronyme > td, tr#tf_extue_ects > td {
+tr#tf_extue_titre > td, tr#tf_extue_acronyme > td, tr#tf_extue_type > td, tr#tf_extue_ects > td {
     padding-left: 20px;
 }
 

@@ -59,6 +59,7 @@ from sco_utils import *
 from notes_log import log
 import sco_edit_ue
 import sco_saisie_notes
+import sco_codes_parcours
 
 def external_ue_create(context, 
                        formsemestre_id,                       
@@ -89,9 +90,14 @@ def external_ue_create(context,
         'is_external' : 1,
         }, REQUEST)
 
-    matiere_id = context.do_matiere_create( { 'ue_id' : ue_id, 'titre' : titre, 'numero' : 1 }, REQUEST )
+    matiere_id = context.do_matiere_create( 
+        { 'ue_id' : ue_id, 
+          'titre' : titre or acronyme,
+          'numero' : 1,
+          }, REQUEST )
+    
     module_id = context.do_module_create( 
-        { 'titre' : titre, 
+        { 'titre' : 'UE extérieure', 
           'code' : acronyme,
           'coefficient' : 1.0, # tous les modules auront coef 1, et on utilisera les ECTS
           'ue_id' : ue_id,
@@ -113,15 +119,22 @@ def external_ue_inscrit_et_note(context, moduleimpl_id, formsemestre_id, notes_e
     # Inscription des étudiants
     context.do_moduleimpl_inscrit_etuds(moduleimpl_id, formsemestre_id, notes_etuds.keys(), REQUEST=REQUEST )
     
-    # Création d'une évaluation
-    evaluation_id = context.do_evaluation_create(REQUEST, {
-        'moduleimpl_id' : moduleimpl_id,
-        'note_max' : 20.,
-        'coefficient' : 1.,
-        'publish_incomplete' : 1,
-        'evaluation_type' : 0,        
-        'visibulletin' : 0, 
-    } )
+    # Création d'une évaluation si il n'y en a pas déjà:
+    ModEvals = context.do_evaluation_list( args={ 'moduleimpl_id' : moduleimpl_id } )
+    if len(ModEvals):
+        # met la note dans le première évaluation existante:
+        evaluation_id = ModEvals[0]['evaluation_id']
+    else:
+        # crée une évaluation:
+        evaluation_id = context.do_evaluation_create(REQUEST, {
+            'moduleimpl_id' : moduleimpl_id,
+            'note_max' : 20.,
+            'coefficient' : 1.,
+            'publish_incomplete' : 1,
+            'evaluation_type' : 0,        
+            'visibulletin' : 0, 
+            'description' : 'note externe',
+        } )
     # Saisie des notes
     nbchanged, nbsuppress, existing_decisions = sco_saisie_notes._notes_add(
         context, REQUEST.AUTHENTICATED_USER, evaluation_id, notes_etuds.items(), do_it=True )
@@ -159,17 +172,40 @@ def external_ue_create_form(context, formsemestre_id, etudid, REQUEST=None):
     if not authuser.has_permission(ScoImplement,context):
         if not sem['resp_can_edit'] or str(authuser) != sem['responsable_id']:
             raise AccessDenied("vous n'avez pas le droit d'effectuer cette opération")
-    
+
+    etud = context.getEtudInfo(etudid=etudid, filled=1, REQUEST=REQUEST)[0]
     sem = context.get_formsemestre(formsemestre_id)
     formation_id = sem['formation_id']
     F = context.formation_list( args={ 'formation_id' : formation_id } )[0]
     existing_external_ue = get_existing_external_ue(context, formation_id)
 
     
-    H = [ context.html_sem_header(REQUEST, "Ajout d'une UE externe", sem,
-                                  init_jquery_ui=True,
-                                  javascripts=['js/sco_ue_external.js'],
-                                  ) ]
+    H = [ 
+        context.html_sem_header(REQUEST, "Ajout d'une UE externe pour %(nomprenom)s" % etud, sem,
+                                init_jquery_ui=True,
+                                javascripts=['js/sco_ue_external.js'],
+                                ) 
+        ]
+    help_html = """<p class="help">Cette page permet d'indiquer que l'étudiant a suivi une UE 
+    dans un autre établissement et qu'elle doit être intégrée dans le semestre courant.<br/>
+    La note (/20) obtenue par l'étudiant doit toujours être spécifiée.</br>
+    On peut choisir une UE externe existante (dans le menu), ou bien en créer une, qui sera 
+    alors ajoutée à la formation.
+    </p>
+    """
+    html_footer = help_html + context.sco_footer(REQUEST)
+    Fo = context.formation_list( args={ 'formation_id' : sem['formation_id'] } )[0]
+    parcours = sco_codes_parcours.get_parcours_from_code(Fo['type_parcours'])
+    ue_types = parcours.ALLOWED_UE_TYPES
+    ue_types.sort()
+    ue_types_names = [ UE_TYPE_NAME[k] for k in ue_types ]
+    ue_types = [ str(x) for x in ue_types ]
+
+    if existing_external_ue:
+        default_label = 'Nouvelle UE'
+    else:
+        default_label = 'Aucune UE externe existante'
+    
     tf = TrivialFormulator(REQUEST.URL0, REQUEST.form, (
         ('formsemestre_id', { 'input_type' : 'hidden' }),
         ('etudid', { 'input_type' : 'hidden' }),
@@ -177,14 +213,22 @@ def external_ue_create_form(context, formsemestre_id, etudid, REQUEST=None):
             'input_type' : 'menu',
             'title' : 'UE externe existante:',
             'allowed_values' : [''] + [ ue['ue_id'] for ue in existing_external_ue ],
-            'labels' :  ['(aucune)'] + [ '%s (%s)' % (ue['titre'], ue['acronyme']) for ue in existing_external_ue ],
+            'labels' :  [default_label] + [ '%s (%s)' % (ue['titre'], ue['acronyme']) for ue in existing_external_ue ],
             'attributes' : [ 'onchange="update_external_ue_form();"' ],
             'explanation' : 'inscrire cet étudiant dans cette UE'
             }),
         ('sep', { 'input_type' : 'separator', 'title' : 'Ou bien déclarer une nouvelle UE externe:', 'dom_id' : 'tf_extue_decl' }),
         # champs a desactiver si une UE existante est choisie
         ('titre', { 'size' : 30, 'explanation' : 'nom de l\'UE', 'dom_id' : 'tf_extue_titre' }),
-        ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 'allow_null' : False, 'dom_id' : 'tf_extue_acronyme' }),
+        ('acronyme' , { 'size' : 8, 'explanation' : 'abbréviation', 
+                        'allow_null' : True, # attention: verifier 
+                        'dom_id' : 'tf_extue_acronyme' }),
+        ('type', { 'explanation': 'type d\'UE',
+                   'input_type' : 'menu',
+                   'allowed_values': ue_types,
+                   'labels' : ue_types_names,
+                   'dom_id' : 'tf_extue_type'
+                   }),
         ('ects', { 'size' : 4, 'type' : 'float', 'title' : 'ECTS', 'explanation' : 'nombre de crédits ECTS', 'dom_id' : 'tf_extue_ects' }),
         #
         ('note', { 'size' : 4, 'explanation' : 'note sur 20', 'dom_id' : 'tf_extue_note' }),
@@ -195,23 +239,26 @@ def external_ue_create_form(context, formsemestre_id, etudid, REQUEST=None):
 
     bull_url = 'formsemestre_bulletinetud?formsemestre_id=%s&amp;etudid=%s' % (formsemestre_id,etudid)
     if  tf[0] == 0:
-        return '\n'.join(H) + '\n' + tf[1] + context.sco_footer(REQUEST)
+        return '\n'.join(H) + '\n' + tf[1] + html_footer
     elif tf[0] == -1:
         return REQUEST.RESPONSE.redirect(bull_url)
     else:
         note = tf[2]['note'].strip().upper()
         note_value, invalid = sco_saisie_notes.convert_note_from_string(note, 20.)
         if invalid:
-            return '\n'.join(H) + '\n' + tf_error_message("valeur note invalide") + tf[1] + context.sco_footer(REQUEST)
+            return '\n'.join(H) + '\n' + tf_error_message("valeur note invalide") + tf[1] + html_footer
         if tf[2]['existing_ue']:
             ue_id = tf[2]['existing_ue']
             moduleimpl_id = get_external_moduleimpl_id(context, formsemestre_id, ue_id)
         else:
+            acronyme=tf[2]['acronyme'].strip()
+            if not acronyme:
+                return '\n'.join(H) + '\n' + tf_error_message("spécifier acronyme d'UE") + tf[1] + html_footer
             moduleimpl_id = external_ue_create(
                 context, formsemestre_id, REQUEST=REQUEST,
                 titre=tf[2]['titre'], 
-                acronyme=tf[2]['acronyme'],
-                ue_type=UE_STANDARD, # doit-on avoir le choix ? 
+                acronyme=acronyme,
+                ue_type=tf[2]['type'], # type de l'UE
                 ects=tf[2]['ects']  
                 )
         

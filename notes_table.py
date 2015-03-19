@@ -601,6 +601,7 @@ class NotesTable:
             coef_ue = mu['sum_coefs']
             mu['is_capitalized']  = False # l'UE prise en compte est une UE capitalisée
             mu['was_capitalized'] = False # il y a precedemment une UE capitalisée (pas forcement meilleure)
+            is_external = 0
             event_date = None
             for ue_cap in self.ue_capitalisees[etudid]:
                 if ue_cap['ue_code'] == ue['ue_code']:
@@ -615,10 +616,12 @@ class NotesTable:
                         capitalized_ue_id = ue_cap['ue_id']
                         formsemestre_id = ue_cap['formsemestre_id']
                         coef_ue = self.ue_coefs[ue_id]
+                        is_external=ue_cap['is_external']
                         
             mu['cur_moy_ue'] = mu['moy'] # la moyenne dans le sem. courant
             mu['cur_coef_ue']= mu['sum_coefs']
             mu['moy'] = max_moy_ue   # la moyenne d'UE a prendre en compte
+            mu['is_external'] = is_external # validation externe (dite "antérieure")
             
             mu['coef_ue'] = coef_ue # coef reel ou coef de l'ue si capitalisee
             if mu['is_capitalized']:
@@ -855,6 +858,7 @@ class NotesTable:
                 self.ue_capitalisees[etudid].append(ue_cap)
         if cnx:
             cnx.commit()
+        #log('comp_ue_capitalisees=\n%s' % pprint.pformat(self.ue_capitalisees) )
     
     def comp_ue_coefs(self, cnx):
         """Les coefficients sont attribués aux modules, pas aux UE.

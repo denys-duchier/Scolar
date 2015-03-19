@@ -672,6 +672,7 @@ def convert_note_from_string(note, note_max, etudid=None, absents=[], tosuppress
     Les listes absents, tosuppress et invalids sont modifiées
     """
     invalid = False
+    note_value = None
     note = note.replace(',','.')
     if note[:3] == 'ABS':
         note_value = None

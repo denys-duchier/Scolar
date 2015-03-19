@@ -483,13 +483,28 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
                 code = ''
             ue_status = nt.get_etud_ue_status(etudid, ue['ue_id'])
             moy_ue = ue_status['moy']
+            explanation_ue = [] # list of strings 
             if code == 'ADM':
                 class_ue = 'ue_adm'
             elif code == 'CMP':
                 class_ue = 'ue_cmp'
             else:
                 class_ue = 'ue'
-            H.append('<td class="%s">%s</td>' % (class_ue, notes_table.fmt_note(moy_ue)) )
+            if ue_status['is_external']: # validation externe
+                explanation_ue.append( 'UE externe.' )
+                #log('x'*12+' EXTERNAL %s' % notes_table.fmt_note(moy_ue)) XXXXXXX
+                #log('UE=%s' % pprint.pformat(ue))
+                #log('explanation_ue=%s\n'%explanation_ue)
+            if ue_status['is_capitalized']:
+                class_ue += ' ue_capitalized'
+                explanation_ue.append('Capitalisée le %s.' % (ue_status['event_date'] or '?'))
+                #log('x'*12+' CAPITALIZED %s' % notes_table.fmt_note(moy_ue))
+                #log('UE=%s' % pprint.pformat(ue))
+                #log('UE_STATUS=%s'  % pprint.pformat(ue_status)) XXXXXX
+                #log('')
+                
+            H.append('<td class="%s" title="%s">%s</td>' 
+                     % (class_ue, ' '.join(explanation_ue), notes_table.fmt_note(moy_ue)) )
         if len(ues) < Se.nb_max_ue:
             H.append('<td colspan="%d"></td>' % (Se.nb_max_ue - len(ues)))
         
@@ -873,7 +888,11 @@ def do_formsemestre_validate_previous_ue(context, formsemestre_id, etudid, ue_id
     nt = context._getNotesCache().get_NotesTable(context, formsemestre_id ) #> get_etud_ue_status
 
     sco_parcours_dut.do_formsemestre_validate_ue(
-        cnx, nt, None, etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date, semestre_id=semestre_id)
+        cnx, nt, 
+        formsemestre_id, # "importe" cette UE dans le semestre (new 3/2015)
+        etudid, ue_id, 'ADM', moy_ue=moy_ue, date=date, semestre_id=semestre_id,
+        is_external=1
+        )
 
     logdb(REQUEST, cnx, method='formsemestre_validate_previous_ue',
           etudid=etudid, msg='Validation UE %s' % ue_id, commit=False)
