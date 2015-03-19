@@ -93,7 +93,10 @@ def etud_photo_url(context, etud, REQUEST=None):
         # Image in ZODB ? (backward compatibility)
         if zope_has_photo(context, etud):
             # in ZODB: copy to fs and get new path
-            path = url_from_rel_path(copy_zope_photo_to_fs(context, etud, REQUEST=REQUEST))
+            path = copy_zope_photo_to_fs(context, etud, REQUEST=REQUEST)
+            if not path: # copy failed for some reason (eg invalid image format stored in zodb)
+                path = unknown_image_path()
+            path = url_from_rel_path(path)
         else:
             # Portail ?
             path = photo_portal_url(context, etud)
@@ -129,10 +132,10 @@ def etud_photo_orig_html(context, etud, title=None):
     They are the original uploaded images, converted in jpeg.
     """
     path = has_photo(context, etud)
-    nom = etud.get('nomprenom', etud['nom_disp'])
     if not path:
         path = unknown_image_path()
     path = url_from_rel_path(path)
+    nom = etud.get('nomprenom', etud['nom_disp'])
     if title is None:
         title = nom
     return '<img src="%s" alt="photo %s" title="%s" border="0" />' % (path, nom, title)
@@ -279,7 +282,10 @@ def copy_zope_photo_to_fs(context, etud, REQUEST=None):
     except:
         img = getattr(context.Fotos, foto + '.h90.jpg' )
     log('copying zope image %s to local fs' % foto)
-    status, msg = store_photo(context, etud, img.data, REQUEST=REQUEST)
+    try:
+        status, msg = store_photo(context, etud, img.data, REQUEST=REQUEST)
+    except:
+        log('store failed: exception:\n%s' % traceback.format_exc())
     return has_photo(context, etud)
 
 def copy_portal_photo_to_fs(context, etud, REQUEST=None):

@@ -520,7 +520,7 @@ def formsemestre_recap_parcours_table( context, Se, etudid, with_links=False,
             H.append('<td class="rcp_type_sem" style="background-color:%s;">&nbsp;</td><td></td>'
                      % (bgcolor) )
             # total ECTS (affiché sous la moyenne générale)
-            H.append('<td class="sem_ects_tit"><a title="crédit obtenus (dont nb de fondamentaux)">ECTS:</a></td><td class="sem_ects">%g <span class="ects_fond">%g</span></td>'
+            H.append('<td class="sem_ects_tit"><a title="crédit potentiels (dont nb de fondamentaux)">ECTS:</a></td><td class="sem_ects">%g <span class="ects_fond">%g</span></td>'
                      % (etud_moy_infos['ects_pot'],etud_moy_infos['ects_pot_fond']))
             H.append('<td class="rcp_abs"></td>'  ) 
             # ECTS validables dans chaque UE
@@ -826,7 +826,8 @@ def formsemestre_validate_previous_ue(context, formsemestre_id, etudid, REQUEST=
     <em>dans un semestre hors ScoDoc</em>. Les UE validées dans ScoDoc sont déjà
     automatiquement prises en compte. Cette page n'est utile que pour les étudiants ayant 
     suivi un début de cursus dans un autre établissement, ou dans un semestre géré sans 
-    ScoDoc.</p>''',
+    ScoDoc. Notez que l'UE est validée, avec enregistrement immédiat de la décision et 
+    l'attribution des ECTS.</p>''',
           '<p>On ne peut prendre en compte ici que les UE du cursus <b>%(titre)s</b></p>' % Fo,
           ]
     
